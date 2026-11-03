@@ -87,11 +87,32 @@
     $("global-notice").hidden = false;
     $("live-status").textContent = message;
     if(error){const region=$($("review-view").hidden?"interview-error":"review-error");if(region){region.hidden=false;region.dataset.errorKind=kind;region.querySelector("span").textContent=message;}}
-    noticeTimer=setTimeout(()=>{$("global-notice").hidden=true;noticeTimer=null;},3000);
+    noticeTimer=setTimeout(dismissNotice,3000);
+  }
+  function dismissNotice() {
+    clearTimeout(noticeTimer);noticeTimer=null;
+    const region=$("global-notice"),restore=region.contains(document.activeElement);region.hidden=true;
+    if(restore)focusWorkspace($("review-view").hidden?"interview":"review");
   }
   function closeMenu() {
     $("session-menu").hidden = true;
     $("session-menu-toggle").setAttribute("aria-expanded", "false");
+  }
+  function scrollToElement(target, block="center") {
+    target?.scrollIntoView({behavior:window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches?"auto":"smooth",block});
+  }
+  function focusWorkspace(name) {
+    const target=name==="review" ? $("review-view") : state.started ? (conversationUI.view==="workflow"&&$("interview-view").classList.contains("workflow-expanded") ? $("workflow-expand") : $("conversation-tab-"+conversationUI.view)) : $("start-live");
+    if(!target)return;
+    if(name==="interview"&&!state.started)revealAncestors(target);
+    if(name==="review")target.tabIndex=-1;
+    else if(target.id.startsWith("conversation-tab-"))target.tabIndex=0;
+    target.focus({preventScroll:true});
+  }
+  function dismissInlineError(id) {
+    const region=$(id);if(!region)return;
+    const restore=region.contains(document.activeElement);region.hidden=true;
+    if(restore)focusWorkspace(id==="review-error"?"review":"interview");
   }
   function tab(name, focus = false) {
     if(name==="review"&&(conversationUI.live?.active||conversationUI.status==="closing")){notice("End live voice before opening Review. Your microphone controls stay here.");return;}
@@ -105,12 +126,7 @@
       if (active) button.setAttribute("aria-current", "page"); else button.removeAttribute("aria-current");
     });
     updatePresence();
-    if (focus) {
-      const target = name === "review" ? $("review-view") : state.started ? $("conversation-tab-"+conversationUI.view) : $("start-live");
-      if (name === "interview" && !state.started) revealAncestors(target);
-      target.tabIndex = -1;
-      target.focus({preventScroll: true});
-    }
+    if (focus) focusWorkspace(name);
   }
   function readContext() {
     return {
@@ -265,6 +281,16 @@
     if(open&&!sheet.open)sheet.showModal();
     if(!open&&sheet.open)sheet.close();
   }
+  function placeMemo(narrow) {
+    const rail=$("memo-rail"),sheet=$("memo-sheet"),focused=document.activeElement;
+    const restore=rail.contains(focused)||sheet.contains(focused);
+    if(!narrow)setMemoSheet(false,false);
+    (narrow?$("memo-sheet-body"):$("memo-host")).append(rail);
+    if(restore&&!$("foundation-dialog")?.open){
+      const target=narrow&&!sheet.open?$("open-memo"):rail.contains(focused)?focused:rail.querySelector("[data-foundation-topic]");
+      target?.focus({preventScroll:true});
+    }
+  }
   function setInterviewSettings(open, restoreFocus=true) {
     settingsRestoreFocus=restoreFocus;
     const dialog=$("interview-settings"); if(!dialog)return;
@@ -294,7 +320,10 @@
     $("close-foundation-topic").addEventListener("click",() => closeFoundationTopic());
     $("foundation-dialog").addEventListener("close",() => {
       document.querySelectorAll("[data-foundation-topic]").forEach(button => button.classList.remove("selected"));
-      const trigger = foundationReturnFocus?.isConnected ? foundationReturnFocus : document.querySelector(`[data-foundation-topic="${foundationTopic}"]`);
+      let trigger = foundationReturnFocus?.isConnected ? foundationReturnFocus : document.querySelector(`[data-foundation-topic="${foundationTopic}"]`);
+      // Resizing can move a desktop topic into the closed mobile memo sheet
+      // while its details remain open. Return to the visible memo control.
+      if(trigger?.closest?.("dialog")&&!trigger.closest("dialog").open)trigger=$("open-memo");
       if (foundationRestoreFocus && trigger) {revealAncestors(trigger);trigger.focus({preventScroll:true});}
       foundationReturnFocus = null; foundationTopic = null; foundationRestoreFocus = true;
     });
@@ -339,8 +368,10 @@
     root.querySelectorAll(selector).forEach(part=>{
       if(part.querySelector("button"))return;
       const original=part.textContent;part.textContent="";
-      const lower=original.toLocaleLowerCase(),needle=query.toLocaleLowerCase();let start=0,index=needle?lower.indexOf(needle):-1;
-      while(index!==-1&&ui.matches.length<500){part.append(el("span","",original.slice(start,index)));const mark=el("mark","search-match",original.slice(index,index+query.length));part.append(mark);ui.matches.push(mark);start=index+query.length;index=lower.indexOf(needle,start);}
+      // Match against original text: Unicode lowercasing may expand a character
+      // and shift later offsets (for example, a dotted capital I).
+      const pattern=query?new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"giu"):null;let start=0;
+      for(const match of pattern?original.matchAll(pattern):[]){if(ui.matches.length>=500)break;const index=match.index,end=index+match[0].length;part.append(el("span","",original.slice(start,index)));const mark=el("mark","search-match",original.slice(index,end));part.append(mark);ui.matches.push(mark);start=end;}
       part.append(el("span","",original.slice(start)));
     });
     ui.index=ui.matches.length?Math.max(0,Math.min(previous,ui.matches.length-1)):-1;
@@ -350,7 +381,7 @@
     const ui=readingUI[kind];ui.matches.forEach((mark,i)=>mark.classList.toggle("current-match",i===ui.index));
     const count=$(kind+"-search-count");if(count)count.textContent=ui.query?(ui.matches.length?`${ui.index+1} / ${ui.matches.length}${ui.matches.length===500?"+":""}`:"No matches"):"";
     for(const direction of ["previous","next"])if($(kind+"-search-"+direction))$(kind+"-search-"+direction).disabled=!ui.matches.length;
-    if(move)ui.matches[ui.index]?.scrollIntoView({block:"center",behavior:"smooth"});
+    if(move)scrollToElement(ui.matches[ui.index]);
   }
   function moveReadingSearch(kind,direction){const ui=readingUI[kind];if(!ui.matches.length)return;ui.index=(ui.index+direction+ui.matches.length)%ui.matches.length;updateSearchPosition(kind);}
   function rememberSourceOrigin(){sourceOrigin={generation:state.generation,review:!$("review-view").hidden,section:reviewUI.section,view:conversationUI.view,scroll:$("conversation-scroll").scrollTop,reviewScroll:$("review-view").scrollTop,topic:foundationTopic,memoOpen:Boolean($("memo-sheet")?.open),focus:document.activeElement,turn:document.activeElement?.dataset?.sourceTurn,step:workflowDetailSource?{...workflowDetailSource}:null};}
@@ -1235,7 +1266,7 @@
         const analysis=file.analysis||{};part.append(el("h3","",file.name));
         fields(part,[["Status",analysis.disposition||file.status],["Indexed units",`${file.coverage?.indexed_units||0} / ${file.coverage?.total_units||0}`],["Reviewed sections",`${analysis.reviewed_chunks||0} / ${analysis.total_chunks||file.chunk_count||0}`],["Document summary",analysis.summary||"Review is pending."],["Purpose supplied",analysis.purpose||"Not specified"]]);
         const open=el("button","text-button","Open file notes and sources ↗");open.type="button";open.addEventListener("click",()=>documentController?.open(file.id));part.append(open);
-        const limitations=[...(file.coverage?.limitations||[]),...(analysis.limitations||[])];if(file.error)limitations.push(file.error);if(analysis.error)limitations.push(analysis.error);
+        const limitations=documentLimitations(file);
         if(limitations.length){part.append(el("h4","","Reading limitations"));list(part,[...new Set(limitations)]);}
         if(analysis.observations?.length){part.append(el("h4","","Unconfirmed document observations"));list(part,analysis.observations.map(item=>`${item.text} — ${(item.sources||[]).map(source=>source.label||source.source_id).join("; ")}`));}
         const questions=analysis.questions?.length?analysis.questions:analysis.question?[{text:analysis.question,sources:analysis.sources||[]}]:[];
@@ -1283,7 +1314,7 @@
     if (id === "context") {
       revealContext();
       const context = $("context-details");
-      context.scrollIntoView({behavior:"smooth",block:"center"});
+      scrollToElement(context);
       context.tabIndex = -1;
       context.focus({preventScroll:true});
       if($("settings-source-return"))$("settings-source-return").hidden=false;
@@ -1294,7 +1325,7 @@
     if (!turn) { notice(`Source ${id} is not present in this session. Validate this step with the process owner.`, true); return; }
     selectConversationView("transcript");
     revealAncestors(turn);
-    turn.scrollIntoView({behavior: "smooth", block: "center"});
+    scrollToElement(turn);
     turn.classList.remove("highlight");
     void turn.offsetWidth;
     turn.classList.add("highlight");
@@ -1306,8 +1337,8 @@
     const target = $(id);
     if (!target || !selectReviewSection(id)) return;
     revealAncestors(target);
-    target.scrollIntoView({behavior:"smooth",block:"start"});
-    target.tabIndex = -1;
+    scrollToElement(target,"start");
+    if(target.getAttribute("tabindex")===null)target.tabIndex = -1;
     target.focus({preventScroll:true});
   }
   function selectReviewSection(id, focusTab = false) {
@@ -1706,7 +1737,7 @@
       parts.push("## Supporting files and document review","Document claims and AI interpretations are unconfirmed reference material. They do not establish the participant's actual process or memo completeness. Originals remain on this computer; the saved interview contains references, not embedded files.");
       for(const file of files){const a=file.analysis||{};
         parts.push(`### ${md(file.name)}`,`- File reference: ${md(file.id)}`,`- State: ${md(a.disposition||file.status)}`,`- Indexed units: ${file.coverage?.indexed_units||0} / ${file.coverage?.total_units||0}`,`- Reviewed sections: ${a.reviewed_chunks||0} / ${a.total_chunks||file.chunk_count||0}`,`- Purpose: ${md(a.purpose||"Not specified")}`,md(a.summary||"Review is pending."));
-        const limitations=[...(file.coverage?.limitations||[]),...(a.limitations||[]),file.error,a.error].filter(Boolean);if(limitations.length)parts.push("#### Reading limitations",list([...new Set(limitations)]));
+        const limitations=documentLimitations(file);if(limitations.length)parts.push("#### Reading limitations",list([...new Set(limitations)]));
         const questions=a.questions?.length?a.questions:a.question?[{text:a.question,sources:a.sources||[]}]:[];
         for(const [heading,items] of [["Unconfirmed document observations",a.observations],["Questions to explore",questions]])if(items?.length){parts.push(`#### ${heading}`);items.forEach(item=>parts.push(`- ${md(item.text)}\n  Sources: ${(item.sources||[]).map(source=>`${md(source.label||file.name)} (${md(source.source_id)})`).join("; ")}`));}
         if(a.sources?.length)parts.push("#### Document sources",a.sources.map(source=>`- ${md(source.label||file.name)} (${md(source.source_id)})`).join("\n"));
@@ -1763,6 +1794,30 @@
     fillContext(context);
     renderTranscript(); renderDraft(); tab("interview"); closeMenu();
   }
+  function documentLimitations(file) {
+    const limits=[file.coverage?.limitations,file.analysis?.limitations].flatMap(value=>Array.isArray(value)?value:typeof value==="string"?[value]:[]).filter(value=>typeof value==="string"&&value.trim());
+    for(const error of [file.error,file.analysis?.error])if(error)limits.push(typeof error==="string"?error:typeof error.message==="string"?error.message:"File review could not be completed.");
+    return limits;
+  }
+  function savedDocumentState(value) {
+    if(value===undefined||value===null)return null;
+    const invalid=()=>{throw new Error("Saved file references are invalid. The current interview has not been replaced.");};
+    if(typeof value!=="object"||Array.isArray(value)||(value.scope!==undefined&&value.scope!==null&&(typeof value.scope!=="string"||value.scope.length>500))||!Array.isArray(value.documents)||value.documents.length>20)invalid();
+    const optionalText=(object,key)=>{if(object[key]!==undefined&&object[key]!==null&&typeof object[key]!=="string")invalid();};
+    const sources=items=>{if(items===undefined||items===null)return;if(!Array.isArray(items))invalid();for(const source of items){if(!source||typeof source!=="object"||Array.isArray(source)||typeof source.source_id!=="string")invalid();optionalText(source,"label");}};
+    for(const file of value.documents){
+      if(!file||typeof file!=="object"||Array.isArray(file)||typeof file.id!=="string"||!file.id||file.id.length>100)invalid();
+      for(const key of ["name","kind","status"])optionalText(file,key);
+      for(const details of [file.coverage,file.analysis])if(details!==undefined&&details!==null&&typeof details!=="string"&&(typeof details!=="object"||Array.isArray(details)))invalid();
+      const analysis=file.analysis;if(analysis!==undefined&&analysis!==null){if(typeof analysis!=="object")invalid();for(const key of ["summary","question","purpose","phase","disposition","acknowledgement"])optionalText(analysis,key);sources(analysis.sources);
+        for(const key of ["observations","questions"]){const items=analysis[key];if(items===undefined||items===null)continue;if(!Array.isArray(items))invalid();for(const item of items){if(!item||typeof item!=="object"||Array.isArray(item)||typeof item.text!=="string")invalid();sources(item.sources);}}
+      }
+      for(const details of [file.coverage,file.analysis]){if(!details||typeof details!=="object")continue;const limits=details.limitations;if(limits!==undefined&&limits!==null&&typeof limits!=="string"&&(!Array.isArray(limits)||limits.some(item=>typeof item!=="string")))invalid();}
+    }
+    // Copy before clearState too: malformed/deep data must fail while the old
+    // conversation and the document controller still belong to the user.
+    return JSON.parse(JSON.stringify(value,(_key,item)=>{if(typeof item==="number"&&!Number.isFinite(item))invalid();return item;}));
+  }
   async function importSession(file) {
     if (!file) return;
     if (!canReplaceSession()) return;
@@ -1791,7 +1846,7 @@
       const focus = text(saved.focus,500);
       const parked = strings(saved.parking_lot,50);
       // Validate every fallible local field before replacing the open interview.
-      const coverage=normalizeCoverage(saved.coverage),unsent=text(saved.unsent_answer);
+      const coverage=normalizeCoverage(saved.coverage),unsent=text(saved.unsent_answer),documents=savedDocumentState(saved.documents);
       clearState(context);
       knowledgeUI?.restore(saved.knowledge_process_id,saved.knowledge_status);
       generation=state.generation;
@@ -1799,7 +1854,7 @@
       updateControls();
       state.processNameManual=saved.process_name_manual===undefined?Boolean(context.process_name):saved.process_name_manual===true;
       (Array.isArray(saved.document_questions_handled)?saved.document_questions_handled:[]).filter(value=>typeof value==="string"&&value.length<160).slice(0,200).forEach(value=>documentQuestionsHandled.add(value));
-      if(saved.documents&&documentController){restoringDocuments=true;try{await documentController.restoreState(saved.documents);}finally{if(generation===state.generation)restoringDocuments=false;}}
+      if(documents&&documentController){restoringDocuments=true;try{await documentController.restoreState(documents);}finally{if(generation===state.generation)restoringDocuments=false;}}
       if(generation!==state.generation)return;
       if (typeof saved.voice_choice === "string" && saved.voice_choice.length <= 400 && /^(ai:[a-z]+|local:.+)$/.test(saved.voice_choice)) {
         state.voiceChoice=saved.voice_choice;state.voiceChoiceUser=true;populateVoiceOptions();
@@ -1913,21 +1968,17 @@
       $(kind+"-search").addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();moveReadingSearch(kind,event.shiftKey?-1:1);}if(event.key==="Escape"){$(kind+"-search").value="";refreshReadingSearch(kind,false);}});
       for(const [name,direction] of [["previous",-1],["next",1]])$(kind+"-search-"+name).addEventListener("click",()=>moveReadingSearch(kind,direction));
     }
-    $("report-contents").addEventListener("change",()=>{const target=$($("report-contents").value);if(target){target.scrollIntoView({block:"start",behavior:"smooth"});target.focus({preventScroll:true});}});
+    $("report-contents").addEventListener("change",()=>{const target=$($("report-contents").value);if(target){scrollToElement(target,"start");target.focus({preventScroll:true});}});
     $("back-to-source").addEventListener("click",returnToSource);
     $("settings-source-return").addEventListener("click",returnToSource);
-    for(const id of ["interview-error","review-error"])$(id).querySelector("button").addEventListener("click",()=>{$(id).hidden=true;});
+    for(const id of ["interview-error","review-error"])$(id).querySelector("button").addEventListener("click",()=>dismissInlineError(id));
     for(const [prefix,id] of [["workflow","live-workflow"],["map","process-map"]]){
       $(prefix+"-step-select").addEventListener("change",()=>{const canvas=workflowCanvases.get(id),step=$(prefix+"-step-select").value;if(canvas?.getPathNavigation?.().following)canvas.followPath(step);else canvas?.focusStep(step,{readable:true,keyboard:false,select:true});});
       $(prefix+"-follow").addEventListener("click",()=>{const canvas=workflowCanvases.get(id);if(canvas?.getPathNavigation?.().following)canvas.leavePath();else canvas?.followPath($(prefix+"-step-select").value);});
       for(const direction of ["previous","next"])$(prefix+"-path-"+direction).addEventListener("change",event=>workflowCanvases.get(id)?.navigatePath(event.target.value,direction));
     }
     const narrowMemo=window.matchMedia("(max-width:760px), (max-height:500px) and (max-width:1100px)");
-    const placeMemo=()=>{
-      if(!narrowMemo.matches)setMemoSheet(false,false);
-      (narrowMemo.matches?$("memo-sheet-body"):$("memo-host")).append($("memo-rail"));
-    };
-    placeMemo();narrowMemo.addEventListener("change",placeMemo);
+    placeMemo(narrowMemo.matches);narrowMemo.addEventListener("change",()=>placeMemo(narrowMemo.matches));
     $("open-memo").addEventListener("click",()=>setMemoSheet(true));
     $("close-memo").addEventListener("click",()=>setMemoSheet(false));
     $("memo-sheet").addEventListener("close",()=>{if(memoRestoreFocus)$("open-memo").focus({preventScroll:true});});
@@ -1987,7 +2038,7 @@
     $("regenerate-draft").addEventListener("click",generateDraft);
     $("back-to-interview").addEventListener("click",() => tab("interview",true));
     $("empty-start").addEventListener("click",() => tab("interview",true));
-    $("dismiss-notice").addEventListener("click",() => {clearTimeout(noticeTimer);$("global-notice").hidden = true;});
+    $("dismiss-notice").addEventListener("click",dismissNotice);
     $("session-menu-toggle").addEventListener("click",() => {const open = $("session-menu").hidden; $("session-menu").hidden = !open; $("session-menu-toggle").setAttribute("aria-expanded",String(open));});
     document.addEventListener("click",event => {if (!$("session-menu").contains(event.target) && !$("session-menu-toggle").contains(event.target)) closeMenu();});
     document.addEventListener("keydown",event => {if (event.key === "Escape") closeMenu();});

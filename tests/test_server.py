@@ -672,6 +672,8 @@ class HTTPBoundaryTests(unittest.TestCase):
         config = json.loads(raw)
         self.assertTrue(config["api_configured"])
         self.assertEqual(config["app_id"], "voice-interviewer")
+        self.assertEqual(config["build_id"],self.httpd.build_id)
+        self.assertRegex(config["build_id"],r'^[0-9a-f]{64}$')
         self.assertEqual(config["csrf_token"], self.httpd.csrf_token)
         self.assertNotIn(self.test_key.encode(), raw)
         self.assertNotIn("OPENAI_API_KEY", raw.decode())

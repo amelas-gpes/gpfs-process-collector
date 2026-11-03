@@ -20,6 +20,15 @@ class FakeGraph:
     def submit(self, payload, principal=None, document_scope=None, intent_digest=None):
         self.calls.append(('submit', payload, principal, document_scope))
         return {'submission_id': 'synthetic', 'process_id': 'process', 'revision': 1, 'job_id': 'job', 'status': 'pending'}
+    def admin_browse(self, section, filters=None, offset=0, limit=25):
+        self.calls.append(('browse',section,filters,offset,limit))
+        return {'section':section,'items':[],'page':{'offset':offset,'limit':limit,'total':0,'has_more':False},'counts':{}}
+    def admin_detail(self, kind, identifier, revision=None):
+        self.calls.append(('detail',kind,identifier,revision));return {'kind':kind,'item':{'id':identifier}}
+    def admin_history(self, kind, identifier, offset=0, limit=25):
+        self.calls.append(('history',kind,identifier,offset,limit));return {'kind':kind,'items':[],'page':{'offset':offset,'limit':limit,'total':0,'has_more':False}}
+    def admin_graph(self, filters=None, level='overview', submission_id=None):
+        self.calls.append(('graph',filters,level,submission_id));return {'entities':[],'edges':[],'proposals':[]}
     def admin_snapshot(self):
         self.calls.append(('snapshot',))
         return {'submissions': [], 'proposals': [], 'entities': [], 'edges': [], 'jobs': []}
@@ -39,10 +48,10 @@ class FakeGraph:
     def retry(self, job_id):
         self.calls.append(('retry', job_id))
         return {'id': job_id, 'status': 'pending'}
-    def canonical_create(self, label, entity_ids, reviewer, reason):
+    def canonical_create(self, label, entity_ids, reviewer, reason, bounded_result=False):
         self.calls.append(('canonical_create', label, entity_ids, reviewer, reason))
         return {'id': 'canonical-1', 'label': label, 'review_version': 1}
-    def canonical_update(self, canonical_id, action, value, reviewer, reason, expected_revision):
+    def canonical_update(self, canonical_id, action, value, reviewer, reason, expected_revision, bounded_result=False):
         self.calls.append(('canonical_update', canonical_id, action, value, reviewer, reason, expected_revision))
         return {'id': canonical_id, 'review_version': expected_revision + 1}
     def close(self):
@@ -107,7 +116,7 @@ class KnowledgeAPITests(unittest.TestCase):
         self.assertNotIn('knowledge_status', received)
         self.assertNotIn('private-nested-capability', json.dumps(received))
         self.assertIsNone(document_scope)
-        for route, data in (('snapshot', {}), ('review', {'proposal_id':'p', 'action':'confirm', 'expected_revision':1}), ('retry', {'job_id':'j'}), ('document-source', {}), ('canonical-create', {}), ('canonical-update', {})):
+        for route, data in (('snapshot', {}),('browse', {}),('detail', {}),('history', {}),('graph', {}), ('review', {'proposal_id':'p', 'action':'confirm', 'expected_revision':1}), ('retry', {'job_id':'j'}), ('document-source', {}), ('canonical-create', {}), ('canonical-update', {})):
             with self.subTest(route=route):
                 self.assertEqual(self.request(httpd, '/api/knowledge/admin/' + route, data,
                     {'X-Admin': 'true', 'X-Role': 'admin'})[0], 403)
@@ -120,7 +129,7 @@ class KnowledgeAPITests(unittest.TestCase):
              ({'KNOWLEDGE_LOCAL_OWNER':'true','COLLECTOR_DEPLOYMENT_MODE':'local'}, True)):
             httpd = self.serve(settings)
             self.assertEqual(self.request(httpd, '/api/config')[1]['knowledge_admin_enabled'], allowed)
-            self.assertEqual(self.request(httpd, '/api/knowledge/admin/snapshot', {})[0], 200 if allowed else 403)
+            self.assertEqual(self.request(httpd, '/api/knowledge/admin/browse', {})[0], 200 if allowed else 403)
 
     def test_trusted_authorizer_controls_review_identity_and_ignores_browser_claims(self):
         httpd = self.serve({'COLLECTOR_DEPLOYMENT_MODE':'hosted'}, lambda handler, capability: 'verified-admin' if capability == 'knowledge.admin' else None)
@@ -146,11 +155,23 @@ class KnowledgeAPITests(unittest.TestCase):
 
     def test_same_origin_and_csrf_apply_to_every_knowledge_endpoint(self):
         httpd = self.serve({'KNOWLEDGE_LOCAL_OWNER':'true','COLLECTOR_DEPLOYMENT_MODE':'local'})
-        for route in ('submit', 'status', 'admin/snapshot', 'admin/review', 'admin/retry', 'admin/document-source', 'admin/canonical-create', 'admin/canonical-update'):
+        for route in ('submit', 'status', 'admin/snapshot','admin/browse','admin/detail','admin/history','admin/graph', 'admin/review', 'admin/retry', 'admin/document-source', 'admin/canonical-create', 'admin/canonical-update'):
             path = '/api/knowledge/' + route
             self.assertEqual(self.request(httpd, path, {}, {'X-CSRF-Token':'wrong'})[0], 403)
             self.assertEqual(self.request(httpd, path, {}, {'Origin':'https://attacker.example'})[0], 403)
         self.assertEqual(httpd.knowledge.calls, [])
+
+    def test_bounded_routes_forward_only_after_auth_and_full_snapshot_is_retired(self):
+        httpd=self.serve({'COLLECTOR_DEPLOYMENT_MODE':'local','KNOWLEDGE_LOCAL_OWNER':'true'})
+        for route,payload in (
+            ('browse',{'section':'submissions','filters':{'team':'Operations'},'offset':25,'limit':25}),
+            ('detail',{'kind':'submission','id':'source','revision':2}),
+            ('history',{'kind':'proposal','id':'proposal','offset':10,'limit':10}),
+            ('graph',{'level':'steps','submission_id':'source'})):
+            code,result=self.request(httpd,'/api/knowledge/admin/'+route,payload)
+            self.assertEqual(code,200,result);self.assertEqual(httpd.knowledge.calls[-1][0],route)
+        self.assertEqual(self.request(httpd,'/api/knowledge/admin/snapshot',{})[0],409)
+        self.assertFalse(any(call[0]=='snapshot' for call in httpd.knowledge.calls))
 
     def test_employee_status_capability_is_scoped_and_not_admin_authority(self):
         httpd = self.serve()
@@ -208,6 +229,40 @@ class KnowledgeRealHTTPTests(unittest.TestCase):
     tearDown = KnowledgeAPITests.tearDown
     request = KnowledgeAPITests.request
 
+    def page_items(self,httpd,section,**options):
+        rows=[];offset=0
+        while True:
+            code,result=self.request(httpd,'/api/knowledge/admin/browse',{'section':section,'offset':offset,'limit':25,**options})
+            self.assertEqual(code,200,result);self.assertLessEqual(len(result['items']),25);rows.extend(result['items'])
+            if not result['page']['has_more']:return rows
+            offset+=25
+
+    def history_items(self,httpd,kind,identifier):
+        rows=[];offset=0
+        while True:
+            code,result=self.request(httpd,'/api/knowledge/admin/history',{'kind':kind,'id':identifier,'offset':offset,'limit':25})
+            self.assertEqual(code,200,result);self.assertLessEqual(len(result['items']),25);rows.extend(result['items'])
+            if not result['page']['has_more']:return rows
+            offset+=25
+
+    def snapshot(self,httpd):
+        # Test-only reconstruction exercises lazy endpoints over the small fixture.
+        # The application never assembles whole-store data this way.
+        result={'submissions':[],'proposals':[],'entities':self.page_items(httpd,'entities'),
+                'jobs':self.page_items(httpd,'jobs'),'canonical_groups':[]}
+        for meta in self.page_items(httpd,'submissions'):
+            code,detail=self.request(httpd,'/api/knowledge/admin/detail',{'kind':'submission','id':meta['submission_id'],'revision':meta['revision']})
+            self.assertEqual(code,200,detail);result['submissions'].append(detail['item'])
+        for meta in self.page_items(httpd,'connections'):
+            code,detail=self.request(httpd,'/api/knowledge/admin/detail',{'kind':'proposal','id':meta['id']})
+            self.assertEqual(code,200,detail);item=detail['item'];item['history']=self.history_items(httpd,'proposal',item['id']);result['proposals'].append(item)
+        for meta in self.page_items(httpd,'groups'):
+            code,detail=self.request(httpd,'/api/knowledge/admin/detail',{'kind':'group','id':meta['id']})
+            self.assertEqual(code,200,detail);item=detail['item'];item['members']=[x['id'] for x in self.history_items(httpd,'group_members',item['id'])]
+            item['aliases']=[x['alias'] for x in self.history_items(httpd,'group_aliases',item['id'])]
+            item['history']=self.history_items(httpd,'group',item['id']);result['canonical_groups'].append(item)
+        return result
+
     def serve_real(self, authorizer, analyzer=None):
         from test_knowledge_graph import proposal
         httpd = server.InterviewServer(('127.0.0.1', 0), server.Handler,
@@ -218,6 +273,45 @@ class KnowledgeRealHTTPTests(unittest.TestCase):
         worker.start()
         self.instances.append((httpd, worker))
         return httpd
+
+    def test_paged_http_metadata_and_selected_detail_validate_all_arguments(self):
+        from test_knowledge_graph import payload
+        admin = self.serve_real(lambda h,c: 'verified-admin' if c == 'knowledge.admin' else None)
+        receipts = [admin.knowledge.submit(payload('Process '+str(i), 'Full selected account '+str(i)))
+                    for i in range(3)]
+        with patch.object(admin.knowledge, 'admin_snapshot', side_effect=AssertionError('unbounded read')):
+            code, first = self.request(admin, '/api/knowledge/admin/browse', {'section':'submissions','limit':2})
+            self.assertEqual(code, 200, first)
+            self.assertEqual(first['page'], {'offset':0,'limit':2,'total':3,'has_more':True})
+            self.assertEqual(len(first['items']), 2)
+            self.assertTrue(all('turns' not in item and 'draft' not in item for item in first['items']))
+            code, last = self.request(admin, '/api/knowledge/admin/browse', {'section':'submissions','limit':2,'offset':2})
+            self.assertEqual(code, 200, last)
+            self.assertFalse(last['page']['has_more'])
+            self.assertEqual({item['submission_id'] for item in first['items']+last['items']},
+                             {item['submission_id'] for item in receipts})
+            selected = last['items'][0]
+            code, detail = self.request(admin, '/api/knowledge/admin/detail',
+                {'kind':'submission','id':selected['submission_id'],'revision':selected['revision']})
+            self.assertEqual(code, 200, detail)
+            self.assertEqual(detail['item']['submission_id'], selected['submission_id'])
+            self.assertEqual(len(detail['item']['turns']), 1)
+            self.assertNotIn('status_token', json.dumps(detail))
+        for route, body in (
+            ('browse', {'section':'submissions','offset':True}),
+            ('browse', {'section':'submissions','limit':51}),
+            ('browse', {'section':'submissions','filters':{'latest_only':1}}),
+            ('browse', {'section':'submissions','filters':{'team':['spoofed']}}),
+            ('detail', {'kind':'submission','id':receipts[0]['submission_id'],'revision':True}),
+            ('detail', {'kind':'submission','id':receipts[0]['submission_id']}),
+            ('history', {'kind':'downstream','id':receipts[0]['submission_id'],'offset':-1}),
+            ('graph', {'level':'invalid'}),
+            ('graph', {'submission_id':'invalid'}),
+        ):
+            with self.subTest(route=route, body=body):
+                code, result = self.request(admin, '/api/knowledge/admin/'+route, body)
+                self.assertEqual(code, 400, result)
+                self.assertIsInstance(result.get('error'), str)
 
     def test_real_persistence_review_and_document_authorization(self):
         import time
@@ -244,7 +338,7 @@ class KnowledgeRealHTTPTests(unittest.TestCase):
         self.assertEqual(self.request(employee, '/api/knowledge/status', {**first_status, 'status_token':'forged'})[0], 403)
         self.assertEqual(self.request(employee, '/api/knowledge/admin/snapshot', first_status)[0], 403)
         for _ in range(200):
-            snapshot = self.request(admin, '/api/knowledge/admin/snapshot', {})[1]
+            snapshot = self.snapshot(admin)
             if snapshot['proposals']:
                 break
             time.sleep(.01)
@@ -283,7 +377,7 @@ class KnowledgeRealHTTPTests(unittest.TestCase):
         self.assertEqual(status, 202, revised)
         self.assertEqual(revised['revision'], 2)
         self.assertEqual(self.request(employee, '/api/knowledge/status', {**first_status, 'revision':2})[0], 403)
-        snapshot = self.request(admin, '/api/knowledge/admin/snapshot', {})[1]
+        snapshot = self.snapshot(admin)
         self.assertEqual(self.request(admin, '/api/knowledge/status', first_status)[0], 200)
         self.assertEqual(next(item for item in snapshot['proposals'] if item['id'] == p['id'])['status'], 'stale')
         for httpd, worker in self.instances:
@@ -291,7 +385,7 @@ class KnowledgeRealHTTPTests(unittest.TestCase):
         self.instances.clear()
         admin = self.serve_real(lambda h,c: 'verified-admin' if c == 'knowledge.admin' else None)
         self.assertEqual(self.request(admin, '/api/knowledge/status', first_status)[0], 200)
-        snapshot = self.request(admin, '/api/knowledge/admin/snapshot', {})[1]
+        snapshot = self.snapshot(admin)
         self.assertEqual(len([item for item in snapshot['submissions'] if item['submission_id'] == first['submission_id']]), 2)
         self.assertEqual(next(item for item in snapshot['proposals'] if item['id'] == p['id'])['status'], 'stale')
         restored = next(item for item in snapshot['canonical_groups'] if item['id'] == group['id'])
@@ -326,7 +420,7 @@ class KnowledgeRealHTTPTests(unittest.TestCase):
         second['documents'] = None
         self.assertEqual(self.request(admin, '/api/knowledge/submit', second)[0], 202)
         for _ in range(200):
-            snapshot = self.request(admin, '/api/knowledge/admin/snapshot', {})[1]
+            snapshot = self.snapshot(admin)
             if snapshot['proposals']:
                 break
             time.sleep(.01)
@@ -338,7 +432,7 @@ class KnowledgeRealHTTPTests(unittest.TestCase):
         review = {'proposal_id':item['id'], 'action':'confirm', 'reason':'Reviewed fixture', 'expected_revision':item['review_version']}
         self.assertEqual(self.request(admin, '/api/knowledge/admin/review', review)[0], 200)
         admin.documents_store.archive(scope, document['id'])
-        changed = self.request(admin, '/api/knowledge/admin/snapshot', {})[1]['proposals'][0]
+        changed = self.snapshot(admin)['proposals'][0]
         self.assertEqual(changed['status'], 'stale')
         self.assertEqual(changed['history'][-1]['action'], 'stale')
 

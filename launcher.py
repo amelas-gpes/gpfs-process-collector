@@ -1,5 +1,6 @@
 """Start/stop this local prototype without installing or modifying the computer."""
 import argparse
+import importlib.util
 import json
 from pathlib import Path
 import subprocess
@@ -10,6 +11,9 @@ import webbrowser
 
 APP_DIR = Path(__file__).resolve().parent
 WORK_DIR = APP_DIR / "work"
+_build_spec = importlib.util.spec_from_file_location('collector_launcher_build', Path(__file__).with_name('runtime_build.py'))
+_build_module = importlib.util.module_from_spec(_build_spec)
+_build_spec.loader.exec_module(_build_module)
 
 
 def config(url):
@@ -47,6 +51,10 @@ def main():
             raise SystemExit("The shutdown request was sent, but the server is still responding on this port.")
         print("AI Process Collector stopped. Unsaved sessions remain only in any open browser tab.")
         return
+    expected_build = _build_module.build_id(APP_DIR)
+    if current and current.get('build_id') != expected_build:
+        raise SystemExit(f"An older app build is running at {url} Save its interview before restarting it. "
+                         f"Use --stop --port {args.port} to stop that instance, or start on another --port to keep it open.")
     if not current:
         WORK_DIR.mkdir(exist_ok=True)
         log_path = WORK_DIR / "voice-interviewer-server.log"
@@ -57,12 +65,12 @@ def main():
                                        start_new_session=sys.platform != "win32")
         for _ in range(40):
             current = config(url)
-            if current:
+            if current and current.get('build_id') == expected_build:
                 break
             if process.poll() is not None:
                 break
             time.sleep(.15)
-        if not current:
+        if not current or current.get('build_id') != expected_build:
             # Only clean up the child launched by this invocation. A slow or
             # failed startup must not leave an unseen server behind after the
             # launcher reports that it could not start.

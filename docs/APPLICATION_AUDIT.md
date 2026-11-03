@@ -1,6 +1,6 @@
 # Application audit — November 3, 2026
 
-The active objective is to audit the entire UI/UX and backend architecture, fix reproduced defects, push verified changes, and continue reviewing until no further reproducible defects are found. This is an ongoing audit, not a claim that software is free of bugs.
+The audit covered the entire UI/UX and backend architecture, fixed reproduced defects, and repeated independent source review and integrated offline checks. All fifteen usability recommendations are implemented. No further concrete defects were found in the final reviewed scope; this is not a guarantee that software is free of bugs.
 
 ## Architecture and boundaries
 
@@ -30,7 +30,10 @@ Existing boundaries remain explicit: this is not a shared hosted service, produc
 | Admin submissions and filters | Frozen attempts retain their key/body through a lost response. One active submission is admitted. Session and view epochs reject stale receipts and late administrative completions. System filters match the correct revision. |
 | HTTP and launcher | Connections, header/body reading, upload concurrency and shutdown ordering are bounded. Failed construction and failed launch clean up only owned resources. Invalid ports fail before launch. |
 | Evidence and knowledge persistence | Non-finite data and malformed workflow arrays are rejected; file events cannot become participant evidence. Revision types and shutdown/retry races are guarded. Request-intent idempotency is separated from mutable file analysis. |
-| Knowledge performance | In a synthetic 40-submission fixture, full Admin snapshot SELECTs fell from 98 to 10, retaining all entities, edges, jobs, canonical groups and history. Matching scope/candidate filtering happens before file-source resolution. |
+| Knowledge performance | The public full-store snapshot is retired. Metadata, detail, histories, related routes, members and aliases use bounded server pages. A 107-account regression checks metadata without transcript reads; 703 review records remain reachable through pages. Matching scope/candidate filtering happens before file-source resolution. |
+| Graph integrity | Latest-revision graph filters pair the correct submission/revision; a selected process excluded by filters cannot leak neighbors. Complete oversized graphs are refused with refinement controls. Confirmed temporal links have the correct direction in graph and downstream views; related stored-status limitations stay visible. |
+| Accessibility and recovery | Selected tabs retain keyboard entry, modal/source return restores visible focus, mobile memo reparenting preserves navigation, and reduced-motion jumps avoid smooth scrolling. Literal Unicode search preserves text offsets. Malformed saved-file metadata fails before replacing the current interview; structured diagnostics remain readable in Review and Markdown. |
+| Running builds | Public source fingerprints detect a stale backend without hashing private data or stopping an open interview. Startup checks accept only the requested build and clean up only the owned child process on failure. |
 | Large documents and background work | Poll/worker scheduling is atomic; obsolete intents are removed. Storage error reporting cannot kill the worker. Revisit rereads the complete indexed content; unread/empty sources cannot claim complete review. Workbook formulas preserve meaningful text/metadata and readers close on initialization failure. |
 | Live transport and animated presence | Source reviewed; narrow transport-send, recovery-timer, callback-isolation and caption chronology fixes made. Presence lifecycle reviewed and its deterministic visual checks run. Voice paths were not executed. |
 
@@ -40,10 +43,10 @@ Tests use synthetic fixtures, temporary storage, fake analyzers and local socket
 
 Already-running parser/provider callbacks cannot be forcibly canceled by the current adapters. Document shutdown offers a short grace, prevents new analysis dispatch and suppresses late analysis publication. A process exit may still end a daemon parser; durable originals permit later recovery.
 
-## Remaining audit work
+## Completion review and boundaries
 
-- Admin snapshots still return full retained histories. Query batching fixes database work; coordinated pagination and lazy detail loading are still needed to bound transport/browser memory for a large company graph without hiding data.
-- Continue the integrated failure/recovery and accessibility review against the next delivered build.
-- Continue source review after the current fixes. The goal remains active until the completion audit has evidence for the whole objective.
+The final offline run passed 368 checks with no failures or skips among executed checks. Independent reviewers rechecked authorization, revision/source identity, pagination/counts, graph scope/direction, async guards, imports, focus and recovery. Browser checks use a disposable fictional 33-process store and the bundled complete example; existing user interview tabs remain untouched.
+
+Voice-specific suites, real provider calls, physical audio, full screen-reader certification, production hosting/identity, actual company-data scale and operational disaster recovery are outside this validation. Those limits remain explicit rather than being represented as passes. Offset pages can move under concurrent writes, and source status is checked on selected reads/actions rather than continuously. A chosen full submission may still contain its complete allowed transcript; the browser does not accumulate all submissions.
 
 Commands, exact results, browser evidence and delivery status for each batch belong in [build verification](BUILD_VERIFICATION.md).

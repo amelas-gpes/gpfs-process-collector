@@ -44,19 +44,22 @@ class KnowledgeExampleTests(unittest.TestCase):
         h=self.serve({'COLLECTOR_DEPLOYMENT_MODE':'local','KNOWLEDGE_LOCAL_OWNER':'true'})
         real=h.knowledge.submit(payload('Real fixture','The participant reports a real process.'));self.wait(h.knowledge,real['job_id'])
         before=h.knowledge.admin_snapshot();self.assertEqual(self.analysis_calls,[])
-        with patch.object(h.knowledge,'admin_snapshot',side_effect=AssertionError('Real graph must not be read')):
+        with patch.object(h.knowledge,'admin_browse',side_effect=AssertionError('Real graph must not be read')):
             code,first=self.request(h,'/api/knowledge/admin/example',{'fixture':'untrusted content'})
             self.assertEqual(code,200);self.assertNotIn('status_token',first)
             self.assertEqual(first['status'],'completed');self.assertTrue(first['synthetic_example'])
             code,second=self.request(h,'/api/knowledge/admin/example',{})
             self.assertEqual(second['submission_id'],first['submission_id'])
-            code,sample=self.request(h,'/api/knowledge/admin/snapshot',{'example':True})
-            self.assertEqual(code,200);self.assertEqual(len(sample['submissions']),1)
-            self.assertTrue(sample['submissions'][0]['synthetic_example'])
+            code,sample=self.request(h,'/api/knowledge/admin/browse',{'example':True,'section':'submissions'})
+            self.assertEqual(code,200);self.assertEqual(len(sample['items']),1)
+            self.assertNotIn('turns',sample['items'][0]);self.assertNotIn('draft',sample['items'][0])
             self.assertTrue(sample['synthetic_example']);self.assertIn('No AI analysis',sample['analysis_limitations'])
-            self.assertEqual(len(sample['submissions'][0]['turns']),26)
-            self.assertEqual(len(sample['submissions'][0]['draft']['steps']),11)
-            self.assertEqual(sample['jobs'][0]['status'],'completed')
+            code,detail=self.request(h,'/api/knowledge/admin/detail',{'example':True,'kind':'submission','id':first['submission_id'],'revision':1})
+            self.assertEqual(code,200,detail);self.assertTrue(detail['item']['synthetic_example'])
+            self.assertEqual(len(detail['item']['turns']),26)
+            self.assertEqual(len(detail['item']['draft']['steps']),11)
+            jobs=self.request(h,'/api/knowledge/admin/browse',{'example':True,'section':'jobs'})[1]
+            self.assertEqual(jobs['items'][0]['status'],'completed')
         self.assertEqual(self.analysis_calls,[]);self.assertEqual(before,h.knowledge.admin_snapshot())
         self.assertNotEqual(first['submission_id'],real['submission_id'])
         self.assertEqual(self.request(h,'/api/knowledge/submit',{'synthetic_example':True})[0],400)
@@ -65,20 +68,20 @@ class KnowledgeExampleTests(unittest.TestCase):
         self.servers.clear()
         h=self.serve({'COLLECTOR_DEPLOYMENT_MODE':'local','KNOWLEDGE_LOCAL_OWNER':'true'})
         self.assertEqual(self.request(h,'/api/knowledge/admin/example',{})[1]['submission_id'],first['submission_id'])
-        self.assertEqual(len(self.request(h,'/api/knowledge/admin/snapshot',{'example':True})[1]['submissions']),1)
-        self.assertEqual(len(self.request(h,'/api/knowledge/admin/snapshot',{})[1]['submissions']),1)
+        self.assertEqual(len(self.request(h,'/api/knowledge/admin/browse',{'example':True,'section':'submissions'})[1]['items']),1)
+        self.assertEqual(len(self.request(h,'/api/knowledge/admin/browse',{'section':'submissions'})[1]['items']),1)
     def test_ordinary_and_hosted_users_cannot_open_synthetic_admin_graph(self):
         h=self.serve({},lambda handler,capability:'employee' if capability=='knowledge.submit' else None)
-        for path in ('/api/knowledge/admin/example','/api/knowledge/admin/snapshot','/api/knowledge/admin/review'):
+        for path in ('/api/knowledge/admin/example','/api/knowledge/admin/browse','/api/knowledge/admin/detail','/api/knowledge/admin/history','/api/knowledge/admin/graph','/api/knowledge/admin/review'):
             self.assertEqual(self.request(h,path,{'example':True},{'X-Role':'admin'})[0],403)
         hosted=self.serve({'COLLECTOR_DEPLOYMENT_MODE':'hosted'},lambda handler,capability:'admin' if capability=='knowledge.admin' else None)
-        self.assertEqual(self.request(hosted,'/api/knowledge/admin/snapshot',{})[0],200)
+        self.assertEqual(self.request(hosted,'/api/knowledge/admin/browse',{})[0],200)
         self.assertEqual(self.request(hosted,'/api/knowledge/admin/example',{})[0],403)
-        self.assertEqual(self.request(hosted,'/api/knowledge/admin/snapshot',{'example':True})[0],403)
+        self.assertEqual(self.request(hosted,'/api/knowledge/admin/browse',{'example':True})[0],403)
         self.assertFalse(hosted.example_graph_path.exists())
     def test_example_operations_require_csrf_and_same_origin(self):
         h=self.serve({'COLLECTOR_DEPLOYMENT_MODE':'local','KNOWLEDGE_LOCAL_OWNER':'true'})
-        for path in ('/api/knowledge/admin/example','/api/knowledge/admin/snapshot'):
+        for path in ('/api/knowledge/admin/example','/api/knowledge/admin/browse','/api/knowledge/admin/detail','/api/knowledge/admin/history','/api/knowledge/admin/graph'):
             self.assertEqual(self.request(h,path,{'example':True},{'X-CSRF-Token':'bad'})[0],403)
             self.assertEqual(self.request(h,path,{'example':True},{'Origin':'https://attacker.example'})[0],403)
         self.assertFalse(h.example_graph_path.exists())

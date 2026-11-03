@@ -48,6 +48,7 @@ class KnowledgeGraph:
         self.lock = threading.RLock()
         self.db = sqlite3.connect(str(path), check_same_thread=False)
         self.db.row_factory = sqlite3.Row
+        self.db.create_function('casefold',1,lambda value: str(value or '').casefold(),deterministic=True)
         self.db.execute('PRAGMA foreign_keys=ON')
         self.db.execute('PRAGMA journal_mode=WAL')
         self.db.executescript('''
@@ -89,6 +90,12 @@ class KnowledgeGraph:
             self.db.execute('CREATE INDEX IF NOT EXISTS review_history_proposal_idx ON review_history(proposal_id)')
             self.db.execute('CREATE INDEX IF NOT EXISTS canonical_history_group_idx ON canonical_history(canonical_id)')
             self.db.execute('CREATE INDEX IF NOT EXISTS proposals_claim_idx ON proposals(claim_key)')
+            self.db.execute('CREATE INDEX IF NOT EXISTS entities_revision_type_idx ON entities(submission_id,revision,type)')
+            self.db.execute('CREATE INDEX IF NOT EXISTS edges_endpoints_idx ON edges(source,target)')
+            self.db.execute('CREATE INDEX IF NOT EXISTS revisions_order_idx ON revisions(created_at,submission_id,revision)')
+            self.db.execute("CREATE INDEX IF NOT EXISTS proposals_source_idx ON proposals(json_extract(data,'$.source_submission_id'),json_extract(data,'$.source_revision'))")
+            self.db.execute("CREATE INDEX IF NOT EXISTS proposals_destination_idx ON proposals(json_extract(data,'$.destination_submission_id'),json_extract(data,'$.destination_revision'))")
+
             for row in self.db.execute("SELECT id,owner_pid FROM jobs WHERE status='processing'").fetchall():
                 alive=False
                 if row['owner_pid']:
@@ -448,13 +455,13 @@ class KnowledgeGraph:
         item['history']=history if history is not None else [dict(x) for x in self.db.execute('SELECT action,reviewer,reason,side,created_at,review_version FROM review_history WHERE proposal_id=? ORDER BY rowid',(row['id'],))]
         return item
 
-    def review(self,proposal_id,action,reviewer,reason,expected_revision,side=None):
+    def review(self,proposal_id,action,reviewer,reason,expected_revision,side=None,bounded_result=False):
         if action not in ACTIONS or side not in (None,'sender','receiver'): raise ValueError('Unsupported review action.')
         reviewer=text(reviewer,500);reason=text(reason,6000)
         if not reviewer or not reason: raise ValueError('Reviewer and review reason are required.')
         # Commit invalidation separately, so rejecting a stale review cannot roll it back.
         with self.lock,self.db:
-            self._invalidate_changed_document_evidence()
+            self._invalidate_changed_document_evidence([proposal_id])
         with self.lock,self.db:
             row=self.db.execute('SELECT * FROM proposals WHERE id=?',(proposal_id,)).fetchone()
             if not row: raise ValueError('Proposal not found.')
@@ -464,7 +471,10 @@ class KnowledgeGraph:
             changed=self.db.execute("UPDATE proposals SET status=?,review_version=? WHERE id=? AND review_version=? AND status NOT IN ('stale','superseded')",(ACTIONS[action],version,proposal_id,expected_revision))
             if changed.rowcount!=1: raise ValueError('Proposal changed; refresh before reviewing.')
             self.db.execute('INSERT INTO review_history VALUES (?,?,?,?,?,?,?,?)',(new_id(),proposal_id,action,reviewer,reason,side,now(),version))
-            return self._proposal(self.db.execute('SELECT * FROM proposals WHERE id=?',(proposal_id,)).fetchone())
+            row=self.db.execute('SELECT * FROM proposals WHERE id=?',(proposal_id,)).fetchone()
+            if bounded_result:
+                return {'id':row['id'],'status':row['status'],'review_version':row['review_version']}
+            return self._proposal(row)
 
     def document_scope(self, submission_id, revision, document_id):
         with self.lock:
@@ -525,9 +535,9 @@ class KnowledgeGraph:
         result['history']=history if history is not None else [dict(r) for r in self.db.execute('SELECT action,value,reviewer,reason,review_version,created_at FROM canonical_history WHERE canonical_id=? ORDER BY rowid',(row['id'],))]
         return result
 
-    def canonical_create(self,label,entity_ids,reviewer,reason):
+    def canonical_create(self,label,entity_ids,reviewer,reason,bounded_result=False):
         label=text(label,500);reviewer=text(reviewer,500);reason=text(reason,6000)
-        if not label or not reviewer or not reason or not isinstance(entity_ids,list) or not 1<=len(entity_ids)<=100 or any(not isinstance(x,str) or len(x)>100 for x in entity_ids) or len(set(entity_ids))!=len(entity_ids):
+        if not label or not reviewer or not reason or not isinstance(entity_ids,list) or not 2<=len(entity_ids)<=100 or any(not isinstance(x,str) or len(x)>100 for x in entity_ids) or len(set(entity_ids))!=len(entity_ids):
             raise ValueError('A label, reviewer, reason and unique entity IDs are required.')
         with self.lock,self.db:
             entities=[]
@@ -543,9 +553,10 @@ class KnowledgeGraph:
                 for entity_id in entity_ids: self.db.execute('INSERT INTO canonical_members VALUES (?,?)',(cid,entity_id))
             except sqlite3.IntegrityError: raise ValueError('An entity already belongs to a canonical group.') from None
             self.db.execute('INSERT INTO canonical_history VALUES (?,?,?,?,?,?,?,?)',(new_id(),cid,'create',dumps(entity_ids),reviewer,reason,1,now()))
-            return self._canonical(self.db.execute('SELECT * FROM canonical_groups WHERE id=?',(cid,)).fetchone())
+            row=self.db.execute('SELECT * FROM canonical_groups WHERE id=?',(cid,)).fetchone()
+            return self._admin_group_meta(row) if bounded_result else self._canonical(row)
 
-    def canonical_update(self,canonical_id,action,value,reviewer,reason,expected_revision):
+    def canonical_update(self,canonical_id,action,value,reviewer,reason,expected_revision,bounded_result=False):
         if action not in ('add_member','remove_member','add_alias','remove_alias','revalidate'): raise ValueError('Unsupported canonical action.')
         value=text(value,1000);reviewer=text(reviewer,500);reason=text(reason,6000)
         if not value or not reviewer or not reason: raise ValueError('Value, reviewer and reason are required.')
@@ -578,11 +589,17 @@ class KnowledgeGraph:
                 if removed.rowcount!=1: raise ValueError('Alias is not in this group.')
             version=expected_revision+1
             self.db.execute('INSERT INTO canonical_history VALUES (?,?,?,?,?,?,?,?)',(new_id(),canonical_id,action,value,reviewer,reason,version,now()))
-            return self._canonical(self.db.execute('SELECT * FROM canonical_groups WHERE id=?',(canonical_id,)).fetchone())
+            row=self.db.execute('SELECT * FROM canonical_groups WHERE id=?',(canonical_id,)).fetchone()
+            return self._admin_group_meta(row) if bounded_result else self._canonical(row)
 
-    def _invalidate_changed_document_evidence(self):
+    def _invalidate_changed_document_evidence(self,proposal_ids=None):
         if not self.document_resolver: return
-        rows=self.db.execute("SELECT id,data,review_version FROM proposals WHERE status NOT IN ('stale','superseded')").fetchall()
+        if proposal_ids is not None:
+            if not proposal_ids:return
+            placeholders=','.join('?'*len(proposal_ids))
+            rows=self.db.execute("SELECT id,data,review_version FROM proposals WHERE status NOT IN ('stale','superseded') AND id IN ("+placeholders+")",list(proposal_ids)).fetchall()
+        else:
+            rows=self.db.execute("SELECT id,data,review_version FROM proposals WHERE status NOT IN ('stale','superseded')").fetchall()
         digests={}
         for row in rows:
             for evidence in json.loads(row['data']).get('evidence',[]):
@@ -601,6 +618,414 @@ class KnowledgeGraph:
                     if changed.rowcount:
                         self.db.execute('INSERT INTO review_history VALUES (?,?,?,?,?,?,?,?)',(new_id(),row['id'],'stale','system',reason,None,now(),row['review_version']+1))
                     break
+
+    ADMIN_LIMITATIONS = ('Reported accounts are not operational measurements. Sources are checked when a connection is opened, '
+                         'graphed or reviewed. Lists and histories are paged; Refresh restarts pages when records change. '
+                         'AI matching uses at most eight compatible candidates and bounded excerpts; it is not exhaustive.')
+    _ADMIN_STATES = frozenset(('all','reported','proposed','awaiting_clarification','confirmed','disputed','rejected',
+                              'stale','superseded','active','pending','processing','completed','failed','unknown'))
+
+    @staticmethod
+    def _admin_uuid(value, name='record'):
+        if not isinstance(value,str): raise ValueError('Choose a valid '+name+'.')
+        try: return str(uuid.UUID(value))
+        except (ValueError,TypeError,AttributeError): raise ValueError('Choose a valid '+name+'.') from None
+
+    @staticmethod
+    def _admin_page_args(offset,limit):
+        if type(offset) is not int or not 0<=offset<=9223372036854775807 or type(limit) is not int or not 1<=limit<=50:
+            raise ValueError('Choose a nonnegative page offset and a page size from 1 to 50.')
+        return offset,limit
+
+    @staticmethod
+    def _admin_page(offset,limit,total):
+        return {'offset':offset,'limit':limit,'total':total,'has_more':offset+limit<total}
+
+    def _admin_filters(self,filters):
+        if filters is None: filters={}
+        if not isinstance(filters,dict): raise ValueError('Admin filters must be an object.')
+        allowed={'team','system','scope','state','freshness','query','type','submission_id','revision','latest_only','exclude_group_id'}
+        if set(filters)-allowed: raise ValueError('Unsupported Admin filter.')
+        result={}
+        for key in ('team','system','scope','query','type'):
+            result[key]=text(filters.get(key,''),500)
+        result['state']=filters.get('state','all')
+        result['freshness']=filters.get('freshness','all')
+        if not isinstance(result['state'],str) or result['state'] not in self._ADMIN_STATES:
+            raise ValueError('Choose a valid review state.')
+        if not isinstance(result['freshness'],str) or result['freshness'] not in ('all','recent','older'):
+            raise ValueError('Choose a valid freshness filter.')
+        result['latest_only']=filters.get('latest_only',False)
+        if type(result['latest_only']) is not bool: raise ValueError('Latest revisions must be a boolean.')
+        for key in ('submission_id','exclude_group_id'):
+            raw=filters.get(key)
+            result[key]=None if raw is None or raw=='' else self._admin_uuid(raw,key.replace('_',' '))
+        result['revision']=filters.get('revision')
+        if result['revision'] is not None and (type(result['revision']) is not int or not 1<=result['revision']<=9223372036854775807):
+            raise ValueError('Choose a valid revision.')
+        return result
+
+    @contextmanager
+    def _admin_read(self):
+        with self.lock:
+            if self.closed: raise ValueError('Knowledge storage is closed.')
+            savepoint='admin_'+uuid.uuid4().hex
+            self.db.execute('SAVEPOINT '+savepoint)
+            try:
+                yield
+            except BaseException:
+                self.db.execute('ROLLBACK TO '+savepoint)
+                self.db.execute('RELEASE '+savepoint)
+                raise
+            else:
+                self.db.execute('RELEASE '+savepoint)
+
+    def _admin_matching(self,filters,latest=False):
+        clauses=[];args=[]
+        for key,expression in (('team',"COALESCE(json_extract(r.payload,'$.team'),'')||' '||COALESCE(json_extract(r.payload,'$.department'),'')"),
+                               ('scope',"COALESCE(json_extract(r.payload,'$.scope'),'')")):
+            if filters[key]:
+                clauses.append('instr(casefold('+expression+'),?)>0');args.append(filters[key].casefold())
+        if filters['system']:
+            clauses.append("EXISTS(SELECT 1 FROM entities fs WHERE fs.submission_id=r.submission_id AND fs.revision=r.revision AND fs.type='system' AND instr(casefold(fs.label),?)>0)")
+            args.append(filters['system'].casefold())
+        if filters['submission_id']:
+            clauses.append('r.submission_id=?');args.append(filters['submission_id'])
+        if filters['revision'] is not None:
+            clauses.append('r.revision=?');args.append(filters['revision'])
+        if latest or filters['latest_only']:
+            clauses.append('r.revision=(SELECT MAX(lr.revision) FROM revisions lr WHERE lr.submission_id=r.submission_id)')
+        if filters['freshness']!='all':
+            # ISO timestamps are emitted in UTC by this module. julianday also
+            # supports valid imported offsets and treats unknown dates as older.
+            recent="julianday(r.created_at)>=julianday('now','-30 days')"
+            clauses.append(recent if filters['freshness']=='recent' else '('+recent+' IS NOT TRUE)')
+        where=' AND '.join(clauses) or '1'
+        return 'matching AS (SELECT r.submission_id,r.revision FROM revisions r WHERE '+where+')',args
+
+    @staticmethod
+    def _admin_submission_select(alias='r'):
+        return (alias+".submission_id,"+alias+".process_id,"+alias+".revision,"+alias+".submitter,"+alias+".created_at,"
+                "json_extract("+alias+".payload,'$.context.process_name') AS process_name,"
+                "json_extract("+alias+".payload,'$.context.process_owner') AS process_owner,"
+                "json_extract("+alias+".payload,'$.team') AS team,json_extract("+alias+".payload,'$.department') AS department,"
+                "json_extract("+alias+".payload,'$.scope') AS scope")
+
+    @staticmethod
+    def _admin_submission_meta(row):
+        return {'submission_id':row['submission_id'],'process_id':row['process_id'],'revision':row['revision'],
+                'submitter':row['submitter'],'created_at':row['created_at'],
+                'context':{'process_name':row['process_name'] or '', 'process_owner':row['process_owner'] or ''},
+                'team':row['team'] or '', 'department':row['department'] or '', 'scope':row['scope'] or '',
+                **({'job_status':row['job_status'] or 'unknown'} if 'job_status' in row.keys() else {})}
+
+    @staticmethod
+    def _admin_entity_select(alias='e'):
+        return (alias+".id,"+alias+".submission_id,"+alias+".revision,"+alias+".type,"+alias+".label,"
+                "("+alias+".revision=(SELECT MAX(lr.revision) FROM revisions lr WHERE lr.submission_id="+alias+".submission_id)) AS latest,"
+                "(SELECT cm.canonical_id FROM canonical_members cm WHERE cm.entity_id="+alias+".id) AS canonical_id")
+
+    @staticmethod
+    def _admin_entity_meta(row):
+        result=dict(row)
+        result['latest']=bool(result.get('latest'))
+        return result
+
+    @staticmethod
+    def _admin_proposal_meta_select():
+        return ("p.id,p.status,p.review_version,p.created_at,p.stale_reason,"
+                "json_extract(p.data,'$.source_submission_id') AS source_submission_id,"
+                "json_extract(p.data,'$.source_revision') AS source_revision,"
+                "json_extract(p.data,'$.destination_submission_id') AS destination_submission_id,"
+                "json_extract(p.data,'$.destination_revision') AS destination_revision,"
+                "json_extract(p.data,'$.relationship_type') AS relationship_type,"
+                "json_extract(p.data,'$.explanation') AS explanation,json_extract(p.data,'$.condition') AS condition,"
+                "json_extract(p.data,'$.scope') AS scope,"
+                "json_extract(sr.payload,'$.context.process_name') AS source_name,"
+                "json_extract(dr.payload,'$.context.process_name') AS destination_name")
+
+    @staticmethod
+    def _admin_proposal_joins():
+        return (" JOIN revisions sr ON sr.submission_id=json_extract(p.data,'$.source_submission_id') AND sr.revision=json_extract(p.data,'$.source_revision')"
+                " JOIN revisions dr ON dr.submission_id=json_extract(p.data,'$.destination_submission_id') AND dr.revision=json_extract(p.data,'$.destination_revision')"
+                " JOIN matching sm ON sm.submission_id=sr.submission_id AND sm.revision=sr.revision"
+                " JOIN matching dm ON dm.submission_id=dr.submission_id AND dm.revision=dr.revision")
+
+    def _admin_query_parts(self,section,filters):
+        cte,args=self._admin_matching(filters)
+        clauses=[];extra=[]
+        query=filters['query'];kind=filters['type'];state=filters['state']
+        if section=='submissions':
+            source="revisions r JOIN matching m USING(submission_id,revision) LEFT JOIN jobs j USING(submission_id,revision)"
+            select=self._admin_submission_select()+',j.status AS job_status'
+            order='r.created_at DESC,r.submission_id,r.revision DESC'
+            if query:clauses.append("instr(casefold(COALESCE(json_extract(r.payload,'$.context.process_name'),'')),?)>0");extra.append(query.casefold())
+        elif section=='connections':
+            source='proposals p'+self._admin_proposal_joins();select=self._admin_proposal_meta_select();order='p.created_at DESC,p.id'
+            if state!='all':clauses.append('p.status=?');extra.append(state)
+            if query:
+                clauses.append("instr(casefold(COALESCE(json_extract(p.data,'$.explanation'),'')||' '||COALESCE(json_extract(p.data,'$.relationship_type'),'')),?)>0");extra.append(query.casefold())
+        elif section=='entities':
+            source='entities e JOIN matching m USING(submission_id,revision)';select=self._admin_entity_select();order='e.label COLLATE NOCASE,e.id'
+            if query:clauses.append('instr(casefold(e.label),?)>0');extra.append(query.casefold())
+            if kind:clauses.append('e.type=?');extra.append(kind)
+            if state not in ('all','reported'):clauses.append('0')
+            if filters['exclude_group_id']:
+                clauses.append('NOT EXISTS(SELECT 1 FROM canonical_members em WHERE em.entity_id=e.id AND em.canonical_id=?)');extra.append(filters['exclude_group_id'])
+        elif section=='groups':
+            source='canonical_groups g'
+            select=("g.*,(SELECT COUNT(*) FROM canonical_members cm WHERE cm.canonical_id=g.id) AS member_count,"
+                    "(SELECT COUNT(*) FROM canonical_aliases ca WHERE ca.canonical_id=g.id) AS alias_count,"
+                    "(SELECT COUNT(*) FROM canonical_history ch WHERE ch.canonical_id=g.id) AS history_count")
+            order='g.created_at DESC,g.id'
+            constrained=any(filters[k] for k in ('team','system','scope','submission_id')) or filters['revision'] is not None or filters['latest_only'] or filters['freshness']!='all'
+            if constrained:clauses.append('EXISTS(SELECT 1 FROM canonical_members cm JOIN entities e ON e.id=cm.entity_id JOIN matching m USING(submission_id,revision) WHERE cm.canonical_id=g.id)')
+            if query:clauses.append('instr(casefold(g.label),?)>0');extra.append(query.casefold())
+            if kind:clauses.append('g.type=?');extra.append(kind)
+            if state!='all':clauses.append('g.status=?');extra.append(state)
+        elif section=='jobs':
+            source='jobs j JOIN matching m USING(submission_id,revision) JOIN revisions r USING(submission_id,revision)'
+            select="j.id,j.submission_id,j.revision,j.status,j.attempts,j.error,j.created_at,json_extract(r.payload,'$.context.process_name') AS process_name"
+            order='j.created_at DESC,j.id'
+            if state!='all':clauses.append('j.status=?');extra.append(state)
+            if query:clauses.append("instr(casefold(COALESCE(json_extract(r.payload,'$.context.process_name'),'')),?)>0");extra.append(query.casefold())
+        else: raise ValueError('Choose a valid Admin section.')
+        return cte,select,source,' AND '.join(clauses) or '1',order,args+extra
+
+    def _admin_counts(self,filters):
+        result={}
+        for section,key in (('submissions','submissions'),('connections','connections'),('entities','entities'),('groups','groups'),('jobs','jobs')):
+            cte,_,source,where,_,args=self._admin_query_parts(section,filters)
+            result[key]=self.db.execute('WITH '+cte+' SELECT COUNT(*) FROM '+source+' WHERE '+where,args).fetchone()[0]
+        for state,key in (('proposed','awaiting_review'),('confirmed','confirmed_connections')):
+            active=dict(filters);active['state']=state
+            cte,_,source,where,_,args=self._admin_query_parts('connections',active)
+            result[key]=self.db.execute('WITH '+cte+' SELECT COUNT(*) FROM '+source+' WHERE '+where,args).fetchone()[0]
+        active=dict(filters);active['state']='failed'
+        cte,_,source,where,_,args=self._admin_query_parts('jobs',active)
+        result['processing_failures']=self.db.execute('WITH '+cte+' SELECT COUNT(*) FROM '+source+' WHERE '+where,args).fetchone()[0]
+        return result
+
+    def admin_browse(self,section,filters=None,offset=0,limit=25):
+        offset,limit=self._admin_page_args(offset,limit);filters=self._admin_filters(filters)
+        if section not in ('overview','submissions','connections','entities','groups','jobs'):raise ValueError('Choose a valid Admin section.')
+        with self._admin_read():
+            if section=='overview':
+                counts=self._admin_counts(filters)
+                return {'section':section,'items':[],'page':self._admin_page(offset,limit,0),'counts':counts,'analysis_limitations':self.ADMIN_LIMITATIONS}
+            cte,select,source,where,order,args=self._admin_query_parts(section,filters)
+            # Browsing reports stored states. Resolving sources while filtering
+            # by status can move rows between pages and trigger unbounded refill
+            # scans; exact detail, graph and review validate selected sources.
+            total=self.db.execute('WITH '+cte+' SELECT COUNT(*) FROM '+source+' WHERE '+where,args).fetchone()[0]
+            rows=self.db.execute('WITH '+cte+' SELECT '+select+' FROM '+source+' WHERE '+where+' ORDER BY '+order+' LIMIT ? OFFSET ?',args+[limit,offset]).fetchall()
+            if section=='submissions':items=[self._admin_submission_meta(row) for row in rows]
+            elif section=='entities':items=[self._admin_entity_meta(row) for row in rows]
+            else:items=[dict(row) for row in rows]
+            return {'section':section,'items':items,'page':self._admin_page(offset,limit,total),'counts':self._admin_counts(filters),'analysis_limitations':self.ADMIN_LIMITATIONS}
+
+    def _admin_group_meta(self,row):
+        result=dict(row);cid=row['id']
+        for key,table in (('member_count','canonical_members'),('alias_count','canonical_aliases'),('history_count','canonical_history')):
+            result[key]=self.db.execute('SELECT COUNT(*) FROM '+table+' WHERE canonical_id=?',(cid,)).fetchone()[0]
+        result.update(members=[],aliases=[],history=[])
+        return result
+
+    def _admin_sources(self,refs):
+        result=[]
+        for (sid,revision),ids in refs.items():
+            row=self.db.execute('SELECT '+self._admin_submission_select()+' FROM revisions r WHERE r.submission_id=? AND r.revision=?',(sid,revision)).fetchone()
+            if not row:continue
+            item=self._admin_submission_meta(row)
+            context=self.db.execute("SELECT json_extract(payload,'$.context') FROM revisions WHERE submission_id=? AND revision=?",(sid,revision)).fetchone()[0]
+            context=json.loads(context) if isinstance(context,str) else {}
+            item['context'].update({key:context.get(key,'') for key in ('objective','background') if isinstance(context.get(key,''),str)})
+            item['turns']=[dict(turn) for turn in self.db.execute("SELECT json_extract(t.value,'$.id') AS id,json_extract(t.value,'$.role') AS role,json_extract(t.value,'$.text') AS text FROM revisions r,json_each(r.payload,'$.turns') t WHERE r.submission_id=? AND r.revision=? AND json_extract(t.value,'$.role')='user' AND NOT COALESCE(json_extract(t.value,'$.document_event'),0)",(sid,revision)) if turn['id'] in ids]
+            item['transcript_partial']=True
+            result.append(item)
+        return result
+
+    def admin_detail(self,kind,id,revision=None):
+        id=self._admin_uuid(id);refs={};entity_ids=set()
+        if kind not in ('submission','entity','relationship','proposal','group'):raise ValueError('Choose a valid detail kind.')
+        if revision is not None and (type(revision) is not int or not 1<=revision<=9223372036854775807):raise ValueError('Choose a submission revision.')
+        if kind=='submission' and revision is None:raise ValueError('Choose a submission revision.')
+        with self._admin_read():
+            if kind=='submission':
+                row=self.db.execute('SELECT r.*,j.status AS job_status FROM revisions r LEFT JOIN jobs j USING(submission_id,revision) WHERE r.submission_id=? AND r.revision=?',(id,revision)).fetchone()
+                if not row:raise ValueError('Submission revision is unavailable.')
+                item=self._submission(row);item['job_status']=row['job_status'] or 'unknown'
+                return {'kind':kind,'item':item,'submissions':[item],'entities':[],'edges':[],'proposals':[]}
+            elif kind=='entity':
+                row=self.db.execute('SELECT * FROM entities WHERE id=?',(id,)).fetchone()
+                if not row:raise ValueError('Entity is unavailable.')
+                item={**dict(row),'data':json.loads(row['data'])}
+                refs[(row['submission_id'],row['revision'])]=set(item['data'].get('evidence_turns',[]))
+                entity_ids.add(id)
+                item['neighbor_count']=self._admin_related_count('entity_neighbors',id)
+            elif kind=='relationship':
+                row=self.db.execute('SELECT * FROM edges WHERE id=?',(id,)).fetchone()
+                if not row:raise ValueError('Relationship is unavailable.')
+                item={**dict(row),'evidence':json.loads(row['evidence'])}
+                ids=set(item['evidence'].get('evidence_turns',[]));entity_ids.update((row['source'],row['target']))
+                if row['type']=='contains':
+                    target=self.db.execute('SELECT data FROM entities WHERE id=?',(row['target'],)).fetchone()
+                    if target:ids.update(json.loads(target['data']).get('evidence_turns',[]))
+                    # The bounded label references omit step data. Carry the
+                    # target's cited IDs on this detail so readers can select
+                    # exact supplied excerpts without fetching every entity.
+                    item['evidence']['evidence_turns']=sorted(ids)
+                refs[(row['submission_id'],row['revision'])]=ids
+            elif kind=='proposal':
+                self._invalidate_changed_document_evidence([id])
+                row=self.db.execute('SELECT * FROM proposals WHERE id=?',(id,)).fetchone()
+                if not row:raise ValueError('Connection is unavailable.')
+                item=self._proposal(row,[])
+                for side in ('source','destination'):
+                    refs.setdefault((item[side+'_submission_id'],item[side+'_revision']),set())
+                item['history_count']=self.db.execute('SELECT COUNT(*) FROM review_history WHERE proposal_id=?',(id,)).fetchone()[0]
+                for evidence in item.get('evidence',[]):
+                    pair=(evidence['submission_id'],evidence['revision'])
+                    refs.setdefault(pair,set()).add(evidence.get('turn_id',''))
+            else:
+                row=self.db.execute('SELECT * FROM canonical_groups WHERE id=?',(id,)).fetchone()
+                if not row:raise ValueError('Reviewed group is unavailable.')
+                item=self._admin_group_meta(row)
+            entities=[]
+            for eid in entity_ids:
+                row=self.db.execute('SELECT '+self._admin_entity_select()+' FROM entities e WHERE e.id=?',(eid,)).fetchone()
+                if row:entities.append(self._admin_entity_meta(row))
+            return {'kind':kind,'item':item,'submissions':self._admin_sources(refs),'entities':entities,'edges':[],'proposals':[]}
+
+    def _admin_direct_cte(self):
+        # "happens_after" stores the inverse claim. Normalize it once for both
+        # paged neighbors and the recursive reachability traversal.
+        return ("""direct AS (
+          SELECT x.id,CASE WHEN x.type='happens_after' THEN x.target ELSE x.source END AS source,
+            CASE WHEN x.type='happens_after' THEN x.source ELSE x.target END AS target,
+            CASE WHEN x.type='happens_after' THEN 'before' ELSE x.type END AS type,
+            x.status,x.submission_id,x.revision,NULL AS proposal_id
+          FROM edges x WHERE x.status='reported'
+          UNION ALL
+          SELECT p.id,CASE WHEN json_extract(p.data,'$.relationship_type')='happens_after' THEN de.id ELSE se.id END,
+            CASE WHEN json_extract(p.data,'$.relationship_type')='happens_after' THEN se.id ELSE de.id END,
+            CASE WHEN json_extract(p.data,'$.relationship_type')='happens_after' THEN 'before' ELSE json_extract(p.data,'$.relationship_type') END,p.status,
+            json_extract(p.data,'$.source_submission_id'),json_extract(p.data,'$.source_revision'),p.id
+          FROM proposals p JOIN entities se ON se.type='process_version' AND se.submission_id=json_extract(p.data,'$.source_submission_id') AND se.revision=json_extract(p.data,'$.source_revision')
+          JOIN entities de ON de.type='process_version' AND de.submission_id=json_extract(p.data,'$.destination_submission_id') AND de.revision=json_extract(p.data,'$.destination_revision')
+          WHERE p.status='confirmed')""")
+
+    def _admin_related_parts(self,kind,id):
+        if kind=='entity_neighbors':
+            return self._admin_direct_cte(),'direct d JOIN entities se ON se.id=d.source JOIN entities de ON de.id=d.target','d.source=? OR d.target=?',[id,id]
+        if kind=='downstream':
+            cte=self._admin_direct_cte()+", reachable(node) AS (SELECT ? UNION SELECT d.target FROM direct d JOIN reachable r ON r.node=d.source WHERE d.type IN ('before','provides_input_to','hands_off_to'))"
+            return cte,'direct d JOIN entities se ON se.id=d.source JOIN entities de ON de.id=d.target',"d.type IN ('before','provides_input_to','hands_off_to') AND d.source IN (SELECT node FROM reachable)",[id]
+        raise ValueError('Choose a valid related view.')
+
+    def _admin_related_count(self,kind,id):
+        cte,source,where,args=self._admin_related_parts(kind,id)
+        return self.db.execute('WITH RECURSIVE '+cte+' SELECT COUNT(*) FROM '+source+' WHERE '+where,args).fetchone()[0]
+
+    def admin_history(self,kind,id,offset=0,limit=25):
+        offset,limit=self._admin_page_args(offset,limit);id=self._admin_uuid(id)
+        if kind not in ('proposal','group','group_members','group_aliases','entity_neighbors','downstream'):
+            raise ValueError('Choose a valid history or related-record kind.')
+        with self._admin_read():
+            if kind=='proposal':
+                if not self.db.execute('SELECT 1 FROM proposals WHERE id=?',(id,)).fetchone():raise ValueError('Connection is unavailable.')
+                table='review_history';where='proposal_id=?';args=[id];select='action,reviewer,reason,side,created_at,review_version';order='rowid'
+            elif kind in ('group','group_members','group_aliases'):
+                if not self.db.execute('SELECT 1 FROM canonical_groups WHERE id=?',(id,)).fetchone():raise ValueError('Reviewed group is unavailable.')
+                if kind=='group':
+                    table='canonical_history';where='canonical_id=?';args=[id];select='action,value,reviewer,reason,review_version,created_at';order='rowid'
+                elif kind=='group_aliases':
+                    table='canonical_aliases';where='canonical_id=?';args=[id];select='alias';order='alias'
+                else:
+                    table='canonical_members cm JOIN entities e ON e.id=cm.entity_id';where='cm.canonical_id=?';args=[id];select=self._admin_entity_select();order='e.label COLLATE NOCASE,e.id'
+            else:
+                if not self.db.execute('SELECT 1 FROM entities WHERE id=?',(id,)).fetchone():raise ValueError('Entity is unavailable.')
+                cte,source,where,args=self._admin_related_parts(kind,id)
+                total=self.db.execute('WITH RECURSIVE '+cte+' SELECT COUNT(*) FROM '+source+' WHERE '+where,args).fetchone()[0]
+                items=[dict(row) for row in self.db.execute('WITH RECURSIVE '+cte+' SELECT d.*,se.label AS source_label,de.label AS target_label FROM '+source+' WHERE '+where+' ORDER BY d.source,d.target,d.id LIMIT ? OFFSET ?',args+[limit,offset])]
+                return {'kind':kind,'id':id,'items':items,'page':self._admin_page(offset,limit,total),
+                        'source_verification':'stored_status',
+                        'analysis_limitations':'Connection status reflects the last source check. Open a connection to revalidate its evidence before relying on it.'}
+            total=self.db.execute('SELECT COUNT(*) FROM '+table+' WHERE '+where,args).fetchone()[0]
+            rows=self.db.execute('SELECT '+select+' FROM '+table+' WHERE '+where+' ORDER BY '+order+' LIMIT ? OFFSET ?',args+[limit,offset]).fetchall()
+            items=[self._admin_entity_meta(row) for row in rows] if kind=='group_members' else [dict(row) for row in rows]
+            return {'kind':kind,'id':id,'items':items,'page':self._admin_page(offset,limit,total)}
+
+    def admin_graph(self,filters=None,level='overview',submission_id=None):
+        filters=self._admin_filters(filters)
+        if level not in ('overview','steps','all'):raise ValueError('Choose a valid graph level.')
+        if submission_id is not None:submission_id=self._admin_uuid(submission_id,'process')
+        with self._admin_read():
+            cte,args=self._admin_matching(filters,latest=True)
+            clauses=[]
+            if level=='overview':clauses.append("e.type='process_version'")
+            elif level=='steps':clauses.append("e.type IN ('process_version','step','decision')")
+            if filters['type']:clauses.append('e.type=?');args.append(filters['type'])
+            if filters['query']:clauses.append('instr(casefold(e.label),?)>0');args.append(filters['query'].casefold())
+            if submission_id:clauses.append('e.submission_id=?');args.append(submission_id)
+            where=' AND '.join(clauses) or '1'
+            base='SELECT e.id FROM entities e JOIN matching m USING(submission_id,revision) WHERE '+where
+            # For an explicitly selected process, include immediate confirmed
+            # process-version endpoints as context without importing their steps.
+            neighbors=''
+            if submission_id and filters['state'] in ('all','confirmed'):
+                neighbors=(" UNION SELECT other.id FROM proposals p JOIN entities mine ON mine.type='process_version' AND mine.submission_id=?"
+                           " AND mine.revision=(SELECT MAX(revision) FROM revisions WHERE submission_id=mine.submission_id)"
+                           " JOIN entities other ON other.type='process_version' AND ((json_extract(p.data,'$.source_submission_id')=mine.submission_id AND json_extract(p.data,'$.source_revision')=mine.revision AND other.submission_id=json_extract(p.data,'$.destination_submission_id') AND other.revision=json_extract(p.data,'$.destination_revision')) OR (json_extract(p.data,'$.destination_submission_id')=mine.submission_id AND json_extract(p.data,'$.destination_revision')=mine.revision AND other.submission_id=json_extract(p.data,'$.source_submission_id') AND other.revision=json_extract(p.data,'$.source_revision')))"
+                           " JOIN matching om ON om.submission_id=other.submission_id AND om.revision=other.revision WHERE p.status='confirmed' AND EXISTS(SELECT 1 FROM base_visible)")
+                args.append(submission_id)
+            ctes=cte+', base_visible AS ('+base+'), visible AS (SELECT id FROM base_visible'+neighbors+')'
+            total=self.db.execute('WITH '+ctes+' SELECT COUNT(*) FROM visible',args).fetchone()[0]
+            empty={'entities':[],'edges':[],'proposals':[],'submissions':[],'too_large':False,'counts':{'nodes':total,'connections':0},'message':'','analysis_limitations':self.ADMIN_LIMITATIONS}
+            if total>80:
+                # Count in SQL without materializing the large view. Zero here
+                # would falsely say that an over-limit graph has no routes.
+                edge_state=" AND 0" if filters['state'] not in ('all','reported') else ''
+                edge_kind=" AND x.type IN ('contains','happens_after')" if level=='steps' else ''
+                n_edges=self.db.execute("WITH "+ctes+" SELECT COUNT(*) FROM edges x JOIN visible sv ON sv.id=x.source JOIN visible tv ON tv.id=x.target WHERE x.status='reported'"+edge_state+edge_kind,args).fetchone()[0]
+                proposal_state=" AND 0" if filters['state'] not in ('all','confirmed') else ''
+                n_proposals=self.db.execute("WITH "+ctes+" SELECT COUNT(*) FROM proposals p JOIN entities se ON se.type='process_version' AND se.submission_id=json_extract(p.data,'$.source_submission_id') AND se.revision=json_extract(p.data,'$.source_revision') JOIN entities de ON de.type='process_version' AND de.submission_id=json_extract(p.data,'$.destination_submission_id') AND de.revision=json_extract(p.data,'$.destination_revision') JOIN visible sv ON sv.id=se.id JOIN visible tv ON tv.id=de.id WHERE p.status='confirmed'"+proposal_state,args).fetchone()[0]
+                return {**empty,'too_large':True,'counts':{'nodes':total,'connections':n_edges+n_proposals},'message':'Select a process or refine filters to show a complete graph of at most 80 entities and 150 connections.'}
+            ids=[row[0] for row in self.db.execute('WITH '+ctes+' SELECT id FROM visible ORDER BY id LIMIT 80',args)]
+            if not ids:return {**empty,'message':'No graph entities match these filters.'}
+            placeholders=','.join('?'*len(ids))
+            edge_where='x.source IN ('+placeholders+') AND x.target IN ('+placeholders+") AND x.status='reported'"
+            if level=='steps':edge_where+=" AND x.type IN ('contains','happens_after')"
+            if filters['state'] not in ('all','reported'):edge_where+=' AND 0'
+            edge_args=ids+ids
+            direct_count=self.db.execute('SELECT COUNT(*) FROM edges x WHERE '+edge_where,edge_args).fetchone()[0]
+            proposal_where="p.status='confirmed' AND se.id IN ("+placeholders+') AND de.id IN ('+placeholders+')'
+            if filters['state'] not in ('all','confirmed'):proposal_where+=' AND 0'
+            proposal_source=("proposals p JOIN entities se ON se.type='process_version' AND se.submission_id=json_extract(p.data,'$.source_submission_id') AND se.revision=json_extract(p.data,'$.source_revision')"
+                             " JOIN entities de ON de.type='process_version' AND de.submission_id=json_extract(p.data,'$.destination_submission_id') AND de.revision=json_extract(p.data,'$.destination_revision')")
+            proposal_ids=[row[0] for row in self.db.execute('SELECT p.id FROM '+proposal_source+' WHERE '+proposal_where+' LIMIT 151',ids+ids)]
+            if direct_count+len(proposal_ids)>150:
+                full_count=self.db.execute('SELECT COUNT(*) FROM '+proposal_source+' WHERE '+proposal_where,ids+ids).fetchone()[0]
+                return {**empty,'too_large':True,'counts':{'nodes':total,'connections':direct_count+full_count},'message':'Select a process or refine filters to show a complete graph of at most 80 entities and 150 connections.'}
+            self._invalidate_changed_document_evidence(proposal_ids)
+            entities=[]
+            for row in self.db.execute('SELECT e.id,e.submission_id,e.revision,e.type,e.label,json_extract(e.data,\'$.actor\') AS actor,json_extract(e.data,\'$.system\') AS system,json_extract(e.data,\'$.evidence_turns\') AS refs FROM entities e WHERE e.id IN ('+placeholders+') ORDER BY e.submission_id,e.revision,e.rowid',ids):
+                entity={key:row[key] for key in ('id','submission_id','revision','type','label')}
+                entity['data']={'actor':row['actor'] if isinstance(row['actor'],str) else '', 'system':row['system'] if isinstance(row['system'],str) else '',
+                                'evidence_turns':json.loads(row['refs']) if isinstance(row['refs'],str) else []}
+                entities.append(entity)
+            edges=[{**{key:row[key] for key in ('id','source','target','type','status','submission_id','revision')},
+                    'evidence':{'label':row['label'] or '', 'evidence_turns':json.loads(row['refs']) if isinstance(row['refs'],str) else []}}
+                   for row in self.db.execute("SELECT x.id,x.source,x.target,x.type,x.status,x.submission_id,x.revision,json_extract(x.evidence,'$.label') AS label,json_extract(x.evidence,'$.evidence_turns') AS refs FROM edges x WHERE "+edge_where+' ORDER BY x.id LIMIT 150',edge_args)]
+            # Metadata only: source quotes and history are loaded by detail.
+            matching_all='matching AS (SELECT submission_id,revision FROM revisions)'
+            proposals=[dict(row) for row in self.db.execute('WITH '+matching_all+' SELECT '+self._admin_proposal_meta_select()+' FROM proposals p'+self._admin_proposal_joins()+' WHERE p.id IN ('+','.join('?'*len(proposal_ids))+") AND p.status='confirmed' ORDER BY p.id",proposal_ids)] if proposal_ids else []
+            pairs={(e['submission_id'],e['revision']) for e in entities}
+            submissions=[]
+            for sid,revision in sorted(pairs):
+                row=self.db.execute('SELECT '+self._admin_submission_select()+' FROM revisions r WHERE r.submission_id=? AND r.revision=?',(sid,revision)).fetchone()
+                if row:submissions.append(self._admin_submission_meta(row))
+            return {**empty,'entities':entities,'edges':edges,'proposals':proposals,'submissions':submissions,'counts':{'nodes':len(entities),'connections':len(edges)+len(proposals)}}
 
     def admin_snapshot(self):
         with self.lock,self.db:

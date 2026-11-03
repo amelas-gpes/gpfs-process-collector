@@ -1,3 +1,34 @@
+## 0.12.0 bounded Admin and completion audit — 2026-11-03
+
+All fifteen usability recommendations are implemented, with the final reliability/accessibility audit fixes. Admin now requests server-paged metadata and lazy selected details rather than a whole-store snapshot. Histories, aliases, members, related routes and entity/process choices have independent pages. Exact source excerpts still open the complete originating transcript and restore focus on return. Oversized graphs require refinement instead of hiding topology. The launcher detects an older running build without interrupting an existing interview.
+
+The completion review also fixed selected graph filters leaking neighbors, confirmed temporal direction, containment source references, malformed saved-file state replacing the current interview before validation, Unicode search offsets, reduced-motion navigation and keyboard/modal focus. Mobile Admin navigation keeps its selected tab visible after resize. Independent reviewers repeated the source pass after these fixes and found no further concrete defects in the reviewed scope. This does not establish that the application is bug-free.
+
+**368 offline checks passed, 0 failed, 0 skipped among executed checks:**
+
+| Suite | Passed |
+|---|---:|
+| Server routing/evidence/lifecycle | 61 |
+| Documents, service and HTTP | 51 |
+| Knowledge core, bounded Admin, AI adapter, HTTP and example isolation | 71 |
+| Launcher/portability/build identity | 12 |
+| GPFS asset/API | 4 |
+| Non-voice UI and recovery | 31 |
+| Document UI | 32 |
+| Admin UI | 30 |
+| Memo UI | 10 |
+| Workflow with real local ELK | 38 |
+| Complete example | 9 |
+| Deterministic GPFS visual component | 19 |
+
+Python commands use the existing runtime with `-I -B -m unittest discover -s tests -p PATTERN`, with patterns `test_server.py`, `test_document*.py`, `test_knowledge_*.py`, `test_portability.py`, and `test_gpfs_api.py`. Node commands are `tests/test_ui_state.cjs --usability-only`, `test_documents_frontend.cjs`, `test_knowledge_ui.cjs`, `test_memo_ui.cjs`, `test_workflow_graph.cjs`, `test_example_complete.cjs`, and `test_gpfs_presence.cjs` in the tests directory. Changed JavaScript syntax and diff whitespace are checked separately. Voice-specific suites were excluded; deterministic visual levels do not use audio hardware or a provider.
+
+Bounded backend regressions include 107 long accounts, 100 group members, 74 aliases and 703 review records, exact selected details, literal/Unicode filters, same-revision system matches, both graph limits, selected-process scope, cyclic downstream and targeted document validation. The real HTTP regression proves page/detail requests do not invoke the legacy full-store snapshot and rejects invalid paging/filter/revision types. No retained records are truncated.
+
+Browser QA used a disposable fictional 33-process store on a separate port and the actual updated app at `http://127.0.0.1:8780/`. It verified second submission/process-choice pages, complete 11-step/11-memo/26-message details, exact source highlight/return focus, independent review-history and alias pages, a 2,145-node graph refusal, and a complete selected 65-node/78-link graph. Desktop and 390×844 layouts had no page horizontal overflow. The final app stayed at one screen on desktop; resizing an open memo detail to phone returned focus to the visible memo button, with all eleven topics accessible. Resizing Admin kept the active Graph tab visible without changing focus. The actual 20,214-byte Markdown download retained all 26 messages verbatim and all eleven step titles without search markup. Screenshots and the downloaded artifact copy are local in ignored `work/bounded-admin-ui/`.
+
+No new interview answers, real provider requests, microphone/speaker access, voice sessions, or actual business-process test data were used. Original tabs and unsaved interviews were preserved; only owned disposable previews were restarted. Full screen-reader certification, live model quality, physical audio, production hosting/identity and disaster recovery remain unverified. Offset pages may shift under concurrent writes; lists/related histories use the explicitly disclosed last recorded source status, with selected connection/detail/graph/review revalidation. Already-running parser/provider callbacks remain non-cancelable. See the [audit](APPLICATION_AUDIT.md) and [Admin contract](ADMIN_API_CONTRACT.md).
+
 ## Application audit, first reliability batch — 2026-11-03
 
 Version 0.11.0 includes fixes from independent HTTP/launcher, document, knowledge, and frontend audit passes. [Audit scope, architecture, findings and remaining work](APPLICATION_AUDIT.md) keep the full active objective visible.

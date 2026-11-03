@@ -84,3 +84,30 @@
   .knowledge-graph-levels { margin:7px 0; }
   .knowledge-graph-levels .knowledge-tab { padding:6px 8px; font-size:12px; line-height:1.25; }
 }
+/* Every collection has an independent, bounded page; the dialog is the scroll boundary. */
+.knowledge-pagination { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:12px 0 3px; border-top:1px solid #e7ebf2; margin-top:14px; }
+.knowledge-pagination .knowledge-muted { margin-right:auto; font-variant-numeric:tabular-nums; }
+.knowledge-tab:disabled { cursor:default; opacity:.45; }
+.knowledge-load-state { display:grid; justify-items:start; gap:6px; padding:22px 0; }
+.knowledge-load-state p { margin:0 0 8px; }
+.knowledge-picker-search,.knowledge-entity-controls { display:flex; flex-wrap:wrap; align-items:end; gap:10px; margin:12px 0; }
+.knowledge-picker-search .knowledge-field,.knowledge-entity-controls .knowledge-field { flex:1 1 180px; }
+.knowledge-entity-controls .knowledge-choice { padding:10px 0; }
+.knowledge-picker { padding:4px 0; }
+.knowledge-picker-row { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:9px 0; border-bottom:1px solid #edf0f5; color:#44546b; font-size:13px; overflow-wrap:anywhere; }
+.knowledge-picker-row>span { min-width:0; }
+.knowledge-picker-row>button { flex:0 0 auto; }
+.knowledge-selected-entities { display:flex; flex-wrap:wrap; gap:6px; max-height:180px; overflow:auto; }
+.knowledge-selected-entities>p { flex-basis:100%; margin:0; }
+.knowledge-history-entry+.knowledge-history-entry { margin-top:14px; padding-top:10px; border-top:1px solid #e7ebf2; }
+.knowledge-paged-region>.knowledge-block { margin:8px 0; }
+.knowledge-detail-title:focus { outline:none; }
+@media(max-width:700px) {
+  .knowledge-pagination { gap:6px; }
+  .knowledge-pagination .knowledge-muted { flex:1 0 100%; }
+  .knowledge-picker-search,.knowledge-entity-controls { gap:8px; }
+  .knowledge-entity-controls .knowledge-field { flex-basis:calc(50% - 8px); }
+  .knowledge-picker-row { gap:8px; }
+  .knowledge-picker-row .text-button { min-height:44px; }
+}
+.knowledge-picker-heading { margin:6px 0; font-size:13px; color:#526177; }

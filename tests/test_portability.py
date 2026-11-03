@@ -142,6 +142,42 @@ class RepositoryPortabilityTests(unittest.TestCase):
         child.kill.assert_called_once_with()
         self.assertEqual(child.wait.call_count, 2)
 
+    def test_build_identity_ignores_private_data_and_changes_with_public_source(self):
+        identity=launcher._build_module.build_id
+        (self.app/'web').mkdir();source=self.app/'web'/'app.js';source.write_text('public source')
+        initial=identity(self.app)
+        (self.app/'.env.local').write_text('private-settings-sentinel')
+        (self.app/'work').mkdir();(self.app/'work'/'session.json').write_text('private-session-sentinel')
+        self.assertEqual(identity(self.app),initial)
+        source.write_text('updated public source');self.assertNotEqual(identity(self.app),initial)
+
+    def test_launcher_refuses_to_reuse_older_backend_without_stopping_it(self):
+        for current in ({'app_id':'voice-interviewer','version':'0.11.0'},
+                        {'app_id':'voice-interviewer','version':'0.11.0','build_id':'old-source'}):
+            with self.subTest(current=current),patch.object(sys,'argv',['launcher.py','--no-browser']), \
+                 patch.object(launcher,'config',return_value=current), \
+                 patch.object(launcher._build_module,'build_id',return_value='new-source'), \
+                 patch.object(launcher.subprocess,'Popen') as spawn,patch.object(launcher,'build_opener') as network:
+                with self.assertRaisesRegex(SystemExit,'older app build'):
+                    launcher.main()
+                spawn.assert_not_called();network.assert_not_called()
+
+    def test_launcher_reuses_identical_build_without_starting_another_server(self):
+        with patch.object(sys,'argv',['launcher.py','--no-browser']), \
+             patch.object(launcher,'config',return_value={'app_id':'voice-interviewer','build_id':'same-source'}), \
+             patch.object(launcher._build_module,'build_id',return_value='same-source'), \
+             patch.object(launcher.subprocess,'Popen') as spawn:
+            launcher.main();spawn.assert_not_called()
+
+    def test_startup_does_not_accept_another_stale_server_on_the_port(self):
+        child=MagicMock();child.poll.return_value=None
+        replies=[None]+[{'app_id':'voice-interviewer','build_id':'other-source'}]*40
+        with patch.object(sys,'argv',['launcher.py','--no-browser']),patch.object(launcher,'WORK_DIR',self.app/'work'), \
+             patch.object(launcher,'config',side_effect=replies),patch.object(launcher._build_module,'build_id',return_value='new-source'), \
+             patch.object(launcher.subprocess,'Popen',return_value=child),patch.object(launcher.time,'sleep'):
+            with self.assertRaisesRegex(SystemExit,'Could not start'):launcher.main()
+        child.terminate.assert_called_once_with()
+
     def test_launcher_rejects_unreachable_or_invalid_ports_before_starting(self):
         for port in ("0", "-1", "65536"):
             with self.subTest(port=port), \

@@ -19,10 +19,11 @@ class Element{
  addEventListener(name,listener){(this.listeners[name]??=[]).push(listener);}
  dispatch(name){for(const listener of this.listeners[name]||[])listener({target:this});}
  contains(target){return target===this||this.children.some(child=>child.contains(target));}
+ closest(selector){for(let node=this;node;node=node.parentElement)if(matches(node,selector))return node;return null;}
  querySelectorAll(selector){return walk(this).filter(node=>node!==this&&selector.split(",").some(part=>matches(node,part.trim())));}
  querySelector(selector){return walk(this).find(node=>node!==this&&matches(node,selector))||null;}
  focus(){const dialog=document.modalStack.at(-1);if(dialog?.open&&!dialog.contains(this))throw Error("Focus attempted outside an open modal");document.activeElement=this;}
- scrollIntoView(){for(let node=this;node;node=node.parentElement)if(node.tagName==="DETAILS"&&!node.open)throw Error("Scrolled to hidden disclosure content");this.scrolled=true;}
+ scrollIntoView(options){this.scrollOptions=options;for(let node=this;node;node=node.parentElement)if(node.tagName==="DETAILS"&&!node.open)throw Error("Scrolled to hidden disclosure content");this.scrolled=true;}
  showModal(){if(!this.open)document.modalStack.push(this);this.open=true;document.activeElement=this;}
  close(){this.open=false;document.modalStack=document.modalStack.filter(dialog=>dialog!==this);this.dispatch("close");}
 }
@@ -74,7 +75,7 @@ const exportBindings=appSource.split("\n").filter(line=>/\$\("(?:export-working-
 const titleBinding=appSource.match(/\$\("process-name"\)\.addEventListener\("input",\(\)=>\{[\s\S]*?\n    \}\);/)?.[0]||"";
 const liveBindings=appSource.split("\n").filter(line=>/\$\("(?:stop-live|mute-live)"\)\.addEventListener/.test(line)).join("\n");
 const source=appSource
- .replace(/  init\(\);\s*\}\)\(\);\s*$/,"  updateControls=()=>{updatePresence();}; window.__downloads=[]; download=(...args)=>window.__downloads.push(args); "+exportBindings+titleBinding+liveBindings+" window.__uiTests={resolveDocumentPurpose,skipQuestion,getPendingDocumentReason:()=>pendingDocumentReason,readingUI,refreshReadingSearch,moveReadingSearch,returnToSource,renderCoverage,state,renderTranscript,showFoundationTopic,initFoundationDialog,closeFoundationTopic,jumpToTurn,jumpToReview,tab,initReviewTabs,selectReviewSection,reviewTabKey,renderMap,renderWorkingMap,workflowCanvases,showWorkflowStep,updateCanvasControls,zoomMap,fitMapToWidth,conversationUI,selectConversationView,conversationTabKey,receiveLiveCaption,scheduleWorkflow,refreshWorkflow,clearState,sendAnswer,retryQuestion,setMemoSheet,setInterviewSettings,notice,applyInterview,markdown,memoMarkdown,normalizeDraft,ensureConversation,applyProcessTitle,documentContext,onDocumentEvent,snapshot,sessionObject,importSession,presenceState,updatePresence,startLiveConversation,setPresenceFake:value=>{gpfsPresence=value;},setDocumentController:value=>{documentController=value;},renderReport:typeof renderReport==='function'?renderReport:null,setRequest:fn=>{request=fn;}};\n})();");
+ .replace(/  init\(\);\s*\}\)\(\);\s*$/,"  updateControls=()=>{updatePresence();}; window.__downloads=[]; download=(...args)=>window.__downloads.push(args); "+exportBindings+titleBinding+liveBindings+" window.__uiTests={scrollToElement,dismissInlineError,dismissNotice,placeMemo,resolveDocumentPurpose,skipQuestion,getPendingDocumentReason:()=>pendingDocumentReason,readingUI,refreshReadingSearch,moveReadingSearch,returnToSource,renderCoverage,state,renderTranscript,showFoundationTopic,initFoundationDialog,closeFoundationTopic,jumpToTurn,jumpToReview,tab,initReviewTabs,selectReviewSection,reviewTabKey,renderMap,renderWorkingMap,workflowCanvases,showWorkflowStep,updateCanvasControls,zoomMap,fitMapToWidth,conversationUI,selectConversationView,conversationTabKey,receiveLiveCaption,scheduleWorkflow,refreshWorkflow,clearState,sendAnswer,retryQuestion,setMemoSheet,setInterviewSettings,notice,applyInterview,markdown,memoMarkdown,normalizeDraft,ensureConversation,applyProcessTitle,documentContext,onDocumentEvent,snapshot,sessionObject,importSession,presenceState,updatePresence,startLiveConversation,setPresenceFake:value=>{gpfsPresence=value;},setDocumentController:value=>{documentController=value;},renderReport:typeof renderReport==='function'?renderReport:null,setRequest:fn=>{request=fn;}};\n})();");
 vm.createContext(context);vm.runInContext(source,context,{filename:"app.js"});
 const t=context.window.__uiTests;if(!t)throw Error("UI test seam was not installed");t.initFoundationDialog();t.initReviewTabs();
 let passes=0;
@@ -172,6 +173,62 @@ assert.equal(new Set(walk(document.body).filter(node=>node.id.startsWith("turn-"
  [...timers.values()].filter(timer=>timer.delay===3000).forEach(timer=>timer.fn());assert.equal(document.getElementById("global-notice").hidden,true);assert.equal(region.hidden,false,"Inline error persists after toast");passes++;
 }
 
+// Recovery and accessibility regression cases remain independent of voice paths.
+{
+ const originalTurns=t.state.turns;
+ t.state.turns=[{id:"unicode1",role:"user",text:"Aİb [invoice.*] σΣ"}];t.renderTranscript();
+ const search=document.getElementById("transcript-search");
+ search.value="b";t.refreshReadingSearch("transcript");
+ assert.equal(t.readingUI.transcript.matches.length,1);assert.equal(t.readingUI.transcript.matches[0].textContent,"b","Unicode case conversion must not shift later highlight offsets");
+ search.value="[invoice.*]";t.refreshReadingSearch("transcript");
+ assert.equal(t.readingUI.transcript.matches.length,1);assert.equal(t.readingUI.transcript.matches[0].textContent,"[invoice.*]","Search metacharacters are literal");
+ assert.equal(document.getElementById("turn-unicode1").querySelector(".turn-text").textContent,"Aİb [invoice.*] σΣ");
+ t.state.turns=originalTurns;search.value="";t.renderTranscript();passes++;
+}
+{
+ t.state.started=true;t.selectConversationView("transcript");t.tab("review");t.tab("interview",true);
+ assert.equal(document.activeElement.id,"conversation-tab-transcript");assert.equal(document.activeElement.tabIndex,0,"Returning to Interview keeps the selected tab in the keyboard entry order");
+ if(!document.getElementById("workflow-expand"))mount("workflow-expand","button",interview);
+ t.selectConversationView("workflow");interview.classList.add("workflow-expanded");t.tab("review");t.tab("interview",true);
+ assert.equal(document.activeElement.id,"workflow-expand","Expanded workflow returns focus to its visible Exit focus action");
+ interview.classList.remove("workflow-expanded");t.selectConversationView("transcript");passes++;
+}
+{
+ context.window.matchMedia=()=>({matches:true});t.jumpToTurn("t002");
+ assert.equal(document.getElementById("turn-t002").scrollOptions.behavior,"auto","Reduced motion also applies to programmatic source/search scrolling");
+ context.window.matchMedia=()=>({matches:false});t.jumpToTurn("t002");assert.equal(document.getElementById("turn-t002").scrollOptions.behavior,"smooth");
+ const panel=document.getElementById("review-procedure");panel.setAttribute("tabindex","0");panel.tabIndex=0;t.jumpToReview("review-procedure");assert.equal(panel.tabIndex,0,"Section jumps preserve the panel's keyboard entry point");
+ delete context.window.matchMedia;passes++;
+}
+{
+ const region=document.getElementById("interview-error"),dismiss=mount("dismiss-error-test","button",region);
+ region.hidden=false;t.tab("interview");t.selectConversationView("transcript");dismiss.focus();t.dismissInlineError("interview-error");
+ assert.equal(region.hidden,true);assert.equal(document.activeElement.id,"conversation-tab-transcript","Dismissing an error cannot strand focus inside hidden content");assert.equal(document.activeElement.tabIndex,0);passes++;
+}
+
+
+{
+ const list=document.getElementById("coverage-list"),parent=list.parentElement;t.renderCoverage();
+ const topic=document.querySelector('[data-foundation-topic="trigger"]');t.showFoundationTopic("trigger",topic);
+ memoBody.append(list);t.closeFoundationTopic();
+ assert.equal(document.activeElement.id,"open-memo","Closing a topic after mobile resize must not focus a topic inside a closed memo sheet");parent.append(list);passes++;
+}
+{
+ const region=document.getElementById("global-notice"),dismiss=mount("dismiss-notice-test","button",region);t.state.started=true;t.tab("interview");t.selectConversationView("transcript");
+ t.notice("Temporary update");dismiss.focus();const pending=[...timers.values()].find(timer=>timer.delay===3000);assert.ok(pending);pending.fn();
+ assert.equal(region.hidden,true);assert.equal(document.activeElement.id,"conversation-tab-transcript","A notification expiring while its close button is focused must restore visible keyboard focus");passes++;
+}
+
+
+{
+ const list=document.getElementById("coverage-list"),parent=list.parentElement,host=mount("memo-host","div",interview),rail=mount("memo-rail","aside",host),close=mount("close-memo","button",memoSheet);rail.append(list);t.renderCoverage();
+ const topic=document.querySelector('[data-foundation-topic="trigger"]');topic.focus();t.placeMemo(true);
+ assert.equal(rail.parentElement,memoBody);assert.equal(document.activeElement.id,"open-memo","Narrowing the workspace must restore visible focus after moving the active topic into a closed dialog");
+ t.setMemoSheet(true);close.focus();t.placeMemo(false);
+ assert.equal(memoSheet.open,false);assert.equal(rail.parentElement,host);assert.equal(document.activeElement.dataset.foundationTopic,"name","Widening the workspace must not strand focus on the closed sheet's close button");
+ t.showFoundationTopic("trigger",topic);const modalFocus=document.activeElement;t.placeMemo(true);assert.equal(document.activeElement,modalFocus,"Responsive memo placement must not steal focus from open topic details");t.closeFoundationTopic();parent.append(list);passes++;
+}
+
 if(process.argv.includes("--usability-only")){
  (async()=>{
   review.hidden=false;interview.hidden=true;t.selectReviewSection("review-procedure");t.jumpToTurn("t002");t.returnToSource();
@@ -224,6 +281,26 @@ if(process.argv.includes("--usability-only")){
     const before=requests.length;await t.resolveDocumentPurpose("The next ordinary answer.");assert.equal(requests.length,before);passes++;
    }
    t.setDocumentController(null);t.state.busy=false;t.state.draft=retainedDraft;t.conversationUI.typing=false;review.hidden=false;interview.hidden=true;
+  }
+  {
+   const oldTurns=[{id:"old1",role:"user",text:"Keep this current interview."}],saved={schema_version:1,context:{process_name:"Incoming",process_owner:"",objective:"Capture work",background:""},turns:[{id:"new1",role:"user",text:"An imported account."}],documents:{scope:"local_saved_scope",documents:[{id:"doc_import",name:"Report.pdf",analysis:{observations:"invalid list"}}]}};
+   let resets=0,restores=0;t.setDocumentController({render(){},reset(){resets++;},restoreState:async()=>{restores++;throw Error("Invalid saved analysis");}});
+   for(const malformed of ["observations","sources","non-finite"]){
+    t.state.turns=oldTurns;t.state.started=true;t.state.dirty=false;t.state.busy=false;document.getElementById("answer-text").value="Retain unsent detail.";
+    const incoming=JSON.parse(JSON.stringify(saved));if(malformed==="sources")incoming.documents.documents[0].analysis={sources:[null]};if(malformed==="non-finite"){incoming.documents.documents[0].analysis={};incoming.documents.documents[0].size=1;}
+    let raw=JSON.stringify(incoming);if(malformed==="non-finite")raw=raw.replace('"size":1','"size":1e400');
+    await t.importSession({size:raw.length,text:async()=>raw});
+    assert.equal(t.state.turns,oldTurns,malformed+" must fail before replacing the interview");assert.equal(document.getElementById("answer-text").value,"Retain unsent detail.");assert.equal(t.state.busy,false);assert.equal(t.state.importing,false);
+   }
+   assert.equal(resets,0);assert.equal(restores,0);t.setDocumentController(null);passes++;
+  }
+  {
+   const before=t.state.draft;t.state.draft=t.normalizeDraft({title:"File diagnostics",steps:[],connections:[],memo_summary:[],variations:[],lifecycle_items:[]});
+   t.setDocumentController({exportState:()=>({documents:[{id:"doc_error",name:"Failed.pdf",error:{message:"The file could not be indexed."},coverage:{limitations:"Two pages were unreadable."},analysis:{error:{message:"Background review was paused."},limitations:["Tables require confirmation."]}}]})});
+   t.renderReport();const report=document.getElementById("report-content").textContent;
+   assert.match(report,/The file could not be indexed/);assert.match(report,/Background review was paused/);assert.match(report,/Two pages were unreadable/);assert.match(report,/Tables require confirmation/);assert.equal(report.includes("[object Object]"),false);
+   const exported=t.markdown();assert.match(exported,/- Two pages were unreadable\./);assert.match(exported,/- The file could not be indexed\./);assert.match(exported,/- Background review was paused\./);assert.equal(exported.includes("object Object"),false);
+   t.setDocumentController(null);t.state.draft=before;passes++;
   }
   const retry=mount("map-retry-layout","button");let fail=true,updates=0;
   context.window.CollectorWorkflow={create:()=>({update:()=>{updates++;return fail?Promise.reject(Error("Layout unavailable")):Promise.resolve(true);},destroy:()=>{}})};

@@ -277,7 +277,7 @@
       const edges=svgNode(doc,"g",{class:"workflow-edges"}),edgeLabels=svgNode(doc,"g");this.world.append(edges);
       layout.edges.forEach(edge=>{
         const original=data.connections.find(item=>item.id===edge.id);if(!original)return;
-        const group=svgNode(doc,"g",{"data-edge-id":edge.id});group.append(svgNode(doc,"title",{},`${original.from} → ${original.to}${original.label?": "+original.label:""}. Sources: ${(original.evidence_turns||[]).join(", ")||"Not established"}`));
+        const group=svgNode(doc,"g",{"data-edge-id":edge.id});group.append(svgNode(doc,"title",{},`${original.from} → ${original.to}${original.label?": "+original.label:""}. Sources: ${(original.evidence_turns||[]).join(", ")||"No source references in this view; open details to review evidence"}`));
         (edge.sections||[]).forEach(section=>{const p=points(section);group.append(svgNode(doc,"path",{d:roundedPath(p),fill:"none",stroke:"#8c9bb2","stroke-width":1.7,"marker-end":`url(#${this.uid}-arrow)`}));this.miniWorld.append(svgNode(doc,"path",{d:roundedPath(p,0),fill:"none",stroke:"#c7d1e2","stroke-width":3}));});edges.append(group);
         const labelGroup=svgNode(doc,"g",{"data-edge-label-for":edge.id});
         (edge.labels||[]).forEach(label=>{

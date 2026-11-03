@@ -22,7 +22,7 @@ from urllib.parse import unquote, urlsplit
 from urllib.request import Request, urlopen
 import webbrowser
 
-VERSION = "0.11.0"
+VERSION = "0.12.0"
 APP_DIR = Path(__file__).resolve().parent
 WEB_DIR = APP_DIR / "web"
 
@@ -1064,6 +1064,7 @@ class InterviewServer(ThreadingHTTPServer):
         if address[0] != "127.0.0.1":
             raise ValueError("This prototype can only bind to 127.0.0.1.")
         self.client = client if client is not None else OpenAIClient(load_settings())
+        self.build_id = local_module('collector_runtime_build', 'runtime_build.py').build_id(APP_DIR)
         # Validate provider-owned sources before binding or serving any response.
         self.browser_connect_sources = validated_browser_connect_sources(self.client.browser_connect_sources())
         super().__init__(address, handler)
@@ -1230,7 +1231,7 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/config":
             client = self.server.client
             config = dict(client.public_config())
-            config.update({"app_id": "voice-interviewer", "version": VERSION,
+            config.update({"app_id": "voice-interviewer", "version": VERSION,"build_id":self.server.build_id,
                            "csrf_token": self.server.csrf_token,
                            "documents": {"enabled": True, "max_file_bytes": documents.MAX_FILE_BYTES,
                                          "max_files": documents.MAX_FILES_PER_SCOPE,
@@ -1335,6 +1336,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def _knowledge(self, path):
         routes = {"/api/knowledge/submit", "/api/knowledge/status", "/api/knowledge/admin/snapshot", "/api/knowledge/admin/example",
+                  "/api/knowledge/admin/browse", "/api/knowledge/admin/detail", "/api/knowledge/admin/history", "/api/knowledge/admin/graph",
                   "/api/knowledge/admin/review", "/api/knowledge/admin/retry",
                   "/api/knowledge/admin/document-source", "/api/knowledge/admin/canonical-create",
                   "/api/knowledge/admin/canonical-update"}
@@ -1438,12 +1440,23 @@ class Handler(BaseHTTPRequestHandler):
                     payload["documents"] = {"documents": references}
                 return self._json(graph.submit(payload, principal=submitter, document_scope=document_scope,intent_digest=intent_digest), 202)
             if path.endswith("/snapshot"):
-                snapshot = graph.admin_snapshot()
+                return self._json({"error":"This Admin view needs an update. Save your interview, then reload to use paged records and details."},409)
+            if path.endswith("/browse"):
+                result = graph.admin_browse(payload.get("section","overview"),payload.get("filters"),offset=payload.get("offset",0),limit=payload.get("limit",25))
+            elif path.endswith("/detail"):
+                result = graph.admin_detail(payload.get("kind"),payload.get("id"),revision=payload.get("revision"))
+            elif path.endswith("/history"):
+                result = graph.admin_history(payload.get("kind"),payload.get("id"),offset=payload.get("offset",0),limit=payload.get("limit",25))
+            elif path.endswith("/graph"):
+                result = graph.admin_graph(payload.get("filters"),payload.get("level","overview"),submission_id=payload.get("submission_id"))
+            else:
+                result = None
+            if result is not None:
                 if example_mode:
-                    snapshot["synthetic_example"] = True
-                    snapshot["analysis_limitations"] = ("Fictional demonstration data in separate local storage. "
+                    result["synthetic_example"] = True
+                    result["analysis_limitations"] = ("Fictional demonstration data in separate local storage. "
                         "No AI analysis was run; relationships are the reported example workflow.")
-                return self._json(snapshot)
+                return self._json(result)
             if path.endswith("/canonical-create"):
                 label = bounded_text(payload.get("label", ""), "Canonical label", 1000, True)
                 reason = bounded_text(payload.get("reason", ""), "Review reason", 3000, True)
@@ -1451,7 +1464,7 @@ class Handler(BaseHTTPRequestHandler):
                 if not isinstance(entities, list) or not 2 <= len(entities) <= 100:
                     raise ValueError("Choose between 2 and 100 entities.")
                 entity_ids = [bounded_text(item, "Entity ID", 100, True) for item in entities]
-                return self._json(graph.canonical_create(label, entity_ids, principal, reason))
+                return self._json(graph.canonical_create(label, entity_ids, principal, reason,bounded_result=True))
             if path.endswith("/canonical-update"):
                 canonical_id = bounded_text(payload.get("canonical_id", ""), "Canonical ID", 100, True)
                 action = bounded_text(payload.get("action", ""), "Canonical action", 80, True)
@@ -1460,7 +1473,7 @@ class Handler(BaseHTTPRequestHandler):
                 revision = payload.get("expected_revision")
                 if not isinstance(revision, int) or isinstance(revision, bool) or revision < 1:
                     raise ValueError("Choose the canonical grouping revision you reviewed.")
-                return self._json(graph.canonical_update(canonical_id, action, value, principal, reason, revision))
+                return self._json(graph.canonical_update(canonical_id, action, value, principal, reason, revision,bounded_result=True))
             if path.endswith("/document-source"):
                 submission_id = bounded_text(payload.get("submission_id", ""), "Submission ID", 100, True)
                 revision = payload.get("revision")
@@ -1480,7 +1493,7 @@ class Handler(BaseHTTPRequestHandler):
                 side = payload.get("side")
                 if side is not None:
                     side = bounded_text(side, "Review side", 40)
-                return self._json(graph.review(proposal, action, principal, reason, revision, side=side))
+                return self._json(graph.review(proposal, action, principal, reason, revision, side=side,bounded_result=True))
             job = bounded_text(payload.get("job_id", ""), "Job ID", 100, True)
             return self._json(graph.retry(job))
         except PermissionError:

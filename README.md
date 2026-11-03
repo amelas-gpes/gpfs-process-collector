@@ -2,7 +2,7 @@
 
 An adaptive voice interviewer that helps people explain how a business process works today, then turns their account into a reviewable memo, process map and detailed procedure.
 
-Version **0.11.0** includes the usability improvements and the first backend reliability audit batch. HTTP resources are bounded; submission retries retain their original intent; document review avoids duplicate/stale work; and Admin database reads are batched. See the [ongoing application audit](docs/APPLICATION_AUDIT.md) for coverage and remaining work.
+Version **0.12.0** includes all fifteen usability improvements and the reliability audit fixes. Admin now uses paged metadata and lazy details, complete source navigation and independently paged histories. Oversized graphs ask for a process or filters instead of displaying partial topology. Saved-interview validation, keyboard recovery, reduced motion and stale-build detection are also improved. See the [application audit](docs/APPLICATION_AUDIT.md) for verified coverage and limits.
 
 The interface uses the shape-only GPFS logo in both the header and audio-responsive conversation presence, with the company lettering removed. Its five symbol elements gather inward while listening and open outward while speaking, with confined surface light and stable identification. Separate microphone and actual playback meters drive the response; captions never imply speech. Reduced-motion mode keeps clear, static state changes, and hidden views pause visual rendering. [GPFS asset provenance and motion design](docs/GPFS_ASSET.md) document the original vector and behavior.
 

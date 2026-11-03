@@ -221,7 +221,7 @@ class GraphTests(unittest.TestCase):
         group=self.graph.canonical_create('Ledger',[systems[0]['id'],systems[1]['id']],'owner','Checked systems')
         group=self.graph.canonical_update(group['id'],'add_alias','GL','owner','Known alias',group['review_version'])
         roles=[entry for entry in initial['entities'] if entry['type']=='role']
-        other=self.graph.canonical_create('Analyst',[roles[0]['id']],'owner','Checked role')
+        other=self.graph.canonical_create('Analyst',[roles[0]['id'],roles[1]['id']],'owner','Checked roles')
         def snapshot_queries():
             statements=[]
             self.graph.db.set_trace_callback(lambda sql:statements.append(sql) if sql.lstrip().upper().startswith('SELECT') else None)
@@ -398,8 +398,11 @@ class GraphTests(unittest.TestCase):
     def test_canonical_revision_stales_membership_until_explicit_revalidation(self):
         self.graph.analyzer=lambda current,candidates: []
         p=payload('A','We send NAV.');a=self.graph.submit(p);wait(self.graph,a['job_id'])
+        b=self.graph.submit(payload('B','We receive NAV.'));wait(self.graph,b['job_id'])
         first=next(e for e in self.graph.admin_snapshot()['entities'] if e['submission_id']==a['submission_id'] and e['type']=='system')
-        group=self.graph.canonical_create('Ledger',[first['id']],'owner','Identified system')
+        other=next(e for e in self.graph.admin_snapshot()['entities'] if e['submission_id']==b['submission_id'] and e['type']=='system')
+        group=self.graph.canonical_create('Ledger',[first['id'],other['id']],'owner','Identified shared system')
+        group=self.graph.canonical_update(group['id'],'remove_member',other['id'],'owner','Corrected one member',group['review_version'])
         p['process_id']=a['process_id'];second=self.graph.submit(p);wait(self.graph,second['job_id'])
         data=self.graph.admin_snapshot();stale=data['canonical_groups'][0]
         self.assertEqual(stale['status'],'stale');self.assertEqual(stale['members'],[first['id']]);self.assertEqual(stale['history'][-1]['action'],'stale')

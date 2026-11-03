@@ -1,44 +1,126 @@
-/* Official GPFS vector geometry, with surface-confined lighting. No raster or filters. */
+/* Official GPFS vector geometry with a calm, responsive presence.
+ * The mark keeps its source paths and colours. Around it: the brand's diagonal hatch as a quiet field,
+ * and a hairline ring that answers real voice activity. No glow, blur or gradient on the mark. */
+@property --voice { syntax:"<number>"; inherits:true; initial-value:0; }
+@property --gaze-x { syntax:"<number>"; inherits:true; initial-value:0; }
+@property --gaze-y { syntax:"<number>"; inherits:true; initial-value:0; }
+@property --hover { syntax:"<number>"; inherits:true; initial-value:0; }
+
 .gpfs-presence {
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  flex:0 1 auto;
-  width:clamp(142px,23vw,244px);
-  max-width:100%;
-  min-height:0;
+  --field: #dee0e4;
+  --ring: #dee0e4;
   position:relative;
   isolation:isolate;
+  display:grid;
+  place-items:center;
+  flex:0 1 auto;
+  width:clamp(140px,20vw,216px);
+  max-width:100%;
+  min-height:0;
+  border-radius:50%;
+  outline:1px solid transparent;
+  outline-offset:0;
   pointer-events:none;
   user-select:none;
-  contain:layout style;
+  -webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
 }
+/* Hatched field (GPFS ltDnDiag pattern), a true circle centred on the mark. */
+.gpfs-presence::before,
+.gpfs-presence::after {
+  content:"";
+  position:absolute;
+  left:-21%;
+  top:50%;
+  width:142%;
+  aspect-ratio:1;
+  margin-top:-71%;
+  border-radius:50%;
+  pointer-events:none;
+}
+.gpfs-presence::before {
+  z-index:-2;
+  border:1px solid var(--field);
+  background:repeating-linear-gradient(-45deg, var(--field) 0 1px, transparent 1px 7px);
+  scale:calc(1 + var(--hover) * .02);
+  translate:calc(var(--gaze-x) * 5px) calc(var(--gaze-y) * 4px);
+  transition:scale .4s cubic-bezier(.2,.8,.2,1);
+}
+/* Hairline ring: listening follows the microphone, speaking ripples outward. */
+.gpfs-presence::after {
+  z-index:-1;
+  border:1px solid var(--ring);
+  opacity:0;
+  transition:opacity .3s, border-color .3s;
+}
+.gpfs-presence[data-mode="listening"] { --ring: #6c809a; }
+.gpfs-presence[data-mode="listening"]::after { opacity:calc(.35 + var(--voice) * .65); scale:calc(1.04 + var(--voice) * .08); }
+.gpfs-presence[data-mode="speaking"] { --ring: #dc6e2c; }
+.gpfs-presence[data-mode="speaking"]::after { animation:gpfs-ripple 1.9s cubic-bezier(.2,.7,.3,1) infinite; }
+.gpfs-presence:is([data-mode="connecting"],[data-mode="processing"]) { --ring: #6c809a; }
+.gpfs-presence:is([data-mode="connecting"],[data-mode="processing"])::after { scale:1.05; animation:gpfs-think 1.6s ease-in-out infinite; }
+.gpfs-presence[data-mode="muted"] { --ring: #646466; }
+.gpfs-presence[data-mode="muted"]::after { opacity:.6; scale:1.04; border-style:dashed; }
+
 .gpfs-symbol {
+  display:block;
   width:100%;
   height:auto;
   max-height:228px;
   overflow:visible;
-  display:block;
   flex:0 1 auto;
+  pointer-events:auto;
+  cursor:pointer;
+  touch-action:manipulation;
+  transform:perspective(720px) rotateY(calc(var(--gaze-x) * 7deg)) rotateX(calc(var(--gaze-y) * -7deg));
+  transform-origin:50% 55%;
 }
+/* A slow breath while waiting or listening; speech drives its own choreography. */
+.gpfs-presence:is([data-mode="idle"],[data-mode="ended"],[data-mode="listening"],[data-mode="muted"]) .gpfs-symbol { animation:gpfs-breathe 6.4s ease-in-out infinite; }
+/* A tap sends one hairline ring outward; alternating names restart it on every tap. */
+.gpfs-presence[data-boop="a"] { animation:gpfs-boop-a .8s cubic-bezier(.2,.8,.2,1); }
+.gpfs-presence[data-boop="b"] { animation:gpfs-boop-b .8s cubic-bezier(.2,.8,.2,1); }
 .gpfs-fallback { display:block; width:160px; max-width:100%; height:auto; }
+
+@keyframes gpfs-breathe {
+  0%,100% { translate:0 0; scale:1; }
+  50% { translate:0 -2px; scale:1.008; }
+}
+@keyframes gpfs-ripple {
+  0% { scale:1; opacity:calc(.25 + var(--voice) * .75); }
+  100% { scale:1.22; opacity:0; }
+}
+@keyframes gpfs-think {
+  0%,100% { opacity:.2; }
+  50% { opacity:.85; }
+}
+@keyframes gpfs-boop-a {
+  0% { outline-color:rgb(220 110 44 / .7); outline-offset:0; }
+  100% { outline-color:rgb(220 110 44 / 0); outline-offset:42px; }
+}
+@keyframes gpfs-boop-b {
+  0% { outline-color:rgb(220 110 44 / .7); outline-offset:0; }
+  100% { outline-color:rgb(220 110 44 / 0); outline-offset:42px; }
+}
+
 @media(max-width:700px) {
-  .gpfs-presence { width:clamp(132px,43vw,192px); }
+  .gpfs-presence { width:clamp(124px,38vw,180px); }
   .gpfs-symbol { max-height:190px; }
 }
 @media(max-height:700px) and (min-width:701px) {
-  .gpfs-presence { width:174px; }
+  .gpfs-presence { width:164px; }
   .gpfs-symbol { max-height:172px; }
 }
 @media(max-height:600px) and (max-width:700px) {
-  .gpfs-presence { width:112px; }
+  .gpfs-presence { width:104px; }
   .gpfs-symbol { max-height:112px; }
 }
 @media(max-height:540px) and (min-width:600px) {
-  .gpfs-presence { width:118px; flex:0 0 118px; }
+  .gpfs-presence { width:110px; flex:0 0 110px; }
   .gpfs-symbol { max-height:112px; }
 }
 @media(prefers-reduced-motion:reduce) {
-  .gpfs-presence *, .gpfs-presence { animation:none!important; transition:none!important; }
+  .gpfs-presence, .gpfs-presence *, .gpfs-presence::before, .gpfs-presence::after { animation:none!important; transition:none!important; }
+  .gpfs-symbol { transform:none; cursor:default; }
+  .gpfs-presence[data-mode="speaking"]::after { opacity:.8; scale:1.06; }
 }

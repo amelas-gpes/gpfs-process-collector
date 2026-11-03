@@ -79,7 +79,12 @@ class GPFSAssetHTTPTests(unittest.TestCase):
         self.assertEqual(status, 200)
         html = body.decode()
         self.assertIn('src="/assets/gpfs-symbol.svg"', html)
-        self.assertNotIn("gpfs-logo.svg", html, "The full lettering lockup must not appear in the app")
+        # The header carries the official gpfs.com lockup; the live voice presence stays symbol-only.
+        self.assertEqual(html.count("gpfs-logo.svg"), 1, "Only the header uses the full lettering lockup")
+        self.assertRegex(html, r'<a class="brand"[^>]*><img class="brand-logo" src="/assets/gpfs-logo\.svg"')
+        presence = re.search(r'<div class="gpfs-presence"[^>]*>(.*?)</div>', html)
+        self.assertIsNotNone(presence)
+        self.assertNotIn("gpfs-logo.svg", presence.group(1))
         self.assertIn('src="/gpfs-presence.js"', html)
         self.assertIn('href="/gpfs-presence.css"', html)
         self.assertNotRegex(html, r'(?:src|href)=["\']https?://(?:www\.)?gpfs\.com')

@@ -3,19 +3,19 @@
 const fs=require("node:fs"),vm=require("node:vm"),path=require("node:path"),assert=require("node:assert/strict"),crypto=require("node:crypto");
 const source=fs.readFileSync(path.join(__dirname,"..","web","gpfs-presence.js"),"utf8");
 class Element{
-  constructor(tag,doc){this.tagName=tag;this.ownerDocument=doc;this.children=[];this.attributes={};this.classList={add:()=>{}};}
+  constructor(tag,doc){this.tagName=tag;this.ownerDocument=doc;this.children=[];this.attributes={};this.classList={add:()=>{}};this.style={props:{},setProperty(k,v){this.props[k]=v;}};}
   setAttribute(k,v){this.attributes[k]=String(v);}
   getAttribute(k){return this.attributes[k]??null;}
   appendChild(n){this.children.push(n);return n;}
   replaceChildren(...nodes){this.children=nodes;}
 }
-function setup({reduced=false,autoStart=false}={}){
+function setup({reduced=false,autoStart=false,...extra}={}){
   const callbacks=new Map(),listeners=new Map(),motionListeners=new Set();let nextId=0,clock=0;
   const media={matches:reduced,addEventListener:(_,fn)=>motionListeners.add(fn),removeEventListener:(_,fn)=>motionListeners.delete(fn)};
   const document={hidden:false,createElementNS:(_,tag)=>new Element(tag,document),addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:(name,fn)=>{if(listeners.get(name)===fn)listeners.delete(name);}};
   const window={document,performance:{now:()=>clock},matchMedia:()=>media,requestAnimationFrame:fn=>{const id=++nextId;callbacks.set(id,fn);return id;},cancelAnimationFrame:id=>callbacks.delete(id)};document.defaultView=window;
   vm.runInNewContext(source,{window});
-  const root=new Element("div",document),api=window.GPFSPresence.create(root,{autoStart});
+  const root=new Element("div",document),api=window.GPFSPresence.create(root,{autoStart,...extra});
   return{api,root,window,document,callbacks,listeners,motionListeners,
     sample(time){clock=time;return api.sample(time);},
     frames(count=30,start=0,step=1000/30){let result;for(let i=0;i<count;i++)result=this.sample(start+i*step);return result;},
@@ -100,8 +100,45 @@ test("hidden panel and hidden document pause rendering; resume does not replay e
   const h=setup({autoStart:true});h.api.setState("listening");h.api.setAudio(audio({input:.7,inputActive:true}));h.raf(0);const before=h.api.inspect();h.api.setVisible(false);assert.equal(h.callbacks.size,0);h.api.setAudio(audio({input:.9,inputActive:true}));h.sample(100000);assert.equal(h.api.inspect().renderCount,before.renderCount);
   h.api.setVisible(true);h.raf(100100);const resumed=h.api.inspect();assert.ok(resumed.input<.7,"Resume uses one short frame rather than the hidden interval");h.visibility(true);assert.equal(h.callbacks.size,0);h.visibility(false);assert.ok(h.callbacks.size>0);h.api.dispose();
 });
-test("rendering caps at 30fps while audio remains independently sampled",()=>{
-  const h=setup({autoStart:true});h.api.setState("listening");h.api.setAudio(audio({input:.7,inputActive:true}));const start=h.api.inspect().renderCount;for(let t=0;t<=1000;t+=1000/120)h.raf(t);const rendered=h.api.inspect().renderCount-start;assert.ok(rendered>=28&&rendered<=31,`${rendered} frames`);h.api.dispose();
+test("rendering caps at 60fps while audio remains independently sampled",()=>{
+  const h=setup({autoStart:true});h.api.setState("listening");h.api.setAudio(audio({input:.7,inputActive:true}));const start=h.api.inspect().renderCount;for(let t=0;t<=1000;t+=1000/120)h.raf(t);const rendered=h.api.inspect().renderCount-start;assert.ok(rendered>=58&&rendered<=61,`${rendered} frames`);h.api.dispose();
+});
+test("a tap twirls the diamonds a quarter turn with a pop, then settles to the source arrangement",()=>{
+  const h=setup();h.frames(10);assert.equal(h.api.poke(),true);assert.equal(h.root.getAttribute("data-boop"),"a");
+  const mid=h.frames(2,400);assert.ok(mid.parts.slice(0,4).some(p=>p.rotation>20),"diamonds twirl forward");assert.ok(mid.parts[0].x<-.3,"the first diamond pops outward");
+  const done=h.frames(120,600);done.parts.forEach(p=>{near(p.x,0);near(p.y,0);near(p.rotation,0,.1);near(p.scale,1);});
+  h.api.poke();assert.equal(h.root.getAttribute("data-boop"),"b","consecutive taps restart the CSS ripple");h.api.dispose();
+});
+test("tap play sleeps once settled and is unavailable with reduced motion",()=>{
+  const h=setup({autoStart:true});h.api.poke();assert.ok(h.callbacks.size>0);for(let t=0;t<4000;t+=17)h.raf(t);assert.equal(h.callbacks.size,0);h.api.dispose();
+  const r=setup({reduced:true,autoStart:true});assert.equal(r.api.poke(),false);assert.equal(r.callbacks.size,0);assert.ok(r.api.inspect().parts.every(p=>p.x===0&&p.rotation===0));r.api.dispose();
+});
+test("gaze follows the pointer with parallax and publishes CSS tilt variables",()=>{
+  const h=setup();h.api.look(1,-1);const p=h.frames(60);near(p.gaze.x,1);near(p.gaze.y,-1);
+  assert.ok(p.parts[1].x>p.parts[4].x&&p.parts[4].x>0,"diamonds lead the outline toward the pointer");assert.ok(p.parts[1].y<0);
+  near(Number(h.root.style.props["--gaze-x"]),1);near(Number(h.root.style.props["--gaze-y"]),-1);
+  h.api.look(0,0);const back=h.frames(90,2100);near(back.gaze.x,0);back.parts.forEach(part=>near(part.x,0));h.api.dispose();
+});
+test("hover makes the mark curious: diamonds spread, puff and warm",()=>{
+  const h=setup();const before=h.frames(20);h.api.hover(true);const curious=h.frames(40,700);
+  near(curious.hover,1);assert.ok(curious.parts[0].x<-.35&&curious.parts[2].x>.35);assert.ok(curious.parts[0].scale>1.02);assert.ok(curious.light>before.light);h.api.dispose();
+});
+test("voice energy is published for the warm aura without inventing a level",()=>{
+  const h=setup();h.api.setState("listening");h.api.setAudio(audio({input:.7,inputActive:true}));h.frames(30);assert.ok(Number(h.root.style.props["--voice"])>.5);
+  h.api.setState("idle");h.frames(80,1100);near(Number(h.root.style.props["--voice"]),0);h.api.dispose();
+});
+test("an opened connection is greeted with a cheerful twirl",()=>{
+  const h=setup();h.api.setState("connecting");h.frames(20);h.api.setState("listening");h.api.setAudio(audio());const hello=h.frames(3,700);
+  assert.ok(hello.parts[0].x<0,"the greeting pops outward against the listening gather");assert.ok(hello.parts.slice(0,4).some(p=>Math.abs(p.rotation)>10));
+  const settled=h.frames(120,850);assert.ok(settled.parts[0].x>0);near(settled.parts[0].rotation,settled.parts[2].rotation,.2);h.api.dispose();
+});
+test("ambient hello and blinks use owned timers that stop when hidden or disposed",()=>{
+  const timers=new Map();let next=0;
+  const h=setup({autoStart:true,setTimeout:(fn,ms)=>{timers.set(++next,{fn,ms});return next;},clearTimeout:id=>timers.delete(id)});
+  assert.equal(timers.size,2);const hello=[...timers.values()].find(t=>t.ms===650);assert.ok(hello);
+  [...timers.entries()].filter(([,t])=>t===hello).forEach(([id])=>timers.delete(id));hello.fn();assert.ok(h.callbacks.size>0,"the hello animates");
+  h.api.setVisible(false);assert.equal(timers.size,0);h.api.setVisible(true);assert.equal(timers.size,1,"only the blink re-arms after the hello");
+  h.api.dispose();assert.equal(timers.size,0);
 });
 test("settled idle and below-floor audio do not keep a RAF loop alive",()=>{
   const h=setup({autoStart:true});h.api.setState("listening");for(let t=0;t<3000;t+=34)h.raf(t);assert.equal(h.callbacks.size,0);const rendered=h.api.inspect().renderCount;h.api.setAudio(audio({input:.01}));assert.equal(h.callbacks.size,0);assert.equal(h.api.inspect().renderCount,rendered);h.api.dispose();

@@ -2,7 +2,7 @@
 
 An adaptive voice interviewer that helps people explain how a business process works today, then turns their account into a reviewable memo, process map and detailed procedure.
 
-Version **0.2.1** includes selectable natural AI voices, preview before the interview and an initial provider interface for the Azure handoff.
+Version **0.3.0** simplifies the workspace with monochrome styling, a prominent memo foundation and a compact interview setup. Optional context and secondary controls stay available without crowding the conversation. Natural voice preview and the initial provider interface for the Azure handoff remain available.
 
 The interview follows a reusable process-capture framework. It elicits the eleven memo topics naturally, follows useful answers, parks tangents, keeps unknowns explicit and seeks participant confirmation before closing. **60 minutes is the adjustable planning default, not a cutoff.**
 
@@ -55,17 +55,17 @@ Default model settings can be changed using `INTERVIEW_MODEL` and `TRANSCRIPTION
 
 ## Interview and review
 
-Choose **Interviewer voice** and select **Preview voice** before starting. The ten AI choices are Marin, Cedar, Alloy, Ash, Ballad, Coral, Echo, Sage, Shimmer and Verse. Installed English voices appear separately under **Installed computer voices**. Selecting a computer voice is explicit; an AI playback failure does not silently switch voices. The selected voice is included when you save a session.
+Open **Voice** and select **Preview** before starting. The ten AI choices are Marin, Cedar, Alloy, Ash, Ballad, Coral, Echo, Sage, Shimmer and Verse. Installed English voices appear separately under **Installed computer voices**. Selecting a computer voice is explicit; an AI playback failure does not silently switch voices. The selected voice is included when you save a session.
 
 1. Name one piece of recurring work. Add the interview goal, a role if known, and existing text you are permitted to share.
 2. Adjust the planned duration if useful. The elapsed timer can be paused; passing the plan never ends the interview.
-3. Start the interview. Record or type an answer, correct the transcription, and select **Send answer**.
+3. Start the interview. Record or type an answer, correct the transcription, and select **Send**.
 4. Follow the actual route from start to finish, then explore checks, exceptions, differences, pain points and gaps. **Finish on pause** can be disabled for answers with longer pauses. Each recording is limited to 90 seconds; continue in another answer when needed.
 5. Use **Final completeness check** to invite omissions and corrections. Participant confirmation is separate from process-owner approval and independent verification.
 6. Select **Create draft** after any answer. Review and edit the memo, map, procedure, item lifecycles, variations and open questions. Draft generation includes a separate evidence audit; it can still misinterpret a statement.
 7. Save the session JSON before closing the tab. There is no automatic session persistence. New answers mark old drafts stale; regeneration asks before replacing edits.
 
-`Examples/Synthetic-reviewed-session.json` is a fictional review example. Open it through **Session → Open saved session**; opening a saved file does not itself call the API. It demonstrates a 75-minute capture against a 60-minute plan with acknowledged gaps.
+`Examples/Synthetic-reviewed-session.json` is a fictional review example. Open it through **Save & open → Open interview**; opening a saved file does not itself call the API. It demonstrates a 75-minute capture against a 60-minute plan with acknowledged gaps.
 
 ## Memo requirements
 

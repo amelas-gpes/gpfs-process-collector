@@ -1,6 +1,6 @@
 # Publication verification
 
-Verified on November 2, 2026, against the version 0.2.1 repository publication copy.
+Verified on November 2, 2026, against the version 0.3.0 repository publication copy.
 
 - **64 offline Python tests passed:** the original 45 prototype regressions, 4 portability checks and 15 voice/provider API tests. A synthetic injected identity provider works without an OpenAI key attribute; unsupported browser connection origins are rejected before binding. OpenAI responses were mocked; HTTP traffic stayed on temporary local servers.
 - **9 offline Node checks passed:** simulated Realtime event sequencing, PCM/WAV framing, speech-transcript mismatch rejection, cancellation, incomplete responses, audio-size limits, unrelated acknowledgments, Stop cleanup and unsupported provider/transport rejection before any socket is created. No browser or audio hardware was exercised by these tests.
@@ -19,3 +19,7 @@ Verified on November 2, 2026, against the version 0.2.1 repository publication c
 Earlier live synthetic API and browser checks apply to the earlier prototype behavior; the voice-upgrade checks are listed separately above. See [VALIDATION.md](../VALIDATION.md) for the full limits. Publication testing does not establish production readiness, reliable exhaustive capture, physical listening or subjective voice quality, physical microphone behavior, or Teams integration. No real business-process interview is included in the fictional example.
 
 The source memorandum's requirements are preserved in [MEMO_REQUIREMENTS.md](MEMO_REQUIREMENTS.md) and the [standing foundation](../FOUNDATION.md), using neutral language. The original branded document is retained locally and is not part of the repository.
+
+## Interface checks in 0.3.0
+
+The monochrome workspace was observed on desktop and at 320px/390px widths without horizontal document overflow. Checks covered required-field disclosure/focus, live interview start, natural voice preview, all eleven expandable memo topics, edits and source navigation, session save/open, and complete memo/procedure/SVG exports with collapsed review details. No console warnings/errors were observed. The original memo source hash was unchanged. See [validation](../VALIDATION.md) for scope and limits.

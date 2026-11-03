@@ -100,13 +100,27 @@
     $("background").value = context?.background || "";
     $("meeting-minutes").value = context?.meeting_minutes || 60;
   }
+  function revealAncestors(target) {
+    for (let node = target; node; node = node.parentElement) {
+      if (node.tagName === "DETAILS") node.open = true;
+    }
+  }
+  function revealContext() {
+    if ($("setup-card")) $("setup-card").open = true;
+    if ($("context-details")) $("context-details").open = true;
+    revealAncestors($("context-form"));
+  }
   function updateControls() {
     const ready = Boolean(state.config?.api_configured);
     const working = state.busy || state.transcribing || state.requestingMic;
     const recording = Boolean(state.recording);
     const atLimit = state.turns.length >= 399 || state.turns.reduce((n,t) => n+t.text.length,0) >= 394000;
     $("start-interview").disabled = working || recording || (!ready && !state.started);
-    $("start-interview").firstElementChild.textContent = state.started ? "Start a new interview" : "Start interview";
+    const previouslyStarted = document.body?.classList.contains("interview-started");
+    document.body?.classList.toggle("interview-started", state.started);
+    if ($("setup-card") && previouslyStarted !== undefined && previouslyStarted !== state.started) $("setup-card").open = !state.started;
+    if ($("setup-summary")) $("setup-summary").textContent = state.started ? state.context?.process_name || "Interview" : "Set up an interview";
+    $("start-interview").firstElementChild.textContent = state.started ? "New interview" : "Start interview";
     ["process-name", "process-owner", "objective", "background"].forEach(id => { $(id).disabled = state.started || working || recording; });
     $("answer-text").disabled = !state.started || working || recording || !ready;
     $("send-answer").disabled = !state.started || working || recording || !ready || atLimit || !$("answer-text").value.trim();
@@ -126,7 +140,7 @@
     $("thinking").hidden = !working;
     $("thinking-text").textContent = state.requestingMic ? "Waiting for microphone permission…" : state.transcribing ? "Turning your recording into an editable answer…" : state.busyMessage || "Finding the next useful question…";
     $("record-answer").classList.toggle("recording", recording);
-    $("record-answer").querySelector("span").textContent = recording ? "Finish answer" : "Record answer";
+    $("record-answer").querySelector("span").textContent = recording ? "Finish" : "Speak";
     $("recording-status").hidden = !recording;
     const voiceReady = canSpeakChoice();
     $("speak-questions").disabled = !voiceReady;
@@ -139,8 +153,9 @@
     $("draft-content").classList.toggle("draft-content-loading", state.busy);
     $("draft-content").inert = state.busy;
     $("current-focus").hidden = !state.focus;
-    $("current-focus").textContent = state.focus ? `Current focus: ${state.focus}` : "";
-    $("closure-status").textContent = state.closure.confirmed ? "Final completeness check confirmed by the participant." : state.closure.asked ? "Final check asked · participant confirmation pending." : "You can create a draft at any point.";
+    $("current-focus").textContent = state.focus || "";
+    $("closure-status").hidden = !state.closure.asked && !state.closure.confirmed;
+    $("closure-status").textContent = state.closure.confirmed ? "Participant confirmed completeness." : state.closure.asked ? "Waiting for final confirmation." : "";
     updateTimer();
   }
   function setBusy(value, message = "") {
@@ -179,17 +194,19 @@
     state.turns.forEach(turn => {
       const item = el("article", `turn ${turn.role}`);
       item.id = `turn-${turn.id}`;
-      const avatar = el("div", "turn-avatar", turn.role === "assistant" ? "PS" : "YOU");
+      const avatar = el("div", "turn-avatar", turn.role === "assistant" ? "AI" : "YOU");
       avatar.setAttribute("aria-hidden", "true");
       const content = el("div", "turn-content");
       const meta = el("div", "turn-meta");
-      meta.append(el("span", "turn-name", turn.role === "assistant" ? "Process interviewer" : "Your answer"), el("span", "turn-id", turn.id));
+      const reference = el("span", "turn-id", sourceCaption(turn.id));
+      reference.title = turn.id;
+      meta.append(el("span", "turn-name", turn.role === "assistant" ? "Interviewer" : "You"), reference);
       content.append(meta, el("p", "turn-text", turn.text));
       if (turn.role === "assistant") {
         const play = el("button", "play-turn");
         play.innerHTML = icons.play;
         play.append(document.createTextNode(" Listen"));
-        play.setAttribute("aria-label", `Listen to question ${turn.id} using the selected voice`);
+        play.setAttribute("aria-label", `Listen to ${sourceCaption(turn.id)} using the selected voice`);
         play.disabled = !canSpeakChoice();
         play.title = canSpeakChoice() ? `Play using ${voiceLabel()}` : "Choose an available interviewer voice.";
         play.addEventListener("click", () => speak(turn.text));
@@ -228,11 +245,16 @@
       const response = await fetch(path, {method: "POST", headers, body, signal: controller.signal, credentials: "same-origin"});
       if (!response.ok) {
         const result = await response.json().catch(() => ({}));
-        throw new Error(text(result.error || result.message, 600) || `The request failed (${response.status}). Please try again.`);
+        const message = text(result.error || result.message, 600);
+        if (response.status >= 500 || [401, 402, 403, 429].includes(response.status) || /\b(?:API|OpenAI|Azure|credentials?|quota|billing|credits?|CSRF|endpoint|provider|configuration|configured)\b/i.test(message)) {
+          throw new Error("The interviewer is unavailable. Please try again.");
+        }
+        throw new Error(message || "The interviewer is unavailable. Please try again.");
       }
       return options.audio ? await response.blob() : await response.json();
     } catch (error) {
       if (error.name === "AbortError" && !external?.aborted) throw new Error("The request took too long. Your answer is still available; please try again.");
+      if (error.name === "TypeError") throw new Error("The interviewer is unavailable. Please try again.");
       throw error;
     } finally {
       clearTimeout(timeout);
@@ -265,7 +287,6 @@
     if (!state.voiceChoice?.startsWith("ai:")) return null;
     return naturalVoices().find(v => `ai:${v.id}` === state.voiceChoice) || null;
   }
-  function providerLabel() {return text(state.config?.provider?.label,80) || "the configured AI service";}
   function canSpeakChoice() {
     return selectedNaturalVoice() ? Boolean(state.config?.speech?.enabled && window.WebSocket) : Boolean(state.voice && window.speechSynthesis && window.SpeechSynthesisUtterance);
   }
@@ -298,7 +319,8 @@
     select.value = state.voiceChoice || "";
     state.voice = state.localVoices.find(v => localVoiceId(v) === state.voiceChoice) || null;
     const natural = selectedNaturalVoice();
-    $("voice-description").textContent = natural ? `${natural.description || natural.label} · AI-generated speech from ${providerLabel()}.` : state.voice ? "Installed computer voice · playback stays on this device." : "Choose an available voice to hear questions. Text remains available.";
+    if ($("voice-summary-label")) $("voice-summary-label").textContent = canSpeakChoice() ? `Voice · ${voiceLabel()}` : "Voice settings";
+    $("voice-description").textContent = natural ? "AI-generated speech." : state.voice ? "Computer voice · plays on this device." : "Choose a voice to hear questions.";
     $("voice-availability").hidden = canSpeakChoice();
     $("voice-availability").textContent = canSpeakChoice() ? "" : natural ? "The natural AI voice is unavailable. You can choose an installed computer voice or read the questions." : "No selected voice is available. Choose another voice or read the questions.";
     updateControls();
@@ -375,7 +397,7 @@
             if(normalizedSpeech(transcript)!==normalizedSpeech(message)){fail("The AI voice did not read the question exactly, so playback was withheld. Try Preview or Listen again; the original question remains on screen.");return;}
             finish(null,pcmWave(chunks,bytes));
           } else if(packet.type==="error"){
-            fail(`${providerLabel()} could not generate the selected AI voice. Try again or choose an installed computer voice.`);
+            fail("The voice is unavailable. Please try again or choose another voice.");
           }
         } catch {fail("The AI voice returned an incomplete response. Please try again.");}
       });
@@ -484,6 +506,7 @@
       if (!confirm("Start a new interview? Unsaved conversation and draft edits in this tab will be cleared. Save the session first if you want to keep them.")) return;
       const existing = state.context;
       clearState(existing);
+      revealContext();
       $("process-name").focus();
       notice("Update the context, then select Start interview.");
       return;
@@ -499,9 +522,13 @@
       applyInterview(result);
       state.started = true;
       state.timerStartedAt = Date.now();
-      $("answer-text").focus();
     } catch (error) { if (generation === state.generation) notice(error.message, true); }
-    finally { if (generation === state.generation) setBusy(false); }
+    finally {
+      if (generation === state.generation) {
+        setBusy(false);
+        if (state.started) $("answer-text").focus();
+      }
+    }
   }
   async function sendAnswer(event) {
     event.preventDefault();
@@ -561,7 +588,7 @@
     if (state.recording) { finishRecording(); return; }
     if (state.busy || state.transcribing || state.requestingMic || !state.started) return;
     if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
-      notice("This browser does not support microphone recording here. Open the localhost address in a current Chrome or Edge browser, or type your answer.", true);
+      notice("This browser does not support microphone recording. Use a current Chrome or Edge browser, or type your answer.", true);
       return;
     }
     stopSpeaking();
@@ -590,7 +617,7 @@
       $("recording-label").textContent = "Listening · finish when you’re ready";
       monitorSilence(recording);
       updateControls();
-      $("live-status").textContent = "Recording your answer. Select Finish answer to stop.";
+      $("live-status").textContent = "Recording your answer. Select Finish to stop.";
     } catch (error) {
       stream?.getTracks().forEach(t => t.stop());
       state.recording = null;
@@ -671,7 +698,7 @@
         notice("Your recording is transcribed, but the combined answer exceeds 6,000 characters. It is preserved below; shorten it before sending.",true);
         return;
       }
-      notice("Your recording is transcribed. Review the wording, then select Send answer.");
+      notice("Review the transcript, then select Send.");
     } catch (error) { if (recording.generation === state.generation) notice(`Transcription failed: ${error.message}`, true); }
     finally {
       if (recording.generation === state.generation) { state.transcribing = false; updateControls(); $("answer-text").focus(); }
@@ -751,7 +778,7 @@
       state.dirty = true;
       renderDraft();
       tab("review", true);
-      notice("Your draft is ready for review. Check the source turns, correct the steps, and resolve the open questions before publishing.");
+      notice("Draft ready. Review the sources, steps and open questions.");
     } catch (error) { if (generation === state.generation) notice(error.message, true); }
     finally { if (generation === state.generation) setBusy(false); }
   }
@@ -802,7 +829,7 @@
   }
   function jumpToTurn(id) {
     tab("interview");
-    if (id === "context") {$("context-form").scrollIntoView({behavior:"smooth",block:"center"});notice("This step cites the interview context in the preparation panel. Validate the supplied context with the process owner."); return;}
+    if (id === "context") {revealContext();$("context-form").scrollIntoView({behavior:"smooth",block:"center"});notice("This step cites the interview context. Validate it with the process owner."); return;}
     const turn = document.getElementById(`turn-${id}`);
     if (!turn) { notice(`Source ${id} is not present in this session. Validate this step with the process owner.`, true); return; }
     turn.scrollIntoView({behavior: "smooth", block: "center"});
@@ -811,6 +838,13 @@
     turn.classList.add("highlight");
     turn.tabIndex = -1;
     turn.focus({preventScroll: true});
+  }
+  function sourceCaption(id) {
+    if (id === "context") return "Starting context";
+    const turn = state.turns.find(item => item.id === id);
+    if (!turn) return "Missing answer";
+    const position = state.turns.filter(item => item.role === turn.role).findIndex(item => item.id === id) + 1;
+    return `${turn.role === "user" ? "Answer" : "Question"} ${position}`;
   }
   function renderSteps() {
     const root = $("procedure-steps");
@@ -846,11 +880,12 @@
       description.setAttribute("aria-label", `Instructions for step ${step.id}`);
       description.addEventListener("input", () => { step.description = description.value; draftChanged(); });
       const evidence = el("div", "evidence-row");
-      evidence.append(el("span", "", "Source turns:"));
+      evidence.append(el("span", "", "Sources:"));
       if (!step.evidence_turns.length) evidence.append(el("span", "needs-evidence", "Needs validation · no cited answer"));
       step.evidence_turns.forEach(id => {
-        const source = el("button", "evidence-link", id);
-        source.setAttribute("aria-label", `Read source turn ${id} for step ${step.id}`);
+        const source = el("button", "evidence-link", sourceCaption(id));
+        source.title = `Source: ${id}`;
+        source.setAttribute("aria-label", `Read ${sourceCaption(id)} for step ${step.id}`);
         source.addEventListener("click", () => jumpToTurn(id));
         evidence.append(source);
       });
@@ -888,10 +923,12 @@
   }
   function evidenceRow(ids) {
     const evidence = el("div","evidence-row");
-    evidence.append(el("span","","Source turns:"));
+    evidence.append(el("span","","Sources:"));
     if (!ids.length) evidence.append(el("span","needs-evidence","UNKNOWN / TBD · needs validation"));
     ids.forEach(id => {
-      const source = el("button","evidence-link",id);
+      const source = el("button","evidence-link",sourceCaption(id));
+      source.title = `Source: ${id}`;
+      source.setAttribute("aria-label",`Read ${sourceCaption(id)}`);
       source.addEventListener("click",() => jumpToTurn(id));
       evidence.append(source);
     });
@@ -901,15 +938,21 @@
     const root = $("memo-summary");
     root.replaceChildren();
     state.draft.memo_summary.forEach((finding,index) => {
-      const item = el("div","memo-finding");
+      const item = el("details","memo-finding");
+      const summary = el("summary","memo-finding-summary");
+      const topic = `${String(index+1).padStart(2,"0")} · ${MEMO_HEADINGS[finding.key]||finding.key}`;
+      const statusLabels = {unknown:"Unknown / TBD",partial:"Partial",captured:"Captured",not_applicable:"Not applicable"};
+      const badge = el("span",`memo-status ${finding.status}`,statusLabels[finding.status]||statusLabels.unknown);
+      summary.append(el("span","memo-topic",topic),badge);
+      const body = el("div","memo-finding-body");
       const header = el("div","memo-finding-header");
-      const title = el("label","",`${String(index+1).padStart(2,"0")} · ${MEMO_HEADINGS[finding.key]||finding.key}`);
+      const title = el("label","",topic);
       title.htmlFor = `memo-answer-${finding.key}`;
       const status = el("select");
       status.setAttribute("aria-label",`Review status for ${finding.key.replaceAll("_"," ")}`);
       [["unknown","Unknown / TBD"],["partial","Partial"],["captured","Captured"],["not_applicable","Not applicable"]].forEach(([value,label]) => {const option=el("option","",label);option.value=value;status.append(option);});
       status.value = finding.status;
-      status.addEventListener("change",() => {finding.status=status.value;draftChanged();});
+      status.addEventListener("change",() => {finding.status=status.value;badge.textContent=statusLabels[finding.status]||statusLabels.unknown;badge.className=`memo-status ${finding.status}`;draftChanged();});
       const answer = el("textarea");
       answer.id = `memo-answer-${finding.key}`;
       answer.value = finding.answer;
@@ -917,7 +960,8 @@
       answer.maxLength = 12000;
       answer.addEventListener("input",()=>{finding.answer=answer.value;draftChanged();});
       header.append(title,status);
-      item.append(header,answer,evidenceRow(finding.evidence_turns));
+      body.append(header,answer,evidenceRow(finding.evidence_turns));
+      item.append(summary,body);
       root.append(item);
     });
   }
@@ -983,12 +1027,13 @@
     const svg = svgEl("svg", {xmlns:svgNS, viewBox:`0 0 ${width} ${height}`, width, height, role:"img", "aria-labelledby":"map-title map-description"});
     svg.append(svgEl("title", {id:"map-title"}, `Draft process map: ${state.draft.title || "Untitled process"}`));
     svg.append(svgEl("desc", {id:"map-description"}, steps.map(s => `${s.id}: ${s.title}, owner ${s.actor || "not specified"}`).join(". ")));
+    svg.append(svgEl("rect", {width, height, fill:"#ffffff", "aria-hidden":"true"}));
     const defs = svgEl("defs");
     const marker = svgEl("marker", {id:"flow-arrow",viewBox:"0 0 10 10",refX:8,refY:5,markerWidth:7,markerHeight:7,orient:"auto-start-reverse"});
-    marker.append(svgEl("path", {d:"M 0 0 L 10 5 L 0 10 z", fill:"#749787"}));
+    marker.append(svgEl("path", {d:"M 0 0 L 10 5 L 0 10 z", fill:"#8a8a90"}));
     defs.append(marker); svg.append(defs);
     steps.forEach((step,index) => positions.set(step.id, {x:380,y:34 + index * 157,w:320,h:102,index}));
-    const edges = svgEl("g", {fill:"none",stroke:"#89a897","stroke-width":1.6});
+    const edges = svgEl("g", {fill:"none",stroke:"#8a8a90","stroke-width":1.6});
     const edgeLabels = svgEl("g");
     connections.forEach((connection,index) => {
       const from = positions.get(connection.from), to = positions.get(connection.to);
@@ -1012,7 +1057,7 @@
       edge.append(svgEl("title",{},`${connection.from} → ${connection.to}${connection.label?": "+connection.label:""}. Source turns: ${(connection.evidence_turns||[]).join(", ")||"UNKNOWN / TBD — no cited answer"}`));
       edges.append(edge);
       if (connection.label) {
-        const label = svgEl("text", {x:lx,y:ly,fill:"#6b7d72","font-family":"Segoe UI, Arial, sans-serif","font-size":10,"text-anchor":isNext || to.index > from.index ? "start" : "end"});
+        const label = svgEl("text", {x:lx,y:ly,fill:"#707077","font-family":"Segoe UI, Arial, sans-serif","font-size":10,"text-anchor":isNext || to.index > from.index ? "start" : "end"});
         wrapWords(connection.label, 16, 3).forEach((line, i) => label.append(svgEl("tspan", {x:lx,dy:i ? 13 : 0}, line)));
         edgeLabels.append(label);
       }
@@ -1023,15 +1068,15 @@
       const group = svgEl("g");
       const isDecision = step.type === "decision";
       if (isDecision) {
-        group.append(svgEl("path", {d:`M ${p.x - p.w / 2 + 22} ${p.y} H ${p.x + p.w / 2 - 22} L ${p.x + p.w / 2} ${p.y + p.h / 2} L ${p.x + p.w / 2 - 22} ${p.y + p.h} H ${p.x - p.w / 2 + 22} L ${p.x - p.w / 2} ${p.y + p.h / 2} Z`,fill:"#fff8e7",stroke:"#c4ad79","stroke-width":1.2}));
-      } else group.append(svgEl("rect", {x:p.x-p.w/2,y:p.y,width:p.w,height:p.h,rx:10,fill:"#fff",stroke:"#b6cec0","stroke-width":1.2}));
+        group.append(svgEl("path", {d:`M ${p.x - p.w / 2 + 22} ${p.y} H ${p.x + p.w / 2 - 22} L ${p.x + p.w / 2} ${p.y + p.h / 2} L ${p.x + p.w / 2 - 22} ${p.y + p.h} H ${p.x - p.w / 2 + 22} L ${p.x - p.w / 2} ${p.y + p.h / 2} Z`,fill:"#f0f0f1",stroke:"#9a9a9e","stroke-width":1.2}));
+      } else group.append(svgEl("rect", {x:p.x-p.w/2,y:p.y,width:p.w,height:p.h,rx:10,fill:"#ffffff",stroke:"#b8b8bb","stroke-width":1.2}));
       group.append(svgEl("title", {}, `${step.id}: ${step.title}. ${step.description}`));
-      group.append(svgEl("text", {x:p.x,y:p.y+19,fill:isDecision ? "#a48341" : "#5a8972","text-anchor":"middle","font-size":9,"font-family":"Segoe UI, Arial, sans-serif","font-weight":600,"letter-spacing":1}, `${step.id} · ${isDecision ? "DECISION" : "ACTIVITY"}`));
-      const title = svgEl("text", {x:p.x,y:p.y+41,fill:"#193f3e","text-anchor":"middle","font-size":13,"font-family":"Segoe UI, Arial, sans-serif","font-weight":600});
+      group.append(svgEl("text", {x:p.x,y:p.y+19,fill:"#707077","text-anchor":"middle","font-size":9,"font-family":"Segoe UI, Arial, sans-serif","font-weight":600,"letter-spacing":1}, `${step.id} · ${isDecision ? "DECISION" : "ACTIVITY"}`));
+      const title = svgEl("text", {x:p.x,y:p.y+41,fill:"#202023","text-anchor":"middle","font-size":13,"font-family":"Segoe UI, Arial, sans-serif","font-weight":600});
       wrapWords(step.title, 35, 2).forEach((line,i) => title.append(svgEl("tspan", {x:p.x,dy:i ? 17 : 0}, line)));
       group.append(title);
       const owner = `${step.actor || "Owner not specified"}${step.system ? " · " + step.system : ""}`;
-      group.append(svgEl("text", {x:p.x,y:p.y+83,fill:"#74857b","text-anchor":"middle","font-size":10,"font-family":"Segoe UI, Arial, sans-serif"}, owner.length > 48 ? owner.slice(0,47)+"…" : owner));
+      group.append(svgEl("text", {x:p.x,y:p.y+83,fill:"#707077","text-anchor":"middle","font-size":10,"font-family":"Segoe UI, Arial, sans-serif"}, owner.length > 48 ? owner.slice(0,47)+"…" : owner));
       svg.append(group);
     });
     root.append(svg);
@@ -1048,7 +1093,7 @@
   function exportSession() {
     download(JSON.stringify(sessionObject(),null,2), `${safeFilename(state.context?.process_name || readContext().process_name)}-session.json`, "application/json");
     state.dirty = false;
-    notice("Session exported. The JSON file contains the interview text and draft; store it in an approved location.");
+    notice("Interview saved. Keep the file somewhere approved for this process information.");
     closeMenu();
   }
   function escapeMarkdown(value) { return String(value ?? "").replace(/([\\`*_{}\[\]<>#|])/g, "\\$1"); }
@@ -1099,10 +1144,10 @@
   async function importSession(file) {
     if (!file) return;
     if (!canReplaceSession()) return;
-    if (file.size > 2 * 1024 * 1024) { notice("That session file is too large. Choose a JSON session smaller than 2 MB.", true); return; }
+    if (file.size > 2 * 1024 * 1024) { notice("That file is too large. Choose a saved interview smaller than 2 MB.", true); return; }
     try {
       const saved = JSON.parse(await file.text());
-      if (saved?.schema_version !== 1 || !saved.context || !Array.isArray(saved.turns)) throw new Error("Choose a session JSON exported by this prototype (schema version 1).");
+      if (saved?.schema_version !== 1 || !saved.context || !Array.isArray(saved.turns)) throw new Error("Choose an interview file saved from this app.");
       if (saved.turns.length > 400 || text(saved.context.objective).length > 500 || text(saved.context.background).length > 8000 || (typeof saved.unsent_answer === "string" && saved.unsent_answer.length > 18000)) throw new Error("The session exceeds the prototype’s context, answer, or 400-turn technical limit.");
       const planned = saved.context.meeting_minutes === undefined?60:Number(saved.context.meeting_minutes);
       if (!Number.isFinite(planned)||planned<1||planned>1440) throw new Error("The planned meeting duration must be between 1 and 1,440 minutes. This is advisory and never ends the interview.");
@@ -1131,7 +1176,7 @@
       state.draftVersion = draft ? (saved.draft_stale ? state.version-1 : state.version) : null;
       $("answer-text").value = text(saved.unsent_answer);
       renderTranscript(); renderDraft();
-      notice("Session opened locally with its timer paused. No interview content was sent to an AI service by opening this file.");
+      notice("Interview opened. The timer is paused.");
       if (draft) tab("review");
     } catch (error) { notice(`Could not open session: ${error.message}`, true); }
   }
@@ -1176,11 +1221,12 @@
     state.draftVersion = state.version;
     state.dirty = false;
     renderTranscript(); renderDraft(); scrollConversation();
-    notice("Synthetic example loaded. Explore the map and editable procedure in Draft review, or start your own interview.");
+    notice("Example opened. Explore the map, memo and procedure in Review.");
   }
   function initEvents() {
     document.querySelectorAll(".nav-tab").forEach(button => button.addEventListener("click", () => tab(button.dataset.tab)));
     $("context-form").addEventListener("submit",startInterview);
+    $("context-form").addEventListener("invalid",event => {revealAncestors(event.target);event.target.focus();},true);
     $("answer-form").addEventListener("submit",sendAnswer);
     $("answer-text").addEventListener("input",() => {state.dirty = true; updateControls();});
     $("answer-text").addEventListener("keydown",event => {if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {event.preventDefault(); sendAnswer(event);}});
@@ -1224,7 +1270,7 @@
     $("reset-session").addEventListener("click",() => {if (canReplaceSession()) clearState();});
     $("load-example").addEventListener("click",loadExample);
     $("welcome-example").addEventListener("click",loadExample);
-    $("leave-example").addEventListener("click",() => {if (canReplaceSession()) {clearState(); $("process-name").focus();}});
+    $("leave-example").addEventListener("click",() => {if (canReplaceSession()) {clearState(); revealContext(); $("process-name").focus();}});
     $("export-markdown").addEventListener("click",() => {if (state.draft) download(markdown(),`${safeFilename(state.draft.title)}-DRAFT.md`,"text/markdown;charset=utf-8");});
     $("export-memo").addEventListener("click",()=>{if(state.draft)download(memoMarkdown(),`${safeFilename(state.context?.process_name||state.draft.title)}-memo-DRAFT.md`,"text/markdown;charset=utf-8");});
     $("export-map").addEventListener("click",() => {const svg = $("process-map").querySelector("svg"); if (svg) download(new XMLSerializer().serializeToString(svg),`${safeFilename(state.draft.title)}-DRAFT-map.svg`,"image/svg+xml");});
@@ -1263,19 +1309,19 @@
     setInterval(updateTimer,1000);
     try {
       const response = await fetch("/api/config",{credentials:"same-origin",cache:"no-store"});
-      if (!response.ok) throw new Error("The local server is not responding.");
+      if (!response.ok) throw new Error("The interviewer is unavailable. Please try again.");
       const config = await response.json();
-      if (typeof config.csrf_token !== "string") throw new Error("The local server did not provide a session token. Refresh this page.");
+      if (typeof config.csrf_token !== "string") throw new Error("The interviewer is unavailable. Please try again.");
       state.config = config;
       $("data-notice").textContent = text(config.data_notice,4000) || "Data handling information is unavailable. Check the service configuration before submitting interview content.";
       populateVoiceOptions();
-      $("connection-state").className = `connection-state ${config.api_configured ? "good" : "bad"}`;
-      $("connection-state").querySelector("span").textContent = config.api_configured ? "Local server ready · AI service configured" : "Local server ready · AI service not configured";
-      if (!config.api_configured) notice(`The local server is running, but its connection to ${providerLabel()} is not configured. You can explore the synthetic example while the connection is resolved.`,true);
+      $("connection-state").hidden = true;
+      $("connection-state").querySelector("span").textContent = config.api_configured ? "Ready" : "Unavailable";
+      if (!config.api_configured) notice("The interviewer is unavailable. Please try again.",true);
     } catch(error) {
-      $("connection-state").className = "connection-state bad";
-      $("connection-state").querySelector("span").textContent = "Local server unavailable";
-      notice(`${error.message} Open the app through its launcher and localhost address.`,true);
+      $("connection-state").hidden = true;
+      $("connection-state").querySelector("span").textContent = "Unavailable";
+      notice("The interviewer is unavailable. Please try again.",true);
     }
     updateControls();
   }

@@ -111,8 +111,168 @@ class GraphTests(unittest.TestCase):
         self.graph.analyzer=fake;b=self.graph.submit(payload('B','We receive data.'));self.assertEqual(wait(self.graph,b['job_id'])['status'],'failed');self.assertEqual(self.graph.admin_snapshot()['proposals'],[])
     def test_different_scope_does_not_connect_similar_names(self):
         a=self.graph.submit(payload('A','We send data.','Fund A'));wait(self.graph,a['job_id'])
-        b=self.graph.submit(payload('B','We receive data.','Fund B'));self.assertEqual(wait(self.graph,b['job_id'])['status'],'failed')
+        calls=[]
+        self.graph.analyzer=lambda current,candidates: calls.append(candidates) or []
+        b=self.graph.submit(payload('B','We receive data.','Fund B'));self.assertEqual(wait(self.graph,b['job_id'])['status'],'completed')
+        self.assertEqual(calls,[], 'An incompatible scope must not be sent to the analyzer.')
         self.assertEqual(self.graph.admin_snapshot()['proposals'],[])
+
+    def test_nonfinite_json_and_malformed_workflow_cannot_poison_saved_graph(self):
+        for invalid in (float('nan'),float('inf'),float('-inf')):
+            p=payload('A','We send data.');p['extra']=invalid
+            with self.subTest(invalid=invalid),self.assertRaisesRegex(ValueError,'JSON data'):
+                self.graph.submit(p)
+        for field,value in (('draft',[]),('workflow',[]),('steps',{}),('connections','broken')):
+            p=payload('A','We send data.')
+            if field in ('steps','connections'):p['draft'][field]=value
+            else:p[field]=value
+            with self.subTest(field=field),self.assertRaises(ValueError):self.graph.submit(p)
+        self.assertEqual(self.graph.admin_snapshot()['submissions'],[])
+
+    def test_file_event_is_not_participant_evidence(self):
+        p=payload('A','File received.');p['turns'][0]['document_event']=True
+        with self.assertRaisesRegex(ValueError,'participant statement'):self.graph.submit(p)
+        p['turns'].append({'id':'u2','role':'user','text':'We send approved NAV.'})
+        with self.assertRaisesRegex(ValueError,'non-participant evidence'):self.graph.submit(p)
+        p['draft']['steps']=[];p['draft']['connections']=[]
+        a=self.graph.submit(p);wait(self.graph,a['job_id'])
+        b=self.graph.submit(payload('B','We receive NAV.'))
+        self.assertEqual(wait(self.graph,b['job_id'])['status'],'failed')
+        self.assertEqual(self.graph.admin_snapshot()['proposals'],[])
+
+    def test_candidate_document_reads_are_scoped_and_bounded_before_analysis(self):
+        self.graph.analyzer=None
+        expected=set()
+        for index in range(12):
+            scope='Fund A' if index<8 else 'Fund B'
+            p=payload(str(index),'We report an input and output.',scope)
+            p['documents']={'documents':[{'id':f'doc{index}','sources':[{'source_id':'s1'}]}]}
+            record=self.graph.submit(p,document_scope='private')
+            if scope=='Fund A':expected.add(record['submission_id'])
+        reads=[];received=[]
+        self.graph.document_resolver=lambda scope,doc,source: reads.append(doc) or {'text':'Reference text.'}
+        self.graph.analyzer=lambda current,candidates: received.extend(candidates) or []
+        result=self.graph.submit(payload('Current','We receive approved data.','fund a'))
+        self.assertEqual(wait(self.graph,result['job_id'])['status'],'completed')
+        self.assertEqual({item['submission_id'] for item in received},expected)
+        self.assertEqual(len(reads),8)
+        self.assertFalse(any(doc in reads for doc in ('doc8','doc9','doc10','doc11')))
+
+    def test_repeated_pending_retry_does_not_queue_duplicate_work(self):
+        a=self.graph.submit(payload('A','We send NAV.'));wait(self.graph,a['job_id'])
+        entered=threading.Event();release=threading.Event()
+        def blocked(current,candidates):
+            entered.set();release.wait(3);return []
+        self.graph.analyzer=blocked
+        b=self.graph.submit(payload('B','We receive NAV.'));self.assertTrue(entered.wait(1))
+        scheduled=[];original=self.graph.executor.submit
+        def count_scheduled(fn,*args):
+            scheduled.append(args[0]);return original(fn,*args)
+        self.graph.executor.submit=count_scheduled
+        try:
+            c=self.graph.submit(payload('C','We consume NAV.'))
+            for _ in range(30):self.graph.retry(c['job_id'])
+            self.assertEqual(scheduled,[c['job_id']])
+        finally:release.set()
+        self.assertEqual(wait(self.graph,c['job_id'])['attempts'],1)
+
+    def test_shutdown_rejects_new_submissions_and_retries_clearly(self):
+        result=self.graph.submit(payload('A','We send NAV.'));wait(self.graph,result['job_id'])
+        self.graph.close()
+        with self.assertRaisesRegex(ValueError,'closed'):self.graph.submit(payload('B','We receive NAV.'))
+        with self.assertRaisesRegex(ValueError,'closed'):self.graph.retry(result['job_id'])
+
+    def test_retry_during_failed_worker_cleanup_is_not_lost(self):
+        first=self.graph.submit(payload('A','We send NAV.'));wait(self.graph,first['job_id'])
+        self.graph.analyzer=lambda current,candidates: (_ for _ in ()).throw(ValueError('Synthetic failure'))
+        failed=threading.Event();release=threading.Event();run=self.graph._run
+        def hold_cleanup(job):
+            run(job)
+            failed.set();release.wait(3)
+        self.graph._run=hold_cleanup
+        second=self.graph.submit(payload('B','We receive NAV.'));self.assertTrue(failed.wait(1))
+        self.assertEqual(wait(self.graph,second['job_id'])['status'],'failed')
+        self.graph.analyzer=lambda current,candidates: []
+        self.graph.retry(second['job_id']);release.set()
+        self.assertEqual(wait(self.graph,second['job_id'])['status'],'completed')
+
+    def test_boolean_revision_cannot_masquerade_as_integer_evidence(self):
+        first=self.graph.submit(payload('A','We send NAV.'));wait(self.graph,first['job_id'])
+        for field in ('source_revision','evidence_revision'):
+            def invalid(current,candidates):
+                result=proposal(current,candidates)
+                if field=='source_revision':result[0]['source_revision']=True
+                else:result[0]['evidence'][0]['revision']=True
+                return result
+            self.graph.analyzer=invalid
+            second=self.graph.submit(payload('B','We receive NAV.'))
+            self.assertEqual(wait(self.graph,second['job_id'])['status'],'failed')
+        self.assertEqual(self.graph.admin_snapshot()['proposals'],[])
+
+    def test_snapshot_batches_records_and_preserves_history_and_evidence(self):
+        records=[]
+        for index in range(3):
+            record=self.graph.submit(payload(str(index),'We report approved NAV.'))
+            wait(self.graph,record['job_id']);records.append(record)
+        initial=self.graph.admin_snapshot()
+        item=initial['proposals'][0]
+        reviewed=self.graph.review(item['id'],'confirm','owner','Exact sources checked',item['review_version'],side='sender')
+        systems=[entry for entry in initial['entities'] if entry['type']=='system']
+        group=self.graph.canonical_create('Ledger',[systems[0]['id'],systems[1]['id']],'owner','Checked systems')
+        group=self.graph.canonical_update(group['id'],'add_alias','GL','owner','Known alias',group['review_version'])
+        roles=[entry for entry in initial['entities'] if entry['type']=='role']
+        other=self.graph.canonical_create('Analyst',[roles[0]['id']],'owner','Checked role')
+        def snapshot_queries():
+            statements=[]
+            self.graph.db.set_trace_callback(lambda sql:statements.append(sql) if sql.lstrip().upper().startswith('SELECT') else None)
+            try:return self.graph.admin_snapshot(),len(statements)
+            finally:self.graph.db.set_trace_callback(None)
+        before,before_queries=snapshot_queries()
+        self.graph.analyzer=None
+        for index in range(20):self.graph.submit(payload('Additional '+str(index),'A complete additional account.'))
+        after,after_queries=snapshot_queries()
+        self.assertEqual(before_queries,10)
+        self.assertEqual(after_queries,before_queries,'Snapshot reads must not grow per submission, proposal or canonical group.')
+        self.assertEqual(len(after['submissions']),23,'Batching must not truncate saved revisions.')
+        self.assertEqual(len(after['jobs']),23)
+        self.assertEqual(next(p for p in after['proposals'] if p['id']==reviewed['id']),reviewed)
+        self.assertEqual(next(g for g in after['canonical_groups'] if g['id']==group['id']),group)
+        self.assertEqual(next(g for g in after['canonical_groups'] if g['id']==other['id']),other)
+        self.assertTrue(all(e in after['entities'] for e in before['entities']))
+        self.assertTrue(all(e in after['edges'] for e in before['edges']))
+
+    def test_server_intent_recovery_binds_principal_and_handles_concurrent_hydration(self):
+        self.graph.analyzer=None
+        other=kg.KnowledgeGraph(self.path)
+        p=payload('A','We send NAV.');p['submission_key']=str(uuid.uuid4())
+        start=threading.Barrier(2);results=[];failures=[]
+        def submit_variant(store,label):
+            import copy
+            variant=copy.deepcopy(p);variant['documents']={'documents':[{'id':'doc1','sources':[{'source_id':label}]}]}
+            try:
+                start.wait();results.append(store.submit(variant,principal='employee',document_scope='private',intent_digest='a'*64))
+            except Exception as error:failures.append(error)
+        workers=[threading.Thread(target=submit_variant,args=(store,label)) for store,label in ((self.graph,'before'),(other,'after'))]
+        try:
+            for worker in workers:worker.start()
+            for worker in workers:worker.join(2)
+        finally:other.close()
+        self.assertEqual(failures,[]);self.assertEqual(len(results),2);self.assertEqual(results[0],results[1])
+        self.assertEqual(len(self.graph.admin_snapshot()['submissions']),1)
+        self.assertEqual(self.graph.recover_submission(p['submission_key'],'a'*64,principal='employee'),results[0])
+        for digest,principal in (('b'*64,'employee'),('a'*64,'other')):
+            with self.assertRaisesRegex(ValueError,'different content'):self.graph.recover_submission(p['submission_key'],digest,principal)
+            with self.assertRaisesRegex(ValueError,'different content'):self.graph.submit(p,principal=principal,document_scope='private',intent_digest=digest)
+
+    def test_legacy_key_requires_canonical_replay_before_raw_intent_upgrade(self):
+        p=payload('A','We send NAV.');p['submission_key']=str(uuid.uuid4())
+        original=self.graph.submit(p,principal='employee');wait(self.graph,original['job_id'])
+        self.assertIsNone(self.graph.recover_submission(p['submission_key'],'a'*64,'employee'))
+        changed=payload('A','Changed participant account.');changed['submission_key']=p['submission_key']
+        with self.assertRaisesRegex(ValueError,'different content'):self.graph.submit(changed,principal='employee',intent_digest='a'*64)
+        self.assertEqual(self.graph.submit(p,principal='employee',intent_digest='a'*64),original)
+        self.assertEqual(self.graph.recover_submission(p['submission_key'],'a'*64,'employee'),original)
+        self.assertEqual(self.graph.submit(p,principal='employee'),original,'Direct canonical replay remains supported.')
     def test_shared_system_does_not_create_cross_submission_dependency(self):
         self.graph.analyzer=lambda current,candidates: []
         a=self.graph.submit(payload('A','We send data.'));wait(self.graph,a['job_id'])

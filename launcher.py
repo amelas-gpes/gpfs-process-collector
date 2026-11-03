@@ -27,6 +27,8 @@ def main():
     parser.add_argument("--no-browser", action="store_true")
     parser.add_argument("--port", type=int, default=8774)
     args = parser.parse_args()
+    if not 1 <= args.port <= 65535:
+        parser.error("--port must be between 1 and 65535.")
     url = f"http://127.0.0.1:{args.port}/"
     current = config(url)
     if args.stop:
@@ -61,6 +63,16 @@ def main():
                 break
             time.sleep(.15)
         if not current:
+            # Only clean up the child launched by this invocation. A slow or
+            # failed startup must not leave an unseen server behind after the
+            # launcher reports that it could not start.
+            if process.poll() is None:
+                process.terminate()
+                try:
+                    process.wait(timeout=3)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait(timeout=3)
             raise SystemExit(f"Could not start the prototype. Port {args.port} may be busy. See {log_path}.")
     print("AI Process Collector: " + url)
     if not args.no_browser:

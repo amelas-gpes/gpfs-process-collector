@@ -52,13 +52,28 @@ class AdapterTests(unittest.TestCase):
         submission = account(0)
         submission['document_scope'] = 'scope-secret'
         submission['document_excerpts'] = [{'document_id': 'd', 'source_id': 'page-1',
-                                             'label': 'Page 1', 'text': 'a' * 1300}]
+                                             'label': 'Page 1', 'text': 'a' * 1300,
+                                             'origin':'ai_visual_transcription','verified':False}]
         mod.build_analyzer(client)(submission, [account(1)])
         sent = client.calls[0][1]['submission']
         self.assertNotIn('scope-secret', str(sent))
         self.assertEqual(len(sent['document_excerpts'][0]['text']), 1200)
         self.assertTrue(sent['document_excerpts'][0]['excerpt_truncated'])
         self.assertEqual(sent['document_excerpts'][0]['source_id'], 'page-1')
+        self.assertEqual(sent['document_excerpts'][0]['origin'],'ai_visual_transcription')
+        self.assertIs(sent['document_excerpts'][0]['verified'],False)
+
+    def test_file_events_and_incompatible_scopes_are_not_provider_inputs(self):
+        client=FakeClient();submission=account(0)
+        submission['turns'].append({'id':'receipt','role':'user','text':'File received.','document_event':True})
+        incompatible=account(1);incompatible['scope']='fund B'
+        self.assertEqual(mod.build_analyzer(client)(submission,[incompatible]),[])
+        self.assertEqual(client.calls,[])
+        compatible=account(2);compatible['scope']=' FUND A '
+        mod.build_analyzer(client)(submission,[incompatible,compatible])
+        sent=client.calls[0][1]
+        self.assertEqual([item['submission_id'] for item in sent['candidates']],['s2'])
+        self.assertEqual([item['id'] for item in sent['submission']['participant_turns']],['u0'])
 
 
 if __name__ == '__main__': unittest.main()

@@ -5,7 +5,7 @@ const source=fs.readFileSync(path.join(__dirname,"..","web","documents.js"),"utf
 const deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return{promise,resolve,reject};};
 const tick=async()=>{for(let i=0;i<8;i++)await Promise.resolve();};
 class Element {
- constructor(tag,doc){this.tagName=tag.toUpperCase();this.ownerDocument=doc;this.children=[];this.parentElement=null;this.listeners={};this.attributes={};this.dataset={};this.className="";this.id="";this.hidden=false;this.open=false;this.value="";this._text="";this.clicks=0;this.classList={add:name=>{this.className+=" "+name;}};}
+ constructor(tag,doc){this.tagName=tag.toUpperCase();this.ownerDocument=doc;this.children=[];this.parentElement=null;this.listeners={};this.attributes={};this.dataset={};this.className="";this.id="";this.hidden=false;this.open=false;this.value="";this._text="";this.clicks=0;this.classList={contains:name=>this.className.split(/\s+/).includes(name),add:name=>{this.className+=" "+name;}};}
  get textContent(){return this._text+this.children.map(child=>child.textContent).join("");}
  set textContent(value){this.replaceChildren();this._text=String(value);}
  get isConnected(){let node=this;while(node.parentElement)node=node.parentElement;return node===this.ownerDocument.body;}
@@ -48,6 +48,33 @@ function doc(overrides={}){return{id:"doc_1",name:"Procedure.pdf",kind:"pdf",siz
 function response(document){return{ok:true,json:async()=>({document})};}
 (async()=>{
  let passes=0;
+ {
+  const old=deferred(),fresh=deferred();let requests=0;const h=setup({request:()=>++requests===1?old.promise:fresh.promise});h.api.scope="local-scope";h.api.setDocuments([doc()],false);
+  const polling=h.api.refresh(),before=h.api.controller.signal;h.listeners.pagehide();assert.equal(before.aborted,true);assert.equal(h.api.allowed(),false);assert.equal(h.api.documents.length,1);
+  await h.api.refresh();await h.api.action(h.api.documents[0],"park");await h.api.openSource(h.api.documents[0],{source_id:"p1"});h.api.schedule(0);
+  assert.equal(requests,1,"Suspended controllers cannot start new work");assert.equal(h.timers.size,0,"Suspended controllers cannot start poll loops");
+  h.listeners.pageshow({persisted:true});assert.equal(h.api.controller.signal.aborted,false);assert.equal(h.api.allowed(),true);assert.equal(requests,2,"Cache restoration refreshes with a new request controller");
+  old.resolve({documents:[]});await polling;assert.equal(h.api.documents.length,1,"Pre-navigation status cannot erase restored state");
+  fresh.resolve({documents:[doc({name:"Restored.pdf"})]});await tick();assert.equal(h.api.documents[0].name,"Restored.pdf");h.api.dispose();assert.equal(h.listeners.pageshow,undefined);passes++;
+ }
+ {
+  const pending=deferred(),h=setup({request:()=>pending.promise});h.api.scope="local-scope";h.api.setDocuments([doc()],false);h.api.open();
+  const source=h.api.openSource(h.api.documents[0],{source_id:"page1",label:"Page 1"});h.listeners.pagehide();assert.equal(h.api.source.loading,false);assert.equal(h.api.source.error,true);pending.resolve({source:{text:"Obsolete source response"}});await source;assert.notEqual(h.api.source.text,"Obsolete source response");h.api.dispose();passes++;
+ }
+
+ {
+  const pending=deferred(),h=setup({request:(url,payload)=>payload.action==="park"?pending.promise:Promise.resolve({})});h.api.scope="local-scope";h.api.setDocuments([doc()],false);
+  const file=h.api.documents[0],parking=h.api.action(file,"park");await h.api.action(file,"remove");
+  assert.equal(h.jsonCalls.filter(call=>call[0].endsWith("/action")).length,1,"A pending action prevents a conflicting removal");
+  pending.resolve({document:doc({analysis:{phase:"complete",disposition:"parked",version:2}})});await parking;
+  await h.api.action(h.api.documents[0],"remove");assert.equal(h.api.documents.length,0,"A completed action releases the document for later removal");h.api.dispose();passes++;
+ }
+ {
+  const h=setup();h.api.scope="local-scope";h.api.setDocuments([doc({analysis:{phase:"complete",disposition:"relevant",questions:[{text:"Who approves this file?"}]}})],false);h.api.open();h.api.options.canDiscuss=()=>false;
+  h.findText("button","Discuss").click();assert.equal(h.api.dialog.open,true);assert.equal(h.events.filter(event=>event.type==="question").length,0);assert.match(h.notices.at(-1)[0],/current reply/);
+  h.api.options.canDiscuss=()=>true;h.findText("button","Discuss").click();assert.equal(h.api.dialog.open,false);assert.equal(h.events.filter(event=>event.type==="question").length,1);h.api.dispose();passes++;
+ }
+
  {
   const h=setup();assert.equal(h.jsonCalls.length,0);assert.equal(h.uploads.length,0);assert.equal(h.api.strip.hidden,true);assert.equal(h.api.input.multiple,true);assert.equal(h.api.input.accept,".pdf,.png,.xlsx,.xlsm,.csv");
   h.api.attach();assert.equal(h.api.input.clicks,1);assert.match(h.api.dialog.textContent,/Files are saved on this computer; relevant content is sent to OpenAI/);h.api.dispose();passes++;

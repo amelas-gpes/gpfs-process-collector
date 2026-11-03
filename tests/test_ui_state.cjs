@@ -74,7 +74,7 @@ const exportBindings=appSource.split("\n").filter(line=>/\$\("(?:export-working-
 const titleBinding=appSource.match(/\$\("process-name"\)\.addEventListener\("input",\(\)=>\{[\s\S]*?\n    \}\);/)?.[0]||"";
 const liveBindings=appSource.split("\n").filter(line=>/\$\("(?:stop-live|mute-live)"\)\.addEventListener/.test(line)).join("\n");
 const source=appSource
- .replace(/  init\(\);\s*\}\)\(\);\s*$/,"  updateControls=()=>{updatePresence();}; window.__downloads=[]; download=(...args)=>window.__downloads.push(args); "+exportBindings+titleBinding+liveBindings+" window.__uiTests={readingUI,refreshReadingSearch,moveReadingSearch,returnToSource,renderCoverage,state,renderTranscript,showFoundationTopic,initFoundationDialog,closeFoundationTopic,jumpToTurn,jumpToReview,tab,initReviewTabs,selectReviewSection,reviewTabKey,renderMap,renderWorkingMap,workflowCanvases,showWorkflowStep,updateCanvasControls,zoomMap,fitMapToWidth,conversationUI,selectConversationView,conversationTabKey,receiveLiveCaption,scheduleWorkflow,refreshWorkflow,clearState,sendAnswer,retryQuestion,setMemoSheet,setInterviewSettings,notice,applyInterview,markdown,memoMarkdown,normalizeDraft,ensureConversation,applyProcessTitle,documentContext,onDocumentEvent,snapshot,sessionObject,importSession,presenceState,updatePresence,startLiveConversation,setPresenceFake:value=>{gpfsPresence=value;},setDocumentController:value=>{documentController=value;},renderReport:typeof renderReport==='function'?renderReport:null,setRequest:fn=>{request=fn;}};\n})();");
+ .replace(/  init\(\);\s*\}\)\(\);\s*$/,"  updateControls=()=>{updatePresence();}; window.__downloads=[]; download=(...args)=>window.__downloads.push(args); "+exportBindings+titleBinding+liveBindings+" window.__uiTests={resolveDocumentPurpose,skipQuestion,getPendingDocumentReason:()=>pendingDocumentReason,readingUI,refreshReadingSearch,moveReadingSearch,returnToSource,renderCoverage,state,renderTranscript,showFoundationTopic,initFoundationDialog,closeFoundationTopic,jumpToTurn,jumpToReview,tab,initReviewTabs,selectReviewSection,reviewTabKey,renderMap,renderWorkingMap,workflowCanvases,showWorkflowStep,updateCanvasControls,zoomMap,fitMapToWidth,conversationUI,selectConversationView,conversationTabKey,receiveLiveCaption,scheduleWorkflow,refreshWorkflow,clearState,sendAnswer,retryQuestion,setMemoSheet,setInterviewSettings,notice,applyInterview,markdown,memoMarkdown,normalizeDraft,ensureConversation,applyProcessTitle,documentContext,onDocumentEvent,snapshot,sessionObject,importSession,presenceState,updatePresence,startLiveConversation,setPresenceFake:value=>{gpfsPresence=value;},setDocumentController:value=>{documentController=value;},renderReport:typeof renderReport==='function'?renderReport:null,setRequest:fn=>{request=fn;}};\n})();");
 vm.createContext(context);vm.runInContext(source,context,{filename:"app.js"});
 const t=context.window.__uiTests;if(!t)throw Error("UI test seam was not installed");t.initFoundationDialog();t.initReviewTabs();
 let passes=0;
@@ -177,6 +177,54 @@ if(process.argv.includes("--usability-only")){
   review.hidden=false;interview.hidden=true;t.selectReviewSection("review-procedure");t.jumpToTurn("t002");t.returnToSource();
   assert.equal(document.activeElement.id,"review-tab-procedure","Returning to review restores visible keyboard focus");passes++;
   mount("settings-source-return","button");t.jumpToTurn("context");assert.equal(settings.open,true);assert.equal(document.getElementById("settings-source-return").hidden,false);t.returnToSource();assert.equal(settings.open,false);assert.equal(document.activeElement.id,"review-tab-procedure");passes++;
+  {
+   let finishRead,requests=0;t.state.started=true;t.state.busy=false;t.state.dirty=false;t.state.turns=[{id:"t001",role:"assistant",text:"What starts the work?"}];
+   const oldTurns=JSON.stringify(t.state.turns);document.getElementById("answer-text").value="An unsent answer to preserve.";
+   t.setRequest(async()=>{requests++;throw Error("No interview request is allowed during import");});
+   const importing=t.importSession({size:4,text:()=>new Promise(resolve=>finishRead=resolve)});
+   assert.equal(t.state.busy,true);assert.equal(t.state.importing,true);await t.sendAnswer({preventDefault(){}});
+   assert.equal(requests,0);assert.equal(JSON.stringify(t.state.turns),oldTurns);finishRead("nope");await importing;
+   assert.equal(t.state.busy,false);assert.equal(t.state.importing,false);assert.equal(JSON.stringify(t.state.turns),oldTurns);assert.equal(document.getElementById("answer-text").value,"An unsent answer to preserve.");passes++;
+  }
+  {
+   timers.clear();t.state.context={process_name:"Old name"};t.state.config={api_configured:true};t.state.turns=[{id:"u1",role:"user",text:"We receive invoices."}];t.conversationUI.workflow={title:"Old name",steps:[],connections:[]};
+   const revision=t.conversationUI.revision;document.getElementById("process-name").value="Renamed invoices";document.getElementById("process-name").dispatch("input");
+   assert.equal(t.state.context.process_name,"Renamed invoices");assert.equal(t.conversationUI.workflow.title,"Renamed invoices");
+   assert.equal(t.conversationUI.revision,revision);assert.equal([...timers.values()].some(timer=>timer.delay===1000),false,"Renaming alone must not schedule a paid workflow extraction");passes++;
+  }
+  {
+   const retainedDraft=t.state.draft;timers.clear();t.state.started=true;t.state.busy=false;t.state.transcribing=false;t.state.requestingMic=false;t.state.recording=null;t.state.draft=null;t.state.context={process_name:"File purpose audit"};
+   const base=[{id:"u1",role:"user",text:"We receive invoices."},{id:"a1",role:"assistant",text:"What starts the work?"}];
+   const file={id:"doc_empty_audit",name:"Empty.csv",analysis:{intent_version:2,phase:"complete",disposition:"needs_reason",purpose_attempted:false,summary:"",acknowledgement:"File received. No readable source sections are available for review.",question:"What would you like me to look for in this file?",basis_turn_id:"u1",basis_question:base[1].text}};
+   let files=[file],requests=[],refreshes=0;
+   t.setDocumentController({exportState:()=>({scope:"scope_SYNTHETIC_AUDIT",documents:files}),refresh:()=>refreshes++});
+   t.setRequest(async(url,payload)=>{requests.push({url,payload});return {};});
+   document.getElementById("answer-text").value="";t.state.turns=JSON.parse(JSON.stringify(base));t.onDocumentEvent({type:"analysis",document:file});
+   assert.match(t.state.turns.at(-1).text,/No readable source sections/);assert.equal(t.getPendingDocumentReason().questionId,t.state.turns.at(-1).id,"Purpose is bound to the question actually shown, even without an AI summary");
+   await t.resolveDocumentPurpose("Please retain the blank template.");assert.equal(requests.length,1);assert.equal(requests[0].payload.id,file.id);assert.equal(requests[0].payload.purpose,"Please retain the blank template.");assert.equal(refreshes,1);assert.equal(t.getPendingDocumentReason(),null);passes++;
+   // Every new fixture intent has an independent question. Completed tray actions,
+   // removal, and a newer file intent must not consume an ordinary next answer.
+   for(const changed of ["answered-in-files","removed","new-intent"]){
+    const next=JSON.parse(JSON.stringify(file));next.analysis.intent_version++;
+    t.state.turns=JSON.parse(JSON.stringify(base));files=[next];t.onDocumentEvent({type:"analysis",document:next});assert.ok(t.getPendingDocumentReason());
+    if(changed==="answered-in-files")next.analysis={...next.analysis,disposition:"relevant",purpose_attempted:true};
+    if(changed==="removed")files=[];
+    if(changed==="new-intent")next.analysis.intent_version++;
+    const before=requests.length;await t.resolveDocumentPurpose("An unrelated process answer.");assert.equal(requests.length,before,changed+" must not send a stale purpose");assert.equal(t.getPendingDocumentReason(),null);
+    file.analysis.intent_version+=3;
+   }passes++;
+   {
+    const next=JSON.parse(JSON.stringify(file));next.analysis.intent_version++;files=[next];t.state.turns=JSON.parse(JSON.stringify(base));t.onDocumentEvent({type:"analysis",document:next});
+    t.onDocumentEvent({type:"question",document:{id:"doc_other_audit",name:"Other.csv",analysis:{disposition:"relevant"}},question:{text:"Who maintains this other tracker?",sources:[]}});
+    const before=requests.length;await t.resolveDocumentPurpose("The AP manager.");assert.equal(requests.length,before);assert.equal(t.getPendingDocumentReason(),null);passes++;
+   }
+   {
+    const next=JSON.parse(JSON.stringify(file));next.analysis.intent_version+=2;files=[next];t.state.turns=JSON.parse(JSON.stringify(base));t.onDocumentEvent({type:"analysis",document:next});assert.ok(t.getPendingDocumentReason());
+    t.setRequest(async()=>{throw Error("Synthetic skip failure");});await t.skipQuestion();assert.equal(t.getPendingDocumentReason(),null,"An explicit skip clears file-purpose capture even if preparing the next topic fails");
+    const before=requests.length;await t.resolveDocumentPurpose("The next ordinary answer.");assert.equal(requests.length,before);passes++;
+   }
+   t.setDocumentController(null);t.state.busy=false;t.state.draft=retainedDraft;t.conversationUI.typing=false;review.hidden=false;interview.hidden=true;
+  }
   const retry=mount("map-retry-layout","button");let fail=true,updates=0;
   context.window.CollectorWorkflow={create:()=>({update:()=>{updates++;return fail?Promise.reject(Error("Layout unavailable")):Promise.resolve(true);},destroy:()=>{}})};
   t.workflowCanvases.clear();t.renderMap();await new Promise(resolve=>setImmediate(resolve));

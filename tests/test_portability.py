@@ -112,6 +112,45 @@ class RepositoryPortabilityTests(unittest.TestCase):
             with self.assertRaisesRegex(SystemExit, "still responding"):
                 launcher.main()
 
+    def test_failed_startup_terminates_only_the_child_this_launcher_created(self):
+        work = self.app / "work"
+        child = MagicMock()
+        child.poll.return_value = None
+        with patch.object(sys, "argv", ["launcher.py", "--no-browser"]), \
+             patch.object(launcher, "WORK_DIR", work), \
+             patch.object(launcher, "config", return_value=None), \
+             patch.object(launcher.subprocess, "Popen", return_value=child), \
+             patch.object(launcher.time, "sleep"):
+            with self.assertRaisesRegex(SystemExit, "Could not start"):
+                launcher.main()
+        child.terminate.assert_called_once_with()
+        child.wait.assert_called_once_with(timeout=3)
+        child.kill.assert_not_called()
+
+    def test_failed_startup_kills_the_owned_child_if_graceful_termination_times_out(self):
+        child = MagicMock()
+        child.poll.return_value = None
+        child.wait.side_effect = [launcher.subprocess.TimeoutExpired("synthetic-child", 3), 0]
+        with patch.object(sys, "argv", ["launcher.py", "--no-browser"]), \
+             patch.object(launcher, "WORK_DIR", self.app / "work"), \
+             patch.object(launcher, "config", return_value=None), \
+             patch.object(launcher.subprocess, "Popen", return_value=child), \
+             patch.object(launcher.time, "sleep"):
+            with self.assertRaisesRegex(SystemExit, "Could not start"):
+                launcher.main()
+        child.terminate.assert_called_once_with()
+        child.kill.assert_called_once_with()
+        self.assertEqual(child.wait.call_count, 2)
+
+    def test_launcher_rejects_unreachable_or_invalid_ports_before_starting(self):
+        for port in ("0", "-1", "65536"):
+            with self.subTest(port=port), \
+                 patch.object(sys, "argv", ["launcher.py", "--port", port]), \
+                 patch.object(launcher, "config") as config:
+                with self.assertRaises(SystemExit):
+                    launcher.main()
+                config.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()

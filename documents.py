@@ -7,7 +7,7 @@ formulas, embedded PDF actions, external links or uploaded code are executed.
 from __future__ import annotations
 
 import csv
-from contextlib import contextmanager
+from contextlib import contextmanager, ExitStack
 import hashlib
 import io
 import itertools
@@ -555,6 +555,24 @@ def _cell_text(value):
     return text
 
 
+def _formula_text(value):
+    if isinstance(value, str):
+        return _cell_text(value)
+    # Recent OOXML readers expose array and data-table formulas as objects.
+    # Their default repr contains a memory address, not the source formula.
+    # Retain the serialized formula/range/input metadata without evaluating it.
+    kind = getattr(value, 't', None)
+    if kind not in ('array', 'dataTable'):
+        raise ExtractionError('An unsupported spreadsheet formula type could not be preserved; no partial index was published.')
+    attributes = dict(value)
+    if kind == 'array':
+        formula = getattr(value, 'text', None)
+        if not isinstance(formula, str):
+            raise ExtractionError('An array formula has no readable formula text; no partial index was published.')
+        attributes['formula'] = formula
+    return _cell_text(json.dumps(attributes, ensure_ascii=False, sort_keys=True))
+
+
 def _row_chunks(record, chunks, sheet_index, sheet_name, rows):
     def get_column_letter(number):
         result = ''
@@ -590,7 +608,7 @@ def _row_chunks(record, chunks, sheet_index, sheet_name, rows):
             if formula:
                 formulas += 1
                 uncached += cached is None
-                rendered = f'FORMULA (not executed) {_cell_text(formula)}; cached value (not recalculated): {_cell_text(cached) if cached is not None else "UNAVAILABLE"}'
+                rendered = f'FORMULA (not executed) {_formula_text(formula)}; cached value (not recalculated): {_cell_text(cached) if cached is not None else "UNAVAILABLE"}'
             else:
                 rendered = _cell_text(value)
             values.append(f'{get_column_letter(column)}{row_number}={rendered}')
@@ -616,9 +634,11 @@ def _row_chunks(record, chunks, sheet_index, sheet_name, rows):
 def _workbook(path, record, chunks):
     from openpyxl import load_workbook
     _zip_check(path)
-    book = load_workbook(path, read_only=True, data_only=False, keep_links=False, keep_vba=False)
-    cached = load_workbook(path, read_only=True, data_only=True, keep_links=False, keep_vba=False)
-    try:
+    with ExitStack() as cleanup:
+        book = load_workbook(path, read_only=True, data_only=False, keep_links=False, keep_vba=False)
+        cleanup.callback(book.close)
+        cached = load_workbook(path, read_only=True, data_only=True, keep_links=False, keep_vba=False)
+        cleanup.callback(cached.close)
         if len(book.sheetnames) > MAX_SHEETS:
             raise ExtractionError('Workbook exceeds 100 sheets; no partial index was published.')
         inventory = []
@@ -664,9 +684,6 @@ def _workbook(path, record, chunks):
                  'formula_cells': sum(item['formula_cells'] for item in inventory), 'macros_executed': False,
                  'formula_policy': 'Formula text and saved cached values only; no recalculation.'},
                 {'indexed_units': len(inventory) - chart_sheets, 'total_units': len(inventory), 'limitations': limitations})
-    finally:
-        book.close()
-        cached.close()
 
 
 def _csv(path, record, chunks):

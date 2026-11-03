@@ -8,7 +8,9 @@ import importlib.util
 import io
 import json
 from pathlib import Path
+import socket
 import sys
+import tempfile
 import threading
 import unittest
 import urllib.error
@@ -121,6 +123,28 @@ def process_draft():
 
 
 class EvidenceValidationTests(unittest.TestCase):
+    def test_file_notifications_are_not_participant_answers_or_evidence(self):
+        event = {"id": "file_notice", "role": "user", "text": "A supplied file claims manager approval.", "document_event": True}
+        payload = interview_payload()
+        payload["turns"].append(event)
+        _, turns = server.validate_payload(payload)
+        self.assertNotIn(event["id"], {turn["id"] for turn in turns})
+        payload["turns"] = [event]
+        with self.assertRaisesRegex(ValueError, "at least one interview answer"):
+            server.validate_payload(payload, require_answers=True)
+        raw_turns = interview_payload()["turns"] + [event]
+        result = interview_result()
+        result["memo_findings"][0].update(status="captured", answer="The manager approves.", evidence_turns=[event["id"]])
+        with self.assertRaisesRegex(ValueError, "non-participant evidence"):
+            server.validate_interview(result, raw_turns)
+        draft = process_draft()
+        draft["steps"][0]["evidence_turns"] = [event["id"]]
+        with self.assertRaisesRegex(ValueError, "non-participant evidence"):
+            server.validate_draft(draft, raw_turns)
+        workflow = {key: draft[key] for key in ("title", "steps", "connections", "open_questions")}
+        with self.assertRaisesRegex(ValueError, "non-participant evidence"):
+            server.validate_workflow(workflow, raw_turns)
+
     def test_explicit_uncertainty_overrides_full_circle_and_allows_later_clarification(self):
         cases = ["The owner is probably the fund controller.", "The trigger is UNKNOWN.",
                  "We don't know who approves it.", "This is an assumed practice.",
@@ -382,6 +406,18 @@ class GraphRoutingContractTests(unittest.TestCase):
 
 
 class ClosureEnforcementTests(unittest.TestCase):
+    def test_file_notifications_cannot_ask_or_answer_the_final_check(self):
+        result = interview_result()
+        result["closure"] = {"asked": True, "confirmed": True}
+        turns = interview_payload()["turns"] + [
+            {"id": "notice", "role": "assistant", "document_event": True, "text": server.FINAL_CHECK_PREFIX + " that we missed?"},
+            {"id": "reply", "role": "user", "text": "No."}]
+        self.assertFalse(server.enforce_closure(result, turns, "answer")["closure"]["confirmed"])
+        turns[-2].pop("document_event")
+        turns[-1]["document_event"] = True
+        result["closure"] = {"asked": True, "confirmed": True}
+        self.assertFalse(server.enforce_closure(result, turns, "answer")["closure"]["confirmed"])
+
     def test_confirmation_cannot_precede_any_actual_final_check(self):
         result = interview_result()
         result["closure"] = {"asked": True, "confirmed": True}
@@ -453,6 +489,137 @@ class UpstreamErrorTests(unittest.TestCase):
         self.assertIn("billing", message)
         self.assertNotIn("wait", message)
         self.assertNotIn("rate limit", message)
+
+
+class HTTPResourceLifecycleTests(unittest.TestCase):
+    def start_server(self, handler=None, max_connections=16, header_timeout=15):
+        temporary = tempfile.TemporaryDirectory(prefix="collector-http-lifecycle-")
+        self.addCleanup(temporary.cleanup)
+        client = server.OpenAIClient({})
+        client.request = Mock(side_effect=AssertionError("Unexpected provider call"))
+        started = threading.Event()
+
+        class BoundedServer(server.InterviewServer):
+            def process_request_thread(self, request, address):
+                started.set()
+                super().process_request_thread(request, address)
+
+        BoundedServer.max_connections = max_connections
+        BoundedServer.header_timeout = header_timeout
+        httpd = BoundedServer(("127.0.0.1", 0), handler or server.Handler, client=client,
+                              documents_root=Path(temporary.name) / "documents")
+        worker = threading.Thread(target=httpd.serve_forever, kwargs={"poll_interval": .01}, daemon=True)
+        worker.start()
+
+        def cleanup():
+            if worker.is_alive():
+                httpd.shutdown()
+                worker.join(timeout=2)
+            if not getattr(httpd, "_test_closed", False):
+                httpd.server_close()
+        self.addCleanup(cleanup)
+        return httpd, worker, client, started
+
+    def test_idle_connections_are_bounded_and_timeout_releases_capacity(self):
+        httpd, _, client, started = self.start_server(max_connections=1, header_timeout=.15)
+        idle = socket.create_connection(httpd.server_address, timeout=2)
+        self.addCleanup(idle.close)
+        self.assertTrue(started.wait(timeout=2))
+        with socket.create_connection(httpd.server_address, timeout=2) as excess:
+            response = excess.recv(4096)
+        self.assertIn(b"503 Service Unavailable", response)
+        self.assertIn(b"Retry-After: 1", response)
+        self.assertEqual(idle.recv(1024), b"", "An idle header cannot retain a worker indefinitely")
+        self.assertTrue(httpd.connection_slots.acquire(timeout=1))
+        httpd.connection_slots.release()
+        with urllib.request.urlopen(f"http://127.0.0.1:{httpd.server_port}/api/config", timeout=2) as response:
+            self.assertEqual(response.status, 200)
+        client.request.assert_not_called()
+
+    def test_incomplete_body_times_out_with_no_provider_request(self):
+        httpd, _, client, _ = self.start_server()
+        httpd.body_timeout = .08
+        with socket.create_connection(httpd.server_address, timeout=2) as incomplete:
+            incomplete.sendall((f"POST /api/interview HTTP/1.1\r\nHost: 127.0.0.1:{httpd.server_port}\r\n"
+                                f"X-CSRF-Token: {httpd.csrf_token}\r\nContent-Type: application/json\r\n"
+                                "Content-Length: 100\r\n\r\n{").encode())
+            response = incomplete.recv(4096)
+        self.assertIn(b"408 Request Timeout", response)
+        client.request.assert_not_called()
+
+    def test_trickled_bytes_do_not_reset_the_total_body_deadline(self):
+        handler = object.__new__(server.Handler)
+        handler.connection = Mock()
+        handler.rfile = Mock()
+        handler.rfile.read1.return_value = b"a"
+        with patch.object(server.time, "monotonic", side_effect=[0, 0, 2, 4]):
+            with self.assertRaisesRegex(TimeoutError, "timed out"):
+                handler._read_body(10, 3)
+        self.assertEqual(handler.rfile.read1.call_count, 2)
+
+    def test_upload_capacity_is_bounded_before_the_large_body_is_read(self):
+        httpd, _, client, _ = self.start_server()
+        self.assertTrue(httpd.upload_slots.acquire(blocking=False))
+        self.assertTrue(httpd.upload_slots.acquire(blocking=False))
+        self.addCleanup(httpd.upload_slots.release)
+        self.addCleanup(httpd.upload_slots.release)
+        with socket.create_connection(httpd.server_address, timeout=2) as upload:
+            upload.sendall((f"POST /api/documents/upload HTTP/1.1\r\nHost: 127.0.0.1:{httpd.server_port}\r\n"
+                            f"X-CSRF-Token: {httpd.csrf_token}\r\nContent-Length: 100\r\n\r\n").encode())
+            response = upload.recv(4096)
+        self.assertIn(b"429 Too Many Requests", response)
+        client.request.assert_not_called()
+
+    def test_storage_stays_open_until_an_admitted_request_finishes(self):
+        entered, release = threading.Event(), threading.Event()
+        result = {}
+
+        class HeldHandler(server.Handler):
+            def do_GET(self):
+                entered.set()
+                release.wait(timeout=2)
+                result["storage_open"] = not self.server.knowledge.closed
+                self.server.knowledge.db.execute("SELECT 1")
+                self._json({"finished": True})
+
+        httpd, worker, client, _ = self.start_server(handler=HeldHandler)
+        received = []
+        def fetch():
+            with urllib.request.urlopen(f"http://127.0.0.1:{httpd.server_port}/held", timeout=3) as response:
+                received.append(response.status)
+        request = threading.Thread(target=fetch)
+        request.start()
+        self.addCleanup(release.set)
+        self.assertTrue(entered.wait(timeout=2))
+        httpd.shutdown(); worker.join(timeout=2)
+        finished = threading.Event()
+        def close():
+            httpd.server_close()
+            httpd._test_closed = True
+            finished.set()
+        closing = threading.Thread(target=close)
+        closing.start()
+        self.assertFalse(finished.wait(timeout=.05))
+        self.assertFalse(httpd.knowledge.closed)
+        release.set()
+        request.join(timeout=2); closing.join(timeout=2)
+        self.assertFalse(request.is_alive())
+        self.assertTrue(finished.is_set())
+        self.assertEqual(received, [200])
+        self.assertTrue(result["storage_open"])
+        self.assertTrue(httpd.knowledge.closed)
+        client.request.assert_not_called()
+
+    def test_failed_store_initialization_releases_the_bound_port(self):
+        with socket.socket() as reservation:
+            reservation.bind(("127.0.0.1", 0))
+            port = reservation.getsockname()[1]
+        client = server.OpenAIClient({})
+        with patch.object(server.documents, "DocumentStore", side_effect=ValueError("Synthetic store failure")):
+            with self.assertRaisesRegex(ValueError, "Synthetic store failure"):
+                server.InterviewServer(("127.0.0.1", port), server.Handler, client=client)
+        with socket.socket() as check:
+            check.bind(("127.0.0.1", port))
 
 
 class HTTPBoundaryTests(unittest.TestCase):

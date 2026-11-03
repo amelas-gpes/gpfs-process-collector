@@ -7,7 +7,7 @@ from pathlib import Path
 import stat
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 import zipfile
 from xml.sax.saxutils import escape
 
@@ -181,6 +181,36 @@ class DocumentStoreTests(unittest.TestCase):
         self.assertIn('cached value (not recalculated): 3', text)
         self.assertIn('UNAVAILABLE', text)
         self.assertFalse(result['inventory']['macros_executed'])
+
+    @unittest.skipUnless(importlib.util.find_spec('openpyxl'), 'Existing openpyxl runtime required')
+    def test_array_and_data_table_formula_source_metadata_is_preserved(self):
+        original = workbook_bytes(formulas=True)
+        output = io.BytesIO()
+        with zipfile.ZipFile(io.BytesIO(original)) as source, zipfile.ZipFile(output, 'w') as target:
+            for item in source.infolist():
+                data = source.read(item.filename)
+                if item.filename == 'xl/worksheets/sheet1.xml':
+                    data = data.replace(b'<f>1+2</f>', b'<f t="array" ref="C2:C3">SUM(A1:A3)</f>')
+                    data = data.replace(b'<f>2+2</f>', b'<f t="dataTable" ref="D2:E3" dt2D="1" r1="A1" r2="A2"/>')
+                target.writestr(item.filename, data)
+        record = self.store.add(self.scope, 'complex-formulas.xlsx', output.getvalue())
+        result = self.store.extract(self.scope, record['id'])
+        self.assertEqual(result['status'], 'partial', result.get('error'))
+        self.assertEqual(result['inventory']['formula_cells'], 2)
+        text = '\n'.join(item['text'] for item in self.store.chunks(self.scope, record['id'])['chunks'])
+        for expected in ('SUM(A1:A3)', 'C2:C3', 'dataTable', 'D2:E3', 'A1', 'A2', 'cached value (not recalculated): 3'):
+            self.assertIn(expected, text)
+        self.assertNotIn('object at 0x', text, 'A Python object representation is not spreadsheet evidence')
+
+    @unittest.skipUnless(importlib.util.find_spec('openpyxl'), 'Existing openpyxl runtime required')
+    def test_formula_reader_is_closed_when_cached_reader_fails_to_open(self):
+        book = Mock()
+        record = self.store.add(self.scope, 'invalid-cached-reader.xlsx', workbook_bytes())
+        with patch('openpyxl.load_workbook', side_effect=[book, ValueError('Synthetic cached read failure')]):
+            result = self.store.extract(self.scope, record['id'])
+        self.assertEqual(result['status'], 'error')
+        book.close.assert_called_once_with()
+        self.assertEqual(self.store.chunks(self.scope, record['id'])['total'], 0)
 
     def test_zip_bomb_and_xml_entities_are_rejected_without_partial_index(self):
         output = io.BytesIO()

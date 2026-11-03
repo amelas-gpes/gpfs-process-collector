@@ -46,5 +46,66 @@ const ui=window.CollectorKnowledge.create({session:()=>structuredClone(record),n
  await findText(nodes['knowledge-admin'],'Process overview').dispatch('click');assert.equal(graphInput.steps.length,1);await findText(nodes['knowledge-admin'],'Process steps').dispatch('click');assert.equal(graphInput.steps.length,11);graphSelect({id:'N1'});assert.match(nodes['knowledge-admin'].textContent,/Receive and register invoice/,'Short node IDs map to the original entity');assert.match(nodes['knowledge-admin'].textContent,/A supplier email to the shared AP mailbox starts a case/,'Entity detail shows the exact source excerpt');await findText(nodes['knowledge-admin'],'Open answer t004').dispatch('click');assert.match(nodes['knowledge-admin'].textContent,/Interview transcript · 26 messages/);assert(find(nodes['knowledge-admin'],e=>e.className==='knowledge-turn is-source'&&e.id==='knowledge-turn-t004'),'Originating answer is highlighted');await findText(nodes['knowledge-admin'],'← Back to detail').dispatch('click');assert.match(nodes['knowledge-admin'].textContent,/Receive and register invoice/);assert.equal(findText(nodes['knowledge-admin'],'Open answer t004').focused,true,'Source return restores focus to its originating evidence control');passes++;
  await findText(nodes['knowledge-admin'],'Submissions').dispatch('click');await findText(nodes['knowledge-admin'],'View details').dispatch('click');assert.match(nodes['knowledge-admin'].textContent,/Business summary/);assert.match(nodes['knowledge-admin'].textContent,/Detailed process steps/);assert.match(nodes['knowledge-admin'].textContent,/Controls and checks/);assert.match(nodes['knowledge-admin'].textContent,/No open questions recorded/);assert(find(nodes['knowledge-admin'],e=>e.tagName==='DD'&&e._text==='Accounts payable manager'),'Owner is formatted as a readable field');assert(find(nodes['knowledge-admin'],e=>e.tagName==='DETAILS'&&e.className==='knowledge-technical'),'Technical JSON remains optional');assert.equal(all(nodes['knowledge-admin']).filter(e=>e.className==='knowledge-turn').length,26,'Complete submitted transcript is retained');passes++;
  nodes['knowledge-admin'].close();record.synthetic_example=false;await nodes['open-knowledge-admin'].dispatch('click');await new Promise(r=>setImmediate(r));assert.doesNotMatch(nodes['knowledge-admin'].textContent,/EXAMPLE MODE/);assert.equal(calls.filter(c=>c.path.endsWith('/admin/snapshot')).at(-1).payload.example,undefined,'Leaving example must restore normal graph');passes++;
+ // Submission attempts are separate from dialog instances and conversation replacements.
+ let keyNumber=0;env.crypto.randomUUID=()=>`eeeeeeee-eeee-4eee-8eee-${String(++keyNumber).padStart(12,'0')}`;
+ const testReceipt=(revision=1,processId='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb')=>({submission_id:'cccccccc-cccc-4ccc-8ccc-cccccccccccc',process_id:processId,job_id:'dddddddd-dddd-4ddd-8ddd-dddddddddddd',revision,status:'pending',status_token:'a'.repeat(64)});
+ function fresh(request,onSubmitted=()=>{}){
+  for(const id of Object.keys(nodes))nodes[id]=new E(id.includes('settings')?'dialog':'div');
+  const session={saved_at:'first-save',context:{process_name:'First process'},turns:[{id:'u1',role:'user',text:'The original participant account.'}],documents:{documents:[]}};
+  const controller=window.CollectorKnowledge.create({session:()=>structuredClone(session),notice:m=>notices.push(m),request,onSubmitted});
+  return {controller,session,form:()=>find(nodes['knowledge-submit'],e=>e.tagName==='FORM')};
+ }
+ {
+  const submitted=[];let complete;let saves=0;
+  const {controller,form}=fresh(async(path,payload)=>{submitted.push(structuredClone(payload));return await new Promise(resolve=>complete=resolve);},()=>saves++);
+  controller.openSubmit();const first=form(),pending=first.dispatch('submit');assert.equal(controller.hasPending,true);
+  nodes['knowledge-submit'].close();controller.openSubmit();const reopened=form();assert.notEqual(reopened,first);assert.match(reopened.textContent,/Saving the captured submission/);
+  await reopened.dispatch('submit');assert.equal(submitted.length,1,'Closing and reopening cannot start a second concurrent submission');
+  complete(testReceipt());await pending;assert.match(reopened.textContent,/Process submitted/);assert.equal(saves,1);assert.equal(controller.hasPending,false);passes++;
+ }
+ {
+  let complete;let saves=0;let requests=0;
+  const {controller,session,form}=fresh(async()=>{requests++;return await new Promise(resolve=>complete=resolve);},()=>saves++);
+  controller.openSubmit();const old=form(),pending=old.dispatch('submit');controller.reset();session.context.process_name='Replacement process';controller.openSubmit();const replacement=form();
+  complete(testReceipt());await pending;assert.equal(controller.processId,null);assert.equal(controller.exportReceipt(),null);assert.equal(saves,0);assert(!replacement.textContent.includes('Process submitted'),'Stale response must not overwrite the replacement dialog');
+  await old.dispatch('submit');assert.equal(requests,1,'A detached old form cannot submit a replacement conversation');passes++;
+ }
+ {
+  let complete;let saves=0;
+  const {controller,form}=fresh(async()=>await new Promise(resolve=>complete=resolve),()=>saves++);
+  controller.openSubmit();const pending=form().dispatch('submit');const imported=testReceipt(4,'ffffffff-ffff-4fff-8fff-ffffffffffff');controller.restore(imported.process_id,imported);
+  complete(testReceipt());await pending;assert.equal(controller.processId,imported.process_id);assert.equal(controller.exportReceipt().revision,4);assert.equal(saves,0,'An old response cannot bind itself to an imported interview');passes++;
+ }
+ {
+  const submitted=[];let saves=0;
+  const {controller,session,form}=fresh(async(path,payload)=>{submitted.push(structuredClone(payload));if(submitted.length===1)throw Error('Response lost after save');return testReceipt(submitted.length===2?1:2);},()=>saves++);
+  controller.openSubmit();find(form(),e=>e.name==='participant').value='Original participant';await form().dispatch('submit');assert.equal(controller.hasPending,true);
+  session.saved_at='later-save';session.turns.push({id:'u2',role:'user',text:'A later clarification.'});session.documents.documents.push({id:'doc1',analysis:{phase:'complete',summary:'Background result'}});
+  nodes['knowledge-submit'].close();controller.openSubmit();assert.match(form().textContent,/Recover retries that exact captured snapshot/);assert.equal(find(form(),e=>e.name==='participant').value,'Original participant');
+  await form().dispatch('submit');assert.deepEqual(submitted[1],submitted[0],'Lost-response recovery must resend the immutable original body and key, even after edits/background review');assert.equal(saves,1);assert.equal(controller.hasPending,false);
+  controller.openSubmit();await form().dispatch('submit');assert.notEqual(submitted[2].submission_key,submitted[0].submission_key);assert.equal(submitted[2].process_id,testReceipt().process_id);assert.equal(submitted[2].turns.length,2,'New content is submitted only as an explicit subsequent revision');assert.equal(submitted[2].documents.documents.length,1);assert.equal(controller.exportReceipt().revision,2);passes++;
+ }
+ {
+  const revisions={...snapshot,entities:[...snapshot.entities,{id:'old-system',submission_id:'a',revision:1,type:'system',label:'Ledger'},{id:'new-system',submission_id:'a',revision:2,type:'system',label:'CRM'}]};
+  const {controller}=fresh(async(path)=>{assert(path.endsWith('/snapshot'));return structuredClone(revisions);});
+  controller.configure({knowledge_admin_enabled:true,knowledge_admin_mode:'Local owner development mode'});await nodes['open-knowledge-admin'].dispatch('click');await new Promise(r=>setImmediate(r));await findText(nodes['knowledge-admin'],'Filters').dispatch('click');find(nodes['knowledge-admin'],e=>e.name==='system').value='Ledger';await findText(nodes['knowledge-admin'],'Apply filters').dispatch('click');await findText(nodes['knowledge-admin'],'Submissions').dispatch('click');assert.match(nodes['knowledge-admin'].textContent,/Revision 1/);assert.doesNotMatch(nodes['knowledge-admin'].textContent,/Revision 2/,'A historical system must not match a later revision that uses another system');graphInput=null;await findText(nodes['knowledge-admin'],'Graph').dispatch('click');assert.equal(graphInput,null);assert.match(nodes['knowledge-admin'].textContent,/No graph entities match/);passes++;
+ }
+ for(const operation of ['review','canonical-create','canonical-update']){
+  let complete;const requests=[];
+  const {controller,session}=fresh(async(path,payload)=>{requests.push({path,payload:structuredClone(payload)});if(path.endsWith('/'+operation))return await new Promise(resolve=>complete=resolve);if(path.endsWith('/example'))return {synthetic_example:true};if(path.endsWith('/snapshot'))return structuredClone(payload.example?completeSample:snapshot);throw Error('Unexpected request');});
+  controller.configure({knowledge_admin_enabled:true,knowledge_admin_mode:'Local owner development mode'});await nodes['open-knowledge-admin'].dispatch('click');await new Promise(r=>setImmediate(r));let pending;
+  if(operation==='review'){
+   await findText(nodes['knowledge-admin'],'Connections').dispatch('click');const choices=all(nodes['knowledge-admin']).filter(e=>e.tagName==='BUTTON'&&e._text==='View details');await choices[1].dispatch('click');const form=find(nodes['knowledge-admin'],e=>e.tagName==='FORM');find(form,e=>e.tagName==='TEXTAREA').value='Recorded source review';pending=findText(form,'Confirm').dispatch('click');
+  }else{
+   await findText(nodes['knowledge-admin'],'Entities').dispatch('click');
+   if(operation==='canonical-create'){
+    const form=find(nodes['knowledge-admin'],e=>e.tagName==='FORM'&&e.textContent.includes('Create reviewed group'));find(form,e=>e.name==='label').value='Group';find(form,e=>e.name==='reason').value='Source reviewed';find(form,e=>e.type==='checkbox').checked=true;pending=form.dispatch('submit');
+   }else{
+    const form=find(nodes['knowledge-admin'],e=>e.tagName==='FORM'&&e.textContent.includes('Record change'));find(form,e=>e.name==='reason').value='Source reviewed';const action=find(form,e=>e.tagName==='SELECT');action.value='add_alias';await action.dispatch('change');find(form,e=>e.name==='alias').value='Alias';pending=form.dispatch('submit');
+   }
+  }
+  assert.equal(typeof complete,'function',operation+' request started');nodes['knowledge-admin'].close();controller.reset();session.synthetic_example=true;await nodes['open-knowledge-admin'].dispatch('click');await new Promise(r=>setImmediate(r));await findText(nodes['knowledge-admin'],'Submissions').dispatch('click');await findText(nodes['knowledge-admin'],'View details').dispatch('click');const snapshotCount=requests.filter(r=>r.path.endsWith('/snapshot')).length;complete({});await pending;await new Promise(r=>setImmediate(r));
+  assert.equal(requests.filter(r=>r.path.endsWith('/'+operation))[0].payload.example,undefined,'Original action remains scoped to company knowledge');assert.equal(requests.filter(r=>r.path.endsWith('/snapshot')).length,snapshotCount,'Old '+operation+' completion must not load the replacement Admin mode');assert.match(nodes['knowledge-admin'].textContent,/EXAMPLE MODE/);assert.match(nodes['knowledge-admin'].textContent,/Business summary/,'Old completion must not reset the replacement selection');passes++;
+ }
  console.log(JSON.stringify({tests_passed:passes,provider_calls:0,network_calls:0,real_browser:false}));
 })().catch(e=>{console.error(e);process.exitCode=1;});

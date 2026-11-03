@@ -30,7 +30,7 @@
   const reviewUI = {section:"review-report",mapScale:1,mapFit:true};
   const state = {
     context: null, turns: [], coverage: [], summary: "", draft: null, processNameManual:false,
-    started: false, busy: false, version: 0, generation: 0,
+    started: false, busy: false, importing:false, version: 0, generation: 0,
     draftVersion: null, draftEdited: false, example: false, dirty: false,
     config: null, utterance: null, voice: null, speechVersion: 0,
     localVoices: [], voiceChoice: null, voiceChoiceUser: false, speechOperation: null,
@@ -167,7 +167,7 @@
     if ($("setup-summary")) $("setup-summary").textContent = state.started ? state.context?.process_name || "Interview" : "Space to think.";
     $("start-interview").firstElementChild.textContent = state.started ? "New interview" : "Start interview";
     ["process-owner", "objective", "background"].forEach(id => { $(id).disabled = state.started || working || recording; });
-    $("process-name").disabled=false;
+    $("process-name").disabled=state.importing;
     $("answer-text").disabled = !state.started || working || recording || !ready;
     $("send-answer").disabled = !state.started || working || recording || !ready || atLimit || !$("answer-text").value.trim();
     $("record-answer").disabled = !state.started || working || !ready || atLimit;
@@ -435,18 +435,25 @@
       notice("The file is ready in Files. Save this interview before starting a continuation.");return;
     }
     const pane=$("conversation-scroll"),follow=pane.scrollHeight-pane.clientHeight-pane.scrollTop<80;
-    state.turns.push({id:nextTurnId(),role:"assistant",text:text(message,3000),document_event:!isQuestion,document_id:document.id});
+    if(isQuestion)pendingDocumentReason=null;
+    const turn={id:nextTurnId(),role:"assistant",text:text(message,3000),document_event:!isQuestion,document_id:document.id};
+    state.turns.push(turn);
     state.version++;state.dirty=true;renderTranscript();
     if(follow&&conversationUI.view==="transcript")scrollConversation();
+    return turn;
+  }
+  function bindDocumentReason(document,questionId,analysis=document.analysis||{}) {
+    pendingDocumentReason=analysis.disposition==="needs_reason"&&!analysis.purpose_attempted&&questionId ?
+      {id:document.id,questionId,intentVersion:analysis.intent_version||0} : null;
   }
   function deliverDocumentContext(document, force=false) {
     if(!conversationUI.live?.active||!conversationUI.live.appendContext)return;
-    const analysis=document.analysis||{},phase=analysis.summary?(analysis.phase==="complete"?"complete":"quick"):"received";
+    const analysis=document.analysis||{},phase=(analysis.summary||analysis.acknowledgement||analysis.question)?(analysis.phase==="complete"?"complete":"quick"):"received";
     const id=`${document.id}_${analysis.intent_version||0}_${phase}`;
     if(documentVoiceUpdates.has(id)&&!force)return;
     documentVoiceUpdates.add(id);
     const generation=state.generation;
-    const content={file:document.name,state:phase,disposition:analysis.disposition||"reviewing",summary:analysis.summary||"File received. Background review is starting.",
+    const content={file:document.name,state:phase,disposition:analysis.disposition||"reviewing",summary:analysis.summary||analysis.acknowledgement||"File received. Background review is starting.",
       question:analysis.question||"",sources:(analysis.sources||[]).slice(0,3),questions_for_later:(analysis.questions||[]).slice(0,2),
       basis_question:analysis.basis_question||"",unconfirmed:true};
     conversationUI.live.appendContext(JSON.stringify(content),{id,kind:phase==="received"?"document_received":"document_findings"}).then(receipt=>{
@@ -462,7 +469,7 @@
     } else if(event.type==="analysis") {
       state.dirty=true;updateSaveHint();
       if(state.draft&&reviewUI.section==="review-report")renderReport();
-      if(!analysis.summary||restoringDocuments)return;
+      if((!analysis.summary&&!analysis.acknowledgement&&!analysis.question)||restoringDocuments)return;
       if(conversationUI.live?.active){deliverDocumentContext(document);return;}
       const key=`${document.id}_${analysis.intent_version||0}`;
       if(documentQuestionsHandled.has(key))return;
@@ -473,8 +480,8 @@
         String(analysis.basis_question||"")!==currentQuestion)return;
       documentQuestionsHandled.add(key);
       const question=analysis.disposition==="parked"?"":analysis.question||"";
-      appendDocumentMessage([analysis.acknowledgement,question].filter(Boolean).join(" "),document,Boolean(question));
-      if(analysis.disposition==="needs_reason"&&question)pendingDocumentReason={id:document.id};
+      const turn=appendDocumentMessage([analysis.acknowledgement,question].filter(Boolean).join(" "),document,Boolean(question));
+      if(analysis.disposition==="needs_reason"&&question&&turn)bindDocumentReason(document,turn.id,analysis);
     } else if(event.type==="question") {
       if(conversationUI.live?.active){
         conversationUI.live.appendContext(JSON.stringify({participant_selected_question:event.question.text,file:document.name,sources:event.question.sources||[],unconfirmed:true}),
@@ -482,15 +489,21 @@
       }else {
         if(!ensureConversation())return;
         conversationUI.typing=true;selectConversationView("transcript");
-        appendDocumentMessage(`From ${document.name}: ${event.question.text}`,document,true);updateControls();$("answer-text").focus();
+        const turn=appendDocumentMessage(`From ${document.name}: ${event.question.text}`,document,true);
+        if(turn&&analysis.disposition==="needs_reason"&&event.question.text===analysis.question)bindDocumentReason(document,turn.id,analysis);
+        updateControls();$("answer-text").focus();
       }
     }
   }
   async function resolveDocumentPurpose(answer) {
-    const pending=pendingDocumentReason,scope=documentController?.exportState().scope;
-    if(!pending||!scope)return;
-    const generation=state.generation;
+    const pending=pendingDocumentReason,saved=documentController?.exportState(),scope=saved?.scope;
+    if(!pending)return;
     pendingDocumentReason=null;
+    const document=saved?.documents?.find(item=>item.id===pending.id),analysis=document?.analysis||{};
+    const question=state.turns.findLast(turn=>turn.role==="assistant"&&!turn.document_event);
+    if(!scope||!document||document.archived||analysis.disposition!=="needs_reason"||analysis.purpose_attempted||
+      (analysis.intent_version||0)!==pending.intentVersion||question?.id!==pending.questionId)return;
+    const generation=state.generation;
     try {
       await request("/api/documents/action",{scope,id:pending.id,action:"purpose",purpose:text(answer,2000)});
       if(generation===state.generation)documentController?.refresh();
@@ -533,9 +546,14 @@
     renderTranscript();
     if(conversationUI.view==="transcript"){if(follow)scrollConversation();else if($("jump-latest"))$("jump-latest").hidden=false;}
     if(caption.role==="user"){conversationUI.revision++; if(caption.final)scheduleWorkflow();}
-    if(caption.final&&caption.role==="assistant"&&/[?？]/.test(caption.text)&&/file|document|upload/i.test(caption.text)){
-      const candidate=(documentController?.exportState().documents||[]).find(document=>document.analysis?.disposition==="needs_reason");
-      if(candidate&&/why|reason|look for|relat|help|notice|share|purpose/i.test(caption.text))pendingDocumentReason={id:candidate.id};
+    if(caption.final&&caption.role==="assistant"){
+      pendingDocumentReason=null;
+      if(/[?？]/.test(caption.text)&&/file|document|upload/i.test(caption.text)&&/why|reason|look for|relat|help|notice|share|purpose/i.test(caption.text)){
+        const candidates=(documentController?.exportState().documents||[]).filter(document=>document.analysis?.disposition==="needs_reason"&&!document.analysis?.purpose_attempted);
+        const named=candidates.filter(document=>document.name&&caption.text.toLowerCase().includes(document.name.toLowerCase()));
+        const candidate=named.length===1?named[0]:candidates.length===1?candidates[0]:null;
+        if(candidate)bindDocumentReason(candidate,ids.at(-1));
+      }
     }
     if(caption.final&&caption.role==="user"&&pendingDocumentReason)resolveDocumentPurpose(caption.text);
   }
@@ -856,6 +874,7 @@
     const findings = normalizeFindings(result.memo_findings||[],state.turns);
     const focus = text(result.focus,500);
     const parked = strings(result.parking_lot,50);
+    pendingDocumentReason=null;
     state.turns.push({id:nextTurnId(),role:"assistant",text:question});
     state.version++;
     state.coverage = coverage;
@@ -932,6 +951,7 @@
     stopSpeaking();
     const generation = state.generation;
     setBusy(true, "Finding another topic to explore…");
+    pendingDocumentReason=null;
     try {
       const result = await request("/api/interview", {...snapshot("skip"), action: "skip"});
       if (generation === state.generation) applyInterview(result);
@@ -1083,7 +1103,7 @@
   }
   function evidenceSources(value, sourceTurns) {
     if(!Array.isArray(value))throw new Error("Source turn references must be a list of participant answer IDs or context.");
-    const valid = new Set(sourceTurns.filter(t => t.role === "user").map(t => t.id));
+    const valid = new Set(sourceTurns.filter(t => t.role === "user"&&!t.document_event).map(t => t.id));
     valid.add("context");
     const ids = strings(value,400).map(id => text(id,40));
     if (ids.some(id => !valid.has(id))) throw new Error("A draft finding cites a source that is not a participant answer or context.");
@@ -1706,7 +1726,7 @@
   function canReplaceSession() {
     if (conversationUI.live?.active || conversationUI.status==="closing") {notice("End live voice before replacing the session.");return false;}
     if (state.recording || state.busy || state.transcribing || state.requestingMic) { notice("Finish the current recording or request before replacing the session."); return false; }
-    return !state.dirty || confirm("Replace the current session? Unsaved interview text and draft edits will be cleared. Save the session first if you want to keep them.");
+    return (!state.dirty&&!knowledgeUI?.hasPending) || confirm("Replace the current session? Unsaved interview text and draft edits will be cleared. "+(knowledgeUI?.hasPending?"A process submission is awaiting confirmation; replacing this session loses its retry information and does not cancel a server save. Recover its status first if needed.":"Save the session first if you want to keep it."));
   }
   function clearState(context = null) {
     knowledgeUI?.reset();
@@ -1732,7 +1752,7 @@
     for(const kind of ["transcript","report"]){Object.assign(readingUI[kind],{query:"",matches:[],index:-1});if($(kind+"-search"))$(kind+"-search").value="";}
     for(const id of ["interview-error","review-error"])if($(id))$(id).hidden=true;
     state.version++;
-    Object.assign(state,{context,processNameManual:Boolean(context?.process_name),turns:[],coverage:[],summary:"",draft:null,started:false,busy:false,requestingMic:false,transcribing:false,draftVersion:null,draftEdited:false,example:false,dirty:false,memo_findings:[],focus:"",parking_lot:[],closure:{asked:false,confirmed:false}});
+    Object.assign(state,{context,processNameManual:Boolean(context?.process_name),turns:[],coverage:[],summary:"",draft:null,started:false,busy:false,importing:false,requestingMic:false,transcribing:false,draftVersion:null,draftEdited:false,example:false,dirty:false,memo_findings:[],focus:"",parking_lot:[],closure:{asked:false,confirmed:false}});
     $("answer-text").value = "";
     if($("retry-question"))$("retry-question").hidden=true;
     clearTimeout(noticeTimer);noticeTimer=null;noticeKind="general";
@@ -1748,6 +1768,7 @@
     if (!canReplaceSession()) return;
     if (file.size > 16 * 1024 * 1024) { notice("That file is too large. Choose a saved interview smaller than 16 MB.", true); return; }
     let generation=state.generation;
+    state.importing=true;setBusy(true,"Opening the saved interview…");documentController?.render();
     try {
       const saved = JSON.parse(await file.text());
       if(generation!==state.generation)return;
@@ -1769,10 +1790,13 @@
       const summary = text(saved.summary,6000);
       const focus = text(saved.focus,500);
       const parked = strings(saved.parking_lot,50);
+      // Validate every fallible local field before replacing the open interview.
+      const coverage=normalizeCoverage(saved.coverage),unsent=text(saved.unsent_answer);
       clearState(context);
       knowledgeUI?.restore(saved.knowledge_process_id,saved.knowledge_status);
       generation=state.generation;
-      Object.assign(state,{turns,coverage:normalizeCoverage(saved.coverage),summary,draft,started:turns.length>0,example:saved.synthetic_example===true,draftEdited:saved.draft_edited===true,memo_findings:findings,focus,parking_lot:parked,closure:{asked:saved.closure?.asked===true,confirmed:saved.closure?.confirmed===true}});
+      Object.assign(state,{turns,coverage,summary,draft,started:turns.length>0,busy:true,importing:true,example:saved.synthetic_example===true,draftEdited:saved.draft_edited===true,memo_findings:findings,focus,parking_lot:parked,closure:{asked:saved.closure?.asked===true,confirmed:saved.closure?.confirmed===true}});
+      updateControls();
       state.processNameManual=saved.process_name_manual===undefined?Boolean(context.process_name):saved.process_name_manual===true;
       (Array.isArray(saved.document_questions_handled)?saved.document_questions_handled:[]).filter(value=>typeof value==="string"&&value.length<160).slice(0,200).forEach(value=>documentQuestionsHandled.add(value));
       if(saved.documents&&documentController){restoringDocuments=true;try{await documentController.restoreState(saved.documents);}finally{if(generation===state.generation)restoringDocuments=false;}}
@@ -1782,12 +1806,13 @@
       }
       conversationUI.workflow=workflow;renderWorkingMap();
       state.draftVersion = draft ? (saved.draft_stale ? state.version-1 : state.version) : null;
-      $("answer-text").value = text(saved.unsent_answer);
+      $("answer-text").value = unsent;
       renderTranscript(); renderDraft();
       if(state.example)knowledgeUI?.activateExample();
       notice("Interview opened. Continue whenever you’re ready.");
       if (draft) tab("review");
     } catch (error) { if(generation===state.generation)notice(`Could not open session: ${error.message}`, true); }
+    finally {if(generation===state.generation){state.importing=false;setBusy(false);documentController?.render();}}
   }
   function loadExample() {
     if (!canReplaceSession()) return;
@@ -2002,20 +2027,21 @@
     document.querySelectorAll("#process-name,#process-owner,#objective,#background").forEach(input => input.addEventListener("input",() => {state.dirty = true;updateSaveHint();}));
     $("process-name").addEventListener("input",()=>{
       state.processNameManual=Boolean($("process-name").value.trim());
-      if(state.context){state.context.process_name=$("process-name").value.trim();state.version++;conversationUI.revision++;scheduleWorkflow();}
+      if(state.context){state.context.process_name=$("process-name").value.trim();state.version++;if(conversationUI.workflow)conversationUI.workflow.title=state.context.process_name;}
       updateControls();
     });
-    $("process-name").addEventListener("change",()=>{if(conversationUI.live?.active)conversationUI.live.appendContext(`The participant edited the process title to: ${$("process-name").value}`,{id:`title_${Date.now()}`,kind:"process_title"});});
-    window.addEventListener("beforeunload",event => {if (state.dirty || state.recording || state.requestingMic || state.transcribing) {event.preventDefault(); event.returnValue = "";}});
+    $("process-name").addEventListener("change",()=>{if(conversationUI.workflow)renderWorkingMap();if(conversationUI.live?.active)conversationUI.live.appendContext(`The participant edited the process title to: ${$("process-name").value}`,{id:`title_${Date.now()}`,kind:"process_title"});});
+    window.addEventListener("beforeunload",event => {if (state.dirty || knowledgeUI?.hasPending || state.recording || state.requestingMic || state.transcribing) {event.preventDefault(); event.returnValue = "";}});
     document.addEventListener("visibilitychange",updatePresence);
     window.addEventListener("pagehide",() => {stopSpeaking(); finishRecording(true);gpfsPresence?.setVisible(false);});
+    window.addEventListener("pageshow",event=>{if(event.persisted)updatePresence();});
     bindDraftFields();
   }
   async function init() {
     if(window.GPFSPresence)gpfsPresence=window.GPFSPresence.create($("gpfs-presence"));
     initEvents(); renderCoverage(); updateControls();
     if(window.CollectorDocuments)documentController=window.CollectorDocuments.create({requestJSON:request,getContext:documentContext,config:()=>state.config,
-      canUpload:()=>Boolean(state.config?.api_configured),onEvent:onDocumentEvent,notice,onDirty:()=>{state.dirty=true;updateSaveHint();}});
+      canUpload:()=>Boolean(state.config?.api_configured)&&!state.importing,canDiscuss:()=>!state.busy&&!state.recording&&!state.transcribing&&!state.requestingMic,onEvent:onDocumentEvent,notice,onDirty:()=>{state.dirty=true;updateSaveHint();}});
     if(window.CollectorKnowledge)knowledgeUI=window.CollectorKnowledge.create({request,session:sessionObject,notice,onSubmitted:()=>{state.dirty=true;updateSaveHint();}});
     refreshVoices();
     window.speechSynthesis?.addEventListener("voiceschanged", refreshVoices);

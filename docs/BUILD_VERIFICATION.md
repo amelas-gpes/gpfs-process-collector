@@ -1,3 +1,17 @@
+## Application audit, first reliability batch — 2026-11-03
+
+Version 0.11.0 includes fixes from independent HTTP/launcher, document, knowledge, and frontend audit passes. [Audit scope, architecture, findings and remaining work](APPLICATION_AUDIT.md) keep the full active objective visible.
+
+Fixed bounded HTTP connections/header/body reading/upload admission, graceful HTTP drain before stores close, startup cleanup, strict evidence and finite-JSON validation, immutable request-intent receipt recovery, retry/worker races, snapshot query batching, large-workbook formula handling, document cursor/completeness/error-worker bugs, browser cache restoration, conflicting file actions, session import locking, stale file-purpose capture, and stale submission/Admin callbacks. Title-only edits no longer schedule paid extraction. Source-proven Live send/timer/callback/chronology defects were corrected by static review.
+
+**324 checks passed, 0 failed, 0 skipped among executed checks:** 175 Python checks (61 server, 51 document, 51 knowledge, 8 portability, 4 asset/API); 130 frontend checks (22 non-voice UI, 32 documents, 19 knowledge UI, 10 memo, 38 graph, 9 complete example); and 19 deterministic GPFS visual checks. The visual component uses synthetic levels, not audio hardware. Live/voice-specific test suites were excluded. The changed Live controller received syntax and source review only; these results do not validate physical voice behavior or the provider contract.
+
+Regression evidence includes real temporary SQLite stores and local HTTP sockets, source drift/archiving/restart lost-response recovery, two SQLite instances racing one idempotency key, trickle-body deadlines, queue supersession, error-persistence failure, interrupted batch preparation, complete rereading after Revisit, unindexed chart tabs, BFCache late responses, old file-purpose questions, and immutable submission retries. Four document regressions were also run against the previous implementation and failed as expected. Snapshot SELECTs fell from 98 to 10 for 40 synthetic submissions, with all records preserved and query count constant after adding more submissions.
+
+No real provider requests, voice sessions, microphone/speaker access, or user business-process data were used. Browser checks use the built-in fictional example in a separate preview. Existing interview tabs were preserved. Local screenshots are in ignored `work/architecture-audit/`. No hosted deployment is included.
+
+The audit remains active. In particular, full Admin history payloads still grow with retained data; pagination/lazy detail and another integrated recovery/accessibility pass remain to be completed. Already-running parser/provider callbacks remain non-cancelable, although late analysis publication is suppressed.
+
 ## Usability and workflow improvements — 2026-11-03
 
 Implemented the fifteen recommendations from the application UI review within the existing visual system:

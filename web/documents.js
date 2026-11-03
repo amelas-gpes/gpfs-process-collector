@@ -16,14 +16,19 @@
       this.uploads=[];this.uploadErrors=[];this.seen=new Map();this.pollTimer=null;this.polling=null;this.sessionPromise=null;
       this.mutating=0;this.sequence=0;this.disposed=false;this.restoreFocus=true;this.connectionError="";this.lastError="";this.source=null;
       this.controller=new AbortController();this.actions=new Set();this.actionErrors=new Map();this.build();this.render();
-      this.pagehide=()=>this.cancel();window.addEventListener?.("pagehide",this.pagehide);
+      this.suspended=false;this.pagehide=()=>this.suspend();this.pageshow=event=>{if(event.persisted)this.resume();};
+      window.addEventListener?.("pagehide",this.pagehide);window.addEventListener?.("pageshow",this.pageshow);
     }
     node(tag,className,text) {const node=this.doc.createElement(tag);if(className)node.className=className;if(text!==undefined)node.textContent=String(text);return node;}
     button(text,className,fn) {const button=this.node("button",className,text);button.type="button";button.addEventListener("click",fn);return button;}
     emit(event) {this.options.onEvent?.(event);}
+    discuss(document,question) {
+      if(this.options.canDiscuss?.()===false){this.options.notice?.("Wait for the current reply to finish, then choose Discuss again. The file question is retained.");return;}
+      this.close(false);this.emit({type:"question",document:copy(document),question:copy(question)});
+    }
     context() {const value=this.options.getContext?.()||{};return {context:value.context||{},turns:value.turns||[],focus:value.focus||"",current_question:value.current_question||""};}
     current(generation) {return !this.disposed&&generation===this.generation;}
-    allowed() {return !this.disposed&&(this.options.canUpload?.()!==false);}
+    allowed() {return !this.disposed&&!this.suspended&&(this.options.canUpload?.()!==false);}
     build() {
       this.controls=this.doc.getElementById("document-controls");this.strip=this.doc.getElementById("document-strip");
       if(!this.controls||!this.strip)throw new Error("Document controls and strip mounts are required.");
@@ -57,6 +62,7 @@
     safeId(id) {return String(id).replace(/[^a-zA-Z0-9_-]/g,"");}
     close(restoreFocus=true) {this.restoreFocus=restoreFocus;if(this.dialog.open)this.dialog.close();}
     async ensureSession() {
+      if(this.disposed||this.suspended)throw abortError();
       if(this.scope)return this.scope;
       if(this.sessionPromise)return this.sessionPromise;
       const generation=this.generation,signal=this.controller.signal;
@@ -129,11 +135,11 @@
     pending() {return this.uploads.length||this.documents.some(item=>["pending","indexing"].includes(item.status)||["quick","deep"].includes(item.analysis?.phase));}
     schedule(delay) {
       clearTimeout(this.pollTimer);this.pollTimer=null;
-      if(this.disposed||!this.scope||(!this.documents.length&&!this.uploads.length))return;
+      if(this.disposed||this.suspended||!this.scope||(!this.documents.length&&!this.uploads.length))return;
       this.pollTimer=setTimeout(()=>{this.pollTimer=null;this.refresh();},delay===undefined?(this.pending()?2000:10000):delay);
     }
     async refresh() {
-      if(this.disposed||!this.scope)return;
+      if(this.disposed||this.suspended||!this.scope)return;
       if(this.polling)return this.polling;
       if(this.mutating){this.schedule();return;}
       const generation=this.generation,revision=this.revision,scope=this.scope;
@@ -152,8 +158,9 @@
       if(this.lastError!==text){this.lastError=text;this.emit({type:"error",message:text});}
     }
     async action(document,action,purpose) {
-      const key=document.id+":"+action;if(this.actions.has(key)||!this.scope)return;
+      const key=document.id+":"+action;if(this.disposed||this.suspended||this.documentBusy(document.id)||!this.scope)return;
       const generation=this.generation;this.actions.add(key);this.mutating++;this.revision++;
+      this.render();
       try{
         const result=await this.options.requestJSON("/api/documents/action",{scope:this.scope,id:document.id,action,...(purpose!==undefined?{purpose}:{})},{signal:this.controller.signal,timeout:30000});
         if(!this.current(generation))return;
@@ -164,6 +171,7 @@
       }catch(error){if(this.current(generation)&&error.name!=="AbortError"){this.actionErrors.set(document.id,{action,purpose,message:message(error)});this.reportError(error,true);}}
       finally{if(this.current(generation)){this.actions.delete(key);this.mutating=Math.max(0,this.mutating-1);this.revision++;this.render();this.schedule(0);}}
     }
+    documentBusy(id) {return [...this.actions].some(key=>key.startsWith(id+":"));}
     reviewError(document) {return document.status==="error"||document.analysis?.phase==="error"||Boolean(document.analysis?.error);}
     status(document) {
       if(document.status==="error")return "Could not read file";
@@ -217,6 +225,7 @@
       const card=this.node("section","documents-card");card.dataset.documentId=this.safeId(document.id);
       const head=this.node("div","documents-card-heading"),title=this.node("div");title.append(this.node("h3","",document.name||"File"),this.node("p","documents-file-meta",`${document.kind||"Document"} · ${this.size(document.size)}`));
       const remove=this.button("Remove","documents-text-button",()=>this.action(document,"remove"));remove.setAttribute("aria-label",`Remove ${document.name||"file"} from this conversation`);head.append(title,remove);card.append(head);
+      card.setAttribute("aria-busy",String(this.documentBusy(document.id)));
       const analysis=document.analysis||{};
       const stage=this.node("div","documents-stage");stage.dataset.state=this.reviewError(document)||this.actionErrors.has(document.id)?"error":analysis.disposition==="parked"?"later":["pending","indexing"].includes(document.status)||["quick","deep"].includes(analysis.phase)?"working":"ready";
       stage.append(this.node("strong","documents-stage-label",this.status(document)));const detail=this.stageDetail(document);if(detail)stage.append(this.node("span","documents-stage-detail",detail));card.append(stage);
@@ -247,9 +256,11 @@
       const listed=Array.isArray(analysis.questions)?analysis.questions.filter(item=>item&&typeof item.text==="string"&&item.text.trim()):[];
       const questions=(listed.length?listed:primary?[{id:"quick",text:primary,sources:analysis.sources||[]}]:[]).filter(item=>!(analysis.disposition==="needs_reason"&&item.text.trim()===primary));
       if(questions.length){const section=this.node("div","documents-questions");section.append(this.node("h4","",analysis.disposition==="parked"?"Questions for later":"Questions to explore"));
-        for(const question of questions){if(!question?.text)continue;const row=this.node("div","documents-question");row.append(this.node("p","",question.text),this.button("Discuss","documents-text-button",()=>{this.close(false);this.emit({type:"question",document:copy(document),question:copy(question)});}));this.renderSources(row,document,question.sources||[]);section.append(row);}card.append(section);
+        for(const question of questions){if(!question?.text)continue;const row=this.node("div","documents-question");row.append(this.node("p","",question.text),this.button("Discuss","documents-text-button",()=>this.discuss(document,question)));this.renderSources(row,document,question.sources||[]);section.append(row);}card.append(section);
       }
-      this.renderSources(card,document,analysis.sources||[]);card.append(this.node("p","documents-evidence-note","Reference material · Interview confirmation still required."));this.body.append(card);
+      this.renderSources(card,document,analysis.sources||[]);card.append(this.node("p","documents-evidence-note","Reference material · Interview confirmation still required."));
+      if(this.documentBusy(document.id))card.querySelectorAll?.("button").forEach(button=>{if(!button.classList.contains("documents-source"))button.disabled=true;});
+      this.body.append(card);
     }
     renderInventory(card,inventory) {
       const parts=[];
@@ -267,7 +278,7 @@
       for(const source of valid.slice(0,30)){const button=this.button(source.label||`${document.name} · Source`,"documents-source",()=>this.openSource(document,source));button.setAttribute("aria-label",`Read source: ${document.name} · ${source.label||source.source_id}`);button.dataset.documentSource=`${document.id}:${source.source_id}`;group.append(button);}parent.append(group);
     }
     async openSource(document,source) {
-      const generation=this.generation,scope=this.scope;if(!scope)return;
+      const generation=this.generation,scope=this.scope;if(this.disposed||this.suspended||!scope)return;
       this.sourceReturnKey=`${document.id}:${source.source_id}`;
       const selected=this.source={documentId:document.id,sourceId:source.source_id,label:this.sourceTitle(document,source.label||source.source_id),text:"Loading source…",loading:true};this.render();
       try{
@@ -293,10 +304,21 @@
       if(this.scope)await this.refresh();
     }
     cancel() {clearTimeout(this.pollTimer);this.pollTimer=null;this.controller.abort();}
-    reset() {
-      this.cancel();this.generation++;this.revision++;this.controller=new AbortController();this.scope=null;this.documents=[];this.uploads=[];this.uploadErrors=[];this.seen=new Map();this.sessionPromise=null;this.polling=null;this.mutating=0;this.actions.clear();this.actionErrors.clear();this.source=null;this.sourceHeading=null;this.sourceReturnKey=null;this.connectionError="";this.lastError="";this.close(false);this.render();
+    suspend() {
+      if(this.disposed||this.suspended)return;
+      this.suspended=true;this.generation++;this.revision++;this.cancel();
+      this.uploadErrors.push(...this.uploads.map(upload=>({name:upload.name,file:upload.file,message:"Upload confirmation was interrupted. Check the saved files before retrying."})));
+      this.uploadErrors=this.uploadErrors.slice(-MAX_FILES);this.uploads=[];this.polling=null;this.sessionPromise=null;this.mutating=0;this.actions.clear();
+      if(this.source?.loading)this.source={...this.source,loading:false,error:true,text:"The source read was interrupted. Retry to load the saved source."};
     }
-    dispose() {if(this.disposed)return;this.reset();this.disposed=true;this.cancel();window.removeEventListener?.("pagehide",this.pagehide);this.controls.replaceChildren();this.strip.replaceChildren();this.strip.hidden=true;}
+    resume() {
+      if(this.disposed||!this.suspended)return;
+      this.suspended=false;this.controller=new AbortController();this.render();void this.refresh();
+    }
+    reset() {
+      this.cancel();this.generation++;this.revision++;this.suspended=false;this.controller=new AbortController();this.scope=null;this.documents=[];this.uploads=[];this.uploadErrors=[];this.seen=new Map();this.sessionPromise=null;this.polling=null;this.mutating=0;this.actions.clear();this.actionErrors.clear();this.source=null;this.sourceHeading=null;this.sourceReturnKey=null;this.connectionError="";this.lastError="";this.close(false);this.render();
+    }
+    dispose() {if(this.disposed)return;this.reset();this.disposed=true;this.cancel();window.removeEventListener?.("pagehide",this.pagehide);window.removeEventListener?.("pageshow",this.pageshow);this.controls.replaceChildren();this.strip.replaceChildren();this.strip.hidden=true;}
   }
   window.CollectorDocuments={create:options=>new Documents(options)};
 })();

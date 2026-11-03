@@ -15,7 +15,9 @@ from test_server import server
 class FakeGraph:
     def __init__(self, path, analyzer=None, document_resolver=None):
         self.calls = []
-    def submit(self, payload, principal=None, document_scope=None):
+    def recover_submission(self, key, intent_digest, principal=None):
+        return None
+    def submit(self, payload, principal=None, document_scope=None, intent_digest=None):
         self.calls.append(('submit', payload, principal, document_scope))
         return {'submission_id': 'synthetic', 'process_id': 'process', 'revision': 1, 'job_id': 'job', 'status': 'pending'}
     def admin_snapshot(self):
@@ -339,6 +341,48 @@ class KnowledgeRealHTTPTests(unittest.TestCase):
         changed = self.request(admin, '/api/knowledge/admin/snapshot', {})[1]['proposals'][0]
         self.assertEqual(changed['status'], 'stale')
         self.assertEqual(changed['history'][-1]['action'], 'stale')
+
+    def test_saved_attempt_recovers_before_document_drift_or_archive_hydration(self):
+        import copy
+        import uuid
+        from test_knowledge_graph import payload
+        identity={'employee':'verified-employee'}
+        authorizer=lambda handler,capability: identity['employee'] if capability=='knowledge.submit' else None
+        httpd=self.serve_real(authorizer,lambda current,candidates:[])
+        scope=httpd.documents_store.create_scope()
+        document=httpd.documents_store.add(scope,'support.csv',b'field,value\nnav,approved\n')
+        httpd.documents_store.extract(scope,document['id'])
+        source=httpd.documents_store.chunks(scope,document['id'])['chunks'][0]
+        attempt=payload('Publish','We publish approved NAV.')
+        attempt.update(submission_key=str(uuid.uuid4()),saved_at='original time',knowledge_status={'status_token':'ignored-old-status'})
+        attempt['documents']={'scope':scope,'documents':[{'id':document['id']}]}
+        status,first=self.request(httpd,'/api/knowledge/submit',attempt)
+        self.assertEqual(status,202,first)
+        # Source discovery after the accepted write must not change its request identity.
+        httpd.documents_store.update(scope,document['id'],{'analysis':{'sources':[{'source_id':source['id'],'label':source['label']}]}})
+        retry=copy.deepcopy(attempt);retry['saved_at']='later time';retry['knowledge_status']['status_token']='different-ignored-status';retry['intent_digest']='forged-browser-claim'
+        with patch.object(httpd.documents_store,'get',side_effect=AssertionError('Recovery must precede mutable hydration')):
+            status,recovered=self.request(httpd,'/api/knowledge/submit',retry)
+        self.assertEqual(status,202,recovered);self.assertEqual(recovered,first)
+        httpd.documents_store.archive(scope,document['id'])
+        with patch.object(httpd.documents_store,'get',side_effect=AssertionError('Archived file must not block exact receipt recovery')):
+            status,recovered=self.request(httpd,'/api/knowledge/submit',retry)
+        self.assertEqual(status,202,recovered);self.assertEqual(recovered,first)
+        changed=copy.deepcopy(retry);changed['turns'][0]['text']='A different account.'
+        self.assertEqual(self.request(httpd,'/api/knowledge/submit',changed)[0],400)
+        changed=copy.deepcopy(retry);changed['documents']['scope']='different-scope'
+        self.assertEqual(self.request(httpd,'/api/knowledge/submit',changed)[0],400,'The original private scope remains bound to intent.')
+        identity['employee']='another-employee'
+        self.assertEqual(self.request(httpd,'/api/knowledge/submit',retry)[0],400)
+        identity['employee']='verified-employee'
+        snapshot=httpd.knowledge.admin_snapshot();self.assertEqual(len(snapshot['submissions']),1)
+        self.assertEqual(snapshot['submissions'][0]['documents']['documents'][0]['sources'],[],'Saved evidence is not rewritten by later source discovery.')
+        self.assertNotIn(scope,json.dumps(snapshot));self.assertNotIn('intent_digest',json.dumps(snapshot))
+        for running,worker in self.instances:
+            running.shutdown();running.server_close();worker.join(timeout=3)
+        self.instances.clear()
+        reopened=self.serve_real(authorizer,lambda current,candidates:[])
+        self.assertEqual(self.request(reopened,'/api/knowledge/submit',retry),(202,first),'Raw-intent recovery survives restart with the original document archived.')
 
 
 if __name__ == "__main__":

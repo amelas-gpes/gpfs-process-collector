@@ -14,6 +14,7 @@ import sqlite3
 import threading
 import uuid
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -34,7 +35,7 @@ def text(value, limit=1000):
     return value.strip()
 
 def dumps(value):
-    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':'))
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False)
 
 class KnowledgeGraph:
     def __init__(self, path, analyzer=None, document_resolver=None):
@@ -83,6 +84,11 @@ class KnowledgeGraph:
                 self.db.execute('ALTER TABLE proposals ADD COLUMN claim_key TEXT')
             if 'owner_pid' not in {row['name'] for row in self.db.execute('PRAGMA table_info(jobs)')}:
                 self.db.execute('ALTER TABLE jobs ADD COLUMN owner_pid INTEGER')
+            if 'intent_digest' not in {row['name'] for row in self.db.execute('PRAGMA table_info(submission_keys)')}:
+                self.db.execute('ALTER TABLE submission_keys ADD COLUMN intent_digest TEXT')
+            self.db.execute('CREATE INDEX IF NOT EXISTS review_history_proposal_idx ON review_history(proposal_id)')
+            self.db.execute('CREATE INDEX IF NOT EXISTS canonical_history_group_idx ON canonical_history(canonical_id)')
+            self.db.execute('CREATE INDEX IF NOT EXISTS proposals_claim_idx ON proposals(claim_key)')
             for row in self.db.execute("SELECT id,owner_pid FROM jobs WHERE status='processing'").fetchall():
                 alive=False
                 if row['owner_pid']:
@@ -96,8 +102,52 @@ class KnowledgeGraph:
         self.document_resolver = document_resolver
         self.executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix='knowledge')
         self.closed = False
+        self.queued_jobs = set()
 
-    def submit(self, payload, principal=None, document_scope=None):
+    @contextmanager
+    def _write(self):
+        with self.lock:
+            if self.closed: raise ValueError('Knowledge storage is closed.')
+            with self.db:
+                # Reserve the write transaction before reading an idempotency
+                # key or latest revision. Separate local server processes use
+                # distinct Python locks but must still serialize this decision.
+                self.db.execute('BEGIN IMMEDIATE')
+                yield
+
+    @staticmethod
+    def _intent_digest(value):
+        if value is not None and (not isinstance(value,str) or len(value)!=64 or any(c not in '0123456789abcdef' for c in value)):
+            raise ValueError('Invalid server submission intent.')
+        return value
+
+    def _key_receipt(self, row):
+        receipt=json.loads(row['receipt'])
+        receipt['status_token']=self._status_token(receipt['submission_id'],receipt['revision'])
+        return receipt
+
+    def recover_submission(self, key, intent_digest, principal=None):
+        """Recover an exact server-bound attempt before mutable file hydration.
+
+        The endpoint supplies the digest as a trusted argument, never a browser
+        field. Legacy keys have no raw-intent digest, so they still require the
+        original canonical submit path before they can be upgraded safely.
+        """
+        intent_digest=self._intent_digest(intent_digest)
+        if not key: return None
+        try:key=str(uuid.UUID(key))
+        except (ValueError,TypeError,AttributeError):raise ValueError('Invalid submission key.') from None
+        with self.lock:
+            if self.closed:raise ValueError('Knowledge storage is closed.')
+            row=self.db.execute('SELECT * FROM submission_keys WHERE key=?',(key,)).fetchone()
+            if not row:return None
+            if row['principal']!=(principal or None):raise ValueError('Submission key was already used for different content.')
+            if row['intent_digest'] is None:return None
+            if intent_digest is None or not hmac.compare_digest(row['intent_digest'],intent_digest):raise ValueError('Submission key was already used for different content.')
+            return self._key_receipt(row)
+
+    def submit(self, payload, principal=None, document_scope=None, intent_digest=None):
+        intent_digest=self._intent_digest(intent_digest)
         if not isinstance(payload, dict):
             raise ValueError('Submission must be an object.')
         try:
@@ -115,10 +165,11 @@ class KnowledgeGraph:
             raise ValueError('Submission exceeds the local size limit.')
         context = payload.get('context', {})
         turns = payload.get('turns', [])
-        draft = payload.get('draft') or {}
+        draft = payload.get('draft')
+        if draft is None: draft = {}
         if not isinstance(context, dict) or not isinstance(turns, list) or not isinstance(draft, dict):
             raise ValueError('Submission requires valid context, turns and draft.')
-        if len(turns)>400 or not any(isinstance(t,dict) and t.get('role')=='user' and isinstance(t.get('text'),str) and t['text'].strip() for t in turns):
+        if len(turns)>400 or not any(isinstance(t,dict) and t.get('role')=='user' and not t.get('document_event') and isinstance(t.get('text'),str) and t['text'].strip() for t in turns):
             raise ValueError('A submission requires at least one participant statement.')
         seen=set()
         for turn in turns:
@@ -139,15 +190,19 @@ class KnowledgeGraph:
         process_id=payload.get('process_id') or new_id()
         try: process_id=str(uuid.UUID(process_id))
         except (ValueError,TypeError,AttributeError): raise ValueError('Invalid process ID.') from None
-        with self.lock, self.db:
+        with self._write():
             if key:
                 prior=self.db.execute('SELECT * FROM submission_keys WHERE key=?',(key,)).fetchone()
                 if prior:
-                    if prior['digest']!=digest or prior['principal']!=(principal or None):
+                    if prior['principal']!=(principal or None):
                         raise ValueError('Submission key was already used for different content.')
-                    receipt=json.loads(prior['receipt'])
-                    receipt['status_token']=self._status_token(receipt['submission_id'],receipt['revision'])
-                    return receipt
+                    if intent_digest is not None and prior['intent_digest'] is not None:
+                        if not hmac.compare_digest(prior['intent_digest'],intent_digest):raise ValueError('Submission key was already used for different content.')
+                    elif prior['digest']!=digest:
+                        raise ValueError('Submission key was already used for different content.')
+                    if intent_digest is not None and prior['intent_digest'] is None:
+                        self.db.execute('UPDATE submission_keys SET intent_digest=? WHERE key=?',(intent_digest,key))
+                    return self._key_receipt(prior)
             previous=self.db.execute('SELECT submission_id,revision FROM revisions WHERE process_id=? ORDER BY revision DESC LIMIT 1',(process_id,)).fetchone()
             if payload.get('process_id') and not previous:
                 raise ValueError('Process does not exist.')
@@ -175,9 +230,9 @@ class KnowledgeGraph:
             receipt={'submission_id':submission_id,'process_id':process_id,'revision':revision,'job_id':job_id,'status':'pending'}
             status_token=self._status_token(submission_id,revision)
             self.db.execute('INSERT INTO status_capabilities VALUES (?,?,?)',(submission_id,revision,hashlib.sha256(status_token.encode()).hexdigest()))
-            if key: self.db.execute('INSERT INTO submission_keys VALUES (?,?,?,?)',(key,digest,principal or None,dumps(receipt)))
+            if key: self.db.execute('INSERT INTO submission_keys(key,digest,principal,receipt,intent_digest) VALUES (?,?,?,?,?)',(key,digest,principal or None,dumps(receipt),intent_digest))
         if self.analyzer:
-            self.executor.submit(self._run,job_id)
+            self._schedule(job_id)
         receipt['status_token']=status_token
         return receipt
 
@@ -196,12 +251,14 @@ class KnowledgeGraph:
 
     def _materialize(self, sid, pid, rev, payload):
         submitted_draft=payload.get('draft') or {}
-        working=payload.get('workflow') or {}
+        working=payload.get('workflow')
+        if working is None: working={}
         if not isinstance(working,dict): raise ValueError('Submitted workflow must be an object.')
         source='workflow' if (not submitted_draft or payload.get('draft_stale')) else 'draft'
         draft=working if source=='workflow' else submitted_draft
-        steps=draft.get('steps',[]) if isinstance(draft.get('steps',[]),list) else []
-        connections=draft.get('connections',[]) if isinstance(draft.get('connections',[]),list) else []
+        steps=draft.get('steps',[])
+        connections=draft.get('connections',[])
+        if not isinstance(steps,list) or not isinstance(connections,list): raise ValueError('Submitted steps and connections must be arrays.')
         if len(steps)>80 or len(connections)>150: raise ValueError('Submitted workflow exceeds graph limits.')
         process_entity=new_id()
         title=(payload.get('context') or {}).get('process_name') or draft.get('title') or 'Untitled process'
@@ -224,7 +281,7 @@ class KnowledgeGraph:
             values=draft.get(field,[])
             if isinstance(values,list):
                 for value in values[:100]: component(version_entity,kind,value,relation,{'source':source,'field':field})
-        valid_evidence={turn['id'] for turn in payload.get('turns',[]) if turn.get('role')=='user'} | {'context'}
+        valid_evidence={turn['id'] for turn in payload.get('turns',[]) if turn.get('role')=='user' and not turn.get('document_event')} | {'context'}
         def validate_evidence(item):
             refs=item.get('evidence_turns',[])
             if not isinstance(refs,list) or any(not isinstance(ref,str) or ref not in valid_evidence for ref in refs):
@@ -251,8 +308,11 @@ class KnowledgeGraph:
     def _revision(self,sid,revision):
         row=self.db.execute('SELECT * FROM revisions WHERE submission_id=? AND revision=?',(sid,revision)).fetchone()
         if not row: raise ValueError('Submission revision is unavailable.')
+        return self._submission(row)
+
+    def _submission(self,row):
         data=json.loads(row['payload'])
-        return {**data,'submission_id':sid,'process_id':row['process_id'],'revision':revision,'submitter':row['submitter'],'created_at':row['created_at']}
+        return {**data,'submission_id':row['submission_id'],'process_id':row['process_id'],'revision':row['revision'],'submitter':row['submitter'],'created_at':row['created_at']}
 
     def _latest(self,sid):
         return self.db.execute('SELECT MAX(revision) AS revision FROM revisions WHERE submission_id=?',(sid,)).fetchone()['revision']
@@ -296,7 +356,8 @@ class KnowledgeGraph:
         permitted={current['submission_id']:current,**{x['submission_id']:x for x in candidates}}
         a,b=p.get('source_submission_id'),p.get('destination_submission_id')
         if a==b or a not in permitted or b not in permitted or current['submission_id'] not in (a,b): raise ValueError('Invalid proposal endpoints.')
-        if p.get('source_revision') != permitted[a]['revision'] or p.get('destination_revision') != permitted[b]['revision']:
+        if any(type(p.get(side+'_revision')) is not int or p.get(side+'_revision') != permitted[sid]['revision']
+               for side,sid in (('source',a),('destination',b))):
             raise ValueError('Proposal references an unavailable revision.')
         kind=p.get('relationship_type')
         if kind not in RELATIONSHIPS: raise ValueError('Unsupported relationship type.')
@@ -311,13 +372,13 @@ class KnowledgeGraph:
         for item in ev:
             if not isinstance(item,dict): raise ValueError('Invalid proposal evidence.')
             sid=item.get('submission_id'); source=permitted.get(sid)
-            if sid not in (a,b) or not source or item.get('revision')!=source['revision']: raise ValueError('Invalid evidence revision.')
+            if sid not in (a,b) or not source or type(item.get('revision')) is not int or item.get('revision')!=source['revision']: raise ValueError('Invalid evidence revision.')
             quote=text(item.get('quote',''),6000)
             if not quote: raise ValueError('Evidence needs a nonempty exact quote.')
             kind=item.get('type') or 'employee_reported'
             if kind=='employee_reported':
                 tid=text(item.get('turn_id',''),80)
-                match=next((t for t in source.get('turns',[]) if t.get('id')==tid and t.get('role')=='user'),None)
+                match=next((t for t in source.get('turns',[]) if t.get('id')==tid and t.get('role')=='user' and not t.get('document_event')),None)
                 if not match or quote not in match['text']: raise ValueError('Evidence must quote an exact participant statement.')
                 evidence={'submission_id':sid,'revision':source['revision'],'turn_id':tid,'quote':quote,'type':kind}
             elif kind=='document_supported':
@@ -353,6 +414,11 @@ class KnowledgeGraph:
             current=self._revision(job['submission_id'],job['revision'])
             rows=self.db.execute('SELECT submission_id,MAX(revision) AS revision FROM revisions WHERE submission_id!=? GROUP BY submission_id ORDER BY MAX(created_at) DESC LIMIT 30',(job['submission_id'],)).fetchall()
             candidates=[self._revision(row['submission_id'],row['revision']) for row in rows]
+            # Explicitly incompatible scopes can never support a proposal. Filter
+            # before source resolution and keep the same eight-account bound as
+            # the provider adapter, so unneeded files are never read or sent.
+            current_scope=current.get('scope','').strip().casefold()
+            candidates=[item for item in candidates if not current_scope or not item.get('scope') or item['scope'].strip().casefold()==current_scope][:8]
         try:
             if self.document_resolver:
                 current=self._with_document_excerpts(current)
@@ -377,9 +443,9 @@ class KnowledgeGraph:
             with self.lock,self.db:
                 self.db.execute("UPDATE jobs SET status='failed',owner_pid=NULL,error='Analysis did not complete. Retry when the provider is available.' WHERE id=?",(job_id,))
 
-    def _proposal(self,row):
+    def _proposal(self,row,history=None):
         item=json.loads(row['data']); item.update(id=row['id'],status=row['status'],review_version=row['review_version'],created_at=row['created_at'],stale_reason=row['stale_reason'])
-        item['history']=[dict(x) for x in self.db.execute('SELECT action,reviewer,reason,side,created_at,review_version FROM review_history WHERE proposal_id=? ORDER BY rowid',(row['id'],))]
+        item['history']=history if history is not None else [dict(x) for x in self.db.execute('SELECT action,reviewer,reason,side,created_at,review_version FROM review_history WHERE proposal_id=? ORDER BY rowid',(row['id'],))]
         return item
 
     def review(self,proposal_id,action,reviewer,reason,expected_revision,side=None):
@@ -418,20 +484,45 @@ class KnowledgeGraph:
             return bool(row and row['submitter'] and row['submitter']==principal)
 
     def retry(self,job_id):
-        with self.lock,self.db:
+        with self._write():
             row=self.db.execute('SELECT * FROM jobs WHERE id=?',(job_id,)).fetchone()
             if not row or row['status'] not in ('failed','pending'): raise ValueError('Job cannot be retried.')
             if not self.analyzer: raise ValueError('Background analysis is not configured.')
             updated=self.db.execute("UPDATE jobs SET status='pending',error='' WHERE id=? AND status IN ('failed','pending')",(job_id,))
             if updated.rowcount!=1: raise ValueError('Job is already processing.')
-        self.executor.submit(self._run,job_id)
+        self._schedule(job_id)
         return {'id':job_id,'status':'pending'}
 
-    def _canonical(self, row):
+    def _schedule(self, job_id):
+        # A durable pending job may be retried while it is still waiting behind
+        # another analysis. Keep one executor entry per job, including when
+        # repeated retry requests arrive before that job can claim its row.
+        with self.lock:
+            if self.closed or job_id in self.queued_jobs: return False
+            self.queued_jobs.add(job_id)
+            try: self.executor.submit(self._execute,job_id)
+            except Exception:
+                self.queued_jobs.discard(job_id)
+                raise
+            return True
+
+    def _execute(self, job_id):
+        try: self._run(job_id)
+        finally:
+            with self.lock:
+                self.queued_jobs.discard(job_id)
+                # A retry can arrive after _run records failure but before this
+                # wrapper releases its queue slot. Preserve that retry rather
+                # than leaving a durable pending job with no scheduled worker.
+                if not self.closed:
+                    row=self.db.execute('SELECT status FROM jobs WHERE id=?',(job_id,)).fetchone()
+                    if row and row['status']=='pending': self._schedule(job_id)
+
+    def _canonical(self, row, members=None, aliases=None, history=None):
         result=dict(row)
-        result['members']=[r['entity_id'] for r in self.db.execute('SELECT entity_id FROM canonical_members WHERE canonical_id=? ORDER BY entity_id',(row['id'],))]
-        result['aliases']=[r['alias'] for r in self.db.execute('SELECT alias FROM canonical_aliases WHERE canonical_id=? ORDER BY alias',(row['id'],))]
-        result['history']=[dict(r) for r in self.db.execute('SELECT action,value,reviewer,reason,review_version,created_at FROM canonical_history WHERE canonical_id=? ORDER BY rowid',(row['id'],))]
+        result['members']=members if members is not None else [r['entity_id'] for r in self.db.execute('SELECT entity_id FROM canonical_members WHERE canonical_id=? ORDER BY entity_id',(row['id'],))]
+        result['aliases']=aliases if aliases is not None else [r['alias'] for r in self.db.execute('SELECT alias FROM canonical_aliases WHERE canonical_id=? ORDER BY alias',(row['id'],))]
+        result['history']=history if history is not None else [dict(r) for r in self.db.execute('SELECT action,value,reviewer,reason,review_version,created_at FROM canonical_history WHERE canonical_id=? ORDER BY rowid',(row['id'],))]
         return result
 
     def canonical_create(self,label,entity_ids,reviewer,reason):
@@ -492,14 +583,18 @@ class KnowledgeGraph:
     def _invalidate_changed_document_evidence(self):
         if not self.document_resolver: return
         rows=self.db.execute("SELECT id,data,review_version FROM proposals WHERE status NOT IN ('stale','superseded')").fetchall()
+        digests={}
         for row in rows:
             for evidence in json.loads(row['data']).get('evidence',[]):
                 if evidence.get('type')!='document_supported': continue
-                try:
-                    source=self._document_source(evidence['submission_id'],evidence['revision'],evidence['document_id'],evidence['source_id'])
-                    digest=hashlib.sha256(source['text'].encode('utf-8')).hexdigest()
-                except Exception:
-                    digest=None
+                key=(evidence['submission_id'],evidence['revision'],evidence['document_id'],evidence['source_id'])
+                if key not in digests:
+                    try:
+                        source=self._document_source(*key)
+                        digests[key]=hashlib.sha256(source['text'].encode('utf-8')).hexdigest()
+                    except Exception:
+                        digests[key]=None
+                digest=digests[key]
                 if digest!=evidence.get('source_hash'):
                     reason='Document source changed or became unavailable; evidence requires review.'
                     changed=self.db.execute("UPDATE proposals SET status='stale',stale_reason=?,review_version=review_version+1 WHERE id=? AND review_version=? AND status NOT IN ('stale','superseded')",(reason,row['id'],row['review_version']))
@@ -510,17 +605,26 @@ class KnowledgeGraph:
     def admin_snapshot(self):
         with self.lock,self.db:
             self._invalidate_changed_document_evidence()
-            rows=self.db.execute('SELECT * FROM revisions ORDER BY created_at DESC').fetchall()
+            rows=self.db.execute('SELECT r.*,j.status AS job_status FROM revisions r LEFT JOIN jobs j ON j.submission_id=r.submission_id AND j.revision=r.revision ORDER BY r.created_at DESC').fetchall()
             submissions=[]
             for row in rows:
-                sub=self._revision(row['submission_id'],row['revision'])
-                job=self.db.execute('SELECT status FROM jobs WHERE submission_id=? AND revision=?',(row['submission_id'],row['revision'])).fetchone()
-                sub['job_status']=job['status'] if job else 'unknown';submissions.append(sub)
+                sub=self._submission(row)
+                sub['job_status']=row['job_status'] or 'unknown';submissions.append(sub)
+            proposal_history={}
+            for row in self.db.execute('SELECT proposal_id,action,reviewer,reason,side,created_at,review_version FROM review_history ORDER BY rowid'):
+                entry=dict(row);pid=entry.pop('proposal_id');proposal_history.setdefault(pid,[]).append(entry)
+            members={};aliases={};canonical_history={}
+            for row in self.db.execute('SELECT canonical_id,entity_id FROM canonical_members ORDER BY entity_id'):
+                members.setdefault(row['canonical_id'],[]).append(row['entity_id'])
+            for row in self.db.execute('SELECT canonical_id,alias FROM canonical_aliases ORDER BY alias'):
+                aliases.setdefault(row['canonical_id'],[]).append(row['alias'])
+            for row in self.db.execute('SELECT canonical_id,action,value,reviewer,reason,review_version,created_at FROM canonical_history ORDER BY rowid'):
+                entry=dict(row);cid=entry.pop('canonical_id');canonical_history.setdefault(cid,[]).append(entry)
             return {'submissions':submissions,
-                    'proposals':[self._proposal(row) for row in self.db.execute('SELECT * FROM proposals ORDER BY created_at DESC')],
+                    'proposals':[self._proposal(row,proposal_history.get(row['id'],[])) for row in self.db.execute('SELECT * FROM proposals ORDER BY created_at DESC')],
                     'entities':[{**dict(r),'data':json.loads(r['data'])} for r in self.db.execute('SELECT * FROM entities')],
                     'edges':[{**dict(r),'evidence':json.loads(r['evidence'])} for r in self.db.execute('SELECT * FROM edges')],
-                    'jobs':[dict(r) for r in self.db.execute('SELECT * FROM jobs ORDER BY created_at DESC')], 'canonical_groups':[self._canonical(r) for r in self.db.execute('SELECT * FROM canonical_groups ORDER BY created_at')], 'analysis_limitations':'Analysis uses at most eight candidate submissions and bounded transcript excerpts; it is not exhaustive. Document analysis is limited to two source excerpts per submission; visual transcriptions remain unverified.'}
+                    'jobs':[dict(r) for r in self.db.execute('SELECT * FROM jobs ORDER BY created_at DESC')], 'canonical_groups':[self._canonical(r,members.get(r['id'],[]),aliases.get(r['id'],[]),canonical_history.get(r['id'],[])) for r in self.db.execute('SELECT * FROM canonical_groups ORDER BY created_at')], 'analysis_limitations':'Analysis uses at most eight compatible candidate submissions and bounded transcript excerpts; it is not exhaustive. Document analysis is limited to two source excerpts per submission; visual transcriptions remain unverified.'}
 
     def close(self):
         with self.lock: self.closed=True

@@ -39,7 +39,8 @@ proposal must cite verbatim nonempty substrings of participant turns or supplied
 from both exact supplied submission IDs and revisions. Label employee_reported evidence with its
 turn_id and empty document_id/source_id; label document_supported evidence with its document_id
 and source_id and an empty turn_id. A document claim is not a participant statement or proof of
-actual practice. Clearly separate direct reports from inference, and list missing
+actual practice. Visual transcriptions marked unverified are model-generated readings, not
+verified quotations from the original file; retain that uncertainty. Clearly separate direct reports from inference, and list missing
 evidence or contradictions. Scope differences or unclear meanings must remain explicit. Do not
 infer agreement, identity, approvals or confirmation. Every relationship is only a proposal for
 an authorized reviewer. Do not use model knowledge to add business facts. Excerpts are bounded:
@@ -51,7 +52,7 @@ def _excerpt(record):
     turns = []
     # Keep the beginning and end when there are many answers and disclose the bound.
     all_turns = [t for t in record.get("turns", []) if isinstance(t, dict)
-                 and t.get("role") == "user" and isinstance(t.get("text"), str)]
+                 and t.get("role") == "user" and not t.get("document_event") and isinstance(t.get("text"), str)]
     selected = all_turns if len(all_turns) <= 12 else all_turns[:6] + all_turns[-6:]
     for turn in selected:
         turns.append({"id": turn.get("id", ""), "text": turn["text"][:1600],
@@ -59,6 +60,7 @@ def _excerpt(record):
     context = record.get("context") if isinstance(record.get("context"), dict) else {}
     doc_excerpts = [{"document_id": d.get("document_id", ""), "source_id": d.get("source_id", ""),
                      "label": d.get("label", ""), "text": d.get("text", "")[:1200],
+                     "origin": d.get("origin", "source_extraction"), "verified": d.get("verified"),
                      "excerpt_truncated": bool(d.get("excerpt_truncated")) or len(d.get("text", "")) > 1200}
                     for d in record.get("document_excerpts", [])[:2]
                     if isinstance(d, dict) and isinstance(d.get("text"), str)]
@@ -76,7 +78,12 @@ def build_analyzer(client):
     def analyze(submission, candidates):
         if not candidates:
             return []
-        selected = candidates[:8]
+        scope = str(submission.get("scope") or "").strip().casefold()
+        compatible = [candidate for candidate in candidates if not scope or not candidate.get("scope")
+                      or str(candidate["scope"]).strip().casefold() == scope]
+        if not compatible:
+            return []
+        selected = compatible[:8]
         payload = {"submission": _excerpt(submission),
                    "candidates": [_excerpt(candidate) for candidate in selected],
                    "candidates_omitted": max(0, len(candidates) - len(selected)),

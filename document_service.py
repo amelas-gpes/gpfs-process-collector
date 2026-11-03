@@ -44,7 +44,7 @@ class DocumentService:
         self.store, self.analyze = store, analyze_callback
         self._condition = threading.Condition(threading.RLock())
         self._urgent, self._deep = deque(), deque()
-        self._queued, self._running, self._contexts = set(), {}, {}
+        self._queued, self._running, self._contexts, self._failures = set(), {}, {}, {}
         self._closed = False
         self._worker = threading.Thread(target=self._loop, name='document-review', daemon=True)
         self._worker.start()
@@ -55,7 +55,13 @@ class DocumentService:
             self._urgent.clear()
             self._deep.clear()
             self._queued.clear()
+            self._failures.clear()
+            self._contexts.clear()
             self._condition.notify_all()
+        if threading.current_thread() is not self._worker:
+            # Let an idle worker or short local transaction settle, while never
+            # waiting for an unbounded provider/parser call during shutdown.
+            self._worker.join(timeout=.05)
 
     @staticmethod
     def _context(context):
@@ -92,14 +98,24 @@ class DocumentService:
         return record
 
     def status(self, scope, context=None):
-        records = self.store.list(scope)
         with self._condition:
+            # Read and schedule from one orchestration snapshot. A poll which
+            # reads before taking this lock can otherwise requeue a quick review
+            # after the worker has already published its deep/complete state.
+            records = self.store.list(scope)
             if context is not None:
                 self._contexts[scope] = self._context(context)
             else:
                 self._contexts.setdefault(scope, {})
             for record in records:
                 analysis = record.get('analysis') or {}
+                failure = self._failures.get((scope, record['id']))
+                if failure and failure[0] == analysis.get('intent_version', 0):
+                    # A storage failure may prevent the paused state from being
+                    # persisted. Keep it visible and suppress poll-driven paid
+                    # retries until the user explicitly changes the intent.
+                    record['analysis'] = {**analysis, 'phase': 'error', 'error': failure[1]}
+                    continue
                 phase = analysis.get('phase')
                 if record['status'] == 'error' or phase == 'error':
                     continue  # Failures require an explicit revisit, never a poll retry loop.
@@ -114,6 +130,20 @@ class DocumentService:
         with self._condition:
             if self._closed or item in self._queued or self._running.get((scope, document_id)) == (generation, phase):
                 return
+            failure = self._failures.get((scope, document_id))
+            if failure and failure[0] == generation:
+                return
+            if failure and failure[0] < generation:
+                self._failures.pop((scope, document_id), None)
+            # A newer user purpose/park/revisit replaces queued older intents.
+            # Do not cancel a running callback; _current rejects its late result.
+            # Preserve newer tasks if an older continuation arrives late.
+            obsolete = {task for task in self._queued
+                        if task[:2] == item[:2] and task[2] < generation}
+            if obsolete:
+                self._queued.difference_update(obsolete)
+                self._urgent = deque(task for task in self._urgent if task not in obsolete)
+                self._deep = deque(task for task in self._deep if task not in obsolete)
             (self._urgent if phase == 'quick' else self._deep).append(item)
             self._queued.add(item)
             self._condition.notify()
@@ -141,12 +171,20 @@ class DocumentService:
                 # Provider/parser exceptions may contain private document text. Keep
                 # ordinary status output controlled and preserve cursor/originals.
                 with self._condition:
-                    current = self._current(scope, document_id, generation)
-                    if current:
-                        analysis = current.get('analysis') or {}
-                        analysis.update(phase='error', error='Document review paused after an invalid response or service error. Revisit to retry.',
-                                        version=analysis.get('version', 0) + 1)
-                        self.store.update(scope, document_id, {'analysis': analysis})
+                    message = 'Document review paused after an invalid response or service error. Revisit to retry.'
+                    if not self._closed:
+                        self._failures[(scope, document_id)] = (generation, message)
+                        try:
+                            current = self._current(scope, document_id, generation)
+                            if current:
+                                analysis = current.get('analysis') or {}
+                                analysis.update(phase='error', error=message, version=analysis.get('version', 0) + 1)
+                                self.store.update(scope, document_id, {'analysis': analysis})
+                        except Exception:
+                            # Failure reporting must not kill the sole worker.
+                            # status() exposes the in-memory paused state if the
+                            # database becomes readable before it becomes writable.
+                            pass
             finally:
                 with self._condition:
                     self._running.pop((scope, document_id), None)
@@ -267,6 +305,14 @@ class DocumentService:
             analysis['sources'] = list({source['source_id']: source for item in analysis.get('questions', []) + analysis.get('observations', []) for source in item['sources']}.values())
         return analysis
 
+    @staticmethod
+    def _review_complete(record, analysis, cursor, total):
+        coverage = record.get('coverage') or {}
+        units = coverage.get('total_units', 0)
+        return (total > 0 and cursor >= total and units > 0
+                and coverage.get('indexed_units', 0) >= units
+                and not analysis.get('limit_indicator', False))
+
     def _run(self, scope, document_id, generation, phase):
         with self._condition:
             record = self._current(scope, document_id, generation)
@@ -299,12 +345,22 @@ class DocumentService:
                 if record:
                     analysis = record.get('analysis') or {}
                     total = self.store.chunks(scope, document_id, limit=1)['total']
+                    if phase == 'quick' and total == 0:
+                        parked = analysis.get('parked_by_user') or analysis.get('purpose_attempted')
+                        analysis.update(disposition='parked' if parked else 'needs_reason',
+                                        acknowledgement=('Thank you. This file has no readable source sections and is saved for later.' if parked
+                                                         else 'File received. No readable source sections are available for review.'),
+                                        question='' if parked else 'What would you like me to look for in this file?')
                     analysis.update(phase='complete', reviewed_chunks=offset, total_chunks=total,
-                                    review_complete=offset >= total and not analysis.get('limit_indicator', False))
+                                    review_complete=self._review_complete(record, analysis, offset, total),
+                                    version=analysis.get('version', 0) + 1)
                     self.store.update(scope, document_id, {'analysis': analysis})
             return
         callback_record = copy.deepcopy(record)
         callback_record['_scope'] = scope  # In-memory capability, never persisted/public/model input.
+        with self._condition:
+            if not self._current(scope, document_id, generation):
+                return
         result = self._validated(self.analyze(context, callback_record, copy.deepcopy(batch), phase), batch)
         with self._condition:
             record = self._current(scope, document_id, generation)
@@ -318,7 +374,7 @@ class DocumentService:
             cursor = offset + len(batch) if phase == 'deep' else offset
             complete = phase == 'deep' and cursor >= total
             merged.update(intent_version=generation, cursor=cursor, reviewed_chunks=cursor, total_chunks=total,
-                          phase='complete' if complete else 'deep', review_complete=complete and not merged.get('limit_indicator', False))
+                          phase='complete' if complete else 'deep', review_complete=complete and self._review_complete(record, merged, cursor, total))
             self.store.update(scope, document_id, {'analysis': merged})
             return None if complete else 'deep'
 
@@ -348,6 +404,11 @@ class DocumentService:
                 if record['status'] == 'error':
                     self.store.update(scope, document_id, {'status': 'pending', 'error': None})
                 phase = 'quick'
+            analysis['phase'] = phase
+            if phase == 'quick':
+                # A new purpose or explicit revisit needs a fresh deep pass in
+                # that context, not a quick sample followed by an old end cursor.
+                analysis.update(cursor=0, reviewed_chunks=0, review_complete=False)
             current = self.store.update(scope, document_id, {'analysis': analysis})
             self._schedule(scope, document_id, generation, phase)
             return current

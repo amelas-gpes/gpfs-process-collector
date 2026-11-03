@@ -14,6 +14,7 @@ import secrets
 import socket
 import sys
 import threading
+import time
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.error import HTTPError, URLError
@@ -21,7 +22,7 @@ from urllib.parse import unquote, urlsplit
 from urllib.request import Request, urlopen
 import webbrowser
 
-VERSION = "0.10.1"
+VERSION = "0.11.0"
 APP_DIR = Path(__file__).resolve().parent
 WEB_DIR = APP_DIR / "web"
 
@@ -422,11 +423,13 @@ def enforce_closure(result, turns, action):
         result["closure"] = {"asked": True, "confirmed": False}
         return result
     checks = [i for i, turn in enumerate(turns)
-              if turn["role"] == "assistant" and turn["text"].startswith(FINAL_CHECK_PREFIX)]
+              if turn["role"] == "assistant" and turn.get("document_event") is not True
+              and turn["text"].startswith(FINAL_CHECK_PREFIX)]
     if checks:
         result["closure"]["asked"] = True
     if result["closure"]["confirmed"]:
-        has_reply = bool(checks) and any(t["role"] == "user" for t in turns[checks[-1] + 1:])
+        has_reply = bool(checks) and any(t["role"] == "user" and t.get("document_event") is not True
+                                       for t in turns[checks[-1] + 1:])
         if not has_reply:
             result["closure"]["confirmed"] = False
         elif not result["question"].strip():
@@ -497,6 +500,11 @@ def validate_payload(payload, require_answers=False):
                         "text": bounded_text(turn.get("text"), "Turn text", 6000, True)})
     if sum(len(t["text"]) for t in cleaned) > 400_000:
         raise ValueError("This prototype's text context limit is reached. Save the session before beginning a continuation.")
+    # File acknowledgments are UI notifications, not interview statements. Keep
+    # their IDs/size subject to validation, then omit them from provider context.
+    # This also prevents an imported user-role notification being promoted into
+    # participant evidence when its display metadata is stripped.
+    cleaned = [clean for clean, original in zip(cleaned, turns) if original.get("document_event") is not True]
     if require_answers and not any(t["role"] == "user" for t in cleaned):
         raise ValueError("Add at least one interview answer before generating a draft.")
     return clean, cleaned
@@ -536,8 +544,8 @@ UNCERTAIN_FINDING = re.compile(
 def validate_findings(findings, turns):
     if len(findings) != len(COVERAGE) or {f["key"] for f in findings} != set(COVERAGE):
         raise ValueError("All eleven memo topics must be represented exactly once.")
-    valid_sources = {t["id"] for t in turns if t["role"] == "user"} | {"context"}
-    participant_text = {t["id"]: t["text"] for t in turns if t["role"] == "user"}
+    valid_sources = {t["id"] for t in turns if t["role"] == "user" and t.get("document_event") is not True} | {"context"}
+    participant_text = {t["id"]: t["text"] for t in turns if t["role"] == "user" and t.get("document_event") is not True}
     for finding in findings:
         if not set(finding["evidence_turns"]) <= valid_sources:
             raise ValueError("A memo finding references missing or non-participant evidence.")
@@ -586,7 +594,7 @@ def validate_draft(draft, turns):
     if not 1 <= len(draft["steps"]) <= 80 or len(draft["connections"]) > 150:
         raise ValueError("The draft must contain 1–80 reported steps and at most 150 connections.")
     validate_findings(draft["memo_summary"], turns)
-    valid_sources = {t["id"] for t in turns if t["role"] == "user"} | {"context"}
+    valid_sources = {t["id"] for t in turns if t["role"] == "user" and t.get("document_event") is not True} | {"context"}
     ids = [s["id"] for s in draft["steps"]]
     if len(set(ids)) != len(ids) or any(not re.fullmatch(r"[A-Za-z0-9_-]{1,40}", i) for i in ids):
         raise ValueError("The process map contains invalid or duplicate step IDs.")
@@ -616,7 +624,7 @@ def validate_workflow(workflow, turns):
     ids = [step["id"] for step in steps]
     if len(set(ids)) != len(ids) or any(not re.fullmatch(r"[A-Za-z0-9_-]{1,40}", item) for item in ids):
         raise ValueError("The working map contains invalid or duplicate step IDs.")
-    sources = {turn["id"] for turn in turns if turn["role"] == "user"} | {"context"}
+    sources = {turn["id"] for turn in turns if turn["role"] == "user" and turn.get("document_event") is not True} | {"context"}
     for item in steps + connections:
         if not item["evidence_turns"] or not set(item["evidence_turns"]) <= sources:
             raise ValueError("The working map cites missing or non-participant evidence.")
@@ -740,6 +748,7 @@ class OpenAIClient:
             sources = list(dict.fromkeys(["context"] + [
                 turn["id"] for turn in payload["turns"]
                 if isinstance(turn, dict) and turn.get("role") == "user"
+                and turn.get("document_event") is not True
                 and isinstance(turn.get("id"), str)
             ]))
             evidence_fields = []
@@ -1041,8 +1050,14 @@ class KnowledgeAuthorization:
 
 
 class InterviewServer(ThreadingHTTPServer):
-    daemon_threads = True
+    # Drain admitted requests before closing the stores they use. Header/body
+    # timeouts and admission limits prevent idle sockets from growing threads.
+    daemon_threads = False
     allow_reuse_address = True
+    max_connections = 16
+    header_timeout = 15
+    body_timeout = 30
+    upload_timeout = 60
 
     def __init__(self, address, handler, client=None, documents_root=None, knowledge_root=None,
                  knowledge_settings=None, knowledge_authorizer=None, knowledge_analyzer=None):
@@ -1054,21 +1069,60 @@ class InterviewServer(ThreadingHTTPServer):
         super().__init__(address, handler)
         self.csrf_token = secrets.token_urlsafe(32)
         self.api_slots = threading.BoundedSemaphore(2)
-        self.documents_store = documents.DocumentStore(documents_root or APP_DIR / "work" / "documents")
-        service = local_module("document_service", "document_service.py")
-        self.documents = service.DocumentService(self.documents_store,
-            lambda context, record, chunks, phase: self.client.analyze_document(context, record, chunks, phase, self.documents_store))
-        self.knowledge_auth = KnowledgeAuthorization(knowledge_settings if knowledge_settings is not None else load_settings(), knowledge_authorizer)
-        graph = local_module("knowledge_graph", "knowledge_graph.py")
-        if knowledge_analyzer is None and getattr(self.client, "key", None) and callable(getattr(self.client, "structured", None)):
-            adapter = local_module("knowledge_ai", "knowledge_ai.py")
-            knowledge_analyzer = adapter.build_analyzer(self.client)
-        base = Path(knowledge_root) if knowledge_root else (Path(documents_root).parent / "knowledge" if documents_root else APP_DIR / "work" / "knowledge")
-        self.knowledge = graph.KnowledgeGraph(base / "knowledge.sqlite3", analyzer=knowledge_analyzer,
-                                               document_resolver=self.documents.source)
-        self.example_graph_path = base / "example" / "knowledge.sqlite3"
-        self.example_knowledge = None
-        self.example_graph_lock = threading.RLock()
+        self.upload_slots = threading.BoundedSemaphore(2)
+        self.connection_slots = threading.BoundedSemaphore(self.max_connections)
+        try:
+            self.documents_store = documents.DocumentStore(documents_root or APP_DIR / "work" / "documents")
+            service = local_module("document_service", "document_service.py")
+            self.documents = service.DocumentService(self.documents_store,
+                lambda context, record, chunks, phase: self.client.analyze_document(context, record, chunks, phase, self.documents_store))
+            self.knowledge_auth = KnowledgeAuthorization(knowledge_settings if knowledge_settings is not None else load_settings(), knowledge_authorizer)
+            graph = local_module("knowledge_graph", "knowledge_graph.py")
+            if knowledge_analyzer is None and getattr(self.client, "key", None) and callable(getattr(self.client, "structured", None)):
+                adapter = local_module("knowledge_ai", "knowledge_ai.py")
+                knowledge_analyzer = adapter.build_analyzer(self.client)
+            base = Path(knowledge_root) if knowledge_root else (Path(documents_root).parent / "knowledge" if documents_root else APP_DIR / "work" / "knowledge")
+            self.knowledge = graph.KnowledgeGraph(base / "knowledge.sqlite3", analyzer=knowledge_analyzer,
+                                                   document_resolver=self.documents.source)
+            self.example_graph_path = base / "example" / "knowledge.sqlite3"
+            self.example_knowledge = None
+            self.example_graph_lock = threading.RLock()
+        except BaseException:
+            # A failed store/service initialization must not keep the bound port
+            # or an already-started worker alive in a partially created server.
+            self.server_close()
+            raise
+
+    def get_request(self):
+        request, address = super().get_request()
+        request.settimeout(self.header_timeout)
+        return request, address
+
+    def process_request(self, request, client_address):
+        if not self.connection_slots.acquire(blocking=False):
+            try:
+                request.settimeout(1)
+                body = b'{"error":"The local server is busy. Retry shortly."}'
+                request.sendall(b"HTTP/1.1 503 Service Unavailable\r\nConnection: close\r\n"
+                                b"Content-Type: application/json\r\nRetry-After: 1\r\n"
+                                b"Cache-Control: no-store\r\nContent-Length: " + str(len(body)).encode("ascii")
+                                + b"\r\n\r\n" + body)
+            except OSError:
+                pass
+            finally:
+                self.shutdown_request(request)
+            return
+        try:
+            super().process_request(request, client_address)
+        except BaseException:
+            self.connection_slots.release()
+            raise
+
+    def process_request_thread(self, request, client_address):
+        try:
+            super().process_request_thread(request, client_address)
+        finally:
+            self.connection_slots.release()
 
     def example_graph(self):
         """Separate local-only demonstration storage. It has no analyzer or resolver."""
@@ -1109,13 +1163,13 @@ class InterviewServer(ThreadingHTTPServer):
         return result
 
     def server_close(self):
+        super().server_close()
         if getattr(self, "example_knowledge", None):
             self.example_knowledge.close()
         if hasattr(self, "knowledge"):
             self.knowledge.close()
         if hasattr(self, "documents"):
             self.documents.close()
-        super().server_close()
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -1152,6 +1206,22 @@ class Handler(BaseHTTPRequestHandler):
         origin = self.headers.get("Origin")
         return ((not origin or origin in {"http://" + host for host in hosts})
                 and self.headers.get("Sec-Fetch-Site") != "cross-site")
+
+    def _read_body(self, size, timeout):
+        """Bound the whole body read, including clients that trickle bytes."""
+        deadline = time.monotonic() + timeout
+        raw = bytearray()
+        while len(raw) < size:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise TimeoutError("Request body timed out.")
+            self.connection.settimeout(remaining)
+            chunk = self.rfile.read1(min(65536, size - len(raw)))
+            if not chunk:
+                raise ValueError("Incomplete request body.")
+            raw.extend(chunk)
+        self.connection.settimeout(self.server.header_timeout)
+        return bytes(raw)
 
     def do_GET(self):
         if not self._same_origin():
@@ -1218,10 +1288,7 @@ class Handler(BaseHTTPRequestHandler):
             media_type = self.headers.get("Content-Type", "")
             if path != "/api/transcribe" and media_type.split(";", 1)[0].strip() != "application/json":
                 return self._json({"error": "This endpoint requires JSON."}, 415)
-            self.connection.settimeout(30)
-            raw = self.rfile.read(size)
-            if len(raw) != size:
-                raise ValueError("Incomplete request body.")
+            raw = self._read_body(size, self.server.body_timeout)
             if path == "/api/transcribe":
                 payload = raw
             else:
@@ -1259,6 +1326,8 @@ class Handler(BaseHTTPRequestHandler):
             self._json({"error": str(error)}, error.status)
         except PermissionError:
             self._json({"error": "The document reference is not available in this interview. Reopen the saved interview or upload the file again."}, 403)
+        except TimeoutError:
+            self._json({"error": "The request body timed out. Your interview is retained; retry the request."}, 408)
         except (BrokenPipeError, ConnectionResetError):
             pass
         except Exception:
@@ -1282,10 +1351,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json({"error": "Knowledge request is empty or too large."}, 413)
             if self.headers.get("Content-Type", "").split(";", 1)[0].strip() != "application/json":
                 return self._json({"error": "This endpoint requires JSON."}, 415)
-            self.connection.settimeout(30)
-            raw = self.rfile.read(size)
-            if len(raw) != size:
-                raise ValueError("Incomplete request body.")
+            raw = self._read_body(size, self.server.body_timeout)
             payload = json.loads(raw.decode("utf-8"))
             if not isinstance(payload, dict):
                 raise ValueError("A knowledge request object is required.")
@@ -1315,12 +1381,30 @@ class Handler(BaseHTTPRequestHandler):
                 payload = strip_knowledge_capabilities(payload)
                 # Client claims are never authenticated submitter identities.
                 for key in ("submitter", "authenticated_submitter", "principal", "reviewer", "role",
-                            "status_token", "knowledge_status_token", "knowledge_status"):
+                            "status_token", "knowledge_status_token", "knowledge_status", "intent_digest"):
                     payload.pop(key, None)
                 # Keep unsent answers out of the submission. The document-scope
                 # capability is stored separately, not in public graph records.
                 payload.pop("unsent_answer", None)
                 payload.pop("document_scope", None)
+                submitter = self.server.knowledge_auth.submitter(self)
+                process_id = payload.get("process_id")
+                if process_id:
+                    process_id = bounded_text(process_id, "Process ID", 100, True)
+                if process_id and not (principal or (submitter and graph.can_revise(process_id, submitter))):
+                    return self._json({"error": "Revisions require a verified owner or administrator."}, 403)
+                # Bind recovery to the sanitized original request, including its
+                # private document scope, before current file metadata can drift.
+                # The digest is server-owned and is never taken from JSON fields.
+                intent = dict(payload)
+                intent.pop("saved_at", None)
+                try:
+                    intent_digest = hashlib.sha256(json.dumps(intent,ensure_ascii=False,sort_keys=True,separators=(",",":"),allow_nan=False).encode("utf-8")).hexdigest()
+                except (TypeError, ValueError):
+                    raise ValueError("Submission must contain finite JSON data.") from None
+                recovered = graph.recover_submission(payload.get("submission_key"),intent_digest,principal=submitter)
+                if recovered is not None:
+                    return self._json(recovered,202)
                 supplied = payload.get("documents")
                 document_scope = None
                 if supplied is not None:
@@ -1352,13 +1436,7 @@ class Handler(BaseHTTPRequestHandler):
                             reference["sources"] = sources
                             references.append(reference)
                     payload["documents"] = {"documents": references}
-                submitter = self.server.knowledge_auth.submitter(self)
-                process_id = payload.get("process_id")
-                if process_id:
-                    process_id = bounded_text(process_id, "Process ID", 100, True)
-                if process_id and not (principal or (submitter and graph.can_revise(process_id, submitter))):
-                    return self._json({"error": "Revisions require a verified owner or administrator."}, 403)
-                return self._json(graph.submit(payload, principal=submitter, document_scope=document_scope), 202)
+                return self._json(graph.submit(payload, principal=submitter, document_scope=document_scope,intent_digest=intent_digest), 202)
             if path.endswith("/snapshot"):
                 snapshot = graph.admin_snapshot()
                 if example_mode:
@@ -1409,6 +1487,8 @@ class Handler(BaseHTTPRequestHandler):
             self._json({"error": "Knowledge operation is not authorized."}, 403)
         except (ValueError, UnicodeError) as error:
             self._json({"error": "Invalid JSON body." if isinstance(error, json.JSONDecodeError) else str(error)}, 400)
+        except TimeoutError:
+            self._json({"error": "The request body timed out. Your interview is retained; retry the operation."}, 408)
         except (BrokenPipeError, ConnectionResetError):
             pass
         except Exception:
@@ -1426,15 +1506,19 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json({"error": "Each upload must be no larger than 64 MiB." if upload else "Document request is empty or too large."}, 413)
             if not upload and self.headers.get("Content-Type", "").split(";", 1)[0] != "application/json":
                 return self._json({"error": "This endpoint requires JSON."}, 415)
-            self.connection.settimeout(60)
-            raw = self.rfile.read(size)
-            if len(raw) != size:
-                raise ValueError("Incomplete upload. Your existing files are retained.")
-            service = self.server.documents
-            if upload:
-                scope = self.headers.get("X-Document-Scope", "")
-                name = unquote(self.headers.get("X-Document-Filename", ""), errors="strict")
-                return self._json({"document": service.upload(scope, name, raw)}, 202)
+            upload_slot = self.server.upload_slots if upload else None
+            if upload_slot and not upload_slot.acquire(blocking=False):
+                return self._json({"error": "Two files are already uploading. Retry when they finish."}, 429)
+            try:
+                raw = self._read_body(size, self.server.upload_timeout if upload else self.server.body_timeout)
+                service = self.server.documents
+                if upload:
+                    scope = self.headers.get("X-Document-Scope", "")
+                    name = unquote(self.headers.get("X-Document-Filename", ""), errors="strict")
+                    return self._json({"document": service.upload(scope, name, raw)}, 202)
+            finally:
+                if upload_slot:
+                    upload_slot.release()
             payload = json.loads(raw.decode("utf-8"))
             if not isinstance(payload, dict):
                 raise ValueError("A document request object is required.")
@@ -1459,6 +1543,8 @@ class Handler(BaseHTTPRequestHandler):
             self._json({"error": "These files are not available in this interview. Reopen the saved interview or upload them again."}, 403)
         except (ValueError, UnicodeError) as error:
             self._json({"error": "Invalid document request." if isinstance(error, json.JSONDecodeError) else str(error)}, 400)
+        except TimeoutError:
+            self._json({"error": "The file request timed out. Your conversation and existing files are retained; retry the operation."}, 408)
         except (BrokenPipeError, ConnectionResetError):
             pass
         except Exception:

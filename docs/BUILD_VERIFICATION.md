@@ -1,3 +1,91 @@
+## 0.17.0 interview workspace — 2026-11-03
+
+Voice, Transcript and Workflow now sit at the top right of the process workspace. Settings and Save copy are in the three-dot menu. The sidebar has Notes, Summary + Parked and Assets tabs, with a single upload/file-management surface and expandable file details.
+
+Voice controls move with the existing controls and composer beneath the complete AI response. Switching views preserves unsent text, listeners and live-session state. Fixed response heights and fade masks have been removed; long text uses only the outer voice panel's scroll area. A new response begins at the top, while streaming the same response preserves the reader's position. Source loading and document polling preserve keyboard focus.
+
+Browser checks covered the saved payment interview at 1280×720, 414×896, 320×740 and 740×390. The normal response and controls fit without voice-panel scrolling at the checked compact sizes. A 1,966-character synthetic response retained its complete text and ending, with one necessary outer scroll. Settings focus, Save copy download, unsent-text retention across views, expanded workflow, and sidebar access were exercised. No physical microphone or provider calls were used for these UI checks.
+
+Final automated verification: 333 Python tests passed with no failures/errors, plus 351 JavaScript checks and thirteen workflow scenarios in 26 layouts. Earlier backend runs retained a Windows connection-reset error on rejected requests and two document-worker timing failures. The rejection path now discards only bounded fixed-length bodies before returning the unchanged 403, without parsing or routing unauthorized content. Four boundary checks cover that behavior; the final full run also passed both timing cases. Earlier results remain in the local receipts.
+
+Evidence and screenshots are retained under `.local/header-refinement/` and excluded from Git. Existing Node and Python runtimes were reused; no dependencies or resources were downloaded.
+
+## 0.16.0 document-led capture — 2026-11-03
+
+The supplied interview identified a process in its uploaded file but repeatedly asked the participant to identify it again and left every memo topic unknown. Investigation found that workflow/draft calls did not receive document context, question auditing dropped that context, and evidence validators only accepted participant turns or intake context. A short voice summary was therefore not enough to populate the actual capture.
+
+The revised pipeline carries exact scoped excerpts into interview, question audit, workflow, workflow audit, draft and draft audit. Documentary citations remain separate from participant answers through rendering, saved interviews, exports and knowledge review. Documented notes remain distinguishable from confirmed practice. File readiness can start capture before background review completes; unchanged review progress does not repeatedly rebuild the map. Late file-purpose/removal responses cannot overwrite current work.
+
+Drag/drop uses the existing upload pipeline, validation and error UI. Offline cases cover nested drags, text drags, folder rejection, outside-workspace navigation prevention, reset, suspend, disabled upload and cleanup. The actual browser upload, automatic capture, source dialog and saved-session restore were exercised with the supplied PDF. The browser automation interface does not support an OS file drag; that physical gesture has not been exercised. Physical microphone/playback and end-to-end spoken behavior were not exercised in this run.
+
+Local extraction delivered all 11 pages and 29,606 source characters. Provider replay exposed failures beyond transport: an incomplete model response, regional approval leakage, unsupported retry routing and an omitted completion signoff. Those failed artifacts are retained as failed evidence; stronger prompting alone did not establish accuracy. Document-led map updates now receive an independent source/scope audit before the accepted diagram changes. A full-map audit failed after its configured request time limit. The audit now returns corrections to the unpublished candidate instead of repeating the entire map; its separate token/time allowances account for deeper source review.
+
+Final source-check probe: a fresh GPT-5.4 audit corrected the previously saved real-model candidate, removing the imported European approval, retaining required AFC-or-higher signoff in the closure activity/criteria, removing the unsupported resubmission destination, and restoring source-grounded manual-work observations. The corrected result has 21 steps, 21 connections and eleven documentary memo topics. This is a source-content test, not confirmation of actual operating practice or owner approval. The audit reused the saved initial candidate; it did not rerun initial generation. Its diagnostic input also contained the same source text in a display catalog, so its elapsed time is not a production performance benchmark. Earlier smaller-model results remain marked as failed semantic probes.
+
+Automated verification: all eleven Node suites passed (328 checks, plus thirteen diagram scenarios in 26 layouts). The final Python run executed 329 tests: 327 passed and two deliberately cross-origin rejection tests hit intermittent Windows 10053 connection resets, with no assertion failures. Both affected HTTP suites passed a focused recheck (42 tests). The full-run receipt retains those errors; the rechecks are separate. Source/audit isolation, model separation, exact citation retention and atomic correction checks passed.
+
+Validation receipts, private source replays and browser evidence are kept under `.local/document-experience/` and are excluded from Git. `runtime-reuse.json` there records the fresh read-only preflight and reuse of existing Python 3.12.14, pypdf 6.10.0, openpyxl 3.1.5 and Pillow 12.3.0. No dependency, browser or runtime download was needed.
+
+## 0.15.0 workflow quality — 2026-11-03
+
+The workflow schema, working capture, draft generation/audit, saved-session normalization, review
+editor and renderer now preserve eleven component types. Alternatives merge independently of
+all-branch synchronization. Extraction guidance distinguishes a wait's entry from its release,
+early responses from deadline expiry, and reported rework from an unknown decision criterion.
+Incomplete or contradictory routing produces open questions rather than invented dependencies.
+The built-in and saved invoice example now demonstrate five types without changing their account.
+
+The renderer measures and wraps titles, owners, systems and route labels before ELK layout. Shape
+height grows with its content; decision/gateway text fits inside the diamond, and document connectors
+meet the wavy boundary. Professional shape conventions, restrained component colors, graph-specific
+keys and source-linked route details replace the earlier activity/decision-only presentation.
+Navigation now supports dragging/pinching from nodes, full overview at the 80-node limit, initial
+vertical layout on narrow screens, and clean exports without transient selection highlighting.
+Missing assets or layout errors show full captured facts/routes with a local retry instead of a
+misleading simplified diagram. Retry makes no model request and retains unsent interview work.
+
+**610 automated checks passed: 305 Python and 305 frontend.** Frontend suites cover UI/recovery (86),
+real-ELK renderer/interaction (47), Live controller (41), documents (32), knowledge (32), presence (26),
+transcript export (13), memo (10), example (9) and voice frontend (9). Changed source syntax and diff
+whitespace checks passed. Sixteen new Python checks cover component contracts and routing diagnostics.
+
+**13 fictional process fixtures / 26 real-ELK layouts passed**, covering all eleven types, binary and
+multi-way choices, nested decisions, all-branch joins, alternative merges, correction loops,
+self-loops, early response/timeout, collapsed procedures, records/documents, disconnected fragments,
+long Unicode labels and 80 components. Checks preserve every node/connection, route order and full
+text; they detect node/label collisions and connectors crossing unrelated nodes or route labels.
+The suite inspected 690 text blocks and 869 wrapped lines across both orientations.
+
+**Real-browser acceptance: 130 layouts / 260 normal and expanded views passed.** The actual app and
+bundled ELK were exercised in both orientations at five iframe presets: 1440×900, 768×900, 360×780,
+320×568 and 844×390 (content viewports are two pixels smaller because of the test frame border).
+Checks inspect actual SVG glyph bounds and shape containment, text preservation, topology/export,
+horizontal overflow, the canvas portion visible through clipping ancestors, and access to controls.
+The first expanded sweep found 28 genuine canvas-clipping failures on short phones and a gap-heavy
+landscape case. Compact controls/header spacing and placing gap notices after the canvas resolved
+those cases; the failed report is retained. Visual review also checks the controls and readable views.
+
+**Model review: ten latest fictional cases passed their routing/component/source-attribution rubrics
+after twenty real provider requests across refinements.** Earlier outputs exposed omitted rework,
+incorrect wait transitions, unsupported ownership/recording details and alternatives miscounted as
+ALL-join prerequisites. Those failures were retained and prompted the specific policy refinements.
+Five latest cases used the final eleven-type policy; five unaffected earlier cases retain their
+reviewed outputs and prompt fingerprints. The final scoped-removal check uses a clearly identified
+equivalent synthetic baseline with an explicit merge; it preserves stable IDs, that merge and the
+rework route while removing only the withdrawn desk branch. The model can use a faithful shared
+decision instead of a redundant merge, so these checks do not claim it generated every shape.
+
+Local evidence is in ignored `.local/workflow-quality/`: geometry, browser, Python/frontend and model
+results, per-case semantic review, retained earlier attempts, screenshots and SVG proofs. Browser
+fixtures are isolated from saved interviews and forbid provider calls. Provider checks used only
+fictional text and existing configuration. No packages, runtimes, browsers or fonts were installed.
+
+These checks establish the observed scenarios, not perfection for every possible process. Large
+maps need pan/zoom or path navigation; fitting all 80 components on a phone is an overview, not a
+reading view. The map is not a BPMN execution engine, formal swimlane editor or nested-subprocess
+editor. Physical microphone/speaker behavior was not retested in this workflow-focused change.
+See [workflow diagrams](WORKFLOW_DIAGRAMS.md) for the behavior and supported bounds.
+
 ## 0.14.0 purposeful curiosity — 2026-11-03
 
 Review of the saved backlog interview and two documentary-simulation interviews found useful local

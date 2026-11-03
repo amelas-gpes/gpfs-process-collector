@@ -653,6 +653,19 @@ class HTTPResourceLifecycleTests(unittest.TestCase):
                 handler._read_body(10, 3)
         self.assertEqual(handler.rfile.read1.call_count, 2)
 
+    def test_rejected_incomplete_body_still_returns_403_and_releases_capacity(self):
+        httpd, _, client, _ = self.start_server(max_connections=1)
+        httpd.body_timeout = .08
+        with socket.create_connection(httpd.server_address, timeout=2) as rejected:
+            rejected.sendall((f"POST /api/interview HTTP/1.1\r\nHost: 127.0.0.1:{httpd.server_port}\r\n"
+                              "X-CSRF-Token: wrong-token\r\nContent-Type: application/json\r\n"
+                              "Content-Length: 100\r\n\r\n{").encode())
+            response = rejected.recv(4096)
+        self.assertIn(b"403 Forbidden", response)
+        self.assertTrue(httpd.connection_slots.acquire(timeout=1))
+        httpd.connection_slots.release()
+        client.request.assert_not_called()
+
     def test_upload_capacity_is_bounded_before_the_large_body_is_read(self):
         httpd, _, client, _ = self.start_server()
         self.assertTrue(httpd.upload_slots.acquire(blocking=False))

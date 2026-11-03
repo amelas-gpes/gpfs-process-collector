@@ -200,6 +200,27 @@ let passes=0;
   const s=service(),f=fresh(s.request);s.data.intercept=(path,payload)=>{if(!path.endsWith('/detail')||payload.kind!=='proposal')return;const item={...structuredClone(proposal),evidence:[{type:'simulated_document_account',submission_id:uuid(1),revision:1,turn_id:'t004',quote:'The written procedure describes a client release.'},...structuredClone(proposal.evidence)]};return {kind:'proposal',item,submissions:[structuredClone(sampleSubmission)],entities:[],edges:[],proposals:[]};};
   await openAdmin(f.controller);await click('Connections');await click('View details');const evidence=all(admin()).filter(e=>e.className==='knowledge-evidence-item');assert.deepEqual(evidence.map(article=>find(article,e=>e.tagName==='H4')._text),['Document-derived simulation — not an employee statement','Employee-reported statement','Document-supported'],'Simulation, employee and document evidence stay distinct');assert(findText(evidence[0],'The written procedure describes a client release.'));assert(findText(evidence[0],'Open answer t004'),'Simulation evidence retains source-turn navigation');assert(findText(evidence[2],'Read exact document source'),'Document evidence retains its exact-source action');passes++;
  }
+ {
+  const submitted=[],f=fresh(async(path,payload)=>{submitted.push(structuredClone(payload));return testReceipt();});
+  Object.assign(f.session,{turns:[],documents:{scope:'private-file-scope',documents:[{id:'doc_local',status:'ready',analysis:{disposition:'relevant'}}]},
+   document_evidence:[{id:'doc_local_p1',document_id:'doc_local',name:'Procedure.pdf',text:'Verified source text'}],workflow:{steps:[{id:'S1',title:'Release payment',evidence_turns:['doc_local_p1']}],connections:[]}});
+  f.controller.openSubmit();assert(f.form(),'Document-only captures can be submitted without manufacturing a participant turn');assert.match(nodes['knowledge-submit'].textContent,/does not record participant confirmation/);
+  await f.form().dispatch('submit');assert.equal(submitted.length,1);assert.equal(submitted[0].turns.length,0);assert.equal(submitted[0].documents.scope,'private-file-scope');assert.equal(submitted[0].workflow.steps[0].evidence_turns[0],'doc_local_p1');assert.equal(submitted[0].document_evidence,undefined,'Browser cached text must not be sent as authority; the server resolves exact scoped citations');passes++;
+ }
+ {
+  let requests=0;const f=fresh(async()=>{requests++;return testReceipt();});f.session.turns=[];f.session.document_evidence=[{id:'doc_local_p1',document_id:'doc_local',text:'A browser claim'}];
+  f.controller.openSubmit();assert.equal(f.form(),undefined,'A saved excerpt without a local file scope cannot create a new documentary submission');
+  f.session.documents={scope:'private-file-scope',documents:[{id:'doc_local',status:'ready',analysis:{disposition:'parked'}}]};f.controller.openSubmit();assert.equal(f.form(),undefined,'Parked files are not new submission evidence');
+  f.session.documents.documents[0].analysis.disposition='relevant';f.controller.openSubmit();const form=f.form();assert(form);f.session.documents.documents=[];await form.dispatch('submit');assert.equal(requests,0);assert.match(form.textContent,/source is no longer available/,'An open form rechecks evidence before taking a fresh snapshot');passes++;
+ }
+ {
+  const s=service(),f=fresh(s.request),sourceId='doc_procedure_p7_c1',excerpt='Release only after review. <img src=x onerror="alert(1)">';
+  s.data.intercept=(path,payload)=>{if(!path.endsWith('/detail')||payload.kind!=='entity')return;return{kind:'entity',
+   item:{...structuredClone(sampleSteps[0]),data:{...structuredClone(sampleSteps[0].data),evidence_turns:[sourceId,'t004','doc_missing_p1']}},
+   submissions:[{...structuredClone(sampleSubmission),document_evidence:[{id:sourceId,document_id:'doc_procedure',name:'Procedure.pdf',label:'Procedure.pdf · page 7',text:excerpt,source_kind:'document',participant_confirmed:false,owner_review_required:true}]}],entities:[],edges:[],proposals:[]};};
+  await openAdmin(f.controller);await click('Graph');await click('Process steps');await graphSelect({id:'N2'});await settle();
+  const evidence=find(admin(),e=>e.className==='knowledge-block knowledge-source-evidence');assert(evidence);assert(findText(evidence,'Document-supported'));assert(findText(evidence,'Procedure.pdf · page 7'));assert(findText(evidence,'Read exact document excerpt'));assert(findText(evidence,excerpt),'The exact persisted excerpt remains readable without another source request');assert(findText(evidence,'Open answer t004'),'Participant navigation remains distinct');assert.doesNotMatch(evidence.textContent,/Answer doc_procedure/);assert.match(evidence.textContent,/Document source doc_missing_p1 is unavailable/);assert(!find(evidence,e=>e.tagName==='IMG'),'Document text is rendered literally');assert.equal(s.calls.filter(call=>call.path.endsWith('/document-source')).length,0);passes++;
+ }
  assert(!fs.readFileSync('web/knowledge-ui.js','utf8').includes('/admin/snapshot'));
  console.log(JSON.stringify({tests_passed:passes,provider_calls:0,network_calls:0,real_browser:false}));
 })().catch(e=>{console.error(e);process.exitCode=1;});

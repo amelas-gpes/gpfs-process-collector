@@ -1,0 +1,54 @@
+{
+  "description": "Semantic review rubric for fictional provider replays. Offline schema tests cannot prove these meanings. Narratives are in workflow-scenarios.json unless supplied here.",
+  "cases": [
+    {
+      "id": "multiway",
+      "expect": ["Four distinct category conditions leave classification", "Each category reaches its own specialist or triage lead", "Alternative routes converge at customer notification, without an all-branch parallel join"]
+    },
+    {
+      "id": "nested_rework",
+      "expect": ["Missing details return for correction and completeness recheck", "Threshold controls director approval versus direct ordering", "Director decline is a terminal route", "Delivery mismatch returns to delivery check after supplier resolution", "No invented process start"]
+    },
+    {
+      "id": "parallel_onboarding",
+      "expect": ["Explicit parallel split into identity, IT and facilities work", "All three branches reach one all-prerequisite join with one completion entry per independent branch", "Welcome pack follows that join", "Reported document correction and identity recheck appear as a route; unknown correction criterion does not erase that known sequence", "No direct check-to-join bypass alongside the same branch's decision-to-join", "The coordinator launching the work does not establish every branch performer"],
+      "regression": "An earlier extraction retained correction/recheck only in prose. A later extraction added the recheck route but counted the identity check and its downstream decision twice at the ALL join."
+    },
+    {
+      "id": "subprocess_wait",
+      "expect": ["Due diligence remains a collapsed subprocess with no invented internal steps", "Signed-contract arrival exits the wait into signature checking", "Invalid signature leads to correction then back to waiting", "Corrected-contract arrival is not the condition for entering the wait", "Supplier master recording remains a data operation before activation"],
+      "regression": "An earlier extraction labelled the correction-to-wait edge 'corrected contract returns', moving the release condition onto wait entry."
+    },
+    {
+      "id": "timeout_escalation",
+      "expect": ["A response arriving before either deadline can immediately leave that wait for assessment", "The first timeout alone triggers one reminder", "The second timeout without response closes inactive", "Assessment closes resolved", "No mandatory full-period delay for a response that arrived early", "Assessment is an action, not a named responsible team; its performer stays unknown"],
+      "regression": "An earlier extraction routed all wait exits through deadline expiry, delaying early responses. Another turned the assessment stage into a responsible role."
+    },
+    {
+      "id": "partial_disconnected",
+      "expect": ["Report preparation leads to sending", "The risks register remains an unconnected known fragment", "No invented trigger, end event, or bridge to the register", "Unreported sequence and downstream work stay open"]
+    },
+    {
+      "id": "unknown_approval_order",
+      "narrative": "In this part of invoice processing, both the manager and controller approve an invoice. I do not know whether they act in sequence, in parallel, or who routes it to them. Both approvals are required before the invoice can be released. We have not established the process start or who releases it, how, or what happens after release.",
+      "expect": ["Two known approval actions remain represented", "No invented approval order or parallel gateways", "Both-approval prerequisite is retained in supporting details", "Unreported review actions and approval-recording evidence are not invented", "No invented start or end boundary"],
+      "regression": "An earlier extraction correctly kept order unknown but added review actions and approval recording to details without evidence."
+    },
+    {
+      "id": "parallel_onboarding_rephrased",
+      "narrative": "Receiving the signed offer triggers onboarding. HR starts three workstreams concurrently: identity checks, setup of IT accounts, and preparation of a desk by facilities. If identity checks require a corrected document, that document is corrected and the identity check is performed again. HR can send the welcome pack only once identity checks, IT setup and desk preparation are all complete. HR then marks onboarding ready.",
+      "expect": ["Same topology rules as parallel_onboarding under equivalent wording", "One completion entry per independent branch", "Document correction returns to identity checking", "No bypass of the check outcome", "All three branches required before sending welcome pack"]
+    },
+    {
+      "id": "parallel_alternative_merge",
+      "expect": ["Initial acceptance or accepted recheck completes the same identity branch", "Rejected recheck returns for document correction", "An explicit alternative merge or a faithful shared acceptance decision represents reconvergence", "Only one identity completion enters the ALL join alongside IT and desk", "A merge node is not mandatory when an equivalent reported shared decision already represents the route"],
+      "representation_note": "The rendering fixture uses an explicit merge to test that symbol. The provider may use a faithful shared acceptance decision instead; semantic review must assess meaning, not force gratuitous symbols."
+    },
+    {
+      "id": "parallel_scoped_correction",
+      "narrative": "Remove desk preparation only; it is not part of this onboarding process. Keep identity verification, initial acceptance or accepted recheck as alternatives, the document-correction retry loop, IT accounts, the welcome pack and the onboarding ending. HR still launches identity verification and IT setup in parallel, and waits for both branches to finish before sending the welcome pack. Do not change the other routing.",
+      "expect": ["Only the desk branch and its incident edges are removed", "Stable IDs, the explicit alternative merge, and unrelated actions survive", "The join and its supporting details now require identity and IT only", "No stale unrestricted edge bypasses the join", "Removal cites the actual correction quote"],
+      "representation_note": "Final replay uses an identified equivalent synthetic baseline with separate initial/recheck decisions, an explicit alternative merge, and one identity completion entering the ALL join. This baseline is not claimed to be the original provider output."
+    }
+  ]
+}

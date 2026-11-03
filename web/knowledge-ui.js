@@ -46,6 +46,12 @@
       if(typeof receipt.status_token==="string"&&receipt.status_token){const refresh=button("Refresh status",async()=>{refresh.disabled=true;try{const result=await options.request("/api/knowledge/status",{submission_id:receipt.submission_id,revision:receipt.revision,status_token:receipt.status_token});if(result?.submission_id!==receipt.submission_id||result?.revision!==receipt.revision||result?.job_id!==receipt.job_id||!["pending","processing","completed","failed","superseded"].includes(result.status))throw Error("Status could not be verified.");receipt.status=result.status;status.textContent=`Revision ${receipt.revision} · ${tidy(result.status)}${result.status==="failed"?" · processing needs attention": ""}`;}catch(e){status.textContent=`Status unavailable. ${e.message||"Try again."}`;}finally{refresh.disabled=false;}},"text-button");wrap.append(refresh);text("p","knowledge-muted","Status access is a private capability. Save the interview file to keep it, and share that file only with authorized people.",wrap);}
       else text("p","knowledge-muted","Status access is unavailable in this tab. The saved process is unaffected.",wrap);parent.append(wrap);
     }
+    function hasSubmissionEvidence(session){
+      if(array(session.turns).some(turn=>turn.role==="user"&&!turn.document_event))return true;
+      if(typeof session.documents?.scope!=="string"||!session.documents.scope)return false;
+      const active=new Set(array(session.documents.documents).filter(file=>!file.archived&&file.analysis?.disposition!=="parked"&&["ready","partial"].includes(file.status)).map(file=>file.id));
+      return array(session.document_evidence).some(source=>active.has(source.document_id)&&typeof source.id==="string"&&source.id.startsWith(source.document_id+"_")&&!source.retained_only&&!source.archived);
+    }
     function openSubmit(){
       const formEpoch=sessionEpoch;
       const current=options.session();
@@ -56,9 +62,10 @@
         else text("p","knowledge-muted","An authorized local administrator can view the example graph.",submit);
         submit.showModal();return;
       }
-      if(!array(current.turns).some(t=>t.role==="user"&&!t.document_event)){options.notice("Add an interview answer before submitting a process.",true);return;}
+      if(!pendingAttempt&&!hasSubmissionEvidence(current)){options.notice("Add an interview answer or capture a process from an attached file before submitting.",true);return;}
       submit.replaceChildren();const head=node("div","knowledge-head");head.append(node("div","", "Submit process"),button("Close",()=>close(submit),"text-button"));head.firstElementChild.id="knowledge-submit-title";submit.append(head);
       text("p","knowledge-muted","Save this interview as a submitted process for local review. For cross-process matching, selected transcript statements and bounded excerpts from referenced documents may be sent to the configured AI provider and may incur charges. AI connections require administrator review. Your unsent answer is not included; you can continue editing the interview.",submit);
+      if(!array(current.turns).some(turn=>turn.role==="user"&&!turn.document_event))text("p","knowledge-status","This capture comes from reference documents. Submitting it does not record participant confirmation or process-owner approval.",submit);
       if(lastReceipt)showReceipt(submit,lastReceipt);else if(processId)text("p","knowledge-muted","A process ID was restored, but no valid status access was saved. Your process remains saved.",submit);
       if(current.draft_stale)text("p","knowledge-status","Your draft predates newer interview answers. The submitted process will include that stale draft and the full current interview; reconcile it before relying on its details.",submit);
       const form=node("form","knowledge-form");const participant=field(form,"Participant describing the work","participant","Optional name (not verified)"),team=field(form,"Team","team","Optional"),department=field(form,"Department","department","Optional"),scope=field(form,"Business scope","scope","Client, fund, jurisdiction or other scope");
@@ -73,7 +80,10 @@
         if(!attempt){
           try{
             const session=options.session();if(session.synthetic_example===true)throw Error("Open the fictional example in Admin instead.");
-            const {unsent_answer,voice_choice,knowledge_process_id,knowledge_status,...data}=session;
+            if(!hasSubmissionEvidence(session))throw Error("The source is no longer available. Attach a file or add an interview answer before submitting.");
+            // The server resolves cited IDs against the authorized file scope;
+            // a browser's cached excerpt is never submitted as new authority.
+            const {unsent_answer,voice_choice,knowledge_process_id,knowledge_status,document_evidence,...data}=session;
             const key=globalThis.crypto?.randomUUID?.();if(!uuid(key))throw Error("A secure submission identifier is unavailable. Use a current browser and try again.");
             const payload={...data,participant:participant.value.trim(),team:team.value.trim(),department:department.value.trim(),scope:scope.value.trim(),...(processId&&!newProcess?.checked?{process_id:processId}:{}),submission_key:key};
             attempt={payload:JSON.parse(JSON.stringify(payload)),epoch:formEpoch};pendingAttempt=attempt;
@@ -165,11 +175,20 @@
     function listSection(parent,title,items,empty="None recorded."){const section=node("section","knowledge-block");text("h3","",title,section);const values=array(items);if(!values.length)text("p","knowledge-muted",empty,section);else{const list=node("ul","knowledge-list");for(const item of values)text("li","",typeof item==="string"?item:show(item),list);section.append(list);}parent.append(section);return section;}
     function transcript(parent,submission,focusId){const section=node("section","knowledge-transcript");text("h3","",`Interview transcript · ${array(submission.turns).length} messages`,section);for(const turn of array(submission.turns)){const entry=node("article",`knowledge-turn${turn.id===focusId?" is-source":""}`);entry.id=`knowledge-turn-${turn.id}`;entry.tabIndex=-1;text("h4","",`${turn.role==="user"?"Participant":"AI interviewer"} · ${turn.id}`,entry);text("p","",turn.text||"",entry);section.append(entry);}if(!array(submission.turns).length)text("p","knowledge-muted","No transcript was supplied.",section);parent.append(section);if(focusId){const context=adminContext();(globalThis.requestAnimationFrame||((fn)=>Promise.resolve().then(fn)))(()=>{if(!sameAdmin(context))return;const target=$("knowledge-turn-"+focusId);target?.scrollIntoView?.({block:"center"});target?.focus?.({preventScroll:true});});}}
     function sourceEvidence(parent,sid,revision,refs){
-      const submission=sourceSubmission(sid,revision),block=node("section","knowledge-block knowledge-source-evidence");text("h3","","Interview evidence",block);
-      const ids=[...new Set(array(refs).filter(x=>typeof x==="string"))];if(!ids.length)text("p","knowledge-muted","No interview answer references were supplied for this item.",block);
+      const submission=sourceSubmission(sid,revision),block=node("section","knowledge-block knowledge-source-evidence");text("h3","","Source evidence",block);
+      const ids=[...new Set(array(refs).filter(x=>typeof x==="string"))];if(!ids.length)text("p","knowledge-muted","No source references were supplied for this item.",block);
       for(const id of ids){const turn=array(submission?.turns).find(t=>t.id===id&&t.role==="user"&&!t.document_event);
         if(id==="context"){text("p","knowledge-muted","Supplied interview context",block);text("p","",submission?.context?.background||submission?.context?.objective||"Context details are unavailable.",block);continue;}
-        text("blockquote","knowledge-quote",turn?.text||"Answer "+id+" is unavailable in this revision.",block);
+        const source=array(submission?.document_evidence).find(item=>item.id===id);
+        if(source){
+          const item=node("article","knowledge-evidence-item");text("h4","","Document-supported",item);
+          text("p","knowledge-muted",source.label||source.name||id,item);
+          text("p","knowledge-muted","Documented information; this source does not by itself confirm current practice or process-owner approval.",item);
+          if(source.retained_only||source.archived)text("p","knowledge-status","Saved excerpt from a removed or parked file; retained as provenance for the existing capture.",item);
+          if(source.origin==="ai_visual_transcription"||source.location?.origin==="ai_visual_transcription")text("p","knowledge-status","AI visual transcription is unverified; inspect the original before relying on it.",item);
+          const excerpt=node("details","knowledge-document-excerpt");excerpt.append(node("summary","","Read exact document excerpt"),node("pre","knowledge-evidence",source.text||"The document excerpt is unavailable in this revision."));item.append(excerpt);block.append(item);continue;
+        }
+        text("blockquote","knowledge-quote",turn?.text||(id.startsWith("doc_")?"Document source ":"Answer ")+id+" is unavailable in this revision.",block);
         if(turn){const open=button("Open answer "+id,()=>openDetail("interview",sid,revision,{turn_id:id,returnTo:descriptor(selected)}),"text-button");open.dataset.sourceKey=sid+":"+revision+":"+id;block.append(open);}
       }parent.append(block);
     }

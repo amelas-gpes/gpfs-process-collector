@@ -1,9 +1,10 @@
 """Offline regression cases for scoped corrections to a previously accepted map."""
 import copy
+import json
 import unittest
 from unittest.mock import Mock
 
-from test_server import server
+from test_server import server, interview_result
 
 
 def step(step_id, title, sources=None):
@@ -59,11 +60,121 @@ def removal(step_id, source='u4', quote='Remove the update step'):
             'source_quote': quote, 'evidence_turns': [source]}
 
 
+def audit(**overrides):
+    candidate = update()
+    result = {key: candidate[key] for key in ('title', 'summary', 'focus', 'open_questions', 'parking_lot')}
+    result.update(discard_step_upserts=[], discard_connection_upserts=[], discard_step_removals=[],
+                  discard_connection_removals=[], upsert_steps=[], upsert_connections=[], memo_findings=[])
+    result.update(overrides)
+    return result
+
+
 class WorkflowUpdateTests(unittest.TestCase):
     def client(self, result):
         client = server.OpenAIClient({'OPENAI_API_KEY': 'sk-synthetic-workflow-regression'})
         client.structured = Mock(return_value=result)
         return client
+
+    def test_document_workflow_receives_exception_and_completion_audit_contract(self):
+        original = payload()
+        source = {'id': 'doc_fixture_p1_c1', 'label': 'Page 1', 'location': {'page': 1},
+                  'text': 'Resolve or reschedule before proceeding. Returns require investigation and changed instructions require verification. AFC-or-higher completeness signoff applies; the named reviewer remains unknown.'}
+        original['_supporting_documents'] = {'documents': [{'id': 'doc_fixture', 'name': 'Procedure.pdf', 'excerpts': [source]}]}
+        client = self.client(None)
+        client.structured.side_effect = [update(), audit()]
+        client.workflow(original)
+        instructions, sent = client.structured.call_args.args[:2]
+        self.assertIn(server.WORKFLOW_SOURCE_AUDIT_POLICY, client.structured.call_args_list[0].args[0])
+        self.assertNotIn(server.CURIOSITY_POLICY, instructions, 'Evidence review must not inherit interviewing instructions')
+        self.assertIn('read ALL supplied source scope/exclusion statements', instructions)
+        self.assertIn('known senior signoff must be represented in the workflow', instructions)
+        self.assertIn('Preserve explicit participant corrections and reported current-practice deviations', instructions)
+        self.assertIn('retain both accounts and their', instructions)
+        self.assertIn('preserve unrelated accepted facts and routes', instructions)
+        self.assertEqual(sent['supporting_documents']['documents'][0]['excerpts'], [source])
+        self.assertEqual(client.structured.call_args.args[4], 24000)
+        self.assertEqual(client.structured.call_args.kwargs['request_timeout'], 150)
+        self.assertEqual(client.structured.call_args.kwargs['reasoning_effort'], 'medium')
+        self.assertEqual(client.structured.call_args.kwargs['model_override'], 'gpt-5.4')
+        self.assertEqual(client.structured.call_count, 2)
+        self.assertEqual(client.structured.call_args.args[3], 'working_process_map_audit')
+        self.assertIn('candidate_update', sent)
+
+    def test_document_audit_corrects_unpublished_updates_before_atomic_apply(self):
+        original = payload()
+        before = copy.deepcopy(original['previous_capture'])
+        original['_supporting_documents'] = {'documents': [{'id': 'doc_fixture', 'name': 'Procedure.pdf',
+            'excerpts': [{'id': 'doc_fixture_p1_c1', 'text': 'European approvals are a separate route.', 'location': {'page': 1}}]}]}
+        unsupported = update(upsert_steps=[step('S5', 'Import regional approval', ['doc_fixture_p1_c1'])])
+        corrected = audit(discard_step_upserts=['S5'])
+        client = self.client(None)
+        client.structured.side_effect = [unsupported, corrected]
+        result = client.workflow(original)
+        self.assertEqual(result['workflow']['steps'], before['workflow']['steps'])
+        self.assertEqual(original['previous_capture'], before)
+        audit_call = client.structured.call_args
+        self.assertEqual(audit_call.args[1]['candidate_update'], unsupported)
+        self.assertEqual(audit_call.args[1]['previous_capture']['workflow']['steps'], before['workflow']['steps'])
+        self.assertIn('scope qualifiers across sections', audit_call.args[0])
+        self.assertIn('which earlier step resumes', audit_call.args[0])
+        self.assertIn('not itself a', audit_call.args[0])
+
+    def test_invalid_document_audit_cannot_publish_or_mutate_a_prior_map(self):
+        original = payload()
+        before = copy.deepcopy(original)
+        original['_supporting_documents'] = {'documents': [{'id': 'doc_fixture', 'name': 'Procedure.pdf',
+            'excerpts': [{'id': 'doc_fixture_p1_c1', 'text': 'A cited process.', 'location': {'page': 1}}]}]}
+        client = self.client(None)
+        client.structured.side_effect = [update(), audit(upsert_steps=[step('S5', 'Invented fact', ['missing_source'])])]
+        with self.assertRaises(server.APIError):
+            client.workflow(original)
+        self.assertEqual(original['previous_capture'], before['previous_capture'])
+
+    def test_audit_discards_only_unpublished_additions_and_their_incident_edges(self):
+        previous = payload()['previous_capture']
+        candidate = update(upsert_steps=[step('S5', 'Regional step')],
+                           upsert_connections=[edge('S4', 'S5'), edge('S5', 'S1')])
+        corrected = server.apply_workflow_audit(candidate, audit(discard_step_upserts=['S5']), previous)
+        self.assertEqual(corrected['upsert_steps'], [])
+        self.assertEqual(corrected['upsert_connections'], [])
+        self.assertEqual(len(candidate['upsert_steps']), 1, 'Audit merging never mutates the generation result')
+        self.assertEqual(len(previous['workflow']['steps']), 4)
+
+    def test_audit_can_cancel_a_proposed_removal_but_cannot_remove_an_unproposed_baseline_step(self):
+        previous = payload()['previous_capture']
+        candidate = update(remove_steps=[removal('S2')])
+        corrected = server.apply_workflow_audit(candidate, audit(discard_step_removals=['S2']), previous)
+        self.assertEqual(corrected['remove_steps'], [])
+        with self.assertRaisesRegex(ValueError, 'not proposed'):
+            server.apply_workflow_audit(update(), audit(discard_step_upserts=['S2']), previous)
+
+    def test_audit_replaces_corrections_without_repeating_unchanged_candidate_steps(self):
+        previous = payload()['previous_capture']
+        candidate = update(upsert_steps=[step('S1', 'Corrected start'), step('S5', 'Close records')],
+                           upsert_connections=[edge('S4', 'S5')])
+        corrected_step = step('S5', 'Obtain required completeness signoff')
+        corrected = server.apply_workflow_audit(candidate, audit(upsert_steps=[corrected_step]), previous)
+        self.assertEqual(corrected['upsert_steps'], [candidate['upsert_steps'][0], corrected_step])
+        self.assertEqual(corrected['upsert_connections'], candidate['upsert_connections'])
+
+    def test_document_audit_uses_its_own_model_without_mutating_interview_model(self):
+        original = payload()
+        original['_supporting_documents'] = {'documents': [{'id': 'doc_fixture', 'name': 'Procedure.pdf',
+            'excerpts': [{'id': 'doc_fixture_p1_c1', 'text': 'A documented process.', 'location': {'page': 1}}]}]}
+        client = server.OpenAIClient({'OPENAI_API_KEY': 'sk-synthetic-workflow-regression',
+                                     'INTERVIEW_MODEL': 'gpt-5.4-mini', 'WORKFLOW_AUDIT_MODEL': 'gpt-5.4'})
+        def response(path, body, **kwargs):
+            kind = body['text']['format']['name']
+            value = update() if kind == 'working_process_map' else audit() if kind == 'working_process_map_audit' else interview_result()
+            return {'status': 'completed', 'output': [{'content': [{'type': 'output_text', 'text': json.dumps(value)}]}]}
+        client.request = Mock(side_effect=response)
+        client.workflow(original)
+        client.interview({'context': original['context'], 'turns': original['turns'], 'action': 'start'})
+        bodies = [call.args[1] for call in client.request.call_args_list]
+        self.assertEqual([body['model'] for body in bodies], ['gpt-5.4-mini', 'gpt-5.4', 'gpt-5.4-mini'])
+        self.assertEqual(client.model, 'gpt-5.4-mini', 'An audit must never change the shared interview client model')
+        self.assertEqual(client.public_config()['models']['workflow_audit'], 'gpt-5.4')
+        self.assertEqual(server.OpenAIClient({'WORKFLOW_AUDIT_MODEL': 'configured-audit-model'}).workflow_audit_model, 'configured-audit-model')
 
     def test_first_step_correction_preserves_later_actions_edges_and_materials(self):
         original = payload()

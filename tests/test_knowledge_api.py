@@ -17,8 +17,9 @@ class FakeGraph:
         self.calls = []
     def recover_submission(self, key, intent_digest, principal=None):
         return None
-    def submit(self, payload, principal=None, document_scope=None, intent_digest=None):
+    def submit(self, payload, principal=None, document_scope=None, intent_digest=None, document_evidence=None):
         self.calls.append(('submit', payload, principal, document_scope))
+        self.document_evidence = document_evidence
         return {'submission_id': 'synthetic', 'process_id': 'process', 'revision': 1, 'job_id': 'job', 'status': 'pending'}
     def admin_browse(self, section, filters=None, offset=0, limit=25):
         self.calls.append(('browse',section,filters,offset,limit))
@@ -209,6 +210,36 @@ class KnowledgeAPITests(unittest.TestCase):
             request['document_id'] = 'other-document'
             self.assertEqual(self.request(httpd, '/api/knowledge/admin/document-source', request)[0], 403)
             source.assert_called_once()
+
+    def test_cited_document_evidence_is_rehydrated_separately_from_browser_catalog(self):
+        httpd = self.serve()
+        scope = httpd.documents_store.create_scope()
+        record = httpd.documents_store.add(scope, 'procedure.csv', b'action,actor\nRecord receipt,Treasury\n')
+        httpd.documents_store.extract(scope, record['id'])
+        source = httpd.documents_store.chunks(scope, record['id'])['chunks'][0]
+        payload = {'documents': {'scope': scope, 'documents': [{'id': record['id']}]},
+                   'workflow': {'steps': [{'id': 'S1', 'evidence_turns': [source['id']]}]},
+                   'document_evidence': [{'id': source['id'], 'text': 'FORGED_TEXT'}]}
+        status, result = self.request(httpd, '/api/knowledge/submit', payload)
+        self.assertEqual(status, 202, result)
+        _, received, _, private_scope = httpd.knowledge.calls[-1]
+        self.assertEqual(private_scope, scope)
+        self.assertNotIn('document_evidence', received, 'Browser catalogs never cross the trusted catalog boundary')
+        catalog = httpd.knowledge.document_evidence
+        self.assertEqual(len(catalog), 1)
+        self.assertEqual(catalog[0]['id'], source['id'])
+        self.assertEqual(catalog[0]['text'], source['text'])
+        self.assertEqual(catalog[0]['name'], 'procedure.csv')
+        self.assertIn({'source_id': source['id'], 'label': source['label']}, received['documents']['documents'][0]['sources'])
+        payload['documents']['scope'] = httpd.documents_store.create_scope()
+        self.assertEqual(self.request(httpd, '/api/knowledge/submit', payload)[0], 403)
+
+    def test_cited_document_source_without_an_attached_authorized_file_is_rejected(self):
+        httpd = self.serve()
+        payload = {'workflow': {'steps': [{'id': 'S1', 'evidence_turns': ['doc_missing_p1_c1']}]},
+                   'document_evidence': [{'id': 'doc_missing_p1_c1', 'text': 'FORGED_TEXT'}]}
+        self.assertEqual(self.request(httpd, '/api/knowledge/submit', payload)[0], 400)
+        self.assertEqual(httpd.knowledge.calls, [])
 
     def test_canonical_actions_take_reviewer_from_trusted_server(self):
         httpd = self.serve({'COLLECTOR_DEPLOYMENT_MODE':'hosted'},

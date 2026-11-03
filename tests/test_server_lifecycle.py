@@ -15,6 +15,48 @@ from test_server import server, interview_payload
 
 
 class ResponseDisconnectTests(unittest.TestCase):
+    def rejected_handler(self, headers=None, origin=False):
+        handler = object.__new__(server.Handler)
+        handler.server = Mock(csrf_token="current-token", body_timeout=30)
+        handler.headers = headers or {}
+        handler._same_origin = Mock(return_value=origin)
+        handler._read_body = Mock(return_value=b"unauthorized content")
+        handler._json = Mock(return_value=True)
+        return handler
+
+    def test_rejected_post_discards_only_bounded_bytes_without_routing(self):
+        for origin, token in ((False, "current-token"), (True, "wrong-token")):
+            with self.subTest(origin=origin, token=token):
+                handler = self.rejected_handler({"Content-Length": "42", "X-CSRF-Token": token}, origin)
+                handler.path = "/api/shutdown"
+                handler.do_POST()
+                handler._read_body.assert_called_once_with(42, 1.0)
+                self.assertEqual(handler._json.call_args.args[1], 403)
+                self.assertTrue(handler.close_connection)
+                handler.server.shutdown.assert_not_called()
+
+    def test_rejected_post_never_reads_chunked_oversized_or_invalid_lengths(self):
+        for headers in ({}, {"Content-Length": "invalid"}, {"Content-Length": "-1"},
+                        {"Content-Length": "0"}, {"Content-Length": str(server.MAX_JSON + 1)},
+                        {"Content-Length": "42", "Transfer-Encoding": "chunked"}):
+            with self.subTest(headers=headers):
+                handler = self.rejected_handler(headers)
+                handler.do_POST()
+                handler._read_body.assert_not_called()
+                self.assertEqual(handler._json.call_args.args[1], 403)
+                self.assertTrue(handler.close_connection)
+
+    def test_rejected_post_keeps_denial_after_incomplete_or_disconnected_body(self):
+        for error in (TimeoutError, ConnectionAbortedError, ValueError):
+            with self.subTest(error=error.__name__):
+                handler = self.rejected_handler({"Content-Length": "42"})
+                handler.server.body_timeout = .05
+                handler._read_body.side_effect = error("private-request-detail")
+                handler.do_POST()
+                handler._read_body.assert_called_once_with(42, .05)
+                self.assertEqual(handler._json.call_args.args[1], 403)
+                self.assertNotIn("private-request-detail", json.dumps(handler._json.call_args.args))
+
     def test_disconnected_headers_or_body_do_not_trigger_a_second_response(self):
         for error_type in (ConnectionAbortedError, ConnectionResetError, BrokenPipeError, TimeoutError):
             for stage in ("headers", "body"):

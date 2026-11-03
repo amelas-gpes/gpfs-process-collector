@@ -15,21 +15,73 @@
       this.options=options;this.doc=options.document||window.document;this.generation=0;this.revision=0;this.scope=null;this.documents=[];
       this.uploads=[];this.uploadErrors=[];this.seen=new Map();this.pollTimer=null;this.polling=null;this.sessionPromise=null;
       this.mutating=0;this.sequence=0;this.disposed=false;this.restoreFocus=true;this.connectionError="";this.lastError="";this.source=null;
-      this.controller=new AbortController();this.actions=new Set();this.actionErrors=new Map();this.build();this.render();
+      this.controller=new AbortController();this.actions=new Set();this.actionErrors=new Map();this.expandedAssets=new Map();this.build();this.render();
       this.suspended=false;this.pagehide=()=>this.suspend();this.pageshow=event=>{if(event.persisted)this.resume();};
       window.addEventListener?.("pagehide",this.pagehide);window.addEventListener?.("pageshow",this.pageshow);
+      this.buildDropZone();
     }
     node(tag,className,text) {const node=this.doc.createElement(tag);if(className)node.className=className;if(text!==undefined)node.textContent=String(text);return node;}
     button(text,className,fn) {const button=this.node("button",className,text);button.type="button";button.addEventListener("click",fn);return button;}
+    control(button,document,action,identity="") {button.classList.add("document-control");button.dataset.documentControl=JSON.stringify([document.id,action,identity]);return button;}
+    visible(node) {for(let current=node;current;current=current.parentElement)if(current.hidden||(current.tagName==="DIALOG"&&!current.open))return false;return true;}
     emit(event) {this.options.onEvent?.(event);}
     discuss(document,question) {
       if(this.options.canDiscuss?.()===false){this.options.notice?.("Wait for the current reply to finish, then choose Discuss again. The file question is retained.");return;}
-      this.close(false);this.emit({type:"question",document:copy(document),question:copy(question)});
+      this.close(false);this.options.onDiscuss?.();this.emit({type:"question",document:copy(document),question:copy(question)});
     }
     context() {const value=this.options.getContext?.()||{};return {context:value.context||{},turns:value.turns||[],focus:value.focus||"",current_question:value.current_question||""};}
     current(generation) {return !this.disposed&&generation===this.generation;}
     allowed() {return !this.disposed&&!this.suspended&&(this.options.canUpload?.()!==false);}
+    fileDrag(event) {return Array.from(event.dataTransfer?.types||[]).includes("Files");}
+    dropInside(event) {return Boolean(this.dropTarget&&!this.dropTarget.hidden&&(this.dropTarget.contains(event.target)||this.assets?.contains(event.target)));}
+    clearDrop() {this.dragDepth=0;if(this.dropOverlay)this.dropOverlay.hidden=true;}
+    buildDropZone() {
+      this.dropTarget=this.options.dropTarget||this.doc.getElementById("interview-view");this.dragDepth=0;this.dropListeners=[];
+      if(!this.dropTarget)return;
+      this.dropTarget.classList.add("document-drop-zone");
+      this.dropOverlay=this.node("div","document-drop-overlay");this.dropOverlay.hidden=true;
+      this.dropOverlay.setAttribute("role","status");this.dropOverlay.setAttribute("aria-live","polite");this.dropOverlay.setAttribute("aria-atomic","true");
+      const panel=this.node("div","document-drop-panel");this.dropTitle=this.node("strong");this.dropHelp=this.node("span");panel.append(this.dropTitle,this.dropHelp);this.dropOverlay.append(panel);this.dropTarget.append(this.dropOverlay);
+      const listen=(target,name,fn)=>{target.addEventListener?.(name,fn);this.dropListeners.push([target,name,fn]);};
+      const show=()=>{
+        if(this.disposed||this.suspended||this.dropTarget.hidden)return this.clearDrop();
+        const full=this.documents.length+this.uploads.length>=MAX_FILES,allowed=this.allowed();
+        this.dropTitle.textContent=!allowed?"Files can't be attached right now":full?"This conversation has 20 files":"Drop files into this conversation";
+        this.dropHelp.textContent=!allowed?"Finish loading the interview, then try again.":full?"The conversation file limit has been reached.":"PDF, PNG, XLSX, XLSM or CSV · Up to 64 MiB each";
+        this.dropOverlay.hidden=false;
+      };
+      listen(this.dropTarget,"dragenter",event=>{if(!this.fileDrag(event))return;event.preventDefault();this.dragDepth++;show();});
+      listen(this.dropTarget,"dragleave",event=>{
+        if(!this.fileDrag(event)&&!this.dragDepth)return;
+        this.dragDepth=Math.max(0,this.dragDepth-1);
+        if(event.relatedTarget&&this.dropTarget.contains(event.relatedTarget))return;
+        if(!this.dragDepth)this.clearDrop();
+      });
+      // The window guard also prevents an external drop outside the conversation from navigating
+      // away from unsaved work. Only a drop inside the visible conversation can upload files.
+      listen(window,"dragover",event=>{
+        if(!this.fileDrag(event))return;event.preventDefault();
+        const inside=this.dropInside(event);if(inside)show();else this.clearDrop();
+        event.dataTransfer.dropEffect=inside&&this.allowed()&&this.documents.length+this.uploads.length<MAX_FILES?"copy":"none";
+      });
+      listen(window,"drop",event=>{
+        if(!this.fileDrag(event))return;
+        event.preventDefault();const inside=this.dropInside(event);this.clearDrop();
+        if(!inside)return;
+        if(!this.allowed()){this.options.notice?.("Files can't be attached right now. Finish loading the interview, then try again.",true);return;}
+        const items=Array.from(event.dataTransfer.items||[]);
+        const directories=items.some(item=>{try{return item.webkitGetAsEntry?.()?.isDirectory===true;}catch{return false;}});
+        if(directories){this.options.notice?.("Drop individual files rather than folders.",true);return;}
+        const files=Array.from(event.dataTransfer.files||[]);
+        if(!files.length){this.options.notice?.("The dropped files could not be read. Try Add files instead.",true);return;}
+        void this.addFiles(files);
+      });
+      listen(window,"dragend",()=>this.clearDrop());listen(window,"blur",()=>this.clearDrop());
+      listen(window,"keydown",event=>{if(event.key==="Escape")this.clearDrop();});
+    }
     build() {
+      this.assets=this.doc.getElementById("document-assets");
+      if(this.assets){this.buildAssets();return;}
       this.controls=this.doc.getElementById("document-controls");this.strip=this.doc.getElementById("document-strip");
       if(!this.controls||!this.strip)throw new Error("Document controls and strip mounts are required.");
       this.controls.classList.add("document-controls");this.strip.classList.add("document-strip");
@@ -53,14 +105,31 @@
       footer.append(add,this.node("p","","Files are saved on this computer; relevant content is sent to OpenAI."));
       this.dialog.replaceChildren(header,this.liveStatus,this.body,footer);
     }
+    buildAssets() {
+      this.assets.classList.add("document-assets");
+      const header=this.node("div","documents-assets-heading"),title=this.node("h3","","Uploaded assets");title.id="documents-title";
+      const help=this.node("p","documents-assets-help","Drop files anywhere in the interview.");
+      this.attachButton=this.button("Add files","documents-add",()=>this.attach());
+      this.input=this.node("input");this.input.type="file";this.input.accept=".pdf,.png,.xlsx,.xlsm,.csv";this.input.multiple=true;this.input.hidden=true;
+      this.input.addEventListener("change",()=>{const files=Array.from(this.input.files||[]);this.input.value="";this.addFiles(files);});
+      const formats=this.node("p","documents-assets-formats","PDF, PNG, XLSX, XLSM or CSV · Up to 64 MiB each");
+      const headingRow=this.node("div","documents-assets-heading-row");headingRow.append(title,this.attachButton);
+      header.append(headingRow,help,this.input,formats);
+      this.liveStatus=this.node("p","documents-live-status");this.liveStatus.setAttribute("role","status");this.liveStatus.setAttribute("aria-live","polite");this.liveStatus.setAttribute("aria-atomic","true");
+      this.body=this.node("div","documents-body");this.body.setAttribute("aria-live","off");this.body.setAttribute("aria-label","Uploaded files");
+      const footer=this.node("p","documents-assets-privacy","Files are saved on this computer; relevant content is sent to OpenAI.");
+      this.assets.replaceChildren(header,this.liveStatus,this.body,footer);
+    }
     attach() {if(!this.allowed())return;this.input.click();}
     open(documentId) {
       if(this.disposed)return;this.returnFocus=this.doc.activeElement;this.restoreFocus=true;
-      if(!this.dialog.open)this.dialog.showModal();
-      if(documentId)this.body.querySelector?.(`[data-document-id="${this.safeId(documentId)}"]`)?.scrollIntoView?.({block:"nearest"});
+      if(this.assets){if(documentId){this.expandedAssets.set(documentId,true);this.render();}this.options.onOpen?.();}
+      else if(!this.dialog.open)this.dialog.showModal();
+      const card=documentId&&this.body.querySelector?.(`[data-document-id="${this.safeId(documentId)}"]`);
+      if(card){card.scrollIntoView?.({block:"nearest"});if(this.assets)card.focus?.({preventScroll:true});}
     }
     safeId(id) {return String(id).replace(/[^a-zA-Z0-9_-]/g,"");}
-    close(restoreFocus=true) {this.restoreFocus=restoreFocus;if(this.dialog.open)this.dialog.close();}
+    close(restoreFocus=true) {this.restoreFocus=restoreFocus;if(this.dialog?.open)this.dialog.close();}
     async ensureSession() {
       if(this.disposed||this.suspended)throw abortError();
       if(this.scope)return this.scope;
@@ -88,6 +157,7 @@
       if(!accepted.length){this.render();this.open();return;}
       const queued=accepted.map(file=>({key:++this.sequence,name:file.name,status:"Waiting to upload",file}));
       this.uploads.push(...queued);this.mutating++;this.revision++;this.options.onDirty?.();this.render();
+      if(this.assets)this.open();
       try{
         const scope=await this.ensureSession();
         for(const upload of queued){
@@ -127,8 +197,14 @@
       if(!Array.isArray(documents))throw new Error("The local file list was incomplete.");
       const next=documents.filter(item=>item&&typeof item.id==="string").map(copy);
       const changed=JSON.stringify(next)!==JSON.stringify(this.documents);this.documents=next;this.connectionError="";this.lastError="";
-      for(const document of next){const version=document.analysis?.version;if(version!==undefined&&version!==null){
-        const key=String(version);if(this.seen.get(document.id)!==key){this.seen.set(document.id,key);if(emit)this.emit({type:"analysis",document:copy(document),analysis:copy(document.analysis)});}
+      for(const document of next){
+        const version=document.analysis?.version;
+        const available=!document.archived&&["ready","partial"].includes(document.status)&&Number(document.chunk_count)>0;
+        if((version!==undefined&&version!==null)||available){
+        // Native extraction can finish before the first model review. Publish
+        // that availability once so the interview can use its exact text now.
+        const key=`${version??"indexed"}:${available?document.chunk_count:0}:${document.analysis?.intent_version||0}`;
+        if(this.seen.get(document.id)!==key){this.seen.set(document.id,key);if(emit)this.emit({type:"analysis",document:copy(document),analysis:copy(document.analysis||{})});}
       }}
       this.render();if(changed&&emit)this.options.onDirty?.();
     }
@@ -200,6 +276,8 @@
       const announcement=[`${total} ${total===1?"file":"files"}`,...[...counts].map(([status,count])=>`${count} ${status.toLowerCase()}`),...(this.uploads.length?[`${this.uploads.length} uploading`]:[]),...(this.uploadErrors.length?[`${this.uploadErrors.length} file issues`]:[])].join(". ");
       if(this.liveStatus.textContent!==announcement)this.liveStatus.textContent=announcement;
       this.attachButton.disabled=!this.allowed()||total>=MAX_FILES;
+      this.options.onCountChange?.({total,issues:this.uploadErrors.length+this.documents.filter(document=>this.reviewError(document)||this.actionErrors.has(document.id)).length});
+      if(this.strip){
       this.countButton.textContent=total?`Files ${total}`:"Files";this.countButton.hidden=!total&&!this.uploadErrors.length;
       this.strip.hidden=!total&&!this.uploadErrors.length;this.strip.replaceChildren();
       for(const document of this.documents){const chip=this.button("",`document-chip${this.reviewError(document)||this.actionErrors.has(document.id)?" document-chip-error":""}`,()=>this.open(document.id));
@@ -207,10 +285,11 @@
       }
       for(const upload of this.uploads)this.strip.append(this.node("span","document-chip document-chip-pending",`${upload.name} · ${upload.status}…`));
       if(this.uploadErrors.length){const errors=this.button(`${this.uploadErrors.length} file ${this.uploadErrors.length===1?"issue":"issues"}`,"document-chip document-chip-error",()=>this.open());this.strip.append(errors);}
+      }
       // Preserve a purpose currently being typed across polling and upload progress renders.
       const drafts=new Map();this.body.querySelectorAll?.("[data-document-purpose]").forEach(input=>drafts.set(input.dataset.documentPurpose,input.value));
       const focused=this.doc.activeElement,purposeFocus=focused?.dataset?.documentPurpose,selection=purposeFocus?[focused.selectionStart,focused.selectionEnd]:null;
-      const sourceFocus=focused?.dataset?.documentSourceHeading,scrollTop=this.body.scrollTop;
+      const sourceFocus=focused?.dataset?.documentSourceHeading,cardFocus=focused?.dataset?.documentId,toggleFocus=focused?.dataset?.documentToggle,controlFocus=focused?.dataset?.documentControl,scrollTop=this.body.scrollTop;
       this.body.replaceChildren();
       if(this.connectionError){const error=this.node("div","documents-warning");error.append(this.node("p","",`Saved file details are retained. ${this.connectionError}`),this.button("Try again","documents-text-button",()=>this.refresh()));this.body.append(error);}
       this.uploadErrors.forEach((error,index)=>{const item=this.node("div","documents-warning");item.append(this.node("strong","",error.name),this.node("p","",error.message));if(error.file){const retry=this.button("Retry upload","documents-text-button",()=>{if(!this.allowed())return;this.uploadErrors.splice(index,1);this.addFiles([error.file]);});retry.disabled=!this.allowed();item.append(retry);}item.append(this.button("Dismiss issue","documents-text-button",()=>{this.uploadErrors.splice(index,1);this.render();}));this.body.append(item);});
@@ -218,48 +297,59 @@
       for(const upload of this.uploads)this.body.append(this.node("p","documents-upload",`${upload.name} · ${upload.status}…`));
       for(const document of this.documents)this.renderDocument(document,drafts);
       this.sourceHeading=null;if(this.source)this.renderSource();this.body.scrollTop=scrollTop;
-      if(sourceFocus&&this.sourceHeading?.dataset.documentSourceHeading===sourceFocus)this.sourceHeading.focus?.({preventScroll:true});
+      if(sourceFocus&&this.sourceHeading?.dataset.documentSourceHeading===sourceFocus&&this.visible(this.sourceHeading))this.sourceHeading.focus?.({preventScroll:true});
+      if(cardFocus)this.body.querySelector?.(`[data-document-id="${this.safeId(cardFocus)}"]`)?.focus?.({preventScroll:true});
+      if(toggleFocus)[...this.body.querySelectorAll(".documents-detail-toggle")].find(button=>button.dataset.documentToggle===toggleFocus)?.focus?.({preventScroll:true});
+      if(controlFocus){const control=[...this.body.querySelectorAll(".document-control")].find(button=>button.dataset.documentControl===controlFocus);if(control&&!control.disabled&&this.visible(control))control.focus?.({preventScroll:true});}
       if(purposeFocus){const input=[...this.body.querySelectorAll("[data-document-purpose]")].find(node=>node.dataset.documentPurpose===purposeFocus);input?.focus?.({preventScroll:true});if(selection&&input?.setSelectionRange)input.setSelectionRange(...selection);}
     }
     renderDocument(document,drafts) {
       const card=this.node("section","documents-card");card.dataset.documentId=this.safeId(document.id);
+      if(this.assets){card.tabIndex=-1;card.setAttribute("aria-label",document.name||"File");}
       const head=this.node("div","documents-card-heading"),title=this.node("div");title.append(this.node("h3","",document.name||"File"),this.node("p","documents-file-meta",`${document.kind||"Document"} · ${this.size(document.size)}`));
-      const remove=this.button("Remove","documents-text-button",()=>this.action(document,"remove"));remove.setAttribute("aria-label",`Remove ${document.name||"file"} from this conversation`);head.append(title,remove);card.append(head);
+      const remove=this.control(this.button("Remove","documents-text-button",()=>this.action(document,"remove")),document,"remove");remove.setAttribute("aria-label",`Remove ${document.name||"file"} from this conversation`);head.append(title,remove);card.append(head);
       card.setAttribute("aria-busy",String(this.documentBusy(document.id)));
       const analysis=document.analysis||{};
       const stage=this.node("div","documents-stage");stage.dataset.state=this.reviewError(document)||this.actionErrors.has(document.id)?"error":analysis.disposition==="parked"?"later":["pending","indexing"].includes(document.status)||["quick","deep"].includes(analysis.phase)?"working":"ready";
       stage.append(this.node("strong","documents-stage-label",this.status(document)));const detail=this.stageDetail(document);if(detail)stage.append(this.node("span","documents-stage-detail",detail));card.append(stage);
       if(analysis.disposition==="parked")card.append(this.node("p","documents-review-mode","Saved for later. Come back to it whenever it’s useful."));
       else if(analysis.disposition==="relevant"&&["quick","deep"].includes(analysis.phase))card.append(this.node("p","documents-review-mode","Reading now · You can keep talking."));
-      const failed=this.actionErrors.get(document.id);if(failed){const error=this.node("div","documents-warning");error.setAttribute("role","status");const retry=this.button("Retry action","documents-text-button",()=>this.action(document,failed.action,failed.purpose));retry.disabled=this.actions.has(document.id+":"+failed.action);error.append(this.node("p","",failed.message),retry);card.append(error);}
+      const failed=this.actionErrors.get(document.id);if(failed){const error=this.node("div","documents-warning");error.setAttribute("role","status");const retry=this.control(this.button("Retry action","documents-text-button",()=>this.action(document,failed.action,failed.purpose)),document,"retry-action",failed.action);retry.disabled=this.actions.has(document.id+":"+failed.action);error.append(this.node("p","",failed.message),retry);card.append(error);}
       if(document.error)card.append(this.node("p","documents-warning",typeof document.error==="string"?document.error:"Some content could not be read."));
       if(analysis.error)card.append(this.node("p","documents-warning",typeof analysis.error==="string"?analysis.error:analysis.error.message||"Review could not be completed. Try reviewing this file again."));
       if(analysis.phase==="error"&&!analysis.error)card.append(this.node("p","documents-warning","Review could not be completed. Your saved file is retained."));
-      if(analysis.summary)card.append(this.node("p","documents-summary",analysis.summary));
+      let content=card;
+      if(this.assets){
+        const expanded=this.expandedAssets.get(document.id)??analysis.disposition==="needs_reason";
+        content=this.node("div","documents-detail-content");content.id=`document-details-${this.safeId(document.id)}`;content.hidden=!expanded;
+        const toggle=this.button("Review details & sources","documents-detail-toggle",()=>{const open=content.hidden;content.hidden=!open;this.expandedAssets.set(document.id,open);toggle.setAttribute("aria-expanded",String(open));});
+        toggle.dataset.documentToggle=document.id;toggle.setAttribute("aria-expanded",String(expanded));toggle.setAttribute("aria-controls",content.id);card.append(toggle,content);
+      }
+      if(analysis.summary)content.append(this.node("p","documents-summary",analysis.summary));
       if(document.coverage){
-        const coverage=typeof document.coverage==="string"?document.coverage:document.coverage.summary||document.coverage.note;if(coverage)card.append(this.node("p","documents-progress",coverage));
+        const coverage=typeof document.coverage==="string"?document.coverage:document.coverage.summary||document.coverage.note;if(coverage)content.append(this.node("p","documents-progress",coverage));
       }
       const limitations=[document.coverage?.limitations,analysis.limitations].flatMap(value=>Array.isArray(value)?value:typeof value==="string"?[value]:[]).filter(value=>typeof value==="string"&&value.trim());
-      if(limitations.length){const section=this.node("div","documents-limitations"),list=this.node("ul");section.append(this.node("h4","","Reading limits"));for(const limitation of new Set(limitations))list.append(this.node("li","",limitation));section.append(list);card.append(section);}
-      if(document.inventory)this.renderInventory(card,document.inventory);
+      if(limitations.length){const section=this.node("div","documents-limitations"),list=this.node("ul");section.append(this.node("h4","","Reading limits"));for(const limitation of new Set(limitations))list.append(this.node("li","",limitation));section.append(list);content.append(section);}
+      if(document.inventory)this.renderInventory(content,document.inventory);
       const primary=typeof analysis.question==="string"?analysis.question.trim():"";
       if(analysis.disposition==="needs_reason"){
-        if(primary)card.append(this.node("p","documents-purpose-question",primary));
+        if(primary)content.append(this.node("p","documents-purpose-question",primary));
         const form=this.node("form","documents-purpose"),input=this.node("input"),field=this.node("label","documents-purpose-field");input.type="text";input.maxLength=1000;input.placeholder="e.g. Check the approval thresholds";input.setAttribute("aria-label",`What should I look for in ${document.name||"this file"}?`);input.dataset.documentPurpose=document.id;input.value=drafts.get(document.id)||"";field.append(this.node("span","","What should I look for?"),input);
-        const submit=this.node("button","documents-add","Review now");submit.type="submit";
-        form.append(field,submit,this.button("Save for later","documents-text-button",()=>this.action(document,"park")));
-        form.addEventListener("submit",event=>{event.preventDefault();const purpose=input.value.trim();if(purpose)this.action(document,"purpose",purpose);});card.append(form);
+        const submit=this.control(this.node("button","documents-add","Review now"),document,"review-now");submit.type="submit";
+        form.append(field,submit,this.control(this.button("Save for later","documents-text-button",()=>this.action(document,"park")),document,"park"));
+        form.addEventListener("submit",event=>{event.preventDefault();const purpose=input.value.trim();if(purpose)this.action(document,"purpose",purpose);});content.append(form);
       }
-      if(this.reviewError(document))card.append(this.button("Retry review","documents-text-button",()=>this.action(document,"revisit")));
-      else if(analysis.disposition==="parked")card.append(this.button("Revisit this file","documents-text-button",()=>this.action(document,"revisit")));
-      else if(analysis.disposition!=="needs_reason")card.append(this.button("Save for later","documents-text-button",()=>this.action(document,"park")));
+      if(this.reviewError(document))card.append(this.control(this.button("Retry review","documents-text-button",()=>this.action(document,"revisit")),document,"retry-review"));
+      else if(analysis.disposition==="parked")card.append(this.control(this.button("Revisit this file","documents-text-button",()=>this.action(document,"revisit")),document,"revisit"));
+      else if(analysis.disposition!=="needs_reason")content.append(this.control(this.button("Save for later","documents-text-button",()=>this.action(document,"park")),document,"park"));
       const listed=Array.isArray(analysis.questions)?analysis.questions.filter(item=>item&&typeof item.text==="string"&&item.text.trim()):[];
       const questions=(listed.length?listed:primary?[{id:"quick",text:primary,sources:analysis.sources||[]}]:[]).filter(item=>!(analysis.disposition==="needs_reason"&&item.text.trim()===primary));
       if(questions.length){const section=this.node("div","documents-questions");section.append(this.node("h4","",analysis.disposition==="parked"?"Questions for later":"Questions to explore"));
-        for(const question of questions){if(!question?.text)continue;const row=this.node("div","documents-question");row.append(this.node("p","",question.text),this.button("Discuss","documents-text-button",()=>this.discuss(document,question)));this.renderSources(row,document,question.sources||[]);section.append(row);}card.append(section);
+        for(const question of questions){if(!question?.text)continue;const identity=JSON.stringify([question.id||"",question.text]),row=this.node("div","documents-question");row.append(this.node("p","",question.text),this.control(this.button("Discuss","documents-text-button",()=>this.discuss(document,question)),document,"discuss",identity));this.renderSources(row,document,question.sources||[],identity);section.append(row);}content.append(section);
       }
-      this.renderSources(card,document,analysis.sources||[]);card.append(this.node("p","documents-evidence-note","Reference only · Confirm details in the interview."));
-      if(this.documentBusy(document.id))card.querySelectorAll?.("button").forEach(button=>{if(!button.classList.contains("documents-source"))button.disabled=true;});
+      this.renderSources(content,document,analysis.sources||[]);content.append(this.node("p","documents-evidence-note","Reference only · Confirm details in the interview."));
+      if(this.documentBusy(document.id))card.querySelectorAll?.("button").forEach(button=>{if(!button.classList.contains("documents-source")&&!button.classList.contains("documents-detail-toggle"))button.disabled=true;});
       this.body.append(card);
     }
     renderInventory(card,inventory) {
@@ -272,27 +362,32 @@
       }}
       if(parts.filter(Boolean).length)card.append(this.node("p","documents-progress",parts.filter(Boolean).join(" · ")));
     }
-    renderSources(parent,document,sources) {
+    renderSources(parent,document,sources,groupKey="file") {
       const valid=Array.isArray(sources)?sources.filter(source=>source&&typeof source.source_id==="string"):[];if(!valid.length)return;
       const group=this.node("div","documents-sources");
-      for(const source of valid.slice(0,30)){const button=this.button(source.label||`${document.name} · Source`,"documents-source",()=>this.openSource(document,source));button.setAttribute("aria-label",`Read source: ${document.name} · ${source.label||source.source_id}`);button.dataset.documentSource=`${document.id}:${source.source_id}`;group.append(button);}parent.append(group);
+      for(const source of valid.slice(0,30)){const button=this.control(this.button(source.label||`${document.name} · Source`,"documents-source",()=>this.openSource(document,source)),document,"source",JSON.stringify([groupKey,source.source_id]));button.setAttribute("aria-label",`Read source: ${document.name} · ${source.label||source.source_id}`);button.dataset.documentSource=`${document.id}:${source.source_id}`;group.append(button);}parent.append(group);
     }
     async openSource(document,source) {
       const generation=this.generation,scope=this.scope;if(this.disposed||this.suspended||!scope)return;
+      if(this.assets)this.expandedAssets.set(document.id,true);
       this.sourceReturnKey=`${document.id}:${source.source_id}`;
-      const selected=this.source={documentId:document.id,sourceId:source.source_id,label:this.sourceTitle(document,source.label||source.source_id),text:"Loading source…",loading:true};this.render();
+      const selected=this.source={documentId:document.id,sourceId:source.source_id,label:this.sourceTitle(document,source.label||source.source_id),text:"Loading source…",loading:true};this.render();if(this.assets)this.focusSource();
       try{
         const result=await this.options.requestJSON("/api/documents/source",{scope,id:document.id,source_id:source.source_id},{signal:this.controller.signal,timeout:30000});
         if(!this.current(generation)||this.source!==selected||!this.documents.some(item=>item.id===document.id))return;
-        this.source={documentId:document.id,sourceId:source.source_id,label:this.sourceTitle(document,result.source?.label||source.label||source.source_id),text:label(result.source?.text)||"This source has no readable text."};this.render();this.focusSource();
-      }catch(error){if(this.current(generation)&&this.source===selected&&error.name!=="AbortError"){this.source={documentId:document.id,sourceId:source.source_id,label:this.sourceTitle(document,source.label||source.source_id),text:message(error),error:true};this.render();this.focusSource();}}
+        this.source={documentId:document.id,sourceId:source.source_id,label:this.sourceTitle(document,result.source?.label||source.label||source.source_id),text:label(result.source?.text)||"This source has no readable text."};this.render();if(!this.assets||this.doc.activeElement===this.sourceHeading)this.focusSource();
+      }catch(error){if(this.current(generation)&&this.source===selected&&error.name!=="AbortError"){this.source={documentId:document.id,sourceId:source.source_id,label:this.sourceTitle(document,source.label||source.source_id),text:message(error),error:true};this.render();if(!this.assets||this.doc.activeElement===this.sourceHeading)this.focusSource();}}
     }
     sourceTitle(document,reference) {const name=document.name||"File",text=label(reference);return text.includes(name)?text:`${name}${text?" · "+text:""}`;}
-    focusSource() {if(this.dialog.open){this.sourceHeading?.focus?.({preventScroll:true});this.sourceHeading?.scrollIntoView?.({block:"nearest"});}}
+    focusSource() {
+      if(this.assets&&!this.visible(this.assets))return;
+      if(this.assets||this.dialog?.open){this.sourceHeading?.focus?.({preventScroll:true});this.sourceHeading?.scrollIntoView?.({block:"nearest"});}
+    }
     renderSource() {
       const source=this.node("section","documents-source-preview"),heading=this.sourceHeading=this.node("h3","",this.source.label);heading.tabIndex=-1;heading.dataset.documentSourceHeading=`${this.source.documentId}:${this.source.sourceId}`;
       source.append(heading,this.button("Close source","documents-text-button",()=>{const key=this.sourceReturnKey;this.source=null;this.sourceHeading=null;this.render();[...this.body.querySelectorAll(".documents-source")].find(button=>button.dataset.documentSource===key)?.focus?.({preventScroll:true});}));
-      const content=this.node("pre","documents-source-text",this.source.text);source.append(content);this.body.append(source);
+      const content=this.node("pre","documents-source-text",this.source.text);source.append(content);
+      const fileDetails=this.assets&&this.body.querySelector?.(`[data-document-id="${this.safeId(this.source.documentId)}"]`)?.querySelector(".documents-detail-content");(fileDetails||this.body).append(source);
       if(this.source.error){const selected=this.source,document=this.documents.find(item=>item.id===selected.documentId);if(document)source.append(this.button("Retry source","documents-text-button",()=>this.openSource(document,{source_id:selected.sourceId,label:selected.label})));}
     }
     size(bytes) {const value=Number(bytes)||0;return value>=1024*1024?`${(value/1024/1024).toFixed(1)} MiB`:value>=1024?`${Math.round(value/1024)} KiB`:`${value} bytes`;}
@@ -306,6 +401,7 @@
     cancel() {clearTimeout(this.pollTimer);this.pollTimer=null;this.controller.abort();}
     suspend() {
       if(this.disposed||this.suspended)return;
+      this.clearDrop();
       this.suspended=true;this.generation++;this.revision++;this.cancel();
       this.uploadErrors.push(...this.uploads.map(upload=>({name:upload.name,file:upload.file,message:"Upload confirmation was interrupted. Check the saved files before retrying."})));
       this.uploadErrors=this.uploadErrors.slice(-MAX_FILES);this.uploads=[];this.polling=null;this.sessionPromise=null;this.mutating=0;this.actions.clear();
@@ -316,9 +412,10 @@
       this.suspended=false;this.controller=new AbortController();this.render();void this.refresh();
     }
     reset() {
-      this.cancel();this.generation++;this.revision++;this.suspended=false;this.controller=new AbortController();this.scope=null;this.documents=[];this.uploads=[];this.uploadErrors=[];this.seen=new Map();this.sessionPromise=null;this.polling=null;this.mutating=0;this.actions.clear();this.actionErrors.clear();this.source=null;this.sourceHeading=null;this.sourceReturnKey=null;this.connectionError="";this.lastError="";this.close(false);this.render();
+      this.clearDrop();
+      this.cancel();this.generation++;this.revision++;this.suspended=false;this.controller=new AbortController();this.scope=null;this.documents=[];this.uploads=[];this.uploadErrors=[];this.seen=new Map();this.sessionPromise=null;this.polling=null;this.mutating=0;this.actions.clear();this.actionErrors.clear();this.expandedAssets.clear();this.source=null;this.sourceHeading=null;this.sourceReturnKey=null;this.connectionError="";this.lastError="";this.close(false);this.render();
     }
-    dispose() {if(this.disposed)return;this.reset();this.disposed=true;this.cancel();window.removeEventListener?.("pagehide",this.pagehide);window.removeEventListener?.("pageshow",this.pageshow);this.controls.replaceChildren();this.strip.replaceChildren();this.strip.hidden=true;}
+    dispose() {if(this.disposed)return;this.reset();this.disposed=true;this.cancel();window.removeEventListener?.("pagehide",this.pagehide);window.removeEventListener?.("pageshow",this.pageshow);for(const [target,name,fn] of this.dropListeners||[])target.removeEventListener?.(name,fn);this.dropListeners=[];this.dropOverlay?.remove();this.dropTarget?.classList.remove("document-drop-zone");this.assets?.replaceChildren();this.controls?.replaceChildren();if(this.strip){this.strip.replaceChildren();this.strip.hidden=true;}}
   }
   window.CollectorDocuments={create:options=>new Documents(options)};
 })();

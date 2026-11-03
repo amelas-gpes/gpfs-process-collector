@@ -2,6 +2,12 @@
 
 An adaptive voice interviewer that helps people explain how a business process works today, then turns their account into a reviewable memo, process map and detailed procedure.
 
+Version **0.17.0** puts Voice, Transcript and Workflow at the top right of the process workspace, with Settings and Save copy in the three-dot menu. In Voice, conversation controls sit directly below the complete response. Text expands naturally; only content longer than the available screen needs an outer scroll. Notes, Summary + Parked and Assets have dedicated sidebar tabs, with uploads and file management centralized in Assets.
+
+Attached procedures can supply the documented process directly. Notes, workflow capture, draft generation and the question audit share exact scoped file excerpts, with filename/page citations kept separate from participant answers. Follow-up focuses on missing details, contradictions or differences in current practice. Drop files anywhere in the interview workspace to use the existing upload flow. See the [document interview guide](docs/DOCUMENT_INTERVIEWS.md).
+
+Version **0.15.0** expands workflows to eleven evidence-backed component types: activities, decisions, starts, endings, parallel splits and joins, alternative-route merges, waits, subprocesses, document operations and data-store operations. Shapes and branch labels wrap to measured text; decisions, loops and dependencies retain their reported topology. Responsive controls, a diagram key and route details support navigating larger maps. See the [workflow diagram guide](docs/WORKFLOW_DIAGRAMS.md).
+
 Version **0.14.0** adds purposeful curiosity across typed and voice interviewing. Naming a step is distinguished from explaining how it works: the interviewer should deepen one useful mechanism, condition, check or handoff before moving on when that prevents an assumption. The question audit also checks for missed depth, while retaining the eleven-topic framework, no-repeat rules, explicit unknowns and participant stopping choices. See the [curiosity policy and examples](docs/INTERVIEW_CURIOSITY.md).
 
 Version **0.13.2** restores progressive workflow and memo updates during continuous speech. New captions no longer discard every completed capture; rewritten evidence still invalidates an older result. Background failures are visible during Voice. Managed terminal previews can use `launcher.py --no-browser --foreground` to retain an active server session.
@@ -54,7 +60,7 @@ The hosted product will use Microsoft Foundry voice/model services and the organ
 - An existing compatible Python 3.12 interpreter with SQLite FTS5 support. The core interview server uses Python's standard library.
 - For document parsing, the packages pinned in [requirements-documents.txt](requirements-documents.txt): `pypdf`, `openpyxl` and `Pillow`. These are separate from the core interview runtime and must already be installed in the chosen interpreter or installed explicitly.
 - A current browser with microphone recording and WebRTC support for live voice. Optional AI question playback uses WebSockets; installed English computer voices are a local playback choice.
-- OpenAI API access for `gpt-live-1`, `gpt-5.4-mini`, `gpt-transcribe` and optional typed-question playback through `gpt-realtime-2.1-mini`. The interview and transcription models can use compatible server-configured alternatives.
+- OpenAI API access for `gpt-live-1`, `gpt-5.4-mini`, `gpt-5.4` for document workflow audits, `gpt-transcribe` and optional typed-question playback through `gpt-realtime-2.1-mini`. The interview and transcription models can use compatible server-configured alternatives.
 
 No runtime, package, browser, model, font or voice is automatically installed or downloaded when the application runs. Reuse your existing approved interpreter. ELK.js is bundled locally with its license and provenance in `web/vendor/`; the workflow canvas does not fetch a layout library from a CDN.
 
@@ -81,7 +87,7 @@ The Windows `Start Collector.cmd` and `Stop Collector.cmd` shortcuts use the sam
 
 For a terminal managed by an agent, add `--foreground` and keep its execution session running. This avoids relying on a hidden background child of a short-lived tool job. Ordinary desktop launches retain their existing behavior. Bounded operational events, without transcript or credential data, are recorded in `work/server-lifecycle.jsonl`.
 
-Default model settings can be changed using `INTERVIEW_MODEL` and `TRANSCRIPTION_MODEL` in server-side configuration. API usage consumes the configured project's credits or billed usage.
+Default model settings can be changed using `INTERVIEW_MODEL`, `WORKFLOW_AUDIT_MODEL` and `TRANSCRIPTION_MODEL` in server-side configuration. API usage consumes the configured project's credits or billed usage.
 
 ## Interview and review
 
@@ -100,7 +106,9 @@ Select a topic in **Your memo** to inspect the reported finding and its sources.
 
 ## Reference files during the conversation
 
-Select the paperclip **Add files** control in any conversation view. Uploads are available without a process name and while live voice continues. Compact file chips show progress; **Files** opens the tray for relevance, indexing coverage, reading limits, exact sources and questions.
+The interview workspace has three tabs: **Notes** for topic coverage, **Summary + Parked** for the running summary and topics to revisit, and **Assets** for uploaded files. On smaller screens, select **Workspace** to open these tabs.
+
+Select **Assets → Add files**, or drop files anywhere in the interview. Uploads are available without a process name and while live voice continues. Assets is the central file list, with progress and recovery actions on each card. Expand **Review details & sources** for relevance, indexing coverage, reading limits, exact sources and questions.
 
 An initial review checks the file against the current conversation. Relevant material can produce a short acknowledgment and a grounded follow-up when it fits the conversation. A late result does not replace a newer interview question or an unsent answer; its questions stay available in the tray. If the purpose is unclear, answer **What should I look for?** once or choose **Save for later**. Parked files can continue reviewing quietly, with **Questions for later** available through an explicit **Discuss** action. **Revisit this file** or **Retry review** restarts review when needed. Document claims remain unconfirmed reference material until the participant establishes how the process actually works; an upload cannot complete memo topics by itself.
 
@@ -145,6 +153,7 @@ With an existing Node installation, run the frontend protocol and media checks:
 & 'C:\path\to\existing\node.exe' .\tests\test_ui_state.cjs
 & 'C:\path\to\existing\node.exe' .\tests\test_live_voice.cjs
 & 'C:\path\to\existing\node.exe' .\tests\test_workflow_graph.cjs
+& 'C:\path\to\existing\node.exe' .\tests\test_workflow_scenarios.cjs
 & 'C:\path\to\existing\node.exe' .\tests\test_gpfs_presence.cjs
 & 'C:\path\to\existing\node.exe' .\tests\test_documents_frontend.cjs
 ```

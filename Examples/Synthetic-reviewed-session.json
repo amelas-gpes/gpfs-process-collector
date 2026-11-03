@@ -468,7 +468,7 @@
       {
         "id": "S1",
         "title": "Receive and register invoice",
-        "type": "activity",
+        "type": "data_store",
         "actor": "AP analyst",
         "system": "Shared AP mailbox, invoice folder and invoice register",
         "description": "Save the supplier invoice and record its identifying details by 10 a.m. each business day.",
@@ -498,7 +498,7 @@
       {
         "id": "S3",
         "title": "Close duplicate case",
-        "type": "activity",
+        "type": "end",
         "actor": "AP analyst",
         "system": "Invoice register and supplier email",
         "description": "Link the new and earlier entries, notify the supplier and close the new case.",
@@ -606,7 +606,7 @@
       {
         "id": "S10",
         "title": "Save approvals and send package",
-        "type": "activity",
+        "type": "document",
         "actor": "AP analyst",
         "system": "Invoice folder, invoice register and Treasury queue",
         "description": "File approval evidence, mark the invoice ready and send the package link to Treasury.",
@@ -622,7 +622,7 @@
       {
         "id": "S11",
         "title": "Accept handoff and close case",
-        "type": "activity",
+        "type": "end",
         "actor": "Treasury analyst and AP analyst",
         "system": "Treasury queue and invoice register",
         "description": "Treasury opens the package link and records acceptance; AP closes its case.",
@@ -941,7 +941,7 @@
       {
         "id": "S1",
         "title": "Receive and register invoice",
-        "type": "activity",
+        "type": "data_store",
         "actor": "AP analyst",
         "system": "Shared AP mailbox, invoice folder and invoice register",
         "description": "Save the supplier invoice and record its identifying details by 10 a.m. each business day.",
@@ -971,7 +971,7 @@
       {
         "id": "S3",
         "title": "Close duplicate case",
-        "type": "activity",
+        "type": "end",
         "actor": "AP analyst",
         "system": "Invoice register and supplier email",
         "description": "Link the new and earlier entries, notify the supplier and close the new case.",
@@ -1079,7 +1079,7 @@
       {
         "id": "S10",
         "title": "Save approvals and send package",
-        "type": "activity",
+        "type": "document",
         "actor": "AP analyst",
         "system": "Invoice folder, invoice register and Treasury queue",
         "description": "File approval evidence, mark the invoice ready and send the package link to Treasury.",
@@ -1095,7 +1095,7 @@
       {
         "id": "S11",
         "title": "Accept handoff and close case",
-        "type": "activity",
+        "type": "end",
         "actor": "Treasury analyst and AP analyst",
         "system": "Treasury queue and invoice register",
         "description": "Treasury opens the package link and records acceptance; AP closes its case.",

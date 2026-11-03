@@ -5,7 +5,7 @@ const source=fs.readFileSync(path.join(__dirname,"..","web","documents.js"),"utf
 const deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return{promise,resolve,reject};};
 const tick=async()=>{for(let i=0;i<8;i++)await Promise.resolve();};
 class Element {
- constructor(tag,doc){this.tagName=tag.toUpperCase();this.ownerDocument=doc;this.children=[];this.parentElement=null;this.listeners={};this.attributes={};this.dataset={};this.className="";this.id="";this.hidden=false;this.open=false;this.value="";this._text="";this.clicks=0;this.classList={contains:name=>this.className.split(/\s+/).includes(name),add:name=>{this.className+=" "+name;}};}
+ constructor(tag,doc){this.tagName=tag.toUpperCase();this.ownerDocument=doc;this.children=[];this.parentElement=null;this.listeners={};this.attributes={};this.dataset={};this.className="";this.id="";this.hidden=false;this.open=false;this.value="";this._text="";this.clicks=0;this.classList={contains:name=>this.className.split(/\s+/).includes(name),add:name=>{this.className+=" "+name;},remove:name=>{this.className=this.className.split(/\s+/).filter(value=>value!==name).join(" ");}};}
  get textContent(){return this._text+this.children.map(child=>child.textContent).join("");}
  set textContent(value){this.replaceChildren();this._text=String(value);}
  get isConnected(){let node=this;while(node.parentElement)node=node.parentElement;return node===this.ownerDocument.body;}
@@ -20,6 +20,8 @@ class Element {
  focus(){this.ownerDocument.activeElement=this;}
  setSelectionRange(start,end){this.selectionStart=start;this.selectionEnd=end;}
  scrollIntoView(){this.scrolled=true;}
+ contains(node){return walk(this).includes(node);}
+ remove(){if(this.parentElement)this.parentElement.children=this.parentElement.children.filter(child=>child!==this);this.parentElement=null;}
  showModal(){this.open=true;this.focus();}
  close(){this.open=false;this.dispatch("close");}
  querySelectorAll(selector){return walk(this).filter(node=>node!==this&&matches(node,selector));}
@@ -32,22 +34,120 @@ function matches(node,selector){
  const match=selector.match(/^\[data-document-id="([^"]+)"\]$/);if(match)return node.dataset.documentId===match[1];
  return node.tagName===selector.toUpperCase();
 }
-function setup({request,fetch,getContext,canUpload}={}){
+function setup({request,fetch,getContext,canUpload,inline=false}={}){
  const document={activeElement:null};document.body=new Element("body",document);document.createElement=tag=>new Element(tag,document);document.createElementNS=(_,tag)=>new Element(tag,document);document.getElementById=id=>walk(document.body).find(node=>node.id===id)||null;
- for(const id of ["document-controls","document-strip","documents-dialog"]){const node=document.createElement(id.endsWith("dialog")?"dialog":"div");node.id=id;document.body.append(node);}
- const timers=new Map();let timerId=0;const events=[],notices=[],jsonCalls=[],uploads=[];let dirty=0;
+ const dropTarget=document.createElement("section");dropTarget.id="interview-view";document.body.append(dropTarget);
+ for(const id of inline?["document-assets"]:["document-controls","document-strip","documents-dialog"]){const node=document.createElement(id.endsWith("dialog")?"dialog":"div");node.id=id;(id.endsWith("dialog")?document.body:dropTarget).append(node);}
+ const timers=new Map();let timerId=0;const events=[],notices=[],jsonCalls=[],uploads=[],counts=[];let dirty=0,opened=0,discussed=0;
  const listeners={},window={document,addEventListener:(name,fn)=>listeners[name]=fn,removeEventListener:name=>delete listeners[name]};
  const ctx={window,DOMException,AbortController,setTimeout:(fn,delay)=>{const id=++timerId;timers.set(id,{fn,delay});return id;},clearTimeout:id=>timers.delete(id)};
  vm.createContext(ctx);vm.runInContext(source,ctx);
  const api=window.CollectorDocuments.create({document,config:()=>({csrf_token:"test-csrf"}),getContext:getContext||(()=>({context:{},turns:[],focus:"Intake",current_question:"What starts the work?"})),canUpload:canUpload||(()=>true),
  requestJSON:(...args)=>{jsonCalls.push(args);return request?request(...args):Promise.resolve({scope:"local-scope",documents:[]});},fetch:async(...args)=>{uploads.push(args);return fetch?fetch(...args):{ok:true,json:async()=>({document:doc()})};},
- onEvent:event=>events.push(event),onDirty:()=>dirty++,notice:(...args)=>notices.push(args)});
- return{api,document,events,notices,jsonCalls,uploads,timers,listeners,get dirty(){return dirty;},findText:(tag,text)=>walk(document.body).find(node=>node.tagName===tag.toUpperCase()&&node.textContent===text)};
+ onEvent:event=>events.push(event),onDirty:()=>dirty++,notice:(...args)=>notices.push(args),onOpen:()=>opened++,onDiscuss:()=>discussed++,onCountChange:value=>counts.push(value)});
+ return{api,document,dropTarget,events,notices,jsonCalls,uploads,timers,listeners,counts,get opened(){return opened;},get discussed(){return discussed;},get dirty(){return dirty;},findText:(tag,text)=>walk(document.body).find(node=>node.tagName===tag.toUpperCase()&&node.textContent===text)};
 }
 function doc(overrides={}){return{id:"doc_1",name:"Procedure.pdf",kind:"pdf",size:1200,status:"ready",analysis:{phase:"complete",disposition:"relevant",summary:"Reported procedure.",version:1,sources:[]},...overrides};}
 function response(document){return{ok:true,json:async()=>({document})};}
 (async()=>{
  let passes=0;
+ {
+  const h=setup({inline:true}),questions=[{id:"q1",text:"Who checks the payment?",sources:[{source_id:"p1",label:"Page 1"}]},{id:"q2",text:"Who releases the payment?",sources:[{source_id:"p1",label:"Page 1"}]}];
+  const file=doc({analysis:{phase:"complete",disposition:"relevant",summary:"Payment review",sources:[{source_id:"p1",label:"Page 1"}],questions}});h.api.setDocuments([file],false);h.api.open(file.id);
+  for(const action of ["remove","park","source","discuss"]){
+   const controls=h.api.body.querySelectorAll(".document-control").filter(button=>JSON.parse(button.dataset.documentControl)[1]===action),control=controls.at(-1),key=control.dataset.documentControl;control.focus();h.api.render();
+   assert.notEqual(h.document.activeElement,control);assert.equal(h.document.activeElement.dataset.documentControl,key,`${action} keyboard focus must survive polling`);assert.equal(h.document.activeElement.isConnected,true);
+  }
+  const discuss=h.api.body.querySelectorAll(".document-control").find(button=>JSON.parse(button.dataset.documentControl)[1]==="discuss"&&JSON.parse(button.dataset.documentControl)[2].includes("q2"));discuss.focus();const key=discuss.dataset.documentControl;
+  h.api.setDocuments([{...file,analysis:{...file.analysis,questions:[questions[1],questions[0]]}}],false);assert.equal(h.document.activeElement.dataset.documentControl,key,"Question reordering must retain the same question, not its former position");
+  h.api.dispose();passes++;
+ }
+ {
+  for(const reject of [false,true]){
+   const pending=deferred(),h=setup({inline:true,request:()=>pending.promise});h.api.scope="local-scope";const file=doc();h.api.setDocuments([file],false);
+   const read=h.api.openSource(file,{source_id:"s1"});assert.equal(h.document.activeElement,h.api.sourceHeading,"An explicit source action focuses its loading heading immediately");
+   const composer=h.document.createElement("textarea");h.dropTarget.append(composer);composer.value="Continue my answer";composer.focus();
+   if(reject)pending.reject(Error("Source unavailable"));else pending.resolve({source:{text:"Source loaded"}});await read;
+   assert.equal(h.document.activeElement,composer,"An asynchronous source result must not steal focus from typing in the conversation");assert.equal(composer.value,"Continue my answer");h.api.dispose();
+  }passes++;
+ }
+ {
+  const h=setup({inline:true}),ready=doc(),needsPurpose=doc({id:"doc_2",name:"Other.pdf",analysis:{phase:"quick",disposition:"needs_reason"}});h.api.setDocuments([ready,needsPurpose],false);
+  let cards=h.api.body.querySelectorAll(".documents-card"),toggle=cards[0].querySelector(".documents-detail-toggle");assert.equal(toggle.getAttribute("aria-expanded"),"false");assert.equal(cards[0].querySelector(".documents-detail-content").hidden,true);assert.equal(cards[1].querySelector(".documents-detail-content").hidden,false,"Files awaiting direction expose the purpose form immediately");
+  toggle.focus();toggle.click();assert.equal(toggle.getAttribute("aria-expanded"),"true");h.api.render();cards=h.api.body.querySelectorAll(".documents-card");toggle=cards[0].querySelector(".documents-detail-toggle");assert.equal(cards[0].querySelector(".documents-detail-content").hidden,false);assert.equal(h.document.activeElement,toggle,"Polling retains disclosure focus and expansion");
+  toggle.click();h.api.render();assert.equal(h.api.body.querySelector(".documents-detail-content").hidden,true);h.api.open("doc_1");assert.equal(h.api.body.querySelector(".documents-detail-content").hidden,false,"Evidence links reveal the selected file's details");
+  h.api.reset();h.api.setDocuments([ready],false);assert.equal(h.api.body.querySelector(".documents-detail-content").hidden,true);h.api.dispose();passes++;
+ }
+ {
+  const h=setup({inline:true});assert.equal(h.document.getElementById("documents-dialog"),null);assert.equal(h.document.getElementById("document-strip"),null);assert.equal(h.document.getElementById("document-controls"),null);
+  assert.equal(h.api.assets.querySelectorAll("input").length,1);assert.equal(h.findText("button","Add files"),h.api.attachButton);assert.equal(h.counts.at(-1).total,0);
+  h.api.setDocuments([doc()],false);assert.equal(h.counts.at(-1).total,1);assert.equal(h.api.assets.querySelectorAll(".documents-card").length,1);assert.equal(h.api.assets.querySelectorAll(".document-chip").length,0);
+  const before=h.api.exportState();h.api.open("doc_1");assert.equal(h.opened,1);assert.equal(h.document.activeElement.dataset.documentId,"doc_1");assert.equal(h.document.activeElement.scrolled,true);h.api.render();assert.equal(h.document.activeElement,h.api.body.querySelector(".documents-card"));assert.deepEqual(h.api.exportState(),before,"Opening Assets only changes presentation");h.api.dispose();assert.equal(h.api.assets.children.length,0);passes++;
+ }
+ {
+  const pending=deferred(),h=setup({inline:true,fetch:()=>pending.promise});await h.api.addFiles([{name:"invalid.exe",size:12}]);assert.equal(h.opened,1);assert.equal(h.counts.at(-1).issues,1);assert.equal(h.jsonCalls.length,0);assert.match(h.api.body.textContent,/Choose a PDF/);
+  const upload=h.api.addFiles([{name:"Reference.pdf",size:12}]);await tick();assert.equal(h.opened,2);assert.equal(h.counts.at(-1).total,1);assert.match(h.api.body.textContent,/Uploading/);pending.resolve(response(doc()));await upload;
+  assert.equal(h.counts.at(-1).total,1);assert.equal(h.api.assets.querySelectorAll(".documents-card").length,1);assert.equal(h.api.uploads.length,0);h.api.reset();assert.equal(h.counts.at(-1).total,0);assert.equal(h.counts.at(-1).issues,0);h.api.dispose();passes++;
+ }
+ {
+  const h=setup({inline:true,request:async()=>({source:{label:"Page 2",text:"Source text"}})});h.api.scope="local-scope";const file=doc({analysis:{phase:"complete",disposition:"needs_reason",sources:[{source_id:"s1",label:"Page 2"}]}});h.api.setDocuments([file],false);
+  let input=h.api.body.querySelector("[data-document-purpose]");input.value="Check approval controls";input.focus();input.setSelectionRange(2,8);h.api.body.scrollTop=60;h.api.render();input=h.api.body.querySelector("[data-document-purpose]");assert.equal(input.value,"Check approval controls");assert.equal(h.document.activeElement,input);assert.equal(input.selectionStart,2);assert.equal(h.api.body.scrollTop,60);
+  await h.api.openSource(file,{source_id:"s1",label:"Page 2"});assert.equal(h.document.activeElement,h.api.sourceHeading);assert.equal(h.api.sourceHeading.scrolled,true);assert.match(h.api.body.textContent,/Source text/);h.findText("button","Close source").click();assert.equal(h.document.activeElement.dataset.documentSource,"doc_1:s1");assert.equal(h.api.body.querySelector("[data-document-purpose]").value,"Check approval controls");h.api.dispose();passes++;
+ }
+ {
+  const h=setup({inline:true});const file=doc(),question={id:"q1",text:"Who approves this?"};h.api.setDocuments([file],false);h.api.options.canDiscuss=()=>false;h.api.discuss(file,question);assert.equal(h.discussed,0);assert.equal(h.events.length,0);
+  h.api.options.canDiscuss=()=>true;h.api.discuss(file,question);assert.equal(h.discussed,1);assert.equal(h.events.at(-1).type,"question");assert.equal(h.api.documents.length,1);h.api.dispose();passes++;
+ }
+ {
+  const h=setup({inline:true}),sheet=h.document.createElement("dialog");sheet.open=true;h.document.body.append(sheet);sheet.append(h.api.assets);const transfer={types:["Files"],files:[{name:"mobile.pdf",size:20}],items:[]};
+  h.listeners.drop({target:h.api.attachButton,dataTransfer:transfer,preventDefault(){}});await tick();assert.equal(h.uploads.length,1,"The relocated mobile Assets panel remains a file drop target");assert.equal(h.opened,1);h.api.dispose();assert.equal(h.listeners.drop,undefined);passes++;
+ }
+ {
+  const pending=deferred(),h=setup({inline:true,request:()=>pending.promise});h.api.scope="local-scope";const file=doc();h.api.setDocuments([file],false);const read=h.api.openSource(file,{source_id:"s1"});h.api.assets.hidden=true;const other=h.document.createElement("button");h.document.body.append(other);other.focus();pending.resolve({source:{text:"Read later"}});await read;assert.equal(h.document.activeElement,other,"A source finishing after the tab changed must not steal focus into the hidden Assets panel");h.api.dispose();passes++;
+ }
+ {
+  const h=setup(),file={name:"Dropped procedure.pdf",size:1200},transfer={types:["Files"],files:[file],items:[]};let prevented=0,adding;const addFiles=h.api.addFiles.bind(h.api);h.api.addFiles=files=>(adding=addFiles(files));
+  h.dropTarget.dispatch("dragenter",{dataTransfer:transfer,preventDefault(){prevented++;}});assert.equal(h.api.dropOverlay.hidden,false);assert.match(h.api.dropOverlay.textContent,/Drop files into this conversation/);
+  h.dropTarget.dispatch("dragenter",{target:h.api.strip,dataTransfer:transfer});h.dropTarget.dispatch("dragleave",{target:h.api.strip,dataTransfer:transfer,relatedTarget:h.api.controls});assert.equal(h.api.dropOverlay.hidden,false,"Moving between children keeps the drop target visible");
+  h.listeners.dragover({target:h.api.controls,dataTransfer:transfer,preventDefault(){prevented++;}});assert.equal(transfer.dropEffect,"copy");
+  h.listeners.drop({target:h.api.controls,dataTransfer:transfer,preventDefault(){prevented++;}});assert.equal(h.api.dropOverlay.hidden,true);await adding;
+  assert.equal(prevented,3);assert.equal(h.uploads.length,1);assert.equal(h.uploads[0][1].body,file);assert.equal(h.api.documents.length,1);assert.equal(h.api.input.clicks,0,"Drop must bypass the chooser and reuse direct upload");h.api.dispose();passes++;
+ }
+ {
+  const h=setup();let prevented=false;const transfer={types:["text/plain"],files:[]};
+  h.dropTarget.dispatch("dragenter",{dataTransfer:transfer,preventDefault(){prevented=true;}});h.listeners.dragover({target:h.dropTarget,dataTransfer:transfer,preventDefault(){prevented=true;}});h.listeners.drop({target:h.dropTarget,dataTransfer:transfer,preventDefault(){prevented=true;}});
+  assert.equal(prevented,false,"Text editing/internal text drags must keep browser behavior");assert.equal(h.api.dropOverlay.hidden,true);assert.equal(h.uploads.length,0);h.api.dispose();passes++;
+ }
+ {
+  const h=setup(),transfer={types:["Files"],files:[{name:"outside.pdf",size:20}]};let prevented=0;
+  h.listeners.dragover({target:h.document.body,dataTransfer:transfer,preventDefault(){prevented++;}});h.listeners.drop({target:h.document.body,dataTransfer:transfer,preventDefault(){prevented++;}});
+  assert.equal(prevented,2,"A file dropped outside the conversation cannot navigate away from unsaved work");assert.equal(transfer.dropEffect,"none");assert.equal(h.uploads.length,0);assert.equal(h.jsonCalls.length,0);
+  h.dropTarget.hidden=true;h.listeners.drop({target:h.api.controls,dataTransfer:transfer,preventDefault(){prevented++;}});assert.equal(h.uploads.length,0,"A hidden interview cannot accept uploads from another view");h.api.dispose();passes++;
+ }
+ {
+  let allowed=false;const h=setup({canUpload:()=>allowed}),transfer={types:["Files"],files:[{name:"wait.pdf",size:20}]};
+  h.dropTarget.dispatch("dragenter",{dataTransfer:transfer});assert.match(h.api.dropOverlay.textContent,/can't be attached/);h.listeners.drop({target:h.dropTarget,dataTransfer:transfer,preventDefault(){}});assert.equal(h.uploads.length,0);assert.match(h.notices.at(-1)[0],/can't be attached/);
+  allowed=true;h.api.setDocuments(Array.from({length:20},(_,i)=>doc({id:"doc_"+i})),false);h.dropTarget.dispatch("dragenter",{dataTransfer:transfer});assert.match(h.api.dropOverlay.textContent,/20 files/);h.listeners.drop({target:h.dropTarget,dataTransfer:transfer,preventDefault(){}});await tick();assert.equal(h.uploads.length,0);assert.match(h.api.dialog.textContent,/up to 20 files/);h.api.dispose();passes++;
+ }
+ {
+  const h=setup(),transfer={types:["Files"],files:[{name:"not-supported.exe",size:20},{name:"too-large.pdf",size:64*1024*1024+1},{name:"empty.csv",size:0}]};
+  h.listeners.drop({target:h.dropTarget,dataTransfer:transfer,preventDefault(){}});await tick();assert.equal(h.uploads.length,0);assert.equal(h.api.uploadErrors.length,3);assert.match(h.api.dialog.textContent,/64 MiB/);assert.equal(h.api.dialog.open,true,"Dropped validation errors use the same file tray");h.api.dispose();passes++;
+ }
+ {
+  const pending=deferred(),h=setup({fetch:()=>pending.promise}),transfer={types:["Files"],files:[{name:"late-drop.pdf",size:20}]};
+  h.listeners.drop({target:h.dropTarget,dataTransfer:transfer,preventDefault(){}});await tick();assert.equal(h.uploads.length,1);h.api.reset();assert.equal(h.uploads[0][1].signal.aborted,true);pending.resolve(response(doc()));await tick();assert.equal(h.api.documents.length,0);assert.equal(h.events.filter(e=>e.type==="received").length,0);h.api.dispose();passes++;
+ }
+ {
+  const h=setup(),transfer={types:["Files"],files:[]};h.dropTarget.dispatch("dragenter",{dataTransfer:transfer});h.listeners.keydown({key:"Escape"});assert.equal(h.api.dropOverlay.hidden,true);
+  h.dropTarget.dispatch("dragenter",{dataTransfer:transfer});h.dropTarget.dispatch("dragleave",{dataTransfer:transfer});assert.equal(h.api.dropOverlay.hidden,true);
+  h.dropTarget.dispatch("dragenter",{dataTransfer:transfer});h.api.suspend();assert.equal(h.api.dropOverlay.hidden,true);h.api.resume();h.dropTarget.dispatch("dragenter",{dataTransfer:transfer});h.listeners.blur();assert.equal(h.api.dropOverlay.hidden,true);
+  const overlay=h.api.dropOverlay;h.api.dispose();assert.equal(overlay.isConnected,false);assert.equal(h.listeners.drop,undefined);assert.equal(h.listeners.dragover,undefined);assert.equal(h.dropTarget.classList.contains("document-drop-zone"),false);passes++;
+ }
+ {
+  const h=setup(),transfer={types:["Files"],files:[],items:[{webkitGetAsEntry:()=>({isDirectory:true})}]};
+  h.listeners.drop({target:h.dropTarget,dataTransfer:transfer,preventDefault(){}});assert.equal(h.uploads.length,0);assert.match(h.notices.at(-1)[0],/individual files/);
+  h.listeners.drop({target:h.dropTarget,dataTransfer:{types:["Files"],files:[]},preventDefault(){}});assert.match(h.notices.at(-1)[0],/could not be read/);h.api.dispose();passes++;
+ }
  {
   const old=deferred(),fresh=deferred();let requests=0;const h=setup({request:()=>++requests===1?old.promise:fresh.promise});h.api.scope="local-scope";h.api.setDocuments([doc()],false);
   const polling=h.api.refresh(),before=h.api.controller.signal;h.listeners.pagehide();assert.equal(before.aborted,true);assert.equal(h.api.allowed(),false);assert.equal(h.api.documents.length,1);
@@ -214,6 +314,24 @@ function response(document){return{ok:true,json:async()=>({document})};}
   const stage=h.api.body.querySelector(".documents-stage");assert.match(stage.textContent,/Reading in depth/);assert.match(stage.textContent,/10\/50 units indexed/);assert.match(stage.textContent,/3 of 12 sections reviewed/);assert.equal(stage.dataset.state,"working");assert.match(h.api.body.textContent,/Reading now/);
   h.api.setDocuments([doc({analysis:{phase:"complete",disposition:"parked",version:2}})],false);assert.equal(h.api.body.querySelector(".documents-stage").dataset.state,"later");assert.match(h.api.body.textContent,/Saved for later/);
   h.api.setDocuments([doc({analysis:{phase:"complete",disposition:"needs_reason",version:3}})],false);const field=h.api.body.querySelector(".documents-purpose-field");assert.equal(field.tagName,"LABEL");assert.match(field.textContent,/What should I look for/);assert.equal(field.querySelector("input").dataset.documentPurpose,"doc_1");assert.ok(h.findText("button","Review now"));assert.ok(h.findText("button","Save for later"));h.api.dispose();passes++;
+ }
+ {
+  const h=setup(),indexed=doc({status:"ready",chunk_count:11,analysis:{}});
+  h.api.setDocuments([doc({status:"pending",chunk_count:0,analysis:{}})]);
+  assert.equal(h.events.filter(event=>event.type==="analysis").length,0,"A pending file must not be announced as readable");
+  h.api.setDocuments([indexed]);h.api.setDocuments([indexed]);
+  const available=h.events.filter(event=>event.type==="analysis");assert.equal(available.length,1,"Native text availability must reach the interview before model review and only once per snapshot");
+  assert.equal(available[0].document.chunk_count,11);assert.equal(JSON.stringify(available[0].analysis),"{}");
+  h.api.setDocuments([doc({chunk_count:11,analysis:{phase:"quick",version:1,summary:"Initial review"}})]);
+  assert.equal(h.events.filter(event=>event.type==="analysis").length,2,"The later real model review still emits its own update");h.api.dispose();passes++;
+ }
+ {
+  const h=setup(),indexed=doc({status:"partial",chunk_count:3,analysis:null});
+  h.api.setDocuments([indexed],false);h.api.setDocuments([indexed]);
+  assert.equal(h.events.filter(event=>event.type==="analysis").length,0,"Restoring saved readable metadata must not add a surprise event");
+  h.api.setDocuments([{...indexed,chunk_count:4}]);
+  assert.equal(h.events.filter(event=>event.type==="analysis").length,1,"Additional native-readable chunks must be available without a summary");
+  h.api.reset();h.api.setDocuments([indexed]);assert.equal(h.events.filter(event=>event.type==="analysis").length,2,"A new interview must not reuse the old event-deduplication state");h.api.dispose();passes++;
  }
  console.log(JSON.stringify({tests_passed:passes,network_calls:0,provider_calls:0,physical_files_uploaded:false}));
 })().catch(error=>{console.error(error);process.exitCode=1;});

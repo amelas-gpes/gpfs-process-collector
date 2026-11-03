@@ -46,6 +46,8 @@ assert(draft && draft.steps.length>=6,"A detailed process needs multiple steps")
 assert.deepEqual(JSON.parse(JSON.stringify(draft.memo_summary)),JSON.parse(JSON.stringify(state.memo_findings)));
 assert.equal(state.draftVersion,state.version,"The example must not open with a stale review");checks++;
 const ids=new Set(draft.steps.map(s=>s.id));assert.equal(ids.size,draft.steps.length);
+assert(new Set(draft.steps.map(s=>s.type)).size>=4,"The example should demonstrate several grounded diagram components");
+for(const [id,type] of Object.entries({S1:"data_store",S3:"end",S10:"document",S11:"end"}))assert.equal(draft.steps.find(step=>step.id===id).type,type);
 for(const step of draft.steps){
   for(const field of ["title","actor","system","description","input","output","completion_criteria","handoff"])
     assert(present(step[field]),`${step.id}: ${field} must be fully described`);

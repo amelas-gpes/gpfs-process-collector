@@ -1,0 +1,15 @@
+# Interviews with existing documents
+
+Drop one or more supported files onto the interview workspace, or use **Assets → Add files**. The Assets tab is the central place to track uploads, manage files, and read their details and sources. On smaller screens, open **Workspace → Assets**. Both upload methods share the same file limits, progress display and error recovery. Text dragging remains normal; dropping a file outside the upload workspace does not navigate away from an interview.
+
+Readable text can start the notes and working diagram before background AI review finishes, without waiting for another spoken answer. The app uses the documented name, sequence, roles, branches and controls instead of requiring the participant to retell them. The interviewer should explain what is already covered and ask one useful question about a real gap, contradiction or currentness issue. A source may itself identify unresolved assignments; these remain open.
+
+Documentary evidence is distinct from participant confirmation. Notes display **Documented**, with source excerpts available from each citation. The document alone does not establish current practice, exhaustive completeness or owner approval. Current operating steps remain separate from proposed improvements and separate regional processes. Saved interviews retain the cited excerpts; procedure exports include their provenance. Transcript exports list documentary references without embedding the files or their text.
+
+Before a document-based map is accepted, a separate audit checks its proposed edits against the same source excerpts and the process boundary. It checks regional applicability, required signoffs, exception routes, unsupported connections and proposed changes. The source audit uses `gpt-5.4` by default, configurable with `WORKFLOW_AUDIT_MODEL`; the normal interview retains its separately configured model. This additional review takes longer than transcript-only capture; the app shows its progress and retains the last accepted diagram if either step fails.
+
+Exact sources are retrieved from the current interview's private file scope. Browser-supplied citations cannot authorize new facts. Requests retain prior cited excerpts within a bounded context: up to 60,000 source characters, 120 chunks and six active files. Large or partially readable files disclose omissions and reading limitations. Voice updates carry a smaller selection of exact excerpts and disclose that selection. Original files and private scopes remain local and outside Git.
+
+Changing a file's purpose, parking/removing it, or opening another interview invalidates late responses based on its prior state. Prior cited facts survive file removal as saved evidence; removed or parked material cannot silently authorize new workflow claims. Explicit step/route deletions still require a participant correction.
+
+Knowledge submissions resolve documentary citations again on the server and preserve their source type and exact text for review. They do not convert file text into participant testimony or approval.

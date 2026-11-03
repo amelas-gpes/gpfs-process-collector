@@ -109,7 +109,7 @@ class DocumentServiceTests(unittest.TestCase):
         service = self.service(analyze)
         records = [service.upload(self.scope, f'reference{i}.csv', b'header,value\na,42\n') for i in range(7)]
         for record in records:
-            self.wait(record['id'])
+            self.wait(record['id'], timeout=20)
         support = service.supporting_context(self.scope, 'AnotherCompletelyMissingTerm')
         self.assertEqual(len(support['documents']), 6)
         self.assertEqual(support['omitted_documents'], 1)
@@ -117,7 +117,8 @@ class DocumentServiceTests(unittest.TestCase):
             self.assertEqual(len(document['summary']), 700)
             self.assertTrue(document['summary_excerpt'])
             self.assertEqual(len(document['questions']), 2)
-            self.assertEqual(document['excerpts'], [])
+            self.assertTrue(document['excerpts'])
+            self.assertTrue(document['context_coverage']['complete_text'])
         service.action(self.scope, records[0]['id'], 'park')
         self.assertNotIn(records[0]['id'], [item['id'] for item in service.supporting_context(self.scope, 'AnotherCompletelyMissingTerm')['documents']])
 
@@ -152,6 +153,8 @@ class DocumentServiceTests(unittest.TestCase):
             relevance = initial if phase == 'quick' else ('relevant' if initial == 'unrelated' else 'unrelated')
             value = response(chunks, relevance)
             value['relevance_reason'] = f'{phase} assessment'
+            value['summary'] = 'Whole process identity and scope.' if phase == 'quick' else 'The final appendix only.'
+            value['queries'] = ['process identity'] if phase == 'quick' else ['final appendix']
             return value
         service = self.service(analyze)
         unrelated = service.upload(self.scope, 'unrelated.csv', b'important,value\na,42\n')
@@ -162,8 +165,72 @@ class DocumentServiceTests(unittest.TestCase):
                          ('unrelated', 'quick assessment', 'needs_reason'))
         self.assertEqual((relevant_result['relevance'], relevant_result['relevance_reason'], relevant_result['disposition']),
                          ('relevant', 'quick assessment', 'relevant'))
-        self.assertEqual([item['id'] for item in service.supporting_context(self.scope, 'important')['documents']],
-                         [relevant['id']])
+        self.assertEqual(relevant_result['summary'], 'Whole process identity and scope.')
+        self.assertEqual(relevant_result['queries'], ['process identity', 'final appendix'])
+        available = {item['id']: item for item in service.supporting_context(self.scope, 'important')['documents']}
+        self.assertEqual(set(available), {relevant['id'], unrelated['id']})
+        self.assertEqual(available[unrelated['id']]['disposition'], 'needs_reason')
+
+    def test_initial_document_text_is_available_before_model_review_without_repeating_intake(self):
+        service = self.service(lambda *args: self.fail('Supporting context must not require a provider request.'))
+        # A complete modest procedure exceeds the old 18k excerpt budget. Its
+        # final instruction is as important to the process as its opening.
+        data = ('step,description\n' + ''.join(f'{i},Documented handling detail ' + 'x' * 90 + '\n' for i in range(250))
+                + 'final,Release requires two authorized reviewers and record retention.\n').encode()
+        record = self.store.add(self.scope, 'procedure.csv', data, self.context)
+        indexed = self.store.extract(self.scope, record['id'])
+        self.assertEqual(indexed['analysis'], {})
+        support = service.supporting_context(self.scope, 'Everything is already in the attached file')
+        document = support['documents'][0]
+        self.assertEqual(document['disposition'], 'awaiting_review')
+        self.assertEqual(document['name'], 'procedure.csv')
+        self.assertFalse(document['review']['review_complete'])
+        self.assertTrue(document['context_coverage']['complete_text'])
+        self.assertGreater(support['context_budget']['characters'], 18000)
+        self.assertIn('Release requires two authorized reviewers', '\n'.join(chunk['text'] for chunk in document['excerpts']))
+        self.assertEqual(document['excerpts'], self.store.chunks(self.scope, record['id'])['chunks'])
+        self.assertIn('Do not ask the participant to repeat', support['notice'])
+
+    def test_large_document_retains_exact_prior_sources_and_exposes_partial_coverage(self):
+        service = self.service(lambda *args: self.fail('Context retrieval must not call the provider.'))
+        data = ('step,description\n' + ''.join(f'{i},common handling detail ' + 'x' * 200 + '\n' for i in range(1000))).encode()
+        record = self.store.add(self.scope, 'large.csv', data, self.context)
+        self.store.extract(self.scope, record['id'])
+        chunks = self.store.chunks(self.scope, record['id'])['chunks']
+        first = service.supporting_context(self.scope, 'common')['documents'][0]
+        included = {chunk['id'] for chunk in first['excerpts']}
+        previous = next(chunk for chunk in reversed(chunks) if chunk['id'] not in included)
+        other_scope = self.store.create_scope()
+        foreign = self.store.add(other_scope, 'foreign.csv', b'field,value\nprivate,other interview\n', {})
+        self.store.extract(other_scope, foreign['id'])
+        foreign_source = self.store.chunks(other_scope, foreign['id'])['chunks'][0]
+        support = service.supporting_context(self.scope, 'common', source_ids=[previous['id'], foreign_source['id'], 'fabricated'])
+        document = support['documents'][0]
+        self.assertEqual(document['excerpts'][0], previous)
+        self.assertFalse(document['context_coverage']['complete_text'])
+        self.assertEqual(document['context_coverage']['selection'], 'selected excerpts')
+        self.assertLess(document['context_coverage']['included_chunks'], document['context_coverage']['total_chunks'])
+        self.assertLessEqual(support['context_budget']['characters'], service_module.MAX_SUPPORT_CHARS)
+        self.assertNotIn(foreign_source['id'], json.dumps(support))
+        self.store.archive(self.scope, record['id'])
+        removed = service.supporting_context(self.scope, 'common', source_ids=[previous['id'], foreign_source['id']])
+        self.assertEqual(removed['documents'], [])
+        self.assertEqual(len(removed['retained_evidence']), 1)
+        self.assertEqual(removed['retained_evidence'][0], {**previous, 'retained_only': True,
+                                                        'archived': True, 'disposition': 'awaiting_review'})
+        self.assertEqual(service.supporting_context(self.scope, 'common')['retained_evidence'], [])
+        with self.assertRaises(PermissionError):
+            service.source(self.scope, record['id'], previous['id'])
+
+    def test_pending_and_failed_files_are_visible_without_claiming_they_have_been_read(self):
+        service = self.service(lambda *args: self.fail('Context retrieval must not call the provider.'))
+        pending = self.store.add(self.scope, 'waiting.csv', b'field,value\na,1\n', {})
+        failed = self.store.add(self.scope, 'failed.csv', b'field,value\na,1\n', {})
+        self.store.update(self.scope, failed['id'], {'status': 'error', 'error': 'Unable to decode.'})
+        support = service.supporting_context(self.scope, 'the file has everything')
+        self.assertEqual(support['documents'], [])
+        self.assertEqual({item['id']: item['status'] for item in support['pending_documents']},
+                         {pending['id']: 'pending', failed['id']: 'error'})
 
     def test_remove_during_provider_request_invalidates_late_result_and_keeps_original(self):
         entered, release, finished = threading.Event(), threading.Event(), threading.Event()

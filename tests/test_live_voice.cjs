@@ -201,11 +201,44 @@ function acknowledge(h,events=h.channels.at(-1).sent.filter(e=>e.type==="session
  }
  {
   const h=setup();await h.api.start();
-  for(const [text,options] of [["",{id:"empty"}],["a".repeat(16385),{id:"long"}],["漢".repeat(6000),{id:"utf8long"}],["valid",{id:"not\na\nreference"}],["valid",{id:"kind",kind:"developer\ninstructions"}]]){
+  for(const [text,options] of [["",{id:"empty"}],["a".repeat(16385),{id:"long"}],["漢".repeat(6000),{id:"utf8long"}],["valid",{id:"not\na\nreference"}],["valid",{id:"kind",kind:"developer\ninstructions"}],["valid",{id:"key",replaceKey:"bad\nkey"}]]){
    const result=await h.api.appendContext(text,options);assert.equal(result.status,"rejected");assert.equal(result.reason,"invalid_context");
   }
   assert.equal(h.channels[0].sent.filter(e=>e.type==="session.thinking.append").length,0,"Invalid contexts must not be partially sent");assert.equal(h.api.connected,true);
   await h.api.stop({immediate:true});passes++;
+ }
+ {
+  const h=setup({autoStarted:false});const starting=h.api.start();await tick();
+  const received=h.api.appendContext("File received; extraction pending.",{id:"doc_received",replaceKey:"doc"});
+  const other=h.api.appendContext("A second source remains relevant.",{id:"other",replaceKey:"other_doc"});
+  const quick=h.api.appendContext("Preliminary payment summary.",{id:"doc_quick",replaceKey:"doc"});
+  const ready=h.api.appendContext("Verified excerpt: The preparer checks approval before payment.",{id:"doc_ready",replaceKey:"doc"});
+  assert.equal((await received).reason,"superseded");assert.equal((await quick).reason,"superseded");
+  assert.equal(h.api.operation.context.records.size,2,"Pending phases coalesce per document without discarding other documents");
+  h.event({type:"session.started",session:{id:"live_test"}});assert.equal(await starting,true);
+  const sent=h.channels[0].sent.filter(e=>e.type==="session.thinking.append");
+  const pieces=sent.map(e=>JSON.parse(e.content.slice(e.content.indexOf("\n")+1)));
+  assert.deepEqual([...new Set(pieces.map(p=>p.source_id))],["other","doc_ready"]);
+  assert.ok(pieces.every(p=>p.document_key===(p.source_id==="other"?"other_doc":"doc")));
+  assert.ok(sent.every(e=>e.content.includes("Silent update: assemble all parts before use; do not acknowledge receipt or fragments.")));
+  acknowledge(h,sent);assert.equal((await ready).status,"acknowledged");assert.equal((await other).status,"acknowledged");
+  assert.equal(h.errors.length,0);assert.equal(h.captions.length,0);await h.api.stop({immediate:true});passes++;
+ }
+ {
+  const h=setup();await h.api.start();
+  const old=h.api.appendContext("Earlier extracted facts.",{id:"sent_old",replaceKey:"doc"});
+  const latest=h.api.appendContext("Updated extracted facts.",{id:"sent_latest",replaceKey:"doc"});
+  assert.equal(h.api.operation.context.records.size,2,"Sent records stay in flight until their individual receipts settle");
+  acknowledge(h);assert.equal((await old).status,"acknowledged");assert.equal((await latest).status,"acknowledged");
+  assert.equal(h.contexts.some(c=>c.reason==="superseded"),false);await h.api.stop({immediate:true});passes++;
+ }
+ {
+  const h=setup({autoStarted:false});const starting=h.api.start();await tick();const key="d".repeat(96);
+  const old=h.api.appendContext("Keep this valid context.",{id:"old",replaceKey:key});
+  const rejected=await h.api.appendContext("x".repeat(16000),{id:"n".repeat(96),kind:"k".repeat(32),replaceKey:key});
+  assert.equal(rejected.reason,"queue_full");assert.equal(h.api.operation.context.records.has("old"),true,"A replacement exceeding envelope limits must preserve the valid queued context");
+  h.event({type:"session.started",session:{id:"live_test"}});assert.equal(await starting,true);acknowledge(h);
+  assert.equal((await old).status,"acknowledged");await h.api.stop({immediate:true});passes++;
  }
  {
   const h=setup({autoStarted:false});const starting=h.api.start();await tick();const pending=[];
@@ -276,6 +309,15 @@ function acknowledge(h,events=h.channels.at(-1).sent.filter(e=>e.type==="session
   h.event({type:"session.commentary.appended",client_event_id:greeting.event_id,start_ms:100,end_ms:200});assert.equal(h.greetings.length,2);
   const doc=h.api.appendContext("The tracker records a review date.",{id:"after_greeting"});
   assert.ok(sent.slice(1).every(e=>e.type==="session.thinking.append"),"Later documents never request speech");acknowledge(h);assert.equal((await doc).status,"acknowledged");
+  await h.api.stop({immediate:true});passes++;
+ }
+ {
+  const h=setup({request:async()=>({sdp:"v=0\r\no=remote",model:"gpt-live-1",document_evidence:[{id:"doc_source",text:"The documented process is payment execution."}]})});
+  await h.api.start({turns:[]});
+  const greeting=h.channels[0].sent.find(e=>e.type==="session.commentary.append");
+  assert.ok(greeting);assert.match(greeting.content,/read the supplied document context/);
+  assert.doesNotMatch(greeting.content,/What work would you like/);assert.ok(Buffer.byteLength(greeting.content)<=480);
+  assert.equal(h.captions.length,0,"Document-aware openings do not invent participant turns");
   await h.api.stop({immediate:true});passes++;
  }
  {

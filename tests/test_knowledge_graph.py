@@ -78,6 +78,66 @@ class GraphTests(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory();self.path=Path(self.temp.name)/'graph.db';self.graph=kg.KnowledgeGraph(self.path,proposal)
     def tearDown(self): self.graph.close();self.temp.cleanup()
+    def document_submission(self, with_participant=False):
+        document_id='doc_'+'a'*32
+        source_id=document_id+'_page11_chunk0'
+        evidence={'id':source_id,'document_id':document_id,'name':'Reference.pdf','label':'Page 11',
+                  'text':'  The source describes receiving work, then checking the result.\n'}
+        p=payload('Documented intake','Use the attached process.')
+        if not with_participant:p['turns']=[]
+        p['documents']={'documents':[{'id':document_id,'name':evidence['name'],'sources':[{'source_id':source_id}]}]}
+        for item in [*p['draft']['steps'],*p['draft']['connections']]:item['evidence_turns']=[source_id]
+        return p,evidence
+    def test_verified_document_capture_is_saved_with_exact_provenance_and_no_manufactured_participant(self):
+        self.graph.analyzer=None
+        p,evidence=self.document_submission();original_text=evidence['text']
+        receipt=self.graph.submit(p,document_scope='private-scope',document_evidence=[evidence])
+        saved=self.graph.admin_detail('submission',receipt['submission_id'],1)['item']
+        self.assertEqual(saved['turns'],[])
+        self.assertEqual(saved['document_evidence'][0]['text'],original_text)
+        self.assertFalse(saved['document_evidence'][0]['participant_confirmed'])
+        self.assertTrue(saved['document_evidence'][0]['owner_review_required'])
+        self.assertNotIn('private-scope',kg.dumps(saved))
+        snapshot=self.graph.admin_snapshot()
+        step=next(item for item in snapshot['entities'] if item['type']=='step')
+        self.assertEqual(step['data']['source_kind'],'document')
+        self.assertFalse(step['data']['participant_confirmed'])
+        self.assertEqual(step['data']['document_source_ids'],[evidence['id']])
+        connection=next(item for item in snapshot['edges'] if item['type']=='happens_after')
+        self.assertEqual(connection['status'],'reported')
+        self.assertEqual(connection['evidence']['source_kind'],'document')
+        detail=self.graph.admin_detail('entity',step['id'])
+        self.assertEqual(detail['submissions'][0]['document_evidence'][0]['text'],original_text)
+        self.assertEqual(detail['submissions'][0]['turns'],[])
+    def test_imported_catalog_cannot_authorize_document_citations(self):
+        self.graph.analyzer=None
+        p,evidence=self.document_submission(with_participant=True)
+        p['document_evidence']=[evidence]
+        with self.assertRaisesRegex(ValueError,'non-participant evidence'):
+            self.graph.submit(p,document_scope='private-scope')
+        self.assertEqual(self.graph.admin_snapshot()['submissions'],[])
+    def test_verified_catalog_rejects_missing_manifest_inactive_sources_and_missing_scope(self):
+        self.graph.analyzer=None
+        for change in ({'retained_only':True},{'archived':True},{'disposition':'parked'},
+                       {'id':'doc_another_page1'},{'document_id':'doc_another'}):
+            p,evidence=self.document_submission()
+            with self.subTest(change=change),self.assertRaises(ValueError):
+                self.graph.submit(p,document_scope='private-scope',document_evidence=[{**evidence,**change}])
+        p,evidence=self.document_submission();p['documents']={'documents':[]}
+        with self.assertRaises(ValueError):self.graph.submit(p,document_scope='private-scope',document_evidence=[evidence])
+        p,evidence=self.document_submission()
+        with self.assertRaisesRegex(ValueError,'authorized scope'):self.graph.submit(p,document_evidence=[evidence])
+        self.assertEqual(self.graph.admin_snapshot()['submissions'],[])
+    def test_mixed_document_and_participant_provenance_does_not_confirm_connections(self):
+        self.graph.analyzer=None
+        p,evidence=self.document_submission(with_participant=True)
+        p['draft']['steps'][0]['evidence_turns'].append('u1')
+        self.graph.submit(p,document_scope='private-scope',document_evidence=[evidence])
+        snapshot=self.graph.admin_snapshot()
+        step=next(item for item in snapshot['entities'] if item['type']=='step')
+        self.assertEqual(step['data']['source_kind'],'mixed')
+        self.assertTrue(step['data']['owner_review_required'])
+        self.assertTrue(all(item['status']=='reported' for item in snapshot['edges']))
     def test_document_simulation_provenance_survives_persistence_without_employee_attestation(self):
         p=payload('Document-derived process','The reference describes sending the approved file.')
         p['capture_provenance']=simulation_provenance()

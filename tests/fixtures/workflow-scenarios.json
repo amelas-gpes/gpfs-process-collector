@@ -1,0 +1,4488 @@
+{
+  "description": "Fictional process evidence for diagram semantics and rendering regression. No provider calls required.",
+  "scenarios": [
+    {
+      "id": "linear",
+      "name": "Incoming service request",
+      "synthetic": true,
+      "narrative": "A submitted request starts the process. The coordinator records it, assigns a specialist, and the specialist completes the work. Completion ends the process.",
+      "components": [
+        "start",
+        "activity",
+        "end"
+      ],
+      "graph": {
+        "title": "Incoming service request",
+        "steps": [
+          {
+            "id": "S",
+            "title": "Request submitted",
+            "type": "start",
+            "actor": "Requester",
+            "system": "Request form",
+            "description": "Request submitted",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "A",
+            "title": "Record request",
+            "type": "activity",
+            "actor": "Operations coordinator",
+            "system": "Work queue",
+            "description": "Record request",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "B",
+            "title": "Assign specialist",
+            "type": "activity",
+            "actor": "Operations coordinator",
+            "system": "Work queue",
+            "description": "Assign specialist",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "C",
+            "title": "Complete requested work",
+            "type": "activity",
+            "actor": "Specialist",
+            "system": "Work queue",
+            "description": "Complete requested work",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "E",
+            "title": "Request fulfilled",
+            "type": "end",
+            "actor": "Operations coordinator",
+            "system": "Work queue",
+            "description": "Request fulfilled",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          }
+        ],
+        "connections": [
+          {
+            "from": "S",
+            "to": "A",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "A",
+            "to": "B",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "B",
+            "to": "C",
+            "label": "Assigned",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "C",
+            "to": "E",
+            "label": "Work complete",
+            "evidence_turns": [
+              "u1"
+            ]
+          }
+        ],
+        "open_questions": []
+      },
+      "ordered_routes": [
+        [
+          "S",
+          "A",
+          "B",
+          "C",
+          "E"
+        ]
+      ]
+    },
+    {
+      "id": "binary_approval",
+      "name": "Expense approval",
+      "synthetic": true,
+      "narrative": "An employee submits an expense. A manager checks whether it meets policy. If it does, Accounts Payable reimburses it and closes it as paid. Otherwise the manager declines it and closes it as declined.",
+      "components": [
+        "start",
+        "decision",
+        "activity",
+        "end"
+      ],
+      "graph": {
+        "title": "Expense approval",
+        "steps": [
+          {
+            "id": "S",
+            "title": "Expense submitted",
+            "type": "start",
+            "actor": "Employee",
+            "system": "Expense portal",
+            "description": "Expense submitted",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "D",
+            "title": "Does the expense meet policy?",
+            "type": "decision",
+            "actor": "Manager",
+            "system": "Expense portal",
+            "description": "Does the expense meet policy?",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "P",
+            "title": "Reimburse expense",
+            "type": "activity",
+            "actor": "Accounts Payable",
+            "system": "Bank portal",
+            "description": "Reimburse expense",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "N",
+            "title": "Decline expense",
+            "type": "activity",
+            "actor": "Manager",
+            "system": "Expense portal",
+            "description": "Decline expense",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "EP",
+            "title": "Expense paid",
+            "type": "end",
+            "actor": "Operations coordinator",
+            "system": "Work queue",
+            "description": "Expense paid",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "EN",
+            "title": "Expense declined",
+            "type": "end",
+            "actor": "Operations coordinator",
+            "system": "Work queue",
+            "description": "Expense declined",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          }
+        ],
+        "connections": [
+          {
+            "from": "S",
+            "to": "D",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D",
+            "to": "P",
+            "label": "Meets policy",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D",
+            "to": "N",
+            "label": "Outside policy",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "P",
+            "to": "EP",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "N",
+            "to": "EN",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          }
+        ],
+        "open_questions": []
+      },
+      "branches": [
+        {
+          "from": "D",
+          "targets": [
+            "P",
+            "N"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "multiway",
+      "name": "Support case triage",
+      "synthetic": true,
+      "narrative": "Support receives a case, then classifies it as billing, technical, account access, or unclassified. Each category goes to its named specialist; unclassified goes to a triage lead. Every route returns a resolution to support, which notifies the customer and closes the case.",
+      "components": [
+        "start",
+        "decision",
+        "activity",
+        "end"
+      ],
+      "graph": {
+        "title": "Support case triage",
+        "steps": [
+          {
+            "id": "S",
+            "title": "Support case received",
+            "type": "start",
+            "actor": "Support agent",
+            "system": "Case system",
+            "description": "Support case received",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "D",
+            "title": "Which team owns the issue?",
+            "type": "decision",
+            "actor": "Support agent",
+            "system": "Case system",
+            "description": "Which team owns the issue?",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "B",
+            "title": "Resolve billing issue",
+            "type": "activity",
+            "actor": "Billing specialist",
+            "system": "Billing system",
+            "description": "Resolve billing issue",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "T",
+            "title": "Resolve technical issue",
+            "type": "activity",
+            "actor": "Technical specialist",
+            "system": "Service console",
+            "description": "Resolve technical issue",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "A",
+            "title": "Restore account access",
+            "type": "activity",
+            "actor": "Access specialist",
+            "system": "Identity console",
+            "description": "Restore account access",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "U",
+            "title": "Investigate unclassified issue",
+            "type": "activity",
+            "actor": "Triage lead",
+            "system": "Case system",
+            "description": "Investigate unclassified issue",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "N",
+            "title": "Notify customer of resolution",
+            "type": "activity",
+            "actor": "Support agent",
+            "system": "Case system",
+            "description": "Notify customer of resolution",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "E",
+            "title": "Case closed",
+            "type": "end",
+            "actor": "Support agent",
+            "system": "Case system",
+            "description": "Case closed",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          }
+        ],
+        "connections": [
+          {
+            "from": "S",
+            "to": "D",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D",
+            "to": "B",
+            "label": "Billing",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D",
+            "to": "T",
+            "label": "Technical",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D",
+            "to": "A",
+            "label": "Account access",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D",
+            "to": "U",
+            "label": "Unclassified",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "B",
+            "to": "N",
+            "label": "Resolved",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "T",
+            "to": "N",
+            "label": "Resolved",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "A",
+            "to": "N",
+            "label": "Resolved",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "U",
+            "to": "N",
+            "label": "Resolved",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "N",
+            "to": "E",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          }
+        ],
+        "open_questions": []
+      },
+      "branches": [
+        {
+          "from": "D",
+          "targets": [
+            "B",
+            "T",
+            "A",
+            "U"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nested_rework",
+      "name": "Purchase approval with escalation",
+      "synthetic": true,
+      "narrative": "A purchase request is checked for completeness. Missing details return to the requester and are checked again. A complete request under the threshold goes directly to ordering. A request at or over the threshold goes to a director. The director approves it for ordering or declines it, ending the request. After ordering, delivery is checked. A mismatch is resolved with the supplier and delivery is checked again; accepted delivery ends the process.",
+      "components": [
+        "start",
+        "decision",
+        "activity",
+        "end",
+        "rework"
+      ],
+      "graph": {
+        "title": "Purchase approval with escalation",
+        "steps": [
+          {
+            "id": "S",
+            "title": "Purchase request received",
+            "type": "start",
+            "actor": "Operations coordinator",
+            "system": "Work queue",
+            "description": "Purchase request received",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "D1",
+            "title": "Are all required details present?",
+            "type": "decision",
+            "actor": "Operations coordinator",
+            "system": "Work queue",
+            "description": "Are all required details present?",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "R",
+            "title": "Obtain missing request details",
+            "type": "activity",
+            "actor": "Requester",
+            "system": "Purchase portal",
+            "description": "Obtain missing request details",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "D2",
+            "title": "Does the amount reach the approval threshold?",
+            "type": "decision",
+            "actor": "Operations coordinator",
+            "system": "Work queue",
+            "description": "Does the amount reach the approval threshold?",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "D3",
+            "title": "Does the director approve?",
+            "type": "decision",
+            "actor": "Director",
+            "system": "Purchase portal",
+            "description": "Does the director approve?",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "O",
+            "title": "Place purchase order",
+            "type": "activity",
+            "actor": "Buyer",
+            "system": "Procurement system",
+            "description": "Place purchase order",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "D4",
+            "title": "Does the delivery match the order?",
+            "type": "decision",
+            "actor": "Receiving team",
+            "system": "Receiving log",
+            "description": "Does the delivery match the order?",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "X",
+            "title": "Resolve delivery mismatch",
+            "type": "activity",
+            "actor": "Buyer",
+            "system": "Supplier correspondence",
+            "description": "Resolve delivery mismatch",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "E",
+            "title": "Delivery accepted",
+            "type": "end",
+            "actor": "Operations coordinator",
+            "system": "Work queue",
+            "description": "Delivery accepted",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "NO",
+            "title": "Purchase declined",
+            "type": "end",
+            "actor": "Operations coordinator",
+            "system": "Work queue",
+            "description": "Purchase declined",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          }
+        ],
+        "connections": [
+          {
+            "from": "S",
+            "to": "D1",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D1",
+            "to": "R",
+            "label": "Missing details",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "R",
+            "to": "D1",
+            "label": "Details supplied",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D1",
+            "to": "D2",
+            "label": "Complete",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D2",
+            "to": "O",
+            "label": "Below threshold",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D2",
+            "to": "D3",
+            "label": "At or above threshold",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D3",
+            "to": "O",
+            "label": "Approved",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D3",
+            "to": "NO",
+            "label": "Declined",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "O",
+            "to": "D4",
+            "label": "Delivered",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D4",
+            "to": "X",
+            "label": "Mismatch",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "X",
+            "to": "D4",
+            "label": "Replacement delivered",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D4",
+            "to": "E",
+            "label": "Matches order",
+            "evidence_turns": [
+              "u1"
+            ]
+          }
+        ],
+        "open_questions": []
+      },
+      "required_loops": [
+        [
+          "R",
+          "D1"
+        ],
+        [
+          "X",
+          "D4"
+        ]
+      ]
+    },
+    {
+      "id": "parallel_onboarding",
+      "name": "Employee onboarding",
+      "synthetic": true,
+      "narrative": "After a signed offer arrives, HR launches identity checks, IT account setup, and facilities desk preparation at the same time. Identity checks may require a corrected document and recheck. HR waits until identity checks, IT accounts, and desk preparation are all complete before sending the welcome pack and marking onboarding ready.",
+      "components": [
+        "start",
+        "parallel_split",
+        "parallel_join",
+        "activity",
+        "decision",
+        "end"
+      ],
+      "graph": {
+        "title": "Employee onboarding",
+        "steps": [
+          {
+            "id": "S",
+            "title": "Signed offer received",
+            "type": "start",
+            "actor": "HR coordinator",
+            "system": "Hiring system",
+            "description": "Signed offer received",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "F",
+            "title": "Begin onboarding workstreams",
+            "type": "parallel_split",
+            "actor": "HR coordinator",
+            "system": "Onboarding checklist",
+            "description": "Begin onboarding workstreams",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "ID",
+            "title": "Verify identity documents",
+            "type": "activity",
+            "actor": "HR analyst",
+            "system": "Verification service",
+            "description": "Verify identity documents",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "D",
+            "title": "Are identity documents accepted?",
+            "type": "decision",
+            "actor": "HR analyst",
+            "system": "Verification service",
+            "description": "Are identity documents accepted?",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "R",
+            "title": "Request corrected identity document",
+            "type": "activity",
+            "actor": "New employee",
+            "system": "Secure upload",
+            "description": "Request corrected identity document",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "IT",
+            "title": "Set up employee accounts",
+            "type": "activity",
+            "actor": "IT analyst",
+            "system": "Identity console",
+            "description": "Set up employee accounts",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "DESK",
+            "title": "Prepare desk and access badge",
+            "type": "activity",
+            "actor": "Facilities",
+            "system": "Work order system",
+            "description": "Prepare desk and access badge",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "J",
+            "title": "All three workstreams complete",
+            "type": "parallel_join",
+            "actor": "HR coordinator",
+            "system": "Onboarding checklist",
+            "description": "All three workstreams complete",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "W",
+            "title": "Send welcome pack",
+            "type": "document",
+            "actor": "HR coordinator",
+            "system": "Secure email",
+            "description": "Send welcome pack",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "E",
+            "title": "Employee ready to start",
+            "type": "end",
+            "actor": "HR coordinator",
+            "system": "Hiring system",
+            "description": "Employee ready to start",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          }
+        ],
+        "connections": [
+          {
+            "from": "S",
+            "to": "F",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "F",
+            "to": "ID",
+            "label": "Identity checks",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "F",
+            "to": "IT",
+            "label": "IT setup",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "F",
+            "to": "DESK",
+            "label": "Facilities setup",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "ID",
+            "to": "D",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D",
+            "to": "R",
+            "label": "Correction needed",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "R",
+            "to": "ID",
+            "label": "Corrected document",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D",
+            "to": "J",
+            "label": "Identity accepted",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "IT",
+            "to": "J",
+            "label": "Accounts ready",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "DESK",
+            "to": "J",
+            "label": "Desk and badge ready",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "J",
+            "to": "W",
+            "label": "All complete",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "W",
+            "to": "E",
+            "label": "Welcome pack sent",
+            "evidence_turns": [
+              "u1"
+            ]
+          }
+        ],
+        "open_questions": []
+      },
+      "branches": [
+        {
+          "from": "F",
+          "targets": [
+            "ID",
+            "IT",
+            "DESK"
+          ]
+        }
+      ],
+      "required_loops": [
+        [
+          "R",
+          "ID"
+        ]
+      ]
+    },
+    {
+      "id": "polling_self_loop",
+      "name": "Report availability check",
+      "synthetic": true,
+      "narrative": "An analyst starts a scheduled report check. The analyst checks whether the report is available. If not, the analyst repeats the same availability check; if it is, the analyst downloads it and ends the check.",
+      "components": [
+        "start",
+        "decision",
+        "document",
+        "end",
+        "self_loop"
+      ],
+      "graph": {
+        "title": "Report availability check",
+        "steps": [
+          {
+            "id": "S",
+            "title": "Scheduled check begins",
+            "type": "start",
+            "actor": "Analyst",
+            "system": "Reporting portal",
+            "description": "Scheduled check begins",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "D",
+            "title": "Is the report available?",
+            "type": "decision",
+            "actor": "Analyst",
+            "system": "Reporting portal",
+            "description": "Is the report available?",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "GET",
+            "title": "Download available report",
+            "type": "document",
+            "actor": "Analyst",
+            "system": "Reporting portal",
+            "description": "Download available report",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "E",
+            "title": "Report collected",
+            "type": "end",
+            "actor": "Analyst",
+            "system": "Reporting portal",
+            "description": "Report collected",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          }
+        ],
+        "connections": [
+          {
+            "from": "S",
+            "to": "D",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D",
+            "to": "D",
+            "label": "Not available — check again",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D",
+            "to": "GET",
+            "label": "Available",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "GET",
+            "to": "E",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          }
+        ],
+        "open_questions": []
+      },
+      "required_loops": [
+        [
+          "D",
+          "D"
+        ]
+      ]
+    },
+    {
+      "id": "document_data",
+      "name": "Monthly account reconciliation",
+      "synthetic": true,
+      "narrative": "Month end starts reconciliation. An analyst retrieves transactions from the ledger database and downloads the bank statement. The analyst compares the records. If totals differ, the analyst records the discrepancy in the exceptions register, obtains a correction, and compares again. If totals agree, the reviewer signs the reconciliation report, the analyst archives it in the records repository, and the close ends.",
+      "components": [
+        "start",
+        "data_store",
+        "document",
+        "activity",
+        "decision",
+        "end"
+      ],
+      "graph": {
+        "title": "Monthly account reconciliation",
+        "steps": [
+          {
+            "id": "S",
+            "title": "Month end reached",
+            "type": "start",
+            "actor": "Analyst",
+            "system": "Close calendar",
+            "description": "Month end reached",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "DB",
+            "title": "Retrieve ledger transactions",
+            "type": "data_store",
+            "actor": "Analyst",
+            "system": "Ledger database",
+            "description": "Retrieve ledger transactions",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "DOC",
+            "title": "Download bank statement",
+            "type": "document",
+            "actor": "Analyst",
+            "system": "Bank portal",
+            "description": "Download bank statement",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "C",
+            "title": "Compare ledger and statement",
+            "type": "activity",
+            "actor": "Analyst",
+            "system": "Reconciliation workbook",
+            "description": "Compare ledger and statement",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "D",
+            "title": "Do the balances reconcile?",
+            "type": "decision",
+            "actor": "Analyst",
+            "system": "Reconciliation workbook",
+            "description": "Do the balances reconcile?",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "X",
+            "title": "Record discrepancy in exceptions register",
+            "type": "data_store",
+            "actor": "Analyst",
+            "system": "Exceptions register",
+            "description": "Record discrepancy in exceptions register",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "FIX",
+            "title": "Obtain transaction correction",
+            "type": "activity",
+            "actor": "Account owner",
+            "system": "Ledger system",
+            "description": "Obtain transaction correction",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "SIGN",
+            "title": "Sign reconciliation report",
+            "type": "document",
+            "actor": "Reviewer",
+            "system": "Review portal",
+            "description": "Sign reconciliation report",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "SAVE",
+            "title": "Archive signed reconciliation report",
+            "type": "data_store",
+            "actor": "Analyst",
+            "system": "Records repository",
+            "description": "Archive signed reconciliation report",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "E",
+            "title": "Account reconciliation complete",
+            "type": "end",
+            "actor": "Analyst",
+            "system": "Close checklist",
+            "description": "Account reconciliation complete",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          }
+        ],
+        "connections": [
+          {
+            "from": "S",
+            "to": "DB",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "DB",
+            "to": "DOC",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "DOC",
+            "to": "C",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "C",
+            "to": "D",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D",
+            "to": "X",
+            "label": "Difference found",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "X",
+            "to": "FIX",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "FIX",
+            "to": "C",
+            "label": "Correction posted",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D",
+            "to": "SIGN",
+            "label": "Balances agree",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "SIGN",
+            "to": "SAVE",
+            "label": "Signed",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "SAVE",
+            "to": "E",
+            "label": "Archived",
+            "evidence_turns": [
+              "u1"
+            ]
+          }
+        ],
+        "open_questions": []
+      },
+      "required_loops": [
+        [
+          "FIX",
+          "C"
+        ]
+      ]
+    },
+    {
+      "id": "subprocess_wait",
+      "name": "Supplier onboarding with waiting and delegation",
+      "synthetic": true,
+      "narrative": "A buyer requests a new supplier. Procurement runs its separate supplier due-diligence procedure, whose internal steps are outside this interview. Procurement then waits for the signed supplier contract. Once it arrives, procurement checks the signature. An invalid signature is returned for correction and procurement waits again. A valid contract is recorded in the supplier master, then the supplier is activated and onboarding ends.",
+      "components": [
+        "start",
+        "subprocess",
+        "wait",
+        "decision",
+        "activity",
+        "data_store",
+        "end"
+      ],
+      "graph": {
+        "title": "Supplier onboarding with waiting and delegation",
+        "steps": [
+          {
+            "id": "S",
+            "title": "New supplier requested",
+            "type": "start",
+            "actor": "Buyer",
+            "system": "Purchase portal",
+            "description": "New supplier requested",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "SUB",
+            "title": "Complete supplier due-diligence procedure",
+            "type": "subprocess",
+            "actor": "Procurement",
+            "system": "Supplier review workspace",
+            "description": "Complete supplier due-diligence procedure",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "W",
+            "title": "Wait for signed supplier contract",
+            "type": "wait",
+            "actor": "Procurement",
+            "system": "Contract portal",
+            "description": "Wait for signed supplier contract",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "D",
+            "title": "Is the supplier signature valid?",
+            "type": "decision",
+            "actor": "Procurement",
+            "system": "Contract portal",
+            "description": "Is the supplier signature valid?",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "R",
+            "title": "Return contract for corrected signature",
+            "type": "activity",
+            "actor": "Supplier",
+            "system": "Contract portal",
+            "description": "Return contract for corrected signature",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "DB",
+            "title": "Record approved supplier details",
+            "type": "data_store",
+            "actor": "Procurement",
+            "system": "Supplier master",
+            "description": "Record approved supplier details",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "A",
+            "title": "Activate supplier for orders",
+            "type": "activity",
+            "actor": "Procurement",
+            "system": "Purchasing system",
+            "description": "Activate supplier for orders",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "E",
+            "title": "Supplier onboarding complete",
+            "type": "end",
+            "actor": "Procurement",
+            "system": "Purchase portal",
+            "description": "Supplier onboarding complete",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          }
+        ],
+        "connections": [
+          {
+            "from": "S",
+            "to": "SUB",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "SUB",
+            "to": "W",
+            "label": "Due diligence complete",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "W",
+            "to": "D",
+            "label": "Signed contract received",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D",
+            "to": "R",
+            "label": "Invalid signature",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "R",
+            "to": "W",
+            "label": "Correction requested",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D",
+            "to": "DB",
+            "label": "Valid signature",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "DB",
+            "to": "A",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "A",
+            "to": "E",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          }
+        ],
+        "open_questions": []
+      },
+      "required_loops": [
+        [
+          "R",
+          "W"
+        ]
+      ]
+    },
+    {
+      "id": "timeout_escalation",
+      "name": "Customer response and escalation",
+      "synthetic": true,
+      "narrative": "After support requests information, support waits up to three business days for a response. A response within that period goes to assessment. If the deadline passes, support sends one reminder and waits another two days. A response then goes to assessment. No response after that second deadline closes the case as inactive. Assessment resolves the case and closes it as resolved.",
+      "components": [
+        "activity",
+        "wait",
+        "decision",
+        "end"
+      ],
+      "graph": {
+        "title": "Customer response and escalation",
+        "steps": [
+          {
+            "id": "A",
+            "title": "Request customer information",
+            "type": "activity",
+            "actor": "Support agent",
+            "system": "Case system",
+            "description": "Request customer information",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "W1",
+            "title": "Wait up to three business days",
+            "type": "wait",
+            "actor": "Support agent",
+            "system": "Case system",
+            "description": "Wait up to three business days",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "D1",
+            "title": "Did the customer respond within three days?",
+            "type": "decision",
+            "actor": "Support agent",
+            "system": "Case system",
+            "description": "Did the customer respond within three days?",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "R",
+            "title": "Send one reminder",
+            "type": "activity",
+            "actor": "Support agent",
+            "system": "Case system",
+            "description": "Send one reminder",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "W2",
+            "title": "Wait another two business days",
+            "type": "wait",
+            "actor": "Support agent",
+            "system": "Case system",
+            "description": "Wait another two business days",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "D2",
+            "title": "Did the customer respond by the second deadline?",
+            "type": "decision",
+            "actor": "Support agent",
+            "system": "Case system",
+            "description": "Did the customer respond by the second deadline?",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "ASSESS",
+            "title": "Assess information and resolve case",
+            "type": "activity",
+            "actor": "Support agent",
+            "system": "Case system",
+            "description": "Assess information and resolve case",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "E1",
+            "title": "Case resolved",
+            "type": "end",
+            "actor": "Support agent",
+            "system": "Case system",
+            "description": "Case resolved",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "E2",
+            "title": "Case closed as inactive",
+            "type": "end",
+            "actor": "Support agent",
+            "system": "Case system",
+            "description": "Case closed as inactive",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          }
+        ],
+        "connections": [
+          {
+            "from": "A",
+            "to": "W1",
+            "label": "Information requested",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "W1",
+            "to": "D1",
+            "label": "Response or deadline",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D1",
+            "to": "ASSESS",
+            "label": "Response received",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D1",
+            "to": "R",
+            "label": "No response",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "R",
+            "to": "W2",
+            "label": "Reminder sent",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "W2",
+            "to": "D2",
+            "label": "Response or deadline",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D2",
+            "to": "ASSESS",
+            "label": "Response received",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D2",
+            "to": "E2",
+            "label": "No response",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "ASSESS",
+            "to": "E1",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          }
+        ],
+        "open_questions": []
+      }
+    },
+    {
+      "id": "partial_disconnected",
+      "name": "Partially described reporting work",
+      "synthetic": true,
+      "narrative": "I prepare a weekly status report and send it to my manager. Separately I maintain a risks register, but I have not explained when that happens or whether it connects to reporting. I do not know the overall trigger or what happens after the manager receives the report.",
+      "components": [
+        "document",
+        "data_store",
+        "partial",
+        "disconnected"
+      ],
+      "graph": {
+        "title": "Partially described reporting work",
+        "steps": [
+          {
+            "id": "A",
+            "title": "Prepare weekly status report",
+            "type": "document",
+            "actor": "Participant",
+            "system": "UNKNOWN",
+            "description": "Prepare weekly status report",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "B",
+            "title": "Send report to manager",
+            "type": "activity",
+            "actor": "Participant",
+            "system": "UNKNOWN",
+            "description": "Send report to manager",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "X",
+            "title": "Maintain risks register",
+            "type": "data_store",
+            "actor": "Participant",
+            "system": "Risks register",
+            "description": "Maintain risks register",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          }
+        ],
+        "connections": [
+          {
+            "from": "A",
+            "to": "B",
+            "label": "Report prepared",
+            "evidence_turns": [
+              "u1"
+            ]
+          }
+        ],
+        "open_questions": []
+      },
+      "disconnected_ids": [
+        "X"
+      ],
+      "forbidden_types": [
+        "start",
+        "end"
+      ]
+    },
+    {
+      "id": "parallel_alternative_merge",
+      "name": "Parallel onboarding with alternative verification outcomes",
+      "synthetic": true,
+      "narrative": "A signed offer starts onboarding. HR launches identity verification, IT account setup, and desk preparation in parallel. HR checks the identity documents. Accepted documents complete identity verification immediately. Otherwise the employee corrects the documents, HR rechecks them, and an accepted recheck completes identity verification; a failed recheck returns for another correction. Initial acceptance or accepted recheck are alternatives: either one completes the same identity-verification branch. HR waits for that identity branch, IT accounts, and the desk to all be ready before sending the welcome pack and ending onboarding.",
+      "components": [
+        "start",
+        "parallel_split",
+        "decision",
+        "activity",
+        "merge",
+        "parallel_join",
+        "document",
+        "end"
+      ],
+      "graph": {
+        "title": "Parallel onboarding with alternative verification outcomes",
+        "steps": [
+          {
+            "id": "S",
+            "title": "Signed offer received",
+            "type": "start",
+            "actor": "HR coordinator",
+            "system": "Hiring system",
+            "description": "Signed offer received",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "F",
+            "title": "Start all three onboarding workstreams",
+            "type": "parallel_split",
+            "actor": "HR coordinator",
+            "system": "Onboarding checklist",
+            "description": "Start all three onboarding workstreams",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "V",
+            "title": "Check identity documents",
+            "type": "activity",
+            "actor": "HR analyst",
+            "system": "Verification service",
+            "description": "Check identity documents",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "D",
+            "title": "Are the initial documents accepted?",
+            "type": "decision",
+            "actor": "HR analyst",
+            "system": "Verification service",
+            "description": "Are the initial documents accepted?",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "R",
+            "title": "Correct identity documents",
+            "type": "activity",
+            "actor": "New employee",
+            "system": "Secure upload",
+            "description": "Correct identity documents",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "C",
+            "title": "Recheck corrected documents",
+            "type": "activity",
+            "actor": "HR analyst",
+            "system": "Verification service",
+            "description": "Recheck corrected documents",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "D2",
+            "title": "Is the recheck accepted?",
+            "type": "decision",
+            "actor": "HR analyst",
+            "system": "Verification service",
+            "description": "Is the recheck accepted?",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "M",
+            "title": "Identity verification complete by either accepted route",
+            "type": "merge",
+            "actor": "HR analyst",
+            "system": "Onboarding checklist",
+            "description": "Identity verification complete by either accepted route",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "IT",
+            "title": "Set up employee accounts",
+            "type": "activity",
+            "actor": "IT analyst",
+            "system": "Identity console",
+            "description": "Set up employee accounts",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "DESK",
+            "title": "Prepare desk and access badge",
+            "type": "activity",
+            "actor": "Facilities",
+            "system": "Work order system",
+            "description": "Prepare desk and access badge",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "J",
+            "title": "Identity, IT and facilities all ready",
+            "type": "parallel_join",
+            "actor": "HR coordinator",
+            "system": "Onboarding checklist",
+            "description": "Identity, IT and facilities all ready",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "W",
+            "title": "Send welcome pack",
+            "type": "document",
+            "actor": "HR coordinator",
+            "system": "Secure email",
+            "description": "Send welcome pack",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "E",
+            "title": "Onboarding complete",
+            "type": "end",
+            "actor": "HR coordinator",
+            "system": "Hiring system",
+            "description": "Onboarding complete",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          }
+        ],
+        "connections": [
+          {
+            "from": "S",
+            "to": "F",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "F",
+            "to": "V",
+            "label": "Identity branch",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "F",
+            "to": "IT",
+            "label": "IT branch",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "F",
+            "to": "DESK",
+            "label": "Facilities branch",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "V",
+            "to": "D",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D",
+            "to": "M",
+            "label": "Initially accepted",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D",
+            "to": "R",
+            "label": "Correction required",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "R",
+            "to": "C",
+            "label": "Corrected documents received",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "C",
+            "to": "D2",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D2",
+            "to": "R",
+            "label": "Further correction required",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D2",
+            "to": "M",
+            "label": "Recheck accepted",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "M",
+            "to": "J",
+            "label": "Identity branch ready",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "IT",
+            "to": "J",
+            "label": "Accounts ready",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "DESK",
+            "to": "J",
+            "label": "Desk and badge ready",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "J",
+            "to": "W",
+            "label": "All three branches complete",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "W",
+            "to": "E",
+            "label": "Welcome pack sent",
+            "evidence_turns": [
+              "u1"
+            ]
+          }
+        ],
+        "open_questions": []
+      },
+      "branches": [
+        {
+          "from": "F",
+          "targets": [
+            "V",
+            "IT",
+            "DESK"
+          ]
+        }
+      ],
+      "required_loops": [
+        [
+          "D2",
+          "R"
+        ]
+      ],
+      "merge_before_join": {
+        "merge": "M",
+        "alternative_predecessors": [
+          "D",
+          "D2"
+        ],
+        "join": "J",
+        "independent_predecessors": [
+          "M",
+          "IT",
+          "DESK"
+        ]
+      }
+    },
+    {
+      "id": "long_labels",
+      "name": "Cross-border evidence review and international handoff",
+      "synthetic": true,
+      "narrative": "A specialist receives an amended cross-border instruction with multilingual identifiers. They validate every account identifier against the approved documentation. If the beneficiary identifier, currency, settlement reference, and supporting approval all match, they send the complete package to the regional operations and quality-assurance team. If any item is incomplete or mismatched, they return it to the originating relationship team for documented correction and recheck. The regional team records the final review in the cross-border exception-management repository and finishes the review.",
+      "components": [
+        "start",
+        "activity",
+        "decision",
+        "data_store",
+        "end",
+        "long_labels",
+        "unicode"
+      ],
+      "graph": {
+        "title": "Cross-border evidence review and international handoff",
+        "steps": [
+          {
+            "id": "S",
+            "title": "Amended cross-border instruction received — référence internationale / 国際参照番号",
+            "type": "start",
+            "actor": "International client relationship and instruction-intake team",
+            "system": "Secure cross-border instruction and evidence exchange portal",
+            "description": "Amended cross-border instruction received — référence internationale / 国際参照番号",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "C",
+            "title": "Validate beneficiary account identifiers, settlement currency, reference and supporting approval against the authoritative instruction package",
+            "type": "activity",
+            "actor": "Cross-border payment validation and exception-resolution specialist",
+            "system": "International account-verification and instruction-management workspace",
+            "description": "Validate beneficiary account identifiers, settlement currency, reference and supporting approval against the authoritative instruction package",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "D",
+            "title": "Do the beneficiary identifier, settlement currency, payment reference and supporting approval all match the authoritative documents?",
+            "type": "decision",
+            "actor": "Cross-border payment validation and exception-resolution specialist",
+            "system": "International account-verification and instruction-management workspace",
+            "description": "Do the beneficiary identifier, settlement currency, payment reference and supporting approval all match the authoritative documents?",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "R",
+            "title": "Obtain documented corrections from the originating relationship team — einschließlich der aktualisierten Freigabebestätigung",
+            "type": "activity",
+            "actor": "Originating international client relationship-management team",
+            "system": "Secure multilingual correspondence and correction workspace",
+            "description": "Obtain documented corrections from the originating relationship team — einschließlich der aktualisierten Freigabebestätigung",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "HAND",
+            "title": "Hand off the complete and validated instruction package to regional operations and quality assurance",
+            "type": "activity",
+            "actor": "Regional operations and independent quality-assurance coordination team",
+            "system": "Cross-border operations intake and quality-assurance queue",
+            "description": "Hand off the complete and validated instruction package to regional operations and quality assurance",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "DB",
+            "title": "Record final review outcome for reference ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+            "type": "data_store",
+            "actor": "Regional operations and independent quality-assurance coordination team",
+            "system": "Cross-border exception-management and evidence-retention repository",
+            "description": "Record final review outcome for reference ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "E",
+            "title": "International instruction review complete — Prüfung abgeschlossen / 審査完了",
+            "type": "end",
+            "actor": "Regional operations and independent quality-assurance coordination team",
+            "system": "Cross-border operations intake and quality-assurance queue",
+            "description": "International instruction review complete — Prüfung abgeschlossen / 審査完了",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          }
+        ],
+        "connections": [
+          {
+            "from": "S",
+            "to": "C",
+            "label": "Amended instruction and supporting documents received",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "C",
+            "to": "D",
+            "label": "Validation complete — identifiers and supporting approval compared",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D",
+            "to": "HAND",
+            "label": "Beneficiary identifier, currency, payment reference and supporting approval all match",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "D",
+            "to": "R",
+            "label": "One or more required identifiers or supporting approvals are missing, incomplete or mismatched",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "R",
+            "to": "C",
+            "label": "Documented correction and updated approval received — recheck the complete package",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "HAND",
+            "to": "DB",
+            "label": "Regional operations confirms receipt of the complete review package",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "DB",
+            "to": "E",
+            "label": "Final outcome and evidence reference saved",
+            "evidence_turns": [
+              "u1"
+            ]
+          }
+        ],
+        "open_questions": []
+      },
+      "required_loops": [
+        [
+          "R",
+          "C"
+        ]
+      ]
+    },
+    {
+      "id": "large_80",
+      "name": "Eighty-step sequential control walkthrough",
+      "synthetic": true,
+      "narrative": "A synthetic stress test reports eighty sequential processing checkpoints, handed from one team to the next after every tenth checkpoint. This fixture tests the renderer's documented 80-step capacity; it does not claim any real process or infer extra branches.",
+      "components": [
+        "activity",
+        "capacity_80"
+      ],
+      "graph": {
+        "title": "Eighty-step sequential control walkthrough",
+        "steps": [
+          {
+            "id": "S00",
+            "title": "Reported processing checkpoint 01",
+            "type": "activity",
+            "actor": "Team 1",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 01",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S01",
+            "title": "Reported processing checkpoint 02",
+            "type": "activity",
+            "actor": "Team 1",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 02",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S02",
+            "title": "Reported processing checkpoint 03",
+            "type": "activity",
+            "actor": "Team 1",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 03",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S03",
+            "title": "Reported processing checkpoint 04",
+            "type": "activity",
+            "actor": "Team 1",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 04",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S04",
+            "title": "Reported processing checkpoint 05",
+            "type": "activity",
+            "actor": "Team 1",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 05",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S05",
+            "title": "Reported processing checkpoint 06",
+            "type": "activity",
+            "actor": "Team 1",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 06",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S06",
+            "title": "Reported processing checkpoint 07",
+            "type": "activity",
+            "actor": "Team 1",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 07",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S07",
+            "title": "Reported processing checkpoint 08",
+            "type": "activity",
+            "actor": "Team 1",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 08",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S08",
+            "title": "Reported processing checkpoint 09",
+            "type": "activity",
+            "actor": "Team 1",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 09",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S09",
+            "title": "Reported processing checkpoint 10",
+            "type": "activity",
+            "actor": "Team 1",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 10",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S10",
+            "title": "Reported processing checkpoint 11",
+            "type": "activity",
+            "actor": "Team 2",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 11",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S11",
+            "title": "Reported processing checkpoint 12",
+            "type": "activity",
+            "actor": "Team 2",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 12",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S12",
+            "title": "Reported processing checkpoint 13",
+            "type": "activity",
+            "actor": "Team 2",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 13",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S13",
+            "title": "Reported processing checkpoint 14",
+            "type": "activity",
+            "actor": "Team 2",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 14",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S14",
+            "title": "Reported processing checkpoint 15",
+            "type": "activity",
+            "actor": "Team 2",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 15",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S15",
+            "title": "Reported processing checkpoint 16",
+            "type": "activity",
+            "actor": "Team 2",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 16",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S16",
+            "title": "Reported processing checkpoint 17",
+            "type": "activity",
+            "actor": "Team 2",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 17",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S17",
+            "title": "Reported processing checkpoint 18",
+            "type": "activity",
+            "actor": "Team 2",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 18",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S18",
+            "title": "Reported processing checkpoint 19",
+            "type": "activity",
+            "actor": "Team 2",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 19",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S19",
+            "title": "Reported processing checkpoint 20",
+            "type": "activity",
+            "actor": "Team 2",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 20",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S20",
+            "title": "Reported processing checkpoint 21",
+            "type": "activity",
+            "actor": "Team 3",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 21",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S21",
+            "title": "Reported processing checkpoint 22",
+            "type": "activity",
+            "actor": "Team 3",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 22",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S22",
+            "title": "Reported processing checkpoint 23",
+            "type": "activity",
+            "actor": "Team 3",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 23",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S23",
+            "title": "Reported processing checkpoint 24",
+            "type": "activity",
+            "actor": "Team 3",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 24",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S24",
+            "title": "Reported processing checkpoint 25",
+            "type": "activity",
+            "actor": "Team 3",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 25",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S25",
+            "title": "Reported processing checkpoint 26",
+            "type": "activity",
+            "actor": "Team 3",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 26",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S26",
+            "title": "Reported processing checkpoint 27",
+            "type": "activity",
+            "actor": "Team 3",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 27",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S27",
+            "title": "Reported processing checkpoint 28",
+            "type": "activity",
+            "actor": "Team 3",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 28",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S28",
+            "title": "Reported processing checkpoint 29",
+            "type": "activity",
+            "actor": "Team 3",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 29",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S29",
+            "title": "Reported processing checkpoint 30",
+            "type": "activity",
+            "actor": "Team 3",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 30",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S30",
+            "title": "Reported processing checkpoint 31",
+            "type": "activity",
+            "actor": "Team 4",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 31",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S31",
+            "title": "Reported processing checkpoint 32",
+            "type": "activity",
+            "actor": "Team 4",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 32",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S32",
+            "title": "Reported processing checkpoint 33",
+            "type": "activity",
+            "actor": "Team 4",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 33",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S33",
+            "title": "Reported processing checkpoint 34",
+            "type": "activity",
+            "actor": "Team 4",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 34",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S34",
+            "title": "Reported processing checkpoint 35",
+            "type": "activity",
+            "actor": "Team 4",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 35",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S35",
+            "title": "Reported processing checkpoint 36",
+            "type": "activity",
+            "actor": "Team 4",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 36",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S36",
+            "title": "Reported processing checkpoint 37",
+            "type": "activity",
+            "actor": "Team 4",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 37",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S37",
+            "title": "Reported processing checkpoint 38",
+            "type": "activity",
+            "actor": "Team 4",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 38",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S38",
+            "title": "Reported processing checkpoint 39",
+            "type": "activity",
+            "actor": "Team 4",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 39",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S39",
+            "title": "Reported processing checkpoint 40",
+            "type": "activity",
+            "actor": "Team 4",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 40",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S40",
+            "title": "Reported processing checkpoint 41",
+            "type": "activity",
+            "actor": "Team 5",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 41",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S41",
+            "title": "Reported processing checkpoint 42",
+            "type": "activity",
+            "actor": "Team 5",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 42",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S42",
+            "title": "Reported processing checkpoint 43",
+            "type": "activity",
+            "actor": "Team 5",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 43",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S43",
+            "title": "Reported processing checkpoint 44",
+            "type": "activity",
+            "actor": "Team 5",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 44",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S44",
+            "title": "Reported processing checkpoint 45",
+            "type": "activity",
+            "actor": "Team 5",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 45",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S45",
+            "title": "Reported processing checkpoint 46",
+            "type": "activity",
+            "actor": "Team 5",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 46",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S46",
+            "title": "Reported processing checkpoint 47",
+            "type": "activity",
+            "actor": "Team 5",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 47",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S47",
+            "title": "Reported processing checkpoint 48",
+            "type": "activity",
+            "actor": "Team 5",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 48",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S48",
+            "title": "Reported processing checkpoint 49",
+            "type": "activity",
+            "actor": "Team 5",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 49",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S49",
+            "title": "Reported processing checkpoint 50",
+            "type": "activity",
+            "actor": "Team 5",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 50",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S50",
+            "title": "Reported processing checkpoint 51",
+            "type": "activity",
+            "actor": "Team 6",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 51",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S51",
+            "title": "Reported processing checkpoint 52",
+            "type": "activity",
+            "actor": "Team 6",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 52",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S52",
+            "title": "Reported processing checkpoint 53",
+            "type": "activity",
+            "actor": "Team 6",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 53",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S53",
+            "title": "Reported processing checkpoint 54",
+            "type": "activity",
+            "actor": "Team 6",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 54",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S54",
+            "title": "Reported processing checkpoint 55",
+            "type": "activity",
+            "actor": "Team 6",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 55",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S55",
+            "title": "Reported processing checkpoint 56",
+            "type": "activity",
+            "actor": "Team 6",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 56",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S56",
+            "title": "Reported processing checkpoint 57",
+            "type": "activity",
+            "actor": "Team 6",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 57",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S57",
+            "title": "Reported processing checkpoint 58",
+            "type": "activity",
+            "actor": "Team 6",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 58",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S58",
+            "title": "Reported processing checkpoint 59",
+            "type": "activity",
+            "actor": "Team 6",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 59",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S59",
+            "title": "Reported processing checkpoint 60",
+            "type": "activity",
+            "actor": "Team 6",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 60",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S60",
+            "title": "Reported processing checkpoint 61",
+            "type": "activity",
+            "actor": "Team 7",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 61",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S61",
+            "title": "Reported processing checkpoint 62",
+            "type": "activity",
+            "actor": "Team 7",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 62",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S62",
+            "title": "Reported processing checkpoint 63",
+            "type": "activity",
+            "actor": "Team 7",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 63",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S63",
+            "title": "Reported processing checkpoint 64",
+            "type": "activity",
+            "actor": "Team 7",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 64",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S64",
+            "title": "Reported processing checkpoint 65",
+            "type": "activity",
+            "actor": "Team 7",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 65",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S65",
+            "title": "Reported processing checkpoint 66",
+            "type": "activity",
+            "actor": "Team 7",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 66",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S66",
+            "title": "Reported processing checkpoint 67",
+            "type": "activity",
+            "actor": "Team 7",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 67",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S67",
+            "title": "Reported processing checkpoint 68",
+            "type": "activity",
+            "actor": "Team 7",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 68",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S68",
+            "title": "Reported processing checkpoint 69",
+            "type": "activity",
+            "actor": "Team 7",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 69",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S69",
+            "title": "Reported processing checkpoint 70",
+            "type": "activity",
+            "actor": "Team 7",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 70",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S70",
+            "title": "Reported processing checkpoint 71",
+            "type": "activity",
+            "actor": "Team 8",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 71",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S71",
+            "title": "Reported processing checkpoint 72",
+            "type": "activity",
+            "actor": "Team 8",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 72",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S72",
+            "title": "Reported processing checkpoint 73",
+            "type": "activity",
+            "actor": "Team 8",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 73",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S73",
+            "title": "Reported processing checkpoint 74",
+            "type": "activity",
+            "actor": "Team 8",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 74",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S74",
+            "title": "Reported processing checkpoint 75",
+            "type": "activity",
+            "actor": "Team 8",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 75",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S75",
+            "title": "Reported processing checkpoint 76",
+            "type": "activity",
+            "actor": "Team 8",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 76",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S76",
+            "title": "Reported processing checkpoint 77",
+            "type": "activity",
+            "actor": "Team 8",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 77",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S77",
+            "title": "Reported processing checkpoint 78",
+            "type": "activity",
+            "actor": "Team 8",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 78",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S78",
+            "title": "Reported processing checkpoint 79",
+            "type": "activity",
+            "actor": "Team 8",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 79",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "id": "S79",
+            "title": "Reported processing checkpoint 80",
+            "type": "activity",
+            "actor": "Team 8",
+            "system": "Shared operations workspace",
+            "description": "Reported processing checkpoint 80",
+            "input": "UNKNOWN",
+            "output": "UNKNOWN",
+            "completion_criteria": "UNKNOWN",
+            "handoff": "UNKNOWN",
+            "evidence_turns": [
+              "u1"
+            ]
+          }
+        ],
+        "connections": [
+          {
+            "from": "S00",
+            "to": "S01",
+            "label": "Checked and handed over",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S01",
+            "to": "S02",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S02",
+            "to": "S03",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S03",
+            "to": "S04",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S04",
+            "to": "S05",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S05",
+            "to": "S06",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S06",
+            "to": "S07",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S07",
+            "to": "S08",
+            "label": "Checked and handed over",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S08",
+            "to": "S09",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S09",
+            "to": "S10",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S10",
+            "to": "S11",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S11",
+            "to": "S12",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S12",
+            "to": "S13",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S13",
+            "to": "S14",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S14",
+            "to": "S15",
+            "label": "Checked and handed over",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S15",
+            "to": "S16",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S16",
+            "to": "S17",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S17",
+            "to": "S18",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S18",
+            "to": "S19",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S19",
+            "to": "S20",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S20",
+            "to": "S21",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S21",
+            "to": "S22",
+            "label": "Checked and handed over",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S22",
+            "to": "S23",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S23",
+            "to": "S24",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S24",
+            "to": "S25",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S25",
+            "to": "S26",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S26",
+            "to": "S27",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S27",
+            "to": "S28",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S28",
+            "to": "S29",
+            "label": "Checked and handed over",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S29",
+            "to": "S30",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S30",
+            "to": "S31",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S31",
+            "to": "S32",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S32",
+            "to": "S33",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S33",
+            "to": "S34",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S34",
+            "to": "S35",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S35",
+            "to": "S36",
+            "label": "Checked and handed over",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S36",
+            "to": "S37",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S37",
+            "to": "S38",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S38",
+            "to": "S39",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S39",
+            "to": "S40",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S40",
+            "to": "S41",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S41",
+            "to": "S42",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S42",
+            "to": "S43",
+            "label": "Checked and handed over",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S43",
+            "to": "S44",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S44",
+            "to": "S45",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S45",
+            "to": "S46",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S46",
+            "to": "S47",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S47",
+            "to": "S48",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S48",
+            "to": "S49",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S49",
+            "to": "S50",
+            "label": "Checked and handed over",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S50",
+            "to": "S51",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S51",
+            "to": "S52",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S52",
+            "to": "S53",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S53",
+            "to": "S54",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S54",
+            "to": "S55",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S55",
+            "to": "S56",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S56",
+            "to": "S57",
+            "label": "Checked and handed over",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S57",
+            "to": "S58",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S58",
+            "to": "S59",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S59",
+            "to": "S60",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S60",
+            "to": "S61",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S61",
+            "to": "S62",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S62",
+            "to": "S63",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S63",
+            "to": "S64",
+            "label": "Checked and handed over",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S64",
+            "to": "S65",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S65",
+            "to": "S66",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S66",
+            "to": "S67",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S67",
+            "to": "S68",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S68",
+            "to": "S69",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S69",
+            "to": "S70",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S70",
+            "to": "S71",
+            "label": "Checked and handed over",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S71",
+            "to": "S72",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S72",
+            "to": "S73",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S73",
+            "to": "S74",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S74",
+            "to": "S75",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S75",
+            "to": "S76",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S76",
+            "to": "S77",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S77",
+            "to": "S78",
+            "label": "Checked and handed over",
+            "evidence_turns": [
+              "u1"
+            ]
+          },
+          {
+            "from": "S78",
+            "to": "S79",
+            "label": "",
+            "evidence_turns": [
+              "u1"
+            ]
+          }
+        ],
+        "open_questions": []
+      },
+      "ordered_routes": [
+        [
+          "S00",
+          "S01",
+          "S02",
+          "S03",
+          "S04",
+          "S05",
+          "S06",
+          "S07",
+          "S08",
+          "S09",
+          "S10",
+          "S11",
+          "S12",
+          "S13",
+          "S14",
+          "S15",
+          "S16",
+          "S17",
+          "S18",
+          "S19",
+          "S20",
+          "S21",
+          "S22",
+          "S23",
+          "S24",
+          "S25",
+          "S26",
+          "S27",
+          "S28",
+          "S29",
+          "S30",
+          "S31",
+          "S32",
+          "S33",
+          "S34",
+          "S35",
+          "S36",
+          "S37",
+          "S38",
+          "S39",
+          "S40",
+          "S41",
+          "S42",
+          "S43",
+          "S44",
+          "S45",
+          "S46",
+          "S47",
+          "S48",
+          "S49",
+          "S50",
+          "S51",
+          "S52",
+          "S53",
+          "S54",
+          "S55",
+          "S56",
+          "S57",
+          "S58",
+          "S59",
+          "S60",
+          "S61",
+          "S62",
+          "S63",
+          "S64",
+          "S65",
+          "S66",
+          "S67",
+          "S68",
+          "S69",
+          "S70",
+          "S71",
+          "S72",
+          "S73",
+          "S74",
+          "S75",
+          "S76",
+          "S77",
+          "S78",
+          "S79"
+        ]
+      ]
+    }
+  ]
+}

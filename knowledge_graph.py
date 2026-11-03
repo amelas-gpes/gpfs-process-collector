@@ -10,6 +10,7 @@ import hmac
 import secrets
 import json
 import os
+import re
 import sqlite3
 import threading
 import uuid
@@ -36,6 +37,43 @@ def text(value, limit=1000):
 
 def dumps(value):
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False)
+
+
+def validated_document_evidence(value, documents, scope):
+    """Accept only a server-hydrated catalog, separate from the submitted JSON.
+
+    The HTTP boundary authorizes and reads exact sources from its document store.
+    Here we bind those sources to the canonical submission manifest and retain a
+    bounded immutable copy for the submitted revision's documentary provenance.
+    """
+    if value is None:
+        return []
+    if not isinstance(value, list) or len(value) > 500:
+        raise ValueError('Invalid verified document evidence catalog.')
+    if value and not scope:
+        raise ValueError('Verified document evidence requires an authorized scope.')
+    manifest = documents.get('documents', []) if isinstance(documents, dict) else []
+    allowed = {(item.get('id'), source.get('source_id')) for item in manifest if isinstance(item, dict)
+               for source in item.get('sources', []) if isinstance(source, dict)}
+    seen, total, result = set(), 0, []
+    for source in value:
+        if not isinstance(source, dict):
+            raise ValueError('Invalid verified document source.')
+        identity, document_id = text(source.get('id'), 200), text(source.get('document_id'), 100)
+        content = source.get('text')
+        checked_text = text(content, 18000)
+        if (not re.fullmatch(r'doc_[A-Za-z0-9_]+', identity) or not re.fullmatch(r'doc_[A-Za-z0-9_]+', document_id)
+                or not identity.startswith(document_id + '_') or not checked_text or identity in seen or (document_id, identity) not in allowed
+                or source.get('retained_only') or source.get('archived') or source.get('disposition') == 'parked'):
+            raise ValueError('Document source is unavailable or not authorized for this submission.')
+        seen.add(identity)
+        total += len(content)
+        if total > 600000:
+            raise ValueError('Verified document evidence exceeds the submission limit.')
+        result.append({'id': identity, 'document_id': document_id, 'name': text(source.get('name', ''), 500),
+                       'label': text(source.get('label', ''), 500), 'text': content,
+                       'source_kind': 'document', 'participant_confirmed': False, 'owner_review_required': True})
+    return result
 
 def _process_is_alive(pid):
     """Conservatively check a job owner without sending Windows console signals."""
@@ -211,7 +249,7 @@ class KnowledgeGraph:
             if intent_digest is None or not hmac.compare_digest(row['intent_digest'],intent_digest):raise ValueError('Submission key was already used for different content.')
             return self._key_receipt(row)
 
-    def submit(self, payload, principal=None, document_scope=None, intent_digest=None):
+    def submit(self, payload, principal=None, document_scope=None, intent_digest=None, document_evidence=None):
         intent_digest=self._intent_digest(intent_digest)
         if not isinstance(payload, dict):
             raise ValueError('Submission must be an object.')
@@ -219,7 +257,7 @@ class KnowledgeGraph:
             payload = json.loads(dumps(payload))
         except (TypeError, ValueError):
             raise ValueError('Submission must contain JSON data.') from None
-        for key in ('submitter', 'principal', 'authenticated_submitter'):
+        for key in ('submitter', 'principal', 'authenticated_submitter', 'document_evidence'):
             payload.pop(key, None)
         if 'capture_provenance' in payload:
             payload['capture_provenance']=validate_capture_provenance(payload['capture_provenance'])
@@ -231,6 +269,8 @@ class KnowledgeGraph:
         if document_scope is not None:
             document_scope=text(document_scope,500)
             if not document_scope: raise ValueError('Invalid document scope.')
+        catalog=validated_document_evidence(document_evidence, docs, document_scope)
+        if catalog: payload['document_evidence']=catalog
         if len(dumps(payload).encode('utf-8')) > 1_000_000:
             raise ValueError('Submission exceeds the local size limit.')
         context = payload.get('context', {})
@@ -239,8 +279,8 @@ class KnowledgeGraph:
         if draft is None: draft = {}
         if not isinstance(context, dict) or not isinstance(turns, list) or not isinstance(draft, dict):
             raise ValueError('Submission requires valid context, turns and draft.')
-        if len(turns)>400 or not any(isinstance(t,dict) and t.get('role')=='user' and not t.get('document_event') and isinstance(t.get('text'),str) and t['text'].strip() for t in turns):
-            raise ValueError('A submission requires at least one participant statement.')
+        if len(turns)>400 or (not catalog and not any(isinstance(t,dict) and t.get('role')=='user' and not t.get('document_event') and isinstance(t.get('text'),str) and t['text'].strip() for t in turns)):
+            raise ValueError('A submission requires a participant statement or verified document evidence.')
         seen=set()
         for turn in turns:
             if not isinstance(turn,dict) or turn.get('role') not in ('user','assistant'):
@@ -351,11 +391,20 @@ class KnowledgeGraph:
             values=draft.get(field,[])
             if isinstance(values,list):
                 for value in values[:100]: component(version_entity,kind,value,relation,{'source':source,'field':field})
-        valid_evidence={turn['id'] for turn in payload.get('turns',[]) if turn.get('role')=='user' and not turn.get('document_event')} | {'context'}
+        document_ids={item['id'] for item in payload.get('document_evidence',[])}
+        participant_ids={turn['id'] for turn in payload.get('turns',[]) if turn.get('role')=='user' and not turn.get('document_event')}
+        valid_evidence=participant_ids | {'context'} | document_ids
         def validate_evidence(item):
             refs=item.get('evidence_turns',[])
             if not isinstance(refs,list) or any(not isinstance(ref,str) or ref not in valid_evidence for ref in refs):
                 raise ValueError('Submitted workflow references unknown or non-participant evidence.')
+        def provenance(item):
+            refs=set(item.get('evidence_turns',[]))
+            cited_documents=sorted(refs & document_ids)
+            if not cited_documents: return {}
+            return {'source_kind':'mixed' if refs & participant_ids else 'document',
+                    'document_source_ids':cited_documents, 'owner_review_required':True,
+                    **({'participant_confirmed':False} if not refs & participant_ids else {})}
         ids={}
         for step in steps:
             if not isinstance(step,dict): raise ValueError('Invalid submitted step.')
@@ -365,15 +414,15 @@ class KnowledgeGraph:
             eid=new_id();ids[local]=eid
             label=text(step.get('title','') or 'Untitled step',1000)
             kind='decision' if step.get('type')=='decision' else 'step'
-            self.db.execute('INSERT INTO entities VALUES (?,?,?,?,?,?)',(eid,sid,rev,kind,label,dumps({**step,'_materialized_from':source})))
-            link(version_entity,eid,'contains',{'step_id':local})
+            self.db.execute('INSERT INTO entities VALUES (?,?,?,?,?,?)',(eid,sid,rev,kind,label,dumps({**step,'_materialized_from':source,**provenance(step)})))
+            link(version_entity,eid,'contains',{'step_id':local,**provenance(step)})
             for field,entity_type,relation in (('actor','role','performed_by'),('system','system','uses_system'),('input','business_object','consumes'),('output','business_object','produces')):
-                component(eid,entity_type,step.get(field,''),relation,{'step_id':local,'evidence_turns':step.get('evidence_turns',[])})
+                component(eid,entity_type,step.get(field,''),relation,{'step_id':local,'evidence_turns':step.get('evidence_turns',[]),**provenance(step)})
         for edge in connections:
             if not isinstance(edge,dict) or edge.get('from') not in ids or edge.get('to') not in ids:
                 raise ValueError('Submitted workflow connection references a missing step.')
             validate_evidence(edge)
-            self.db.execute('INSERT INTO edges VALUES (?,?,?,?,?,?,?,?)',(new_id(),ids[edge['to']],ids[edge['from']],'happens_after','reported',sid,rev,dumps({**edge,'_materialized_from':source})))
+            self.db.execute('INSERT INTO edges VALUES (?,?,?,?,?,?,?,?)',(new_id(),ids[edge['to']],ids[edge['from']],'happens_after','reported',sid,rev,dumps({**edge,'_materialized_from':source,**provenance(edge)})))
 
     def _revision(self,sid,revision):
         row=self.db.execute('SELECT * FROM revisions WHERE submission_id=? AND revision=?',(sid,revision)).fetchone()
@@ -914,6 +963,9 @@ class KnowledgeGraph:
             context=json.loads(context) if isinstance(context,str) else {}
             item['context'].update({key:context.get(key,'') for key in ('objective','background') if isinstance(context.get(key,''),str)})
             item['turns']=[dict(turn) for turn in self.db.execute("SELECT json_extract(t.value,'$.id') AS id,json_extract(t.value,'$.role') AS role,json_extract(t.value,'$.text') AS text FROM revisions r,json_each(r.payload,'$.turns') t WHERE r.submission_id=? AND r.revision=? AND json_extract(t.value,'$.role')='user' AND NOT COALESCE(json_extract(t.value,'$.document_event'),0)",(sid,revision)) if turn['id'] in ids]
+            catalog=self.db.execute("SELECT json_extract(payload,'$.document_evidence') FROM revisions WHERE submission_id=? AND revision=?",(sid,revision)).fetchone()[0]
+            if isinstance(catalog,str):
+                item['document_evidence']=[source for source in json.loads(catalog) if source.get('id') in ids]
             item['transcript_partial']=True
             result.append(item)
         return result

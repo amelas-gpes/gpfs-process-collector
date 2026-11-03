@@ -58,7 +58,7 @@
   pointer-events:auto;
   cursor:pointer;
   touch-action:manipulation;
-  transform:perspective(720px) rotateY(calc(var(--gaze-x) * 7deg)) rotateX(calc(var(--gaze-y) * -7deg));
+  transform:perspective(720px) rotateY(calc(var(--gaze-x) * 8.5deg)) rotateX(calc(var(--gaze-y) * -8.5deg));
   transform-origin:50% 55%;
 }
 /* A slow breath while waiting or listening; speech drives its own choreography. */

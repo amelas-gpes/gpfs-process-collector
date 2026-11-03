@@ -131,26 +131,27 @@
     function choreograph() {
       const speaking=mode==="speaking", amp=speaking?pose.output:0;
       // Rendered reach is kept inside the copper outline so the mark always reads as the logo.
-      const distance=.72*(pose.project-pose.gather)+.45*pose.hover;
-      const nod=pose.accent*(mode==="listening"?1.1:.4);
+      // Slightly stronger travel and tilt make voice and pointer responses readable at the on-screen size.
+      const distance=.86*(pose.project-pose.gather)+.55*pose.hover;
+      const nod=pose.accent*(mode==="listening"?1.3:.48);
       CENTERS.forEach((_,index)=>{
         const goal=goals[index];
         if(index===4){
-          const bob=speaking?.35*amp*(.5+.5*Math.sin(pose.phase*TAU*1.25)):0;
-          goal.x=pose.gazeX*.45;
-          goal.y=pose.tilt*.1+pose.gazeY*.45-bob;
-          goal.r=pose.tilt*2.4+(speaking?1.8*amp*Math.sin(pose.phase*TAU*.62):0);
+          const bob=speaking?.42*amp*(.5+.5*Math.sin(pose.phase*TAU*1.25)):0;
+          goal.x=pose.gazeX*.55;
+          goal.y=pose.tilt*.12+pose.gazeY*.55-bob;
+          goal.r=pose.tilt*2.9+(speaking?2.2*amp*Math.sin(pose.phase*TAU*.62):0);
           goal.s=1;
           return;
         }
         const [dx,dy]=DIRECTIONS[index];
         // A travelling wave around the ring: each diamond takes its turn to step out while the voice talks.
         const wave=.5+.5*Math.sin(pose.phase*TAU*1.25-index*TAU/4);
-        const reach=distance+.38*amp*wave;
-        goal.x=dx*reach+pose.gazeX*1.15;
-        goal.y=dy*reach+pose.gazeY*1.15+nod*.9;
-        goal.r=spin[index]+pose.tilt*3.5*(index%2===0?1:-1)+(speaking?4.5*amp*Math.sin(pose.phase*TAU*.8+index*1.7):0);
-        goal.s=1+.06*amp*wave+.04*pose.hover;
+        const reach=distance+.46*amp*wave;
+        goal.x=dx*reach+pose.gazeX*1.4;
+        goal.y=dy*reach+pose.gazeY*1.4+nod*.9;
+        goal.r=spin[index]+pose.tilt*4.2*(index%2===0?1:-1)+(speaking?5.5*amp*Math.sin(pose.phase*TAU*.8+index*1.7):0);
+        goal.s=1+.07*amp*wave+.05*pose.hover;
       });
     }
     function impulse(kick) {

@@ -73,8 +73,10 @@ function acknowledge(h,events=h.channels.at(-1).sent.filter(e=>e.type==="session
   h.event({type:"session.output_transcript.delta",event_id:"b",delta:"I see.",start_ms:300,end_ms:600});
   h.event({type:"session.input_transcript.delta",event_id:"c",delta:" arrives by email.",start_ms:510,end_ms:1000});
   const user=h.captions.filter(c=>c.role==="user"),assistant=h.captions.filter(c=>c.role==="assistant");
-  assert.equal(user.at(-1).text,"The invoice arrives by email.");assert.equal(user[0].id,user.at(-1).id,"Overlapping assistant speech must not split the participant's sentence");
-  assert.equal(assistant[0].text,"I see.");assert.equal(user.at(-1).fragments.length,2);
+  const participantCaptions=[...new Map(user.map(c=>[c.id,c])).values()];
+  assert.equal(participantCaptions.map(c=>c.text).join(""),"The invoice arrives by email.","Assistant acknowledgments must not discard participant text");
+  assert.notEqual(user[0].id,user.at(-1).id,"Speaker changes keep separate chronological transcript captions");
+  assert.equal(assistant[0].text,"I see.");assert.equal(participantCaptions.reduce((total,c)=>total+c.fragments.length,0),2);
   const count=h.captions.length;h.event({type:"session.input_transcript.delta",event_id:"c",delta:" arrives by email.",start_ms:510,end_ms:1000});assert.equal(h.captions.length,count,"Repeated event IDs are ignored");
   h.event({type:"session.input_transcript.delta",event_id:"d",delta:"Then we approve it.",start_ms:4500,end_ms:5500});
   assert.notEqual(h.captions.at(-1).id,user.at(-1).id);assert.equal(h.captions.at(-2).final,true);

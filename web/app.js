@@ -37,7 +37,7 @@
     recording: null, requestingMic: false, transcribing: false,
     memo_findings: [], focus: "", parking_lot: [], closure: {asked:false,confirmed:false}, captureProvenance:null,
   };
-  const conversationUI = {view:"voice", typing:false, live:null, status:"idle", muted:false, captions:new Map(), workflow:null, revision:0, applied:-1, flowBusy:false, flowTimer:null, flowAbort:null};
+  const conversationUI = {view:"voice", typing:false, live:null, status:"idle", muted:false, captions:new Map(), workflow:null, revision:0, applied:-1, flowBusy:false, flowTimer:null, flowAbort:null, flowErrorNotified:false};
   const icons = {
     play: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m5 3 7 5-7 5Z"/></svg>'
   };
@@ -577,7 +577,11 @@
     conversationUI.captions.set(key,ids);state.version++;state.dirty=true;
     renderTranscript();
     if(conversationUI.view==="transcript"){if(follow)scrollConversation();else if($("jump-latest"))$("jump-latest").hidden=false;}
-    if(caption.role==="user"){conversationUI.revision++; if(caption.final)scheduleWorkflow();}
+    if(caption.role==="user"){
+      conversationUI.revision++;
+      suppressWorkflowReadiness();
+      scheduleWorkflow();
+    }
     if(caption.final&&caption.role==="assistant"){
       pendingDocumentReason=null;
       if(/[?？]/.test(caption.text)&&/file|document|upload/i.test(caption.text)&&/why|reason|look for|relat|help|notice|share|purpose/i.test(caption.text)){
@@ -591,10 +595,25 @@
   }
   function scheduleWorkflow() {
     if(!state.turns.some(t=>t.role==="user")||!state.config?.api_configured)return;
-    clearTimeout(conversationUI.flowTimer);
-    conversationUI.flowTimer=setTimeout(refreshWorkflow,1000);
+    if(conversationUI.flowBusy||conversationUI.flowTimer!==null||conversationUI.applied===conversationUI.revision)return;
+    // A bounded checkpoint, not a debounce: continued speech cannot postpone it.
+    conversationUI.flowTimer=setTimeout(()=>{conversationUI.flowTimer=null;return refreshWorkflow();},1000);
+  }
+  function suppressWorkflowReadiness() {
+    if(noticeKind==="ready"){clearTimeout(noticeTimer);$("global-notice").hidden=true;}
+    conversationUI.readyAnnounced=false;
+  }
+  function workflowEvidenceStillValid(captured) {
+    const current=new Map(state.turns.filter(turn=>turn.role==="user"&&!turn.document_event).map(turn=>[turn.id,turn]));
+    // New answers and append-only live caption growth leave this checkpoint's
+    // evidence intact. A rewritten/removed source cannot publish an old capture.
+    return captured.turns.filter(turn=>turn.role==="user"&&!turn.document_event).every(turn=>{
+      const present=current.get(turn.id);
+      return present&&present.text.startsWith(turn.text);
+    });
   }
   async function refreshWorkflow() {
+    clearTimeout(conversationUI.flowTimer);conversationUI.flowTimer=null;
     if(state.busy){scheduleWorkflow();return;}
     if(conversationUI.flowBusy||conversationUI.applied===conversationUI.revision)return;
     if(!state.turns.some(t=>t.role==="user"))return;
@@ -603,24 +622,41 @@
     $("workflow-status").textContent="Updating…";$("retry-workflow").hidden=true;
     if($("coverage-update-status"))$("coverage-update-status").textContent="Updating…";
     try{
+      // Workflow updates alone carry the last accepted capture. Detach it from
+      // live state so later captions or memo edits cannot change this request.
+      const prior=conversationUI.workflow;
+      captured.previous_capture=clone({
+        workflow:prior?{title:prior.title,steps:prior.steps,connections:prior.connections,open_questions:prior.open_questions}:
+          {title:"",steps:[],connections:[],open_questions:[]},
+        memo_findings:normalizeFindings(state.memo_findings,captured.turns),
+        summary:text(state.summary,6000),focus:text(state.focus,500),parking_lot:strings(state.parking_lot,50)
+      });
       const result=await request("/api/workflow",captured,{signal:conversationUI.flowAbort.signal});
       if(generation!==state.generation)return;
-      if(revision!==conversationUI.revision)return;
+      if(!workflowEvidenceStillValid(captured))return;
+      const pending=revision!==conversationUI.revision;
       const workflow=normalizeDraft(result.workflow,captured.turns);
-      // Validate the entire snapshot before committing any part; stale replies never overwrite newer evidence.
+      // Validate graph and memo together before publishing this evidence checkpoint.
       const memo=result.memo_findings===undefined ? null : {
         memo_findings:normalizeFindings(result.memo_findings,captured.turns),coverage:normalizeCoverage(result.coverage),
         summary:text(result.summary,6000),focus:text(result.focus,500),parking_lot:strings(result.parking_lot,50)
       };
       conversationUI.workflow=workflow;
       applyProcessTitle(workflow.title);
-      if(memo) {Object.assign(state,memo);announceReadiness();}
+      if(memo) Object.assign(state,memo);
+      if(pending)suppressWorkflowReadiness();else if(memo)announceReadiness();
       conversationUI.applied=revision;state.dirty=true;updateSaveHint();renderCoverage();
-      if($("coverage-update-status"))$("coverage-update-status").textContent="Up to date";
-      renderWorkingMap();$("workflow-status").textContent="Up to date";
+      conversationUI.flowErrorNotified=false;
+      const status=pending?"Updating latest answers…":"Up to date";
+      if($("coverage-update-status"))$("coverage-update-status").textContent=status;
+      renderWorkingMap();$("workflow-status").textContent=status;
     }catch(error){if(generation===state.generation&&error.name!=="AbortError"){
       $("workflow-status").textContent="Couldn’t update. Your conversation is safe.";$("retry-workflow").hidden=false;
       if($("coverage-update-status"))$("coverage-update-status").textContent="Couldn’t update · Try again in Workflow";
+      if(!conversationUI.flowErrorNotified){
+        conversationUI.flowErrorNotified=true;
+        notice("The diagram and notes haven’t updated. Your transcript and last capture are safe. Try again in Workflow.",true);
+      }
     }}finally{
       if(generation===state.generation){conversationUI.flowBusy=false;conversationUI.flowAbort=null;if(revision!==conversationUI.revision)scheduleWorkflow();}
     }
@@ -950,6 +986,7 @@
     const turn = {id: nextTurnId(), role: "user", text: answer};
     state.turns.push(turn);
     conversationUI.revision++;
+    suppressWorkflowReadiness();
     state.version++;
     state.dirty = true;
     $("answer-text").value = "";
@@ -1831,7 +1868,7 @@
     if($("workflow-step-dialog")?.open)$("workflow-step-dialog").close();
     conversationUI.live?.stop({immediate:true});
     clearTimeout(conversationUI.flowTimer);conversationUI.flowAbort?.abort();
-    Object.assign(conversationUI,{workflow:null,revision:0,applied:-1,flowBusy:false,flowAbort:null,typing:false,status:"idle",readyAnnounced:false,captions:new Map()});
+    Object.assign(conversationUI,{workflow:null,revision:0,applied:-1,flowBusy:false,flowTimer:null,flowAbort:null,flowErrorNotified:false,typing:false,status:"idle",readyAnnounced:false,captions:new Map()});
     selectConversationView("voice");renderWorkingMap();
     if($("workflow-status"))$("workflow-status").textContent="Updates as you talk.";
     if($("retry-workflow"))$("retry-workflow").hidden=true;

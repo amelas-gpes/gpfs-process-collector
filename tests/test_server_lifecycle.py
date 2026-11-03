@@ -1,0 +1,195 @@
+"""Offline HTTP-disconnect and payload-free lifecycle diagnostic regressions."""
+import io
+import json
+from pathlib import Path
+import socket
+import sys
+import tempfile
+import threading
+import unittest
+import urllib.error
+import urllib.request
+from unittest.mock import Mock, patch
+
+from test_server import server, interview_payload
+
+
+class ResponseDisconnectTests(unittest.TestCase):
+    def test_disconnected_headers_or_body_do_not_trigger_a_second_response(self):
+        for error_type in (ConnectionAbortedError, ConnectionResetError, BrokenPipeError, TimeoutError):
+            for stage in ("headers", "body"):
+                with self.subTest(error=error_type.__name__, stage=stage):
+                    handler = object.__new__(server.Handler)
+                    handler.server = Mock()
+                    handler._headers = Mock()
+                    handler.wfile = Mock()
+                    if stage == "headers":
+                        handler._headers.side_effect = error_type("private-error-text")
+                    else:
+                        handler.wfile.write.side_effect = error_type("private-error-text")
+                    self.assertFalse(handler._json({"result": "private-payload"}))
+                    handler._headers.assert_called_once()
+                    self.assertLessEqual(handler.wfile.write.call_count, 1)
+                    self.assertTrue(handler.close_connection)
+                    handler.server.record_event.assert_called_once_with(
+                        "client_disconnected", status=200, error_type=error_type.__name__)
+
+
+class HTTPDiagnosticTests(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory(prefix="collector-disconnect-")
+        self.addCleanup(self.temporary.cleanup)
+        self.client = server.OpenAIClient({})
+        self.client.workflow = Mock(return_value={"workflow": {"steps": [{"id": "S1"}]}})
+        self.response_statuses = []
+        statuses = self.response_statuses
+
+        class AbortedWriter:
+            def __init__(self, original):
+                self.original = original
+
+            def write(self, _):
+                raise ConnectionAbortedError("private-disconnect-detail")
+
+            def __getattr__(self, name):
+                return getattr(self.original, name)
+
+        class AbortOneResponse(server.Handler):
+            def _headers(self, status, mime, size):
+                statuses.append(status)
+                return super()._headers(status, mime, size)
+
+            def _write_response(self, raw, mime, status=200):
+                if self.path == "/api/workflow" and not self.server.aborted_once:
+                    self.server.aborted_once = True
+                    self.wfile = AbortedWriter(self.wfile)
+                return super()._write_response(raw, mime, status)
+
+        self.httpd = server.InterviewServer(("127.0.0.1", 0), AbortOneResponse, client=self.client,
+                                            documents_root=Path(self.temporary.name) / "documents")
+        self.httpd.aborted_once = False
+        self.worker = threading.Thread(target=self.httpd.serve_forever,
+                                       kwargs={"poll_interval": .01}, daemon=True)
+        self.worker.start()
+        self.addCleanup(self.close_server)
+        self.url = f"http://127.0.0.1:{self.httpd.server_port}"
+
+    def close_server(self):
+        self.httpd.shutdown()
+        self.worker.join(timeout=3)
+        self.httpd.server_close()
+
+    def request(self, path, payload=None):
+        headers = {}
+        if payload is not None:
+            headers = {"Content-Type": "application/json", "X-CSRF-Token": self.httpd.csrf_token}
+        request = urllib.request.Request(self.url + path,
+                                         data=json.dumps(payload).encode() if payload is not None else None,
+                                         headers=headers)
+        try:
+            with urllib.request.urlopen(request, timeout=3) as response:
+                return response.status, json.load(response)
+        except urllib.error.HTTPError as response:
+            return response.code, json.load(response)
+
+    def events(self):
+        return [json.loads(line) for line in self.httpd.diagnostics_path.read_text().splitlines()]
+
+    def test_aborted_response_leaves_server_and_next_workflow_healthy(self):
+        payload = interview_payload()
+        payload["turns"][1]["text"] = "PRIVATE_TRANSCRIPT_SENTINEL"
+        raw = json.dumps(payload).encode()
+        with socket.create_connection(self.httpd.server_address, timeout=3) as connection:
+            connection.sendall((f"POST /api/workflow HTTP/1.1\r\nHost: 127.0.0.1:{self.httpd.server_port}\r\n"
+                                f"X-CSRF-Token: {self.httpd.csrf_token}\r\nContent-Type: application/json\r\n"
+                                f"Content-Length: {len(raw)}\r\n\r\n").encode() + raw)
+            self.assertEqual(connection.recv(1024), b"")
+        self.assertEqual(self.request("/api/config")[0], 200)
+        self.assertEqual(self.request("/api/workflow", payload)[0], 200)
+        self.assertEqual(self.client.workflow.call_count, 2)
+        self.assertNotIn(500, self.response_statuses)
+        events = self.events()
+        self.assertEqual(sum(item["event"] == "client_disconnected" for item in events), 1)
+        finished = [item for item in events if item["event"] == "workflow_finished"]
+        self.assertEqual(len(finished), 2)
+        self.assertTrue(all(item["outcome"] == "success" and item["step_count"] == 1 for item in finished))
+        logged = self.httpd.diagnostics_path.read_text()
+        self.assertNotIn("PRIVATE_TRANSCRIPT_SENTINEL", logged)
+        self.assertNotIn("private-disconnect-detail", logged)
+        self.assertNotIn(self.httpd.csrf_token, logged)
+
+    def test_workflow_failure_diagnostics_record_class_not_exception_or_payload(self):
+        self.httpd.aborted_once = True
+        self.client.workflow.side_effect = server.APIError("PRIVATE_PROVIDER_ERROR_SENTINEL", 503)
+        status, _ = self.request("/api/workflow", interview_payload())
+        self.assertEqual(status, 503)
+        failed = next(item for item in self.events() if item["event"] == "workflow_finished")
+        self.assertEqual(failed["outcome"], "error")
+        self.assertEqual(failed["error_type"], "APIError")
+        self.assertGreaterEqual(failed["duration_ms"], 0)
+        self.assertNotIn("PRIVATE_PROVIDER_ERROR_SENTINEL", self.httpd.diagnostics_path.read_text())
+
+    def test_explicit_shutdown_records_only_a_safe_reason(self):
+        stopped = threading.Event()
+        with patch.object(self.httpd, "shutdown", side_effect=stopped.set) as shutdown:
+            status, result = self.request("/api/shutdown", {})
+            self.assertEqual(status, 200)
+            self.assertTrue(result["stopping"])
+            self.assertTrue(stopped.wait(timeout=1))
+            shutdown.assert_called_once()
+        entry = next(item for item in self.events() if item["event"] == "shutdown_requested")
+        self.assertEqual(entry["reason"], "local_shutdown_request")
+        self.assertEqual(self.httpd.shutdown_reason, "local_shutdown_request")
+
+
+class LifecycleDiagnosticTests(unittest.TestCase):
+    def test_rotation_is_bounded_and_only_allowlisted_metadata_is_saved(self):
+        with tempfile.TemporaryDirectory(prefix="collector-diagnostics-") as temporary:
+            path = Path(temporary) / "work" / "server-lifecycle.jsonl"
+            with patch.object(server, "DIAGNOSTIC_MAX_BYTES", 500):
+                for _ in range(20):
+                    server.record_diagnostic(path, "workflow_finished", duration_ms=20, step_count=4,
+                                             error_type="APIError", reason="private reason with spaces",
+                                             payload="PRIVATE_PAYLOAD_SENTINEL")
+            previous = path.with_name("server-lifecycle.previous.jsonl")
+            self.assertTrue(previous.is_file())
+            for file in (path, previous):
+                self.assertLessEqual(file.stat().st_size, 500)
+                for line in file.read_text().splitlines():
+                    record = json.loads(line)
+                    self.assertEqual(record["step_count"], 4)
+                    self.assertNotIn("payload", record)
+                    self.assertNotIn("reason", record)
+                self.assertNotIn("PRIVATE_PAYLOAD_SENTINEL", file.read_text())
+
+    def test_diagnostic_write_failure_does_not_raise_into_app(self):
+        with tempfile.TemporaryDirectory(prefix="collector-diagnostics-unavailable-") as temporary:
+            path = Path(temporary) / "server-lifecycle.jsonl"
+            with patch.object(Path, "open", side_effect=PermissionError("unavailable")):
+                server.record_diagnostic(path, "start", parent_pid=1)
+
+    def test_main_records_start_and_distinct_exit_reasons_without_error_text(self):
+        for failure, reason in ((None, "serve_forever_returned"),
+                                (KeyboardInterrupt(), "keyboard_interrupt"),
+                                (RuntimeError("PRIVATE_MAIN_ERROR_SENTINEL"), "main_exception")):
+            with self.subTest(reason=reason):
+                fake = Mock(server_port=8774, build_id="synthetic-build")
+                del fake.shutdown_reason
+                fake.serve_forever.side_effect = failure
+                with patch.object(server, "InterviewServer", return_value=fake), \
+                     patch.object(sys, "argv", ["server.py"]), patch("sys.stdout", new=io.StringIO()):
+                    if isinstance(failure, RuntimeError):
+                        with self.assertRaises(RuntimeError):
+                            server.main()
+                    else:
+                        server.main()
+                fake.server_close.assert_called_once()
+                events = fake.record_event.call_args_list
+                self.assertEqual(events[0].args, ("start",))
+                self.assertEqual(events[-1].args, ("exit",))
+                self.assertEqual(events[-1].kwargs["reason"], reason)
+                self.assertNotIn("PRIVATE_MAIN_ERROR_SENTINEL", repr(events))
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)

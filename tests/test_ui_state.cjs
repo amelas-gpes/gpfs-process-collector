@@ -341,7 +341,7 @@ if(process.argv.includes("--usability-only")){
   t.conversationUI.live=null;t.conversationUI.status="idle";passes++;
  }
  {
-  t.state.turns=[];t.state.version=0;t.state.dirty=false;t.conversationUI.captions=new Map();t.conversationUI.revision=0;t.conversationUI.applied=-1;checkpoint();
+  t.state.turns=[];t.state.memo_findings=[];t.state.version=0;t.state.dirty=false;t.conversationUI.captions=new Map();t.conversationUI.revision=0;t.conversationUI.applied=-1;checkpoint();
   t.receiveLiveCaption({id:"live_user",role:"user",text:"Invoices arrive by email.",final:false});
   const originalId=t.state.turns[0].id;
   t.receiveLiveCaption({id:"live_assistant",role:"assistant",text:"What happens next?",final:false});
@@ -389,8 +389,41 @@ if(process.argv.includes("--usability-only")){
   checkpoint();t.state.draft={title:"Owner-edited draft",steps:[{id:"manual",title:"Manual review step"}],connections:[]};t.state.draftEdited=true;
   const retained=t.state.draft,serialized=JSON.stringify(retained);t.conversationUI.applied=-1;
   t.setRequest(async()=>({workflow:graph("Updated paper route",[{id:"S2",title:"Receive paper invoice",evidence_turns:["t002"]}])}));await t.refreshWorkflow();
-  assert.equal(t.conversationUI.workflow.title,"Updated paper route");assert.equal(t.conversationUI.workflow.steps.length,1);assert.equal(t.conversationUI.workflow.steps[0].id,"S2","A new graph fully replaces removed/edited working nodes");
+  assert.equal(t.conversationUI.workflow.title,"Updated paper route");assert.equal(t.conversationUI.workflow.steps.length,1);assert.equal(t.conversationUI.workflow.steps[0].id,"S2","The UI applies the backend's complete validated graph after explicit removals");
   assert.equal(t.state.draft,retained);assert.equal(JSON.stringify(t.state.draft),serialized,"Live graph updates must not overwrite the owner-edited review draft");assert.equal(t.state.draftEdited,true);passes++;
+ }
+ {
+  checkpoint();t.clearState();t.state.started=true;t.state.context={process_name:"Invoices"};
+  t.state.turns=[{id:"t002",role:"user",text:"A paper invoice arrives. AP logs it."}];
+  const prior=t.normalizeDraft({title:"Invoice intake",steps:[{id:"S1",title:"Receive invoice",evidence_turns:["t002"]},{id:"S2",title:"Log invoice",evidence_turns:["t002"]}],connections:[{from:"S1",to:"S2",label:"Next",evidence_turns:["t002"]}],open_questions:["Who owns the register?"]});
+  t.conversationUI.workflow=prior;t.conversationUI.applied=-1;
+  t.state.memo_findings=[{key:"trigger",status:"captured",answer:"Paper invoice received.",evidence_turns:["t002"]}];
+  t.state.summary="Invoice receipt and logging.";t.state.focus="Register ownership";t.state.parking_lot=["Electronic invoices later."];
+  t.state.draft={title:"Private owner-edited draft",steps:[],connections:[]};
+  let received,complete;t.setRequest((url,payload)=>{assert.equal(url,"/api/workflow");received=payload;return new Promise(resolve=>complete=resolve);});
+  const pending=t.refreshWorkflow(),baseline=received.previous_capture;
+  assert.deepEqual(Object.keys(baseline.workflow).sort(),["connections","open_questions","steps","title"]);
+  assert.equal(baseline.workflow.steps.length,2);assert.equal(baseline.workflow.connections[0].to,"S2");
+  assert.equal(baseline.workflow.open_questions[0],"Who owns the register?");assert.equal(baseline.memo_findings.length,11);
+  assert.equal(baseline.memo_findings.find(f=>f.key==="trigger").answer,"Paper invoice received.");
+  assert.equal(baseline.summary,"Invoice receipt and logging.");assert.equal(baseline.focus,"Register ownership");assert.equal(baseline.parking_lot[0],"Electronic invoices later.");
+  assert.equal(Object.hasOwn(t.snapshot(),"previous_capture"),false,"General interview and voice snapshots must not carry workflow update state");
+  assert.equal(JSON.stringify(received).includes("Private owner-edited draft"),false,"Only the working map is update context; the owner-edited draft stays separate");
+  const capturedBefore=JSON.stringify(baseline);
+  prior.steps[0].title="Changed after request";prior.steps[0].evidence_turns.push("context");prior.connections[0].label="Changed";prior.open_questions.push("A later question");
+  t.state.memo_findings[0].answer="Changed after request";t.state.memo_findings[0].evidence_turns.push("context");t.state.parking_lot[0]="A later tangent";
+  t.state.summary="Later summary";t.state.focus="Later focus";
+  assert.equal(JSON.stringify(baseline),capturedBefore,"In-flight prior graph, memo and source arrays must be detached from live state");
+  complete({workflow:graph("Accepted backend graph")});await pending;passes++;
+ }
+ {
+  checkpoint();t.clearState();t.state.started=true;t.state.context={process_name:"New work"};
+  t.state.turns=[{id:"t002",role:"user",text:"A fresh process starts."}];
+  let received;t.setRequest(async(_url,payload)=>{received=payload;return {workflow:graph("Fresh process")};});await t.refreshWorkflow();
+  const baseline=received.previous_capture;
+  assert.equal(baseline.workflow.title,"");assert.equal(baseline.workflow.steps.length,0);assert.equal(baseline.workflow.connections.length,0);assert.equal(baseline.workflow.open_questions.length,0);
+  assert.equal(baseline.memo_findings.length,11);assert.ok(baseline.memo_findings.every(f=>f.status==="unknown"&&f.evidence_turns.length===0));
+  assert.equal(baseline.summary,"");assert.equal(baseline.focus,"");assert.equal(baseline.parking_lot.length,0,"A cleared interview cannot inherit a former process's map or memo");passes++;
  }
  {
   checkpoint();t.clearState();t.state.started=true;t.state.context={process_name:"Invoices"};t.state.turns=[{id:"t001",role:"assistant",text:"What starts the work?"}];
@@ -424,7 +457,9 @@ if(process.argv.includes("--usability-only")){
   await t.sendAnswer({preventDefault(){}});assert.equal(t.state.turns.length,3);assert.equal(t.state.turns.filter(turn=>turn.role==="user").length,1);assert.equal(t.state.turns[2].text,"Who receives it?");
   assert.equal(document.getElementById("answer-text").value,"");assert.equal(document.getElementById("retry-question").hidden,true);assert.equal(t.state.busy,false);assert.equal(timers.size,1);
   const [timerId,timer]=workflowTimers()[0];timers.delete(timerId);await timer.fn();
-  assert.equal(calls.length,2);assert.equal(calls[1].url,"/api/workflow");assert.equal(calls[1].payload.turns[1].text,"The vendor posts an invoice.");assert.equal(t.conversationUI.workflow.title,"Posted invoice");passes++;
+  assert.equal(calls.length,2);assert.equal(calls[1].url,"/api/workflow");assert.equal(calls[1].payload.turns[1].text,"The vendor posts an invoice.");assert.equal(t.conversationUI.workflow.title,"Posted invoice");
+  assert.equal(Object.hasOwn(calls[0].payload,"previous_capture"),false,"Next-question requests use ordinary interview evidence only");
+  assert.equal(Object.hasOwn(calls[1].payload,"previous_capture"),true,"Only workflow requests receive the editable capture baseline");passes++;
  }
  {
   checkpoint();t.clearState();t.state.started=true;t.state.context={process_name:"Invoices"};t.conversationUI.view="transcript";
@@ -452,9 +487,10 @@ if(process.argv.includes("--usability-only")){
  {
   checkpoint();t.conversationUI.applied=-1;const priorGraph=t.conversationUI.workflow,priorMemo=memoSnapshot();let complete;
   t.setRequest(()=>new Promise(resolve=>complete=resolve));const pending=t.refreshWorkflow();
+  t.conversationUI.captions.set("user:memo-correction",["t002"]);
   t.receiveLiveCaption({id:"memo-correction",role:"user",text:"Correction: invoices arrive in person.",final:true});
   complete(memoResult("Superseded paper flow","A stale trigger answer."));await pending;
-  assert.equal(t.conversationUI.workflow,priorGraph);assert.equal(memoSnapshot(),priorMemo,"Stale graph responses must not regress the memo rail");passes++;
+  assert.equal(t.conversationUI.workflow,priorGraph);assert.equal(memoSnapshot(),priorMemo,"A rewritten source must invalidate the graph and memo checkpoint together");passes++;
  }
  {
   checkpoint();t.conversationUI.applied=-1;const priorGraph=t.conversationUI.workflow,priorMemo=memoSnapshot();
@@ -508,6 +544,59 @@ if(process.argv.includes("--usability-only")){
  const memoKeys=["name","purpose","trigger","completion","accountable","lifecycle","checks","variations","pain_points","risk","materials"];
  const completeFindings=()=>memoKeys.map(key=>({key,status:"captured",answer:`Reported ${key} detail.`,evidence_turns:["t002"]}));
  const interviewResult=findings=>({question:"Anything to correct?",ready_for_draft:true,coverage:memoKeys.map(key=>({key,status:"covered"})),memo_findings:findings,summary:"Reported process.",focus:"Completeness",parking_lot:[]});
+ {
+  checkpoint();t.clearState();t.state.started=true;t.state.context={process_name:"Invoices"};
+  t.state.turns=[{id:"t001",role:"assistant",text:"Tell me how invoices are handled."}];
+  document.getElementById("global-notice").hidden=true;
+  const requests=[];
+  t.setRequest((url,payload)=>{assert.equal(url,"/api/workflow");return new Promise(resolve=>requests.push({payload,resolve}));});
+  t.receiveLiveCaption({id:"continuous-user",role:"user",text:"The analyst receives invoices.",final:false});
+  const firstTimer=workflowTimers()[0];assert.ok(firstTimer,"Nonfinal speech must schedule a workflow checkpoint");
+  for(const suffix of [" Then", " Then the analyst", " Then the analyst logs them."]){
+   t.receiveLiveCaption({id:"continuous-user",role:"user",text:"The analyst receives invoices."+suffix,final:false});
+   assert.equal(workflowTimers()[0][0],firstTimer[0],"Continued speech must not postpone the existing checkpoint");
+  }
+  timers.delete(firstTimer[0]);const firstRequest=firstTimer[1].fn();
+  assert.equal(requests.length,1);const capturedRevision=t.conversationUI.revision;
+  t.receiveLiveCaption({id:"continuous-user",role:"user",text:"The analyst receives invoices. Then the analyst logs them. They use a register.",final:false});
+  t.receiveLiveCaption({id:"next-user-answer",role:"user",text:"A manager reviews the logged invoice.",final:false});
+  for(let i=0;i<5;i++)t.scheduleWorkflow();
+  assert.equal(workflowTimers().length,0,"Speech during an active request queues through its revision, not parallel timers");
+  assert.equal(requests.length,1,"At most one workflow request may run at a time");
+  requests[0].resolve({...memoResult("Captured invoice receipt"),memo_findings:completeFindings(),coverage:memoKeys.map(key=>({key,status:"covered"}))});
+  await firstRequest;
+  assert.equal(t.conversationUI.workflow.title,"Captured invoice receipt","A checkpoint must render while later answers continue arriving");
+  assert.equal(t.state.memo_findings.length,11,"The checkpoint commits its graph and memo together");
+  assert.equal(t.conversationUI.applied,capturedRevision);assert.ok(t.conversationUI.applied<t.conversationUI.revision);
+  assert.equal(document.getElementById("workflow-status").textContent,"Updating latest answers…");
+  assert.equal(document.getElementById("coverage-update-status").textContent,"Updating latest answers…");
+  assert.equal(document.getElementById("global-notice").hidden,true,"A superseded completeness checkpoint cannot announce readiness");
+  assert.equal(t.conversationUI.readyAnnounced,false);
+  const followup=workflowTimers();assert.equal(followup.length,1,"The latest pending evidence must have exactly one follow-up checkpoint");
+  timers.delete(followup[0][0]);const latestRequest=followup[0][1].fn();assert.equal(requests.length,2);
+  assert.equal(requests[1].payload.previous_capture.workflow.title,"Captured invoice receipt","A follow-up must use the checkpoint that just rendered as its omission-safe baseline");
+  assert.ok(requests[1].payload.turns.some(turn=>turn.text==="A manager reviews the logged invoice."));
+  assert.ok(requests[1].payload.turns.find(turn=>turn.id==="t002").text.endsWith("They use a register."));
+  requests[1].resolve({...memoResult("Latest invoice route"),memo_findings:completeFindings(),coverage:memoKeys.map(key=>({key,status:"covered"}))});
+  await latestRequest;
+  assert.equal(t.conversationUI.workflow.title,"Latest invoice route");assert.equal(t.conversationUI.applied,t.conversationUI.revision);
+  assert.equal(document.getElementById("workflow-status").textContent,"Up to date");assert.equal(workflowTimers().length,0);
+  assert.equal(document.getElementById("global-notice").hidden,false,"Readiness may be announced only after the latest answers are captured");passes++;
+ }
+ {
+  checkpoint();t.clearState();t.state.started=true;t.state.context={process_name:"Invoices"};t.state.turns=[{id:"t002",role:"user",text:"Receive an invoice."}];
+  const prior=graph("Last accepted map");t.conversationUI.workflow=prior;t.selectConversationView("voice");
+  t.setRequest(async()=>{throw new Error("Private provider diagnostic must not appear in the UI");});
+  await t.refreshWorkflow();assert.equal(t.conversationUI.workflow,prior);
+  assert.equal(document.getElementById("global-notice").hidden,false,"Background failure must be visible while staying in Voice");
+  assert.match(document.getElementById("notice-text").textContent,/diagram and notes.*haven’t updated.*transcript.*safe/i);
+  assert.equal(document.getElementById("notice-text").textContent.includes("Private provider"),false);
+  const firstNotice=[...timers.entries()].find(([,timer])=>timer.delay===3000);
+  await t.refreshWorkflow();assert.equal([...timers.entries()].find(([,timer])=>timer.delay===3000)[0],firstNotice[0],"Repeated failures must not spam or extend the notification");
+  t.setRequest(async()=>memoResult("Recovered map"));await t.refreshWorkflow();assert.equal(t.conversationUI.flowErrorNotified,false);
+  t.conversationUI.revision++;t.setRequest(async()=>{throw new Error("Another outage");});await t.refreshWorkflow();
+  assert.notEqual([...timers.entries()].find(([,timer])=>timer.delay===3000)[0],firstNotice[0],"A new failure after recovery may notify again");passes++;
+ }
  for(const incomplete of ["partial","unknown","missing"]){
   checkpoint();document.getElementById("global-notice").hidden=true;t.state.turns=[{id:"t002",role:"user",text:"Reported process facts."}];
   const findings=completeFindings();if(incomplete==="missing")findings.pop();else findings[5].status=incomplete;

@@ -29,6 +29,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--stop", action="store_true")
     parser.add_argument("--no-browser", action="store_true")
+    parser.add_argument("--foreground", action="store_true", help="Keep the server attached to this managed terminal session.")
     parser.add_argument("--port", type=int, default=8774)
     args = parser.parse_args()
     if not 1 <= args.port <= 65535:
@@ -55,6 +56,14 @@ def main():
     if current and current.get('build_id') != expected_build:
         raise SystemExit(f"An older app build is running at {url} Save its interview before restarting it. "
                          f"Use --stop --port {args.port} to stop that instance, or start on another --port to keep it open.")
+    if not current and args.foreground:
+        # Tool-launched background children can be stopped when their short-lived
+        # launch job closes. Keep an explicitly managed session open instead;
+        # ordinary desktop starts retain their existing hidden-child behavior.
+        command = [sys.executable, "-I", "-B", str(APP_DIR / "server.py"), "--port", str(args.port)]
+        if not args.no_browser:
+            command.append("--open")
+        raise SystemExit(subprocess.call(command, cwd=APP_DIR))
     if not current:
         WORK_DIR.mkdir(exist_ok=True)
         log_path = WORK_DIR / "voice-interviewer-server.log"

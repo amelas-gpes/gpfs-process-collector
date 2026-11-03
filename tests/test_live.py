@@ -31,6 +31,14 @@ def workflow_capture_result():
             'focus': 'Normal invoice route', 'parking_lot': ['Payment release is separate work.']}
 
 
+def workflow_update_result():
+    capture = workflow_capture_result()
+    capture['upsert_steps'] = capture.pop('steps')
+    capture['upsert_connections'] = capture.pop('connections')
+    capture.update(remove_steps=[], remove_connections=[])
+    return capture
+
+
 class LiveContractTests(unittest.TestCase):
     def setUp(self):
         self.client = server.OpenAIClient({'OPENAI_API_KEY': KEY})
@@ -84,8 +92,8 @@ class LiveContractTests(unittest.TestCase):
             with self.subTest(response=response), self.assertRaises(server.APIError):
                 self.client.live_session(live_payload())
 
-    def test_workflow_uses_one_stateless_structured_call_and_returns_full_replacement(self):
-        self.client.structured = Mock(return_value=workflow_capture_result())
+    def test_workflow_uses_one_structured_update_and_returns_a_complete_capture(self):
+        self.client.structured = Mock(return_value=workflow_update_result())
         payload = interview_payload()
         payload['workflow'] = {'steps': [{'id': 'old-step'}]}
         result = self.client.workflow(payload)
@@ -96,15 +104,17 @@ class LiveContractTests(unittest.TestCase):
         args = self.client.structured.call_args.args
         self.assertEqual(args[3], 'working_process_map')
         self.assertNotIn('workflow', args[1])
-        self.assertIn('Later explicit corrections', args[0])
+        self.assertIn('previous_capture', args[1])
+        self.assertEqual(args[1]['previous_capture']['workflow']['steps'], [])
+        self.assertEqual(args[2], server.WORKFLOW_UPDATE_SCHEMA)
 
     def test_workflow_cannot_invent_evidence_or_map_edges(self):
         for mutation in ('assistant', 'invented', 'missing-edge'):
-            result = workflow_capture_result()
+            result = workflow_update_result()
             if mutation == 'missing-edge':
-                result['connections'][0]['to'] = 'not-a-step'
+                result['upsert_connections'][0]['to'] = 'not-a-step'
             else:
-                result['steps'][0]['evidence_turns'] = ['a1' if mutation == 'assistant' else 'made-up']
+                result['upsert_steps'][0]['evidence_turns'] = ['a1' if mutation == 'assistant' else 'made-up']
             self.client.structured = Mock(return_value=result)
             with self.subTest(mutation=mutation), self.assertRaises(server.APIError):
                 self.client.workflow(interview_payload())
@@ -121,7 +131,7 @@ class LiveContractTests(unittest.TestCase):
         self.client.request.assert_not_called()
 
     def test_workflow_capture_derives_canonical_coverage_from_validated_findings(self):
-        capture = workflow_capture_result()
+        capture = workflow_update_result()
         capture['memo_findings'].reverse()
         capture['memo_findings'][0].update(status='not_applicable', answer='No materials apply.', evidence_turns=['u1'])
         self.client.structured = Mock(return_value=capture)
@@ -139,7 +149,7 @@ class LiveContractTests(unittest.TestCase):
         self.client.structured.assert_called_once()
 
     def test_workflow_snapshot_uses_the_same_all_eleven_readiness_gate(self):
-        capture = workflow_capture_result()
+        capture = workflow_update_result()
         self.client.structured = Mock(return_value=capture)
         self.assertFalse(self.client.workflow(interview_payload())['ready_for_draft'])
         capture['memo_findings'] = [
@@ -155,7 +165,8 @@ class LiveContractTests(unittest.TestCase):
         payload['context']['meeting_minutes'] = 'legacy value is ignored'
         payload['context']['background'] = 'The reported process deadline is each Friday at 5pm.'
         payload['session'] = {'elapsed_minutes': 10**30, 'planned_minutes': 1}
-        cases = [('workflow', [workflow_capture_result()]), ('interview', [interview_result()]),
+        cases = [('workflow', [workflow_update_result()]),
+                 ('interview', [interview_result(), {'question': 'What happens after the buyer resolves the mismatch?'}]),
                  ('draft', [process_draft(), process_draft()])]
         for method, results in cases:
             self.client.structured = Mock(side_effect=results)
@@ -174,12 +185,10 @@ class LiveContractTests(unittest.TestCase):
         self.assertIn('Friday at 5pm', session['instructions'])
         self.assertIn('no duration target', session['instructions'])
 
-    def test_workflow_capture_rejects_missing_duplicate_and_non_participant_memo_evidence(self):
-        for mutation in ('missing-topic', 'duplicate-topic', 'assistant-source', 'unsourced-report'):
-            capture = workflow_capture_result()
-            if mutation == 'missing-topic':
-                capture['memo_findings'].pop()
-            elif mutation == 'duplicate-topic':
+    def test_workflow_update_rejects_duplicate_and_non_participant_memo_evidence(self):
+        for mutation in ('duplicate-topic', 'assistant-source', 'unsourced-report'):
+            capture = workflow_update_result()
+            if mutation == 'duplicate-topic':
                 capture['memo_findings'][1] = copy.deepcopy(capture['memo_findings'][0])
             elif mutation == 'assistant-source':
                 capture['memo_findings'][0]['evidence_turns'] = ['a1']
@@ -189,15 +198,19 @@ class LiveContractTests(unittest.TestCase):
             with self.subTest(mutation=mutation), self.assertRaises(server.APIError):
                 self.client.workflow(interview_payload())
 
-    def test_workflow_capture_replaces_memo_and_map_together_after_corrections(self):
-        first = workflow_capture_result()
-        revised = workflow_capture_result()
-        revised['steps'] = revised['steps'][:1]
-        revised['connections'] = []
+    def test_workflow_capture_applies_explicit_removal_and_memo_changes_together(self):
+        first = workflow_update_result()
+        revised = workflow_update_result()
+        revised['upsert_steps'] = []
+        revised['upsert_connections'] = []
+        revised['remove_steps'] = [{'id': 's2', 'reason': 'Manager approval is out of scope.',
+                                    'source_quote': 'manager approval is a separate process', 'evidence_turns': ['u3']}]
         revised['memo_findings'][5].update(answer='Only invoice logging is in scope.', evidence_turns=['u3'])
         payload = interview_payload()
         self.client.structured = Mock(side_effect=[first, revised])
         old = self.client.workflow(payload)
+        payload['previous_capture'] = {key: copy.deepcopy(old[key])
+                                       for key in ('workflow', 'memo_findings', 'summary', 'focus', 'parking_lot')}
         payload['turns'].append({'id': 'u3', 'role': 'user', 'text': 'Correction: manager approval is a separate process. Only logging is in scope.'})
         new = self.client.workflow(payload)
         self.assertEqual(len(old['workflow']['steps']), 2)
@@ -217,7 +230,8 @@ class LiveContractTests(unittest.TestCase):
 
     def test_structured_evidence_enums_exclude_questions_across_every_nested_schema(self):
         self.client.request.return_value = {'output': [{'content': [{'type': 'output_text', 'text': '{}'}]}]}
-        for original in (server.INTERVIEW_SCHEMA, server.DRAFT_SCHEMA, server.WORKFLOW_SCHEMA, server.WORKFLOW_CAPTURE_SCHEMA):
+        for original in (server.INTERVIEW_SCHEMA, server.DRAFT_SCHEMA, server.WORKFLOW_SCHEMA,
+                         server.WORKFLOW_CAPTURE_SCHEMA, server.WORKFLOW_UPDATE_SCHEMA):
             with self.subTest(schema=original):
                 self.client.structured('Synthetic instructions', interview_payload(), original, 'synthetic', 100)
                 schema = self.client.request.call_args.args[1]['text']['format']['schema']
@@ -257,7 +271,8 @@ class LiveContractTests(unittest.TestCase):
     def test_reported_findings_require_sources_in_the_generated_schema(self):
         self.client.request.return_value = {'output': [{'content': [{'type': 'output_text', 'text': '{}'}]}]}
         for original, field in ((server.INTERVIEW_SCHEMA, 'memo_findings'), (server.DRAFT_SCHEMA, 'memo_summary'),
-                                (server.WORKFLOW_CAPTURE_SCHEMA, 'memo_findings')):
+                                (server.WORKFLOW_CAPTURE_SCHEMA, 'memo_findings'),
+                                (server.WORKFLOW_UPDATE_SCHEMA, 'memo_findings')):
             with self.subTest(field=field):
                 self.client.structured('Synthetic instructions', interview_payload(), original, 'findings', 100)
                 schema = self.client.request.call_args.args[1]['text']['format']['schema']
@@ -303,7 +318,8 @@ class LiveContractTests(unittest.TestCase):
         self.client.request.return_value = {'output': [{'content': [{'type': 'output_text', 'text': '{}'}]}]}
         ordinary = {'parking_lot', 'open_questions', 'inputs', 'outputs', 'exceptions', 'controls',
                     'validation_notes', 'stages', 'locations', 'handoffs'}
-        for original in (server.INTERVIEW_SCHEMA, server.DRAFT_SCHEMA, server.WORKFLOW_CAPTURE_SCHEMA):
+        for original in (server.INTERVIEW_SCHEMA, server.DRAFT_SCHEMA, server.WORKFLOW_CAPTURE_SCHEMA,
+                         server.WORKFLOW_UPDATE_SCHEMA):
             for participants in (2, 400):
                 with self.subTest(schema=original, participants=participants):
                     payload = interview_payload()

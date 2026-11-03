@@ -2,6 +2,12 @@
 
 An adaptive voice interviewer that helps people explain how a business process works today, then turns their account into a reviewable memo, process map and detailed procedure.
 
+Version **0.14.0** adds purposeful curiosity across typed and voice interviewing. Naming a step is distinguished from explaining how it works: the interviewer should deepen one useful mechanism, condition, check or handoff before moving on when that prevents an assumption. The question audit also checks for missed depth, while retaining the eleven-topic framework, no-repeat rules, explicit unknowns and participant stopping choices. See the [curiosity policy and examples](docs/INTERVIEW_CURIOSITY.md).
+
+Version **0.13.2** restores progressive workflow and memo updates during continuous speech. New captions no longer discard every completed capture; rewritten evidence still invalidates an older result. Background failures are visible during Voice. Managed terminal previews can use `launcher.py --no-browser --foreground` to retain an active server session.
+
+Version **0.13.1** applies spoken and typed corrections to the affected workflow components. The current map and memo accompany each update; omitted steps, routes and topics are retained. Explicit removals require a quoted participant correction and a named target. Stable step IDs and atomic validation protect unrelated work. See the [workflow correction behavior](docs/WORKFLOW_UPDATES.md).
+
 Version **0.13.0** adds dedicated transcript exports for AI question-quality review and general storage. In **Transcript**, choose **Markdown (.md)** or **JSON (.json)** and select **Export**; **More → Export transcript (.md)** works from any view. No draft or AI request is required. The complete transcript, eleven-topic memo snapshot and review guidance are included; private restoration capabilities and unsent text are excluded. See the [transcript export guide](docs/TRANSCRIPT_EXPORT.md).
 
 The fifteen usability improvements and reliability audit fixes remain included: paged Admin metadata and lazy details, complete source navigation, independently paged histories, graph refinement, saved-interview validation, keyboard recovery, reduced motion and stale-build detection. See the [application audit](docs/APPLICATION_AUDIT.md) for verified coverage and limits.
@@ -72,6 +78,8 @@ Open `http://127.0.0.1:8774/`. To stop this service:
 ```
 
 The Windows `Start Collector.cmd` and `Stop Collector.cmd` shortcuts use the same `VOICE_INTERVIEWER_PYTHON` setting. They do not install an interpreter or change global settings. Use `--port` if the default is occupied; stop with the same port. Runtime logs stay in the ignored `work/` directory inside this repository.
+
+For a terminal managed by an agent, add `--foreground` and keep its execution session running. This avoids relying on a hidden background child of a short-lived tool job. Ordinary desktop launches retain their existing behavior. Bounded operational events, without transcript or credential data, are recorded in `work/server-lifecycle.jsonl`.
 
 Default model settings can be changed using `INTERVIEW_MODEL` and `TRANSCRIPTION_MODEL` in server-side configuration. API usage consumes the configured project's credits or billed usage.
 

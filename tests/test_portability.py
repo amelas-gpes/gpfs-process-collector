@@ -100,6 +100,27 @@ class RepositoryPortabilityTests(unittest.TestCase):
         self.assertNotEqual(work_dir, app_dir)
         self.assertEqual(work_dir.parent, app_dir)
 
+    def test_foreground_launch_keeps_the_owned_server_in_the_managed_session(self):
+        with patch.object(sys, "argv", ["launcher.py", "--no-browser", "--foreground", "--port", "8783"]), \
+             patch.object(launcher, "config", return_value=None), \
+             patch.object(launcher.subprocess, "call", return_value=0) as run, \
+             patch.object(launcher.subprocess, "Popen") as detach:
+            with self.assertRaises(SystemExit) as result:
+                launcher.main()
+            self.assertEqual(result.exception.code, 0)
+            run.assert_called_once_with([sys.executable, "-I", "-B", str(launcher.APP_DIR / "server.py"),
+                                         "--port", "8783"], cwd=launcher.APP_DIR)
+            detach.assert_not_called()
+
+    def test_foreground_launch_propagates_server_failure(self):
+        with patch.object(sys, "argv", ["launcher.py", "--foreground"]), \
+             patch.object(launcher, "config", return_value=None), \
+             patch.object(launcher.subprocess, "call", return_value=7) as run:
+            with self.assertRaises(SystemExit) as result:
+                launcher.main()
+            self.assertEqual(result.exception.code, 7)
+            self.assertIn("--open", run.call_args.args[0])
+
     def test_launcher_reports_when_shutdown_does_not_complete(self):
         response = MagicMock()
         response.__enter__.return_value.read.return_value = b'{}'

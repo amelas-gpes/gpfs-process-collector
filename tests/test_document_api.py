@@ -15,7 +15,7 @@ from urllib.request import Request, urlopen
 from unittest.mock import Mock
 
 from test_server import server, interview_payload, interview_result
-from test_live import workflow_capture_result
+from test_live import workflow_update_result
 
 KEY = 'sk-synthetic-document-api-sentinel-never-a-real-credential'
 
@@ -42,7 +42,7 @@ class FakeProvider(server.OpenAIClient):
         if name == 'process_next_question_audit':
             value = {'question': json.loads(body['input'][0]['content'])['candidate_question']}
         elif name == 'working_process_map':
-            value = workflow_capture_result()
+            value = workflow_update_result()
             value['title'] = 'Invoice intake'
         else:
             value = interview_result()

@@ -1,3 +1,126 @@
+## 0.14.0 purposeful curiosity — 2026-11-03
+
+Review of the saved backlog interview and two documentary-simulation interviews found useful local
+details that could have been explored before moving to another step or topic. Earlier policies
+emphasized avoiding repetition but did not clearly distinguish naming an action from explaining its
+mechanism. The question audit could keep a generic progression question simply because it was new.
+These are opportunities at particular checkpoints, not a claim that every final account omitted
+the details. Private transcripts and the detailed review remain local.
+
+A shared curiosity policy now reaches typed interview generation, its question-only audit, direct
+voice instructions and delegated assistance. The foundation mirrors it, and voice instructions carry
+a concise eleven-topic guide. The audit ranks an unanswered local information need against its
+candidate, with medium reasoning. A named initiating event is retained as partial understanding when
+its mechanism is unknown. No-repeat, unavailable-detail/resolver, stopping, correction-scope and
+documentary-provenance protections remain active. See [policy and examples](INTERVIEW_CURIOSITY.md).
+
+**466 offline checks passed: 289 Python and 177 frontend checks** (75 UI/recovery, 41 Live-controller,
+38 real-ELK graph, 10 memo and 13 transcript-export). Five new Python checks verify shared prompt
+wiring and question-only mutation boundaries; eight fictional fixtures define information-need
+rubrics. Source syntax and diff whitespace checks passed. Independent source review found no
+material blocker. Runtime/packages/resources were reused without installations or copied runtimes.
+
+**Final real-model review: 14/14 outputs passed** against their information-need rubrics: eight
+question audits, two full interview-generation/audit flows, and four text replays of the Live prompt.
+They cover unexplained waking mechanisms, already-volunteered facts, shorthand checks, exception
+outcomes, unavailable detail and resolver, irrelevant trivia, targeted corrections and explicit stops.
+For example, the final questions include “What usually wakes you up?” and “What do you check in the
+file?” The initial iteration had one vague mechanism question and one missed-depth audit; its
+outputs were retained, the audit priority was strengthened, and the final set was independently
+reviewed again. Schema validity alone was not counted as question quality.
+
+The final questioning replay used 16 provider requests. Including its first iteration and four
+passing workflow model regressions, this refinement used 36 real requests with fictional fixtures.
+The workflow regressions still capture the initial four steps, preserve four after a first-step
+correction, retain three after a targeted deletion, and allow an explicit full withdrawal.
+Local inputs/outputs, prompt/source fingerprints and semantic-review reasons are in ignored
+`.local/curiosity-review/`; earlier workflow evidence is retained separately.
+
+These samples do not establish perfect questioning or exhaustive capture. Live-prompt replays used
+the configured text model; they are not actual GPT-Live conversations or physical audio tests.
+The provider/model identities, eleven-topic readiness gate and evidence contracts are unchanged.
+
+## 0.13.2 progressive live updates and server lifetime — 2026-11-03
+
+The follow-up demo exposed a gap in the earlier verification: individual model updates passed, but
+continuous caption growth was not tested end to end. Every new user delta invalidated a completed
+capture, and final-only/debounced scheduling could postpone the next one. Medium reasoning increased
+the time window for this starvation. Both the map and memo could stay empty while speech continued.
+
+The app now starts bounded checkpoints on nonfinal captions, with one request in flight and one
+latest update queued. It can publish a completed checkpoint when its source text still exists as
+an unchanged prefix, then catch up with later answers. Rewritten/removed evidence and prior-session
+responses remain rejected. Map and memo publish atomically, pending state remains visible, and
+readiness is suppressed until the latest evidence is processed. Background failures produce a
+deduplicated notice visible in Voice.
+
+The local service was also unavailable during investigation. Its earlier exit reason was not logged;
+the aborted-socket traceback was confined to a request thread and does not establish a main-process
+crash. Windows probes confirmed that tool-launched children inherit nested kill-on-close jobs; the
+permitted breakaway flag did not remove the outer lifetime restriction. No job/security settings were
+changed. The launcher now offers `--foreground` for an intentionally retained managed execution
+session. Ordinary desktop behavior is unchanged. JSON/asset writes handle disconnected clients
+without attempting a second response. Bounded, payload-free lifecycle/workflow metrics are saved
+under ignored `work/server-lifecycle.jsonl`, with one rotated previous file.
+
+**284 Python checks passed**, including seven new disconnect/diagnostic cases and the foreground
+launcher regressions. **164 frontend checks passed:** 75 UI-state/recovery, 41 Live-controller, 38
+real-ELK workflow and 10 memo checks. Changed source syntax and diff whitespace checks passed.
+
+**Real browser + HTTP integration passed:** 39 synthetic caption revisions streamed for 11.428s;
+the first real SVG diagram rendered at 3.136s, while captions were still arriving. Five delayed local
+HTTP checkpoints retained the prior map, used a maximum of one concurrent request, and converged to
+all three actions plus the memo at 15.227s (`applied` = `revision` = 39). This harness used the actual
+app script, DOM and locally bundled ELK, with a delayed fictional model adapter and isolated stores.
+Its control exists only in the test response, not in the production app. The owned test server and
+tab were closed afterward. Evidence and screenshot: ignored `.local/realtime-recovery/`.
+
+**Real-provider HTTP smoke check passed:** the running 0.13.2 service returned HTTP 200, three workflow
+steps and all eleven memo topics for a fictional invoice account in 13.281s. One provider request was
+made in this follow-up. This measures one request, not a latency guarantee. Physical microphone and
+speaker behavior were not exercised. The previous correction/removal safeguards remain included.
+The canonical preview was reopened, with the server retained in a managed foreground session.
+
+## 0.13.1 targeted workflow corrections — 2026-11-03
+
+The saved backlog-refinement account confirmed a scope error: a first-step correction to getting water
+also discarded later idea prioritization, updates and Jira/Confluence references. Workflow generation
+previously received no current graph and returned an unrestricted complete replacement.
+
+The workflow-only request now includes a detached, validated previous capture. The model returns
+explicit upserts/removals; omission preserves existing graph components and memo topics. Removals need
+an existing target, reason, participant evidence and exact source quote. Stable IDs, disjoint edits,
+incident-edge cleanup, no invented rejoin and atomic merged validation are enforced locally. Shared
+interview instructions scope corrections to affected details. The workflow call uses the existing
+configured model with medium reasoning effort. See [the update contract](WORKFLOW_UPDATES.md).
+
+**450 offline checks passed:** all 275 Python tests; 73 UI-state/recovery, 41 Live voice-controller,
+38 workflow/real-ELK, 10 memo and 13 transcript-export checks. Changed JavaScript syntax and Git
+whitespace checks passed. Thirteen dedicated Python regressions cover targeted replacement, omitted
+facts, stable IDs, branch/parallel-edge removal, explicit full withdrawal, changed caption text,
+invalid evidence/quotes, atomic rejection and memo withdrawal. The UI regressions verify prior-capture
+allowlisting, deep detachment, workflow-only requests and cleared-session isolation.
+
+The existing overlapping-acknowledgment voice test had a stale single-caption expectation. Its
+assertion now checks that the entire participant sentence and both fragments survive across the
+separate chronological captions. No voice-controller code changed.
+
+**Final real-model check: 4/4 fictional scenarios passed** with `gpt-5.4-mini`: initial capture (4
+steps), first-step correction retaining later work/materials (4), removal of only the named action
+without an unsupported rejoin (3), and explicit whole-account withdrawal (0). Earlier prompt iterations
+included conflicting model edits/removals caught by validation and an incomplete initial extraction;
+those attempts remain saved separately. Across the three iterations, ten real provider requests were
+made using fictional fixtures. The final four use the shipped prompt and medium reasoning setting.
+The key stayed in the existing local configuration and was never printed or sent to the browser.
+
+Local model inputs, outputs and attempt history are in ignored `.local/workflow-correction/`; the
+bounded runner is `.local/check-workflow-model.py --live`. A new preflight reused the existing Python
+3.12 runtime and installed parser packages, with no downloads, installations or copied runtimes.
+The canonical server was restarted and the existing empty preview reloaded. This does not establish
+physical microphone/speaker quality or guarantee correct interpretation of every ambiguous correction.
+Prior-capture payloads still share the normal bounded request limit; oversize/invalid updates fail
+without truncating or replacing the accepted capture.
+
 ## 0.13.0 transcript review exports — 2026-11-03
 
 Dedicated transcript Markdown and JSON downloads are available before a draft exists, via the compact Transcript toolbar and More menu. They retain all stored turn IDs, roles and text; distinguish file-context events from participant evidence; and include the eleven-topic memo snapshot, closure status, parked/open questions and AI review guidance. The explicit sharing allowlist omits private session capabilities, provider settings, unsent text and document bodies. The private Save format remains separate. Exports do not mark the interview saved or make a provider request. See the [format and usage guide](TRANSCRIPT_EXPORT.md).

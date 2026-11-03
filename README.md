@@ -2,7 +2,7 @@
 
 An adaptive voice interviewer that helps people explain how a business process works today, then turns their account into a reviewable memo, process map and detailed procedure.
 
-Version **0.19.0** gives file uploads a deliberate review flow: one acknowledgment, a pause while the file is digested, an audited update to notes and workflow together, then one grounded follow-up. Live voice stops, releases the microphone and drains final captions before the new baseline is built. Quick-review findings no longer trigger competing questions. Select **Continue talking** when ready to resume; voice receives the current file scope once at startup.
+Version **0.19.1** gives document workflow checks more time, reports timeouts separately from connection failures, and keeps failed checks paused until an explicit retry or a file change. Uploaded files and the accepted capture are retained. File intake uses one acknowledgment, a pause while the file is reviewed, an audited update to notes and workflow together, then one grounded follow-up. Select **Continue talking** when ready to resume; voice receives the current file scope once at startup.
 
 Transcript retains its focused conversation workspace: a readable message column, compact file updates, on-demand Find, and a single Export menu for Markdown or JSON. The reply box follows the conversation, with clear Dictate and Talk live options. During live voice, Stop and Mute stay accessible in the transcript header. Long messages remain complete and use the conversation's outer scroll only when needed. Voice, Transcript and Workflow remain at the top right, with Settings and Save copy in the three-dot menu. Notes, Summary + Parked and Assets retain dedicated sidebar tabs.
 

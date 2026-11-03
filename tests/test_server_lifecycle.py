@@ -171,6 +171,22 @@ class HTTPDiagnosticTests(unittest.TestCase):
         self.assertGreaterEqual(failed["duration_ms"], 0)
         self.assertNotIn("PRIVATE_PROVIDER_ERROR_SENTINEL", self.httpd.diagnostics_path.read_text())
 
+    def test_provider_diagnostics_use_this_servers_private_store_and_known_stage(self):
+        self.client.key = 'PRIVATE_KEY_SENTINEL'
+        body = {'text': {'format': {'name': 'working_process_map_audit'}}, 'input': 'PRIVATE_DOCUMENT_SENTINEL'}
+        with patch.object(server, 'urlopen', side_effect=TimeoutError('PRIVATE_PROVIDER_SENTINEL')):
+            with self.assertRaises(server.APIError):
+                self.client.request('responses', body, timeout=240)
+        event = next(item for item in self.events() if item['event'] == 'provider_request_finished')
+        self.assertEqual(event['stage'], 'working_process_map_audit')
+        self.assertEqual(event['timeout_seconds'], 240)
+        self.assertEqual(event['status'], 504)
+        self.assertEqual(event['error_category'], 'timeout')
+        self.assertEqual(event['error_type'], 'TimeoutError')
+        self.assertEqual(event['port'], self.httpd.server_port)
+        self.assertGreaterEqual(event['duration_ms'], 0)
+        self.assertNotIn('PRIVATE_', self.httpd.diagnostics_path.read_text())
+
     def test_explicit_shutdown_records_only_a_safe_reason(self):
         stopped = threading.Event()
         with patch.object(self.httpd, "shutdown", side_effect=stopped.set) as shutdown:
@@ -185,6 +201,21 @@ class HTTPDiagnosticTests(unittest.TestCase):
 
 
 class LifecycleDiagnosticTests(unittest.TestCase):
+    def test_standalone_clients_do_not_write_to_the_live_workspace(self):
+        client = server.OpenAIClient({'OPENAI_API_KEY': 'synthetic-key'})
+        with patch.object(server, 'urlopen', return_value=io.BytesIO(b'{}')), \
+             patch.object(server, 'record_diagnostic') as diagnostics:
+            self.assertEqual(client.request('responses', {}), {})
+        diagnostics.assert_not_called()
+
+    def test_arbitrary_response_format_names_are_never_logged_as_stages(self):
+        events = Mock()
+        client = server.OpenAIClient({'OPENAI_API_KEY': 'synthetic-key'}, events)
+        with patch.object(server, 'urlopen', return_value=io.BytesIO(b'{}')):
+            client.request('responses', {'text': {'format': {'name': 'PRIVATE_DOCUMENT_SENTINEL'}}})
+        self.assertEqual(events.call_args.kwargs['stage'], 'responses')
+        self.assertNotIn('PRIVATE_', repr(events.call_args))
+
     def test_rotation_is_bounded_and_only_allowlisted_metadata_is_saved(self):
         with tempfile.TemporaryDirectory(prefix="collector-diagnostics-") as temporary:
             path = Path(temporary) / "work" / "server-lifecycle.jsonl"

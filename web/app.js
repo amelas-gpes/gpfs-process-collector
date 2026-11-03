@@ -640,7 +640,7 @@
     if(!active)return;
     const copy={uploading:["Thanks for sharing","Give me a moment to digest the files. I’ll update the process before asking a follow-up."],
       reviewing:["Reading your files","I’m reviewing the available content and checking what it establishes. No need to answer anything yet."],
-      baseline:["Updating the process","The review is finished. I’m updating and checking the notes and workflow together."],
+      baseline:["Updating the process","The file review is finished. I’m updating and checking the notes and workflow together. Detailed files can take a few minutes; your previous capture stays available."],
       question:["Preparing one follow-up","The new process baseline is ready. I’m checking for the next useful question."],
       error:["File review needs attention",documentIntake.error]};
     const [title,detail]=copy[phase]||copy.reviewing;
@@ -682,7 +682,7 @@
         return captureForFollowup();
       },
       askFollowup:async({signal,baseline})=>{
-        const result=await request("/api/interview",{...snapshot(),action:"document_followup",previous_capture:baseline},{signal,documentIntake:true});
+        const result=await request("/api/interview",{...snapshot(),action:"document_followup",previous_capture:baseline},{signal,documentIntake:true,timeout:210000});
         if(typeof result.question!=="string"||!result.question.trim())throw new Error("The baseline is ready, but the follow-up did not load. Try again.");
         return {...result,question:text(result.question,6000)};
       },
@@ -842,7 +842,8 @@
         memo_findings:normalizeFindings(state.memo_findings,captured.turns),
         summary:text(state.summary,6000),focus:text(state.focus,500),parking_lot:strings(state.parking_lot,50)
       });
-      const result=await request("/api/workflow",captured,{signal:conversationUI.flowAbort.signal,timeout:hasDocumentEvidence()?360000:150000});
+      // Leave room for both the document update and its independent source audit.
+      const result=await request("/api/workflow",captured,{signal:conversationUI.flowAbort.signal,timeout:hasDocumentEvidence()?420000:150000});
       if(generation!==state.generation||options.signal?.aborted)return;
       if(!workflowEvidenceStillValid(captured))return;
       const pending=revision!==conversationUI.revision;

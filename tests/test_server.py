@@ -4,19 +4,21 @@ Run with the existing Python runtime; these tests never send model requests.
 """
 
 import copy
+import errno
 from html.parser import HTMLParser
 import importlib.util
 import io
 import json
 from pathlib import Path
 import socket
+import ssl
 import sys
 import tempfile
 import threading
 import unittest
 import urllib.error
 import urllib.request
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 
 APP = Path(__file__).resolve().parents[1]
@@ -571,6 +573,64 @@ class ClosureEnforcementTests(unittest.TestCase):
 
 
 class UpstreamErrorTests(unittest.TestCase):
+    def test_transport_failures_are_classified_without_private_details_or_retries(self):
+        failures = [
+            (TimeoutError("PRIVATE_TRANSPORT_SENTINEL"), 504, "timeout", "timed out"),
+            (urllib.error.URLError(TimeoutError("PRIVATE_TRANSPORT_SENTINEL")), 504, "timeout", "timed out"),
+            (urllib.error.URLError(OSError(errno.ETIMEDOUT, "PRIVATE_TRANSPORT_SENTINEL")), 504, "timeout", "timed out"),
+            (urllib.error.URLError(OSError(10060, "PRIVATE_TRANSPORT_SENTINEL")), 504, "timeout", "timed out"),
+            (urllib.error.URLError(socket.gaierror(-2, "PRIVATE_TRANSPORT_SENTINEL")), 502, "dns", "network address"),
+            (urllib.error.URLError(ssl.SSLCertVerificationError(1, "PRIVATE_TRANSPORT_SENTINEL")), 502, "tls", "secure connection"),
+            (ConnectionResetError("PRIVATE_TRANSPORT_SENTINEL"), 502, "connection", "interrupted"),
+            (urllib.error.URLError(ConnectionRefusedError("PRIVATE_TRANSPORT_SENTINEL")), 502, "connection", "interrupted"),
+            (OSError("PRIVATE_TRANSPORT_SENTINEL"), 502, "network", "Could not reach"),
+        ]
+        for failure, status, category, expected in failures:
+            with self.subTest(category=category, failure=type(failure).__name__):
+                diagnostics = Mock()
+                client = server.OpenAIClient({"OPENAI_API_KEY": "PRIVATE_KEY_SENTINEL"}, diagnostics)
+                with patch.object(server, "urlopen", side_effect=failure) as network:
+                    with self.assertRaises(server.APIError) as caught:
+                        client.request("responses", {"text": {"format": {"name": "working_process_map_audit"}},
+                                                     "input": "PRIVATE_DOCUMENT_SENTINEL"}, timeout=240)
+                self.assertEqual(caught.exception.status, status)
+                self.assertIn(expected, str(caught.exception))
+                if category == "timeout":
+                    self.assertIn("saved files do not need to be uploaded again", str(caught.exception))
+                    self.assertNotIn("Check the network", str(caught.exception))
+                network.assert_called_once()
+                self.assertEqual(diagnostics.call_args.args, ("provider_request_finished",))
+                fields = diagnostics.call_args.kwargs
+                self.assertEqual(fields["error_category"], category)
+                self.assertEqual(fields["stage"], "working_process_map_audit")
+                self.assertEqual(fields["status"], status)
+                self.assertEqual(fields["timeout_seconds"], 240)
+                self.assertGreaterEqual(fields["duration_ms"], 0)
+                self.assertNotIn("PRIVATE_", str(caught.exception))
+                self.assertNotIn("PRIVATE_", repr(diagnostics.call_args))
+
+    def test_timeout_while_reading_a_connected_response_is_not_reported_as_no_connection(self):
+        response = MagicMock()
+        response.__enter__.return_value = response
+        response.read.side_effect = TimeoutError("PRIVATE_RESPONSE_SENTINEL")
+        client = server.OpenAIClient({"OPENAI_API_KEY": "synthetic-key"})
+        with patch.object(server, "urlopen", return_value=response) as network:
+            with self.assertRaises(server.APIError) as caught:
+                client.request("responses", {}, timeout=240)
+        self.assertEqual(caught.exception.status, 504)
+        self.assertIn("timed out", str(caught.exception))
+        self.assertNotIn("Could not reach", str(caught.exception))
+        network.assert_called_once()
+        response.__exit__.assert_called_once()
+
+    def test_successful_provider_call_remains_successful_when_diagnostics_fail(self):
+        diagnostics = Mock(side_effect=OSError("PRIVATE_DIAGNOSTIC_SENTINEL"))
+        client = server.OpenAIClient({"OPENAI_API_KEY": "synthetic-key"}, diagnostics)
+        with patch.object(server, "urlopen", return_value=io.BytesIO(b'{"ok": true}')):
+            self.assertEqual(client.request("responses", {}), {"ok": True})
+        self.assertEqual(diagnostics.call_args.kwargs["outcome"], "success")
+        self.assertEqual(diagnostics.call_args.kwargs["status"], 200)
+
     def test_exhausted_credit_balance_is_quota_error_not_temporary_rate_limit(self):
         client = server.OpenAIClient({"OPENAI_API_KEY": "sk-test-sentinel-not-a-real-credential"})
         details = {"error": {"code": "credit_balance_exhausted", "type": "insufficient_quota",

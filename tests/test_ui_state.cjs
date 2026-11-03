@@ -1111,11 +1111,13 @@ if(process.argv.includes("--usability-only")){
   assert.equal(requests.length,0,"A completed review still waits for the voice transcript to drain");
   finishPause({finalized:true});await flush();
   assert.equal(intake.phase,"baseline");assert.equal(requests.length,1);assert.equal(requests[0].url,"/api/workflow");
+  assert.equal(requests[0].options.timeout,420000,"Document capture leaves time for generation, audit, and HTTP overhead");
   assert.equal(requests[0].payload.document_scope,"scope_intake");assert.equal(t.state.summary,"Previous accepted summary");
   assert.equal(t.state.turns.some(turn=>turn.text==="Premature document question?"),false);passes++;
 
   finishBaseline({workflow:graph("Reviewed payment process",[{id:"S1",title:"Client releases the wire",evidence_turns:[sourceId]}]),document_evidence:[evidence],memo_findings:[{key:"trigger",status:"captured",answer:"Treasury receives the request",evidence_turns:["t002"]}],coverage:[],summary:"Accepted document baseline",focus:"Confirm the release owner",parking_lot:["Confirm exceptions"]});await flush();
   assert.equal(intake.phase,"question");assert.equal(requests.length,2);assert.equal(requests[1].url,"/api/interview");assert.equal(requests[1].payload.action,"document_followup");
+  assert.equal(requests[1].options.timeout,210000,"The follow-up allows both 90-second provider calls and HTTP overhead");
   assert.equal(requests[1].payload.previous_capture.summary,"Accepted document baseline");assert.equal(requests[1].payload.previous_capture.workflow.steps[0].title,"Client releases the wire");
   assert.equal(t.state.summary,"Accepted document baseline");assert.equal(t.state.turns.length,3,"The follow-up must not appear until its request resolves");
   t.applyInterview({question:"Stale question from before upload",summary:"Stale summary",coverage:[],memo_findings:[]});

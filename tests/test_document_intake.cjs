@@ -149,6 +149,33 @@ async function check(name,run){try{await run();results.push({name,passed:true});
    assert.equal(h.intake.phase,"error");assert.equal(h.calls.complete.length,0);fail=false;h.intake.retry();await tick();assert.equal(h.calls.complete.length,1);assert.equal(h.calls.begin.length,1);assert.equal(h.intake.phase,"ready");
   }
  });
+ await check("failed provider work stays paused across polls until an explicit retry",async()=>{
+  for(const stage of ["baseline","question"]){
+   let fail=true;const h=setup({[stage]:async()=>{if(fail)throw Error("OpenAI request timed out");return stage==="baseline"?{revision:"retry"}:{question:"Recovered question"};}});
+   h.intake.begin({batchId:"first"});const snapshot=state([file()]);h.intake.observe(snapshot);h.intake.settle("first");await tick();
+   assert.equal(h.intake.phase,"error");const calls=h.calls.baseline.length;fail=false;
+   for(let i=0;i<5;i++){h.intake.observe(copy(snapshot));h.intake.settle("first");await tick();}
+   h.intake.observe({...copy(snapshot),connectionError:"Status temporarily unavailable"});await tick();
+   h.intake.observe(copy(snapshot));await tick();
+   const metadata=copy(snapshot);metadata.documents[0].analysis.version++;h.intake.observe(metadata);await tick();
+   assert.equal(h.calls.baseline.length,calls,"Polling, recovery and metadata must not repeat paid baseline work");assert.equal(h.calls.complete.length,0);assert.equal(h.intake.phase,"error");
+   assert.equal(h.intake.error,"OpenAI request timed out");assert.equal(h.calls.begin.length,1);
+   h.intake.retry();await tick();assert.equal(h.calls.baseline.length,calls+1);assert.equal(h.calls.complete.length,1);assert.equal(h.calls.begin.length,1);assert.equal(h.intake.phase,"ready");
+  }
+ });
+ await check("explicit document changes can replace a failed provider run",async()=>{
+  for(const action of ["intent","park","remove","upload"]){
+   let fail=true;const h=setup({baseline:async()=>{if(fail)throw Error("OpenAI request timed out");return{revision:"changed"};}});
+   h.intake.begin({batchId:"first"});const snapshot=state([file("one"),file("two")]);h.intake.observe(snapshot);h.intake.settle("first");await tick();assert.equal(h.intake.phase,"error");fail=false;
+   const revised=copy(snapshot);
+   if(action==="intent")revised.documents[0].analysis.intent_version++;
+   if(action==="park")revised.documents[0].analysis.disposition="parked";
+   if(action==="remove")revised.documents.splice(0,1);
+   if(action==="upload"){h.intake.begin({batchId:"second"});revised.documents.push(file("three"));}
+   h.intake.observe(revised);if(action==="upload")h.intake.settle("second");await tick();
+   assert.equal(h.calls.baseline.length,2);assert.equal(h.calls.complete.length,1);assert.equal(h.calls.begin.length,1);assert.equal(h.intake.phase,"ready");
+  }
+ });
  await check("pause failure cannot commit a baseline or ask a question",async()=>{
   const h=setup({begin:async()=>{throw Error("Final transcript was not saved");}});h.intake.begin({batchId:"first"});h.intake.observe(state([file()]));h.intake.settle("first");await tick();assert.equal(h.intake.phase,"error");assert.match(h.intake.error,/Final transcript/);assert.equal(h.calls.baseline.length,0);assert.equal(h.calls.question.length,0);
  });

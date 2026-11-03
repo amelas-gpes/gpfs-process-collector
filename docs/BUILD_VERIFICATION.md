@@ -1,3 +1,13 @@
+## 0.19.1 document timeout recovery — 2026-11-03
+
+The reported PDF had already uploaded, indexed all 17 pages and completed its background review. A later workflow request failed after 171,672 ms; the old generic transport handler did not retain enough information to establish the exact cause. Its timing is consistent with an audit timeout.
+
+Document workflow generation now uses a 120-second socket timeout and its independent audit uses 240 seconds. The browser allows seven minutes for their combined request and 210 seconds for the two-call document follow-up. Timeouts return HTTP 504 and explain that retained files need not be uploaded again. DNS, TLS and interrupted connections have separate messages. Bounded local diagnostics retain stage, duration and failure category without source text or credentials. Status polling no longer silently retries a failed workflow or follow-up; explicit retry or a meaningful file change can resume it.
+
+Validation passed 355 offline Python tests and 147 frontend checks. An isolated live-provider replay of the same 17-page PDF completed upload, all-page review, an audited workflow in 203.25 seconds, and a follow-up in 23.34 seconds. This was a fresh document-only test interview, not a replay of the original 71-turn interview. It verifies successful processing on that run, not a guarantee against future provider delays or a semantic audit of every resulting workflow item. The replay loaded the patched backend before the version label changed from 0.19.0 to 0.19.1; its logs retain that earlier label.
+
+The canonical preview was restarted at 127.0.0.1:8774, verified against the current source build and refreshed while its browser interview was empty. Existing settings, saved interviews and document stores were preserved. Evidence is private under `.local/upload-error/`; the original PDF hash is unchanged. Existing Python, Node and parser packages were reused, with no downloads or installations.
+
 ## 0.19.0 coordinated file intake — 2026-11-03
 
 An accepted upload now starts one coordinated intake. The app acknowledges once, stops live audio and releases the microphone, drains final captions, waits for the active files to finish reviewing, then audits and commits notes and workflow together. Only after that baseline is accepted does it request one source-grounded follow-up. Quick analysis no longer sends competing questions or repeated file-context batches into live voice. Continue talking starts a fresh session with the current authorized file scope once.

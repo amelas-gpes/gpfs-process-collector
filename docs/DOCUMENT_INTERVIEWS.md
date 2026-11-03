@@ -18,6 +18,8 @@ Exact sources are retrieved from the current interview's private file scope. Bro
 
 An active file with an extraction or review error blocks the new baseline and question. Use Assets to retry, remove it or save it for later. On error, **Continue without waiting** resumes with the current capture. Empty or entirely parked uploads leave existing notes and workflow unchanged and do not manufacture a question from older files.
 
+If the file review finishes but the process update times out, use **Try again** in the review panel. The uploaded file and completed review are retained; re-uploading is unnecessary. Document workflow generation uses a 120-second socket timeout and its independent source audit uses 240 seconds; the browser allows seven minutes overall. A timeout is reported separately from connection, DNS, or secure-connection failures. Status polling does not retry a failed update or follow-up; explicit retry or a change to the active files can resume it. Local operational diagnostics identify the stage and duration without storing document text, interview content, credentials, or raw provider error messages.
+
 Changing a file's purpose, parking/removing it, or opening another interview invalidates late responses based on its prior state. Prior cited facts survive file removal as saved evidence; removed or parked material cannot silently authorize new workflow claims. Explicit step/route deletions still require a participant correction.
 
 Knowledge submissions resolve documentary citations again on the server and preserve their source type and exact text for review. They do not convert file text into participant testimony or approval.

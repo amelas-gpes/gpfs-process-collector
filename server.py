@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import base64
 import copy
+import errno
 import importlib.util
 import json
 import hashlib
@@ -12,6 +13,7 @@ from pathlib import Path
 import re
 import secrets
 import socket
+import ssl
 import sys
 import threading
 import time
@@ -22,7 +24,7 @@ from urllib.parse import unquote, urlsplit
 from urllib.request import Request, urlopen
 import webbrowser
 
-VERSION = "0.19.0"
+VERSION = "0.19.1"
 APP_DIR = Path(__file__).resolve().parent
 WEB_DIR = APP_DIR / "web"
 DIAGNOSTIC_MAX_BYTES = 1024 * 1024
@@ -32,7 +34,8 @@ _diagnostic_lock = threading.Lock()
 def record_diagnostic(path, event, **fields):
     """Bounded local operational metadata only; never record payloads or errors' text."""
     permitted = {"port", "parent_pid", "build_id", "reason", "duration_ms", "turn_count",
-                 "step_count", "status", "error_type", "request_id", "outcome"}
+                 "step_count", "status", "error_type", "request_id", "outcome",
+                 "stage", "error_category", "timeout_seconds"}
     record = {"event": event, "time_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
               "pid": os.getpid(), "version": VERSION}
     for key in permitted & fields.keys():
@@ -73,6 +76,8 @@ MAX_JSON = 600_000
 MAX_AUDIO = 12 * 1024 * 1024
 SPEECH_MODEL = "gpt-realtime-2.1-mini"
 LIVE_MODEL = "gpt-live-1"
+DOCUMENT_WORKFLOW_TIMEOUT = 120
+DOCUMENT_WORKFLOW_AUDIT_TIMEOUT = 240
 AI_VOICES = [
     {"id": "marin", "label": "Marin", "description": "Natural AI voice · recommended starting choice"},
     {"id": "cedar", "label": "Cedar", "description": "Natural AI voice · compare with Marin"},
@@ -1377,11 +1382,14 @@ def apply_workflow_update(update, previous, turns, documents=None):
 
 
 class OpenAIClient:
-    def __init__(self, settings):
+    def __init__(self, settings, diagnostic_callback=None):
         self.key = settings.get("OPENAI_API_KEY", "")
         self.model = settings.get("INTERVIEW_MODEL", "gpt-5.4-mini")
         self.workflow_audit_model = settings.get("WORKFLOW_AUDIT_MODEL") or "gpt-5.4"
         self.transcription_model = settings.get("TRANSCRIPTION_MODEL", "gpt-transcribe")
+        # Only a running server or an explicit test supplies a diagnostic sink.
+        # Standalone clients must not write into the user's live workspace.
+        self.diagnostic_callback = diagnostic_callback
 
     def public_config(self):
         """Public capabilities only; configuration is not a live health check."""
@@ -1416,39 +1424,97 @@ class OpenAIClient:
         data = json.dumps(body).encode("utf-8") if isinstance(body, dict) else body
         request = Request("https://api.openai.com/v1/" + path, data=data,
                           headers={"Authorization": "Bearer " + self.key, "Content-Type": content_type}, method="POST")
+        # Derive only a known operation label, never document or provider text.
+        stage = {"responses": "responses", "live/sessions": "live_session",
+                 "realtime/client_secrets": "voice_session", "audio/transcriptions": "transcription"}.get(path, "other")
+        if path == "responses" and isinstance(body, dict):
+            output_format = (body.get("text") or {}).get("format") or {}
+            name = output_format.get("name")
+            if name in {"document_context_review", "working_process_map", "working_process_map_audit",
+                        "process_interview", "process_next_question_audit", "process_draft", "process_draft_audit"}:
+                stage = name
+        started = time.monotonic()
+        metrics = {"request_id": uuid.uuid4().hex, "stage": stage, "timeout_seconds": timeout,
+                   "outcome": "error", "status": 502}
         try:
-            with urlopen(request, timeout=timeout) as response:
-                raw = response.read(4 * 1024 * 1024)
-        except HTTPError as error:
-            code = ""
-            error_type = ""
             try:
-                details = json.loads(error.read(30000)).get("error", {})
-                code = details.get("code", "") or ""
-                error_type = details.get("type", "") or ""
-            except (ValueError, AttributeError):
-                pass
-            if code in ("insufficient_quota", "credit_balance_exhausted") or error_type == "insufficient_quota":
-                message = "The selected OpenAI project has no available API quota. Check that project's billing and usage limits."
-            elif path == "live/sessions" and error.code == 403:
-                message = "This OpenAI project does not have permission to use GPT-Live 1. Check its Live API access; you can continue by typing."
-            elif error.code in (401, 403):
-                message = "OpenAI rejected this key or its project permissions. Check the key's access in OpenAI Platform."
-            elif error.code == 429:
-                message = "OpenAI's rate limit was reached. Wait briefly, then try again. Your answer is retained."
-            elif code in ("model_not_found", "model_not_available"):
-                message = "The configured model is unavailable to this OpenAI project. Check its model access."
-            elif path == "live/sessions" and error.code == 404:
-                message = "GPT-Live 1 is unavailable to this OpenAI project. Check its Live API access; you can continue by typing."
-            else:
-                message = f"OpenAI could not complete the request (HTTP {error.code}). Your session is retained; try again."
-            raise APIError(message) from None
-        except (URLError, TimeoutError, socket.timeout, OSError):
-            raise APIError("Could not reach OpenAI. Check the network connection and try again; your session is retained.") from None
-        try:
-            return json.loads(raw)
-        except (ValueError, UnicodeError):
-            raise APIError("OpenAI returned an unreadable response. Please try again.") from None
+                with urlopen(request, timeout=timeout) as response:
+                    raw = response.read(4 * 1024 * 1024)
+            except HTTPError as error:
+                code = ""
+                error_type = ""
+                try:
+                    details = json.loads(error.read(30000)).get("error", {})
+                    code = details.get("code", "") or ""
+                    error_type = details.get("type", "") or ""
+                except (ValueError, AttributeError, OSError):
+                    pass
+                category = "http_error"
+                if code in ("insufficient_quota", "credit_balance_exhausted") or error_type == "insufficient_quota":
+                    category = "quota"
+                    message = "The selected OpenAI project has no available API quota. Check that project's billing and usage limits."
+                elif path == "live/sessions" and error.code == 403:
+                    category = "permissions"
+                    message = "This OpenAI project does not have permission to use GPT-Live 1. Check its Live API access; you can continue by typing."
+                elif error.code in (401, 403):
+                    category = "authentication" if error.code == 401 else "permissions"
+                    message = "OpenAI rejected this key or its project permissions. Check the key's access in OpenAI Platform."
+                elif error.code == 429:
+                    category = "rate_limit"
+                    message = "OpenAI's rate limit was reached. Wait briefly, then try again. Your answer is retained."
+                elif code in ("model_not_found", "model_not_available"):
+                    category = "model_access"
+                    message = "The configured model is unavailable to this OpenAI project. Check its model access."
+                elif path == "live/sessions" and error.code == 404:
+                    category = "model_access"
+                    message = "GPT-Live 1 is unavailable to this OpenAI project. Check its Live API access; you can continue by typing."
+                else:
+                    message = f"OpenAI could not complete the request (HTTP {error.code}). Your session is retained; try again."
+                metrics.update(status=error.code, error_category=category, error_type="HTTPError")
+                raise APIError(message) from None
+            except (URLError, OSError) as error:
+                cause = error
+                for _ in range(4):
+                    if not isinstance(cause, URLError) or not isinstance(cause.reason, BaseException):
+                        break
+                    cause = cause.reason
+                status = 502
+                retained = " Your session and previous capture are retained."
+                if (isinstance(cause, TimeoutError)
+                        or getattr(cause, "errno", None) in (errno.ETIMEDOUT, 10060)
+                        or getattr(cause, "winerror", None) == 10060):
+                    category, status = "timeout", 504
+                    message = ("The OpenAI request timed out." + retained
+                               + " Try again; your saved files do not need to be uploaded again.")
+                elif isinstance(cause, ssl.SSLError):
+                    category = "tls"
+                    message = "Could not establish a secure connection to OpenAI. Check your network or proxy certificate settings." + retained
+                elif isinstance(cause, socket.gaierror):
+                    category = "dns"
+                    message = "Could not resolve OpenAI's network address. Check the network connection and try again." + retained
+                elif isinstance(cause, ConnectionError):
+                    category = "connection"
+                    message = "The connection to OpenAI was interrupted. Check the network connection and try again." + retained
+                else:
+                    category = "network"
+                    message = "Could not reach OpenAI. Check the network connection and try again; your session is retained."
+                metrics.update(status=status, error_category=category, error_type=type(cause).__name__)
+                raise APIError(message, status) from None
+            try:
+                result = json.loads(raw)
+            except (ValueError, UnicodeError):
+                metrics.update(error_category="invalid_response")
+                raise APIError("OpenAI returned an unreadable response. Please try again.") from None
+            metrics.update(outcome="success", status=200)
+            return result
+        finally:
+            if self.diagnostic_callback is not None:
+                try:
+                    self.diagnostic_callback("provider_request_finished", **metrics,
+                                             duration_ms=int((time.monotonic() - started) * 1000))
+                except Exception:
+                    # Logging cannot turn a valid response into a failed request.
+                    pass
 
     def structured(self, instructions, payload, schema, name, max_tokens, reasoning_effort="low", input_content=None, request_timeout=None, model_override=None):
         # A JSON Schema is a tree on the wire. deepcopy preserves Python object
@@ -1670,13 +1736,15 @@ class OpenAIClient:
         document_evidence = document_evidence_catalog(supporting)
         context, turns = validate_payload(payload, require_answers=not any(not item.get("retained_only") for item in document_evidence))
         previous = workflow_previous_capture(payload.get("previous_capture"), turns, document_evidence)
+        has_document_evidence = any(not source.get("retained_only") for source in document_evidence)
         result = self.structured(WORKFLOW_INSTRUCTIONS,
                                  {"context": context, "turns": turns, "previous_capture": previous,
                                   "supporting_documents": supporting},
                                  WORKFLOW_UPDATE_SCHEMA, "working_process_map",
-                                 22000 if any(not source.get("retained_only") for source in document_evidence) else 12000,
-                                 reasoning_effort="medium")
-        if any(not source.get("retained_only") for source in document_evidence):
+                                 22000 if has_document_evidence else 12000,
+                                 reasoning_effort="medium",
+                                 request_timeout=DOCUMENT_WORKFLOW_TIMEOUT if has_document_evidence else None)
+        if has_document_evidence:
             # A document can describe multiple routes and proposed controls in
             # adjacent sections. Independently verify the unpublished update
             # before touching the accepted map; IDs alone do not prove meaning.
@@ -1684,7 +1752,7 @@ class OpenAIClient:
                                      {"context": context, "turns": turns, "previous_capture": previous,
                                       "supporting_documents": supporting, "candidate_update": result},
                                      WORKFLOW_AUDIT_SCHEMA, "working_process_map_audit", 24000,
-                                     reasoning_effort="medium", request_timeout=150,
+                                     reasoning_effort="medium", request_timeout=DOCUMENT_WORKFLOW_AUDIT_TIMEOUT,
                                      model_override=self.workflow_audit_model)
             try:
                 result = apply_workflow_audit(result, audit, previous)
@@ -1852,6 +1920,8 @@ class InterviewServer(ThreadingHTTPServer):
         super().__init__(address, handler)
         self.csrf_token = secrets.token_urlsafe(32)
         self.diagnostics_path = (Path(documents_root).parent if documents_root else APP_DIR / "work") / "server-lifecycle.jsonl"
+        if isinstance(self.client, OpenAIClient):
+            self.client.diagnostic_callback = self.record_event
         self.api_slots = threading.BoundedSemaphore(2)
         self.upload_slots = threading.BoundedSemaphore(2)
         self.connection_slots = threading.BoundedSemaphore(self.max_connections)

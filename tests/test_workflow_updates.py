@@ -1,8 +1,9 @@
 """Offline regression cases for scoped corrections to a previously accepted map."""
 import copy
+import io
 import json
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from test_server import server, interview_result
 
@@ -93,7 +94,8 @@ class WorkflowUpdateTests(unittest.TestCase):
         self.assertIn('preserve unrelated accepted facts and routes', instructions)
         self.assertEqual(sent['supporting_documents']['documents'][0]['excerpts'], [source])
         self.assertEqual(client.structured.call_args.args[4], 24000)
-        self.assertEqual(client.structured.call_args.kwargs['request_timeout'], 150)
+        self.assertEqual(client.structured.call_args_list[0].kwargs['request_timeout'], 120)
+        self.assertEqual(client.structured.call_args.kwargs['request_timeout'], 240)
         self.assertEqual(client.structured.call_args.kwargs['reasoning_effort'], 'medium')
         self.assertEqual(client.structured.call_args.kwargs['model_override'], 'gpt-5.4')
         self.assertEqual(client.structured.call_count, 2)
@@ -129,6 +131,35 @@ class WorkflowUpdateTests(unittest.TestCase):
         with self.assertRaises(server.APIError):
             client.workflow(original)
         self.assertEqual(original['previous_capture'], before['previous_capture'])
+
+    def test_document_audit_timeout_keeps_the_complete_input_and_accepted_capture(self):
+        original = payload()
+        original['_supporting_documents'] = {'documents': [{'id': 'doc_fixture', 'name': 'Procedure.pdf',
+            'excerpts': [{'id': 'doc_fixture_p1_c1', 'text': 'A cited process.', 'location': {'page': 1}}]}]}
+        before = copy.deepcopy(original)
+        candidate = update(upsert_steps=[step('S5', 'Unpublished proposed step', ['doc_fixture_p1_c1'])])
+        provider_result = {'status': 'completed', 'output': [{'content': [{'type': 'output_text', 'text': json.dumps(candidate)}]}]}
+        client = server.OpenAIClient({'OPENAI_API_KEY': 'synthetic-key'})
+        with patch.object(server, 'urlopen', side_effect=[io.BytesIO(json.dumps(provider_result).encode()),
+                                                         TimeoutError('PRIVATE_AUDIT_SENTINEL')]) as network:
+            with self.assertRaises(server.APIError) as caught:
+                client.workflow(original)
+        self.assertEqual(caught.exception.status, 504)
+        self.assertEqual(original, before, 'A timed-out audit must leave transcript, files and accepted capture unchanged')
+        self.assertEqual(network.call_count, 2, 'No automatic paid retry or bypass of the audit')
+        self.assertEqual([call.kwargs['timeout'] for call in network.call_args_list], [120, 240])
+        sent = [json.loads(call.args[0].data) for call in network.call_args_list]
+        self.assertEqual([body['text']['format']['name'] for body in sent],
+                         ['working_process_map', 'working_process_map_audit'])
+
+    def test_workflow_without_documents_keeps_the_shorter_provider_timeout(self):
+        candidate = update()
+        provider_result = {'status': 'completed', 'output': [{'content': [{'type': 'output_text', 'text': json.dumps(candidate)}]}]}
+        client = server.OpenAIClient({'OPENAI_API_KEY': 'synthetic-key'})
+        with patch.object(server, 'urlopen', return_value=io.BytesIO(json.dumps(provider_result).encode())) as network:
+            client.workflow(payload())
+        network.assert_called_once()
+        self.assertEqual(network.call_args.kwargs['timeout'], 90)
 
     def test_audit_discards_only_unpublished_additions_and_their_incident_edges(self):
         previous = payload()['previous_capture']

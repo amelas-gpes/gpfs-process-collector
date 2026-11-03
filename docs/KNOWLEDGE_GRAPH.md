@@ -16,6 +16,15 @@ Use **Submit process** from More or Review. Submitting saves the current intervi
 
 The submitter can refresh the status of the submitted revision using a private, narrowly scoped status capability. The capability cannot open the administrative graph. Saving the interview JSON retains it for reopening, so treat that JSON as private; it is not sent to the AI analyzer or included in administrative records.
 
+Document-derived simulated interviews can be retained as real process records without claiming an
+employee supplied the account. Their optional `capture_provenance` has `method:"document_simulation"`,
+1–20 source documents identified by filename and SHA-256, and both `participant_confirmed:false` and
+`process_owner_approved:false`. Such submissions cannot set interview closure confirmation to true.
+Admin labels the simulation and its source filenames. Transcript quotations from these records use
+`simulated_document_account`, including when a model proposes an employee-evidence label incorrectly.
+The source declaration does not verify actual practice or control execution. Connections remain
+proposals pending authorized review, and the ordinary employee-interview flow keeps its existing labels.
+
 With a configured compatible text provider, a background worker compares a bounded sample of participant statements and creates review proposals. Text from employee submissions is untrusted input and is never an instruction. Quotes are checked against participant statements or authorized exact document locations on both source revisions, and model output cannot confirm a connection. The current analyzer uses at most eight recent candidate submissions, bounded participant excerpts, and at most two document-source excerpts per submission, so completed processing is not exhaustive company coverage. Document-supported and employee-reported evidence remain distinct; visual transcriptions are not verified facts. When no provider is configured, the submission remains saved and the job can be retried after configuration. Provider calls can incur usage charges; no OpenAI key is sent to the browser.
 
 Administrators can inspect source submissions and review proposals, record side-specific statements independently, filter records, view reported and confirmed links, and maintain explicitly reviewed canonical groups and aliases. Removing a mistaken group member retains the original source entity and an audit trail. No automatic merging is performed. Source revisions mark dependent proposals stale rather than silently carrying forward approval. Failed or interrupted processing remains visible for retry; repeated jobs do not intentionally create duplicate reviewed claims.

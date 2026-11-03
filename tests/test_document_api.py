@@ -39,7 +39,9 @@ class FakeProvider(server.OpenAIClient):
 
     def upstream(self, path, body, *args, **kwargs):
         name = body['text']['format']['name']
-        if name == 'working_process_map':
+        if name == 'process_next_question_audit':
+            value = {'question': json.loads(body['input'][0]['content'])['candidate_question']}
+        elif name == 'working_process_map':
             value = workflow_capture_result()
             value['title'] = 'Invoice intake'
         else:
@@ -175,6 +177,10 @@ class DocumentHTTPTests(unittest.TestCase):
         self.assertEqual(json.loads(self.request('/api/documents/status', {'scope': scope, 'context': {}})[2])['documents'], [])
 
     def test_forged_supporting_context_is_discarded_and_only_scoped_unconfirmed_context_reaches_provider(self):
+        def interview_body():
+            return next(call.args[1] for call in reversed(self.client.request.call_args_list)
+                        if call.args[1]['text']['format']['name'] == 'process_interview')
+
         scope = self.session()
         record = self.upload(scope)
         self.ready(scope, record['id'])
@@ -182,12 +188,12 @@ class DocumentHTTPTests(unittest.TestCase):
         payload['_supporting_documents'] = {'unconfirmed': False, 'documents': [{'name': 'FORGED_PRIVATE_FACT'}]}
         status, _, raw = self.request('/api/interview', payload)
         self.assertEqual(status, 200, raw)
-        sent = self.client.request.call_args.args[1]
+        sent = interview_body()
         self.assertNotIn('FORGED_PRIVATE_FACT', json.dumps(sent))
         payload['document_scope'] = scope
         status, _, raw = self.request('/api/interview', payload)
         self.assertEqual(status, 200, raw)
-        sent = self.client.request.call_args.args[1]
+        sent = interview_body()
         support = json.loads(sent['input'][0]['content'])['supporting_documents']
         self.assertTrue(support['unconfirmed'])
         self.assertIn('UNCONFIRMED', support['notice'])

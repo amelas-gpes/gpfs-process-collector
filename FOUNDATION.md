@@ -20,6 +20,17 @@ This is the standing interview and write-up policy for AI Process Collector. It 
 
 ## The eleven topics and completion evidence
 
+For spoken questioning, one question means one practical information request, even when a sentence
+could grammatically contain several. Check all previous answers before asking: people often volunteer
+the finish, a control, a role or a handoff while answering another question. Ask only the remaining gap.
+Once both a detail and its resolving owner or source are unknown, retain that gap and continue.
+
+When the intake explicitly identifies a documentary simulation, preserve that provenance throughout.
+Describe what the procedure establishes without inventing firsthand experience, completed transactions,
+participant confirmation or owner approval. Distinguish existing practice and requirements from worked
+examples, unresolved governance and potential improvements. Keep preparation, review, authorization,
+verification, release and settlement distinct wherever the account distinguishes them.
+
 Each topic needs a substantive answer or an explicitly recorded gap. `UNKNOWN` is an honest recorded gap, not a verified answer. `Not applicable` needs the participant's reason. A dispute remains visible until an appropriate person resolves it.
 
 | Memo topic | What the interview must capture |

@@ -37,6 +37,69 @@ def text(value, limit=1000):
 def dumps(value):
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False)
 
+def _process_is_alive(pid):
+    """Conservatively check a job owner without sending Windows console signals."""
+    if type(pid) is not int or pid<=0:return False
+    if os.name=='nt':
+        # os.kill(pid, 0) means CTRL_C_EVENT on Windows, not a liveness probe.
+        # A zero-time process-handle wait is read-only and avoids exit-code
+        # ambiguities. Unknown/access-denied owners must not lose active jobs.
+        if pid>0xffffffff:return True
+        import ctypes
+        from ctypes import wintypes
+        try:
+            kernel=ctypes.WinDLL('kernel32',use_last_error=True)
+            kernel.OpenProcess.argtypes=(wintypes.DWORD,wintypes.BOOL,wintypes.DWORD)
+            kernel.OpenProcess.restype=wintypes.HANDLE
+            kernel.WaitForSingleObject.argtypes=(wintypes.HANDLE,wintypes.DWORD)
+            kernel.WaitForSingleObject.restype=wintypes.DWORD
+            kernel.CloseHandle.argtypes=(wintypes.HANDLE,)
+            kernel.CloseHandle.restype=wintypes.BOOL
+            handle=kernel.OpenProcess(0x00100000,False,pid)  # SYNCHRONIZE only
+            if not handle:return ctypes.get_last_error()!=87  # missing PID
+            try:
+                return kernel.WaitForSingleObject(handle,0)!=0  # signaled = exited
+            finally:
+                kernel.CloseHandle(handle)
+        except OSError:
+            return True
+    try:
+        os.kill(pid,0)
+        return True
+    except ProcessLookupError:
+        return False
+    except (PermissionError,OSError):
+        return True
+
+def validate_capture_provenance(value):
+    """Record a declared document simulation, never an employee attestation.
+
+    Filenames and hashes identify the supplied sources; this declaration does
+    not independently verify those documents or how the actual work operates.
+    """
+    fields={'method','source_documents','participant_confirmed','process_owner_approved'}
+    if not isinstance(value,dict) or set(value)!=fields or value.get('method')!='document_simulation':
+        raise ValueError('Invalid capture provenance.')
+    if value['participant_confirmed'] is not False or value['process_owner_approved'] is not False:
+        raise ValueError('A document simulation cannot claim participant confirmation or process-owner approval.')
+    sources=value['source_documents']
+    if not isinstance(sources,list) or not 1<=len(sources)<=20:
+        raise ValueError('Document simulation requires 1–20 source documents.')
+    clean=[];seen=set()
+    for source in sources:
+        if not isinstance(source,dict) or set(source)!={'filename','sha256'}:
+            raise ValueError('Invalid simulation source document.')
+        filename=text(source['filename'],500)
+        digest=text(source['sha256'],64).lower()
+        if (not filename or filename in ('.','..') or any(ord(c)<32 or c in '/\\:' for c in filename)
+                or len(digest)!=64 or any(c not in '0123456789abcdef' for c in digest)):
+            raise ValueError('Simulation sources require a filename and SHA-256 hash.')
+        identity=(filename,digest)
+        if identity in seen:raise ValueError('Duplicate simulation source document.')
+        seen.add(identity);clean.append({'filename':filename,'sha256':digest})
+    return {'method':'document_simulation','source_documents':clean,
+            'participant_confirmed':False,'process_owner_approved':False}
+
 class KnowledgeGraph:
     def __init__(self, path, analyzer=None, document_resolver=None):
         path = Path(path)
@@ -97,12 +160,7 @@ class KnowledgeGraph:
             self.db.execute("CREATE INDEX IF NOT EXISTS proposals_destination_idx ON proposals(json_extract(data,'$.destination_submission_id'),json_extract(data,'$.destination_revision'))")
 
             for row in self.db.execute("SELECT id,owner_pid FROM jobs WHERE status='processing'").fetchall():
-                alive=False
-                if row['owner_pid']:
-                    try:
-                        os.kill(row['owner_pid'],0); alive=True
-                    except ProcessLookupError: pass
-                    except PermissionError: alive=True
+                alive=_process_is_alive(row['owner_pid'])
                 if not alive:
                     self.db.execute("UPDATE jobs SET status='pending',owner_pid=NULL,error='Interrupted before completion; retry available.' WHERE id=?",(row['id'],))
         self.analyzer = analyzer
@@ -163,6 +221,11 @@ class KnowledgeGraph:
             raise ValueError('Submission must contain JSON data.') from None
         for key in ('submitter', 'principal', 'authenticated_submitter'):
             payload.pop(key, None)
+        if 'capture_provenance' in payload:
+            payload['capture_provenance']=validate_capture_provenance(payload['capture_provenance'])
+            closure=payload.get('closure')
+            if isinstance(closure,dict) and closure.get('confirmed',False) is not False:
+                raise ValueError('A document simulation cannot claim participant confirmation.')
         docs=payload.get('documents')
         if isinstance(docs,dict): docs.pop('scope',None)
         if document_scope is not None:
@@ -383,11 +446,21 @@ class KnowledgeGraph:
             quote=text(item.get('quote',''),6000)
             if not quote: raise ValueError('Evidence needs a nonempty exact quote.')
             kind=item.get('type') or 'employee_reported'
-            if kind=='employee_reported':
+            if kind in ('employee_reported','simulated_document_account'):
                 tid=text(item.get('turn_id',''),80)
                 match=next((t for t in source.get('turns',[]) if t.get('id')==tid and t.get('role')=='user' and not t.get('document_event')),None)
                 if not match or quote not in match['text']: raise ValueError('Evidence must quote an exact participant statement.')
+                provenance=source.get('capture_provenance')
+                simulated=isinstance(provenance,dict) and provenance.get('method')=='document_simulation'
+                if kind=='simulated_document_account' and not simulated:
+                    raise ValueError('Simulation evidence requires declared document-simulation provenance.')
+                # Attribution is derived from stored provenance, not a model's
+                # proposed label. A simulated answer is never employee evidence.
+                kind='simulated_document_account' if simulated else 'employee_reported'
                 evidence={'submission_id':sid,'revision':source['revision'],'turn_id':tid,'quote':quote,'type':kind}
+                if simulated:
+                    evidence.update(label='Document-derived simulation — not an employee statement',
+                                    capture_provenance=validate_capture_provenance(provenance))
             elif kind=='document_supported':
                 did=text(item.get('document_id',''),100); source_id=text(item.get('source_id',''),200)
                 resolved=self._document_source(sid,source['revision'],did,source_id)

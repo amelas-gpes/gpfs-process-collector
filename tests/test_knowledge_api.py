@@ -274,6 +274,23 @@ class KnowledgeRealHTTPTests(unittest.TestCase):
         self.instances.append((httpd, worker))
         return httpd
 
+    def test_document_simulation_roundtrips_in_real_admin_without_verified_employee_identity(self):
+        from test_knowledge_graph import payload,simulation_provenance
+        admin=self.serve_real(lambda h,c:'verified-admin' if c=='knowledge.admin' else None)
+        submitted=payload('Document-derived walkthrough','The source describes preparing the file.')
+        submitted.update(capture_provenance=simulation_provenance(),
+                         participant='AI-simulated participant; no employee interview',submitter='forged employee')
+        code,receipt=self.request(admin,'/api/knowledge/submit',submitted)
+        self.assertEqual(code,202,receipt)
+        code,detail=self.request(admin,'/api/knowledge/admin/detail',
+                                 {'kind':'submission','id':receipt['submission_id'],'revision':receipt['revision']})
+        self.assertEqual(code,200,detail)
+        self.assertEqual(detail['item']['capture_provenance'],simulation_provenance())
+        self.assertIsNone(detail['item']['submitter'])
+        submitted['capture_provenance']['process_owner_approved']=True
+        self.assertEqual(self.request(admin,'/api/knowledge/submit',submitted)[0],400)
+        self.assertEqual(len(self.page_items(admin,'submissions')),1)
+
     def test_paged_http_metadata_and_selected_detail_validate_all_arguments(self):
         from test_knowledge_graph import payload
         admin = self.serve_real(lambda h,c: 'verified-admin' if c == 'knowledge.admin' else None)

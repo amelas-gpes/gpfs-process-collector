@@ -405,6 +405,102 @@ class GraphRoutingContractTests(unittest.TestCase):
         self.assertIn(server.GRAPH_ROUTING_POLICY, server.WORKFLOW_INSTRUCTIONS)
 
 
+class NextQuestionAuditTests(unittest.TestCase):
+    @staticmethod
+    def response(value):
+        return {"status": "completed", "output": [{"content": [
+            {"type": "output_text", "text": json.dumps(value)}]}]}
+
+    def client(self, candidate, audit):
+        client = server.OpenAIClient({"OPENAI_API_KEY": "sk-synthetic-question-audit"})
+        client.request = Mock(side_effect=[self.response(candidate), self.response(audit)])
+        return client
+
+    def test_audited_question_replaces_candidate_without_changing_validated_capture(self):
+        payload = interview_payload()
+        candidate = interview_result()
+        expected = server.validate_interview(copy.deepcopy(candidate), payload["turns"])
+        replacement = "What happens when the buyer cannot resolve the mismatch?"
+        client = self.client(candidate, {"question": replacement})
+
+        result = client.interview(payload)
+
+        self.assertEqual(result, {**expected, "question": replacement})
+        self.assertEqual(result["memo_findings"], expected["memo_findings"])
+        self.assertEqual(result["coverage"], expected["coverage"])
+        self.assertEqual(result["closure"], expected["closure"])
+        self.assertFalse(result["ready_for_draft"])
+        self.assertEqual(client.request.call_count, 2)
+        first, second = [call.args[1] for call in client.request.call_args_list]
+        self.assertEqual(first["text"]["format"]["name"], "process_interview")
+        self.assertEqual(second["text"]["format"]["name"], "process_next_question_audit")
+        self.assertEqual(set(second["text"]["format"]["schema"]["properties"]), {"question"})
+        self.assertLessEqual(second["max_output_tokens"], 1600)
+        sent = json.loads(second["input"][0]["content"])
+        self.assertEqual(sent["turns"], payload["turns"])
+        self.assertEqual(sent["candidate_question"], candidate["question"])
+        self.assertEqual(sent["memo_findings"], expected["memo_findings"])
+        self.assertEqual(sent["closure"], expected["closure"])
+        self.assertNotIn("ready_for_draft", sent)
+        self.assertNotIn("coverage", sent)
+
+    def test_answer_and_skip_with_user_history_both_use_question_audit(self):
+        for action in ("answer", "skip"):
+            with self.subTest(action=action):
+                payload = interview_payload()
+                payload["action"] = action
+                client = self.client(interview_result(), {"question": "What manual work takes the most effort?"})
+                self.assertEqual(client.interview(payload)["question"], "What manual work takes the most effort?")
+                self.assertEqual(client.request.call_count, 2)
+
+    def test_start_and_close_do_not_add_a_question_audit(self):
+        for action in ("start", "close"):
+            with self.subTest(action=action):
+                payload = interview_payload()
+                payload["action"] = action
+                client = self.client(interview_result(), {"question": "Must not be used"})
+                result = client.interview(payload)
+                self.assertEqual(client.request.call_count, 1)
+                if action == "close":
+                    self.assertTrue(result["question"].startswith(server.FINAL_CHECK_PREFIX))
+                    self.assertEqual(result["closure"], {"asked": True, "confirmed": False})
+                else:
+                    self.assertEqual(result["question"], interview_result()["question"])
+
+    def test_no_user_history_does_not_add_a_question_audit(self):
+        for action in ("answer", "skip"):
+            with self.subTest(action=action):
+                payload = interview_payload()
+                payload.update(action=action, turns=[payload["turns"][0]])
+                candidate = interview_result()
+                for finding in candidate["memo_findings"]:
+                    if finding["key"] != "name":
+                        finding.update(status="unknown", answer="UNKNOWN", evidence_turns=[])
+                client = self.client(candidate, {"question": "Must not be used"})
+                self.assertEqual(client.interview(payload)["question"], candidate["question"])
+                self.assertEqual(client.request.call_count, 1)
+
+    def test_invalid_initial_capture_is_rejected_before_audit(self):
+        candidate = interview_result()
+        candidate["memo_findings"][1].update(status="partial", answer="Invented evidence", evidence_turns=["missing-turn"])
+        client = self.client(candidate, {"question": "Would hide the invalid finding"})
+        with self.assertRaises(server.APIError):
+            client.interview(interview_payload())
+        self.assertEqual(client.request.call_count, 1)
+
+    def test_invalid_audit_rejects_without_returning_or_overwriting_the_capture(self):
+        for audit in ({"question": " "}, {"question": "x" * 1201}, {"question": 12},
+                      {"question": "Who approves?", "ready_for_draft": True}, {}, None):
+            with self.subTest(audit=audit):
+                candidate = interview_result()
+                original = copy.deepcopy(candidate)
+                client = self.client(candidate, audit)
+                with self.assertRaises(server.APIError):
+                    client.interview(interview_payload())
+                self.assertEqual(client.request.call_count, 2)
+                self.assertEqual(candidate, original)
+
+
 class ClosureEnforcementTests(unittest.TestCase):
     def test_file_notifications_cannot_ask_or_answer_the_final_check(self):
         result = interview_result()
@@ -648,7 +744,11 @@ class HTTPBoundaryTests(unittest.TestCase):
     def upstream_response(self, path, body, *args, **kwargs):
         if path == "audio/transcriptions":
             return {"text": "A synthetic recorded answer."}
-        result = self.mock_draft if body["text"]["format"]["name"] in ("process_draft", "process_draft_audit") else self.mock_interview
+        name = body["text"]["format"]["name"]
+        if name == "process_next_question_audit":
+            result = {"question": json.loads(body["input"][0]["content"])["candidate_question"]}
+        else:
+            result = self.mock_draft if name in ("process_draft", "process_draft_audit") else self.mock_interview
         return {"status": "completed", "output": [{"content": [{"type": "output_text", "text": json.dumps(result)}]}]}
 
     def request(self, path, payload=None, headers=None, method=None, csrf=True):
@@ -734,12 +834,13 @@ class HTTPBoundaryTests(unittest.TestCase):
         status, _, raw = self.request("/api/interview", interview_payload())
         self.assertEqual(status, 200)
         self.assertIn("releases payment", json.loads(raw)["question"])
-        self.client.request.assert_called_once()
-        path, body = self.client.request.call_args.args
-        self.assertEqual(path, "responses")
-        self.assertIs(body["store"], False)
-        self.assertIs(body["text"]["format"]["strict"], True)
-        self.assertNotIn(self.test_key, json.dumps(body))
+        self.assertEqual(self.client.request.call_count, 2)
+        for call in self.client.request.call_args_list:
+            path, body = call.args
+            self.assertEqual(path, "responses")
+            self.assertIs(body["store"], False)
+            self.assertIs(body["text"]["format"]["strict"], True)
+            self.assertNotIn(self.test_key, json.dumps(body))
 
     def test_draft_without_answers_is_rejected_before_model_call(self):
         payload = interview_payload()
@@ -832,7 +933,7 @@ class HTTPBoundaryTests(unittest.TestCase):
                 self.assertNotIn('timing', sent)
                 self.assertNotIn('session', sent)
                 self.assertNotIn('meeting_minutes', sent['context'])
-                instructions = self.client.request.call_args.args[1]['instructions']
+                instructions = self.client.request.call_args_list[0].args[1]['instructions']
                 self.assertNotIn('60-minute meeting', instructions)
                 self.assertNotIn('Use elapsed time', instructions)
                 self.assertIn('no duration target', instructions)

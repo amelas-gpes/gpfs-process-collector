@@ -6,6 +6,7 @@ import unittest
 import uuid
 import threading
 from pathlib import Path
+from unittest.mock import Mock,patch
 
 spec=importlib.util.spec_from_file_location('knowledge_graph',Path(__file__).resolve().parents[1]/'knowledge_graph.py')
 kg=importlib.util.module_from_spec(spec);spec.loader.exec_module(kg)
@@ -18,6 +19,11 @@ def payload(name,statement,scope='Fund A'):
                               {'id':'s2','title':'Check','type':'decision','actor':'Reviewer','evidence_turns':['u1']}],
                      'connections':[{'from':'s1','to':'s2','evidence_turns':['u1']}]},
             'documents':{'files':[{'name':'example.pdf','id':'ref'}]},'memo_findings':[]}
+
+def simulation_provenance():
+    return {'method':'document_simulation',
+            'source_documents':[{'filename':'Process reference.pdf','sha256':'a'*64}],
+            'participant_confirmed':False,'process_owner_approved':False}
 
 def proposal(current,candidates):
     other=candidates[0]
@@ -36,10 +42,98 @@ def wait(graph,job):
         time.sleep(.01)
     raise AssertionError('job timed out')
 
+class ProcessLivenessTests(unittest.TestCase):
+    def test_windows_process_wait_distinguishes_alive_exited_and_unknown_without_signals(self):
+        for result,alive in ((258,True),(0,False),(0xffffffff,True)):
+            kernel=Mock();kernel.OpenProcess.return_value=1234;kernel.WaitForSingleObject.return_value=result
+            with self.subTest(result=result),patch.object(kg.os,'name','nt'),\
+                 patch('ctypes.WinDLL',return_value=kernel,create=True),\
+                 patch.object(kg.os,'kill',side_effect=AssertionError('Windows liveness must not send signals')):
+                self.assertIs(kg._process_is_alive(42),alive)
+            kernel.OpenProcess.assert_called_once_with(0x00100000,False,42)
+            kernel.WaitForSingleObject.assert_called_once_with(1234,0)
+            kernel.CloseHandle.assert_called_once_with(1234)
+    def test_windows_missing_pid_is_dead_but_access_denied_or_unknown_is_alive(self):
+        for error,alive in ((87,False),(5,True),(123,True)):
+            kernel=Mock();kernel.OpenProcess.return_value=None
+            with self.subTest(error=error),patch.object(kg.os,'name','nt'),\
+                 patch('ctypes.WinDLL',return_value=kernel,create=True),\
+                 patch('ctypes.get_last_error',return_value=error,create=True),\
+                 patch.object(kg.os,'kill',side_effect=AssertionError('Windows liveness must not send signals')):
+                self.assertIs(kg._process_is_alive(42),alive)
+            kernel.WaitForSingleObject.assert_not_called();kernel.CloseHandle.assert_not_called()
+    def test_windows_query_failure_preserves_owner_and_closes_an_open_handle(self):
+        kernel=Mock();kernel.OpenProcess.return_value=1234;kernel.WaitForSingleObject.side_effect=OSError('query failed')
+        with patch.object(kg.os,'name','nt'),patch('ctypes.WinDLL',return_value=kernel,create=True),\
+             patch.object(kg.os,'kill',side_effect=AssertionError('Windows liveness must not send signals')):
+            self.assertTrue(kg._process_is_alive(42))
+        kernel.CloseHandle.assert_called_once_with(1234)
+    def test_posix_signal_zero_semantics_are_retained(self):
+        for outcome,alive in ((None,True),(ProcessLookupError(),False),(PermissionError(),True),(OSError(),True)):
+            with self.subTest(outcome=outcome),patch.object(kg.os,'name','posix'),patch.object(kg.os,'kill',side_effect=outcome) as probe:
+                self.assertIs(kg._process_is_alive(42),alive)
+            probe.assert_called_once_with(42,0)
+
 class GraphTests(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory();self.path=Path(self.temp.name)/'graph.db';self.graph=kg.KnowledgeGraph(self.path,proposal)
     def tearDown(self): self.graph.close();self.temp.cleanup()
+    def test_document_simulation_provenance_survives_persistence_without_employee_attestation(self):
+        p=payload('Document-derived process','The reference describes sending the approved file.')
+        p['capture_provenance']=simulation_provenance()
+        p['participant']='AI-simulated account; no employee interview'
+        p['closure']={'asked':False,'confirmed':False}
+        p['submitter']='forged employee'
+        result=self.graph.submit(p);wait(self.graph,result['job_id'])
+        self.graph.close();self.graph=kg.KnowledgeGraph(self.path,proposal)
+        saved=self.graph.admin_detail('submission',result['submission_id'],1)['item']
+        self.assertEqual(saved['capture_provenance'],simulation_provenance())
+        self.assertEqual(saved['participant'],p['participant'])
+        self.assertIsNone(saved['submitter'])
+        self.assertIs(saved['closure']['confirmed'],False)
+        self.assertEqual(saved['turns'],p['turns'])
+    def test_simulation_provenance_rejects_invalid_sources_or_false_approval_claims(self):
+        invalid=[None,{},dict(simulation_provenance(),method='employee_interview'),
+                 dict(simulation_provenance(),participant_confirmed=True),
+                 dict(simulation_provenance(),process_owner_approved=True),
+                 dict(simulation_provenance(),participant_confirmed=0),
+                 dict(simulation_provenance(),reviewer='untrusted approval'),
+                 dict(simulation_provenance(),source_documents=[]),
+                 dict(simulation_provenance(),source_documents=[{'filename':'Reference.pdf','sha256':'invalid'}]),
+                 dict(simulation_provenance(),source_documents=[{'filename':'../Reference.pdf','sha256':'a'*64}])]
+        for value in invalid:
+            p=payload('A','The source describes a handoff.');p['capture_provenance']=value
+            with self.subTest(value=value),self.assertRaises(ValueError):self.graph.submit(p)
+        p=payload('A','The source describes a handoff.');p['capture_provenance']=simulation_provenance()
+        p['closure']={'asked':True,'confirmed':True}
+        with self.assertRaisesRegex(ValueError,'cannot claim participant confirmation'):self.graph.submit(p)
+        self.assertEqual(self.graph.admin_snapshot()['submissions'],[])
+    def test_simulated_transcript_evidence_cannot_be_promoted_to_employee_reports_or_confirmations(self):
+        def mislabeled(current,candidates):
+            result=proposal(current,candidates)
+            for item in result[0]['evidence']:item['type']='employee_reported'
+            result[0].update(status='confirmed',sender_confirmed=True,receiver_confirmed=True)
+            return result
+        self.graph.analyzer=mislabeled
+        a=payload('Publishing','The source describes publishing approved NAV.');a['capture_provenance']=simulation_provenance()
+        first=self.graph.submit(a);wait(self.graph,first['job_id'])
+        b=payload('Statements','The source describes consuming approved NAV.');b['capture_provenance']=simulation_provenance()
+        second=self.graph.submit(b);self.assertEqual(wait(self.graph,second['job_id'])['status'],'completed')
+        saved=self.graph.admin_snapshot()['proposals'][0]
+        self.assertEqual(saved['status'],'proposed');self.assertEqual(saved['history'],[])
+        self.assertNotIn('sender_confirmed',saved);self.assertNotIn('receiver_confirmed',saved)
+        self.assertEqual({item['type'] for item in saved['evidence']},{'simulated_document_account'})
+        for item in saved['evidence']:
+            self.assertIn('not an employee statement',item['label'])
+            self.assertEqual(item['capture_provenance'],simulation_provenance())
+    def test_simulation_evidence_requires_declared_source_provenance(self):
+        def invented_kind(current,candidates):
+            result=proposal(current,candidates);result[0]['evidence'][0]['type']='simulated_document_account';return result
+        self.graph.analyzer=invented_kind
+        a=self.graph.submit(payload('A','We publish approved NAV.'));wait(self.graph,a['job_id'])
+        b=self.graph.submit(payload('B','We use approved NAV.'))
+        self.assertEqual(wait(self.graph,b['job_id'])['status'],'failed')
+        self.assertEqual(self.graph.admin_snapshot()['proposals'],[])
     def test_persists_revisions_and_trusted_attribution(self):
         p=payload('Publishing','We publish approved NAV.');p['submitter']='untrusted';first=self.graph.submit(p,principal='verified-user');wait(self.graph,first['job_id'])
         self.assertTrue(self.graph.can_revise(first['process_id'],'verified-user'));self.assertFalse(self.graph.can_revise(first['process_id'],None))
@@ -382,6 +476,19 @@ class GraphTests(unittest.TestCase):
         finally:
             release.set();other.close()
         self.assertEqual(wait(self.graph,b['job_id'])['status'],'completed')
+    def test_second_instance_recovers_only_a_known_dead_job_owner(self):
+        self.graph.analyzer=None
+        result=self.graph.submit(payload('A','We send NAV.'))
+        with self.graph.db:
+            self.graph.db.execute("UPDATE jobs SET status='processing',owner_pid=42 WHERE id=?",(result['job_id'],))
+        with patch.object(kg,'_process_is_alive',return_value=False) as probe:
+            other=kg.KnowledgeGraph(self.path)
+        try:
+            job=next(j for j in other.admin_snapshot()['jobs'] if j['id']==result['job_id'])
+            self.assertEqual(job['status'],'pending')
+            self.assertIn('Interrupted before completion',job['error'])
+            probe.assert_called_once_with(42)
+        finally:other.close()
     def test_admin_canonical_alias_and_reversible_unmerge_preserve_sources(self):
         self.graph.analyzer=lambda current,candidates: []
         a=self.graph.submit(payload('A','We send NAV.'));wait(self.graph,a['job_id'])

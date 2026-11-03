@@ -35,7 +35,7 @@
     config: null, utterance: null, voice: null, speechVersion: 0,
     localVoices: [], voiceChoice: null, voiceChoiceUser: false, speechOperation: null,
     recording: null, requestingMic: false, transcribing: false,
-    memo_findings: [], focus: "", parking_lot: [], closure: {asked:false,confirmed:false},
+    memo_findings: [], focus: "", parking_lot: [], closure: {asked:false,confirmed:false}, captureProvenance:null,
   };
   const conversationUI = {view:"voice", typing:false, live:null, status:"idle", muted:false, captions:new Map(), workflow:null, revision:0, applied:-1, flowBusy:false, flowTimer:null, flowAbort:null};
   const icons = {
@@ -914,7 +914,7 @@
     state.memo_findings = findings;
     state.focus = focus;
     state.parking_lot = parked;
-    state.closure = {asked:result.closure?.asked === true,confirmed:result.closure?.confirmed === true};
+    state.closure = {asked:result.closure?.asked === true,confirmed:!state.captureProvenance&&result.closure?.confirmed === true};
     state.dirty = true;
     if($("interview-error")?.dataset.errorKind==="capture")$("interview-error").hidden=true;
     renderTranscript();
@@ -1706,7 +1706,8 @@
     setTimeout(() => URL.revokeObjectURL(url), 10000);
   }
   function sessionObject() {
-    return {workflow:conversationUI.workflow,schema_version:1,saved_at:new Date().toISOString(),context:state.context||readContext(),process_name_manual:state.processNameManual,documents:documentController?.exportState()||null,document_questions_handled:[...documentQuestionsHandled],turns:state.turns,coverage:state.coverage,summary:state.summary,memo_findings:state.memo_findings,focus:state.focus,parking_lot:state.parking_lot,closure:state.closure,draft:state.draft,draft_stale:Boolean(state.draft&&state.draftVersion!==state.version),draft_edited:state.draftEdited,synthetic_example:state.example,unsent_answer:$("answer-text").value,voice_choice:state.voiceChoice,knowledge_process_id:knowledgeUI?.processId||null,knowledge_status:knowledgeUI?.exportReceipt()||null};
+    const provenance=state.captureProvenance===null?null:savedCaptureProvenance(state.captureProvenance);
+    return {workflow:conversationUI.workflow,schema_version:1,saved_at:new Date().toISOString(),context:state.context||readContext(),process_name_manual:state.processNameManual,documents:documentController?.exportState()||null,document_questions_handled:[...documentQuestionsHandled],turns:state.turns,coverage:state.coverage,summary:state.summary,memo_findings:state.memo_findings,focus:state.focus,parking_lot:state.parking_lot,closure:provenance?{...state.closure,confirmed:false}:state.closure,...(provenance?{capture_provenance:provenance}:{}),draft:state.draft,draft_stale:Boolean(state.draft&&state.draftVersion!==state.version),draft_edited:state.draftEdited,synthetic_example:state.example,unsent_answer:$("answer-text").value,voice_choice:state.voiceChoice,knowledge_process_id:knowledgeUI?.processId||null,knowledge_status:knowledgeUI?.exportReceipt()||null};
   }
   function exportSession() {
     download(JSON.stringify(sessionObject(),null,2), `${safeFilename(state.context?.process_name || readContext().process_name)}-session.json`, "application/json");
@@ -1846,7 +1847,7 @@
     for(const kind of ["transcript","report"]){Object.assign(readingUI[kind],{query:"",matches:[],index:-1});if($(kind+"-search"))$(kind+"-search").value="";}
     for(const id of ["interview-error","review-error"])if($(id))$(id).hidden=true;
     state.version++;
-    Object.assign(state,{context,processNameManual:Boolean(context?.process_name),turns:[],coverage:[],summary:"",draft:null,started:false,busy:false,importing:false,requestingMic:false,transcribing:false,draftVersion:null,draftEdited:false,example:false,dirty:false,memo_findings:[],focus:"",parking_lot:[],closure:{asked:false,confirmed:false}});
+    Object.assign(state,{context,processNameManual:Boolean(context?.process_name),turns:[],coverage:[],summary:"",draft:null,started:false,busy:false,importing:false,requestingMic:false,transcribing:false,draftVersion:null,draftEdited:false,example:false,dirty:false,memo_findings:[],focus:"",parking_lot:[],closure:{asked:false,confirmed:false},captureProvenance:null});
     $("answer-text").value = "";
     if($("retry-question"))$("retry-question").hidden=true;
     clearTimeout(noticeTimer);noticeTimer=null;noticeKind="general";
@@ -1881,6 +1882,21 @@
     // conversation and the document controller still belong to the user.
     return JSON.parse(JSON.stringify(value,(_key,item)=>{if(typeof item==="number"&&!Number.isFinite(item))invalid();return item;}));
   }
+  function savedCaptureProvenance(value) {
+    if(value===undefined)return null;
+    const invalid=()=>{throw new Error("Saved simulation provenance is invalid or claims confirmation/approval. The current interview has not been replaced.");};
+    const exact=(object,keys)=>object&&typeof object==="object"&&!Array.isArray(object)&&Object.keys(object).length===keys.length&&keys.every(key=>Object.hasOwn(object,key));
+    if(!exact(value,["method","source_documents","participant_confirmed","process_owner_approved"])||value.method!=="document_simulation"||value.participant_confirmed!==false||value.process_owner_approved!==false)invalid();
+    if(!Array.isArray(value.source_documents)||value.source_documents.length<1||value.source_documents.length>20)invalid();
+    const seen=new Set(),sources=value.source_documents.map(source=>{
+      if(!exact(source,["filename","sha256"])||typeof source.filename!=="string"||source.filename.length>500||typeof source.sha256!=="string"||source.sha256.length>64)invalid();
+      const filename=source.filename.trim(),sha256=source.sha256.trim().toLowerCase();
+      if(!filename||[".",".."].includes(filename)||/[\x00-\x1f/\\:]/.test(filename)||!/^[0-9a-f]{64}$/.test(sha256))invalid();
+      const key=filename+"\0"+sha256;if(seen.has(key))invalid();seen.add(key);
+      return {filename,sha256};
+    });
+    return {method:"document_simulation",source_documents:sources,participant_confirmed:false,process_owner_approved:false};
+  }
   async function importSession(file) {
     if (!file) return;
     if (!canReplaceSession()) return;
@@ -1896,6 +1912,8 @@
       const context = {
         process_name:text(saved.context.process_name,500),process_owner:text(saved.context.process_owner,500),objective:text(saved.context.objective,500),background:text(saved.context.background,8000)
       };
+      const captureProvenance=savedCaptureProvenance(saved.capture_provenance);
+      if(captureProvenance&&saved.closure&&typeof saved.closure==="object"&&Object.hasOwn(saved.closure,"confirmed")&&saved.closure.confirmed!==false)throw new Error("A document-derived simulation cannot claim participant confirmation. The current interview has not been replaced.");
       const ids = new Set();
       const turns = saved.turns.map((turn,i) => {
         if (!turn || !["user","assistant"].includes(turn.role) || typeof turn.text !== "string" || typeof turn.id !== "string" || turn.id === "context" || !/^[a-zA-Z0-9_-]{1,40}$/.test(turn.id) || ids.has(turn.id)) throw new Error(`The session has an invalid, reserved, or duplicate turn ID at position ${i+1}.`);
@@ -1914,7 +1932,7 @@
       clearState(context);
       knowledgeUI?.restore(saved.knowledge_process_id,saved.knowledge_status);
       generation=state.generation;
-      Object.assign(state,{turns,coverage,summary,draft,started:turns.length>0,busy:true,importing:true,example:saved.synthetic_example===true,draftEdited:saved.draft_edited===true,memo_findings:findings,focus,parking_lot:parked,closure:{asked:saved.closure?.asked===true,confirmed:saved.closure?.confirmed===true}});
+      Object.assign(state,{turns,coverage,summary,draft,started:turns.length>0,busy:true,importing:true,example:saved.synthetic_example===true,draftEdited:saved.draft_edited===true,memo_findings:findings,focus,parking_lot:parked,captureProvenance,closure:{asked:saved.closure?.asked===true,confirmed:!captureProvenance&&saved.closure?.confirmed===true}});
       updateControls();
       state.processNameManual=saved.process_name_manual===undefined?Boolean(context.process_name):saved.process_name_manual===true;
       (Array.isArray(saved.document_questions_handled)?saved.document_questions_handled:[]).filter(value=>typeof value==="string"&&value.length<160).slice(0,200).forEach(value=>documentQuestionsHandled.add(value));

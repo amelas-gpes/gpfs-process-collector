@@ -17,6 +17,7 @@ from pathlib import Path
 import re
 import secrets
 import sqlite3
+import sys
 import threading
 import time
 import warnings
@@ -168,11 +169,21 @@ class DocumentStore:
 
     def _permissions(self):
         for path in self.root.glob('documents.sqlite3*'):
-            try:
-                if path.is_file() and not path.is_symlink():
-                    os.chmod(path, 0o600)
-            except FileNotFoundError:
-                pass  # A concurrent last connection may remove SQLite's WAL/SHM.
+            for attempt in range(6):
+                try:
+                    if path.is_file() and not path.is_symlink():
+                        os.chmod(path, 0o600)
+                    break
+                except FileNotFoundError:
+                    break  # A concurrent last connection may remove SQLite's WAL/SHM.
+                except PermissionError:
+                    # Windows may briefly deny metadata changes while SQLite
+                    # opens/closes a sidecar. Retry only those transient targets;
+                    # a persistent denial must still fail permission enforcement.
+                    if (sys.platform != 'win32' or attempt == 5
+                            or path.name not in ('documents.sqlite3-wal', 'documents.sqlite3-shm')):
+                        raise
+                    time.sleep(0.02)
 
     @contextmanager
     def _db(self):

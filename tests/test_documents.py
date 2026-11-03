@@ -7,7 +7,7 @@ from pathlib import Path
 import stat
 import tempfile
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, call, patch
 import zipfile
 from xml.sax.saxutils import escape
 
@@ -50,19 +50,92 @@ class DocumentStoreTests(unittest.TestCase):
         return self.store.add(self.scope, 'sample.csv', content, **kwargs)
 
     def test_original_and_atomic_metadata_survive_reload_with_private_permissions(self):
-        record = self.add_csv(context={'latest_question': 'Which tracker?', 'turns': [{'id': 'u1', 'role': 'user', 'text': 'This one.'}], 'OPENAI_API_KEY': 'must-not-store'})
+        with patch.object(documents.os, 'chmod', wraps=documents.os.chmod) as change:
+            record = self.add_csv(context={'latest_question': 'Which tracker?', 'turns': [{'id': 'u1', 'role': 'user', 'text': 'This one.'}], 'OPENAI_API_KEY': 'must-not-store'})
+            reopened = documents.DocumentStore(self.root)
         self.assertEqual(record['status'], 'pending')
-        reopened = documents.DocumentStore(self.root)
         self.assertEqual(reopened.pending(self.scope)[0]['id'], record['id'])
         self.assertNotIn('OPENAI_API_KEY', json.dumps(reopened.get(self.scope, record['id'])))
         original = reopened.original_path(self.scope, record['id'])
         self.assertEqual(original.read_bytes(), b'name,value\nalpha,42\n')
-        self.assertEqual(stat.S_IMODE(original.stat().st_mode), 0o600)
-        self.assertEqual(stat.S_IMODE(original.parent.stat().st_mode), 0o700)
-        self.assertEqual(stat.S_IMODE(self.root.stat().st_mode), 0o700)
-        self.assertEqual(stat.S_IMODE((self.root / 'documents.sqlite3').stat().st_mode), 0o600)
+        required_modes = [(original, 0o600), (original.parent, 0o700),
+                          (self.root, 0o700), (self.root / 'documents.sqlite3', 0o600)]
+        for path, mode in required_modes:
+            if documents.sys.platform == 'win32':
+                # Windows chmod does not implement POSIX ACL semantics. Verify
+                # the enforcement call, not a false confidentiality claim from st_mode.
+                self.assertIn(call(path, mode), change.call_args_list)
+            else:
+                self.assertEqual(stat.S_IMODE(path.stat().st_mode), mode)
         self.assertNotIn(self.scope.encode(), (self.root / 'documents.sqlite3').read_bytes())
         self.assertNotIn('path', json.dumps(record))
+
+    def test_windows_sidecar_permission_sharing_failure_retries_then_applies_private_mode(self):
+        real_chmod = documents.os.chmod
+        for suffix in ('-wal', '-shm'):
+            with self.subTest(suffix=suffix):
+                sidecar = self.root / ('documents.sqlite3' + suffix)
+                sidecar.write_bytes(b'synthetic sidecar')
+                applied = []
+                def chmod(path, mode):
+                    if not applied:
+                        applied.append('sharing failure')
+                        raise PermissionError('Temporary Windows sharing denial')
+                    real_chmod(path, mode)
+                    applied.append('private mode applied')
+                with patch.object(type(self.root), 'glob', return_value=[sidecar]), \
+                        patch.object(documents.sys, 'platform', 'win32'), \
+                        patch.object(documents.os, 'chmod', side_effect=chmod) as change, \
+                        patch.object(documents.time, 'sleep') as sleep:
+                    self.store._permissions()
+                self.assertEqual(applied, ['sharing failure', 'private mode applied'])
+                self.assertEqual(change.call_args_list, [call(sidecar, 0o600), call(sidecar, 0o600)])
+                sleep.assert_called_once_with(0.02)
+                self.assertEqual(stat.S_IMODE(sidecar.stat().st_mode) & 0o700, 0o600)
+
+    def test_windows_sidecar_persistent_permission_failure_still_raises_after_bounded_retries(self):
+        for suffix in ('-wal', '-shm'):
+            with self.subTest(suffix=suffix):
+                sidecar = self.root / ('documents.sqlite3' + suffix)
+                sidecar.write_bytes(b'synthetic sidecar')
+                failure = PermissionError('Persistent Windows access denial')
+                with patch.object(type(self.root), 'glob', return_value=[sidecar]), \
+                        patch.object(documents.sys, 'platform', 'win32'), \
+                        patch.object(documents.os, 'chmod', side_effect=failure) as change, \
+                        patch.object(documents.time, 'sleep') as sleep:
+                    with self.assertRaises(PermissionError) as caught:
+                        self.store._permissions()
+                self.assertIs(caught.exception, failure)
+                self.assertEqual(change.call_args_list, [call(sidecar, 0o600)] * 6)
+                self.assertEqual(sleep.call_args_list, [call(0.02)] * 5)
+                self.assertAlmostEqual(sum(c.args[0] for c in sleep.call_args_list), 0.1)
+
+    def test_main_database_and_non_windows_permission_failures_never_retry(self):
+        wal = self.root / 'documents.sqlite3-wal'
+        wal.write_bytes(b'synthetic sidecar')
+        for platform, path in (('win32', self.store.db_path), ('linux', wal), ('darwin', wal)):
+            with self.subTest(platform=platform, path=path.name):
+                failure = PermissionError('Permission enforcement failed')
+                with patch.object(type(self.root), 'glob', return_value=[path]), \
+                        patch.object(documents.sys, 'platform', platform), \
+                        patch.object(documents.os, 'chmod', side_effect=failure) as change, \
+                        patch.object(documents.time, 'sleep') as sleep:
+                    with self.assertRaises(PermissionError) as caught:
+                        self.store._permissions()
+                self.assertIs(caught.exception, failure)
+                change.assert_called_once_with(path, 0o600)
+                sleep.assert_not_called()
+
+    def test_disappearing_sidecar_is_still_allowed_without_permission_retry(self):
+        sidecar = self.root / 'documents.sqlite3-wal'
+        sidecar.write_bytes(b'synthetic sidecar')
+        with patch.object(type(self.root), 'glob', return_value=[sidecar]), \
+                patch.object(documents.sys, 'platform', 'win32'), \
+                patch.object(documents.os, 'chmod', side_effect=FileNotFoundError) as change, \
+                patch.object(documents.time, 'sleep') as sleep:
+            self.store._permissions()
+        change.assert_called_once_with(sidecar, 0o600)
+        sleep.assert_not_called()
 
     def test_every_read_write_and_source_access_is_scope_authorized(self):
         record = self.add_csv()

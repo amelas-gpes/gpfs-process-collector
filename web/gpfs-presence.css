@@ -1,14 +1,16 @@
 /* Official GPFS vector geometry with a calm, responsive presence.
- * The mark keeps its source paths and colours. Around it: the brand's diagonal hatch as a quiet field,
- * and a hairline ring that answers real voice activity. No glow, blur or gradient on the mark. */
+ * The mark keeps its source paths and colours. Behind it sits one soft, diffused GPFS-orange glow that
+ * answers real voice activity, the pointer and a tap. Nothing is drawn on top of the mark. */
 @property --voice { syntax:"<number>"; inherits:true; initial-value:0; }
 @property --gaze-x { syntax:"<number>"; inherits:true; initial-value:0; }
 @property --gaze-y { syntax:"<number>"; inherits:true; initial-value:0; }
 @property --hover { syntax:"<number>"; inherits:true; initial-value:0; }
+@property --flare { syntax:"<number>"; inherits:true; initial-value:0; }
+@property --pulse { syntax:"<number>"; inherits:true; initial-value:0; }
 
 .gpfs-presence {
-  --field: #dee0e4;
-  --ring: #dee0e4;
+  /* Resting strength per state; voice, hover, tap and waiting add to it. */
+  --rest: .34;
   position:relative;
   isolation:isolate;
   display:grid;
@@ -17,50 +19,34 @@
   width:clamp(140px,20vw,216px);
   max-width:100%;
   min-height:0;
-  border-radius:50%;
-  outline:1px solid transparent;
-  outline-offset:0;
   pointer-events:none;
   user-select:none;
   -webkit-user-select:none;
   -webkit-tap-highlight-color:transparent;
 }
-/* Hatched field (GPFS ltDnDiag pattern), a true circle centred on the mark. */
-.gpfs-presence::before,
-.gpfs-presence::after {
+/* The glow: low-alpha brand orange, blurred so it fades without banding or a visible edge. */
+.gpfs-presence::before {
   content:"";
   position:absolute;
-  left:-21%;
-  top:50%;
-  width:142%;
-  aspect-ratio:1;
-  margin-top:-71%;
-  border-radius:50%;
-  pointer-events:none;
-}
-.gpfs-presence::before {
-  z-index:-2;
-  border:1px solid var(--field);
-  background:repeating-linear-gradient(-45deg, var(--field) 0 1px, transparent 1px 7px);
-  scale:calc(1 + var(--hover) * .02);
-  translate:calc(var(--gaze-x) * 5px) calc(var(--gaze-y) * 4px);
-  transition:scale .4s cubic-bezier(.2,.8,.2,1);
-}
-/* Hairline ring: listening follows the microphone, speaking ripples outward. */
-.gpfs-presence::after {
   z-index:-1;
-  border:1px solid var(--ring);
-  opacity:0;
-  transition:opacity .3s, border-color .3s;
+  left:50%;
+  top:53%;
+  width:118%;
+  aspect-ratio:1;
+  border-radius:50%;
+  background:radial-gradient(closest-side, rgb(220 110 44 / .34), rgb(220 110 44 / .16) 48%, rgb(220 110 44 / .05) 78%, transparent);
+  filter:blur(26px);
+  translate:calc(-50% + var(--gaze-x) * 9px) calc(-50% + var(--gaze-y) * 7px);
+  opacity:min(1, calc(var(--rest) + var(--voice) * .58 + var(--hover) * .16 + var(--flare) * .4 + var(--pulse) * .22));
+  scale:calc(.84 + var(--voice) * .24 + var(--hover) * .05 + var(--flare) * .14);
+  pointer-events:none;
+  will-change:opacity, scale;
 }
-.gpfs-presence[data-mode="listening"] { --ring: #6c809a; }
-.gpfs-presence[data-mode="listening"]::after { opacity:calc(.35 + var(--voice) * .65); scale:calc(1.04 + var(--voice) * .08); }
-.gpfs-presence[data-mode="speaking"] { --ring: #dc6e2c; }
-.gpfs-presence[data-mode="speaking"]::after { animation:gpfs-ripple 1.9s cubic-bezier(.2,.7,.3,1) infinite; }
-.gpfs-presence:is([data-mode="connecting"],[data-mode="processing"]) { --ring: #6c809a; }
-.gpfs-presence:is([data-mode="connecting"],[data-mode="processing"])::after { scale:1.05; animation:gpfs-think 1.6s ease-in-out infinite; }
-.gpfs-presence[data-mode="muted"] { --ring: #646466; }
-.gpfs-presence[data-mode="muted"]::after { opacity:.6; scale:1.04; border-style:dashed; }
+.gpfs-presence:is([data-mode="idle"],[data-mode="ended"]) { --rest: .3; }
+.gpfs-presence[data-mode="listening"] { --rest: .4; }
+.gpfs-presence[data-mode="speaking"] { --rest: .46; }
+.gpfs-presence[data-mode="muted"] { --rest: .14; }
+.gpfs-presence:is([data-mode="connecting"],[data-mode="processing"]) { --rest: .3; animation:gpfs-pulse 2.2s ease-in-out infinite; }
 
 .gpfs-symbol {
   display:block;
@@ -77,30 +63,26 @@
 }
 /* A slow breath while waiting or listening; speech drives its own choreography. */
 .gpfs-presence:is([data-mode="idle"],[data-mode="ended"],[data-mode="listening"],[data-mode="muted"]) .gpfs-symbol { animation:gpfs-breathe 6.4s ease-in-out infinite; }
-/* A tap sends one hairline ring outward; alternating names restart it on every tap. */
-.gpfs-presence[data-boop="a"] { animation:gpfs-boop-a .8s cubic-bezier(.2,.8,.2,1); }
-.gpfs-presence[data-boop="b"] { animation:gpfs-boop-b .8s cubic-bezier(.2,.8,.2,1); }
+/* A tap briefly brightens the glow; alternating names restart it on every tap. */
+.gpfs-presence[data-boop="a"]::before { animation:gpfs-flare-a .9s cubic-bezier(.2,.8,.2,1); }
+.gpfs-presence[data-boop="b"]::before { animation:gpfs-flare-b .9s cubic-bezier(.2,.8,.2,1); }
 .gpfs-fallback { display:block; width:160px; max-width:100%; height:auto; }
 
 @keyframes gpfs-breathe {
   0%,100% { translate:0 0; scale:1; }
   50% { translate:0 -2px; scale:1.008; }
 }
-@keyframes gpfs-ripple {
-  0% { scale:1; opacity:calc(.25 + var(--voice) * .75); }
-  100% { scale:1.22; opacity:0; }
+@keyframes gpfs-pulse {
+  0%,100% { --pulse:0; }
+  50% { --pulse:1; }
 }
-@keyframes gpfs-think {
-  0%,100% { opacity:.2; }
-  50% { opacity:.85; }
+@keyframes gpfs-flare-a {
+  0% { --flare:1; }
+  100% { --flare:0; }
 }
-@keyframes gpfs-boop-a {
-  0% { outline-color:rgb(220 110 44 / .7); outline-offset:0; }
-  100% { outline-color:rgb(220 110 44 / 0); outline-offset:42px; }
-}
-@keyframes gpfs-boop-b {
-  0% { outline-color:rgb(220 110 44 / .7); outline-offset:0; }
-  100% { outline-color:rgb(220 110 44 / 0); outline-offset:42px; }
+@keyframes gpfs-flare-b {
+  0% { --flare:1; }
+  100% { --flare:0; }
 }
 
 @media(max-width:700px) {
@@ -120,7 +102,6 @@
   .gpfs-symbol { max-height:112px; }
 }
 @media(prefers-reduced-motion:reduce) {
-  .gpfs-presence, .gpfs-presence *, .gpfs-presence::before, .gpfs-presence::after { animation:none!important; transition:none!important; }
+  .gpfs-presence, .gpfs-presence *, .gpfs-presence::before { animation:none!important; transition:none!important; }
   .gpfs-symbol { transform:none; cursor:default; }
-  .gpfs-presence[data-mode="speaking"]::after { opacity:.8; scale:1.06; }
 }

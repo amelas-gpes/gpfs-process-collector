@@ -1,8 +1,8 @@
 # GPFS vector presence
 
-The voice interface uses GPFS's supplied mark directly. It does not put a logo over an orb or behind a glow. The four taupe diamonds move on underdamped springs (a composed bounce), the copper interlocking outline sways slightly, and rendered reach is kept inside the outline so the mark always reads as the logo. The live presence and its fallback show the symbol only. The app header shows the official gpfs.com lockup (`web/assets/gpfs-logo.svg`), as the 2022 brand sheet specifies for website headers.
+The voice interface uses GPFS's supplied mark directly. It does not put the logo over an orb. The four taupe diamonds move on underdamped springs (a composed bounce), the copper interlocking outline sways slightly, and rendered reach is kept inside the outline so the mark always reads as the logo. The live presence and its fallback show the symbol only. The app header shows the official gpfs.com lockup (`web/assets/gpfs-logo.svg`), as the 2022 brand sheet specifies for website headers.
 
-Around the mark, CSS draws the brand's diagonal hatch (`ltDnDiag`, Zircon `#DEE0E4`) as a quiet circular field and a hairline ring that answers real voice activity: Bermuda Grey while listening, an orange hairline ripple while the AI speaks. There is no glow, blur, gradient or recolouring of the mark.
+Behind the mark, CSS draws one soft, blurred glow in low-alpha GPFS orange (`#DC6E2C`). Its strength and size follow real voice energy, it leans toward the pointer, warms on hover, flares briefly on a tap and pulses gently while connecting or processing. Each state sets a quiet resting level; a muted microphone dims it. Nothing is drawn on top of the mark and its colours are never altered.
 
 ## Official source and fidelity
 
@@ -45,7 +45,7 @@ The mark is decorative and stays hidden from assistive technology, but it respon
 
 - **Gaze:** a hovering mouse or pen tilts the mark a few degrees toward the pointer; the diamonds lead the outline (parallax). Touch does not trigger gaze.
 - **Curiosity:** hovering the mark spreads the diamonds slightly and adds a touch of surface light.
-- **Tap:** each diamond twirls a quarter turn with a staggered pop and returns exactly to the source arrangement (the diamonds are square about their own centres). A single orange hairline ring travels outward.
+- **Tap:** each diamond twirls a quarter turn with a staggered pop and returns exactly to the source arrangement (the diamonds are square about their own centres). The glow flares briefly.
 - **Hello and blink:** the mark greets an opened connection with a twirl, says hello once when it first appears, and blinks softly every few seconds while waiting. These ambient moments use owned timers that stop when the panel or document is hidden.
 
 None of these trigger an action. Reduced motion disables all of them.

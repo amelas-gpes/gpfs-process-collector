@@ -531,7 +531,11 @@ dialog::backdrop { background:#28314a55; backdrop-filter:blur(6px); }
 .inline-error { flex:none; display:flex; align-items:center; gap:12px; padding:10px 16px; margin:0 16px 8px; border:1px solid #dfc6bc; border-radius:10px; background:#fff7f3; color:#794d3c; font-size:12px; line-height:1.5; max-height:100px; overflow:auto; }
 .inline-error span { flex:1; }
 .inline-error button { border:0; background:transparent; color:inherit; padding:8px; font-size:12px; }
-.transcript-heading { align-items:center; gap:12px; padding:4px 26px 8px; font-size:12px; color:#626e83; }
+.transcript-heading { align-items:center; flex-wrap:wrap; gap:10px; padding:4px 26px 8px; font-size:12px; color:#626e83; }
+.transcript-heading .reading-search { flex:1 1 250px; justify-content:flex-end; }
+.transcript-export { display:flex; align-items:center; gap:5px; margin-left:auto; }
+.transcript-export select,.transcript-export button { width:auto; padding:7px 9px; min-height:34px; border:1px solid #dce1eb; border-radius:8px; background:#fff; color:#46536b; font-size:12px; }
+.transcript-export button:disabled { opacity:.45; cursor:default; }
 .reading-search { display:flex; align-items:center; min-width:0; gap:4px; }
 .reading-search input { width:190px; padding:7px 9px; font-size:12px; line-height:1.3; background:#ffffffa8; }
 .reading-search output { min-width:42px; text-align:center; font-size:11px; color:#647187; }
@@ -567,6 +571,8 @@ dialog::backdrop { background:#28314a55; backdrop-filter:blur(6px); }
   .reading-search button { min-width:36px; }
   .transcript-heading { padding:4px 14px 8px; flex-wrap:wrap; gap:6px; }
   .transcript-heading .reading-search { width:100%; }
+  .transcript-heading .reading-search { order:3; flex-basis:100%; }
+  .transcript-export select,.transcript-export button { min-height:44px; }
   .reading-search input { flex:1; width:120px; min-width:70px; min-height:44px; font-size:16px; }
   .report-reading-tools { flex-wrap:wrap; padding:8px 14px; gap:7px; }
   .report-reading-tools > select { max-width:none; width:100%; min-height:44px; }

@@ -141,6 +141,25 @@ class DocumentServiceTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             service.action(self.scope, record['id'], 'purpose', 'A second reason')
 
+    def test_deep_review_does_not_overwrite_quick_relevance_or_direction(self):
+        def analyze(context, record, chunks, phase):
+            initial = 'unrelated' if record['name'].startswith('unrelated') else 'relevant'
+            relevance = initial if phase == 'quick' else ('relevant' if initial == 'unrelated' else 'unrelated')
+            value = response(chunks, relevance)
+            value['relevance_reason'] = f'{phase} assessment'
+            return value
+        service = self.service(analyze)
+        unrelated = service.upload(self.scope, 'unrelated.csv', b'important,value\na,42\n')
+        relevant = service.upload(self.scope, 'relevant.csv', b'important,value\nb,99\n')
+        unrelated_result = self.wait(unrelated['id'])['analysis']
+        relevant_result = self.wait(relevant['id'])['analysis']
+        self.assertEqual((unrelated_result['relevance'], unrelated_result['relevance_reason'], unrelated_result['disposition']),
+                         ('unrelated', 'quick assessment', 'needs_reason'))
+        self.assertEqual((relevant_result['relevance'], relevant_result['relevance_reason'], relevant_result['disposition']),
+                         ('relevant', 'quick assessment', 'relevant'))
+        self.assertEqual([item['id'] for item in service.supporting_context(self.scope, 'important')['documents']],
+                         [relevant['id']])
+
     def test_remove_during_provider_request_invalidates_late_result_and_keeps_original(self):
         entered, release, finished = threading.Event(), threading.Event(), threading.Event()
         def analyze(context, record, chunks, phase):

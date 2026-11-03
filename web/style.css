@@ -282,6 +282,7 @@ body.interview-started #welcome-example { display:none; }
 #workflow-panel { display:flex; flex-direction:column; position:relative; padding:0 16px; }
 .workflow-heading { flex:none; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 16px; }
 .workflow-status { margin:0; font-size:11px; color:#8490a6; }
+.workflow-gaps { flex:none; max-height:4.5em; overflow:auto; margin:0 0 8px; padding:7px 10px; border-radius:8px; background:#fff6e8; color:#715027; font-size:11px; line-height:1.4; }
 .live-workflow { flex:1; min-height:0; overflow:auto; overscroll-behavior:contain; scrollbar-width:thin; border-radius:16px; background:radial-gradient(#b5c4dc60 .7px,transparent .7px) 0 0/18px 18px,#f6f8fc; }
 .live-workflow .map-stage { width:min(100%,680px); margin:24px auto; }
 .live-workflow .map-stage svg { display:block; width:100%; height:auto; min-width:420px; }

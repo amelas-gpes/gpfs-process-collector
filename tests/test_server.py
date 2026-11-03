@@ -121,6 +121,40 @@ def process_draft():
 
 
 class EvidenceValidationTests(unittest.TestCase):
+    def test_explicit_uncertainty_overrides_full_circle_and_allows_later_clarification(self):
+        cases = ["The owner is probably the fund controller.", "The trigger is UNKNOWN.",
+                 "We don't know who approves it.", "This is an assumed practice.",
+                 "The participants gave conflicting accounts.", "It needs confirmation.",
+                 "I cannot identify the final accountable owner yet.",
+                 "I am unable to identify the final accountable owner.",
+                 "I do not know whether this is approved.", "The owner is not established."]
+        for uncertain in cases:
+            with self.subTest(uncertain=uncertain):
+                result = interview_result()
+                result['memo_findings'] = [{'key': key, 'status': 'captured',
+                    'answer': 'Reported detail.', 'evidence_turns': ['u1']} for key in server.COVERAGE]
+                result['memo_findings'][0]['answer'] = uncertain
+                validated = server.validate_interview(result, interview_payload()['turns'])
+                self.assertEqual(validated['memo_findings'][0]['status'], 'partial')
+                self.assertEqual(validated['coverage'][0]['status'], 'partial')
+                self.assertFalse(validated['ready_for_draft'])
+
+        for known_exception in ('The analyst cannot approve invoices.', 'The requester cannot contact the vendor.'):
+            result = interview_result()
+            result['memo_findings'][0].update(status='captured', answer=known_exception, evidence_turns=['u1'])
+            self.assertEqual(server.validate_interview(result, interview_payload()['turns'])['memo_findings'][0]['status'], 'captured')
+
+        payload = interview_payload()
+        payload['turns'].extend([
+            {'id':'u3','role':'user','text':"I am not sure who owns it."},
+            {'id':'u4','role':'user','text':"I checked: the fund controller is accountable."},
+        ])
+        result = interview_result()
+        result['memo_findings'][0].update(status='captured', answer='The fund controller is accountable.', evidence_turns=['u3'])
+        self.assertEqual(server.validate_interview(result, payload['turns'])['memo_findings'][0]['status'], 'partial')
+        result['memo_findings'][0].update(status='captured', evidence_turns=['u4'])
+        self.assertEqual(server.validate_interview(result, payload['turns'])['memo_findings'][0]['status'], 'captured')
+
     def test_reported_memo_finding_cannot_claim_coverage_without_detail(self):
         for status in ("captured", "partial", "not_applicable"):
             for answer in ("", "  ", " UNKNOWN "):
@@ -287,6 +321,29 @@ class EvidenceValidationTests(unittest.TestCase):
 
 
 class GraphRoutingContractTests(unittest.TestCase):
+    def test_isolated_workflow_steps_raise_questions_without_inventing_edges(self):
+        draft = process_draft()
+        isolated = copy.deepcopy(draft['steps'][0])
+        isolated.update(id='s3', title='Reconcile the ledger')
+        workflow = {'title':'Invoice work', 'steps':draft['steps'] + [isolated],
+                    'connections':copy.deepcopy(draft['connections']), 'open_questions':['Who owns the handoff?']}
+        original_edges = copy.deepcopy(workflow['connections'])
+        result = server.validate_workflow(workflow, interview_payload()['turns'])
+        self.assertEqual(result['connections'], original_edges)
+        self.assertIn('s3 (Reconcile the ledger)', result['open_questions'][0])
+        self.assertEqual(result['open_questions'][1], 'Who owns the handoff?')
+        self.assertEqual(len(server.validate_workflow(result, interview_payload()['turns'])['open_questions']), 2)
+        result['connections'].append({'from':'s3', 'to':'s3', 'label':'Retry', 'evidence_turns':['u1']})
+        result['open_questions'] = []
+        self.assertIn('s3', server.validate_workflow(result, interview_payload()['turns'])['open_questions'][0])
+
+    def test_connected_or_single_step_does_not_create_isolation_question(self):
+        draft = process_draft()
+        workflow = {'title':'Invoice work', 'steps':draft['steps'], 'connections':draft['connections'], 'open_questions':[]}
+        self.assertEqual(server.validate_workflow(workflow, interview_payload()['turns'])['open_questions'], [])
+        workflow['steps'] = workflow['steps'][:1]; workflow['connections'] = []
+        self.assertEqual(server.validate_workflow(workflow, interview_payload()['turns'])['open_questions'], [])
+
     def test_generation_and_audit_keep_known_exception_entry_and_distinct_client_routes(self):
         payload = interview_payload()
         payload['turns'] = [

@@ -173,6 +173,10 @@ necessary detail is missing, uncertain or contradicted; unknown remains unknown.
 requires the participant's explicit basis, never an assumption. Full topic coverage is still a
 reported account, not independent verification or process-owner approval. A request to end or pause
 must be respected even if topics remain partial; record the gaps without claiming enough detail.
+Never mark captured or not_applicable when the participant or the finding expresses an assumption,
+guess, uncertainty, unresolved disagreement, or need for confirmation about that topic. Keep it
+partial and ask a focused clarification when useful. If later evidence resolves the issue, cite
+the resolving participant answer and describe the resolved fact without retaining superseded guesses.
 """
 GRAPH_ROUTING_POLICY = """Check branch entry, branch handling and branch exit separately against the evidence.
 When the participant reports a condition during a named action and the action taken if it occurs,
@@ -195,6 +199,10 @@ for client X. Replace an existing unrestricted bypass with the supported 'other 
 merely adding a client-X approval route beside an unrestricted success edge does not fix the bypass.
 When a normal prerequisite also applies, the direct edge must say 'prerequisite met AND other clients',
 while the approval entry says 'prerequisite met AND client X'. The approval exit states its completion.
+Before returning, compare every explicitly reported handoff, exception return, and parallel
+prerequisite against the graph. Include each supported connection and its source; if placement,
+entry, exit, or dependency is genuinely unclear, record that exact unresolved relationship in
+open_questions. Do not omit known edges to keep the map simple and do not invent missing edges.
 Distinguish a terminal action from rework. If a duplicate is marked, linked and closed, represent
 that reported closing action as an activity reached by the duplicate condition, with no invented
 return to the duplicate check. A self-loop is allowed only when the participant actually described
@@ -502,10 +510,22 @@ def check_schema(value, schema, name="result"):
         raise ValueError(f"{name} must be true or false.")
 
 
+UNCERTAIN_FINDING = re.compile(
+    r"\b(?:unknown|tbd|unclear|uncertain|unsure|unconfirmed|"
+    r"maybe|perhaps|possibly|probably|likely|might|guess(?:ed|ing)?|"
+    r"assum(?:e|es|ed|ing|ption|ptions)|conflicting|disagree(?:ment|s|d)?|"
+    r"(?:i|we)\s+(?:think|believe)|(?:do(?:es)?\s+not|don['’]t|doesn['’]t)\s+know|"
+    r"(?:cannot|can['’]t|unable\s+to)\s+(?:identify|say|confirm|determine|tell|establish)|"
+    r"not\s+(?:yet\s+)?(?:sure|certain|clear|known|confirmed|established)|"
+    r"(?:needs?|requires?|pending|awaiting)\s+(?:further\s+)?(?:clarification|confirmation)|"
+    r"to\s+be\s+(?:confirmed|clarified|determined))\b", re.IGNORECASE)
+
+
 def validate_findings(findings, turns):
     if len(findings) != len(COVERAGE) or {f["key"] for f in findings} != set(COVERAGE):
         raise ValueError("All eleven memo topics must be represented exactly once.")
     valid_sources = {t["id"] for t in turns if t["role"] == "user"} | {"context"}
+    participant_text = {t["id"]: t["text"] for t in turns if t["role"] == "user"}
     for finding in findings:
         if not set(finding["evidence_turns"]) <= valid_sources:
             raise ValueError("A memo finding references missing or non-participant evidence.")
@@ -514,6 +534,13 @@ def validate_findings(findings, turns):
         if finding["status"] in ("captured", "partial", "not_applicable") and (
                 not finding["answer"].strip() or finding["answer"].strip().upper() == "UNKNOWN"):
             raise ValueError("A reported memo finding must include its reported detail or reason.")
+        # Do not accept a full circle when the answer or its cited participant
+        # evidence explicitly records uncertainty. This is a conservative guard,
+        # not a semantic proof that an otherwise confident statement is complete.
+        if finding["status"] in ("captured", "not_applicable") and any(
+                UNCERTAIN_FINDING.search(value) for value in
+                [finding["answer"], *(participant_text.get(source, "") for source in finding["evidence_turns"])]):
+            finding["status"] = "partial"
 
 
 def validate_interview(result, turns=None):
@@ -527,6 +554,10 @@ def validate_interview(result, turns=None):
                            "status": next(c["status"] for c in result["coverage"] if c["key"] == k)}
                           for k in COVERAGE]
     validate_findings(result["memo_findings"], turns or [])
+    findings = {finding["key"]: finding for finding in result["memo_findings"]}
+    statuses = {"unknown": "missing", "partial": "partial", "captured": "covered", "not_applicable": "covered"}
+    for item in result["coverage"]:
+        item["status"] = statuses[findings[item["key"]]["status"]]
     result["ready_for_draft"] = memo_has_enough_detail(result["memo_findings"])
     if result["closure"]["confirmed"] and not result["closure"]["asked"]:
         raise ValueError("An interview cannot be confirmed complete before the final completeness check.")
@@ -580,6 +611,18 @@ def validate_workflow(workflow, turns):
     for edge in connections:
         if edge["from"] not in ids or edge["to"] not in ids:
             raise ValueError("A working map connection references a missing step.")
+    if len(steps) > 1:
+        connected = {node for edge in connections if edge["from"] != edge["to"]
+                     for node in (edge["from"], edge["to"])}
+        # A self-loop does not connect an otherwise isolated step to the process.
+        # Raise an explicit question instead of guessing an unsupported edge.
+        questions = [f"How does step {step['id']} ({step['title'][:160]}) connect to the rest of this process, if at all?"
+                     for step in steps if step["id"] not in connected]
+        existing = workflow["open_questions"]
+        added = [question for question in questions if question not in existing]
+        if len(added) + len(existing) > 500:
+            raise ValueError("The working map has too many open questions to record disconnected steps.")
+        workflow["open_questions"] = added + existing
     return workflow
 
 

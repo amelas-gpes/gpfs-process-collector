@@ -234,8 +234,13 @@ class DocumentService:
                         break
                     items.append({'id': identity, **value})
                     seen.add(identity)
-        analysis.update(summary=result['summary'], relevance=result['relevance'], relevance_reason=result['relevance_reason'],
-                        queries=result['queries'], error=None, version=analysis.get('version', 0) + 1)
+        analysis.update(summary=result['summary'], queries=result['queries'], error=None,
+                        version=analysis.get('version', 0) + 1)
+        # The quick assessment sets the disposition and the question the user sees.
+        # A background batch covers only a subset of the file, so its relevance
+        # must not silently contradict that decision or imply it was reconsidered.
+        if phase == 'quick' or 'relevance' not in analysis:
+            analysis.update(relevance=result['relevance'], relevance_reason=result['relevance_reason'])
         if phase == 'quick':
             if analysis.get('parked_by_user'):
                 analysis.update(disposition='parked', question='')

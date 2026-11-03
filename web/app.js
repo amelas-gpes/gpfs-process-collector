@@ -536,7 +536,17 @@
       if(generation===state.generation){conversationUI.flowBusy=false;conversationUI.flowAbort=null;if(revision!==conversationUI.revision)scheduleWorkflow();}
     }
   }
+  function workflowGapSummary(graph) {
+    if(!graph || !Array.isArray(graph.steps) || graph.steps.length<2)return "";
+    const connected=new Set();
+    for(const edge of graph.connections||[]) if(edge.from!==edge.to){connected.add(edge.from);connected.add(edge.to);}
+    const isolated=graph.steps.filter(step=>!connected.has(step.id));
+    if(!isolated.length)return "";
+    return `Connections need clarification: ${isolated.map(step=>`${step.title||"Untitled step"} (${step.id})`).join(", ")}. Confirm how these steps fit, if at all.`;
+  }
   function renderWorkingMap() {
+    const gap=$("workflow-gaps"),message=workflowGapSummary(conversationUI.workflow);
+    if(gap){gap.textContent=message;gap.hidden=!message;}
     renderMap($("live-workflow"),conversationUI.workflow);
   }
   async function request(path, data, options = {}) {
@@ -1039,6 +1049,9 @@
     if (ids.some(id => !valid.has(id))) throw new Error("A draft finding cites a source that is not a participant answer or context.");
     return ids;
   }
+  // Explicit uncertainty is a conservative veto, not proof that other answers
+  // are complete. This also protects reopened interviews saved by older versions.
+  const uncertainMemo = /\b(?:unknown|tbd|unclear|uncertain|unsure|unconfirmed|maybe|perhaps|possibly|probably|likely|might|guess(?:ed|ing)?|assum(?:e|es|ed|ing|ption|ptions)|conflicting|disagree(?:ment|s|d)?|(?:i|we)\s+(?:think|believe)|(?:do(?:es)?\s+not|don['’]t|doesn['’]t)\s+know|(?:cannot|can['’]t|unable\s+to)\s+(?:identify|say|confirm|determine|tell|establish)|not\s+(?:yet\s+)?(?:sure|certain|clear|known|confirmed|established)|(?:needs?|requires?|pending|awaiting)\s+(?:further\s+)?(?:clarification|confirmation)|to\s+be\s+(?:confirmed|clarified|determined))\b/i;
   function normalizeFindings(value, sourceTurns) {
     if (!Array.isArray(value)) throw new Error("The memo foundation must be a list.");
     if (value.length > 11) throw new Error("The memo foundation contains more than eleven topics.");
@@ -1049,7 +1062,11 @@
     });
     return TOPICS.map(([key]) => {
       const item = value.find(f => f.key === key);
-      return {key,status:["partial","captured","not_applicable"].includes(item?.status)?item.status:"unknown",answer:text(item?.answer,12000)||"UNKNOWN / TBD — not established in the interview.",evidence_turns:evidenceSources(item?.evidence_turns||[],sourceTurns)};
+      const answer=text(item?.answer,12000)||"UNKNOWN / TBD — not established in the interview.";
+      const evidence_turns=evidenceSources(item?.evidence_turns||[],sourceTurns);
+      let status=["partial","captured","not_applicable"].includes(item?.status)?item.status:"unknown";
+      if (["captured","not_applicable"].includes(status) && (!evidence_turns.length || uncertainMemo.test(answer) || evidence_turns.some(id=>uncertainMemo.test(sourceTurns.find(t=>t.role==="user"&&t.id===id)?.text||"")))) status="partial";
+      return {key,status,answer,evidence_turns};
     });
   }
   function normalizeDraft(value, sourceTurns = state.turns) {

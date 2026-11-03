@@ -1,3 +1,11 @@
+## Codebase review — 2026-11-02
+
+Reviewed the local codebase without starting voice, entering data in the user's app, or contacting OpenAI. Fixed malformed CSV quoting being accepted into an index; memo findings claiming coverage without a meaningful answer; stale workflow layouts surviving invalid replacements and camera/selection remaining after a clear; and the launcher reporting a successful shutdown while the server is still responding.
+
+**128 non-voice offline checks passed, 0 failed, 0 skipped:** 41 document Python tests, 24 document frontend checks, 28 server evidence/routing checks, 30 workflow graph checks and 5 portability checks. These use synthetic fixtures and mocked providers, not the user's data or live services. An initial server-test invocation failed because isolated Python could not locate the test module; the corrected invocation passed. No microphone, speaker, voice session, voice-specific tests or real provider calls were run.
+
+Static review noted that a live-voice data-channel send may throw if the connection closes at the same moment. Voice behavior was left unchanged because the requested scope excludes voice testing; this remains unverified. The user's existing preview was not reloaded or restarted, so unsaved interview state is preserved; the currently running server must be restarted to load backend fixes.
+
 ## 0.10.1 shape-only GPFS logo — 2026-11-02
 
 Removed the company lettering from the animated conversation mark, header and initial fallback. The five original symbol paths, colors and audio-driven movement remain intact; the full official SVG stays in source only for provenance. The header and fallback use a local shape-only SVG.

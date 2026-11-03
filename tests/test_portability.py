@@ -10,7 +10,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 
 APP = Path(__file__).resolve().parents[1]
@@ -99,6 +99,18 @@ class RepositoryPortabilityTests(unittest.TestCase):
         self.assertTrue(work_dir.is_relative_to(app_dir))
         self.assertNotEqual(work_dir, app_dir)
         self.assertEqual(work_dir.parent, app_dir)
+
+    def test_launcher_reports_when_shutdown_does_not_complete(self):
+        response = MagicMock()
+        response.__enter__.return_value.read.return_value = b'{}'
+        opener = MagicMock()
+        opener.open.return_value = response
+        with patch.object(sys, "argv", ["launcher.py", "--stop"]), \
+             patch.object(launcher, "config", return_value={"csrf_token": "synthetic"}), \
+             patch.object(launcher, "build_opener", return_value=opener), \
+             patch.object(launcher.time, "sleep"):
+            with self.assertRaisesRegex(SystemExit, "still responding"):
+                launcher.main()
 
 
 if __name__ == "__main__":

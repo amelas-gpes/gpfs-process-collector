@@ -121,6 +121,15 @@ def process_draft():
 
 
 class EvidenceValidationTests(unittest.TestCase):
+    def test_reported_memo_finding_cannot_claim_coverage_without_detail(self):
+        for status in ("captured", "partial", "not_applicable"):
+            for answer in ("", "  ", " UNKNOWN "):
+                with self.subTest(status=status, answer=answer):
+                    result = interview_result()
+                    result["memo_findings"][0].update(status=status, answer=answer, evidence_turns=["u1"])
+                    with self.assertRaisesRegex(ValueError, "reported detail or reason"):
+                        server.validate_interview(result, interview_payload()["turns"])
+
     def test_unknown_or_partial_topics_override_a_premature_model_ready_flag(self):
         for key in server.COVERAGE:
             for status in ('unknown', 'partial'):

@@ -94,6 +94,16 @@ class DocumentStoreTests(unittest.TestCase):
         self.assertGreater(first['total'], 1)
         self.assertEqual(first['next_offset'], 1)
 
+    def test_malformed_csv_quoting_fails_without_publishing_partial_content(self):
+        for content in (b'header,value\n"unfinished,value', b'header,value\n"quoted"junk,value\n'):
+            with self.subTest(content=content):
+                record = self.add_csv(content)
+                result = self.store.extract(self.scope, record['id'])
+                self.assertEqual(result['status'], 'error')
+                self.assertIn('invalid', result['error'])
+                self.assertEqual(self.store.chunks(self.scope, record['id'])['total'], 0)
+                self.assertEqual(self.store.original_path(self.scope, record['id']).read_bytes(), content)
+
     def test_archive_is_reversible_and_never_deletes_original_or_index(self):
         record = self.add_csv()
         self.store.extract(self.scope, record['id'])

@@ -511,6 +511,9 @@ def validate_findings(findings, turns):
             raise ValueError("A memo finding references missing or non-participant evidence.")
         if finding["status"] in ("captured", "partial", "not_applicable") and not finding["evidence_turns"]:
             raise ValueError("A reported memo finding must identify its interview evidence.")
+        if finding["status"] in ("captured", "partial", "not_applicable") and (
+                not finding["answer"].strip() or finding["answer"].strip().upper() == "UNKNOWN"):
+            raise ValueError("A reported memo finding must include its reported detail or reason.")
 
 
 def validate_interview(result, turns=None):

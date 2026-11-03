@@ -41,6 +41,8 @@ def main():
             if not config(url):
                 break
             time.sleep(.1)
+        else:
+            raise SystemExit("The shutdown request was sent, but the server is still responding on this port.")
         print("AI Process Collector stopped. Unsaved sessions remain only in any open browser tab.")
         return
     if not current:

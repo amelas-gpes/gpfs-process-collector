@@ -675,7 +675,9 @@ def _csv(path, record, chunks):
         text = raw.decode('utf-16') if raw.startswith((b'\xff\xfe', b'\xfe\xff')) else raw.decode('utf-8-sig')
     except UnicodeError:
         raise ExtractionError('CSV must be UTF-8 or BOM-marked UTF-16; no lossy decoding was performed.') from None
-    reader = csv.reader(io.StringIO(text, newline=''))
+    # Reject malformed quoting rather than silently merging cells/rows and
+    # publishing the resulting interpretation as a complete index.
+    reader = csv.reader(io.StringIO(text, newline=''), strict=True)
     def rows():
         try:
             for number, row in enumerate(reader, 1):

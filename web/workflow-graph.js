@@ -103,9 +103,13 @@
     notify(){this.options.onViewChange?.({scale:this.camera.scale,hasGraph:Boolean(this.layout?.children?.length),selected:this.selected,direction:this.direction,updating:this.pending,exportReady:Boolean(this.layout?.children?.length)&&!this.pending&&!this.layoutError&&!this.dead});}
     async update(graph) {
       if(this.dead)return false;
-      const data=model(graph),revision=++this.version;
+      // Invalidate any in-flight layout even if the replacement is malformed.
+      // Otherwise a late layout can present old evidence as the current graph.
+      const revision=++this.version;
+      let data;
+      try{data=model(graph);}catch(error){this.requestedGraph=null;this.pending=false;this.layoutError=true;this.notify();throw error;}
       this.requestedGraph=data;this.pending=Boolean(data.steps.length);this.layoutError=false;this.notify();
-      if(!data.steps.length){this.graph=data;this.layout=null;this.world.replaceChildren();this.miniWorld.replaceChildren();this.mini.hidden=true;this.hint.textContent="Describe a step to start building the workflow.";this.notify();return true;}
+      if(!data.steps.length){this.graph=data;this.layout=null;this.selected=null;this.fitted=false;this.fitMode=true;this.world.replaceChildren();this.miniWorld.replaceChildren();this.mini.hidden=true;this.hint.textContent="Describe a step to start building the workflow.";this.notify();return true;}
       let positions;
       try{
         positions=await this.engine.layout(elkGraph(data,this.direction));
@@ -164,6 +168,7 @@
     getDirection(){return this.direction;}
     setDirection(direction){
       if(!["RIGHT","DOWN"].includes(direction))throw new Error("Choose a horizontal or vertical workflow layout.");
+      if(this.layoutError&&!this.requestedGraph)return Promise.reject(new Error("The current workflow is invalid and cannot be laid out."));
       if(this.direction===direction)return Promise.resolve(false);
       this.direction=direction;this.fitted=false;this.fitMode=false;
       const current=this.requestedGraph||this.graph;

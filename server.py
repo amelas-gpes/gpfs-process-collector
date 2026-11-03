@@ -22,7 +22,7 @@ from urllib.parse import unquote, urlsplit
 from urllib.request import Request, urlopen
 import webbrowser
 
-VERSION = "0.17.0"
+VERSION = "0.18.0"
 APP_DIR = Path(__file__).resolve().parent
 WEB_DIR = APP_DIR / "web"
 DIAGNOSTIC_MAX_BYTES = 1024 * 1024

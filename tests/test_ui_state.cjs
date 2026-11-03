@@ -2,7 +2,7 @@
 // Offline checks of actual UI rendering/navigation with a minimal DOM boundary.
 // No browser, audio, provider, package or external network is used.
 const fs=require("node:fs"),vm=require("node:vm"),assert=require("node:assert/strict"),path=require("node:path");
-const roots=[],document={activeElement:null,modalStack:[]};
+const roots=[],document={activeElement:null,modalStack:[],listeners:{},addEventListener(name,listener){(this.listeners[name]??=[]).push(listener);}};
 class Element{
  constructor(tag){this.tagName=tag.toUpperCase();this.id="";this.className="";this.value="";this.children=[];this.parentElement=null;this.dataset={};this.style={};this.attributes={};this.listeners={};this._text="";this.hidden=false;this.open=false;
   this.classList={contains:c=>this.className.split(/\s+/).includes(c),add:c=>this.classList.toggle(c,true),remove:c=>this.classList.toggle(c,false),toggle:(c,on)=>{const values=new Set(this.className.split(/\s+/).filter(Boolean));const yes=on===undefined?!values.has(c):on;if(yes)values.add(c);else values.delete(c);this.className=[...values].join(" ");return yes;}};
@@ -34,6 +34,7 @@ function matches(node,selector){
  if(selector==="[data-foundation-topic]")return typeof node.dataset.foundationTopic==="string";
  if(selector==="[data-conversation-view]")return typeof node.dataset.conversationView==="string";
  if(selector==="[data-review-target]")return typeof node.dataset.reviewTarget==="string";
+ if(selector==="[data-transcript-format]")return typeof node.dataset.transcriptFormat==="string";
  if(/^[a-z]+$/i.test(selector))return node.tagName===selector.toUpperCase();
  const selected=selector.match(/^\[data-foundation-topic="([^"]+)"\]$/);return Boolean(selected&&node.dataset.foundationTopic===selected[1]);
 }
@@ -46,7 +47,7 @@ document.querySelectorAll=selector=>walk(document.body).filter(node=>matches(nod
 document.querySelector=selector=>document.querySelectorAll(selector)[0]||null;
 function mount(id,tag="div",parent=document.body){const node=new Element(tag);node.id=id;parent.append(node);return node;}
 const interview=mount("interview-view"),review=mount("review-view"),current=mount("current-question","div",interview),history=mount("conversation-history","div",interview),scroll=mount("conversation-scroll","div",history);
-mount("transcript","div",scroll);mount("history-count","span",history);
+mount("transcript","div",scroll);mount("transcript-dock-host","div",scroll);mount("history-count","span",history);
 for(const id of ["coverage-list","coverage-count","coverage-progress","working-summary","summary-text","parking-panel","parking-count","parking-list","notice-text","global-notice","live-status","answer-text"])mount(id,"div",interview);
 const setup=mount("setup-card","details",interview),form=mount("context-form","form",setup),settings=mount("interview-settings","dialog"),contextDetails=mount("context-details","details",settings);mount("process-name","input",form);
 const memoSheet=mount("memo-sheet","dialog"),memoBody=mount("memo-sheet-body","div",memoSheet);mount("open-memo","button",interview);
@@ -76,7 +77,7 @@ const exportBindings=appSource.split("\n").filter(line=>/\$\("(?:export-working-
 const titleBinding=appSource.match(/\$\("process-name"\)\.addEventListener\("input",\(\)=>\{[\s\S]*?\n    \}\);/)?.[0]||"";
 const liveBindings=appSource.split("\n").filter(line=>/\$\("(?:stop-live|mute-live)"\)\.addEventListener/.test(line)).join("\n");
 const source=appSource
- .replace("  init();","  window.__sidebarTests={memoUI,selectMemoSection,memoTabKey,initMemoTabs,openDocumentAssets,updateAssetCount,placeConversationDock};\n  init();")
+ .replace("  init();","  window.__sidebarTests={memoUI,selectMemoSection,memoTabKey,initMemoTabs,openDocumentAssets,updateAssetCount,placeConversationDock,setTranscriptFind,setTranscriptExport,initTranscriptTools,updateConversationControls,exerciseControls:updateControls};\n  init();")
  .replace(/  init\(\);\s*\}\)\(\);\s*$/,"  updateControls=()=>{updatePresence();}; window.__downloads=[]; download=(...args)=>window.__downloads.push(args); "+exportBindings+titleBinding+liveBindings+" window.__uiTests={normalizeDocumentEvidence,normalizeFindings,boundedVoiceDocuments,sourceCaption,scrollToElement,dismissInlineError,dismissNotice,placeMemo,resolveDocumentPurpose,skipQuestion,getPendingDocumentReason:()=>pendingDocumentReason,readingUI,refreshReadingSearch,moveReadingSearch,returnToSource,renderCoverage,state,renderTranscript,showFoundationTopic,initFoundationDialog,closeFoundationTopic,jumpToTurn,jumpToReview,tab,initReviewTabs,selectReviewSection,reviewTabKey,renderMap,renderWorkingMap,workflowCanvases,showWorkflowStep,renderWorkflowLegend,retryWorkflowLayout,ensureWorkflowAssets,renderSteps,updateWorkflowNavigation,updateCanvasControls,zoomMap,fitMapToWidth,conversationUI,selectConversationView,conversationTabKey,receiveLiveCaption,scheduleWorkflow,refreshWorkflow,clearState,sendAnswer,retryQuestion,setMemoSheet,setInterviewSettings,notice,applyInterview,markdown,memoMarkdown,normalizeDraft,ensureConversation,applyProcessTitle,documentContext,onDocumentEvent,snapshot,sessionObject,importSession,presenceState,updatePresence,startLiveConversation,setPresenceFake:value=>{gpfsPresence=value;},setDocumentController:value=>{documentController=value;},renderReport:typeof renderReport==='function'?renderReport:null,setRequest:fn=>{request=fn;}};\n})();");
 context.TextEncoder=TextEncoder;vm.createContext(context);vm.runInContext(source,context,{filename:"app.js"});
 const t=context.window.__uiTests;if(!t)throw Error("UI test seam was not installed");Object.assign(t,context.window.__sidebarTests);t.initFoundationDialog();t.initReviewTabs();
@@ -264,7 +265,7 @@ assert.equal(new Set(walk(document.body).filter(node=>node.id.startsWith("turn-"
  const priorLive=t.conversationUI.live,priorView=t.conversationUI.view;let stopped=0,clicked=0;
  const live={active:true,stop(){stopped++;}};t.conversationUI.live=live;draft.value="Unsent answer survives view changes";action.addEventListener("click",()=>clicked++);
  t.selectConversationView("voice");assert.equal(dock.parentElement.id,"voice-panel");action.focus();
- t.selectConversationView("transcript");assert.equal(dock.parentElement,host);assert.equal(document.activeElement,action);
+ t.selectConversationView("transcript");assert.equal(dock.parentElement.id,"transcript-dock-host");assert.equal(dock.parentElement.parentElement,scroll);assert.equal(document.activeElement,action);
  t.selectConversationView("workflow",true);assert.equal(dock.parentElement,host);assert.equal(document.activeElement.id,"conversation-tab-workflow");
  t.selectConversationView("voice");assert.equal(dock.parentElement.id,"voice-panel");assert.equal(draft.value,"Unsent answer survives view changes");action.dispatch("click");assert.equal(clicked,1);assert.equal(stopped,0);assert.equal(t.conversationUI.live,live);
  assert.equal(document.querySelectorAll("div").filter(node=>node.id==="conversation-dock").length,1,"View switches move the same controls rather than duplicating them");
@@ -841,7 +842,11 @@ if(process.argv.includes("--usability-only")){
   t.onDocumentEvent({type:"received",document:fileRecord()});
   assert.equal(document.getElementById("current-question").textContent,"What happens next?","A file receipt must not replace the question on the voice stage");
   assert.ok(document.getElementById("transcript").textContent.includes("File update"));
-  assert.equal(document.getElementById("transcript").textContent.includes("Question 2"),false,"A receipt is not a numbered question");passes++;
+  assert.equal(document.getElementById("transcript").textContent.includes("Question 2"),false,"A receipt is not a numbered question");
+  const receipt=t.state.turns.at(-1),row=document.getElementById(`turn-${receipt.id}`);
+  assert.equal(row.classList.contains("turn-update"),true);assert.equal(row.querySelector(".turn-text").textContent,receipt.text,"Compact file activity preserves all searchable source text");
+  assert.equal(row.querySelector(".play-turn"),null,"File receipts do not compete with the question's listening action");
+  assert.equal(document.getElementById("turn-t001").querySelector(".play-turn").parentElement.className,"turn-meta");passes++;
  }
  {
   checkpoint();t.clearState();t.conversationUI.live=null;t.conversationUI.status="idle";
@@ -977,6 +982,87 @@ if(process.argv.includes("--usability-only")){
   content.querySelector(".workflow-route-link").dispatch("click");assert.equal(document.getElementById("workflow-step-title").textContent,"Run customer check");assert.match(document.getElementById("workflow-step-kind").textContent,/Subprocess/);assert.equal(JSON.stringify(live),before,"Following a route changes the view, never process data");stepDialog.close();passes++;
   const labels={start:"Start",end:"End",wait:"Wait",document:"Document",data_store:"Stored data",parallel_join:"Parallel join",merge:"Merge alternatives"};
   for(const [type,label] of Object.entries(labels)){t.showWorkflowStep({id:"kind",type,title:"Type details",evidence_turns:[]},"live-workflow");assert.equal(document.getElementById("workflow-step-kind").textContent,`kind · ${label}`);stepDialog.close();}passes++;
+ }
+ // Exercise the redesigned transcript controls using their real event handlers.
+ {
+  checkpoint();t.clearState({process_name:"Transcript interaction audit",objective:"Capture the reported work"});
+  const find=mount("transcript-find","div",history),findToggle=mount("transcript-find-toggle","button",history),findClose=mount("transcript-find-close","button",find);
+  find.hidden=true;const search=document.getElementById("transcript-search");find.append(search);
+  const navigation=mount("transcript-match-navigation","div",find);navigation.hidden=true;
+  const exportWrap=mount("transcript-export-test","div",history);exportWrap.className="transcript-export";
+  const exportToggle=mount("export-transcript","button",exportWrap),options=mount("transcript-export-options","div",exportWrap);options.hidden=true;
+  const formats=["markdown","json"].map(format=>{const button=mount("transcript-format-"+format,"button",options);button.dataset.transcriptFormat=format;return button;});
+  t.initTranscriptTools();t.state.turns=[{id:"tool1",role:"assistant",text:"Who owns the email intake?"},{id:"tool2",role:"user",text:"An analyst checks the email inbox."}];t.renderTranscript();
+  findToggle.dispatch("click");assert.equal(find.hidden,false);assert.equal(findToggle.getAttribute("aria-expanded"),"true");assert.equal(document.activeElement,search);
+  search.value="email";t.refreshReadingSearch("transcript");assert.equal(navigation.hidden,false);assert.equal(t.readingUI.transcript.matches.length,2);
+  findClose.dispatch("click");assert.equal(find.hidden,true);assert.equal(findToggle.getAttribute("aria-expanded"),"false");assert.equal(document.activeElement,findToggle);assert.equal(search.value,"");assert.equal(t.readingUI.transcript.matches.length,0);assert.equal(navigation.hidden,true);passes++;
+  findToggle.dispatch("click");search.value="owns";t.refreshReadingSearch("transcript");assert.equal(navigation.hidden,true,"One match needs no navigation arrows");
+  let prevented=0;for(const handler of document.listeners.keydown)handler({key:"Escape",target:search,preventDefault(){prevented++;}});
+  assert.equal(prevented,1);assert.equal(find.hidden,true);assert.equal(search.value,"");assert.equal(document.activeElement,findToggle);passes++;
+  exportToggle.dispatch("click");assert.equal(options.hidden,false);assert.equal(exportToggle.getAttribute("aria-expanded"),"true");assert.equal(document.activeElement,formats[0]);
+  for(const handler of document.listeners.keydown)handler({key:"Escape",target:formats[0],preventDefault(){}});
+  assert.equal(options.hidden,true);assert.equal(document.activeElement,exportToggle);passes++;
+  exportToggle.dispatch("click");search.focus();for(const handler of document.listeners.click)handler({target:search});
+  assert.equal(options.hidden,true);assert.equal(document.activeElement,search,"Outside clicks retain the user's new focus");
+  exportToggle.dispatch("click");findToggle.dispatch("click");assert.equal(options.hidden,true);assert.equal(find.hidden,false);assert.equal(document.activeElement,search);t.setTranscriptFind(false);passes++;
+  const escapeModal=mount("transcript-escape-test","dialog"),modalAction=mount("transcript-modal-action","button",escapeModal);
+  exportToggle.dispatch("click");escapeModal.showModal();modalAction.focus();let modalPrevented=false;
+  for(const handler of document.listeners.keydown)handler({key:"Escape",target:modalAction,preventDefault(){modalPrevented=true;}});
+  assert.equal(options.hidden,true);assert.equal(modalPrevented,false,"Transcript Escape handling leaves the active modal's native dismissal available");assert.equal(document.activeElement,modalAction,"Closing an inactive export disclosure cannot steal focus from a modal");escapeModal.close();passes++;
+  for(const view of ["voice","workflow"]){
+   t.selectConversationView("transcript");exportToggle.dispatch("click");const destination=document.getElementById("conversation-tab-"+view);destination.focus();t.selectConversationView(view);
+   assert.equal(options.hidden,true);assert.equal(exportToggle.getAttribute("aria-expanded"),"false");assert.equal(document.activeElement,destination,"Leaving Transcript closes export without returning focus to its hidden trigger");
+  }
+  t.selectConversationView("transcript");exportToggle.dispatch("click");const reviewDestination=document.getElementById("review-tab-procedure");reviewDestination.focus();t.tab("review");
+  assert.equal(options.hidden,true);assert.equal(document.activeElement,reviewDestination);assert.equal(review.hidden,false);t.tab("interview");t.selectConversationView("transcript");passes++;
+  const before=t.state.turns.map(turn=>turn.text),calls=providerCalls;
+  for(const [index,format] of ["markdown","json"].entries()){
+   exportToggle.dispatch("click");formats[index].dispatch("click");const [content,filename,mime]=context.window.__downloads.at(-1);
+   assert.ok(filename.endsWith(format==="json"?".json":".md"));assert.match(mime,format==="json"?/application\/json/:/text\/markdown/);
+   for(const text of before)assert.ok(content.includes(text));assert.equal(options.hidden,true);assert.equal(document.activeElement,exportToggle);
+  }
+  assert.equal(providerCalls,calls);passes++;
+ }
+ // Mount the real control boundary only after the earlier navigation fixtures.
+ {
+  checkpoint();t.clearState({process_name:"Typed first answer",objective:"Capture the actual process"});
+  const dock=document.getElementById("conversation-dock"),ensure=(id,tag="div",parent=dock)=>document.getElementById(id)||mount(id,tag,parent);
+  for(const id of ["composer-area","composer-hint","recording-status","thinking","thinking-text","presence-caption","transcript-live-hint","welcome","review-empty","draft-content","draft-dot","draft-stale","example-banner","closure-status"])ensure(id);
+  for(const id of ["start-live","type-instead","send-answer","record-answer","skip-question","final-check","generate-draft","regenerate-draft","preview-voice","export-markdown","export-session","start-interview"])ensure(id,"button");
+  for(const id of ["start-live","record-answer","start-interview"])if(!document.getElementById(id).querySelector("span"))mount(id+"-label","span",document.getElementById(id));
+  ensure("voice-select","select");
+  const dockRow=mount("transcript-dock-row-test","div",dock);dockRow.className="dock-row";
+  const liveControls=mount("live-controls","div",dockRow),liveHeader=mount("transcript-live-controls","div",history);
+  for(const id of ["start-live","stop-live","mute-live","type-instead"])liveControls.append(document.getElementById(id));
+  t.state.config={api_configured:true,live:{enabled:true},speech:{enabled:false}};t.conversationUI.live=null;t.conversationUI.typing=false;
+  const input=document.getElementById("answer-text"),composer=document.getElementById("composer-area"),talk=document.getElementById("start-live"),skip=document.getElementById("skip-question");
+  input.value="A supplier email starts the work.";const original=JSON.stringify(t.state),requests=[];
+  t.setRequest(async(url,payload)=>{requests.push({url,payload});return {question:"Who receives that email?",coverage:[],memo_findings:[]};});
+  t.selectConversationView("transcript");t.exerciseControls();
+  assert.equal(JSON.stringify(t.state),original);assert.equal(requests.length,0);assert.equal(composer.hidden,false);assert.equal(input.disabled,false);assert.equal(document.getElementById("send-answer").disabled,false);assert.equal(document.getElementById("record-answer").disabled,false,"The first response can be dictated without starting voice automatically");assert.equal(skip.hidden,true);assert.equal(document.getElementById("type-instead").hidden,true);assert.equal(document.getElementById("export-transcript").disabled,true,"An empty conversation cannot be exported");passes++;
+  await t.sendAnswer({preventDefault(){}});assert.equal(t.state.started,true);assert.equal(requests.length,1);assert.equal(requests[0].url,"/api/interview");assert.equal(requests[0].payload.action,"answer");assert.equal(requests[0].payload.turns[0].text,"A supplier email starts the work.");assert.equal(t.state.turns[0].role,"user");assert.equal(t.state.turns[1].text,"Who receives that email?");assert.equal(input.value,"");checkpoint();passes++;
+  input.value="Keep this unsent clarification.";t.conversationUI.live={active:true,connected:true};t.conversationUI.status="listening";t.exerciseControls();
+  assert.equal(composer.hidden,true);assert.equal(input.disabled,true);assert.equal(document.getElementById("stop-live").hidden,false);assert.equal(talk.hidden,true);assert.equal(document.getElementById("transcript-live-hint").hidden,false);
+  assert.equal(liveControls.parentElement,liveHeader,"Active voice controls stay available in the transcript header while reading history");
+  const mute=document.getElementById("mute-live"),live=t.conversationUI.live;let muteEvents=0;mute.addEventListener("placement-check",()=>muteEvents++);mute.focus();
+  for(const view of ["voice","transcript","workflow","transcript"]){
+   t.selectConversationView(view);assert.equal(liveControls.parentElement,view==="transcript"?liveHeader:dockRow);assert.equal(document.activeElement,mute);assert.equal(t.conversationUI.live,live);assert.equal(input.value,"Keep this unsent clarification.");
+  }
+  mute.dispatch("placement-check");assert.equal(muteEvents,1);assert.equal(walk(document.body).filter(node=>node.id==="live-controls").length,1,"View changes move the original live controls and preserve their listeners");assert.equal(requests.length,1);passes++;
+  await t.sendAnswer({preventDefault(){}});assert.equal(requests.length,1);assert.equal(input.value,"Keep this unsent clarification.");
+  document.getElementById("stop-live").focus();
+  t.conversationUI.live.active=false;t.conversationUI.live.connected=false;t.conversationUI.status="closing";t.exerciseControls();assert.equal(composer.hidden,true);assert.equal(document.getElementById("stop-live").disabled,true);assert.equal(liveControls.parentElement,liveHeader,"Final transcript save keeps the voice status in the header");
+  t.conversationUI.status="idle";t.exerciseControls();assert.equal(composer.hidden,false);assert.equal(input.disabled,false);assert.equal(talk.hidden,false);assert.equal(skip.hidden,false);assert.equal(document.getElementById("transcript-live-hint").hidden,true);assert.equal(liveControls.parentElement,dockRow,"When voice ends, the same controls return beside the composer");assert.equal(input.value,"Keep this unsent clarification.");assert.equal(t.conversationUI.typing,false,"Transcript composer returns after voice without a hidden typing-mode prerequisite");assert.equal(document.activeElement,input,"Stopping voice returns keyboard focus to the visible reply field");passes++;
+  t.selectConversationView("voice");live.active=true;live.connected=true;t.conversationUI.status="listening";t.exerciseControls();mute.focus();
+  live.active=false;live.connected=false;t.conversationUI.status="idle";t.exerciseControls();assert.equal(document.activeElement,talk,"Ending voice outside Transcript leaves focus on the visible start control");assert.equal(input.value,"Keep this unsent clarification.");t.selectConversationView("transcript");passes++;
+  t.state.config.api_configured=false;t.exerciseControls();assert.equal(input.disabled,true);assert.equal(document.getElementById("send-answer").disabled,true);assert.equal(document.getElementById("export-transcript").disabled,false,"Reading and export remain available without provider setup");passes++;
+ }
+ {
+  const jump=mount("jump-latest","button",history);jump.hidden=true;scroll.scrollHeight=2400;scroll.clientHeight=500;scroll.scrollTop=260;
+  t.selectConversationView("voice");t.selectConversationView("transcript");assert.equal(jump.hidden,false,"Opening an existing long transcript immediately offers latest-message navigation");assert.equal(scroll.scrollTop,260,"Navigation availability does not move the reader");
+  scroll.scrollTop=1900;t.renderTranscript();assert.equal(jump.hidden,true,"The latest-message action disappears when the reader reaches the end");
+  scroll.scrollTop=0;scroll.scrollHeight=500;t.renderTranscript();assert.equal(jump.hidden,true,"Short conversations do not display unnecessary scroll navigation");
+  const saved=t.state.turns;t.state.turns=[];scroll.scrollHeight=2400;t.renderTranscript();assert.equal(jump.hidden,true,"An empty transcript has no latest message");t.state.turns=saved;passes++;
  }
  checkpoint();console.log(JSON.stringify({tests_passed:passes,provider_calls:providerCalls,network_calls:0,real_browser:false}));
 })().catch(error=>{console.error(error);process.exitCode=1;});

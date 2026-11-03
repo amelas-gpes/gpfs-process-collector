@@ -1,3 +1,13 @@
+## 0.18.0 transcript workspace — 2026-11-03
+
+Transcript now uses one readable conversation column with a compact header. Find opens on demand with contextual match navigation; Export offers Markdown and JSON in a single disclosure. File acknowledgements appear as compact activity, while interviewer questions and participant answers have distinct typography and spacing. Full message text, chronology, evidence IDs and export contents remain intact.
+
+The reply card follows the last message instead of sitting at the bottom of an empty viewport. It supports typing immediately, an explicit first-message send, reviewed dictation and live voice. Opening Transcript alone does not start a session or call the model. Stop and Mute move into the fixed transcript header during live voice; the same control nodes return to the reply area afterward. Unsent text and focus survive view changes. Long histories offer Latest message immediately, and source-link round trips preserve the reader's location.
+
+Browser checks covered an empty interview, the saved two-message payment interview, and a 26-message synthetic interview containing a 1,966-character response. Checks exercised search and keyboard dismissal, both real export downloads, source navigation/return, saved unsent text, view switching, and desktop/phone/landscape layouts at 1280×720, 414×896, 320×740 and 740×390. The payment conversation and reply fit without a conversation scrollbar at 1280×720 and 414×896. Long messages retained their full text with no horizontal overflow or clipped message boxes. A short viewport uses the single conversation scroll area.
+
+All twelve JavaScript suites passed: 365 checks plus thirteen workflow scenarios across 26 layouts. New checks cover new-session replies, passive navigation, search/export focus, live-control reparenting, voice-stop focus recovery and long-history navigation. These checks used simulated voice state; no physical microphone, speaker or live model call was exercised. Private screenshots, browser metrics, downloads, saved-session fixtures and runtime reuse receipts are retained under `.local/transcript-redesign/`, excluded from Git. Existing runtimes and bundled assets were reused with no downloads or installs.
+
 ## 0.17.0 interview workspace — 2026-11-03
 
 Voice, Transcript and Workflow now sit at the top right of the process workspace. Settings and Save copy are in the three-dot menu. The sidebar has Notes, Summary + Parked and Assets tabs, with a single upload/file-management surface and expandable file details.

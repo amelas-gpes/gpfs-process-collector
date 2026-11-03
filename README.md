@@ -2,7 +2,7 @@
 
 An adaptive voice interviewer that helps people explain how a business process works today, then turns their account into a reviewable memo, process map and detailed procedure.
 
-Version **0.17.0** puts Voice, Transcript and Workflow at the top right of the process workspace, with Settings and Save copy in the three-dot menu. In Voice, conversation controls sit directly below the complete response. Text expands naturally; only content longer than the available screen needs an outer scroll. Notes, Summary + Parked and Assets have dedicated sidebar tabs, with uploads and file management centralized in Assets.
+Version **0.18.0** gives Transcript a focused conversation workspace: a readable message column, compact file updates, on-demand Find, and a single Export menu for Markdown or JSON. The reply box follows the conversation, with clear Dictate and Talk live options. During live voice, Stop and Mute stay accessible in the transcript header. Long messages remain complete and use the conversation's outer scroll only when needed. Voice, Transcript and Workflow remain at the top right, with Settings and Save copy in the three-dot menu. Notes, Summary + Parked and Assets retain dedicated sidebar tabs.
 
 Attached procedures can supply the documented process directly. Notes, workflow capture, draft generation and the question audit share exact scoped file excerpts, with filename/page citations kept separate from participant answers. Follow-up focuses on missing details, contradictions or differences in current practice. Drop files anywhere in the interview workspace to use the existing upload flow. See the [document interview guide](docs/DOCUMENT_INTERVIEWS.md).
 

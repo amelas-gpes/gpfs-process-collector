@@ -129,6 +129,7 @@
   }
   function tab(name, focus = false) {
     if(name==="review"&&(conversationUI.live?.active||conversationUI.status==="closing")){notice("Stop talking before you open Review.");return;}
+    if(name!=="interview")setTranscriptExport(false,false);
     $("interview-view").hidden = name !== "interview";
     $("review-view").hidden = name !== "review";
     document.body?.classList.toggle("review-mode", name === "review");
@@ -197,12 +198,12 @@
     $("start-interview").firstElementChild.textContent = state.started ? "New interview" : "Start interview";
     ["process-owner", "objective", "background"].forEach(id => { $(id).disabled = state.started || working || recording; });
     $("process-name").disabled=state.importing;
-    $("answer-text").disabled = !state.started || working || recording || !ready;
-    $("send-answer").disabled = !state.started || working || recording || !ready || atLimit || !$("answer-text").value.trim();
-    $("record-answer").disabled = !state.started || working || !ready || atLimit;
+    $("answer-text").disabled = working || recording || !ready;
+    $("send-answer").disabled = working || recording || !ready || atLimit || !$("answer-text").value.trim();
+    $("record-answer").disabled = working || !ready || atLimit;
     $("skip-question").disabled = !state.started || working || recording || !ready || atLimit;
     $("final-check").disabled = !state.started || working || recording || !ready || atLimit || !state.turns.some(t => t.role === "user");
-    $("composer-hint").textContent = atLimit ? "Interview limit reached. Create a draft or save this session." : "Review the transcript, then send.";
+    $("composer-hint").textContent = atLimit ? "Interview limit reached. Create a draft or save this session." : "Ctrl / ⌘ + Enter to send";
     if($("retry-question"))$("retry-question").disabled=working||recording||Boolean(conversationUI.live?.active);
     const canDraft = ready && (state.turns.some(t => t.role === "user")||hasDocumentEvidence()) && !working && !recording;
     $("generate-draft").disabled = !canDraft;
@@ -216,8 +217,8 @@
     if ($("current-question")) $("current-question").setAttribute("aria-busy", String(state.busy));
     $("thinking-text").textContent = state.requestingMic ? "Waiting for microphone access…" : state.transcribing ? "Transcribing…" : state.busyMessage || "Thinking of the next question…";
     $("record-answer").classList.toggle("recording", recording);
-    $("record-answer").setAttribute("aria-label",recording?"Finish recording":"Record an answer");
-    $("record-answer").querySelector("span").textContent = recording ? "Finish" : "Speak";
+    $("record-answer").setAttribute("aria-label",recording?"Finish recording":"Dictate a reply to review before sending");
+    $("record-answer").querySelector("span").textContent = recording ? "Finish" : "Dictate";
     $("recording-status").hidden = !recording;
     const voiceReady = canSpeakChoice();
     $("speak-questions").disabled = !voiceReady;
@@ -243,7 +244,12 @@
   function scrollConversation() {
     requestAnimationFrame(() => {
       $("conversation-scroll").scrollTop = $("conversation-scroll").scrollHeight;
+      updateConversationScroll();
     });
+  }
+  function updateConversationScroll() {
+    const pane=$("conversation-scroll"),jump=$("jump-latest");if(!pane||!jump)return;
+    jump.hidden=!state.turns.length||pane.scrollHeight-pane.clientHeight-pane.scrollTop<80;
   }
   function renderCoverage() {
     const root = $("coverage-list"), focusedTopic=document.activeElement?.dataset?.foundationTopic;
@@ -397,15 +403,16 @@
     const newQuestion=latest&&current.dataset.turnId!==latest.id;
     root.replaceChildren();
     state.turns.forEach(turn => {
-      const item = el("article", `turn ${turn.role}`); item.id = `turn-${turn.id}`;
+      const item = el("article", `turn ${turn.role}${turn.document_event?" turn-update":""}`); item.id = `turn-${turn.id}`;
       const content = el("div", "turn-content"), meta = el("div", "turn-meta");
-      meta.append(el("span", "turn-name", turn.role === "assistant" ? "Interviewer" : "You"), el("span", "turn-id", sourceCaption(turn.id)));
+      meta.append(el("span", "turn-name", turn.document_event ? "File update" : turn.role === "assistant" ? "Interviewer" : "You"));
+      if(!turn.document_event)meta.append(el("span", "turn-id", sourceCaption(turn.id)));
       content.append(meta, el("p", "turn-text", turn.text));
-      if (turn.role === "assistant") {
+      if (turn.role === "assistant" && !turn.document_event) {
         const play = el("button", "play-turn", "Listen"); play.type="button";
         play.disabled = !canSpeakChoice() || Boolean(conversationUI.live?.active);
         play.setAttribute("aria-label", `Listen to ${sourceCaption(turn.id)} using the selected voice`);
-        play.addEventListener("click", () => speak(turn.text)); content.append(play);
+        play.addEventListener("click", () => speak(turn.text)); meta.append(play);
       }
       item.append(content); root.append(item);
     });
@@ -415,7 +422,7 @@
     if(newQuestion&&conversationUI.view==="voice"&&$("voice-panel"))$("voice-panel").scrollTop=0;
     current.hidden = !latest;
     $("conversation-history").hidden = false;
-    $("history-count").textContent = state.turns.length ? `${state.turns.length} messages` : "";
+    $("history-count").textContent = state.turns.length ? `${state.turns.length} ${state.turns.length===1?"message":"messages"}` : "Ready to begin";
     if ($("transcript-count")) $("transcript-count").textContent=state.turns.length||"";
     if ($("transcript-empty")) $("transcript-empty").hidden=state.turns.length>0;
     $("working-summary").hidden = !state.summary; $("summary-text").textContent = state.summary;
@@ -425,6 +432,7 @@
     scroll.scrollTop=scrollTop;
     refreshReadingSearch("transcript",false);
     renderCoverage(); updateControls();
+    if(conversationUI.view==="transcript")requestAnimationFrame(updateConversationScroll);
   }
   function refreshReadingSearch(kind,move=true) {
     const ui=readingUI[kind],root=$(kind==="transcript"?"transcript":"report-content");if(!root)return;
@@ -447,9 +455,34 @@
     const ui=readingUI[kind];ui.matches.forEach((mark,i)=>mark.classList.toggle("current-match",i===ui.index));
     const count=$(kind+"-search-count");if(count)count.textContent=ui.query?(ui.matches.length?`${ui.index+1} / ${ui.matches.length}${ui.matches.length===500?"+":""}`:"No matches"):"";
     for(const direction of ["previous","next"])if($(kind+"-search-"+direction))$(kind+"-search-"+direction).disabled=!ui.matches.length;
+    if(kind==="transcript"&&$("transcript-match-navigation"))$("transcript-match-navigation").hidden=ui.matches.length<2;
     if(move)scrollToElement(ui.matches[ui.index]);
   }
   function moveReadingSearch(kind,direction){const ui=readingUI[kind];if(!ui.matches.length)return;ui.index=(ui.index+direction+ui.matches.length)%ui.matches.length;updateSearchPosition(kind);}
+  function setTranscriptFind(open,restoreFocus=true) {
+    const panel=$("transcript-find");if(!panel)return;
+    panel.hidden=!open;$("transcript-find-toggle").setAttribute("aria-expanded",String(open));
+    if(open){setTranscriptExport(false,false);$("transcript-search").focus({preventScroll:true});}
+    else {$("transcript-search").value="";refreshReadingSearch("transcript",false);if(restoreFocus)$("transcript-find-toggle").focus({preventScroll:true});}
+  }
+  function setTranscriptExport(open,restoreFocus=true) {
+    const panel=$("transcript-export-options");if(!panel)return;
+    panel.hidden=!open;$("export-transcript").setAttribute("aria-expanded",String(open));
+    if(open)panel.querySelector("button")?.focus({preventScroll:true});
+    else if(restoreFocus)$("export-transcript").focus({preventScroll:true});
+  }
+  function initTranscriptTools() {
+    $("transcript-find-toggle").addEventListener("click",()=>setTranscriptFind($("transcript-find").hidden));
+    $("transcript-find-close").addEventListener("click",()=>setTranscriptFind(false));
+    $("export-transcript").addEventListener("click",()=>setTranscriptExport($("transcript-export-options").hidden));
+    document.querySelectorAll("[data-transcript-format]").forEach(button=>button.addEventListener("click",()=>{exportTranscript(button.dataset.transcriptFormat);setTranscriptExport(false);}));
+    document.addEventListener("click",event=>{if(!$("transcript-export-options").hidden&&!event.target.closest(".transcript-export"))setTranscriptExport(false,false);});
+    document.addEventListener("keydown",event=>{
+      if(event.key!=="Escape")return;
+      if(!$("transcript-export-options").hidden){const within=$("transcript-export-options").contains(event.target)||event.target===$("export-transcript");if(within)event.preventDefault();setTranscriptExport(false,within);}
+      else if(!$("transcript-find").hidden&&$("transcript-find").contains(event.target)){event.preventDefault();setTranscriptFind(false);}
+    });
+  }
   function rememberSourceOrigin(){sourceOrigin={generation:state.generation,review:!$("review-view").hidden,section:reviewUI.section,view:conversationUI.view,scroll:$("conversation-scroll").scrollTop,reviewScroll:$("review-view").scrollTop,topic:foundationTopic,memoOpen:Boolean($("memo-sheet")?.open),focus:document.activeElement,turn:document.activeElement?.dataset?.sourceTurn,step:workflowDetailSource?{...workflowDetailSource}:null};}
   function returnToSource(){
     const origin=sourceOrigin;sourceOrigin=null;if($("source-return"))$("source-return").hidden=true;if($("settings-source-return"))$("settings-source-return").hidden=true;if(!origin||origin.generation!==state.generation)return;
@@ -460,7 +493,7 @@
     else {const surface=origin.review?$(origin.section):$(origin.view+"-panel"),replacement=origin.turn?[...surface.querySelectorAll(".evidence-link")].find(link=>link.dataset.sourceTurn===origin.turn):null;const focus=replacement||(origin.focus?.isConnected&&surface.contains(origin.focus)?origin.focus:null)||$(origin.review?`review-tab-${origin.section.slice(7)}`:`conversation-tab-${origin.view}`);focus?.focus({preventScroll:true});}
   }
   function placeConversationDock(focused=document.activeElement) {
-    const dock=$("conversation-dock"),target=$(conversationUI.view==="voice"?"voice-panel":"conversation-dock-host");
+    const dock=$("conversation-dock"),target=$(conversationUI.view==="voice"?"voice-panel":conversationUI.view==="transcript"?"transcript-dock-host":"conversation-dock-host");
     if(!dock||!target||dock.parentElement===target)return;
     const restore=dock.contains(focused);
     target.append(dock);
@@ -468,6 +501,7 @@
   }
   function selectConversationView(view, focus=false) {
     if (!["voice","transcript","workflow"].includes(view)) return;
+    if(view!=="transcript")setTranscriptExport(false,false);
     const dockFocus=!focus&&$("conversation-dock")?.contains(document.activeElement)?document.activeElement:null;
     conversationUI.view=view;
     if(view!=="workflow"){$("interview-view").classList.remove("workflow-expanded");if($("workflow-expand")){$("workflow-expand").setAttribute("aria-pressed","false");$("workflow-expand").textContent="Expand";$("workflow-expand").setAttribute("aria-label","Expand workflow workspace");}}
@@ -479,6 +513,8 @@
     for(const name of ["voice","transcript","workflow"]) if($(name+"-panel")) $(name+"-panel").hidden=name!==view;
     placeConversationDock(dockFocus||document.activeElement);
     if(view==="workflow")requestAnimationFrame(()=>workflowCanvases.get("live-workflow")?.refresh());
+    if(view==="transcript")requestAnimationFrame(updateConversationScroll);
+    updateConversationControls();
     updatePresence();
   }
   function presenceState() {
@@ -508,7 +544,10 @@
   function updateConversationControls() {
     if(!$("start-live"))return;
     placeConversationDock();
-    const active=Boolean(conversationUI.live?.active), closing=conversationUI.status==="closing";
+    const active=Boolean(conversationUI.live?.active), closing=conversationUI.status==="closing", transcript=conversationUI.view==="transcript";
+    const returnFromVoice=!active&&!closing&&["stop-live","mute-live"].includes(document.activeElement?.id);
+    const liveControls=$("live-controls"),liveHost=transcript&&(active||closing)?$("transcript-live-controls"):$("conversation-dock")?.querySelector(".dock-row");
+    if(liveControls&&liveHost&&liveControls.parentElement!==liveHost){const focused=document.activeElement,restore=liveControls.contains(focused);liveHost.append(liveControls);if(restore)focused.focus({preventScroll:true});}
     $("start-live").hidden=active||closing;
     $("start-live").disabled=!state.config?.live?.enabled||state.busy||Boolean(state.recording)||state.requestingMic||state.transcribing;
     $("stop-live").hidden=!active&&!closing; $("stop-live").disabled=closing;
@@ -516,16 +555,18 @@
     $("mute-live").hidden=!conversationUI.live?.connected;
     $("mute-live").textContent=conversationUI.muted?"Unmute mic":"Mute mic";
     $("mute-live").setAttribute("aria-pressed",String(conversationUI.muted));
-    $("type-instead").hidden=active||closing;
-    $("type-instead").textContent=conversationUI.typing?"Hide text box":"Type instead";
-    $("composer-area").hidden=!conversationUI.typing;
-    $("skip-question").hidden=!conversationUI.typing;
+    $("type-instead").hidden=transcript||active||closing;
+    $("type-instead").textContent="Type instead";
+    $("composer-area").hidden=active||closing||(!transcript&&!conversationUI.typing);
+    $("skip-question").hidden=active||closing||(!transcript&&!conversationUI.typing)||!state.turns.some(turn=>turn.role==="assistant"&&!turn.document_event);
+    if($("transcript-live-hint")){$("transcript-live-hint").hidden=!transcript||(!active&&!closing);$("transcript-live-hint").textContent=closing?"Saving the last part of your conversation…":"Voice is on. Stop talking to type a reply.";}
     $("voice-select").disabled=active||closing||Boolean(state.recording);
     $("preview-voice").disabled=active||closing||!canSpeakChoice()||state.busy||Boolean(state.recording);
     if(active||closing) for(const id of ["answer-text","send-answer","record-answer","skip-question","final-check","generate-draft","regenerate-draft"]) $(id).disabled=true;
     updatePresence();
-    $("start-live").querySelector("span").textContent=state.turns.length?"Continue talking":"Start talking";
+    $("start-live").querySelector("span").textContent=transcript?"Talk live":state.turns.length?"Continue talking":"Start talking";
     $("presence-caption").hidden=state.started;
+    if(returnFromVoice)$(transcript?"answer-text":"start-live").focus({preventScroll:true});
   }
   function ensureConversation() {
     if(state.started)return true;
@@ -1110,8 +1151,9 @@
   async function sendAnswer(event) {
     event.preventDefault();
     const answer = $("answer-text").value.trim();
-    if (!answer || !state.started || state.busy || state.recording || state.transcribing || state.requestingMic) return;
+    if (!answer || state.busy || state.recording || state.transcribing || state.requestingMic || conversationUI.live?.active || conversationUI.status==="closing") return;
     if (answer.length > 6000 || state.turns.length >= 399 || state.turns.reduce((n,t) => n+t.text.length,answer.length) > 400000) {notice("That’s too long to send. Shorten your answer, or save a copy and start a new interview.", true); return;}
+    if(!ensureConversation())return;
     stopSpeaking();
     const generation = state.generation;
     const turn = {id: nextTurnId(), role: "user", text: answer};
@@ -1173,11 +1215,12 @@
 
   async function startRecording() {
     if (state.recording) { finishRecording(); return; }
-    if (state.busy || state.transcribing || state.requestingMic || !state.started) return;
+    if (state.busy || state.transcribing || state.requestingMic || conversationUI.live?.active || conversationUI.status==="closing") return;
     if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
       notice("This browser can’t record audio. Try Chrome or Edge, or type your answer.", true);
       return;
     }
+    if(!ensureConversation())return;
     stopSpeaking();
     const generation = state.generation;
     state.requestingMic = true;
@@ -2057,6 +2100,7 @@
     sourceOrigin=null;if($("source-return"))$("source-return").hidden=true;
     if($("settings-source-return"))$("settings-source-return").hidden=true;
     for(const kind of ["transcript","report"]){Object.assign(readingUI[kind],{query:"",matches:[],index:-1});if($(kind+"-search"))$(kind+"-search").value="";}
+    setTranscriptFind(false,false);setTranscriptExport(false,false);
     for(const id of ["interview-error","review-error"])if($(id))$(id).hidden=true;
     state.version++;
     Object.assign(state,{context,processNameManual:Boolean(context?.process_name),turns:[],coverage:[],summary:"",draft:null,started:false,busy:false,importing:false,requestingMic:false,transcribing:false,draftVersion:null,draftEdited:false,example:false,dirty:false,memo_findings:[],focus:"",parking_lot:[],closure:{asked:false,confirmed:false},captureProvenance:null,documentEvidence:[]});
@@ -2257,6 +2301,7 @@
     notice("Here’s a finished example. Look around — nothing in it is real.");
   }
   function initEvents() {
+    initTranscriptTools();
     for(const kind of ["transcript","report"]){
       $(kind+"-search").addEventListener("input",()=>{readingUI[kind].index=0;refreshReadingSearch(kind);});
       $(kind+"-search").addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();moveReadingSearch(kind,event.shiftKey?-1:1);}if(event.key==="Escape"){$(kind+"-search").value="";refreshReadingSearch(kind,false);}});
@@ -2278,13 +2323,13 @@
     $("close-memo").addEventListener("click",()=>setMemoSheet(false));
     $("memo-sheet").addEventListener("close",()=>{if(memoRestoreFocus)$("open-memo").focus({preventScroll:true});});
     $("jump-latest").addEventListener("click",()=>{scrollConversation();$("jump-latest").hidden=true;});
-    $("conversation-scroll").addEventListener("scroll",()=>{const pane=$("conversation-scroll");$("jump-latest").hidden=!state.turns.length||pane.scrollHeight-pane.clientHeight-pane.scrollTop<80;});
+    $("conversation-scroll").addEventListener("scroll",updateConversationScroll);
     $("start-live").addEventListener("click",startLiveConversation);
     $("stop-live").addEventListener("click",async()=>{voiceEnded=true;const wasConnected=conversationUI.live?.connected;const result=await conversationUI.live?.stop();updatePresence();if(wasConnected&&!result?.finalized)notice("Voice stopped early. The last few lines of the transcript may be missing.");});
     $("mute-live").addEventListener("click",()=>{conversationUI.muted=!conversationUI.muted;conversationUI.live?.setMuted(conversationUI.muted);updateControls();});
     $("type-instead").addEventListener("click",async()=>{
       if(!ensureConversation())return;
-      conversationUI.typing=!conversationUI.typing;selectConversationView("transcript");updateControls();
+      conversationUI.typing=true;selectConversationView("transcript");updateControls();
       if(conversationUI.typing){$("answer-text").focus();if(!state.turns.some(turn=>!turn.document_event)&&!state.busy){const generation=state.generation;setBusy(true);try{const result=await request("/api/interview",{...snapshot(),action:"start"});if(generation===state.generation)applyInterview(result);}catch(error){notice(error.message,true);}finally{if(generation===state.generation)setBusy(false);}}}
     });
     $("retry-workflow").addEventListener("click",()=>{$("retry-workflow").dataset.layoutRetry?retryWorkflowLayout("live-workflow"):refreshWorkflow();});
@@ -2338,7 +2383,6 @@
     document.addEventListener("click",event => {if (!$("session-menu").contains(event.target) && !$("session-menu-toggle").contains(event.target)) closeMenu();});
     document.addEventListener("keydown",event => {if (event.key === "Escape") closeMenu(true);});
     $("export-session").addEventListener("click",()=>{exportSession();$("session-menu-toggle").focus({preventScroll:true});});
-    $("export-transcript").addEventListener("click",()=>exportTranscript($("transcript-export-format").value));
     $("export-transcript-menu").addEventListener("click",()=>{exportTranscript();$("session-menu-toggle").focus({preventScroll:true});});
     $("import-session").addEventListener("click",() => {closeMenu(true); $("session-file").click();});
     $("session-file").addEventListener("change",event => {importSession(event.target.files[0]); event.target.value = "";});

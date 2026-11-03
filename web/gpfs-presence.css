@@ -22,35 +22,22 @@
   display:block;
   flex:0 1 auto;
 }
-.gpfs-wordmark {
-  display:block;
-  width:112px;
-  max-width:67%;
-  height:auto;
-  flex:0 0 auto;
-  margin:-9px 0 3px;
-  opacity:.92;
-}
 .gpfs-fallback { display:block; width:160px; max-width:100%; height:auto; }
 @media(max-width:700px) {
   .gpfs-presence { width:clamp(132px,43vw,192px); }
   .gpfs-symbol { max-height:190px; }
-  .gpfs-wordmark { width:95px; margin-top:-8px; }
 }
 @media(max-height:700px) and (min-width:701px) {
   .gpfs-presence { width:174px; }
   .gpfs-symbol { max-height:172px; }
-  .gpfs-wordmark { width:92px; margin-top:-7px; }
 }
 @media(max-height:600px) and (max-width:700px) {
   .gpfs-presence { width:112px; }
   .gpfs-symbol { max-height:112px; }
-  .gpfs-wordmark { width:76px; margin-top:-6px; }
 }
 @media(max-height:540px) and (min-width:600px) {
   .gpfs-presence { width:118px; flex:0 0 118px; }
   .gpfs-symbol { max-height:112px; }
-  .gpfs-wordmark { width:76px; margin-top:-6px; }
 }
 @media(prefers-reduced-motion:reduce) {
   .gpfs-presence *, .gpfs-presence { animation:none!important; transition:none!important; }

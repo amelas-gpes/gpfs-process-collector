@@ -1,6 +1,6 @@
 # GPFS vector presence
 
-The voice interface uses GPFS's supplied mark directly. It does not put a logo over an orb. The four taupe diamond elements receive small coordinated translations and rotations; the copper interlocking outline has a restrained change in bearing. The original company lettering below the symbol stays still.
+The voice interface uses GPFS's supplied mark directly. It does not put a logo over an orb. The four taupe diamond elements receive small coordinated translations and rotations; the copper interlocking outline has a restrained change in bearing. Only the symbol is displayed: company lettering is omitted from the live presence, header and fallback.
 
 ## Official source and fidelity
 
@@ -16,14 +16,14 @@ Retrieved on 2026-11-02 from the official site:
 f7a6179bbe98c6477ff443a646e1253273305460231e888b1f83ef114425002b
 ```
 
-Its original viewBox is `0 0 129.92136 45.69322`. The source contains 22 vector elements: 17 company-lettering elements and five symbol paths. `web/gpfs-presence.js` embeds their exact geometry and the four original diamond transforms. Wrapper groups provide movement; the source path data are not reshaped. The symbol has additional viewBox room for movement, and the stable lettering uses a cropped viewBox without changing its proportions. The full source lockup is also available to the app header and as the initial fallback.
+Its original viewBox is `0 0 129.92136 45.69322`. The source contains 22 vector elements: 17 company-lettering elements and five symbol paths. The original full lockup is retained only as source provenance; its lettering is not rendered by the app. `web/assets/gpfs-symbol.svg` contains only the original final five paths in a `0 0 42 46` viewBox, preserving their geometry, colors and four original diamond transforms. The header and initial fallback use this symbol-only asset. `web/gpfs-presence.js` embeds only those same five paths. Wrapper groups provide movement without reshaping the source path data, and the live symbol has additional viewBox room for movement.
 
 Verified colors:
 
 | Use | Color | Evidence |
 | --- | --- | --- |
 | Symbol outline | `#C9753A` | Official SVG's copper path |
-| Four diamonds and company lettering | `#8B7D65` | Official SVG fills |
+| Four diamonds | `#8B7D65` | Official SVG fills; the unmodified source lettering uses the same color |
 | Website accent | `#DC6E2C` | Site CSS `.uk-text-cookie` and `.primary4`, plus theme button/link styling |
 
 The moving mark retains its source copper/taupe fills. A low-opacity warm surface light is confined to duplicate copies of those same path contours. It has no blur, filter, exterior glow or silhouette scale. The website's accent orange does not replace the source logo colors. The official asset remains GPFS's identity; downloading it does not assert a new license or ownership.
@@ -62,6 +62,6 @@ Input noise floor is 0.018; output is 0.012. The additional visual envelope atta
 
 ## Verification boundary
 
-`tests/test_gpfs_presence.cjs` has 19 passing component checks, zero failures and zero skips. They verify the asset hash and source geometry, audio direction/attack/release/noise floor, playback gating, phrase pauses, interruption continuity, mute/end behavior, quiet auxiliary playback, actual waiting states, reduced motion, hidden suspension, 30 fps cap, settled render sleep, deterministic inspection and teardown.
+`tests/test_gpfs_presence.cjs` has 19 passing component checks, zero failures and zero skips. They verify the original-source asset hash, faithful symbol-only geometry and absence of rendered lettering, audio direction/attack/release/noise floor, playback gating, phrase pauses, interruption continuity, mute/end behavior, quiet auxiliary playback, actual waiting states, reduced motion, hidden suspension, 30 fps cap, settled render sleep, deterministic inspection and teardown.
 
 Those checks use synthetic numeric audio levels and virtual time. They do **not** prove physical microphone sensitivity, speaker sound, acoustic echo cancellation, or the finished screen's visual quality. Browser motion QA and the existing app test suites are reported separately in `BUILD_VERIFICATION.md`; do not infer a live hardware test from a synthetic motion probe.

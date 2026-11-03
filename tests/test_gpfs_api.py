@@ -42,7 +42,7 @@ class GPFSAssetHTTPTests(unittest.TestCase):
     def test_local_assets_have_correct_content_types_and_exact_source_bytes(self):
         for path, mime in (("/gpfs-presence.js", "text/javascript"),
                            ("/gpfs-presence.css", "text/css"),
-                           ("/assets/gpfs-logo.svg", "image/svg+xml")):
+                           ("/assets/gpfs-symbol.svg", "image/svg+xml")):
             with self.subTest(path=path):
                 status, headers, body = self.fetch(path)
                 self.assertEqual(status, 200)
@@ -52,11 +52,17 @@ class GPFSAssetHTTPTests(unittest.TestCase):
                 self.assertEqual(body, (server.WEB_DIR / path.lstrip("/")).read_bytes())
         self.client.request.assert_not_called()
 
-    def test_logo_is_self_contained_svg_in_verified_brand_palette(self):
-        status, _, body = self.fetch("/assets/gpfs-logo.svg")
+    def test_symbol_only_svg_preserves_source_paths_and_verified_brand_palette(self):
+        status, _, body = self.fetch("/assets/gpfs-symbol.svg")
         self.assertEqual(status, 200)
         svg = ET.fromstring(body)
         self.assertEqual(svg.tag, "{http://www.w3.org/2000/svg}svg")
+        self.assertEqual(svg.attrib["viewBox"], "0 0 42 46")
+        original = ET.fromstring((server.WEB_DIR / "assets/gpfs-logo.svg").read_bytes())
+        self.assertEqual(len(svg), 5, "Only the source symbol paths may be served for display")
+        for displayed, source in zip(svg, list(original)[-5:]):
+            self.assertEqual(displayed.tag, "{http://www.w3.org/2000/svg}path")
+            self.assertEqual(displayed.attrib, source.attrib)
         text = body.decode().lower()
         self.assertIn("#c9753a", text)
         self.assertIn("#8b7d65", text)
@@ -72,7 +78,8 @@ class GPFSAssetHTTPTests(unittest.TestCase):
         status, headers, body = self.fetch("/")
         self.assertEqual(status, 200)
         html = body.decode()
-        self.assertIn('src="/assets/gpfs-logo.svg"', html)
+        self.assertIn('src="/assets/gpfs-symbol.svg"', html)
+        self.assertNotIn("gpfs-logo.svg", html, "The full lettering lockup must not appear in the app")
         self.assertIn('src="/gpfs-presence.js"', html)
         self.assertIn('href="/gpfs-presence.css"', html)
         self.assertNotRegex(html, r'(?:src|href)=["\']https?://(?:www\.)?gpfs\.com')
@@ -82,7 +89,7 @@ class GPFSAssetHTTPTests(unittest.TestCase):
         self.client.request.assert_not_called()
 
     def test_static_assets_keep_origin_checks_and_explicit_allowlist(self):
-        for path in ("/gpfs-presence.js", "/gpfs-presence.css", "/assets/gpfs-logo.svg"):
+        for path in ("/gpfs-presence.js", "/gpfs-presence.css", "/assets/gpfs-symbol.svg"):
             for headers in ({"Origin": "https://attacker.example"}, {"Sec-Fetch-Site": "cross-site"}):
                 with self.subTest(path=path, headers=headers):
                     self.assertEqual(self.fetch(path, headers)[0], 403)

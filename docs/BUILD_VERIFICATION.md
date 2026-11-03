@@ -1,3 +1,9 @@
+## 0.10.1 shape-only GPFS logo — 2026-11-02
+
+Removed the company lettering from the animated conversation mark, header and initial fallback. The five original symbol paths, colors and audio-driven movement remain intact; the full official SVG stays in source only for provenance. The header and fallback use a local shape-only SVG.
+
+**82 checks executed and passed, 0 failed, 0 skipped:** 19 existing GPFS component checks, 4 existing asset/HTTP checks and 59 UI-state checks. A fresh browser load confirmed the shape-only header asset and five-part conversation mark, no lettering SVG and no page overflow. The open preview received only the visual update without reloading; its seven turns, title, unsent answer and file references were verified unchanged. No audio/provider behavior changed or was retested against physical hardware.
+
 ## 0.10.0 GPFS living vector presence — 2026-11-02
 
 The official GPFS symbol replaces the orb entirely. Its exact five source paths retain copper and taupe fills, with controlled surface illumination, small inward listening movements and outward speaking articulation. Original company lettering stays still. The header uses the original full lockup. [Asset provenance and motion design](GPFS_ASSET.md) record the source, hash, geometry, colors and integration contract.

@@ -29,13 +29,16 @@ const near=(actual,expected,epsilon=.01)=>assert.ok(Math.abs(actual-expected)<ep
 const walk=node=>[node,...node.children.flatMap(walk)];
 const tests=[];function test(name,fn){tests.push([name,fn]);}
 
-test("official lockup asset is byte-faithful and includes the verified source palette",()=>{
+test("official source stays byte-faithful and symbol-only asset preserves the source palette",()=>{
   const asset=fs.readFileSync(path.join(__dirname,"..","web","assets","gpfs-logo.svg"));
   assert.equal(crypto.createHash("sha256").update(asset).digest("hex"),"f7a6179bbe98c6477ff443a646e1253273305460231e888b1f83ef114425002b");
   assert.match(asset.toString(),/viewBox="0 0 129.92136 45.69322"/);assert.match(asset.toString(),/#c9753a/);assert.match(asset.toString(),/#8b7d65/);
+  const symbol=fs.readFileSync(path.join(__dirname,"..","web","assets","gpfs-symbol.svg"),"utf8");
+  assert.match(symbol,/viewBox="0 0 42 46"/);assert.equal([...symbol.matchAll(/<path\b/g)].length,5);assert.doesNotMatch(symbol,/<(?:text|rect|polygon)\b/);
+  const paths=value=>[...value.matchAll(/<path[^>]* d="([^"]+)"/g)].map(match=>match[1]);assert.deepEqual(paths(symbol),paths(asset.toString()).slice(-5));
 });
-test("mounts source paths synchronously with five articulating parts and stable supplied lettering",()=>{
-  const h=setup(),svg=h.root.children[0],word=h.root.children[1];assert.equal(svg.getAttribute("class"),"gpfs-symbol");assert.equal(word.children.length,17);
+test("mounts only the five source symbol paths synchronously without company lettering",()=>{
+  const h=setup(),svg=h.root.children[0];assert.equal(svg.getAttribute("class"),"gpfs-symbol");assert.equal(h.root.children.length,1,"The live mark must contain only the symbol SVG");
   const parts=svg.children.filter(n=>n.getAttribute("data-gpfs-part")!==null);assert.equal(parts.length,5);
   const official=fs.readFileSync(path.join(__dirname,"..","web","assets","gpfs-logo.svg"),"utf8"),paths=[...official.matchAll(/<path[^>]* d="([^"]+)"/g)].map(m=>m[1]);
   parts.forEach((part,i)=>assert.equal(part.children[0].getAttribute("d"),paths.slice(-5)[i]));

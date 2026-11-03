@@ -19,7 +19,7 @@ from urllib.parse import unquote, urlsplit
 from urllib.request import Request, urlopen
 import webbrowser
 
-VERSION = "0.10.0"
+VERSION = "0.10.1"
 APP_DIR = Path(__file__).resolve().parent
 WEB_DIR = APP_DIR / "web"
 
@@ -1029,6 +1029,7 @@ class Handler(BaseHTTPRequestHandler):
                  "/gpfs-presence.js": ("gpfs-presence.js", "text/javascript; charset=utf-8"),
                  "/gpfs-presence.css": ("gpfs-presence.css", "text/css; charset=utf-8"),
                  "/assets/gpfs-logo.svg": ("assets/gpfs-logo.svg", "image/svg+xml"),
+                 "/assets/gpfs-symbol.svg": ("assets/gpfs-symbol.svg", "image/svg+xml"),
                  "/style.css": ("style.css", "text/css; charset=utf-8")}
         if path not in files:
             return self._json({"error": "Not found."}, 404)

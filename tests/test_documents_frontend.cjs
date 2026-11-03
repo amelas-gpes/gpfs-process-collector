@@ -166,5 +166,27 @@ function response(document){return{ok:true,json:async()=>({document})};}
   h.api.countButton.focus();h.api.render();assert.equal(h.document.activeElement,h.api.countButton,"Polling must not steal focus from other controls to the source heading");
   h.findText("button","Close source").click();assert.equal(h.document.activeElement.dataset.documentSource,"doc_1:s1","Closing source returns to the matching reference control");h.api.dispose();passes++;
  }
+ {
+  let fail=true;const h=setup({request:async(url,body)=>{if(url.endsWith("/status"))return{documents:[doc()]};if(fail)throw Error("Could not save that direction.");return{document:doc({analysis:{phase:"deep",disposition:"relevant",version:2}})};}});h.api.scope="local-scope";h.api.setDocuments([doc()],false);
+  await h.api.action(h.api.documents[0],"purpose","Check threshold evidence");assert.match(h.api.body.textContent,/Could not save that direction/);assert.ok(h.findText("button","Retry action"));assert.equal(h.notices.length,1);
+  await h.api.refresh();assert.match(h.api.body.textContent,/Could not save that direction/,"A successful status refresh must retain a failed user action for recovery");fail=false;h.findText("button","Retry action").click();await tick();
+  assert.equal(h.jsonCalls.at(-1)[1].purpose,"Check threshold evidence");assert.equal(h.api.actionErrors.size,0);assert.equal(h.findText("button","Retry action"),undefined);h.api.dispose();passes++;
+ }
+ {
+  let fail=true;const file={name:"Retry.pdf",size:40},h=setup({fetch:async()=>{if(fail)throw Error("Upload connection failed.");return response(doc());}});await h.api.addFiles([file]);
+  assert.match(h.api.body.textContent,/Upload connection failed/);assert.ok(h.findText("button","Retry upload"));assert.equal(h.api.exportState().documents.length,0,"The in-memory retry file is not included in saved interview state");
+  fail=false;h.findText("button","Retry upload").click();await tick();assert.equal(h.uploads.length,2);assert.equal(h.uploads.at(-1)[1].body,file);assert.equal(h.api.uploadErrors.length,0);assert.equal(h.api.documents.length,1);h.api.dispose();passes++;
+ }
+ {
+  let fail=true;const h=setup({request:async()=>{if(fail)throw Error("Source unavailable.");return{source:{label:"Page 2",text:"Loaded evidence"}};}});h.api.scope="local-scope";const document=doc();h.api.setDocuments([document],false);
+  await h.api.openSource(document,{source_id:"s1",label:"Page 2"});assert.match(h.api.body.textContent,/Source unavailable/);assert.ok(h.findText("button","Retry source"));h.api.render();assert.ok(h.findText("button","Retry source"));
+  fail=false;h.findText("button","Retry source").click();await tick();assert.match(h.api.body.textContent,/Loaded evidence/);assert.equal(h.findText("button","Retry source"),undefined);h.api.dispose();passes++;
+ }
+ {
+  const h=setup();h.api.setDocuments([doc({coverage:{indexed_units:10,total_units:50},analysis:{phase:"deep",disposition:"relevant",version:1,reviewed_chunks:3,total_chunks:12}})],false);
+  const stage=h.api.body.querySelector(".documents-stage");assert.match(stage.textContent,/Reading in depth/);assert.match(stage.textContent,/10\/50 units indexed/);assert.match(stage.textContent,/3 of 12 sections reviewed/);assert.equal(stage.dataset.state,"working");assert.match(h.api.body.textContent,/Reviewing now/);
+  h.api.setDocuments([doc({analysis:{phase:"complete",disposition:"parked",version:2}})],false);assert.equal(h.api.body.querySelector(".documents-stage").dataset.state,"later");assert.match(h.api.body.textContent,/Saved for later analysis/);
+  h.api.setDocuments([doc({analysis:{phase:"complete",disposition:"needs_reason",version:3}})],false);const field=h.api.body.querySelector(".documents-purpose-field");assert.equal(field.tagName,"LABEL");assert.match(field.textContent,/What should I look for/);assert.equal(field.querySelector("input").dataset.documentPurpose,"doc_1");assert.ok(h.findText("button","Review now"));assert.ok(h.findText("button","Save for later"));h.api.dispose();passes++;
+ }
  console.log(JSON.stringify({tests_passed:passes,network_calls:0,provider_calls:0,physical_files_uploaded:false}));
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -15,7 +15,7 @@
       this.options=options;this.doc=options.document||window.document;this.generation=0;this.revision=0;this.scope=null;this.documents=[];
       this.uploads=[];this.uploadErrors=[];this.seen=new Map();this.pollTimer=null;this.polling=null;this.sessionPromise=null;
       this.mutating=0;this.sequence=0;this.disposed=false;this.restoreFocus=true;this.connectionError="";this.lastError="";this.source=null;
-      this.controller=new AbortController();this.actions=new Set();this.build();this.render();
+      this.controller=new AbortController();this.actions=new Set();this.actionErrors=new Map();this.build();this.render();
       this.pagehide=()=>this.cancel();window.addEventListener?.("pagehide",this.pagehide);
     }
     node(tag,className,text) {const node=this.doc.createElement(tag);if(className)node.className=className;if(text!==undefined)node.textContent=String(text);return node;}
@@ -97,13 +97,13 @@
           }catch(error){
             if(!this.current(generation)||this.controller.signal.aborted)return;
             if(error.name==="AbortError")error=new Error("Uploading took too long. Check Files before trying again.");
-            this.uploadErrors.push({name:upload.name,message:message(error)});this.reportError(error,true);
+            this.uploadErrors.push({name:upload.name,message:message(error),file:upload.file});this.reportError(error,true);
           }finally{
             if(this.current(generation)){this.uploads=this.uploads.filter(item=>item.key!==upload.key);this.render();}
           }
         }
       }catch(error){if(this.current(generation)&&error.name!=="AbortError"){
-        this.uploadErrors.push(...queued.map(upload=>({name:upload.name,message:message(error)})));this.uploads=this.uploads.filter(item=>!queued.includes(item));this.reportError(error,true);this.render();
+        this.uploadErrors.push(...queued.map(upload=>({name:upload.name,message:message(error),file:upload.file})));this.uploads=this.uploads.filter(item=>!queued.includes(item));this.reportError(error,true);this.render();
       }}finally{if(this.current(generation)){this.mutating=Math.max(0,this.mutating-1);this.revision++;this.schedule(0);}}
     }
     async uploadFile(file,scope) {
@@ -157,16 +157,18 @@
       try{
         const result=await this.options.requestJSON("/api/documents/action",{scope:this.scope,id:document.id,action,...(purpose!==undefined?{purpose}:{})},{signal:this.controller.signal,timeout:30000});
         if(!this.current(generation))return;
+        this.actionErrors.delete(document.id);
         if(action==="remove"){this.documents=this.documents.filter(item=>item.id!==document.id);this.seen.delete(document.id);if(this.source?.documentId===document.id)this.source=null;}
         else if(result.document)this.upsert(result.document);
         this.options.onDirty?.();this.render();
-      }catch(error){if(this.current(generation)&&error.name!=="AbortError")this.reportError(error,true);}
-      finally{if(this.current(generation)){this.actions.delete(key);this.mutating=Math.max(0,this.mutating-1);this.revision++;this.schedule(0);}}
+      }catch(error){if(this.current(generation)&&error.name!=="AbortError"){this.actionErrors.set(document.id,{action,purpose,message:message(error)});this.reportError(error,true);}}
+      finally{if(this.current(generation)){this.actions.delete(key);this.mutating=Math.max(0,this.mutating-1);this.revision++;this.render();this.schedule(0);}}
     }
     reviewError(document) {return document.status==="error"||document.analysis?.phase==="error"||Boolean(document.analysis?.error);}
     status(document) {
       if(document.status==="error")return "Could not read file";
       if(document.analysis?.phase==="error"||document.analysis?.error)return "Review paused";
+      if(this.actionErrors.has(document.id))return "Action needs attention";
       if(document.analysis?.disposition==="parked")return "Saved for later";
       if(document.analysis?.disposition==="needs_reason")return "Needs your direction";
       if(["pending","indexing"].includes(document.status))return "Reading file";
@@ -174,6 +176,14 @@
       if(document.analysis?.phase==="quick"||!document.analysis?.summary)return "Checking relevance";
       if(document.status==="partial")return "Partly readable";
       return "Ready to review";
+    }
+    stageDetail(document) {
+      const analysis=document.analysis||{},parts=[];
+      const indexed=Number(document.coverage?.indexed_units),total=Number(document.coverage?.total_units);
+      if(Number.isFinite(indexed)&&Number.isFinite(total)&&total>0)parts.push(`${indexed}/${total} units indexed.`);
+      const reviewed=Number(analysis.reviewed_chunks),chunks=Number(analysis.total_chunks);
+      if(Number.isFinite(reviewed)&&Number.isFinite(chunks)&&chunks>0)parts.push(`${reviewed} of ${chunks} sections reviewed.`);
+      return parts.join(" ");
     }
     render() {
       if(this.disposed)return;
@@ -184,7 +194,7 @@
       this.attachButton.disabled=!this.allowed()||total>=MAX_FILES;
       this.countButton.textContent=total?`Files ${total}`:"Files";this.countButton.hidden=!total&&!this.uploadErrors.length;
       this.strip.hidden=!total&&!this.uploadErrors.length;this.strip.replaceChildren();
-      for(const document of this.documents){const chip=this.button("","document-chip",()=>this.open(document.id));
+      for(const document of this.documents){const chip=this.button("",`document-chip${this.reviewError(document)||this.actionErrors.has(document.id)?" document-chip-error":""}`,()=>this.open(document.id));
         chip.setAttribute("aria-label",`${document.name||"File"} · ${this.status(document)}`);chip.append(this.node("span","document-chip-name",document.name||"File"),this.node("span","document-chip-status",this.status(document)));this.strip.append(chip);
       }
       for(const upload of this.uploads)this.strip.append(this.node("span","document-chip document-chip-pending",`${upload.name} · ${upload.status}…`));
@@ -195,7 +205,7 @@
       const sourceFocus=focused?.dataset?.documentSourceHeading,scrollTop=this.body.scrollTop;
       this.body.replaceChildren();
       if(this.connectionError){const error=this.node("div","documents-warning");error.append(this.node("p","",`Saved file details are retained. ${this.connectionError}`),this.button("Try again","documents-text-button",()=>this.refresh()));this.body.append(error);}
-      this.uploadErrors.forEach((error,index)=>{const item=this.node("div","documents-warning");item.append(this.node("strong","",error.name),this.node("p","",error.message),this.button("Dismiss issue","documents-text-button",()=>{this.uploadErrors.splice(index,1);this.render();}));this.body.append(item);});
+      this.uploadErrors.forEach((error,index)=>{const item=this.node("div","documents-warning");item.append(this.node("strong","",error.name),this.node("p","",error.message));if(error.file){const retry=this.button("Retry upload","documents-text-button",()=>{if(!this.allowed())return;this.uploadErrors.splice(index,1);this.addFiles([error.file]);});retry.disabled=!this.allowed();item.append(retry);}item.append(this.button("Dismiss issue","documents-text-button",()=>{this.uploadErrors.splice(index,1);this.render();}));this.body.append(item);});
       if(!total&&!this.uploadErrors.length)this.body.append(this.node("p","documents-empty","Add a procedure, spreadsheet, screenshot or reference document. We’ll look for what matters to this conversation."));
       for(const upload of this.uploads)this.body.append(this.node("p","documents-upload",`${upload.name} · ${upload.status}…`));
       for(const document of this.documents)this.renderDocument(document,drafts);
@@ -205,19 +215,20 @@
     }
     renderDocument(document,drafts) {
       const card=this.node("section","documents-card");card.dataset.documentId=this.safeId(document.id);
-      const head=this.node("div","documents-card-heading"),title=this.node("div");title.append(this.node("h3","",document.name||"File"),this.node("p","documents-file-meta",`${document.kind||"Document"} · ${this.size(document.size)} · ${this.status(document)}`));
+      const head=this.node("div","documents-card-heading"),title=this.node("div");title.append(this.node("h3","",document.name||"File"),this.node("p","documents-file-meta",`${document.kind||"Document"} · ${this.size(document.size)}`));
       const remove=this.button("Remove","documents-text-button",()=>this.action(document,"remove"));remove.setAttribute("aria-label",`Remove ${document.name||"file"} from this conversation`);head.append(title,remove);card.append(head);
       const analysis=document.analysis||{};
+      const stage=this.node("div","documents-stage");stage.dataset.state=this.reviewError(document)||this.actionErrors.has(document.id)?"error":analysis.disposition==="parked"?"later":["pending","indexing"].includes(document.status)||["quick","deep"].includes(analysis.phase)?"working":"ready";
+      stage.append(this.node("strong","documents-stage-label",this.status(document)));const detail=this.stageDetail(document);if(detail)stage.append(this.node("span","documents-stage-detail",detail));card.append(stage);
+      if(analysis.disposition==="parked")card.append(this.node("p","documents-review-mode","Saved for later analysis. Continue the conversation; revisit this file whenever it becomes useful."));
+      else if(analysis.disposition==="relevant"&&["quick","deep"].includes(analysis.phase))card.append(this.node("p","documents-review-mode","Reviewing now · You can keep talking while reading continues."));
+      const failed=this.actionErrors.get(document.id);if(failed){const error=this.node("div","documents-warning");error.setAttribute("role","status");const retry=this.button("Retry action","documents-text-button",()=>this.action(document,failed.action,failed.purpose));retry.disabled=this.actions.has(document.id+":"+failed.action);error.append(this.node("p","",failed.message),retry);card.append(error);}
       if(document.error)card.append(this.node("p","documents-warning",typeof document.error==="string"?document.error:"Some content could not be read."));
       if(analysis.error)card.append(this.node("p","documents-warning",typeof analysis.error==="string"?analysis.error:analysis.error.message||"Review could not be completed. Try reviewing this file again."));
       if(analysis.phase==="error"&&!analysis.error)card.append(this.node("p","documents-warning","Review could not be completed. Your saved file is retained."));
       if(analysis.summary)card.append(this.node("p","documents-summary",analysis.summary));
-      const reviewed=Number(analysis.reviewed_chunks),chunks=Number(analysis.total_chunks);
-      if(Number.isFinite(reviewed)&&Number.isFinite(chunks)&&chunks>0)card.append(this.node("p","documents-progress",`${reviewed} of ${chunks} sections reviewed${reviewed<chunks?" · More reading continues in the background":""}.`));
       if(document.coverage){
         const coverage=typeof document.coverage==="string"?document.coverage:document.coverage.summary||document.coverage.note;if(coverage)card.append(this.node("p","documents-progress",coverage));
-        const indexed=Number(document.coverage.indexed_units),total=Number(document.coverage.total_units);
-        if(Number.isFinite(indexed)&&Number.isFinite(total)&&total>0)card.append(this.node("p","documents-progress",`${indexed}/${total} units indexed.`));
       }
       const limitations=[document.coverage?.limitations,analysis.limitations].flatMap(value=>Array.isArray(value)?value:typeof value==="string"?[value]:[]).filter(value=>typeof value==="string"&&value.trim());
       if(limitations.length){const section=this.node("div","documents-limitations"),list=this.node("ul");section.append(this.node("h4","","Reading limits"));for(const limitation of new Set(limitations))list.append(this.node("li","",limitation));section.append(list);card.append(section);}
@@ -225,19 +236,20 @@
       const primary=typeof analysis.question==="string"?analysis.question.trim():"";
       if(analysis.disposition==="needs_reason"){
         if(primary)card.append(this.node("p","documents-purpose-question",primary));
-        const form=this.node("form","documents-purpose"),input=this.node("input");input.type="text";input.maxLength=1000;input.placeholder="What should I look for?";input.setAttribute("aria-label",`What should I look for in ${document.name||"this file"}?`);input.dataset.documentPurpose=document.id;input.value=drafts.get(document.id)||"";
-        const submit=this.node("button","documents-add","Use this context");submit.type="submit";
-        form.append(input,submit,this.button("Save for later","documents-text-button",()=>this.action(document,"park")));
+        const form=this.node("form","documents-purpose"),input=this.node("input"),field=this.node("label","documents-purpose-field");input.type="text";input.maxLength=1000;input.placeholder="e.g. Check the approval thresholds";input.setAttribute("aria-label",`What should I look for in ${document.name||"this file"}?`);input.dataset.documentPurpose=document.id;input.value=drafts.get(document.id)||"";field.append(this.node("span","","What should I look for?"),input);
+        const submit=this.node("button","documents-add","Review now");submit.type="submit";
+        form.append(field,submit,this.button("Save for later","documents-text-button",()=>this.action(document,"park")));
         form.addEventListener("submit",event=>{event.preventDefault();const purpose=input.value.trim();if(purpose)this.action(document,"purpose",purpose);});card.append(form);
       }
       if(this.reviewError(document))card.append(this.button("Retry review","documents-text-button",()=>this.action(document,"revisit")));
       else if(analysis.disposition==="parked")card.append(this.button("Revisit this file","documents-text-button",()=>this.action(document,"revisit")));
+      else if(analysis.disposition!=="needs_reason")card.append(this.button("Save for later","documents-text-button",()=>this.action(document,"park")));
       const listed=Array.isArray(analysis.questions)?analysis.questions.filter(item=>item&&typeof item.text==="string"&&item.text.trim()):[];
       const questions=(listed.length?listed:primary?[{id:"quick",text:primary,sources:analysis.sources||[]}]:[]).filter(item=>!(analysis.disposition==="needs_reason"&&item.text.trim()===primary));
       if(questions.length){const section=this.node("div","documents-questions");section.append(this.node("h4","",analysis.disposition==="parked"?"Questions for later":"Questions to explore"));
         for(const question of questions){if(!question?.text)continue;const row=this.node("div","documents-question");row.append(this.node("p","",question.text),this.button("Discuss","documents-text-button",()=>{this.close(false);this.emit({type:"question",document:copy(document),question:copy(question)});}));this.renderSources(row,document,question.sources||[]);section.append(row);}card.append(section);
       }
-      this.renderSources(card,document,analysis.sources||[]);card.append(this.node("p","documents-evidence-note","Reference material to review, not an accepted process fact."));this.body.append(card);
+      this.renderSources(card,document,analysis.sources||[]);card.append(this.node("p","documents-evidence-note","Reference material · Interview confirmation still required."));this.body.append(card);
     }
     renderInventory(card,inventory) {
       const parts=[];
@@ -262,7 +274,7 @@
         const result=await this.options.requestJSON("/api/documents/source",{scope,id:document.id,source_id:source.source_id},{signal:this.controller.signal,timeout:30000});
         if(!this.current(generation)||this.source!==selected||!this.documents.some(item=>item.id===document.id))return;
         this.source={documentId:document.id,sourceId:source.source_id,label:this.sourceTitle(document,result.source?.label||source.label||source.source_id),text:label(result.source?.text)||"This source has no readable text."};this.render();this.focusSource();
-      }catch(error){if(this.current(generation)&&this.source===selected&&error.name!=="AbortError"){this.source={documentId:document.id,sourceId:source.source_id,label:this.sourceTitle(document,source.label||source.source_id),text:message(error)};this.render();this.focusSource();}}
+      }catch(error){if(this.current(generation)&&this.source===selected&&error.name!=="AbortError"){this.source={documentId:document.id,sourceId:source.source_id,label:this.sourceTitle(document,source.label||source.source_id),text:message(error),error:true};this.render();this.focusSource();}}
     }
     sourceTitle(document,reference) {const name=document.name||"File",text=label(reference);return text.includes(name)?text:`${name}${text?" · "+text:""}`;}
     focusSource() {if(this.dialog.open){this.sourceHeading?.focus?.({preventScroll:true});this.sourceHeading?.scrollIntoView?.({block:"nearest"});}}
@@ -270,6 +282,7 @@
       const source=this.node("section","documents-source-preview"),heading=this.sourceHeading=this.node("h3","",this.source.label);heading.tabIndex=-1;heading.dataset.documentSourceHeading=`${this.source.documentId}:${this.source.sourceId}`;
       source.append(heading,this.button("Close source","documents-text-button",()=>{const key=this.sourceReturnKey;this.source=null;this.sourceHeading=null;this.render();[...this.body.querySelectorAll(".documents-source")].find(button=>button.dataset.documentSource===key)?.focus?.({preventScroll:true});}));
       const content=this.node("pre","documents-source-text",this.source.text);source.append(content);this.body.append(source);
+      if(this.source.error){const selected=this.source,document=this.documents.find(item=>item.id===selected.documentId);if(document)source.append(this.button("Retry source","documents-text-button",()=>this.openSource(document,{source_id:selected.sourceId,label:selected.label})));}
     }
     size(bytes) {const value=Number(bytes)||0;return value>=1024*1024?`${(value/1024/1024).toFixed(1)} MiB`:value>=1024?`${Math.round(value/1024)} KiB`:`${value} bytes`;}
     exportState() {return {scope:this.scope,documents:copy(this.documents)};}
@@ -281,7 +294,7 @@
     }
     cancel() {clearTimeout(this.pollTimer);this.pollTimer=null;this.controller.abort();}
     reset() {
-      this.cancel();this.generation++;this.revision++;this.controller=new AbortController();this.scope=null;this.documents=[];this.uploads=[];this.uploadErrors=[];this.seen=new Map();this.sessionPromise=null;this.polling=null;this.mutating=0;this.actions.clear();this.source=null;this.sourceHeading=null;this.sourceReturnKey=null;this.connectionError="";this.lastError="";this.close(false);this.render();
+      this.cancel();this.generation++;this.revision++;this.controller=new AbortController();this.scope=null;this.documents=[];this.uploads=[];this.uploadErrors=[];this.seen=new Map();this.sessionPromise=null;this.polling=null;this.mutating=0;this.actions.clear();this.actionErrors.clear();this.source=null;this.sourceHeading=null;this.sourceReturnKey=null;this.connectionError="";this.lastError="";this.close(false);this.render();
     }
     dispose() {if(this.disposed)return;this.reset();this.disposed=true;this.cancel();window.removeEventListener?.("pagehide",this.pagehide);this.controls.replaceChildren();this.strip.replaceChildren();this.strip.hidden=true;}
   }

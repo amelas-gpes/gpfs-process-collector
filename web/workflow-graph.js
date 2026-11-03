@@ -2,7 +2,7 @@
 "use strict";
 (function(scope) {
   const NS="http://www.w3.org/2000/svg", FONT="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
-  const PALETTE=["#7189b1","#8c80b7","#5f9d98","#b48a68","#889d65","#ac7d9f"];
+  const PALETTE=["#4a6590","#6a598d","#376e69","#815d3e","#596d37","#805475"];
   let serial=0;
   const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
   const string=value=>typeof value==="string"?value:"";
@@ -73,12 +73,12 @@
       if(!container)throw new Error("A workflow container is required.");
       this.container=container;this.doc=container.ownerDocument||scope.document;this.options=options;
       this.uid=`workflow-${++serial}`;this.version=0;this.dead=false;this.graph=null;this.requestedGraph=null;this.layout=null;this.fitted=false;this.fitMode=true;this.pending=false;this.layoutError=false;this.lastSize=null;
-      this.camera={x:0,y:0,scale:1};this.direction=options.direction==="DOWN"?"DOWN":"RIGHT";this.selected=null;this.listeners=[];this.pointers=new Map();this.pointerMoved=false;
+      this.camera={x:0,y:0,scale:1};this.direction=options.direction==="DOWN"?"DOWN":"RIGHT";this.selected=null;this.following=false;this.pathTrail=[];this.listeners=[];this.pointers=new Map();this.pointerMoved=false;
       if(!scope.ELK)throw new Error("The local workflow layout engine could not load.");
       this.engine=new scope.ELK();
       container.replaceChildren();container.classList.add("workflow-canvas");
       styles(container,{position:"relative",overflow:"hidden",touchAction:"none"});
-      this.svg=svgNode(this.doc,"svg",{xmlns:NS,width:"100%",height:"100%",tabindex:"0",role:"group","aria-label":"Workflow canvas. Drag to pan, use plus or minus to zoom, and press 0 to fit the whole workflow."});
+      this.svg=svgNode(this.doc,"svg",{xmlns:NS,width:"100%",height:"100%",tabindex:"0",role:"group","aria-label":"Workflow canvas. Drag to pan, use plus or minus to zoom, press 0 for the overview, and Tab to explore steps. Press F to follow a path and Escape to leave it."});
       styles(this.svg,{display:"block",position:"absolute",inset:"0",width:"100%",height:"100%",minWidth:"0",cursor:"grab",outlineOffset:"-3px"});
       this.title=svgNode(this.doc,"title");this.description=svgNode(this.doc,"desc");this.svg.append(this.title,this.description);
       this.world=svgNode(this.doc,"g");this.svg.append(this.world);
@@ -87,8 +87,9 @@
       styles(this.mini,{position:"absolute",right:"14px",bottom:"14px",width:"144px",height:"88px",minWidth:"0",background:"#ffffffeb",border:"1px solid #e2e8f2",borderRadius:"10px",boxShadow:"0 3px 14px #2336590a",cursor:"crosshair"});
       this.miniWorld=svgNode(this.doc,"g");this.miniView=svgNode(this.doc,"rect",{fill:"#8eabdf25",stroke:"#8fa5cb","stroke-width":2,"vector-effect":"non-scaling-stroke",rx:4});this.mini.append(this.miniWorld,this.miniView);
       this.hint=this.doc.createElement("div");this.hint.className="workflow-canvas-hint";this.hint.textContent="Drag to explore · Select a step for detail";
-      styles(this.hint,{position:"absolute",left:"16px",bottom:"14px",fontSize:"10px",color:"#7b89a2",pointerEvents:"none",background:"#f7f9fdd9",padding:"5px 7px",borderRadius:"5px",maxWidth:"calc(100% - 190px)"});
-      container.append(this.svg,this.mini,this.hint);
+      styles(this.hint,{position:"absolute",left:"16px",bottom:"14px",fontSize:"11px",color:"#55647d",pointerEvents:"none",background:"#f7f9fdd9",padding:"5px 7px",borderRadius:"5px",maxWidth:"calc(100% - 190px)"});
+      this.status=this.doc.createElement("div");this.status.setAttribute("role","status");this.status.setAttribute("aria-live","polite");styles(this.status,{position:"absolute",width:"1px",height:"1px",overflow:"hidden",clipPath:"inset(50%)",whiteSpace:"nowrap"});
+      container.append(this.svg,this.mini,this.hint,this.status);
       this.listen(this.svg,"pointerdown",event=>this.pointerDown(event));
       this.listen(this.svg,"pointermove",event=>this.pointerMove(event));
       this.listen(this.svg,"pointerup",event=>this.pointerUp(event));
@@ -100,7 +101,7 @@
     }
     listen(target,name,fn,options){target.addEventListener(name,fn,options);this.listeners.push([target,name,fn,options]);}
     size(){return {width:this.container.clientWidth||0,height:this.container.clientHeight||0};}
-    notify(){this.options.onViewChange?.({scale:this.camera.scale,hasGraph:Boolean(this.layout?.children?.length),selected:this.selected,direction:this.direction,updating:this.pending,exportReady:Boolean(this.layout?.children?.length)&&!this.pending&&!this.layoutError&&!this.dead});}
+    notify(){this.options.onViewChange?.({scale:this.camera.scale,hasGraph:Boolean(this.layout?.children?.length),selected:this.selected,direction:this.direction,updating:this.pending,path:this.getPathNavigation(),exportReady:Boolean(this.layout?.children?.length)&&!this.pending&&!this.layoutError&&!this.dead});}
     async update(graph) {
       if(this.dead)return false;
       // Invalidate any in-flight layout even if the replacement is malformed.
@@ -109,7 +110,7 @@
       let data;
       try{data=model(graph);}catch(error){this.requestedGraph=null;this.pending=false;this.layoutError=true;this.notify();throw error;}
       this.requestedGraph=data;this.pending=Boolean(data.steps.length);this.layoutError=false;this.notify();
-      if(!data.steps.length){this.graph=data;this.layout=null;this.selected=null;this.fitted=false;this.fitMode=true;this.world.replaceChildren();this.miniWorld.replaceChildren();this.mini.hidden=true;this.hint.textContent="Describe a step to start building the workflow.";this.notify();return true;}
+      if(!data.steps.length){this.graph=data;this.layout=null;this.selected=null;this.following=false;this.pathTrail=[];this.fitted=false;this.fitMode=true;this.world.replaceChildren();this.miniWorld.replaceChildren();this.mini.hidden=true;this.hint.textContent="Describe a step to start building the workflow.";this.notify();return true;}
       let positions;
       try{
         positions=await this.engine.layout(elkGraph(data,this.direction));
@@ -123,6 +124,10 @@
       const previousGraph=this.graph,previousLayout=this.layout,previousSelected=this.selected;
       const focusedStep=this.doc.activeElement?.getAttribute?.("data-step-id");
       this.graph=data;this.layout=positions;this.selected=data.steps.some(step=>step.id===this.selected)?this.selected:null;
+      // A correction may remove or reroute a path. Never retain an invalid trail.
+      this.pathTrail=this.pathTrail.filter(id=>data.steps.some(step=>step.id===id));
+      if(this.following&&!this.selected){this.following=false;this.pathTrail=[];}
+      else if(this.following&&this.pathTrail.some((id,i)=>i&&!data.connections.some(edge=>edge.from===this.pathTrail[i-1]&&edge.to===id)))this.pathTrail=[this.selected];
       // Keep the same evidence-backed step under the camera when an upstream correction shifts layout.
       if(this.fitted&&!this.fitMode&&previousLayout){
         const anchorId=previousSelected||previousGraph?.steps.find(step=>data.steps.some(next=>next.id===step.id))?.id;
@@ -137,9 +142,12 @@
     }
     initialView(){
       const {width,height}=this.size();if(!width||!height){this.fitMode=true;return;}
-      const scale=clamp(Math.min((width-48)/this.layout.width,(height-70)/this.layout.height),.8,1);
+      const overviewScale=Math.min((width-48)/this.layout.width,(height-48)/this.layout.height);
+      if(overviewScale>=.6){this.fit();return;}
+      const scale=.8;
       const start=this.graph.steps.find(step=>!this.graph.incoming.get(step.id).length)||this.graph.steps[0],anchor=this.layout.children.find(node=>node.id===start.id);
-      this.camera=this.direction==="DOWN"?{x:anchor.x+anchor.width/2-width/scale/2,y:anchor.y-28/scale,scale}:{x:anchor.x-28/scale,y:anchor.y+anchor.height/2-height/scale/2,scale};this.fitMode=false;this.fitted=true;this.paintView();
+      // Larger flows start on a complete readable first step, including on a phone.
+      this.camera={x:width<500||this.direction==="DOWN"?anchor.x+anchor.width/2-width/scale/2:anchor.x-28/scale,y:anchor.y-28/scale,scale};this.fitMode=false;this.fitted=true;this.paintView();
     }
     fit(){
       if(!this.layout)return;const {width,height}=this.size();if(!width||!height)return;
@@ -166,6 +174,31 @@
     }
     getScale(){return this.camera.scale;}
     getDirection(){return this.direction;}
+    getSteps(){return (this.graph?.steps||[]).map(({id,title,type})=>({id,title,type}));}
+    getPathNavigation(){
+      const current=this.graph?.steps.find(step=>step.id===this.selected),choice=edge=>({id:edge.to,label:edge.label||this.graph.steps.find(step=>step.id===edge.to)?.title||edge.to,from:edge.from,to:edge.to});
+      return {following:this.following,current:current?{id:current.id,title:current.title,type:current.type}:null,trail:[...this.pathTrail],
+        next:current?(this.graph.outgoing.get(current.id)||[]).map(choice):[],
+        previous:current?(this.graph.incoming.get(current.id)||[]).map(edge=>({...choice(edge),id:edge.from,label:edge.label||this.graph.steps.find(step=>step.id===edge.from)?.title||edge.from})):[]};
+    }
+    followPath(id=this.selected){
+      if(!this.graph?.steps.length||!this.layout||this.pending||this.layoutError)return false;
+      id=id||this.graph.steps.find(step=>!this.graph.incoming.get(step.id).length)?.id||this.graph.steps[0].id;
+      if(!this.graph.steps.some(step=>step.id===id))return false;
+      this.following=true;this.selected=id;this.pathTrail=[id];this.drawSelection();this.focusStep(id,{readable:true,keyboard:false});this.announcePath();return true;
+    }
+    leavePath(){this.following=false;this.pathTrail=[];this.drawSelection();this.status.textContent="All reported workflow routes are visible.";this.notify();}
+    navigatePath(id,direction="auto"){
+      if(!this.following||!this.graph||this.pending||this.layoutError)return false;
+      const next=this.graph.outgoing.get(this.selected)||[],previous=this.graph.incoming.get(this.selected)||[];
+      const forward=direction!=="previous"&&next.some(edge=>edge.to===id),backward=direction!=="next"&&previous.some(edge=>edge.from===id);
+      if(!["auto","next","previous"].includes(direction)||(!forward&&!backward))return false;
+      if(forward)this.pathTrail.push(id);
+      else if(this.pathTrail.at(-2)===id)this.pathTrail.pop();
+      else this.pathTrail=[id];
+      this.selected=id;this.drawSelection();this.focusStep(id,{readable:true,keyboard:false});this.announcePath();return true;
+    }
+    announcePath(){const state=this.getPathNavigation();this.status.textContent=`${state.current?.title||"Workflow"}. ${state.next.length>1?`${state.next.length} reported branches. Choose the next route.`:state.next.length?"One reported next step.":"No reported next step."}`;}
     setDirection(direction){
       if(!["RIGHT","DOWN"].includes(direction))throw new Error("Choose a horizontal or vertical workflow layout.");
       if(this.layoutError&&!this.requestedGraph)return Promise.reject(new Error("The current workflow is invalid and cannot be laid out."));
@@ -213,6 +246,8 @@
       else{this.camera.x+=event.deltaX/this.camera.scale;this.camera.y+=event.deltaY/this.camera.scale;this.fitMode=false;this.paintView();}
     }
     key(event){
+      if(event.key==="Escape"&&this.following){event.preventDefault();this.leavePath();return;}
+      if(event.key?.toLowerCase()==="f"){event.preventDefault();this.followPath(event.target.getAttribute?.("data-step-id")||this.selected);return;}
       if(event.target!==this.svg)return;
       const move={ArrowLeft:[-80,0],ArrowRight:[80,0],ArrowUp:[0,-80],ArrowDown:[0,80]}[event.key];
       if(move){event.preventDefault();this.camera.x+=move[0]/this.camera.scale;this.camera.y+=move[1]/this.camera.scale;this.fitMode=false;this.paintView();}
@@ -224,8 +259,15 @@
       if(!this.layout)return;event.preventDefault();const box=this.mini.getBoundingClientRect(),w=this.layout.width+20,h=this.layout.height+20,scale=Math.min(box.width/w,box.height/h),offsetX=(box.width-w*scale)/2,offsetY=(box.height-h*scale)/2;
       const x=(event.clientX-box.left-offsetX)/scale-10,y=(event.clientY-box.top-offsetY)/scale-10,{width,height}=this.size();this.camera.x=x-width/this.camera.scale/2;this.camera.y=y-height/this.camera.scale/2;this.fitMode=false;this.paintView();
     }
-    select(step){this.selected=step.id;this.drawSelection();this.options.onSelectStep?.({...step});this.notify();}
-    drawSelection(){this.world.querySelectorAll?.("[data-step-id]").forEach(node=>{const active=node.getAttribute("data-step-id")===this.selected;node.setAttribute("aria-pressed",String(active));const shape=node.querySelector(".workflow-node-shape");if(shape){shape.setAttribute("stroke-width",active?2.5:1.2);shape.setAttribute("stroke",active?"#718fc7":shape.getAttribute("data-base-stroke"));}});}
+    select(step){this.selected=step.id;if(this.following){this.pathTrail=[step.id];this.focusStep(step.id,{readable:true,keyboard:false});this.announcePath();}this.drawSelection();this.options.onSelectStep?.({...step});this.notify();}
+    drawSelection(){
+      const related=new Set(this.following?[this.selected,...this.pathTrail]:[]),activeEdges=new Set();
+      if(this.following)for(const edge of this.graph?.connections||[]){if(edge.from===this.selected||edge.to===this.selected||this.pathTrail.some((id,i)=>i&&id===edge.to&&this.pathTrail[i-1]===edge.from)){related.add(edge.from);related.add(edge.to);activeEdges.add(edge.id);}}
+      this.world.querySelectorAll?.("[data-step-id]").forEach(node=>{const id=node.getAttribute("data-step-id"),active=id===this.selected;node.setAttribute("aria-pressed",String(active));node.setAttribute("opacity",this.following&&!related.has(id)?.28:1);const shape=node.querySelector(".workflow-node-shape");if(shape){shape.setAttribute("stroke-width",active?2.5:1.2);shape.setAttribute("stroke",active?"#526d9f":shape.getAttribute("data-base-stroke"));}});
+      this.world.querySelectorAll?.("[data-edge-id]").forEach(node=>{node.setAttribute("opacity",this.following&&!activeEdges.has(node.getAttribute("data-edge-id"))?.22:1);});
+      this.world.querySelectorAll?.("[data-edge-label-for]").forEach(node=>{node.setAttribute("opacity",this.following&&!activeEdges.has(node.getAttribute("data-edge-label-for"))?.22:1);});
+      this.hint.textContent=this.following?"Following reported routes · Choose a branch to continue":"Drag to explore · Select a step for detail";
+    }
     draw(){
       const doc=this.doc,layout=this.layout,data=this.graph;this.world.replaceChildren();this.miniWorld.replaceChildren();this.mini.hidden=false;
       this.hint.textContent="Drag to explore · Select a step for detail";
@@ -237,10 +279,11 @@
         const original=data.connections.find(item=>item.id===edge.id);if(!original)return;
         const group=svgNode(doc,"g",{"data-edge-id":edge.id});group.append(svgNode(doc,"title",{},`${original.from} → ${original.to}${original.label?": "+original.label:""}. Sources: ${(original.evidence_turns||[]).join(", ")||"Not established"}`));
         (edge.sections||[]).forEach(section=>{const p=points(section);group.append(svgNode(doc,"path",{d:roundedPath(p),fill:"none",stroke:"#8c9bb2","stroke-width":1.7,"marker-end":`url(#${this.uid}-arrow)`}));this.miniWorld.append(svgNode(doc,"path",{d:roundedPath(p,0),fill:"none",stroke:"#c7d1e2","stroke-width":3}));});edges.append(group);
+        const labelGroup=svgNode(doc,"g",{"data-edge-label-for":edge.id});
         (edge.labels||[]).forEach(label=>{
-          const x=label.x||0,y=label.y||0,words=wrap(original.label,19,3);edgeLabels.append(svgNode(doc,"rect",{x,y,width:label.width,height:label.height,rx:6,fill:"#f8faff",stroke:"#e2e9f4","stroke-width":.8}));
-          const text=svgNode(doc,"text",{x:x+label.width/2,y:y+15,fill:"#6f7d96","font-family":FONT,"font-size":10,"text-anchor":"middle"});words.forEach((line,i)=>text.append(svgNode(doc,"tspan",{x:x+label.width/2,dy:i?14:0},line)));edgeLabels.append(text);
-        });
+          const x=label.x||0,y=label.y||0,words=wrap(original.label,19,3);labelGroup.append(svgNode(doc,"rect",{x,y,width:label.width,height:label.height,rx:6,fill:"#f8faff",stroke:"#e2e9f4","stroke-width":.8}));
+          const text=svgNode(doc,"text",{x:x+label.width/2,y:y+15,fill:"#53627c","font-family":FONT,"font-size":11,"text-anchor":"middle"});words.forEach((line,i)=>text.append(svgNode(doc,"tspan",{x:x+label.width/2,dy:i?14:0},line)));labelGroup.append(text);
+        });edgeLabels.append(labelGroup);
       });
       this.world.append(edgeLabels);
       layout.children.forEach(position=>{
@@ -254,35 +297,40 @@
         const titleLines=wrap(step.title,decision?20:26,decision?3:2),centerX=x+w/2;
         if(!decision){group.append(svgNode(doc,"rect",{x:x+14,y:y+14,width:5,height:5,rx:2.5,fill:color}));}
         const headY=decision?y+35:y+19;
-        group.append(svgNode(doc,"text",{x:decision?centerX:x+26,y:headY,"text-anchor":decision?"middle":"start","font-family":FONT,"font-size":8,"font-weight":600,"letter-spacing":.8,fill:decision?"#8a78ad":"#93a1b8"},`${step.id} · ${decision?"DECISION":boundary||"ACTIVITY"}`));
+        group.append(svgNode(doc,"text",{x:decision?centerX:x+26,y:headY,"text-anchor":decision?"middle":"start","font-family":FONT,"font-size":10,"font-weight":600,"letter-spacing":.5,fill:decision?"#6a598d":"#59677d"},`${step.id} · ${decision?"DECISION":boundary||"ACTIVITY"}`));
         const title=svgNode(doc,"text",{x:centerX,y:decision?y+61:y+45,"text-anchor":"middle","font-family":FONT,"font-size":15,"font-weight":550,fill:"#374862"});titleLines.forEach((line,i)=>title.append(svgNode(doc,"tspan",{x:centerX,dy:i?17:0},line)));group.append(title);
         const actor=short(step.actor||"Owner not established",decision?24:34),system=short(step.system||"System not established",decision?18:35);
         const actorY=decision?y+119:y+90;
         group.append(svgNode(doc,"text",{x:centerX,y:actorY,"text-anchor":"middle","font-family":FONT,"font-size":11,"font-weight":500,fill:color},actor));
-        group.append(svgNode(doc,"text",{x:centerX,y:actorY+14,"text-anchor":"middle","font-family":FONT,"font-size":10,fill:"#8796ad"},system));
+        group.append(svgNode(doc,"text",{x:centerX,y:actorY+14,"text-anchor":"middle","font-family":FONT,"font-size":11,fill:"#5c6b82"},system));
         group.addEventListener("click",()=>this.select(step));
         group.addEventListener("keydown",event=>{
           if(event.key==="Enter"||event.key===" "){event.preventDefault();this.select(step);}
           const index=data.steps.findIndex(item=>item.id===step.id),direction=event.key==="ArrowRight"||event.key==="ArrowDown"?1:event.key==="ArrowLeft"||event.key==="ArrowUp"?-1:0;
           if(direction){event.preventDefault();const target=data.steps[(index+direction+data.steps.length)%data.steps.length];this.focusStep(target.id);}
         });
-        group.addEventListener("focus",()=>{shape.setAttribute("stroke","#8299c0");shape.setAttribute("stroke-width",2.5);});
+        group.addEventListener("focus",()=>{group.setAttribute("opacity",1);shape.setAttribute("stroke","#526d9f");shape.setAttribute("stroke-width",3);});
         group.addEventListener("blur",()=>this.drawSelection());
         this.world.append(group);
         this.miniWorld.append(svgNode(doc,"rect",{x,y,width:w,height:h,rx:8,fill:decision?"#c8c0e0":"#c4d2e7"}));
       });
       this.drawSelection();
     }
-    focusStep(id){
+    focusStep(id,{readable=false,keyboard=true,select=false}={}){
       const node=this.layout?.children.find(item=>item.id===id);if(!node)return;
-      const {width,height}=this.size();this.camera.x=node.x+node.width/2-width/this.camera.scale/2;this.camera.y=node.y+node.height/2-height/this.camera.scale/2;this.fitMode=false;this.paintView();
-      [...this.world.querySelectorAll("[data-step-id]")].find(item=>item.getAttribute("data-step-id")===id)?.focus({preventScroll:true});
+      const {width,height}=this.size();if(!width||!height)return;
+      if(select){this.selected=id;if(this.following)this.pathTrail=[id];this.drawSelection();}
+      if(readable)this.camera.scale=clamp(Math.max(this.camera.scale,.95),.05,Math.max(.3,Math.min((width-32)/node.width,(height-32)/node.height,1.35)));
+      this.camera.x=node.x+node.width/2-width/this.camera.scale/2;this.camera.y=node.y+node.height/2-height/this.camera.scale/2;this.fitMode=false;this.paintView();
+      if(keyboard)[...this.world.querySelectorAll("[data-step-id]")].find(item=>item.getAttribute("data-step-id")===id)?.focus({preventScroll:true});
     }
     exportSVG(){
       if(!this.layout||this.pending||this.layoutError||this.dead)return null;
       const svg=svgNode(this.doc,"svg",{xmlns:NS,viewBox:`0 0 ${this.layout.width} ${this.layout.height}`,width:this.layout.width,height:this.layout.height,role:"img"});
       svg.append(this.title.cloneNode(true),this.description.cloneNode(true),svgNode(this.doc,"rect",{width:this.layout.width,height:this.layout.height,fill:"#fbfcff"}),this.world.cloneNode(true));
       svg.querySelectorAll?.("[tabindex]").forEach(node=>{node.removeAttribute("tabindex");node.removeAttribute("role");node.removeAttribute("aria-pressed");});
+      // Focus is a navigation aid; an exported full workflow retains every route equally.
+      svg.querySelectorAll?.("[opacity]").forEach(node=>node.removeAttribute("opacity"));
       return new scope.XMLSerializer().serializeToString(svg);
     }
     destroy(){

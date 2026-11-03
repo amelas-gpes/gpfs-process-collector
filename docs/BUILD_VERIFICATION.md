@@ -1,3 +1,29 @@
+## Usability and workflow improvements — 2026-11-03
+
+Implemented the fifteen recommendations from the application UI review within the existing visual system:
+
+1. Actionable next memo topic with explicit clarification guidance.
+2. Literal transcript search, match navigation, and a return-to-latest action.
+3. Source jumps with highlights, return navigation, and restored keyboard focus.
+4. Readable workflow starting views and reported-path navigation with explicit branch choices.
+5. Readable Admin process summaries, detailed steps, controls, variations, memo, and full transcript; optional technical record.
+6. Labeled Save action and an unsaved indicator.
+7. Visible Not applicable memo status without changing completion rules.
+8. Sticky report contents and search, including report and section headings.
+9. Named layout orientation and SVG export controls.
+10. Mobile step navigation, path choices, touch controls, and focus layout.
+11. Compact applied Admin filters, counts, removable chips, and a larger graph workspace.
+12. Exact interview excerpts and highlighted originating answers in Admin graph/detail navigation.
+13. Concise file stages/progress, visible purpose label, and Review now / Saved for later states.
+14. Persistent inline errors and retry actions after three-second notices dismiss; diagram retries reuse captured data locally.
+15. More readable functional copy, larger phone controls, visible focus states, and path status announcements.
+
+Verification uses existing runtimes and fictional data. **111 focused offline checks passed, 0 failed, 0 skipped:** 16 non-voice UI/navigation checks, 38 real-ELK graph checks, 28 document UI checks, 11 knowledge UI checks, 9 memo checks, and 9 complete-example checks. The targeted UI invocation is `node tests/test_ui_state.cjs --usability-only`; it stops before the legacy simulated voice cases. These checks cover search clearing and literal text preservation, source return/focus, local layout retry, branching/correction loops, topology-preserving exports, file retry persistence, batched filters, and exact evidence navigation.
+
+The real browser was exercised with the bundled fictional example at desktop, 390×844, and a short landscape viewport. Checks included memo gap navigation, transcript search, Review path controls, report title/heading search and clearing, source → transcript → return with step focus, applied Admin filters/chips, readable submissions, and exact Admin source highlighting. The actual Markdown download retained all 11 steps and all 26 turns without search markup. No new interview answers, file uploads, voice sessions, microphone/speaker access, provider calls, or AI credits were used. File failure/retry states were tested offline. Screenshots are retained locally in ignored `work/ux-implemented/`.
+
+The original browser tabs and unsaved interviews were preserved; verification used a separate tab. No server schema or credential settings changed. Full screen-reader compliance, physical audio, live provider behavior, and actual large-file processing were not tested in this update. Existing hosting, identity, and operational limitations still apply.
+
 ## Complete fictional example — 2026-11-03
 
 The built-in and saved examples now show the same fictional invoice-approval process: 26 interview turns, eleven captured memo topics, eleven fully detailed workflow steps and fourteen evidence-backed connections. They include duplicate closure, mismatches, correction loops, approval decisions, a high-value variation, risks, controls, existing materials and Treasury handoff. Empty question and parking registers now say that no items are recorded, without implying independent approval.

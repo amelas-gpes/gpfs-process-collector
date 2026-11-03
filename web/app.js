@@ -23,6 +23,8 @@
     materials:"Existing procedures, templates, examples and other useful records."
   };
   let foundationTopic = null, foundationReturnFocus = null, foundationRestoreFocus = true;
+  const readingUI = {transcript:{query:"",matches:[],index:-1},report:{query:"",matches:[],index:-1}};
+  let sourceOrigin=null;
   let memoRestoreFocus=true, settingsRestoreFocus=true, noticeTimer=null, noticeKind="general";
   const REVIEW_SECTIONS = ["review-report","review-memo","review-map","review-procedure","review-lifecycles","review-variations","review-questions"];
   const reviewUI = {section:"review-report",mapScale:1,mapFit:true};
@@ -84,6 +86,7 @@
     $("global-notice").classList.toggle("error", error);
     $("global-notice").hidden = false;
     $("live-status").textContent = message;
+    if(error){const region=$($("review-view").hidden?"interview-error":"review-error");if(region){region.hidden=false;region.dataset.errorKind=kind;region.querySelector("span").textContent=message;}}
     noticeTimer=setTimeout(()=>{$("global-notice").hidden=true;noticeTimer=null;},3000);
   }
   function closeMenu() {
@@ -147,9 +150,10 @@
   function updateSaveHint() {
     const hint = $("save-hint");
     if (!hint) return;
-    const message = state.dirty ? "Changes to save" : "";
+    const message = state.dirty ? "Unsaved changes" : "";
     if (hint.textContent !== message) hint.textContent = message;
     hint.hidden = !state.dirty;
+    $("export-session")?.classList.toggle("has-unsaved",state.dirty);
   }
   function updateControls() {
     const ready = Boolean(state.config?.api_configured);
@@ -199,6 +203,7 @@
     $("closure-status").textContent = state.closure.confirmed ? "Participant confirmed completeness." : state.closure.asked ? "Waiting for final confirmation." : "";
     updateConversationControls();
     updateSaveHint();
+    if($("export-markdown"))$("export-markdown").title=state.draft?"Download the complete business process report as Markdown":"Create a review draft to download the report";
   }
   function setBusy(value, message = "") {
     state.busy = value;
@@ -229,7 +234,7 @@
       node.classList.toggle("selected", foundationTopic === key && Boolean($("foundation-dialog")?.open));
       node.title = `${label}: ${finding?.status === "not_applicable" ? "not applicable (participant confirmed)" : status === "missing" ? "not yet explored" : status}`;
       node.setAttribute("aria-label", node.title);
-      node.append(el("span", "coverage-dot", status === "covered" ? "✓" : ""), el("span", "coverage-label", label), el("span", "coverage-state", status === "covered" ? "Captured" : status === "partial" ? "Exploring" : "To explore"));
+      node.append(el("span", "coverage-dot", status === "covered" ? "✓" : ""), el("span", "coverage-label", label), el("span", "coverage-state", finding?.status === "not_applicable" ? "Not applicable" : status === "covered" ? "Captured" : status === "partial" ? "Exploring" : "To explore"));
       node.addEventListener("click", () => showFoundationTopic(key,node));
       root.append(node);
     });
@@ -248,6 +253,7 @@
       return finding ? !["captured","not_applicable"].includes(finding.status) : coverage?.status!=="covered";
     }).map(([,label])=>label);
     if($("memo-next")) $("memo-next").textContent=remaining.length ? remaining.slice(0,3).join(" · ")+(remaining.length>3?` + ${remaining.length-3} more`:"") : "All topics captured. Confirm any gaps before wrapping up.";
+    const next=$("memo-next-action");if(next){next.hidden=!remaining.length;next.textContent=remaining.length?`Explore ${remaining[0]} →`:"";next.onclick=()=>{const topic=TOPICS.find(([,label])=>label===remaining[0]);if(topic){setMemoSheet(false,false);showFoundationTopic(topic[0],document.querySelector(`[data-foundation-topic="${topic[0]}"]`));}};}
     $("working-summary").hidden=!state.summary; $("summary-text").textContent=state.summary;
     $("parking-panel").hidden=!state.parking_lot.length;
     $("parking-count").textContent=state.parking_lot.length ? `(${state.parking_lot.length})` : "";
@@ -271,11 +277,11 @@
     if (!dialog || typeof dialog.showModal !== "function") {notice("Topic details are unavailable in this browser. Please use a current browser.",true);return;}
     const finding = state.memo_findings.find(item => item.key === key);
     const labels = {unknown:"Unknown / TBD",partial:"Partial",captured:"Captured",not_applicable:"Not applicable"};
-    foundationTopic = key; foundationReturnFocus = trigger; foundationRestoreFocus = true;
+    foundationTopic = key; foundationReturnFocus = trigger?.closest?.("dialog")&&!trigger.closest("dialog").open ? $("open-memo") : trigger; foundationRestoreFocus = true;
     $("foundation-topic-title").textContent = MEMO_HEADINGS[key];
     $("foundation-topic-status").textContent = labels[finding?.status] || labels.unknown;
     $("foundation-topic-answer").textContent = finding?.answer?.trim() ? finding.answer : "Not yet established in this interview.";
-    $("foundation-topic-hint").textContent = finding?.answer?.trim() ? "Reported from the interview; not independently verified. Review the cited answers for context." : TOPIC_GUIDES[key];
+    $("foundation-topic-hint").textContent = finding?.status==="partial" ? `Still to clarify: ${TOPIC_GUIDES[key]} Resolve the open detail or uncertainty before this topic can be complete. Review the cited answers for context.` : finding?.answer?.trim() ? "Reported from the interview; not independently verified. Review the cited answers for context." : TOPIC_GUIDES[key];
     $("foundation-topic-sources").replaceChildren(evidenceRow(finding?.evidence_turns || [], () => closeFoundationTopic(false)));
     if (!dialog.open) dialog.showModal();
     document.querySelectorAll("[data-foundation-topic]").forEach(button => button.classList.toggle("selected",button.dataset.foundationTopic === key));
@@ -322,7 +328,39 @@
     $("parking-count").textContent = state.parking_lot.length ? `(${state.parking_lot.length})` : "";
     $("parking-list").replaceChildren(...state.parking_lot.map(item => el("li","",item)));
     scroll.scrollTop=scrollTop;
+    refreshReadingSearch("transcript",false);
     renderCoverage(); updateControls();
+  }
+  function refreshReadingSearch(kind,move=true) {
+    const ui=readingUI[kind],root=$(kind==="transcript"?"transcript":"report-content");if(!root)return;
+    const input=$(kind+"-search"),query=(input?input.value:ui.query||"").trim().slice(0,180);ui.query=query;
+    const previous=ui.index;ui.matches=[];
+    const selector=kind==="transcript"?".turn-text":"p,dd,li,h1,h2,h3,h4";
+    root.querySelectorAll(selector).forEach(part=>{
+      if(part.querySelector("button"))return;
+      const original=part.textContent;part.textContent="";
+      const lower=original.toLocaleLowerCase(),needle=query.toLocaleLowerCase();let start=0,index=needle?lower.indexOf(needle):-1;
+      while(index!==-1&&ui.matches.length<500){part.append(el("span","",original.slice(start,index)));const mark=el("mark","search-match",original.slice(index,index+query.length));part.append(mark);ui.matches.push(mark);start=index+query.length;index=lower.indexOf(needle,start);}
+      part.append(el("span","",original.slice(start)));
+    });
+    ui.index=ui.matches.length?Math.max(0,Math.min(previous,ui.matches.length-1)):-1;
+    updateSearchPosition(kind,move);
+  }
+  function updateSearchPosition(kind,move=true) {
+    const ui=readingUI[kind];ui.matches.forEach((mark,i)=>mark.classList.toggle("current-match",i===ui.index));
+    const count=$(kind+"-search-count");if(count)count.textContent=ui.query?(ui.matches.length?`${ui.index+1} / ${ui.matches.length}${ui.matches.length===500?"+":""}`:"No matches"):"";
+    for(const direction of ["previous","next"])if($(kind+"-search-"+direction))$(kind+"-search-"+direction).disabled=!ui.matches.length;
+    if(move)ui.matches[ui.index]?.scrollIntoView({block:"center",behavior:"smooth"});
+  }
+  function moveReadingSearch(kind,direction){const ui=readingUI[kind];if(!ui.matches.length)return;ui.index=(ui.index+direction+ui.matches.length)%ui.matches.length;updateSearchPosition(kind);}
+  function rememberSourceOrigin(){sourceOrigin={generation:state.generation,review:!$("review-view").hidden,section:reviewUI.section,view:conversationUI.view,scroll:$("conversation-scroll").scrollTop,reviewScroll:$("review-view").scrollTop,topic:foundationTopic,memoOpen:Boolean($("memo-sheet")?.open),focus:document.activeElement,turn:document.activeElement?.dataset?.sourceTurn,step:workflowDetailSource?{...workflowDetailSource}:null};}
+  function returnToSource(){
+    const origin=sourceOrigin;sourceOrigin=null;if($("source-return"))$("source-return").hidden=true;if($("settings-source-return"))$("settings-source-return").hidden=true;if(!origin||origin.generation!==state.generation)return;
+    setInterviewSettings(false,false);
+    if(origin.review){tab("review");selectReviewSection(origin.section);$("review-view").scrollTop=origin.reviewScroll;}else{tab("interview");selectConversationView(origin.view);$("conversation-scroll").scrollTop=origin.scroll;}
+    if(origin.topic){if(origin.memoOpen)setMemoSheet(true);showFoundationTopic(origin.topic,document.querySelector(`[data-foundation-topic="${origin.topic}"]`));}
+    else if(origin.step){const graph=origin.step.containerId==="live-workflow"?conversationUI.workflow:state.draft,step=graph?.steps.find(s=>s.id===origin.step.stepId);if(step){workflowCanvases.get(origin.step.containerId)?.focusStep?.(step.id);showWorkflowStep(step,origin.step.containerId);}}
+    else {const surface=origin.review?$(origin.section):$(origin.view+"-panel"),replacement=origin.turn?[...surface.querySelectorAll(".evidence-link")].find(link=>link.dataset.sourceTurn===origin.turn):null;const focus=replacement||(origin.focus?.isConnected&&surface.contains(origin.focus)?origin.focus:null)||$(origin.review?`review-tab-${origin.section.slice(7)}`:`conversation-tab-${origin.view}`);focus?.focus({preventScroll:true});}
   }
   function selectConversationView(view, focus=false) {
     if (!["voice","transcript","workflow"].includes(view)) return;
@@ -827,6 +865,7 @@
     state.parking_lot = parked;
     state.closure = {asked:result.closure?.asked === true,confirmed:result.closure?.confirmed === true};
     state.dirty = true;
+    if($("interview-error")?.dataset.errorKind==="capture")$("interview-error").hidden=true;
     renderTranscript();
     scrollConversation();
     announceReadiness();
@@ -1116,6 +1155,7 @@
       state.dirty = true;
       renderDraft();
       tab("review", true);
+      if($("review-error"))$("review-error").hidden=true;
       notice("Draft ready. Review the sources, steps and open questions.");
     } catch (error) { if (generation === state.generation) notice(error.message, true); }
     finally { if (generation === state.generation) setBusy(false); }
@@ -1146,7 +1186,8 @@
     if(state.draftVersion!==state.version)root.append(el("p","report-warning","The interview has changed since this draft was created. Reconcile new answers before approval."));
     const list=(parent,values,empty="Not established in this interview.")=>{const ul=el("ul");(values?.length?values:[empty]).forEach(value=>ul.append(el("li","",value)));parent.append(ul);};
     const fields=(parent,pairs)=>{const dl=el("dl","report-fields");pairs.forEach(([label,value])=>{dl.append(el("dt","",label),el("dd","",value||"UNKNOWN / TBD"));});parent.append(dl);};
-    const section=(title)=>{const part=el("section","report-section");part.append(el("h2","",title));root.append(part);return part;};
+    const contents=$("report-contents");contents?.replaceChildren(el("option","","Jump to section…"));
+    const section=(title)=>{const part=el("section","report-section");part.id=`report-section-${root.querySelectorAll(".report-section").length+1}`;part.tabIndex=-1;part.append(el("h2","",title));root.append(part);if(contents){const option=el("option","",title);option.value=part.id;contents.append(option);}return part;};
     let part=section("1. Business context");
     fields(part,[["Process",state.context?.process_name],["Process owner / role",state.context?.process_owner],["Interview objective",state.context?.objective],["Supplied context and material",state.context?.background]]);
     part=section("2. Overview and boundaries");part.append(el("p","",d.overview));fields(part,[["Trigger / starting condition",d.trigger]]);part.append(el("h3","","Inputs"));list(part,d.inputs);part.append(el("h3","","Outputs"));list(part,d.outputs);
@@ -1182,6 +1223,7 @@
         if(analysis.sources?.length){part.append(el("h4","","Document sources"));list(part,analysis.sources.map(source=>`${source.label||file.name} (${source.source_id})`));}
       }
     }
+    refreshReadingSearch("report",false);
   }
   function renderDraft() {
     updateControls();
@@ -1214,7 +1256,8 @@
     wrap.append(name);
     return wrap;
   }
-  function jumpToTurn(id) {
+  function jumpToTurn(id,remember=true) {
+    if(remember)rememberSourceOrigin();
     setMemoSheet(false,false);
     tab("interview");
     if (id === "context") {
@@ -1223,6 +1266,7 @@
       context.scrollIntoView({behavior:"smooth",block:"center"});
       context.tabIndex = -1;
       context.focus({preventScroll:true});
+      if($("settings-source-return"))$("settings-source-return").hidden=false;
       notice("This step cites the interview context. Validate it with the process owner.");
       return;
     }
@@ -1236,6 +1280,7 @@
     turn.classList.add("highlight");
     turn.tabIndex = -1;
     turn.focus({preventScroll: true});
+    if($("source-return"))$("source-return").hidden=!sourceOrigin;
   }
   function jumpToReview(id) {
     const target = $(id);
@@ -1370,8 +1415,9 @@
     ids.forEach(id => {
       const source = el("button","evidence-link",sourceCaption(id));
       source.title = `Source: ${id}`;
+      source.dataset.sourceTurn=id;
       source.setAttribute("aria-label",`Read ${sourceCaption(id)}`);
-      source.addEventListener("click",() => {beforeJump?.();jumpToTurn(id);});
+      source.addEventListener("click",() => {rememberSourceOrigin();beforeJump?.();jumpToTurn(id,false);});
       evidence.append(source);
     });
     return evidence;
@@ -1467,15 +1513,29 @@
     const dl=el("dl","report-fields");
     for(const [label,value] of [["Owner / role",step.actor],["System / tool",step.system],["Input",step.input],["Output",step.output],["Completion",step.completion_criteria],["Handoff",step.handoff]])dl.append(el("dt","",label),el("dd","",value||"Not established"));
     body.append(dl,evidenceRow(step.evidence_turns||[],()=>{workflowDetailReturn=null;dialog.close();}));
+    const follow=el("button","button secondary small","Follow this path");follow.type="button";follow.addEventListener("click",()=>{workflowDetailReturn=null;dialog.close();workflowCanvases.get(containerId)?.followPath(step.id);});body.append(follow);
     if(!dialog.open)dialog.showModal();
   }
   function updateCanvasControls(id,info) {
     const prefix=id==="live-workflow"?"workflow":"map";
     if($(prefix+"-zoom-label"))$(prefix+"-zoom-label").textContent=`${Math.round(info.scale*100)}%`;
     for(const suffix of ["zoom-out","zoom-in","fit"])if($(prefix+"-"+suffix))$(prefix+"-"+suffix).disabled=!info.hasGraph;
-    if($(prefix+"-direction")){$(prefix+"-direction").disabled=!info.hasGraph;$(prefix+"-direction").textContent=info.direction==="DOWN"?"↕":"↔";$(prefix+"-direction").setAttribute("aria-label",info.direction==="DOWN"?"Switch workflow to horizontal layout":"Switch workflow to vertical layout");}
+    if($(prefix+"-direction")){$(prefix+"-direction").disabled=!info.hasGraph;$(prefix+"-direction").textContent=info.direction==="DOWN"?"Vertical":"Horizontal";$(prefix+"-direction").setAttribute("aria-label",info.direction==="DOWN"?"Vertical layout. Switch to horizontal layout":"Horizontal layout. Switch to vertical layout");$(prefix+"-direction").title=$(prefix+"-direction").getAttribute("aria-label");}
+    updateWorkflowNavigation(id,info);
     const exportButton=$(id==="live-workflow"?"export-working-map":"export-map");
     if(exportButton)exportButton.disabled=!info.hasGraph||Boolean(info.updating)||info.exportReady===false;
+  }
+  function updateWorkflowNavigation(id,info) {
+    const prefix=id==="live-workflow"?"workflow":"map";
+    if(!$(prefix+"-navigation"))return;
+    const bar=$(prefix+"-navigation"),select=$(prefix+"-step-select"),canvas=workflowCanvases.get(id),steps=canvas?.getSteps?.()||(id==="live-workflow"?conversationUI.workflow:state.draft)?.steps||[],path=info.path||canvas?.getPathNavigation?.();
+    bar.hidden=!info.hasGraph;if(bar.hidden)return;
+    const selected=path?.current?.id||select.value;
+    const stepSignature=JSON.stringify(steps.map(step=>[step.id,step.title]));if(select.dataset.signature!==stepSignature){select.replaceChildren(...steps.map(step=>{const option=el("option","",`${step.id} · ${step.title}`);option.value=step.id;return option;}));select.dataset.signature=stepSignature;}
+    if(steps.some(step=>step.id===selected))select.value=selected;
+    $(prefix+"-follow").setAttribute("aria-pressed",String(Boolean(path?.following)));$(prefix+"-follow").textContent=path?.following?"Show all":"Follow path";
+    for(const [direction,label] of [["previous","← Previous"],["next","Next →"]]){const control=$(prefix+"-path-"+direction),choices=path?.[direction]||[];control.hidden=!path?.following;control.disabled=!choices.length;const signature=JSON.stringify([path?.current?.id,choices]);if(control.dataset.signature!==signature){const placeholder=el("option","",choices.length?label:(direction==="next"?"End of reported path":"Start of reported path"));placeholder.value="";control.replaceChildren(placeholder,...choices.map(choice=>{const option=el("option","",`${choice.label||"Continue"} · ${choice.id}`);option.value=choice.id;return option;}));control.value="";control.dataset.signature=signature;}}
+    $(prefix+"-path-status").textContent=path?.following?`${path.current?.title||""}${path.next?.length>1?" · Choose a branch":""}`:"";
   }
   function renderMap(target = null, graph = state.draft) {
     const root = target || $("process-map");
@@ -1489,7 +1549,7 @@
       let canvas=workflowCanvases.get(root.id);
       if(!canvas){canvas=window.CollectorWorkflow.create(root,{onSelectStep:step=>showWorkflowStep(step,root.id),onViewChange:info=>updateCanvasControls(root.id,info)});workflowCanvases.set(root.id,canvas);}
       const generation=state.generation;
-      canvas.update(graph).catch(()=>{if(state.generation!==generation||workflowCanvases.get(root.id)!==canvas)return;notice("The diagram could not be laid out. Your captured process is retained.",true);if(root.id==="live-workflow")$("workflow-status").textContent="Diagram update paused. Retry the capture update.";});
+      canvas.update(graph).then(applied=>{if(!applied||state.generation!==generation||workflowCanvases.get(root.id)!==canvas)return;const retry=$(root.id==="live-workflow"?"retry-workflow":"map-retry-layout");if(retry?.dataset.layoutRetry){delete retry.dataset.layoutRetry;retry.hidden=true;if(root.id==="live-workflow")$("workflow-status").textContent="Diagram ready · Changes follow what you tell us.";const region=$(root.id==="live-workflow"?"interview-error":"review-error");if(region?.dataset.errorKind==="layout")region.hidden=true;}}).catch(()=>{if(state.generation!==generation||workflowCanvases.get(root.id)!==canvas)return;notice("The diagram could not be laid out. Your captured process is retained. Retry the layout.",true,"layout");const retry=$(root.id==="live-workflow"?"retry-workflow":"map-retry-layout");if(retry){retry.hidden=false;retry.dataset.layoutRetry="true";}if(root.id==="live-workflow")$("workflow-status").textContent="Diagram layout paused. Retry locally; your process is retained.";});
       return;
     }
     root.replaceChildren();
@@ -1667,6 +1727,10 @@
     stopSpeaking();
     finishRecording(true);
     state.generation++;
+    sourceOrigin=null;if($("source-return"))$("source-return").hidden=true;
+    if($("settings-source-return"))$("settings-source-return").hidden=true;
+    for(const kind of ["transcript","report"]){Object.assign(readingUI[kind],{query:"",matches:[],index:-1});if($(kind+"-search"))$(kind+"-search").value="";}
+    for(const id of ["interview-error","review-error"])if($(id))$(id).hidden=true;
     state.version++;
     Object.assign(state,{context,processNameManual:Boolean(context?.process_name),turns:[],coverage:[],summary:"",draft:null,started:false,busy:false,requestingMic:false,transcribing:false,draftVersion:null,draftEdited:false,example:false,dirty:false,memo_findings:[],focus:"",parking_lot:[],closure:{asked:false,confirmed:false}});
     $("answer-text").value = "";
@@ -1819,6 +1883,20 @@
     notice("Complete synthetic example opened. Explore the transcript, map, memo and procedure.");
   }
   function initEvents() {
+    for(const kind of ["transcript","report"]){
+      $(kind+"-search").addEventListener("input",()=>{readingUI[kind].index=0;refreshReadingSearch(kind);});
+      $(kind+"-search").addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();moveReadingSearch(kind,event.shiftKey?-1:1);}if(event.key==="Escape"){$(kind+"-search").value="";refreshReadingSearch(kind,false);}});
+      for(const [name,direction] of [["previous",-1],["next",1]])$(kind+"-search-"+name).addEventListener("click",()=>moveReadingSearch(kind,direction));
+    }
+    $("report-contents").addEventListener("change",()=>{const target=$($("report-contents").value);if(target){target.scrollIntoView({block:"start",behavior:"smooth"});target.focus({preventScroll:true});}});
+    $("back-to-source").addEventListener("click",returnToSource);
+    $("settings-source-return").addEventListener("click",returnToSource);
+    for(const id of ["interview-error","review-error"])$(id).querySelector("button").addEventListener("click",()=>{$(id).hidden=true;});
+    for(const [prefix,id] of [["workflow","live-workflow"],["map","process-map"]]){
+      $(prefix+"-step-select").addEventListener("change",()=>{const canvas=workflowCanvases.get(id),step=$(prefix+"-step-select").value;if(canvas?.getPathNavigation?.().following)canvas.followPath(step);else canvas?.focusStep(step,{readable:true,keyboard:false,select:true});});
+      $(prefix+"-follow").addEventListener("click",()=>{const canvas=workflowCanvases.get(id);if(canvas?.getPathNavigation?.().following)canvas.leavePath();else canvas?.followPath($(prefix+"-step-select").value);});
+      for(const direction of ["previous","next"])$(prefix+"-path-"+direction).addEventListener("change",event=>workflowCanvases.get(id)?.navigatePath(event.target.value,direction));
+    }
     const narrowMemo=window.matchMedia("(max-width:760px), (max-height:500px) and (max-width:1100px)");
     const placeMemo=()=>{
       if(!narrowMemo.matches)setMemoSheet(false,false);
@@ -1829,7 +1907,7 @@
     $("close-memo").addEventListener("click",()=>setMemoSheet(false));
     $("memo-sheet").addEventListener("close",()=>{if(memoRestoreFocus)$("open-memo").focus({preventScroll:true});});
     $("jump-latest").addEventListener("click",()=>{scrollConversation();$("jump-latest").hidden=true;});
-    $("conversation-scroll").addEventListener("scroll",()=>{const pane=$("conversation-scroll");if(pane.scrollHeight-pane.clientHeight-pane.scrollTop<80)$("jump-latest").hidden=true;});
+    $("conversation-scroll").addEventListener("scroll",()=>{const pane=$("conversation-scroll");$("jump-latest").hidden=!state.turns.length||pane.scrollHeight-pane.clientHeight-pane.scrollTop<80;});
     $("start-live").addEventListener("click",startLiveConversation);
     $("stop-live").addEventListener("click",async()=>{voiceEnded=true;const wasConnected=conversationUI.live?.connected;const result=await conversationUI.live?.stop();updatePresence();if(wasConnected&&!result?.finalized)notice("Voice ended. Check the last transcript lines; the connection closed before final captions were confirmed.");});
     $("mute-live").addEventListener("click",()=>{conversationUI.muted=!conversationUI.muted;conversationUI.live?.setMuted(conversationUI.muted);updateControls();});
@@ -1838,7 +1916,8 @@
       conversationUI.typing=!conversationUI.typing;selectConversationView("transcript");updateControls();
       if(conversationUI.typing){$("answer-text").focus();if(!state.turns.some(turn=>!turn.document_event)&&!state.busy){const generation=state.generation;setBusy(true);try{const result=await request("/api/interview",{...snapshot(),action:"start"});if(generation===state.generation)applyInterview(result);}catch(error){notice(error.message,true);}finally{if(generation===state.generation)setBusy(false);}}}
     });
-    $("retry-workflow").addEventListener("click",refreshWorkflow);
+    $("retry-workflow").addEventListener("click",()=>{$("retry-workflow").dataset.layoutRetry?renderWorkingMap():refreshWorkflow();});
+    $("map-retry-layout").addEventListener("click",()=>renderMap());
     $("workflow-zoom-out").addEventListener("click",()=>workflowCanvases.get("live-workflow")?.zoom(-.15));
     $("workflow-zoom-in").addEventListener("click",()=>workflowCanvases.get("live-workflow")?.zoom(.15));
     $("workflow-fit").addEventListener("click",()=>workflowCanvases.get("live-workflow")?.fit());

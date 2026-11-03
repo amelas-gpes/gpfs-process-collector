@@ -43,6 +43,7 @@
   const workflowCanvases=new Map();
   let workflowDetailReturn=null, workflowDetailSource=null;
   let documentController=null, pendingDocumentReason=null, restoringDocuments=false;
+  let knowledgeUI=null;
   let gpfsPresence=null, auxiliaryVoiceState="idle", voiceEnded=false;
   const documentQuestionsHandled=new Set(),documentVoiceUpdates=new Set();
 
@@ -1593,7 +1594,7 @@
     setTimeout(() => URL.revokeObjectURL(url), 10000);
   }
   function sessionObject() {
-    return {workflow:conversationUI.workflow,schema_version:1,saved_at:new Date().toISOString(),context:state.context||readContext(),process_name_manual:state.processNameManual,documents:documentController?.exportState()||null,document_questions_handled:[...documentQuestionsHandled],turns:state.turns,coverage:state.coverage,summary:state.summary,memo_findings:state.memo_findings,focus:state.focus,parking_lot:state.parking_lot,closure:state.closure,draft:state.draft,draft_stale:Boolean(state.draft&&state.draftVersion!==state.version),draft_edited:state.draftEdited,synthetic_example:state.example,unsent_answer:$("answer-text").value,voice_choice:state.voiceChoice};
+    return {workflow:conversationUI.workflow,schema_version:1,saved_at:new Date().toISOString(),context:state.context||readContext(),process_name_manual:state.processNameManual,documents:documentController?.exportState()||null,document_questions_handled:[...documentQuestionsHandled],turns:state.turns,coverage:state.coverage,summary:state.summary,memo_findings:state.memo_findings,focus:state.focus,parking_lot:state.parking_lot,closure:state.closure,draft:state.draft,draft_stale:Boolean(state.draft&&state.draftVersion!==state.version),draft_edited:state.draftEdited,synthetic_example:state.example,unsent_answer:$("answer-text").value,voice_choice:state.voiceChoice,knowledge_process_id:knowledgeUI?.processId||null,knowledge_status:knowledgeUI?.exportReceipt()||null};
   }
   function exportSession() {
     download(JSON.stringify(sessionObject(),null,2), `${safeFilename(state.context?.process_name || readContext().process_name)}-session.json`, "application/json");
@@ -1648,6 +1649,7 @@
     return !state.dirty || confirm("Replace the current session? Unsaved interview text and draft edits will be cleared. Save the session first if you want to keep them.");
   }
   function clearState(context = null) {
+    knowledgeUI?.reset();
     voiceEnded=false;
     documentController?.reset();pendingDocumentReason=null;restoringDocuments=false;documentQuestionsHandled.clear();documentVoiceUpdates.clear();
     workflowCanvases.forEach(canvas=>canvas.destroy());workflowCanvases.clear();
@@ -1704,6 +1706,7 @@
       const focus = text(saved.focus,500);
       const parked = strings(saved.parking_lot,50);
       clearState(context);
+      knowledgeUI?.restore(saved.knowledge_process_id,saved.knowledge_status);
       generation=state.generation;
       Object.assign(state,{turns,coverage:normalizeCoverage(saved.coverage),summary,draft,started:turns.length>0,example:saved.synthetic_example===true,draftEdited:saved.draft_edited===true,memo_findings:findings,focus,parking_lot:parked,closure:{asked:saved.closure?.asked===true,confirmed:saved.closure?.confirmed===true}});
       state.processNameManual=saved.process_name_manual===undefined?Boolean(context.process_name):saved.process_name_manual===true;
@@ -1883,6 +1886,7 @@
     initEvents(); renderCoverage(); updateControls();
     if(window.CollectorDocuments)documentController=window.CollectorDocuments.create({requestJSON:request,getContext:documentContext,config:()=>state.config,
       canUpload:()=>Boolean(state.config?.api_configured),onEvent:onDocumentEvent,notice,onDirty:()=>{state.dirty=true;updateSaveHint();}});
+    if(window.CollectorKnowledge)knowledgeUI=window.CollectorKnowledge.create({request,session:sessionObject,notice,onSubmitted:()=>{state.dirty=true;updateSaveHint();}});
     refreshVoices();
     window.speechSynthesis?.addEventListener("voiceschanged", refreshVoices);
     try {
@@ -1891,6 +1895,7 @@
       const config = await response.json();
       if (typeof config.csrf_token !== "string") throw new Error("The interviewer is unavailable. Please try again.");
       state.config = config;
+      knowledgeUI?.configure(config);
       $("data-notice").textContent = text(config.data_notice,4000) || "Data handling information is unavailable. Check the service configuration before submitting interview content.";
       populateVoiceOptions();
       $("connection-state").hidden = true;

@@ -443,9 +443,9 @@ def load_settings():
                     continue
                 key, value = line.split("=", 1)
                 key = key.strip().removeprefix("export ").strip()
-                if key in {"OPENAI_API_KEY", "INTERVIEW_MODEL", "TRANSCRIPTION_MODEL"}:
+                if key in {"OPENAI_API_KEY", "INTERVIEW_MODEL", "TRANSCRIPTION_MODEL", "COLLECTOR_DEPLOYMENT_MODE", "KNOWLEDGE_LOCAL_OWNER"}:
                     settings[key] = value.strip().strip("\"'")
-    for key in ("OPENAI_API_KEY", "INTERVIEW_MODEL", "TRANSCRIPTION_MODEL"):
+    for key in ("OPENAI_API_KEY", "INTERVIEW_MODEL", "TRANSCRIPTION_MODEL", "COLLECTOR_DEPLOYMENT_MODE", "KNOWLEDGE_LOCAL_OWNER"):
         if os.environ.get(key):
             settings[key] = os.environ[key]
     return settings
@@ -457,6 +457,16 @@ def bounded_text(value, name, limit=6000, required=False):
     value = value.strip()
     if required and not value:
         raise ValueError(f"{name} is required.")
+    return value
+
+
+def strip_knowledge_capabilities(value):
+    """Remove saved status capabilities from every nested submission field."""
+    if isinstance(value, dict):
+        return {key: strip_knowledge_capabilities(item) for key, item in value.items()
+                if key not in {"knowledge_status", "status_token", "knowledge_status_token"}}
+    if isinstance(value, list):
+        return [strip_knowledge_capabilities(item) for item in value]
     return value
 
 
@@ -992,11 +1002,48 @@ def validated_browser_connect_sources(sources):
     return tuple(dict.fromkeys(sources))
 
 
+class KnowledgeAuthorization:
+    """Server-owned administrative boundary, never a browser-supplied role.
+
+    A hosted deployment can later inject a trusted identity authorizer. The
+    prototype grants local-owner access only with both explicit server settings.
+    """
+    def __init__(self, settings, trusted_authorizer=None):
+        self.local_owner = (settings.get("COLLECTOR_DEPLOYMENT_MODE", "").lower() == "local"
+                            and settings.get("KNOWLEDGE_LOCAL_OWNER", "").lower() == "true")
+        self.trusted_authorizer = trusted_authorizer
+
+    def admin(self, handler):
+        if self.trusted_authorizer is not None:
+            try:
+                identity = self.trusted_authorizer(handler, "knowledge.admin")
+                if isinstance(identity, str) and identity.strip():
+                    return identity[:200]
+            except Exception:
+                return None
+        if (self.local_owner and handler.server.server_address[0] == "127.0.0.1"
+                and handler.client_address[0] == "127.0.0.1"):
+            return "local-owner"
+        return None
+
+    def submitter(self, handler):
+        """Return only an identity supplied by trusted server integration."""
+        if self.trusted_authorizer is not None:
+            try:
+                identity = self.trusted_authorizer(handler, "knowledge.submit")
+                if isinstance(identity, str) and identity.strip():
+                    return identity[:200]
+            except Exception:
+                pass
+        return None
+
+
 class InterviewServer(ThreadingHTTPServer):
     daemon_threads = True
     allow_reuse_address = True
 
-    def __init__(self, address, handler, client=None, documents_root=None):
+    def __init__(self, address, handler, client=None, documents_root=None, knowledge_root=None,
+                 knowledge_settings=None, knowledge_authorizer=None, knowledge_analyzer=None):
         if address[0] != "127.0.0.1":
             raise ValueError("This prototype can only bind to 127.0.0.1.")
         self.client = client if client is not None else OpenAIClient(load_settings())
@@ -1009,8 +1056,18 @@ class InterviewServer(ThreadingHTTPServer):
         service = local_module("document_service", "document_service.py")
         self.documents = service.DocumentService(self.documents_store,
             lambda context, record, chunks, phase: self.client.analyze_document(context, record, chunks, phase, self.documents_store))
+        self.knowledge_auth = KnowledgeAuthorization(knowledge_settings if knowledge_settings is not None else load_settings(), knowledge_authorizer)
+        graph = local_module("knowledge_graph", "knowledge_graph.py")
+        if knowledge_analyzer is None and getattr(self.client, "key", None) and callable(getattr(self.client, "structured", None)):
+            adapter = local_module("knowledge_ai", "knowledge_ai.py")
+            knowledge_analyzer = adapter.build_analyzer(self.client)
+        base = Path(knowledge_root) if knowledge_root else (Path(documents_root).parent / "knowledge" if documents_root else APP_DIR / "work" / "knowledge")
+        self.knowledge = graph.KnowledgeGraph(base / "knowledge.sqlite3", analyzer=knowledge_analyzer,
+                                               document_resolver=self.documents.source)
 
     def server_close(self):
+        if hasattr(self, "knowledge"):
+            self.knowledge.close()
         if hasattr(self, "documents"):
             self.documents.close()
         super().server_close()
@@ -1063,6 +1120,9 @@ class Handler(BaseHTTPRequestHandler):
                            "documents": {"enabled": True, "max_file_bytes": documents.MAX_FILE_BYTES,
                                          "max_files": documents.MAX_FILES_PER_SCOPE,
                                          "types": ["pdf", "png", "xlsx", "xlsm", "csv"]}})
+            identity = self.server.knowledge_auth.admin(self)
+            config["knowledge_admin_enabled"] = bool(identity)
+            config["knowledge_admin_mode"] = "Local owner development mode" if identity == "local-owner" else ("Trusted administrator" if identity else "")
             return self._json(config)
         files = {"/": ("index.html", "text/html; charset=utf-8"),
                  "/index.html": ("index.html", "text/html; charset=utf-8"),
@@ -1072,6 +1132,8 @@ class Handler(BaseHTTPRequestHandler):
                  "/live-voice.js": ("live-voice.js", "text/javascript; charset=utf-8"),
                  "/documents.js": ("documents.js", "text/javascript; charset=utf-8"),
                  "/documents.css": ("documents.css", "text/css; charset=utf-8"),
+                 "/knowledge-ui.js": ("knowledge-ui.js", "text/javascript; charset=utf-8"),
+                 "/knowledge-ui.css": ("knowledge-ui.css", "text/css; charset=utf-8"),
                  "/gpfs-presence.js": ("gpfs-presence.js", "text/javascript; charset=utf-8"),
                  "/gpfs-presence.css": ("gpfs-presence.css", "text/css; charset=utf-8"),
                  "/assets/gpfs-logo.svg": ("assets/gpfs-logo.svg", "image/svg+xml"),
@@ -1093,6 +1155,8 @@ class Handler(BaseHTTPRequestHandler):
         path = urlsplit(self.path).path
         if path.startswith("/api/documents/"):
             return self._documents(path)
+        if path.startswith("/api/knowledge/"):
+            return self._knowledge(path)
         if path == "/api/shutdown":
             self._json({"stopping": True})
             threading.Thread(target=self.server.shutdown, daemon=True).start()
@@ -1154,6 +1218,137 @@ class Handler(BaseHTTPRequestHandler):
             pass
         except Exception:
             self._json({"error": "The request could not be completed. Your browser session is retained."}, 500)
+
+    def _knowledge(self, path):
+        routes = {"/api/knowledge/submit", "/api/knowledge/status", "/api/knowledge/admin/snapshot",
+                  "/api/knowledge/admin/review", "/api/knowledge/admin/retry",
+                  "/api/knowledge/admin/document-source", "/api/knowledge/admin/canonical-create",
+                  "/api/knowledge/admin/canonical-update"}
+        if path not in routes:
+            return self._json({"error": "Not found."}, 404)
+        principal = self.server.knowledge_auth.admin(self)
+        if path.startswith("/api/knowledge/admin/") and not principal:
+            return self._json({"error": "Administrator access is unavailable."}, 403)
+        try:
+            if self.headers.get("Transfer-Encoding"):
+                raise ValueError("Chunked request bodies are not supported.")
+            size = int(self.headers.get("Content-Length", "0"))
+            if not 0 < size <= MAX_JSON:
+                return self._json({"error": "Knowledge request is empty or too large."}, 413)
+            if self.headers.get("Content-Type", "").split(";", 1)[0].strip() != "application/json":
+                return self._json({"error": "This endpoint requires JSON."}, 415)
+            self.connection.settimeout(30)
+            raw = self.rfile.read(size)
+            if len(raw) != size:
+                raise ValueError("Incomplete request body.")
+            payload = json.loads(raw.decode("utf-8"))
+            if not isinstance(payload, dict):
+                raise ValueError("A knowledge request object is required.")
+            graph = self.server.knowledge
+            if path.endswith("/status"):
+                submission_id = bounded_text(payload.get("submission_id", ""), "Submission ID", 100, True)
+                revision = payload.get("revision")
+                if not isinstance(revision, int) or isinstance(revision, bool) or revision < 1:
+                    raise ValueError("Choose the submission revision.")
+                status_token = bounded_text(payload.get("status_token", ""), "Status token", 200, True)
+                return self._json(graph.status(submission_id, revision, status_token))
+            if path.endswith("/submit"):
+                payload = strip_knowledge_capabilities(payload)
+                # Client claims are never authenticated submitter identities.
+                for key in ("submitter", "authenticated_submitter", "principal", "reviewer", "role",
+                            "status_token", "knowledge_status_token", "knowledge_status"):
+                    payload.pop(key, None)
+                # Keep unsent answers out of the submission. The document-scope
+                # capability is stored separately, not in public graph records.
+                payload.pop("unsent_answer", None)
+                payload.pop("document_scope", None)
+                supplied = payload.get("documents")
+                document_scope = None
+                if supplied is not None:
+                    if not isinstance(supplied, dict) or not isinstance(supplied.get("documents", []), list):
+                        raise ValueError("Invalid document references.")
+                    requested = supplied.get("documents", [])
+                    if len(requested) > documents.MAX_FILES_PER_SCOPE:
+                        raise ValueError("Too many document references.")
+                    references = []
+                    if requested:
+                        document_scope = supplied.get("scope")
+                        for item in requested:
+                            if not isinstance(item, dict):
+                                raise ValueError("Invalid document reference.")
+                            document_id = bounded_text(item.get("id", ""), "Document ID", 100, True)
+                            record = self.server.documents_store.get(document_scope, document_id)
+                            if record.get("archived"):
+                                raise PermissionError("Document reference is not available.")
+                            reference = {key: record[key] for key in ("id", "name", "kind", "size", "sha256") if key in record}
+                            sources = []
+                            for candidate in (record.get("analysis") or {}).get("sources", [])[:30]:
+                                if not isinstance(candidate, dict) or not isinstance(candidate.get("source_id"), str):
+                                    continue
+                                try:
+                                    source = self.server.documents.source(document_scope, document_id, candidate["source_id"])
+                                except (PermissionError, ValueError):
+                                    continue
+                                sources.append({"source_id": source["id"], "label": source["label"]})
+                            reference["sources"] = sources
+                            references.append(reference)
+                    payload["documents"] = {"documents": references}
+                submitter = self.server.knowledge_auth.submitter(self)
+                process_id = payload.get("process_id")
+                if process_id:
+                    process_id = bounded_text(process_id, "Process ID", 100, True)
+                if process_id and not (principal or (submitter and graph.can_revise(process_id, submitter))):
+                    return self._json({"error": "Revisions require a verified owner or administrator."}, 403)
+                return self._json(graph.submit(payload, principal=submitter, document_scope=document_scope), 202)
+            if path.endswith("/snapshot"):
+                return self._json(graph.admin_snapshot())
+            if path.endswith("/canonical-create"):
+                label = bounded_text(payload.get("label", ""), "Canonical label", 1000, True)
+                reason = bounded_text(payload.get("reason", ""), "Review reason", 3000, True)
+                entities = payload.get("entity_ids")
+                if not isinstance(entities, list) or not 2 <= len(entities) <= 100:
+                    raise ValueError("Choose between 2 and 100 entities.")
+                entity_ids = [bounded_text(item, "Entity ID", 100, True) for item in entities]
+                return self._json(graph.canonical_create(label, entity_ids, principal, reason))
+            if path.endswith("/canonical-update"):
+                canonical_id = bounded_text(payload.get("canonical_id", ""), "Canonical ID", 100, True)
+                action = bounded_text(payload.get("action", ""), "Canonical action", 80, True)
+                value = bounded_text(payload.get("value", ""), "Canonical value", 1000, True)
+                reason = bounded_text(payload.get("reason", ""), "Review reason", 3000, True)
+                revision = payload.get("expected_revision")
+                if not isinstance(revision, int) or isinstance(revision, bool) or revision < 1:
+                    raise ValueError("Choose the canonical grouping revision you reviewed.")
+                return self._json(graph.canonical_update(canonical_id, action, value, principal, reason, revision))
+            if path.endswith("/document-source"):
+                submission_id = bounded_text(payload.get("submission_id", ""), "Submission ID", 100, True)
+                revision = payload.get("revision")
+                if not isinstance(revision, int) or isinstance(revision, bool) or revision < 1:
+                    raise ValueError("Choose the submission revision.")
+                document_id = bounded_text(payload.get("document_id", ""), "Document ID", 100, True)
+                source_id = bounded_text(payload.get("source_id", ""), "Source ID", 200, True)
+                scope = graph.document_scope(submission_id, revision, document_id)
+                return self._json({"source": self.server.documents.source(scope, document_id, source_id)})
+            if path.endswith("/review"):
+                proposal = bounded_text(payload.get("proposal_id", ""), "Proposal ID", 100, True)
+                action = bounded_text(payload.get("action", ""), "Review action", 80, True)
+                reason = bounded_text(payload.get("reason", ""), "Review reason", 3000)
+                revision = payload.get("expected_revision")
+                if not isinstance(revision, int) or isinstance(revision, bool) or revision < 1:
+                    raise ValueError("Choose the proposal revision you reviewed.")
+                side = payload.get("side")
+                if side is not None:
+                    side = bounded_text(side, "Review side", 40)
+                return self._json(graph.review(proposal, action, principal, reason, revision, side=side))
+            job = bounded_text(payload.get("job_id", ""), "Job ID", 100, True)
+            return self._json(graph.retry(job))
+        except PermissionError:
+            self._json({"error": "Knowledge operation is not authorized."}, 403)
+        except (ValueError, UnicodeError) as error:
+            self._json({"error": "Invalid JSON body." if isinstance(error, json.JSONDecodeError) else str(error)}, 400)
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+        except Exception:
+            self._json({"error": "The operation could not finish. Your interview remains in the browser."}, 500)
 
     def _documents(self, path):
         try:

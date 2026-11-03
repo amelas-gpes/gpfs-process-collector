@@ -16,6 +16,8 @@ The shape-only update passed **82 relevant checks, 0 failed, 0 skipped**, with f
 
 ## What it does
 
+**Company knowledge (local prototype):** Submit a process to retain an immutable interview revision, participant attribution and evidence-linked working graph. The Settings → Admin workspace is available only when explicitly enabled for the local owner, or through a trusted server-side authorization integration. Cross-process connections remain proposed until reviewed. See [knowledge graph architecture, setup and limitations](docs/KNOWLEDGE_GRAPH.md).
+
 - Holds continuous, interruptible conversations using GPT-Live 1 without requiring a process title first. Microphone access starts only when the participant selects Start voice.
 - Infers an editable process title from participant answers; a user-selected title wins over later automatic suggestions.
 - Accepts reference files during Voice, Transcript or Workflow, checks relevance quickly, and continues a source-linked review in the background. Unrelated files can be given a purpose once or saved for later without interrupting the discussion.

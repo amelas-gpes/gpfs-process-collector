@@ -7,11 +7,13 @@
   <title>AI Process Collector</title>
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/documents.css">
+  <link rel="stylesheet" href="/knowledge-ui.css">
   <link rel="stylesheet" href="/gpfs-presence.css">
   <script src="/vendor/elk.bundled.js" defer></script>
   <script src="/workflow-graph.js" defer></script>
   <script src="/live-voice.js" defer></script>
   <script src="/documents.js" defer></script>
+  <script src="/knowledge-ui.js" defer></script>
   <script src="/gpfs-presence.js" defer></script>
   <script src="/app.js" defer></script>
 </head>
@@ -21,7 +23,7 @@
     <a class="brand" href="/" aria-label="GPFS Process Collector home"><img class="brand-logo" src="/assets/gpfs-symbol.svg" alt="GPFS" width="30" height="32"><span>Process Collector</span></a>
     <nav class="tab-nav" aria-label="Workspace"><button class="nav-tab active" data-tab="interview" aria-current="page">Interview</button><button class="nav-tab" data-tab="review">Review <span id="draft-dot" hidden></span></button></nav>
     <div class="header-actions"><span id="save-hint" class="save-hint" role="status" hidden>Changes to save</span><button class="icon-button" id="export-session" aria-label="Save interview" title="Save interview"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M5 16v4h14v-4"/></svg></button><button class="icon-button" id="session-menu-toggle" aria-label="More options" title="More options" aria-expanded="false" aria-controls="session-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button></div>
-    <div class="session-menu" id="session-menu" hidden><button id="import-session">Open interview</button><button id="load-example">Explore an example</button><button id="reset-session" class="danger-text">Clear interview</button><p>Save a copy before closing this tab.</p></div><input type="file" id="session-file" accept="application/json,.json" hidden>
+    <div class="session-menu" id="session-menu" hidden><button id="submit-process-menu">Submit process</button><button id="import-session">Open interview</button><button id="load-example">Explore an example</button><button id="reset-session" class="danger-text">Clear interview</button><p>Save a copy before closing this tab.</p></div><input type="file" id="session-file" accept="application/json,.json" hidden>
   </header>  <div class="notice" id="global-notice" role="status" hidden><span id="notice-text"></span><button id="dismiss-notice" aria-label="Dismiss notification">×</button></div>
   <div class="example-banner" id="example-banner" hidden><span><strong>Synthetic example</strong><span class="example-explanation"> · Fictional process data</span></span><button class="text-button" id="leave-example">Start your own <span aria-hidden="true">↗</span></button></div>
 
@@ -63,7 +65,7 @@
     </section>
 
     <section id="review-view" class="review-layout" aria-label="Draft process review" hidden>
-      <div class="review-heading"><div><span class="section-eyebrow">THE CAPTURE</span><h1>Review the work.</h1></div><div class="review-actions"><button class="button secondary" id="back-to-interview">Continue interview</button><button class="button primary" id="export-markdown" disabled>Export report .md <span aria-hidden="true">↓</span></button></div></div>
+      <div class="review-heading"><div><span class="section-eyebrow">THE CAPTURE</span><h1>Review the work.</h1></div><div class="review-actions"><button class="button secondary" id="submit-process-review">Submit process</button><button class="button secondary" id="back-to-interview">Continue interview</button><button class="button primary" id="export-markdown" disabled>Export report .md <span aria-hidden="true">↓</span></button></div></div>
       <div id="review-empty" class="empty-state"><div class="empty-icon" aria-hidden="true">↗</div><h2>Ready when you are.</h2><p>Answer your first question, then create a draft.</p><button class="button primary" id="empty-start">Go to interview</button></div>
       <div id="draft-content" hidden>
         <div class="draft-status"><span class="draft-pill">DRAFT · OWNER REVIEW REQUIRED</span><span id="draft-stale" hidden>New answers are not yet reflected in this draft.</span><button class="text-button small" id="regenerate-draft">Regenerate <span aria-hidden="true">↻</span></button></div>
@@ -80,8 +82,11 @@
     </section>
   </main>
 <dialog id="documents-dialog"></dialog>
+<dialog id="knowledge-submit" class="knowledge-dialog" aria-labelledby="knowledge-submit-title"></dialog>
+<dialog id="knowledge-admin" class="knowledge-dialog knowledge-admin" aria-labelledby="knowledge-admin-title"></dialog>
 <dialog id="interview-settings" class="interview-settings" aria-labelledby="settings-title">
-            <div class="settings-heading"><h3 id="settings-title">Interview settings</h3><button type="button" class="text-button" id="close-interview-settings">Done</button></div>
+            <div class="settings-heading"><h3 id="settings-title">Settings</h3><button type="button" class="text-button" id="close-interview-settings">Done</button></div>
+            <button type="button" id="open-knowledge-admin" class="button secondary small" hidden>Admin · Company knowledge</button>
             <p>Live voice uses GPT-Live 1. These playback settings apply to typed interviews.</p>
             <div id="voice-options" class="voice-options"><span id="voice-summary-label" hidden>Voice settings</span><div class="voice-options-content"><div class="voice-choice-row"><label for="voice-select">Question playback voice</label><select id="voice-select" aria-describedby="voice-description"></select></div><p id="voice-description" class="voice-description"></p><div class="voice-settings"><label class="check-label"><input type="checkbox" id="speak-questions"> Read typed questions aloud</label><label class="check-label"><input type="checkbox" id="stop-on-silence" checked> Finish recording on pause</label></div><p id="voice-availability" hidden></p></div></div><button type="button" class="button secondary small" id="preview-voice">Preview playback voice</button><span id="voice-status" role="status" hidden></span><button class="text-button small" id="stop-speaking" hidden>Stop voice</button>
             <p id="data-notice"></p>

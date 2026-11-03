@@ -37,7 +37,7 @@
     <section id="interview-view" class="interview-layout" aria-label="Interview workspace">
       <aside class="sidebar foundation-rail" aria-label="Memo foundation">
         <div class="rail-heading"><span class="section-eyebrow">11 ESSENTIAL TOPICS</span><span class="foundation-symbol" aria-hidden="true">⊞</span></div>
-        <h1>Memo<br> foundation.</h1>
+        <h2 class="foundation-title">Memo<br> foundation.</h2>
         <p class="rail-intro">A clear account of the work.</p>
         <div class="coverage-panel">
           <div class="coverage-header"><span>Captured</span><span id="coverage-count">0 / 11</span></div>
@@ -51,6 +51,13 @@
       <div class="interview-main">
         <details id="setup-card" class="setup-card" open>
           <summary><span><span class="setup-index">01</span><span id="setup-summary">Set up an interview</span></span><span class="details-toggle" aria-hidden="true">+</span></summary>
+          <div class="welcome" id="welcome">
+            <span class="section-eyebrow">FROM CONVERSATION TO CLARITY</span>
+            <h1>Make the<br> work clear.</h1>
+            <p>Start with a process you know.<br>We’ll ask the next useful question.</p>
+            <ul class="output-list" aria-label="Draft outputs"><li>Memo</li><li>Process map</li><li>Procedure</li></ul>
+            <button type="button" class="text-button" id="welcome-example">Explore an example <span aria-hidden="true">↗</span></button>
+          </div>
           <form id="context-form">
             <div class="setup-primary">
               <div><label for="process-name">Process name</label><input id="process-name" name="process_name" maxlength="180" placeholder="e.g. Investor onboarding" required autocomplete="off"></div>
@@ -69,25 +76,15 @@
         </details>
 
         <section class="conversation-panel" aria-label="Process interview">
-          <div class="conversation-toolbar">
-            <div><span class="section-eyebrow">THE CONVERSATION</span><h2>Interview</h2><p id="current-focus" class="current-focus" hidden></p></div>
+          <div class="conversation-toolbar active-only">
+            <div><span class="section-eyebrow">INTERVIEW</span><h2>Current question</h2><p id="current-focus" class="current-focus" hidden></p></div>
             <div class="conversation-tools">
               <div class="elapsed-clock active-only"><span id="elapsed-time">0:00</span><span id="planned-time">/ 60 min</span><button id="pause-timer" class="text-button small" disabled aria-label="Pause elapsed interview timer">Pause</button></div>
               <button class="button secondary small active-only" id="generate-draft" disabled><span>Create draft</span><span aria-hidden="true">↗</span></button>
             </div>
           </div>
-          <div class="conversation-scroll" id="conversation-scroll" tabindex="0" aria-label="Interview conversation">
-            <div class="welcome" id="welcome">
-              <div class="welcome-symbol" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M14 29v6m9-13v20m9-30v40m9-30v20m9-13v6"/></svg></div>
-              <h2>Talk through the work.</h2>
-              <p>One conversation. A memo, process map, and procedure to review.</p>
-              <button class="text-button" id="welcome-example">Explore an example <span aria-hidden="true">↗</span></button>
-            </div>
-            <div id="transcript" class="transcript" role="log" aria-label="Interview transcript" aria-live="polite" aria-relevant="additions"></div>
-            <div class="thinking" id="thinking" hidden><span class="pulse-dot"></span><span id="thinking-text">Preparing your next question…</span></div>
-            <details class="working-summary" id="working-summary" hidden><summary>Understanding so far</summary><p id="summary-text"></p></details>
-            <details class="parking-panel" id="parking-panel" hidden><summary>Parked for later <span id="parking-count"></span></summary><ul id="parking-list"></ul></details>
-          </div>
+          <div id="current-question" class="current-question active-only" role="region" aria-label="Current question" aria-live="polite" aria-relevant="additions"></div>
+          <div class="thinking" id="thinking" hidden><span class="pulse-dot"></span><span id="thinking-text">Preparing your next question…</span></div>
 
           <div class="composer-area">
             <div class="recording-status" id="recording-status" role="status" hidden><span class="recording-dot"></span><span id="recording-label">Listening</span><span id="recording-time">0:00</span><button id="cancel-recording" class="text-button small">Discard</button></div>
@@ -97,6 +94,15 @@
             </form>
             <div class="interview-actions"><button class="text-button small" id="skip-question" disabled>Skip question</button><button id="final-check" class="text-button small" disabled>Final check <span aria-hidden="true">↗</span></button></div>
             <div class="closure-row"><span id="closure-status"></span></div>
+          </div>
+
+          <details id="conversation-history" class="conversation-history active-only">
+            <summary><span>Earlier conversation <span id="history-count"></span></span><span aria-hidden="true">+</span></summary>
+            <div class="conversation-scroll" id="conversation-scroll" tabindex="0" aria-label="Earlier interview conversation"><div id="transcript" class="transcript" role="log" aria-label="Earlier interview transcript" aria-live="off"></div></div>
+          </details>
+          <div class="interview-context active-only">
+            <details class="working-summary" id="working-summary" hidden><summary>Understanding so far</summary><p id="summary-text"></p></details>
+            <details class="parking-panel" id="parking-panel" hidden><summary>Parked for later <span id="parking-count"></span></summary><ul id="parking-list"></ul></details>
           </div>
 
           <div class="conversation-bottom">
@@ -122,19 +128,28 @@
       <div id="review-empty" class="empty-state"><div class="empty-icon" aria-hidden="true">↗</div><h2>Ready when you are.</h2><p>Answer your first question, then create a draft.</p><button class="button primary" id="empty-start">Go to interview</button></div>
       <div id="draft-content" hidden>
         <div class="draft-status"><span class="draft-pill">DRAFT · OWNER REVIEW REQUIRED</span><span id="draft-stale" hidden>New answers are not yet reflected in this draft.</span><button class="text-button small" id="regenerate-draft">Regenerate <span aria-hidden="true">↻</span></button></div>
+        <nav class="review-jump-nav" aria-label="Review sections"><button data-review-target="review-memo">Memo</button><button data-review-target="review-map">Map</button><button data-review-target="review-procedure">Procedure</button><button data-review-target="review-lifecycles">Lifecycles</button><button data-review-target="review-variations">Variations</button><button data-review-target="review-questions">Questions</button></nav>
         <div class="review-grid">
           <div class="draft-main">
-            <article class="review-card memo-card"><div class="card-heading"><div><span class="section-eyebrow">01 / MEMO FOUNDATION</span><h2>Eleven answers.</h2></div><button class="button ghost small" id="export-memo">Export memo <span aria-hidden="true">↓</span></button></div><p class="map-help">Review each answer. UNKNOWN / TBD marks an open gap.</p><div id="memo-summary" class="memo-summary"></div></article>
-            <article class="review-card map-card"><div class="card-heading"><div><span class="section-eyebrow">02 / PROCESS MAP</span><h2>The flow.</h2></div><button class="button ghost small" id="export-map">Save map <span aria-hidden="true">↓</span></button></div><div class="map-container" id="process-map" tabindex="0" aria-label="Draft process map"></div><div class="map-legend"><span><i class="activity-legend"></i> Activity</span><span><i class="decision-legend"></i> Decision</span><span class="muted">Source references remain in the procedure.</span></div></article>
-            <article class="review-card procedure-card"><div class="card-heading"><div><span class="section-eyebrow">03 / PROCEDURE</span><h2>How it works.</h2></div><span class="editable-label">Editable</span></div><div class="draft-fields"><label for="draft-title">Title</label><input id="draft-title" maxlength="300"><label for="draft-overview">Overview</label><textarea id="draft-overview" rows="3" maxlength="12000"></textarea><label for="draft-trigger">Starting condition</label><textarea id="draft-trigger" rows="2" maxlength="6000"></textarea><div class="io-grid"><div><label for="draft-inputs">Inputs <small>One per line</small></label><textarea id="draft-inputs" rows="3" maxlength="10000"></textarea></div><div><label for="draft-outputs">Outputs <small>One per line</small></label><textarea id="draft-outputs" rows="3" maxlength="10000"></textarea></div></div></div><div class="steps-heading"><h3>Process steps</h3><button class="text-button small" id="add-step">+ Add step</button></div><div id="procedure-steps" class="procedure-steps"></div><details class="connections-editor"><summary>Map connections</summary><div id="connection-rows"></div><button class="text-button small" id="add-connection">+ Add connection</button></details></article>
-            <details class="review-card secondary-editor"><summary><span>Item lifecycles</span><span aria-hidden="true">+</span></summary><div class="secondary-editor-content"><div class="secondary-editor-toolbar"><p class="map-help">Stages, locations, and handoffs.</p><button class="text-button small" id="add-lifecycle">+ Add item</button></div><div id="lifecycle-items"></div></div></details>
-            <details class="review-card secondary-editor"><summary><span>Variations &amp; boundaries</span><span aria-hidden="true">+</span></summary><div class="secondary-editor-content"><div class="secondary-editor-toolbar"><p class="map-help">Where the process differs, and why.</p><button class="text-button small" id="add-variation">+ Add variation</button></div><div id="variation-items"></div></div></details>
+            <article id="review-memo" class="review-card memo-card"><div class="card-heading"><div><span class="section-eyebrow">01 / MEMO FOUNDATION</span><h2>Eleven answers.</h2></div><button class="button ghost small" id="export-memo">Export memo <span aria-hidden="true">↓</span></button></div><p class="map-help">Review each answer. UNKNOWN / TBD marks an open gap.</p><div id="memo-summary" class="memo-summary"></div></article>
+            <article id="review-map" class="review-card map-card"><div class="card-heading"><div><span class="section-eyebrow">02 / PROCESS MAP</span><h2>The flow.</h2></div><button class="button ghost small" id="export-map">Save map <span aria-hidden="true">↓</span></button></div><div class="map-container" id="process-map" tabindex="0" aria-label="Draft process map"></div><div class="map-legend"><span><i class="activity-legend"></i> Activity</span><span><i class="decision-legend"></i> Decision</span><span class="muted">Source references remain in the procedure.</span></div></article>
+            <article id="review-procedure" class="review-card procedure-card"><div class="card-heading"><div><span class="section-eyebrow">03 / PROCEDURE</span><h2>How it works.</h2></div><span class="editable-label">Editable</span></div><div class="draft-fields"><label for="draft-title">Title</label><input id="draft-title" maxlength="300"><label for="draft-overview">Overview</label><textarea id="draft-overview" rows="3" maxlength="12000"></textarea><label for="draft-trigger">Starting condition</label><textarea id="draft-trigger" rows="2" maxlength="6000"></textarea><div class="io-grid"><div><label for="draft-inputs">Inputs <small>One per line</small></label><textarea id="draft-inputs" rows="3" maxlength="10000"></textarea></div><div><label for="draft-outputs">Outputs <small>One per line</small></label><textarea id="draft-outputs" rows="3" maxlength="10000"></textarea></div></div></div><div class="steps-heading"><h3>Process steps</h3><button class="text-button small" id="add-step">+ Add step</button></div><div id="procedure-steps" class="procedure-steps"></div><details class="connections-editor"><summary>Map connections</summary><div id="connection-rows"></div><button class="text-button small" id="add-connection">+ Add connection</button></details></article>
+            <details id="review-lifecycles" class="review-card secondary-editor"><summary><span>Item lifecycles</span><span aria-hidden="true">+</span></summary><div class="secondary-editor-content"><div class="secondary-editor-toolbar"><p class="map-help">Stages, locations, and handoffs.</p><button class="text-button small" id="add-lifecycle">+ Add item</button></div><div id="lifecycle-items"></div></div></details>
+            <details id="review-variations" class="review-card secondary-editor"><summary><span>Variations &amp; boundaries</span><span aria-hidden="true">+</span></summary><div class="secondary-editor-content"><div class="secondary-editor-toolbar"><p class="map-help">Where the process differs, and why.</p><button class="text-button small" id="add-variation">+ Add variation</button></div><div id="variation-items"></div></div></details>
           </div>
-          <aside class="draft-sidebar"><article class="review-card"><span class="section-eyebrow">TO RESOLVE</span><h2>Review notes.</h2><label for="draft-open-questions">Open questions <small>One per line</small></label><textarea id="draft-open-questions" rows="6" maxlength="18000"></textarea><details class="notes-details"><summary>Validation notes</summary><label for="draft-validation-notes" class="sr-only">Validation notes, one per line</label><textarea id="draft-validation-notes" rows="5" maxlength="18000"></textarea></details></article><article class="review-card"><span class="section-eyebrow">CHECKS &amp; BRANCHES</span><h2>Beyond the usual.</h2><label for="draft-exceptions">Exceptions <small>One per line</small></label><textarea id="draft-exceptions" rows="5" maxlength="18000"></textarea><label for="draft-controls">Controls <small>One per line</small></label><textarea id="draft-controls" rows="5" maxlength="18000"></textarea></article><div class="review-guidance"><p>Review sources and resolve gaps with the process owner before publishing. A complete-looking draft is not proof of completeness.</p></div></aside>
+          <aside class="draft-sidebar"><article id="review-questions" class="review-card"><span class="section-eyebrow">TO RESOLVE</span><h2>Review notes.</h2><label for="draft-open-questions">Open questions <small>One per line</small></label><textarea id="draft-open-questions" rows="6" maxlength="18000"></textarea><details class="notes-details"><summary>Validation notes</summary><label for="draft-validation-notes" class="sr-only">Validation notes, one per line</label><textarea id="draft-validation-notes" rows="5" maxlength="18000"></textarea></details></article><article class="review-card"><span class="section-eyebrow">CHECKS &amp; BRANCHES</span><h2>Beyond the usual.</h2><label for="draft-exceptions">Exceptions <small>One per line</small></label><textarea id="draft-exceptions" rows="5" maxlength="18000"></textarea><label for="draft-controls">Controls <small>One per line</small></label><textarea id="draft-controls" rows="5" maxlength="18000"></textarea></article><div class="review-guidance"><p>Review sources and resolve gaps with the process owner before publishing. A complete-looking draft is not proof of completeness.</p></div></aside>
         </div>
       </div>
     </section>
   </main>
+  <dialog id="foundation-dialog" class="foundation-dialog" aria-labelledby="foundation-topic-title">
+    <div class="topic-dialog-top"><span class="section-eyebrow">MEMO FOUNDATION</span><button type="button" id="close-foundation-topic" class="dialog-close" aria-label="Close memo topic">×</button></div>
+    <span id="foundation-topic-status" class="topic-dialog-status"></span>
+    <h2 id="foundation-topic-title">Memo topic</h2>
+    <p id="foundation-topic-answer" class="topic-dialog-answer"></p>
+    <p id="foundation-topic-hint" class="topic-dialog-hint"></p>
+    <div id="foundation-topic-sources" class="topic-dialog-sources"></div>
+  </dialog>
   <footer class="app-footer"><span>AI Process Collector</span><span>Current practice. Clear capture.</span></footer>
   <div class="sr-only" id="live-status" role="status" aria-live="polite"></div>
 </body>

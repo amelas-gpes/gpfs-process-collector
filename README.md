@@ -2,7 +2,7 @@
 
 An adaptive voice interviewer that helps people explain how a business process works today, then turns their account into a reviewable memo, process map and detailed procedure.
 
-Version **0.3.0** simplifies the workspace with monochrome styling, a prominent memo foundation and a compact interview setup. Optional context and secondary controls stay available without crowding the conversation. Natural voice preview and the initial provider interface for the Azure handoff remain available.
+Version **0.4.0** focuses the workspace on the current question and your reply. Earlier conversation remains accessible in history, memo topics open their reported findings and sources, and review navigation leads directly to the memo, map and procedure. The monochrome interface keeps optional context and secondary controls available without crowding the interview. Natural voice preview and the initial provider interface for the Azure handoff remain available.
 
 The interview follows a reusable process-capture framework. It elicits the eleven memo topics naturally, follows useful answers, parks tangents, keeps unknowns explicit and seeks participant confirmation before closing. **60 minutes is the adjustable planning default, not a cutoff.**
 
@@ -67,6 +67,8 @@ Open **Voice** and select **Preview** before starting. The ten AI choices are Ma
 
 `Examples/Synthetic-reviewed-session.json` is a fictional review example. Open it through **Save & open → Open interview**; opening a saved file does not itself call the API. It demonstrates a 75-minute capture against a 60-minute plan with acknowledged gaps.
 
+Click a topic in **Memo foundation** to inspect the reported finding and its sources. Use **Earlier conversation** for the full transcript and the review section navigation for the memo, map, procedure and supporting details. Viewing these panels does not submit a question or change captured facts.
+
 ## Memo requirements
 
 - [Memo requirements and acceptance criteria](docs/MEMO_REQUIREMENTS.md): all eleven topics, memo-wide rules, six variation fields, boundary tests, user-added requirements and acceptance scenarios.
@@ -95,6 +97,7 @@ With an existing Node installation, run the frontend protocol and media checks:
 
 ```powershell
 & 'C:\path\to\existing\node.exe' .\tests\test_voice_frontend.cjs
+& 'C:\path\to\existing\node.exe' .\tests\test_ui_state.cjs
 ```
 
-**64 Python tests and 9 Node checks passed.** The tests mock OpenAI and use temporary local servers or simulated browser APIs. They make no external API calls or downloads; Node is not required to run the application. See [build verification](docs/BUILD_VERIFICATION.md) for evidence and limits.
+**64 Python tests and 15 Node checks passed (9 voice checks and 6 UI-state checks).** The tests mock OpenAI and use temporary local servers or simulated browser APIs. They make no external API calls or downloads; Node is not required to run the application. See [build verification](docs/BUILD_VERIFICATION.md) for evidence and limits.

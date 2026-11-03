@@ -1,6 +1,6 @@
 # Publication verification
 
-Verified on November 2, 2026, against the version 0.3.0 repository publication copy.
+Verified on November 2, 2026, against the version 0.4.0 repository publication copy.
 
 - **64 offline Python tests passed:** the original 45 prototype regressions, 4 portability checks and 15 voice/provider API tests. A synthetic injected identity provider works without an OpenAI key attribute; unsupported browser connection origins are rejected before binding. OpenAI responses were mocked; HTTP traffic stayed on temporary local servers.
 - **9 offline Node checks passed:** simulated Realtime event sequencing, PCM/WAV framing, speech-transcript mismatch rejection, cancellation, incomplete responses, audio-size limits, unrelated acknowledgments, Stop cleanup and unsupported provider/transport rejection before any socket is created. No browser or audio hardware was exercised by these tests.
@@ -23,3 +23,7 @@ The source memorandum's requirements are preserved in [MEMO_REQUIREMENTS.md](MEM
 ## Interface checks in 0.3.0
 
 The monochrome workspace was observed on desktop and at 320px/390px widths without horizontal document overflow. Checks covered required-field disclosure/focus, live interview start, natural voice preview, all eleven expandable memo topics, edits and source navigation, session save/open, and complete memo/procedure/SVG exports with collapsed review details. No console warnings/errors were observed. The original memo source hash was unchanged. See [validation](../VALIDATION.md) for scope and limits.
+
+## Focus and navigation checks in 0.4.0
+
+The 64 Python regressions and 9 voice checks passed. Six additional built-in Node UI-state checks cover exact turn partitioning, pending-question stability, evidence navigation, read-only reported findings, modal focus and review/context jumps with zero provider calls. Actual browser checks confirmed unique turn placement, topic details, Escape/close focus, source jumps, section navigation, preservation and restoration of an unsent answer, current-question narration, and 320px/390px reflow without document horizontal overflow. No console warnings/errors were observed. See [validation](../VALIDATION.md) for the observed scope and limits.

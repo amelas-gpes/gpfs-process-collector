@@ -14,6 +14,15 @@
     checks:"Checks, approvals and proof",variations:"Differences",pain_points:"Manual or painful work",
     risk:"Consequence of failure",materials:"Existing written material"
   };
+  const TOPIC_GUIDES = {
+    name:"The work's name, other names and boundary.",purpose:"The result this work is meant to deliver.",
+    trigger:"What starts the work, how often it happens and any deadlines.",completion:"What must be true for this work to be finished.",
+    accountable:"The role accountable for the overall result; it may remain unknown.",lifecycle:"The items, stages, locations and handoffs along the route.",
+    checks:"The reported checks, reviewers, approvals and supporting evidence.",variations:"Where the process differs and whether that changes its boundary.",
+    pain_points:"Manual work, waiting, rework and other friction.",risk:"What happens if this work is late, wrong or missed.",
+    materials:"Existing procedures, templates, examples and other useful records."
+  };
+  let foundationTopic = null, foundationReturnFocus = null, foundationRestoreFocus = true;
   const state = {
     context: null, turns: [], coverage: [], summary: "", draft: null,
     started: false, busy: false, version: 0, generation: 0,
@@ -73,13 +82,15 @@
   function tab(name, focus = false) {
     $("interview-view").hidden = name !== "interview";
     $("review-view").hidden = name !== "review";
+    document.body?.classList.toggle("review-mode", name === "review");
     document.querySelectorAll(".nav-tab").forEach(button => {
       const active = button.dataset.tab === name;
       button.classList.toggle("active", active);
       if (active) button.setAttribute("aria-current", "page"); else button.removeAttribute("aria-current");
     });
     if (focus) {
-      const target = name === "review" ? $("review-view") : $("answer-text");
+      const target = name === "review" ? $("review-view") : state.started ? $("answer-text") : $("process-name");
+      if (name === "interview" && !state.started) revealAncestors(target);
       target.tabIndex = -1;
       target.focus({preventScroll: true});
     }
@@ -138,6 +149,7 @@
     $("example-banner").hidden = !state.example;
     $("draft-stale").hidden = !state.draft || state.draftVersion === state.version;
     $("thinking").hidden = !working;
+    if ($("current-question")) $("current-question").setAttribute("aria-busy", String(state.busy));
     $("thinking-text").textContent = state.requestingMic ? "Waiting for microphone permission…" : state.transcribing ? "Turning your recording into an editable answer…" : state.busyMessage || "Finding the next useful question…";
     $("record-answer").classList.toggle("recording", recording);
     $("record-answer").querySelector("span").textContent = recording ? "Finish" : "Speak";
@@ -179,19 +191,63 @@
       const status = finding?.status === "not_applicable" || finding?.status === "captured" ? "covered" : finding?.status === "partial" ? "partial" : ["partial", "covered"].includes(item?.status) ? item.status : "missing";
       if (status === "covered") completed++;
       if (status === "partial") partial++;
-      const node = el("div", `coverage-item ${status}`);
+      const node = el("button", `coverage-item ${status}`);
+      node.type = "button";
+      node.dataset.foundationTopic = key;
+      node.setAttribute("aria-haspopup", "dialog");
+      node.setAttribute("aria-controls", "foundation-dialog");
+      node.classList.toggle("selected", foundationTopic === key && Boolean($("foundation-dialog")?.open));
       node.title = `${label}: ${finding?.status === "not_applicable" ? "not applicable (participant confirmed)" : status === "missing" ? "not yet explored" : status}`;
       node.setAttribute("aria-label", node.title);
       node.append(el("span", "coverage-dot", status === "covered" ? "✓" : ""), el("span", "", label));
+      node.addEventListener("click", () => showFoundationTopic(key,node));
       root.append(node);
     });
     $("coverage-count").textContent = `${completed} / ${TOPICS.length}`;
     $("coverage-progress").style.width = `${(completed + partial * .5) / TOPICS.length * 100}%`;
   }
+  function showFoundationTopic(key, trigger) {
+    if (!TOPICS.some(([topic]) => topic === key)) return;
+    const dialog = $("foundation-dialog");
+    if (!dialog || typeof dialog.showModal !== "function") {notice("Topic details are unavailable in this browser. Please use a current browser.",true);return;}
+    const finding = state.memo_findings.find(item => item.key === key);
+    const labels = {unknown:"Unknown / TBD",partial:"Partial",captured:"Captured",not_applicable:"Not applicable"};
+    foundationTopic = key; foundationReturnFocus = trigger; foundationRestoreFocus = true;
+    $("foundation-topic-title").textContent = MEMO_HEADINGS[key];
+    $("foundation-topic-status").textContent = labels[finding?.status] || labels.unknown;
+    $("foundation-topic-answer").textContent = finding?.answer?.trim() ? finding.answer : "Not yet established in this interview.";
+    $("foundation-topic-hint").textContent = finding?.answer?.trim() ? "Reported from the interview; not independently verified. Review the cited answers for context." : TOPIC_GUIDES[key];
+    $("foundation-topic-sources").replaceChildren(evidenceRow(finding?.evidence_turns || [], () => closeFoundationTopic(false)));
+    if (!dialog.open) dialog.showModal();
+    document.querySelectorAll("[data-foundation-topic]").forEach(button => button.classList.toggle("selected",button.dataset.foundationTopic === key));
+  }
+  function closeFoundationTopic(restoreFocus = true) {
+    foundationRestoreFocus = restoreFocus;
+    $("foundation-dialog")?.close();
+  }
+  function initFoundationDialog() {
+    $("close-foundation-topic").addEventListener("click",() => closeFoundationTopic());
+    $("foundation-dialog").addEventListener("close",() => {
+      document.querySelectorAll("[data-foundation-topic]").forEach(button => button.classList.remove("selected"));
+      const trigger = foundationReturnFocus?.isConnected ? foundationReturnFocus : document.querySelector(`[data-foundation-topic="${foundationTopic}"]`);
+      if (foundationRestoreFocus) trigger?.focus({preventScroll:true});
+      foundationReturnFocus = null; foundationTopic = null; foundationRestoreFocus = true;
+    });
+  }
   function renderTranscript() {
     const root = $("transcript");
+    const current = $("current-question");
+    const latest = state.turns.findLast(turn => turn.role === "assistant");
     root.replaceChildren();
     state.turns.forEach(turn => {
+      const isCurrent = turn === latest;
+      const retained = current.firstElementChild;
+      if (isCurrent && retained?.id === `turn-${turn.id}` && retained.querySelector(".turn-text")?.textContent === turn.text) {
+        const listen = retained.querySelector(".play-turn");
+        listen.disabled = !canSpeakChoice();
+        listen.title = canSpeakChoice() ? `Play using ${voiceLabel()}` : "Choose an available interviewer voice.";
+        return;
+      }
       const item = el("article", `turn ${turn.role}`);
       item.id = `turn-${turn.id}`;
       const avatar = el("div", "turn-avatar", turn.role === "assistant" ? "AI" : "YOU");
@@ -213,8 +269,13 @@
         content.append(play);
       }
       item.append(avatar, content);
-      root.append(item);
+      if (isCurrent) current.replaceChildren(item); else root.append(item);
     });
+    if (!latest) current.replaceChildren();
+    current.hidden = !latest;
+    const historyLength = state.turns.length - (latest ? 1 : 0);
+    $("conversation-history").hidden = !historyLength;
+    $("history-count").textContent = historyLength ? `${historyLength} ${historyLength === 1 ? "message" : "messages"}` : "";
     $("working-summary").hidden = !state.summary;
     $("summary-text").textContent = state.summary;
     $("parking-panel").hidden = !state.parking_lot.length;
@@ -829,15 +890,32 @@
   }
   function jumpToTurn(id) {
     tab("interview");
-    if (id === "context") {revealContext();$("context-form").scrollIntoView({behavior:"smooth",block:"center"});notice("This step cites the interview context. Validate it with the process owner."); return;}
+    if (id === "context") {
+      revealContext();
+      const context = $("context-form");
+      context.scrollIntoView({behavior:"smooth",block:"center"});
+      context.tabIndex = -1;
+      context.focus({preventScroll:true});
+      notice("This step cites the interview context. Validate it with the process owner.");
+      return;
+    }
     const turn = document.getElementById(`turn-${id}`);
     if (!turn) { notice(`Source ${id} is not present in this session. Validate this step with the process owner.`, true); return; }
+    revealAncestors(turn);
     turn.scrollIntoView({behavior: "smooth", block: "center"});
     turn.classList.remove("highlight");
     void turn.offsetWidth;
     turn.classList.add("highlight");
     turn.tabIndex = -1;
     turn.focus({preventScroll: true});
+  }
+  function jumpToReview(id) {
+    const target = $(id);
+    if (!target) return;
+    revealAncestors(target);
+    target.scrollIntoView({behavior:"smooth",block:"start"});
+    target.tabIndex = -1;
+    target.focus({preventScroll:true});
   }
   function sourceCaption(id) {
     if (id === "context") return "Starting context";
@@ -921,7 +999,7 @@
     });
     if (!state.draft.connections.length) root.append(el("p", "muted", "No connections have been defined. Add connections between the steps to show the flow."));
   }
-  function evidenceRow(ids) {
+  function evidenceRow(ids, beforeJump = null) {
     const evidence = el("div","evidence-row");
     evidence.append(el("span","","Sources:"));
     if (!ids.length) evidence.append(el("span","needs-evidence","UNKNOWN / TBD · needs validation"));
@@ -929,7 +1007,7 @@
       const source = el("button","evidence-link",sourceCaption(id));
       source.title = `Source: ${id}`;
       source.setAttribute("aria-label",`Read ${sourceCaption(id)}`);
-      source.addEventListener("click",() => jumpToTurn(id));
+      source.addEventListener("click",() => {beforeJump?.();jumpToTurn(id);});
       evidence.append(source);
     });
     return evidence;
@@ -1131,6 +1209,7 @@
     return !state.dirty || confirm("Replace the current session? Unsaved interview text and draft edits will be cleared. Save the session first if you want to keep them.");
   }
   function clearState(context = null) {
+    if ($("foundation-dialog")?.open) closeFoundationTopic(false);
     stopSpeaking();
     finishRecording(true);
     state.generation++;
@@ -1138,6 +1217,7 @@
     Object.assign(state,{context,turns:[],coverage:[],summary:"",draft:null,started:false,busy:false,requestingMic:false,transcribing:false,draftVersion:null,draftEdited:false,example:false,dirty:false,memo_findings:[],focus:"",parking_lot:[],closure:{asked:false,confirmed:false},elapsedMs:0,timerStartedAt:null});
     $("answer-text").value = "";
     $("global-notice").hidden = true;
+    $("live-status").textContent = "";
     fillContext(context);
     renderTranscript(); renderDraft(); tab("interview"); closeMenu();
   }
@@ -1224,7 +1304,9 @@
     notice("Example opened. Explore the map, memo and procedure in Review.");
   }
   function initEvents() {
+    initFoundationDialog();
     document.querySelectorAll(".nav-tab").forEach(button => button.addEventListener("click", () => tab(button.dataset.tab)));
+    document.querySelectorAll("[data-review-target]").forEach(button => button.addEventListener("click",() => jumpToReview(button.dataset.reviewTarget)));
     $("context-form").addEventListener("submit",startInterview);
     $("context-form").addEventListener("invalid",event => {revealAncestors(event.target);event.target.focus();},true);
     $("answer-form").addEventListener("submit",sendAnswer);
@@ -1259,7 +1341,7 @@
     $("generate-draft").addEventListener("click",generateDraft);
     $("regenerate-draft").addEventListener("click",generateDraft);
     $("back-to-interview").addEventListener("click",() => tab("interview",true));
-    $("empty-start").addEventListener("click",() => tab("interview"));
+    $("empty-start").addEventListener("click",() => tab("interview",true));
     $("dismiss-notice").addEventListener("click",() => {$("global-notice").hidden = true;});
     $("session-menu-toggle").addEventListener("click",() => {const open = $("session-menu").hidden; $("session-menu").hidden = !open; $("session-menu-toggle").setAttribute("aria-expanded",String(open));});
     document.addEventListener("click",event => {if (!$("session-menu").contains(event.target) && !$("session-menu-toggle").contains(event.target)) closeMenu();});

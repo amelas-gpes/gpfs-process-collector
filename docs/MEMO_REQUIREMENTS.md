@@ -2,7 +2,7 @@
 
 This document translates a September 2026 process-capture memorandum into requirements for AI Process Collector. The organization-specific branding is intentionally omitted. The original source is retained locally; its SHA-256 is `7ad850f29c6eab8e5224aa423321c9d507c5af1c7ed2535498e65db697407622`.
 
-The memo defines the process-capture foundation. The user separately requested a voice interviewer, adaptive follow-up questions, an editable process map and detailed procedure, and a flexible meeting length with a 60-minute planning default. Those additions are identified below; they must not turn the memo's honest first-pass capture into an invented future-state SOP.
+The memo defines the process-capture foundation. The user separately requested a voice interviewer, adaptive follow-up questions, an editable process map and detailed procedure, a flexible meeting length with a 60-minute planning default, and selectable voices that sound more natural. Those additions are identified below; they must not turn the memo's honest first-pass capture into an invented future-state SOP.
 
 `FOUNDATION.md` is the standing interview policy loaded for interview and draft-generation requests. This requirements document is the review and acceptance reference. It is not evidence that every conversational requirement has been demonstrated reliably.
 
@@ -73,13 +73,14 @@ For **each variation**, retain all six source fields, including explicit unknown
 
 | ID | Requirement | Acceptance criterion |
 | --- | --- | --- |
-| U01 | Voice interview with an editable text alternative. | Ask questions aloud when an installed supported voice is available. Record answers only after a user action; allow correction of the transcription before submission and allow typed answers. |
+| U01 | Voice interview with an editable text alternative. | Ask questions aloud using the selected natural AI or installed computer voice when available. Record answers only after a user action; allow correction of the transcription before submission and allow typed answers. |
 | U02 | Adaptive, natural elicitation. | Use each response to choose the next useful question. Do not literally recite the memo's questionnaire, repeat answered details or ask several unrelated questions in one turn. |
 | U03 | Return to the foundation instead of following endless tangents. | Maintain memo coverage, the normal route, specific step gaps and a parking list. After an explicit unknown, seek a clarifying person/material or record the gap and move on. Do not continue probing the same unknown indefinitely. |
 | U04 | Flexible meeting duration. | Default the plan to 60 minutes, permit adjustment and continuation, and never use elapsed time as evidence of completion or as an automatic cutoff. Disclose separate technical context limits and preserve a continuation path. |
 | U05 | Clear process map and detailed procedure for review. | Show the known sequence, decisions, branches, responsibilities and locations. For each step include action, input, output, completion criterion and handoff where established. Name missing necessary detail so a reader does not silently fill it in. |
 | U06 | Reach an explicit closing point. | Recap the account and gaps, invite corrections and ask a final omissions question. Follow up on additions. Mark confirmation pending until a participant replies; do not equate topic coverage, elapsed time or draft readiness with confirmation. Honour an explicit request to stop with gaps retained. |
 | U07 | Save, restore and export the reviewable capture. | Preserve the interview and edits through an explicit session save/open operation. Export the concise memo separately from the full procedure appendix and map. Do not silently replace reviewed edits when regenerating. |
+| U08 | Selectable, more natural question playback. | Offer ten AI voices with Marin as the default and Cedar as an alternative, an explicit installed-computer-voice choice, and Preview voice before starting. Use `gpt-realtime-2.1-mini` with a short-lived browser client token while keeping the project key server-side. Read the displayed question; withhold mismatched speech and allow Stop. Do not silently fall back to a computer voice or claim human-level listening quality without evaluation. |
 
 The intended outcome is that the participant has had a meaningful opportunity to explain everything they know about the selected process. The application cannot guarantee exhaustive knowledge capture, factual truth or an executable procedure where necessary facts remain unknown. Participant confirmation of their account, process-owner approval and independent verification are separate events.
 
@@ -105,7 +106,7 @@ The implementation pointers below describe the prototype, not a production guara
 | Advisory meeting length | Planned and elapsed timing metadata; frontend timer and pause/resume. | Automated requests beyond the planned length are accepted. A fictional live request at 75 elapsed minutes with a 60-minute plan continued. Time is not a completion condition. |
 | Final omissions check and reply ordering | `server.py`: `FINAL_CHECK_PREFIX`, `enforce_closure`; frontend Final completeness check action. | Automated tests require a real assistant check and a later participant reply before confirmation can remain true. A live fictional confirmation flow passed. Interpreting the meaning of the reply remains model-assisted. |
 | Draft review, save/restore and exports | Editable review screen; JSON session save/open; memo/procedure Markdown and map SVG exports. | Browser checks exercised map editing, exports and session restoration. There is no automatic session persistence. |
-| Voice interaction | Browser recording, API transcription and installed local voice playback. | Synthesized speech transcribed in a live API check and a local voice was observed available. Physical microphone capture, subjective playback quality and a full human interview remain unverified. |
+| Voice interaction and selectable playback | Browser recording, API transcription, `OpenAIClient.voice_session`, ten AI choices with Marin default, Preview voice, installed English computer voices and saved `voice_choice`. | The 61 Python tests include 12 voice API/security checks; 8 Node checks cover mocked Realtime/media behavior. Live Marin and Cedar generation returned the requested sample with matching transcripts (about 5.65/6.05 seconds). A browser preview reached Speaking for Cedar and completed without console warnings/errors; the selector switched back to Marin. Physical listening, microphone capture, subjective voice quality and a full human interview remain unverified. |
 
 ## 7. Acceptance review scenarios
 
@@ -122,5 +123,7 @@ Use fictional or appropriately permitted process information for acceptance revi
 - The user requests the final check before every topic is resolved: the agent asks about omissions, retains the named gaps and does not imply verification or approval.
 - The participant adds information during closure: update the account and seek confirmation again rather than preserving an obsolete completed state.
 - The participant stops early: preserve a partial capture and its remaining questions without claiming exhaustive completion.
+- Before an interview, preview Marin and Cedar and compare their suitability. Switch to an installed computer voice only through an explicit selection. Record subjective listening results separately from provider generation or protocol-test results.
+- Stop playback, change voice or begin recording while AI audio is pending: the pending operation must be cancelled and stale audio must not play. If the returned transcript differs from the question, withhold playback and leave the original question available as text.
 
 Teams participation, production deployment, production retention/access controls and a guarantee that a participant has nothing further to say are outside the demonstrated prototype evidence. Teams connection is a later integration step.

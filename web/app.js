@@ -19,6 +19,7 @@
     started: false, busy: false, version: 0, generation: 0,
     draftVersion: null, draftEdited: false, example: false, dirty: false,
     config: null, utterance: null, voice: null, speechVersion: 0,
+    localVoices: [], voiceChoice: null, voiceChoiceUser: false, speechOperation: null,
     recording: null, requestingMic: false, transcribing: false,
     memo_findings: [], focus: "", parking_lot: [], closure: {asked:false,confirmed:false},
     elapsedMs: 0, timerStartedAt: null
@@ -127,8 +128,11 @@
     $("record-answer").classList.toggle("recording", recording);
     $("record-answer").querySelector("span").textContent = recording ? "Finish answer" : "Record answer";
     $("recording-status").hidden = !recording;
-    $("speak-questions").disabled = !state.voice;
-    $("speak-questions").title = state.voice ? `Installed local voice: ${state.voice.name}` : "No installed local English voice is available. Questions remain readable on screen.";
+    const voiceReady = canSpeakChoice();
+    $("speak-questions").disabled = !voiceReady;
+    $("speak-questions").title = voiceReady ? `Selected voice: ${voiceLabel()}` : "Choose an available voice. Questions remain readable on screen.";
+    $("voice-select").disabled = recording || state.requestingMic;
+    $("preview-voice").disabled = !voiceReady || working || recording;
     $("welcome").hidden = state.turns.length > 0 || working;
     $("review-empty").hidden = Boolean(state.draft);
     $("draft-content").hidden = !state.draft;
@@ -185,9 +189,9 @@
         const play = el("button", "play-turn");
         play.innerHTML = icons.play;
         play.append(document.createTextNode(" Listen"));
-        play.setAttribute("aria-label", `Listen to question ${turn.id} in a synthetic computer voice`);
-        play.disabled = !state.voice;
-        play.title = state.voice ? `Play using ${state.voice.name}` : "No installed local English voice is available.";
+        play.setAttribute("aria-label", `Listen to question ${turn.id} using the selected voice`);
+        play.disabled = !canSpeakChoice();
+        play.title = canSpeakChoice() ? `Play using ${voiceLabel()}` : "Choose an available interviewer voice.";
         play.addEventListener("click", () => speak(turn.text));
         content.append(play);
       }
@@ -207,7 +211,10 @@
     const timeout = setTimeout(() => controller.abort(), options.timeout || 150000);
     const external = options.signal;
     const abort = () => controller.abort();
-    if (external) external.addEventListener("abort", abort, {once: true});
+    if (external) {
+      external.addEventListener("abort", abort, {once: true});
+      if (external.aborted) controller.abort();
+    }
     try {
       const headers = {"X-CSRF-Token": state.config?.csrf_token || ""};
       let body;
@@ -234,18 +241,178 @@
   }
   function stopSpeaking() {
     state.speechVersion++;
+    const operation = state.speechOperation;
+    state.speechOperation = null;
+    if (operation) {
+      clearTimeout(operation.timer);
+      operation.controller.abort();
+      try { operation.socket?.close(); } catch { /* Socket may still be connecting. */ }
+      operation.audio?.pause();
+      if (operation.audio) operation.audio.removeAttribute("src");
+      if (operation.url) URL.revokeObjectURL(operation.url);
+    }
     window.speechSynthesis?.cancel();
     state.utterance = null;
     $("stop-speaking").hidden = true;
+    $("voice-status").hidden = true;
+  }
+  function naturalVoices() {
+    const voices = state.config?.speech?.voices;
+    return Array.isArray(voices) ? voices.filter(v => v && typeof v.id === "string" && /^[a-z]+$/.test(v.id)).map(v => ({id:v.id,label:text(v.label,80)||v.id,description:text(v.description,250)})) : [];
+  }
+  const localVoiceId = voice => `local:${voice.voiceURI || voice.name}`;
+  function selectedNaturalVoice() {
+    if (!state.voiceChoice?.startsWith("ai:")) return null;
+    return naturalVoices().find(v => `ai:${v.id}` === state.voiceChoice) || null;
+  }
+  function canSpeakChoice() {
+    return selectedNaturalVoice() ? Boolean(state.config?.speech?.enabled && window.WebSocket) : Boolean(state.voice && window.speechSynthesis && window.SpeechSynthesisUtterance);
+  }
+  function voiceLabel() {return selectedNaturalVoice()?.label || state.voice?.name || "Unavailable voice";}
+  function populateVoiceOptions() {
+    const select = $("voice-select");
+    const ai = naturalVoices();
+    if (!state.voiceChoiceUser && state.config?.speech?.enabled && ai.length) {
+      const preferred = state.config.speech.default_voice;
+      state.voiceChoice = `ai:${ai.find(v => v.id === preferred)?.id || ai[0].id}`;
+    } else if (!state.voiceChoice && state.localVoices.length) {
+      const preferred = state.localVoices.find(v => /^en[-_]US$/i.test(v.lang)) || state.localVoices.find(v => v.default) || state.localVoices[0];
+      state.voiceChoice = localVoiceId(preferred);
+    }
+    select.replaceChildren();
+    if (ai.length) {
+      const group = el("optgroup"); group.label = "Natural AI voices";
+      ai.forEach(voice => {const option=el("option","",voice.label);option.value=`ai:${voice.id}`;option.disabled=!state.config?.speech?.enabled;group.append(option);});
+      select.append(group);
+    }
+    if (state.localVoices.length) {
+      const group = el("optgroup"); group.label = "Installed computer voices";
+      state.localVoices.forEach(voice => {const option=el("option","",`${voice.name} · ${voice.lang}`);option.value=localVoiceId(voice);group.append(option);});
+      select.append(group);
+    }
+    if (!Array.from(select.options).some(o => o.value === state.voiceChoice)) {
+      const option=el("option","",state.voiceChoice ? "Saved voice unavailable — choose a voice" : "No voice is currently available");
+      option.value=state.voiceChoice || "";option.disabled=true;select.prepend(option);
+    }
+    select.value = state.voiceChoice || "";
+    state.voice = state.localVoices.find(v => localVoiceId(v) === state.voiceChoice) || null;
+    const natural = selectedNaturalVoice();
+    $("voice-description").textContent = natural ? `${natural.description || natural.label} · AI-generated speech from OpenAI.` : state.voice ? "Installed computer voice · playback stays on this device." : "Choose an available voice to hear questions. Text remains available.";
+    $("voice-availability").hidden = canSpeakChoice();
+    $("voice-availability").textContent = canSpeakChoice() ? "" : natural ? "The natural AI voice is unavailable. You can choose an installed computer voice or read the questions." : "No selected voice is available. Choose another voice or read the questions.";
+    updateControls();
+    renderTranscript();
+  }
+  function refreshVoices() {
+    state.localVoices = (window.speechSynthesis?.getVoices() || []).filter(v => v.localService && /^en(?:[-_]|$)/i.test(v.lang));
+    populateVoiceOptions();
+  }
+  function normalizedSpeech(value) {
+    return value.normalize("NFKC").toLocaleLowerCase("en").replace(/[^\p{L}\p{N}]/gu, "");
+  }
+  function pcmWave(chunks, length) {
+    if (length < 2 || length % 2) throw new Error("The AI voice returned incomplete audio. Please try again.");
+    const bytes = new Uint8Array(44 + length);
+    const view = new DataView(bytes.buffer);
+    const ascii = (offset, value) => {for (let i=0;i<value.length;i++) bytes[offset+i]=value.charCodeAt(i);};
+    ascii(0,"RIFF");view.setUint32(4,36+length,true);ascii(8,"WAVE");ascii(12,"fmt ");view.setUint32(16,16,true);
+    view.setUint16(20,1,true);view.setUint16(22,1,true);view.setUint32(24,24000,true);view.setUint32(28,48000,true);
+    view.setUint16(32,2,true);view.setUint16(34,16,true);ascii(36,"data");view.setUint32(40,length,true);
+    let offset=44;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
+    return new Blob([bytes],{type:"audio/wav"});
+  }
+  function naturalSpeechAudio(session, message, operation) {
+    return new Promise((resolve,reject) => {
+      let settled=false,inputSent=false,responseSent=false,bytes=0,transcript="";
+      const chunks=[];
+      const itemId=`voice_${state.speechVersion}_${Date.now()}`;
+      const fail=message => finish(new Error(message));
+      let socket;
+      const abort=() => finish(new DOMException("Voice playback canceled.","AbortError"));
+      const finish=(error,blob) => {
+        if(settled)return;settled=true;
+        operation.controller.signal.removeEventListener("abort",abort);
+        if(operation.socket===socket)operation.socket=null;
+        try{socket?.close();}catch{/* Closing a connecting socket may fail. */}
+        chunks.length=0;
+        if(error)reject(error);else resolve(blob);
+      };
+      if(operation.controller.signal.aborted){abort();return;}
+      operation.controller.signal.addEventListener("abort",abort,{once:true});
+      try {
+        socket=new WebSocket(`wss://api.openai.com/v1/realtime?model=${encodeURIComponent(session.model)}`,["realtime",`openai-insecure-api-key.${session.client_secret}`]);
+        operation.socket=socket;
+      } catch {fail("The natural AI voice could not connect. Please try again or choose an installed computer voice.");return;}
+      socket.addEventListener("message",event => {
+        if(settled)return;
+        if(typeof event.data!=="string"||event.data.length>12*1024*1024){fail("The AI voice returned an unsupported audio response.");return;}
+        let packet;try{packet=JSON.parse(event.data);}catch{fail("The AI voice returned an unreadable response.");return;}
+        try {
+          if(packet.type==="session.created"&&!inputSent){
+            inputSent=true;
+            socket.send(JSON.stringify({type:"conversation.item.create",item:{id:itemId,type:"message",role:"user",content:[{type:"input_text",text:message}]}}));
+          } else if(packet.type==="conversation.item.done"&&packet.item?.id===itemId&&packet.item?.role==="user"&&!responseSent){
+            responseSent=true;
+            socket.send(JSON.stringify({type:"response.create",response:{output_modalities:["audio"],max_output_tokens:2048}}));
+          } else if(packet.type==="response.output_audio.delta"){
+            if(typeof packet.delta!=="string"||packet.delta.length*3/4+bytes>8*1024*1024){fail("This spoken question exceeds the audio limit. Read it on screen or try a shorter preview.");return;}
+            const raw=atob(packet.delta),chunk=new Uint8Array(raw.length);
+            for(let i=0;i<raw.length;i++)chunk[i]=raw.charCodeAt(i);
+            bytes+=chunk.length;chunks.push(chunk);
+          } else if(packet.type==="response.output_audio_transcript.delta"&&typeof packet.delta==="string"){
+            transcript+=packet.delta;
+          } else if(packet.type==="response.output_audio_transcript.done"&&typeof packet.transcript==="string"){
+            transcript=packet.transcript;
+          } else if(packet.type==="response.done"){
+            if(packet.response?.status!=="completed"){fail("The AI voice did not finish this question. Please try again.");return;}
+            if(normalizedSpeech(transcript)!==normalizedSpeech(message)){fail("The AI voice did not read the question exactly, so playback was withheld. Try Preview or Listen again; the original question remains on screen.");return;}
+            finish(null,pcmWave(chunks,bytes));
+          } else if(packet.type==="error"){
+            fail("OpenAI could not generate the selected AI voice. Try again or choose an installed computer voice.");
+          }
+        } catch {fail("The AI voice returned an incomplete response. Please try again.");}
+      });
+      socket.addEventListener("error",()=>fail("The natural AI voice connection failed. Please try again or choose an installed computer voice."));
+      socket.addEventListener("close",()=>{if(!settled)fail("The natural AI voice connection closed before the question was ready. Please try again.");});
+    });
+  }
+  async function speakNatural(message, voice, version) {
+    const operation={controller:new AbortController(),socket:null,audio:null,url:null,timer:null};
+    state.speechOperation=operation;
+    $("stop-speaking").hidden=false;$("voice-status").hidden=false;$("voice-status").textContent="Preparing AI voice…";
+    let timedOut=false;
+    operation.timer=setTimeout(()=>{timedOut=true;operation.controller.abort();},60000);
+    try {
+      const session=await request("/api/voice-session",{voice:voice.id},{signal:operation.controller.signal,timeout:60000});
+      if(version!==state.speechVersion)return;
+      if(typeof session.client_secret!=="string"||typeof session.model!=="string")throw new Error("The AI voice session could not be opened. Please try again.");
+      const blob=await naturalSpeechAudio(session,message,operation);
+      if(version!==state.speechVersion)return;
+      clearTimeout(operation.timer);
+      operation.url=URL.createObjectURL(blob);
+      operation.audio=new Audio(operation.url);
+      const ended=()=>{if(version===state.speechVersion)stopSpeaking();};
+      operation.audio.addEventListener("ended",ended,{once:true});
+      operation.audio.addEventListener("error",()=>{if(version===state.speechVersion){stopSpeaking();notice("The AI voice audio could not play. Try Listen again or choose another voice.",true);}},{once:true});
+      $("voice-status").textContent=`Speaking · ${voice.label}`;
+      await operation.audio.play();
+    } catch(error) {
+      if(version!==state.speechVersion)return;
+      stopSpeaking();
+      if(timedOut)notice("The natural AI voice took too long. Try Preview or Listen again, or choose an installed computer voice.",true);
+      else if(error.name!=="AbortError")notice(error.name==="NotAllowedError"?"Your browser paused voice playback. Select Listen or Preview voice to try again.":error.message,true);
+    }
   }
   function speak(message, automatic = false) {
-    if (!state.voice || !window.speechSynthesis || !window.SpeechSynthesisUtterance) {
-      if (!automatic) notice("No installed local English voice is available in this browser. The question is available as text.", true);
+    if (!canSpeakChoice()) {
+      if (!automatic) notice("Choose an available interviewer voice. The question remains available as text.", true);
       return;
     }
-    if (state.recording) { if (!automatic) notice("Finish recording your answer before playing a question."); return; }
+    if (state.recording || state.requestingMic) { if (!automatic) notice("Finish recording your answer before playing a question."); return; }
     stopSpeaking();
     const version = state.speechVersion;
+    const natural=selectedNaturalVoice();
+    if(natural){void speakNatural(message,natural,version);return;}
     const utterance = new SpeechSynthesisUtterance(message);
     utterance.voice = state.voice;
     utterance.lang = state.voice.lang;
@@ -267,18 +434,6 @@
       stopSpeaking();
       notice("Voice playback was unavailable. Use Listen beneath the question to try again, or read the question on screen.", true);
     }
-  }
-  function refreshVoices() {
-    const voices = window.speechSynthesis?.getVoices() || [];
-    const local = voices.filter(v => v.localService && /^en(?:[-_]|$)/i.test(v.lang));
-    const previous = state.voice;
-    state.voice = local.find(v => /^en[-_]US$/i.test(v.lang)) || local.find(v => v.default) || local[0] || null;
-    if (!previous && state.voice) $("speak-questions").checked = true;
-    if (!state.voice) $("speak-questions").checked = false;
-    $("voice-availability").hidden = Boolean(state.voice);
-    $("voice-availability").textContent = state.voice ? "" : "No local English playback voice available. Questions remain on screen.";
-    updateControls();
-    renderTranscript();
   }
   function elapsedMs() {return state.elapsedMs + (state.timerStartedAt === null ? 0 : Date.now() - state.timerStartedAt);}
   function updateTimer() {
@@ -881,7 +1036,7 @@
     setTimeout(() => URL.revokeObjectURL(url), 10000);
   }
   function sessionObject() {
-    return {schema_version:1,saved_at:new Date().toISOString(),context:state.context||readContext(),turns:state.turns,coverage:state.coverage,summary:state.summary,memo_findings:state.memo_findings,focus:state.focus,parking_lot:state.parking_lot,closure:state.closure,elapsed_seconds:Math.floor(elapsedMs()/1000),draft:state.draft,draft_stale:Boolean(state.draft&&state.draftVersion!==state.version),draft_edited:state.draftEdited,synthetic_example:state.example,unsent_answer:$("answer-text").value};
+    return {schema_version:1,saved_at:new Date().toISOString(),context:state.context||readContext(),turns:state.turns,coverage:state.coverage,summary:state.summary,memo_findings:state.memo_findings,focus:state.focus,parking_lot:state.parking_lot,closure:state.closure,elapsed_seconds:Math.floor(elapsedMs()/1000),draft:state.draft,draft_stale:Boolean(state.draft&&state.draftVersion!==state.version),draft_edited:state.draftEdited,synthetic_example:state.example,unsent_answer:$("answer-text").value,voice_choice:state.voiceChoice};
   }
   function exportSession() {
     download(JSON.stringify(sessionObject(),null,2), `${safeFilename(state.context?.process_name || readContext().process_name)}-session.json`, "application/json");
@@ -963,6 +1118,9 @@
       if (!Number.isFinite(elapsed)||elapsed<0) throw new Error("The session’s elapsed time is invalid.");
       clearState(context);
       Object.assign(state,{turns,coverage:normalizeCoverage(saved.coverage),summary,draft,started:turns.length>0,example:saved.synthetic_example===true,draftEdited:saved.draft_edited===true,memo_findings:findings,focus,parking_lot:parked,closure:{asked:saved.closure?.asked===true,confirmed:saved.closure?.confirmed===true},elapsedMs:elapsed*1000,timerStartedAt:null});
+      if (typeof saved.voice_choice === "string" && saved.voice_choice.length <= 400 && /^(ai:[a-z]+|local:.+)$/.test(saved.voice_choice)) {
+        state.voiceChoice=saved.voice_choice;state.voiceChoiceUser=true;populateVoiceOptions();
+      }
       state.draftVersion = draft ? (saved.draft_stale ? state.version-1 : state.version) : null;
       $("answer-text").value = text(saved.unsent_answer);
       renderTranscript(); renderDraft();
@@ -1022,6 +1180,14 @@
     $("record-answer").addEventListener("click",startRecording);
     $("cancel-recording").addEventListener("click",() => finishRecording(true));
     $("stop-speaking").addEventListener("click",stopSpeaking);
+    $("voice-select").addEventListener("change",()=>{
+      stopSpeaking();state.voiceChoice=$("voice-select").value;state.voiceChoiceUser=true;populateVoiceOptions();
+      if(state.started)state.dirty=true;
+    });
+    $("preview-voice").addEventListener("click",()=>{
+      state.voiceChoiceUser=true;
+      speak("Hello. I am your process interviewer. Tell me how the work begins, and we can take it one step at a time.");
+    });
     $("speak-questions").addEventListener("change",() => {if (!$("speak-questions").checked) stopSpeaking();});
     $("skip-question").addEventListener("click",skipQuestion);
     $("final-check").addEventListener("click",finalCheck);
@@ -1094,6 +1260,7 @@
       const config = await response.json();
       if (typeof config.csrf_token !== "string") throw new Error("The local server did not provide a session token. Refresh this page.");
       state.config = config;
+      populateVoiceOptions();
       $("connection-state").className = `connection-state ${config.api_configured ? "good" : "bad"}`;
       $("connection-state").querySelector("span").textContent = config.api_configured ? "Local server ready · API key configured" : "Local server ready · API key not configured";
       if (!config.api_configured) notice("The local server is running, but its OpenAI API key is not configured. You can explore the synthetic example while the connection is resolved.",true);

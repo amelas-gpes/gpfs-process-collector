@@ -76,7 +76,9 @@
           <details class="parking-panel" id="parking-panel" hidden><summary>Parked for later <span id="parking-count"></span></summary><ul id="parking-list"></ul></details>
         </div>
         <div class="composer-area">
-          <div class="voice-settings"><label class="check-label"><input type="checkbox" id="speak-questions" checked> Speak questions</label><label class="check-label"><input type="checkbox" id="stop-on-silence" checked> Finish on pause</label><button class="text-button small" id="stop-speaking" hidden>Stop voice</button><button class="text-button small" id="skip-question" disabled>Skip question</button></div>
+          <div class="voice-choice-row"><label for="voice-select">Interviewer voice</label><select id="voice-select" aria-describedby="voice-description"></select><button type="button" class="button secondary small" id="preview-voice">Preview voice</button></div>
+          <p id="voice-description" class="voice-description">Choose a natural AI voice or an installed computer voice.</p>
+          <div class="voice-settings"><label class="check-label"><input type="checkbox" id="speak-questions" checked> Speak questions</label><label class="check-label"><input type="checkbox" id="stop-on-silence" checked> Finish on pause</label><button class="text-button small" id="stop-speaking" hidden>Stop voice</button><span id="voice-status" role="status" hidden></span><button class="text-button small" id="skip-question" disabled>Skip question</button></div>
           <div class="closure-row"><span id="closure-status">You can create a draft at any point.</span><button id="final-check" class="text-button small" disabled>Final completeness check <span aria-hidden="true">↗</span></button></div>
           <p id="voice-availability" class="voice-availability" hidden></p>
           <div class="recording-status" id="recording-status" role="status" hidden><span class="recording-dot"></span><span id="recording-label">Listening</span><span id="recording-time">0:00</span><button id="cancel-recording" class="text-button small">Discard</button></div>
@@ -84,7 +86,7 @@
             <label class="sr-only" for="answer-text">Your answer</label><textarea id="answer-text" rows="3" maxlength="6000" placeholder="Type an answer, or use the microphone…" disabled></textarea>
             <div class="composer-bottom"><button type="button" class="mic-button" id="record-answer" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M6 10v2a6 6 0 0 0 12 0v-2M12 18v3M9 21h6"/></svg><span>Record answer</span></button><span class="composer-hint" id="composer-hint">Review the transcript, then send.</span><button class="button primary" id="send-answer" type="submit" disabled>Send answer <span aria-hidden="true">↑</span></button></div>
           </form>
-          <p class="privacy-note"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="2"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></svg> Interview text and recorded answers are sent to OpenAI. Question playback uses an installed synthetic computer voice. Audio is held in memory; this app does not save recordings.</p>
+          <p class="privacy-note"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="2"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></svg> Interview text and recorded answers are sent to OpenAI. Natural AI voices also send question text to OpenAI for AI-generated speech; installed computer voices play locally. Audio is held in memory and is not saved by this app.</p>
         </div>
       </section>
     </section>

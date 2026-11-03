@@ -6,6 +6,7 @@ import base64
 import copy
 import importlib.util
 import json
+import hashlib
 import os
 from pathlib import Path
 import re
@@ -13,6 +14,7 @@ import secrets
 import socket
 import sys
 import threading
+import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.error import HTTPError, URLError
 from urllib.parse import unquote, urlsplit
@@ -1064,8 +1066,51 @@ class InterviewServer(ThreadingHTTPServer):
         base = Path(knowledge_root) if knowledge_root else (Path(documents_root).parent / "knowledge" if documents_root else APP_DIR / "work" / "knowledge")
         self.knowledge = graph.KnowledgeGraph(base / "knowledge.sqlite3", analyzer=knowledge_analyzer,
                                                document_resolver=self.documents.source)
+        self.example_graph_path = base / "example" / "knowledge.sqlite3"
+        self.example_knowledge = None
+        self.example_graph_lock = threading.RLock()
+
+    def example_graph(self):
+        """Separate local-only demonstration storage. It has no analyzer or resolver."""
+        with self.example_graph_lock:
+            if self.example_knowledge is None:
+                graph = local_module("knowledge_graph", "knowledge_graph.py")
+                self.example_knowledge = graph.KnowledgeGraph(self.example_graph_path, analyzer=None)
+            return self.example_knowledge
+
+    def seed_example(self):
+        """Load only the bundled fictional fixture; the client cannot supply content."""
+        path = APP_DIR / "Examples" / "Synthetic-reviewed-session.json"
+        try:
+            raw = path.read_bytes()
+            if len(raw) > MAX_JSON:
+                raise ValueError("The bundled example exceeds the size limit.")
+            fixture = json.loads(raw.decode("utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError):
+            raise ValueError("The bundled synthetic example is unavailable.") from None
+        if not isinstance(fixture, dict) or fixture.get("synthetic_example") is not True:
+            raise ValueError("The bundled synthetic example is invalid.")
+        # Derive a stable idempotency key from the immutable bundled content.
+        # A changed example is deliberately a distinct sample rather than a
+        # silent rewrite of already reviewed evidence.
+        digest = hashlib.sha256(raw).hexdigest()
+        fixture["submission_key"] = str(uuid.uuid5(uuid.NAMESPACE_URL, "collector-example:" + digest))
+        fixture["participant"] = "Fictional participant"
+        fixture["team"] = "Accounts Payable (fictional)"
+        fixture["department"] = "Finance (fictional)"
+        fixture["scope"] = "Fictional example"
+        graph = self.example_graph()
+        result = graph.submit(fixture)
+        # No provider or background analysis is run for this fixed sample.
+        with graph.lock, graph.db:
+            graph.db.execute("UPDATE jobs SET status='completed',error='' WHERE id=? AND status='pending'", (result["job_id"],))
+        result.pop("status_token", None)
+        result.update(status="completed", synthetic_example=True)
+        return result
 
     def server_close(self):
+        if getattr(self, "example_knowledge", None):
+            self.example_knowledge.close()
         if hasattr(self, "knowledge"):
             self.knowledge.close()
         if hasattr(self, "documents"):
@@ -1220,7 +1265,7 @@ class Handler(BaseHTTPRequestHandler):
             self._json({"error": "The request could not be completed. Your browser session is retained."}, 500)
 
     def _knowledge(self, path):
-        routes = {"/api/knowledge/submit", "/api/knowledge/status", "/api/knowledge/admin/snapshot",
+        routes = {"/api/knowledge/submit", "/api/knowledge/status", "/api/knowledge/admin/snapshot", "/api/knowledge/admin/example",
                   "/api/knowledge/admin/review", "/api/knowledge/admin/retry",
                   "/api/knowledge/admin/document-source", "/api/knowledge/admin/canonical-create",
                   "/api/knowledge/admin/canonical-update"}
@@ -1244,7 +1289,19 @@ class Handler(BaseHTTPRequestHandler):
             payload = json.loads(raw.decode("utf-8"))
             if not isinstance(payload, dict):
                 raise ValueError("A knowledge request object is required.")
-            graph = self.server.knowledge
+            example_mode = payload.get("example") is True
+            if path == "/api/knowledge/admin/example" or example_mode:
+                # Demo data is accessible only through explicitly configured
+                # localhost owner mode, never an untrusted browser role claim.
+                if not (principal == "local-owner" and self.server.knowledge_auth.local_owner):
+                    return self._json({"error": "The synthetic example is available only in local-owner development mode."}, 403)
+                if not path.startswith("/api/knowledge/admin/"):
+                    return self._json({"error": "The synthetic graph is administrative only."}, 403)
+                if path == "/api/knowledge/admin/example":
+                    return self._json(self.server.seed_example())
+                graph = self.server.example_graph()
+            else:
+                graph = self.server.knowledge
             if path.endswith("/status"):
                 submission_id = bounded_text(payload.get("submission_id", ""), "Submission ID", 100, True)
                 revision = payload.get("revision")
@@ -1253,6 +1310,8 @@ class Handler(BaseHTTPRequestHandler):
                 status_token = bounded_text(payload.get("status_token", ""), "Status token", 200, True)
                 return self._json(graph.status(submission_id, revision, status_token))
             if path.endswith("/submit"):
+                if payload.get("synthetic_example") is True:
+                    return self._json({"error": "The fictional example is kept separate from real submissions. Open Admin while the example is active."}, 400)
                 payload = strip_knowledge_capabilities(payload)
                 # Client claims are never authenticated submitter identities.
                 for key in ("submitter", "authenticated_submitter", "principal", "reviewer", "role",
@@ -1301,7 +1360,12 @@ class Handler(BaseHTTPRequestHandler):
                     return self._json({"error": "Revisions require a verified owner or administrator."}, 403)
                 return self._json(graph.submit(payload, principal=submitter, document_scope=document_scope), 202)
             if path.endswith("/snapshot"):
-                return self._json(graph.admin_snapshot())
+                snapshot = graph.admin_snapshot()
+                if example_mode:
+                    snapshot["synthetic_example"] = True
+                    snapshot["analysis_limitations"] = ("Fictional demonstration data in separate local storage. "
+                        "No AI analysis was run; relationships are the reported example workflow.")
+                return self._json(snapshot)
             if path.endswith("/canonical-create"):
                 label = bounded_text(payload.get("label", ""), "Canonical label", 1000, True)
                 reason = bounded_text(payload.get("reason", ""), "Review reason", 3000, True)

@@ -1720,6 +1720,7 @@
       state.draftVersion = draft ? (saved.draft_stale ? state.version-1 : state.version) : null;
       $("answer-text").value = text(saved.unsent_answer);
       renderTranscript(); renderDraft();
+      if(state.example)knowledgeUI?.activateExample();
       notice("Interview opened. Continue whenever you’re ready.");
       if (draft) tab("review");
     } catch (error) { if(generation===state.generation)notice(`Could not open session: ${error.message}`, true); }
@@ -1814,6 +1815,7 @@
     conversationUI.workflow=clone(state.draft);renderWorkingMap();
     state.dirty = false;
     renderTranscript(); renderDraft(); scrollConversation();
+    knowledgeUI?.activateExample();
     notice("Complete synthetic example opened. Explore the transcript, map, memo and procedure.");
   }
   function initEvents() {

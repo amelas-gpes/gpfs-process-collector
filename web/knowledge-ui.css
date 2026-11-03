@@ -3,6 +3,7 @@
 .knowledge-admin { width:min(1180px,calc(100vw - 28px)); height:min(900px,calc(100dvh - 28px)); }
 .knowledge-head { display:flex; justify-content:space-between; align-items:center; gap:12px; font-size:22px; font-weight:650; letter-spacing:-.025em; }
 .knowledge-owner { color:#76542d; background:#fcf5e9; padding:9px 12px; border-radius:8px; font-size:11px; font-weight:700; letter-spacing:.035em; }
+.knowledge-example-banner { color:#584270; background:#f0ebf8; padding:10px 12px; border-radius:8px; font-size:12px; font-weight:700; }
 .knowledge-muted { color:#69768b; line-height:1.55; font-size:13px; overflow-wrap:anywhere; }
 .knowledge-form,.knowledge-review { display:grid; gap:14px; margin-top:18px; }
 .knowledge-field { display:grid; gap:5px; color:#59667a; font-size:12px; font-weight:600; min-width:0; }

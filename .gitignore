@@ -1,0 +1,26 @@
+# Credentials and local configuration
+.env
+.env.*
+!.env.example
+
+# Runtime state, logs, recordings and local validation receipts
+work/
+logs/
+.local/
+.utility-reuse/
+runtime-reuse.json
+*.log
+*.wav
+*.webm
+*.mp3
+*.mp4
+
+# Python caches and editor state
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

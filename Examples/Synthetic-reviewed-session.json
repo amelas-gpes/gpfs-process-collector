@@ -1,0 +1,512 @@
+{
+  "schema_version": 1,
+  "saved_at": "2026-11-03T00:22:26.662888+00:00",
+  "context": {
+    "process_name": "Invoice approval — fictional validation case",
+    "process_owner": "TBD",
+    "objective": "Understand current work and exceptions; synthetic test only",
+    "background": "",
+    "meeting_minutes": 60
+  },
+  "turns": [
+    {
+      "id": "a1",
+      "role": "assistant",
+      "text": "Walk me through a recent invoice from arrival to the point where your team's work is done."
+    },
+    {
+      "id": "u1",
+      "role": "user",
+      "text": "We call it invoice approval, also invoice sign-off. An invoice arrives in our shared AP mailbox each weekday. The AP clerk enters its reference and amount in the invoice log spreadsheet, with status Received. The purpose is to obtain a documented decision on the supplier invoice. The clerk matches it to the purchase order and changes it to Checked. The department manager reviews the checked invoice and replies Approved by email. The clerk saves that email to the invoice folder and changes the log to Approved. We are finished when the approval email is filed and the status is Approved. The payment team picks up afterward; payment is a separate process and I do not know their steps. Nobody formally owns the invoice-approval outcome. A mismatched invoice goes back to the buyer for correction; I don't know how the buyer resolves it. No immovable deadline has been specified. Errors could mean paying the wrong amount. Rekeying into the log is slow and errors occur. We have an invoice checklist and a sample approval email in the AP shared folder."
+    },
+    {
+      "id": "a2",
+      "role": "assistant",
+      "text": "Does that route change for any particular client or fund?"
+    },
+    {
+      "id": "u2",
+      "role": "user",
+      "text": "For fictional Fund Blue the same arrival, accountable role and finished result apply. We require two department managers to approve, because of their internal preference. The extra email chase takes about 20 minutes. I don't know whether we charge for it or who would object if it stopped. Everyone can have a mismatch sometimes, so that's a normal exception, not Fund Blue-specific."
+    },
+    {
+      "id": "a3",
+      "role": "assistant",
+      "text": "When an invoice is found to mismatch, what actually happens next until it is either corrected or closed out?"
+    }
+  ],
+  "coverage": [
+    {
+      "key": "name",
+      "label": "Name & other names",
+      "status": "covered"
+    },
+    {
+      "key": "purpose",
+      "label": "Purpose & result",
+      "status": "covered"
+    },
+    {
+      "key": "trigger",
+      "label": "Start, cadence & deadlines",
+      "status": "covered"
+    },
+    {
+      "key": "completion",
+      "label": "Finished condition",
+      "status": "covered"
+    },
+    {
+      "key": "accountable",
+      "label": "Accountability",
+      "status": "partial"
+    },
+    {
+      "key": "lifecycle",
+      "label": "Items, stages & handoffs",
+      "status": "partial"
+    },
+    {
+      "key": "checks",
+      "label": "Checks, approvals & proof",
+      "status": "partial"
+    },
+    {
+      "key": "variations",
+      "label": "Client & fund differences",
+      "status": "partial"
+    },
+    {
+      "key": "pain_points",
+      "label": "Manual work & pain",
+      "status": "covered"
+    },
+    {
+      "key": "risk",
+      "label": "Consequences of failure",
+      "status": "covered"
+    },
+    {
+      "key": "materials",
+      "label": "Existing materials",
+      "status": "covered"
+    }
+  ],
+  "summary": "An invoice arrives in the shared AP mailbox each weekday. The AP clerk logs the reference and amount in a spreadsheet as Received, matches it to the purchase order, and changes the status to Checked. The department manager reviews it and emails approval. The clerk files that email in the invoice folder and marks the log Approved. Payment happens later in a separate process. A mismatch is sent back to the buyer for correction. Fund Blue uses the same route but needs two department managers to approve, which adds about 20 minutes.",
+  "memo_findings": [
+    {
+      "key": "name",
+      "status": "captured",
+      "answer": "Invoice approval; also called invoice sign-off.",
+      "evidence_turns": [
+        "u1"
+      ]
+    },
+    {
+      "key": "purpose",
+      "status": "captured",
+      "answer": "Obtain a documented decision on the supplier invoice.",
+      "evidence_turns": [
+        "u1"
+      ]
+    },
+    {
+      "key": "trigger",
+      "status": "captured",
+      "answer": "An invoice arrives in the shared AP mailbox each weekday; no immovable deadline was specified.",
+      "evidence_turns": [
+        "u1"
+      ]
+    },
+    {
+      "key": "completion",
+      "status": "captured",
+      "answer": "The work is finished when the approval email is filed and the log status is Approved.",
+      "evidence_turns": [
+        "u1"
+      ]
+    },
+    {
+      "key": "accountable",
+      "status": "partial",
+      "answer": "Nobody formally owns the invoice-approval outcome; the department manager approves the invoice, but accountability for the outcome is not assigned.",
+      "evidence_turns": [
+        "u1"
+      ]
+    },
+    {
+      "key": "lifecycle",
+      "status": "partial",
+      "answer": "Invoice arrives, is logged as Received, matched to the purchase order, moved to Checked, approved by email, filed, and marked Approved. The payment team takes over afterward, but their steps are unknown.",
+      "evidence_turns": [
+        "u1"
+      ]
+    },
+    {
+      "key": "checks",
+      "status": "partial",
+      "answer": "The clerk matches the invoice to the purchase order; the department manager reviews the checked invoice before emailing approval. Further check details and failure path are not fully described.",
+      "evidence_turns": [
+        "u1"
+      ]
+    },
+    {
+      "key": "variations",
+      "status": "partial",
+      "answer": "For fictional Fund Blue, the same route applies but two department managers must approve; this adds about 20 minutes. It is described as an internal preference.",
+      "evidence_turns": [
+        "u2"
+      ]
+    },
+    {
+      "key": "pain_points",
+      "status": "captured",
+      "answer": "Rekeying into the log is slow and errors occur.",
+      "evidence_turns": [
+        "u1"
+      ]
+    },
+    {
+      "key": "risk",
+      "status": "captured",
+      "answer": "Errors could mean paying the wrong amount.",
+      "evidence_turns": [
+        "u1"
+      ]
+    },
+    {
+      "key": "materials",
+      "status": "captured",
+      "answer": "An invoice checklist and a sample approval email are in the AP shared folder.",
+      "evidence_turns": [
+        "u1"
+      ]
+    }
+  ],
+  "focus": "Map the normal invoice approval route and the mismatch exception",
+  "parking_lot": [
+    "Payment handoff is a separate process and its steps are unknown.",
+    "Whether Fund Blue’s extra approval is charged for is unknown.",
+    "Who would object if the Fund Blue extra approval stopped is unknown."
+  ],
+  "closure": {
+    "asked": false,
+    "confirmed": false
+  },
+  "elapsed_seconds": 4500,
+  "draft": {
+    "title": "Invoice approval — current-practice draft",
+    "overview": "Current-practice draft of invoice approval. An invoice arrives in the shared AP mailbox, is logged, matched to the purchase order, approved by email, and filed. A mismatch goes back to the buyer for correction; the follow-on correction path was not described. Fund Blue adds a second manager approval.",
+    "trigger": "An invoice arrives in the shared AP mailbox each weekday; no immovable deadline was specified.",
+    "inputs": [
+      "Invoice in the shared AP mailbox",
+      "Invoice reference and amount",
+      "Purchase order"
+    ],
+    "outputs": [
+      "Invoice log status Approved",
+      "Approval email filed in the invoice folder",
+      "Mismatched invoice returned to the buyer for correction when applicable"
+    ],
+    "steps": [
+      {
+        "id": "S1",
+        "title": "Receive invoice and record it",
+        "type": "activity",
+        "actor": "AP clerk",
+        "system": "Shared AP mailbox; invoice log spreadsheet",
+        "description": "An invoice arrives in the shared AP mailbox each weekday. The AP clerk enters the invoice reference and amount in the invoice log spreadsheet and sets the status to Received.",
+        "evidence_turns": [
+          "u1"
+        ],
+        "input": "Invoice in the shared AP mailbox",
+        "output": "Invoice log entry with reference, amount, and status Received",
+        "completion_criteria": "The invoice is entered in the log with status Received.",
+        "handoff": "To the AP clerk matching step"
+      },
+      {
+        "id": "S2",
+        "title": "Compare invoice to purchase order",
+        "type": "decision",
+        "actor": "AP clerk",
+        "system": "Invoice log spreadsheet; purchase order",
+        "description": "The AP clerk compares the invoice to the purchase order. If it matches, the clerk changes the log status to Checked. If it does not match, the invoice goes back to the buyer for correction; the correction path after that was not described.",
+        "evidence_turns": [
+          "u1"
+        ],
+        "input": "Received invoice and purchase order",
+        "output": "Matched invoice marked Checked, or mismatched invoice returned to the buyer",
+        "completion_criteria": "The match outcome is determined and routed.",
+        "handoff": "If matched, to the department manager; if mismatched, to the buyer"
+      },
+      {
+        "id": "S3",
+        "title": "Review and approve by email",
+        "type": "activity",
+        "actor": "Department manager",
+        "system": "Email",
+        "description": "The department manager reviews the checked invoice and replies Approved by email.",
+        "evidence_turns": [
+          "u1"
+        ],
+        "input": "Checked invoice",
+        "output": "Approval email",
+        "completion_criteria": "An approval email has been sent.",
+        "handoff": "To the AP clerk for filing and log update"
+      },
+      {
+        "id": "S4",
+        "title": "File approval email and mark the invoice Approved",
+        "type": "activity",
+        "actor": "AP clerk",
+        "system": "Invoice folder; invoice log spreadsheet",
+        "description": "The AP clerk saves the approval email to the invoice folder and changes the invoice log status to Approved.",
+        "evidence_turns": [
+          "u1"
+        ],
+        "input": "Approval email",
+        "output": "Filed approval email and invoice log status Approved",
+        "completion_criteria": "The approval email is filed and the log shows Approved.",
+        "handoff": "Payment team picks up afterward; payment is a separate process"
+      },
+      {
+        "id": "S5",
+        "title": "Return mismatched invoice to buyer for correction",
+        "type": "activity",
+        "actor": "Not established",
+        "system": "Not established",
+        "description": "A mismatched invoice goes back to the buyer for correction. The follow-on correction steps and any re-entry point were not described.",
+        "evidence_turns": [
+          "u1"
+        ],
+        "input": "Mismatched invoice",
+        "output": "Invoice returned to the buyer",
+        "completion_criteria": "The mismatched invoice has been handed back to the buyer.",
+        "handoff": "Buyer"
+      }
+    ],
+    "connections": [
+      {
+        "from": "S1",
+        "to": "S2",
+        "label": "after logging as Received",
+        "evidence_turns": [
+          "u1"
+        ]
+      },
+      {
+        "from": "S2",
+        "to": "S3",
+        "label": "matches purchase order",
+        "evidence_turns": [
+          "u1"
+        ]
+      },
+      {
+        "from": "S2",
+        "to": "S5",
+        "label": "mismatch",
+        "evidence_turns": [
+          "u1"
+        ]
+      },
+      {
+        "from": "S3",
+        "to": "S4",
+        "label": "approval email sent",
+        "evidence_turns": [
+          "u1"
+        ]
+      }
+    ],
+    "exceptions": [
+      "Mismatched invoice goes back to the buyer for correction; the buyer's correction path and any re-entry point were not described."
+    ],
+    "controls": [
+      "Approval email is filed in the invoice folder as retained proof of approval."
+    ],
+    "open_questions": [
+      "Who is formally accountable for the invoice-approval outcome?",
+      "How is a mismatched invoice corrected, and does it re-enter this process?",
+      "For Fund Blue, are the two manager approvals sequential, parallel, or otherwise ordered, and who chases the second one?",
+      "Do you charge for the extra Fund Blue approval chase?",
+      "Who would object if the Fund Blue two-manager approval stopped?"
+    ],
+    "validation_notes": [
+      "Evidence reviewed: user turns u1-u2 only.",
+      "The invoice checklist and sample approval email were mentioned as existing materials in the AP shared folder, but their operational use was not described, so they are treated as materials only.",
+      "No fixed deadline or service level was described.",
+      "No return/retry edge beyond the buyer handoff was added because the correction path after mismatch was not explained.",
+      "Fund Blue was treated as a variation because the trigger, accountable role and finished result were reported as the same; the extra second-manager approval order was not described.",
+      "Accountability remains unassigned/TBD because nobody formally owns the invoice-approval outcome.",
+      "AI-generated draft. Process-owner review is required; interview statements have not been independently verified.",
+      "Synthetic review example. During review, an inferred mismatch sender and buyer-as-location were replaced with explicit UNKNOWNs. This is fictional data, not an actual business procedure."
+    ],
+    "memo_summary": [
+      {
+        "key": "name",
+        "status": "captured",
+        "answer": "Invoice approval; also invoice sign-off.",
+        "evidence_turns": [
+          "u1"
+        ]
+      },
+      {
+        "key": "purpose",
+        "status": "captured",
+        "answer": "To obtain a documented decision on the supplier invoice.",
+        "evidence_turns": [
+          "u1"
+        ]
+      },
+      {
+        "key": "trigger",
+        "status": "captured",
+        "answer": "An invoice arrives in the shared AP mailbox each weekday; no immovable deadline was specified.",
+        "evidence_turns": [
+          "u1"
+        ]
+      },
+      {
+        "key": "completion",
+        "status": "captured",
+        "answer": "The work is finished when the approval email is filed and the status is Approved.",
+        "evidence_turns": [
+          "u1"
+        ]
+      },
+      {
+        "key": "accountable",
+        "status": "partial",
+        "answer": "Nobody formally owns the invoice-approval outcome; the accountable role is TBD. For Fund Blue, the same accountable role applies.",
+        "evidence_turns": [
+          "u1",
+          "u2"
+        ]
+      },
+      {
+        "key": "lifecycle",
+        "status": "captured",
+        "answer": "The invoice moves from Received to Checked to Approved in the invoice log. The approval email is saved in the invoice folder. A mismatched invoice goes back to the buyer for correction, but the buyer's correction path is unknown. Payment picks up afterward and is a separate process.",
+        "evidence_turns": [
+          "u1"
+        ]
+      },
+      {
+        "key": "checks",
+        "status": "captured",
+        "answer": "The AP clerk matches the invoice to the purchase order. The department manager reviews the checked invoice and approves by email. The approval email is then filed in the invoice folder. An invoice checklist and a sample approval email exist in the AP shared folder, but their use was not described.",
+        "evidence_turns": [
+          "u1"
+        ]
+      },
+      {
+        "key": "variations",
+        "status": "captured",
+        "answer": "For fictional Fund Blue, the same arrival, accountable role and finished result apply. The difference is that two department managers must approve because of internal preference. The extra email chase takes about 20 minutes.",
+        "evidence_turns": [
+          "u2"
+        ]
+      },
+      {
+        "key": "pain_points",
+        "status": "captured",
+        "answer": "Rekeying into the log is slow and errors occur.",
+        "evidence_turns": [
+          "u1"
+        ]
+      },
+      {
+        "key": "risk",
+        "status": "captured",
+        "answer": "Errors could mean paying the wrong amount.",
+        "evidence_turns": [
+          "u1"
+        ]
+      },
+      {
+        "key": "materials",
+        "status": "captured",
+        "answer": "An invoice checklist and a sample approval email are in the AP shared folder; they were mentioned but not reviewed in the interview.",
+        "evidence_turns": [
+          "u1"
+        ]
+      }
+    ],
+    "lifecycle_items": [
+      {
+        "item": "Invoice",
+        "stages": [
+          "Received",
+          "Checked",
+          "Approved"
+        ],
+        "locations": [
+          "Shared AP mailbox",
+          "Invoice log spreadsheet",
+          "Invoice folder"
+        ],
+        "handoffs": [
+          "AP clerk receives and logs it",
+          "AP clerk to department manager after checking",
+          "AP clerk to payment team after approval"
+        ],
+        "evidence_turns": [
+          "u1"
+        ]
+      },
+      {
+        "item": "Approval email",
+        "stages": [
+          "Sent by department manager",
+          "Filed by AP clerk"
+        ],
+        "locations": [
+          "Email",
+          "Invoice folder"
+        ],
+        "handoffs": [
+          "Department manager to AP clerk"
+        ],
+        "evidence_turns": [
+          "u1"
+        ]
+      },
+      {
+        "item": "Mismatched invoice",
+        "stages": [
+          "Detected as mismatch",
+          "Returned to buyer for correction"
+        ],
+        "locations": [
+          "UNKNOWN — where the buyer works on or records the correction was not established."
+        ],
+        "handoffs": [
+          "Recipient: buyer; sender and handoff mechanism UNKNOWN."
+        ],
+        "evidence_turns": [
+          "u1"
+        ]
+      }
+    ],
+    "variations": [
+      {
+        "applies_to": "Fictional Fund Blue",
+        "difference": "Two department managers must approve instead of one. The extra email chase takes about 20 minutes. The arrival, accountable role and finished result are otherwise the same as the normal route.",
+        "reason": "Internal preference.",
+        "cost": "About 20 minutes extra for the email chase.",
+        "charging": "I do not know.",
+        "removability": "Unknown who would object if it stopped; no constraint was stated.",
+        "boundary": "variation",
+        "boundary_reason": "Same trigger, same accountable role and same finished result were reported.",
+        "evidence_turns": [
+          "u2"
+        ]
+      }
+    ]
+  },
+  "draft_stale": false,
+  "draft_edited": true,
+  "synthetic_example": true,
+  "unsent_answer": ""
+}

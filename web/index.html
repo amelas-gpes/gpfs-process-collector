@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#123b41">
+  <title>AI Process Collector · Voice Interviewer</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="app-header">
+    <a class="brand" href="/" aria-label="AI Process Collector home">
+      <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><rect x="3" y="3" width="9" height="9" rx="3"/><rect x="20" y="20" width="9" height="9" rx="3"/><path d="M12 7.5h8a4.5 4.5 0 0 1 4.5 4.5v8M7.5 12v8a4.5 4.5 0 0 0 4.5 4.5h8"/></svg></span>
+      <span>AI Process Collector<small>VOICE INTERVIEWER</small></span>
+    </a>
+    <nav class="tab-nav" aria-label="Workspace">
+      <button class="nav-tab active" data-tab="interview" aria-current="page">Interview</button>
+      <button class="nav-tab" data-tab="review">Draft review <span id="draft-dot" hidden></span></button>
+    </nav>
+    <div class="header-actions"><span class="local-tag"><i></i> Local prototype</span><button class="button ghost small" id="session-menu-toggle" aria-expanded="false" aria-controls="session-menu">Session <span aria-hidden="true">⌄</span></button></div>
+    <div class="session-menu" id="session-menu" hidden>
+      <button id="export-session">Save session JSON</button>
+      <button id="import-session">Open saved session</button>
+      <button id="load-example">Explore a synthetic example</button>
+      <button id="reset-session" class="danger-text">Clear this session</button>
+      <p>Sessions stay in this browser tab until you explicitly save a file. Clearing or closing the tab discards unsaved work.</p>
+    </div>
+    <input type="file" id="session-file" accept="application/json,.json" hidden>
+  </header>
+
+  <div class="notice" id="global-notice" role="status" hidden><span id="notice-text"></span><button id="dismiss-notice" aria-label="Dismiss notification">×</button></div>
+  <div class="example-banner" id="example-banner" hidden><span><strong>Synthetic example</strong> · Fictional invoice workflow for exploring the prototype.</span><button class="text-button" id="leave-example">Start your own interview <span aria-hidden="true">↗</span></button></div>
+
+  <main id="main" class="workspace">
+    <section id="interview-view" class="interview-layout" aria-label="Interview workspace">
+      <aside class="sidebar">
+        <div class="section-eyebrow">01 / PREPARE</div>
+        <h1>A little context.<br> A better conversation.</h1>
+        <p class="muted sidebar-intro">Pick one process. We’ll work through what happens, who’s involved, and where the exceptions are.</p>
+        <form id="context-form">
+          <label for="process-name">Process name <span class="required">*</span></label>
+          <input id="process-name" name="process_name" maxlength="180" placeholder="e.g. Invoice approval" required autocomplete="off">
+          <label for="process-owner">Process owner / role</label>
+          <input id="process-owner" name="process_owner" maxlength="180" placeholder="e.g. Accounts payable manager" autocomplete="off">
+          <div class="duration-field"><label for="meeting-minutes">Planned conversation <span>Advisory</span></label><div><input id="meeting-minutes" name="meeting_minutes" type="number" min="1" max="1440" step="1" value="60"><span>minutes</span></div><p>Adjust as needed. The interview never stops at the planned time.</p></div>
+          <label for="objective">Interview objective <span class="required">*</span></label>
+          <textarea id="objective" name="objective" rows="3" maxlength="500" required>Understand the current process, responsibilities, handoffs, and exceptions.</textarea>
+          <details class="background-details"><summary>Existing context <span>Optional</span></summary><label for="background" class="sr-only">Existing process context</label><textarea id="background" name="background" rows="4" maxlength="8000" placeholder="Paste a short procedure or explain the start and end of the process. Use only information you are permitted to share."></textarea></details>
+          <button type="submit" class="button primary full" id="start-interview"><span>Start interview</span><span aria-hidden="true">↗</span></button>
+        </form>
+        <div class="coverage-panel">
+          <div class="coverage-header"><span class="section-eyebrow">MEMO FOUNDATION</span><span id="coverage-count">0 / 11</span></div>
+          <div class="coverage-track" aria-hidden="true"><span id="coverage-progress"></span></div>
+          <div id="coverage-list" class="coverage-list" aria-label="Process topics covered"></div>
+          <p class="coverage-note">Coverage is an AI assessment, not a completeness guarantee.</p>
+        </div>
+        <div class="connection-state" id="connection-state"><i></i><span>Connecting to local server…</span></div>
+      </aside>
+
+      <section class="conversation-panel">
+        <div class="conversation-toolbar"><div><span class="section-eyebrow">02 / DISCOVER</span><h2>The process, in your words.</h2><p id="current-focus" class="current-focus" hidden></p></div><div class="conversation-tools"><div class="elapsed-clock"><span id="elapsed-time">0:00</span><span id="planned-time">/ 60 min</span><button id="pause-timer" class="text-button small" disabled aria-label="Pause elapsed interview timer">Pause</button></div><button class="button secondary small" id="generate-draft" disabled><span>Create draft</span><span aria-hidden="true">↗</span></button></div></div>
+        <div class="conversation-scroll" id="conversation-scroll" tabindex="0" aria-label="Interview conversation">
+          <div class="welcome" id="welcome">
+            <div class="welcome-symbol" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M14 29v6m9-16v26m9-34v42m9-34v26m9-16v6"/></svg></div>
+            <div class="section-eyebrow">A GUIDED PROCESS CONVERSATION</div>
+            <h2>Talk it through.<br> See the process take shape.</h2>
+            <p>Answer a question, add the details that matter, and let the interviewer find the next useful follow-up.</p>
+            <div class="welcome-points"><span><b>01</b> Share how it works</span><span><b>02</b> Uncover the exceptions</span><span><b>03</b> Review a clear draft</span></div>
+            <button class="text-button" id="welcome-example">See a synthetic example <span aria-hidden="true">→</span></button>
+          </div>
+          <div id="transcript" class="transcript" role="log" aria-label="Interview transcript" aria-live="polite" aria-relevant="additions"></div>
+          <div class="thinking" id="thinking" hidden><span class="pulse-dot"></span><span id="thinking-text">Finding the next useful question…</span></div>
+          <div class="working-summary" id="working-summary" hidden><div class="section-eyebrow">UNDERSTANDING SO FAR</div><p id="summary-text"></p></div>
+          <details class="parking-panel" id="parking-panel" hidden><summary>Parked for later <span id="parking-count"></span></summary><ul id="parking-list"></ul></details>
+        </div>
+        <div class="composer-area">
+          <div class="voice-settings"><label class="check-label"><input type="checkbox" id="speak-questions" checked> Speak questions</label><label class="check-label"><input type="checkbox" id="stop-on-silence" checked> Finish on pause</label><button class="text-button small" id="stop-speaking" hidden>Stop voice</button><button class="text-button small" id="skip-question" disabled>Skip question</button></div>
+          <div class="closure-row"><span id="closure-status">You can create a draft at any point.</span><button id="final-check" class="text-button small" disabled>Final completeness check <span aria-hidden="true">↗</span></button></div>
+          <p id="voice-availability" class="voice-availability" hidden></p>
+          <div class="recording-status" id="recording-status" role="status" hidden><span class="recording-dot"></span><span id="recording-label">Listening</span><span id="recording-time">0:00</span><button id="cancel-recording" class="text-button small">Discard</button></div>
+          <form id="answer-form" class="answer-composer">
+            <label class="sr-only" for="answer-text">Your answer</label><textarea id="answer-text" rows="3" maxlength="6000" placeholder="Type an answer, or use the microphone…" disabled></textarea>
+            <div class="composer-bottom"><button type="button" class="mic-button" id="record-answer" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M6 10v2a6 6 0 0 0 12 0v-2M12 18v3M9 21h6"/></svg><span>Record answer</span></button><span class="composer-hint" id="composer-hint">Review the transcript, then send.</span><button class="button primary" id="send-answer" type="submit" disabled>Send answer <span aria-hidden="true">↑</span></button></div>
+          </form>
+          <p class="privacy-note"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="2"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></svg> Interview text and recorded answers are sent to OpenAI. Question playback uses an installed synthetic computer voice. Audio is held in memory; this app does not save recordings.</p>
+        </div>
+      </section>
+    </section>
+
+    <section id="review-view" class="review-layout" aria-label="Draft process review" hidden>
+      <div class="review-heading"><div><span class="section-eyebrow">03 / REVIEW</span><h1>Make the process clear.</h1><p class="muted">Check the map, refine the steps, and resolve what’s still unknown.</p></div><div class="review-actions"><button class="button secondary" id="back-to-interview">Continue interview</button><button class="button primary" id="export-markdown" disabled>Export procedure <span aria-hidden="true">↓</span></button></div></div>
+      <div id="review-empty" class="empty-state"><div class="empty-icon" aria-hidden="true">↗</div><h2>Your draft will appear here.</h2><p>Start an interview and share how the process works. You can create a draft at any point after your first answer.</p><button class="button primary" id="empty-start">Go to interview</button></div>
+      <div id="draft-content" hidden>
+        <div class="draft-status"><span class="draft-pill">DRAFT · OWNER REVIEW REQUIRED</span><span id="draft-stale" hidden>Interview updated since this draft was created.</span><button class="text-button small" id="regenerate-draft">Regenerate from interview <span aria-hidden="true">↻</span></button></div>
+        <div class="review-grid">
+          <div class="draft-main">
+            <article class="review-card map-card"><div class="card-heading"><div><span class="section-eyebrow">THE FLOW</span><h2>Draft process map</h2></div><button class="button ghost small" id="export-map">Save SVG <span aria-hidden="true">↓</span></button></div><p class="map-help">The map follows the draft’s step connections. Unconfirmed details need process-owner validation.</p><div class="map-container" id="process-map" tabindex="0" aria-label="Draft process map"></div><div class="map-legend"><span><i class="activity-legend"></i> Activity</span><span><i class="decision-legend"></i> Decision</span><span class="muted">Edit step names below to update the map.</span></div></article>
+            <article class="review-card"><div class="card-heading"><div><span class="section-eyebrow">THE MEMO FOUNDATION</span><h2>Eleven answers to review</h2></div><button class="button ghost small" id="export-memo">Export memo <span aria-hidden="true">↓</span></button></div><p class="map-help">Review the current understanding of each topic. UNKNOWN / TBD means the interview did not establish the answer. Coverage does not guarantee exhaustiveness.</p><div id="memo-summary" class="memo-summary"></div></article>
+            <article class="review-card procedure-card"><div class="card-heading"><div><span class="section-eyebrow">THE PROCEDURE</span><h2>Current-state procedure</h2></div><span class="editable-label">Editable draft</span></div><div class="draft-fields"><label for="draft-title">Title</label><input id="draft-title" maxlength="300"><label for="draft-overview">Overview</label><textarea id="draft-overview" rows="3" maxlength="12000"></textarea><label for="draft-trigger">What starts the process?</label><textarea id="draft-trigger" rows="2" maxlength="6000"></textarea><div class="io-grid"><div><label for="draft-inputs">Inputs <small>One per line</small></label><textarea id="draft-inputs" rows="3" maxlength="10000"></textarea></div><div><label for="draft-outputs">Outputs <small>One per line</small></label><textarea id="draft-outputs" rows="3" maxlength="10000"></textarea></div></div></div><div class="steps-heading"><h3>Process steps</h3><button class="text-button small" id="add-step">+ Add a step</button></div><div id="procedure-steps" class="procedure-steps"></div><details class="connections-editor"><summary>Edit map connections</summary><p class="muted">Use step IDs to define the flow. A blank label means an ordinary handoff.</p><div id="connection-rows"></div><button class="text-button small" id="add-connection">+ Add connection</button></details></article>
+            <article class="review-card"><div class="card-heading"><div><span class="section-eyebrow">HOW THE WORK TRAVELS</span><h2>Lifecycle of key items</h2></div><button class="text-button small" id="add-lifecycle">+ Add item</button></div><p class="map-help">Track the stages, locations, and handoffs of the items that move through the process.</p><div id="lifecycle-items"></div></article>
+            <article class="review-card"><div class="card-heading"><div><span class="section-eyebrow">WHERE THE PROCESS DIFFERS</span><h2>Variations & boundaries</h2></div><button class="text-button small" id="add-variation">+ Add variation</button></div><p class="map-help">Describe who a variation applies to, why it exists, and whether it may be separate work.</p><div id="variation-items"></div></article>
+          </div>
+          <aside class="draft-sidebar"><article class="review-card"><span class="section-eyebrow">NEEDS A CLOSER LOOK</span><h2>Review notes</h2><label for="draft-open-questions">Open questions <small>One per line</small></label><textarea id="draft-open-questions" rows="6" maxlength="18000"></textarea><label for="draft-validation-notes">Validation notes <small>One per line</small></label><textarea id="draft-validation-notes" rows="5" maxlength="18000"></textarea></article><article class="review-card"><span class="section-eyebrow">BEYOND THE HAPPY PATH</span><h2>Exceptions & controls</h2><label for="draft-exceptions">Exceptions <small>One per line</small></label><textarea id="draft-exceptions" rows="5" maxlength="18000"></textarea><label for="draft-controls">Controls <small>One per line</small></label><textarea id="draft-controls" rows="5" maxlength="18000"></textarea></article><div class="review-guidance"><strong>A draft, grounded in this conversation.</strong><p>Source turn IDs link steps to what was said. They help review evidence; they do not independently verify the process. Resolve gaps with the process owner before publishing.</p></div></aside>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="app-footer"><span>AI Process Collector <span class="footer-divider">/</span> Voice interviewer prototype</span><span>Human conversation. Clearer documentation.</span></footer>
+  <div class="sr-only" id="live-status" role="status" aria-live="polite"></div>
+</body>
+</html>

@@ -121,6 +121,38 @@ def process_draft():
 
 
 class EvidenceValidationTests(unittest.TestCase):
+    def test_unknown_or_partial_topics_override_a_premature_model_ready_flag(self):
+        for key in server.COVERAGE:
+            for status in ('unknown', 'partial'):
+                result = interview_result()
+                result['memo_findings'] = [
+                    {'key': topic, 'status': 'captured', 'answer': 'Synthetic complete topic.', 'evidence_turns': ['u1']}
+                    for topic in server.COVERAGE]
+                finding = next(item for item in result['memo_findings'] if item['key'] == key)
+                finding['status'] = status
+                result['ready_for_draft'] = True
+                with self.subTest(key=key, status=status):
+                    validated = server.validate_interview(result, interview_payload()['turns'])
+                    self.assertFalse(validated['ready_for_draft'])
+
+    def test_all_topics_captured_or_explicitly_not_applicable_are_ready_without_implying_closure(self):
+        result = interview_result()
+        result['ready_for_draft'] = False
+        result['memo_findings'] = [
+            {'key': topic, 'status': 'not_applicable' if topic == 'variations' else 'captured',
+             'answer': 'Synthetic participant basis.', 'evidence_turns': ['u1']}
+            for topic in server.COVERAGE]
+        validated = server.validate_interview(result, interview_payload()['turns'])
+        self.assertTrue(validated['ready_for_draft'])
+        self.assertFalse(validated['closure']['confirmed'])
+        self.assertFalse(validated['closure']['asked'])
+
+    def test_enough_detail_never_accepts_a_missing_or_duplicate_topic(self):
+        findings = [{'key': key, 'status': 'captured'} for key in server.COVERAGE]
+        self.assertFalse(server.memo_has_enough_detail(findings[:-1]))
+        findings[-1] = findings[0]
+        self.assertFalse(server.memo_has_enough_detail(findings))
+
     def test_accepts_a_draft_supported_by_interview_answers(self):
         payload = interview_payload()
         server.validate_payload(payload, require_answers=True)
@@ -243,6 +275,44 @@ class EvidenceValidationTests(unittest.TestCase):
         result["closure"] = {"asked": False, "confirmed": True}
         with self.assertRaises(ValueError):
             server.validate_interview(result, interview_payload()["turns"])
+
+
+class GraphRoutingContractTests(unittest.TestCase):
+    def test_generation_and_audit_keep_known_exception_entry_and_distinct_client_routes(self):
+        payload = interview_payload()
+        payload['turns'] = [
+            {'id': 'u1', 'role': 'user', 'text': 'The analyst performs the service, checks the result, then records it ready for coordinator closure.'},
+            {'id': 'u2', 'role': 'user', 'text': 'If the job platform is unavailable during the work, the analyst marks it blocked and notifies the lead. Restart and rejoin are unknown.'},
+            {'id': 'u3', 'role': 'user', 'text': 'After ready and before closure, Orion requires compliance approval. Other clients skip approval. The approval is recorded before Orion closure.'},
+        ]
+        candidate = process_draft()
+        template = candidate['steps'][0]
+        candidate['steps'] = []
+        for step_id, title, source in (('work', 'Perform service', 'u1'), ('blocked', 'Mark blocked and notify lead', 'u2'),
+                                       ('ready', 'Record ready', 'u1'), ('approval', 'Record compliance approval', 'u3'),
+                                       ('close', 'Coordinator closure', 'u1')):
+            step = copy.deepcopy(template)
+            step.update(id=step_id, title=title, evidence_turns=[source])
+            candidate['steps'].append(step)
+        candidate['connections'] = [
+            {'from': 'work', 'to': 'ready', 'label': 'Result matches', 'evidence_turns': ['u1']},
+            {'from': 'work', 'to': 'blocked', 'label': 'Job platform unavailable', 'evidence_turns': ['u1', 'u2']},
+            {'from': 'ready', 'to': 'approval', 'label': 'Client Orion', 'evidence_turns': ['u3']},
+            {'from': 'ready', 'to': 'close', 'label': 'Other clients', 'evidence_turns': ['u3']},
+            {'from': 'approval', 'to': 'close', 'label': 'Approval recorded', 'evidence_turns': ['u3']},
+        ]
+        candidate['open_questions'] = ['Who authorizes restarting blocked work, and where does it rejoin?']
+        client = server.OpenAIClient({'OPENAI_API_KEY': 'sk-synthetic-not-a-credential'})
+        client.structured = Mock(side_effect=[copy.deepcopy(candidate), copy.deepcopy(candidate)])
+        result = client.draft(payload)['draft']
+        self.assertEqual(result['connections'], candidate['connections'])
+        self.assertFalse(any(edge['from'] == 'blocked' for edge in result['connections']))
+        self.assertEqual(client.structured.call_count, 2)
+        for call in client.structured.call_args_list:
+            self.assertIn(server.GRAPH_ROUTING_POLICY, call.args[0])
+            self.assertIn(server.FULL_CIRCLE_POLICY, call.args[0])
+            self.assertEqual(call.args[2], server.DRAFT_SCHEMA)
+        self.assertIn(server.GRAPH_ROUTING_POLICY, server.WORKFLOW_INSTRUCTIONS)
 
 
 class ClosureEnforcementTests(unittest.TestCase):
@@ -513,8 +583,8 @@ class HTTPBoundaryTests(unittest.TestCase):
         self.assertIn("unknowns remain open", result["question"])
         self.assertNotIn("?", result["question"])
 
-    def test_meeting_time_is_advisory_and_does_not_stop_answers(self):
-        for planned, elapsed in ((60, 90), (90, 120)):
+    def test_legacy_meeting_time_is_ignored_and_never_sent_to_the_provider(self):
+        for planned, elapsed in ((60, 90), (0, -1), ('unlimited', 'ignored'), (None, None), (10**20, 10**30)):
             with self.subTest(planned=planned, elapsed=elapsed):
                 self.client.request.reset_mock()
                 payload = interview_payload()
@@ -524,7 +594,13 @@ class HTTPBoundaryTests(unittest.TestCase):
                 self.assertEqual(status, 200)
                 self.assertTrue(json.loads(raw)["question"])
                 sent = json.loads(self.client.request.call_args.args[1]["input"][0]["content"])
-                self.assertEqual(sent["timing"], {"elapsed_minutes": elapsed, "planned_minutes": planned})
+                self.assertNotIn('timing', sent)
+                self.assertNotIn('session', sent)
+                self.assertNotIn('meeting_minutes', sent['context'])
+                instructions = self.client.request.call_args.args[1]['instructions']
+                self.assertNotIn('60-minute meeting', instructions)
+                self.assertNotIn('Use elapsed time', instructions)
+                self.assertIn('no duration target', instructions)
 
     def test_shutdown_requires_same_origin_and_current_token(self):
         with patch.object(self.httpd, "shutdown") as shutdown:

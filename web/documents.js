@@ -1,0 +1,289 @@
+"use strict";
+
+// Document attachments are context to review, never automatically accepted process facts.
+(() => {
+  const MAX_FILE = 64 * 1024 * 1024, MAX_FILES = 20;
+  const EXTENSIONS = new Set(["pdf","png","xlsx","xlsm","csv"]);
+  const copy = value => JSON.parse(JSON.stringify(value));
+  const abortError = () => new DOMException("Cancelled", "AbortError");
+  const message = error => String(error?.message || "The file request could not be completed.").slice(0,600);
+  const label = value => typeof value === "string" ? value : "";
+
+  class Documents {
+    constructor(options) {
+      if (typeof options?.requestJSON !== "function") throw new TypeError("A same-origin JSON request function is required.");
+      this.options=options;this.doc=options.document||window.document;this.generation=0;this.revision=0;this.scope=null;this.documents=[];
+      this.uploads=[];this.uploadErrors=[];this.seen=new Map();this.pollTimer=null;this.polling=null;this.sessionPromise=null;
+      this.mutating=0;this.sequence=0;this.disposed=false;this.restoreFocus=true;this.connectionError="";this.lastError="";this.source=null;
+      this.controller=new AbortController();this.actions=new Set();this.build();this.render();
+      this.pagehide=()=>this.cancel();window.addEventListener?.("pagehide",this.pagehide);
+    }
+    node(tag,className,text) {const node=this.doc.createElement(tag);if(className)node.className=className;if(text!==undefined)node.textContent=String(text);return node;}
+    button(text,className,fn) {const button=this.node("button",className,text);button.type="button";button.addEventListener("click",fn);return button;}
+    emit(event) {this.options.onEvent?.(event);}
+    context() {const value=this.options.getContext?.()||{};return {context:value.context||{},turns:value.turns||[],focus:value.focus||"",current_question:value.current_question||""};}
+    current(generation) {return !this.disposed&&generation===this.generation;}
+    allowed() {return !this.disposed&&(this.options.canUpload?.()!==false);}
+    build() {
+      this.controls=this.doc.getElementById("document-controls");this.strip=this.doc.getElementById("document-strip");
+      if(!this.controls||!this.strip)throw new Error("Document controls and strip mounts are required.");
+      this.controls.classList.add("document-controls");this.strip.classList.add("document-strip");
+      this.attachButton=this.button("", "document-attach",()=>this.attach());this.attachButton.title="Add files";this.attachButton.setAttribute("aria-label","Add files");
+      const icon=this.doc.createElementNS("http://www.w3.org/2000/svg","svg");icon.setAttribute("viewBox","0 0 24 24");icon.setAttribute("aria-hidden","true");
+      const clip=this.doc.createElementNS("http://www.w3.org/2000/svg","path");clip.setAttribute("d","M8 13.5 15.2 6.3a3.2 3.2 0 0 1 4.5 4.5l-9.2 9.3a5 5 0 0 1-7.1-7.1l9.3-9.3M6.8 15l8.4-8.4");clip.setAttribute("fill","none");clip.setAttribute("stroke","currentColor");clip.setAttribute("stroke-width","1.5");clip.setAttribute("stroke-linecap","round");icon.append(clip);this.attachButton.append(icon);
+      this.countButton=this.button("Files", "document-count",()=>this.open());this.countButton.setAttribute("aria-haspopup","dialog");this.countButton.setAttribute("aria-controls","documents-dialog");
+      this.input=this.node("input");this.input.type="file";this.input.accept=".pdf,.png,.xlsx,.xlsm,.csv";this.input.multiple=true;this.input.hidden=true;
+      this.input.addEventListener("change",()=>{const files=Array.from(this.input.files||[]);this.input.value="";this.addFiles(files);});
+      this.controls.replaceChildren(this.attachButton,this.countButton,this.input);
+      this.dialog=this.doc.getElementById("documents-dialog");
+      if(!this.dialog){this.dialog=this.node("dialog");this.dialog.id="documents-dialog";this.doc.body.append(this.dialog);}
+      this.dialog.classList.add("documents-dialog");this.dialog.setAttribute("aria-labelledby","documents-title");
+      const header=this.node("div","documents-heading"),head=this.node("div"),eyebrow=this.node("p","documents-eyebrow","REFERENCE MATERIAL");
+      const title=this.node("h2","","Files for this conversation");title.id="documents-title";head.append(eyebrow,title);
+      const close=this.button("×","documents-close",()=>this.close());close.setAttribute("aria-label","Close files");header.append(head,close);
+      this.dialog.addEventListener("close",()=>{if(this.restoreFocus)this.returnFocus?.focus?.({preventScroll:true});});
+      this.body=this.node("div","documents-body");this.body.setAttribute("aria-live","off");
+      this.liveStatus=this.node("p","documents-live-status");this.liveStatus.setAttribute("role","status");this.liveStatus.setAttribute("aria-live","polite");this.liveStatus.setAttribute("aria-atomic","true");
+      const footer=this.node("div","documents-footer"),add=this.button("Add files","documents-add",()=>this.attach());
+      footer.append(add,this.node("p","","Files are saved on this computer; relevant content is sent to OpenAI."));
+      this.dialog.replaceChildren(header,this.liveStatus,this.body,footer);
+    }
+    attach() {if(!this.allowed())return;this.input.click();}
+    open(documentId) {
+      if(this.disposed)return;this.returnFocus=this.doc.activeElement;this.restoreFocus=true;
+      if(!this.dialog.open)this.dialog.showModal();
+      if(documentId)this.body.querySelector?.(`[data-document-id="${this.safeId(documentId)}"]`)?.scrollIntoView?.({block:"nearest"});
+    }
+    safeId(id) {return String(id).replace(/[^a-zA-Z0-9_-]/g,"");}
+    close(restoreFocus=true) {this.restoreFocus=restoreFocus;if(this.dialog.open)this.dialog.close();}
+    async ensureSession() {
+      if(this.scope)return this.scope;
+      if(this.sessionPromise)return this.sessionPromise;
+      const generation=this.generation,signal=this.controller.signal;
+      const task=(async()=>{
+        const result=await this.options.requestJSON("/api/documents/session",this.context(),{signal,timeout:30000});
+        if(!this.current(generation))throw abortError();
+        if(typeof result?.scope!=="string"||!result.scope)throw new Error("The local file workspace could not be opened.");
+        this.scope=result.scope;this.setDocuments(result.documents||[],false);this.options.onDirty?.();return this.scope;
+      })();
+      this.sessionPromise=task;
+      try{return await task;}finally{if(this.sessionPromise===task)this.sessionPromise=null;}
+    }
+    async addFiles(files) {
+      if(!this.allowed()||!files.length)return;
+      const generation=this.generation;
+      const available=Math.max(0,MAX_FILES-this.documents.length-this.uploads.length),accepted=[];
+      for(const file of files){
+        const extension=String(file.name||"").split(".").pop().toLowerCase();
+        const error=!EXTENSIONS.has(extension)?"Choose a PDF, PNG, XLSX, XLSM or CSV file.":!Number.isFinite(file.size)||file.size<1?"This file is empty.":file.size>MAX_FILE?"This file exceeds the 64 MiB limit.":accepted.length>=available?"A conversation can hold up to 20 files.":null;
+        if(error){this.uploadErrors.push({name:file.name||"File",message:error});continue;}accepted.push(file);
+      }
+      this.uploadErrors=this.uploadErrors.slice(-20);
+      if(!accepted.length){this.render();this.open();return;}
+      const queued=accepted.map(file=>({key:++this.sequence,name:file.name,status:"Waiting to upload",file}));
+      this.uploads.push(...queued);this.mutating++;this.revision++;this.options.onDirty?.();this.render();
+      try{
+        const scope=await this.ensureSession();
+        for(const upload of queued){
+          if(!this.current(generation))return;
+          upload.status="Uploading";this.render();
+          try{
+            const response=await this.uploadFile(upload.file,scope);
+            const result=await response.json().catch(()=>({}));
+            if(!this.current(generation))return;
+            if(!response.ok)throw new Error(result.error||"The file could not be saved. Please try again.");
+            if(!result.document||typeof result.document.id!=="string")throw new Error("The local file response was incomplete.");
+            this.upsert(result.document);this.emit({type:"received",document:copy(result.document)});this.options.onDirty?.();
+          }catch(error){
+            if(!this.current(generation)||this.controller.signal.aborted)return;
+            if(error.name==="AbortError")error=new Error("Uploading took too long. Check Files before trying again.");
+            this.uploadErrors.push({name:upload.name,message:message(error)});this.reportError(error,true);
+          }finally{
+            if(this.current(generation)){this.uploads=this.uploads.filter(item=>item.key!==upload.key);this.render();}
+          }
+        }
+      }catch(error){if(this.current(generation)&&error.name!=="AbortError"){
+        this.uploadErrors.push(...queued.map(upload=>({name:upload.name,message:message(error)})));this.uploads=this.uploads.filter(item=>!queued.includes(item));this.reportError(error,true);this.render();
+      }}finally{if(this.current(generation)){this.mutating=Math.max(0,this.mutating-1);this.revision++;this.schedule(0);}}
+    }
+    async uploadFile(file,scope) {
+      const controller=new AbortController(),outer=this.controller.signal,abort=()=>controller.abort();
+      outer.addEventListener("abort",abort,{once:true});if(outer.aborted)abort();
+      const timer=setTimeout(abort,120000);
+      try{return await (this.options.fetch||window.fetch.bind(window))("/api/documents/upload",{
+        method:"POST",credentials:"same-origin",signal:controller.signal,body:file,
+        headers:{"Content-Type":"application/octet-stream","X-CSRF-Token":this.options.config?.()?.csrf_token||"",
+          "X-Document-Scope":scope,"X-Document-Filename":encodeURIComponent(file.name)}
+      });}finally{clearTimeout(timer);outer.removeEventListener("abort",abort);}
+    }
+    upsert(document) {const index=this.documents.findIndex(item=>item.id===document.id);if(index<0)this.documents.push(copy(document));else this.documents[index]=copy(document);this.connectionError="";this.render();}
+    setDocuments(documents,emit=true) {
+      if(!Array.isArray(documents))throw new Error("The local file list was incomplete.");
+      const next=documents.filter(item=>item&&typeof item.id==="string").map(copy);
+      const changed=JSON.stringify(next)!==JSON.stringify(this.documents);this.documents=next;this.connectionError="";this.lastError="";
+      for(const document of next){const version=document.analysis?.version;if(version!==undefined&&version!==null){
+        const key=String(version);if(this.seen.get(document.id)!==key){this.seen.set(document.id,key);if(emit)this.emit({type:"analysis",document:copy(document),analysis:copy(document.analysis)});}
+      }}
+      this.render();if(changed&&emit)this.options.onDirty?.();
+    }
+    pending() {return this.uploads.length||this.documents.some(item=>["pending","indexing"].includes(item.status)||["quick","deep"].includes(item.analysis?.phase));}
+    schedule(delay) {
+      clearTimeout(this.pollTimer);this.pollTimer=null;
+      if(this.disposed||!this.scope||(!this.documents.length&&!this.uploads.length))return;
+      this.pollTimer=setTimeout(()=>{this.pollTimer=null;this.refresh();},delay===undefined?(this.pending()?2000:10000):delay);
+    }
+    async refresh() {
+      if(this.disposed||!this.scope)return;
+      if(this.polling)return this.polling;
+      if(this.mutating){this.schedule();return;}
+      const generation=this.generation,revision=this.revision,scope=this.scope;
+      const task=(async()=>{
+        try{
+          const result=await this.options.requestJSON("/api/documents/status",{scope,...this.context()},{signal:this.controller.signal,timeout:30000});
+          if(!this.current(generation)||scope!==this.scope||revision!==this.revision)return;
+          this.setDocuments(result.documents);
+        }catch(error){if(this.current(generation)&&scope===this.scope&&revision===this.revision&&error.name!=="AbortError"){this.connectionError=message(error);this.reportError(error,false);this.render();}}
+        finally{if(this.current(generation))this.schedule();}
+      })();this.polling=task;
+      try{return await task;}finally{if(this.polling===task)this.polling=null;}
+    }
+    reportError(error,notify) {
+      const text=message(error);if(notify)this.options.notice?.(text,true);
+      if(this.lastError!==text){this.lastError=text;this.emit({type:"error",message:text});}
+    }
+    async action(document,action,purpose) {
+      const key=document.id+":"+action;if(this.actions.has(key)||!this.scope)return;
+      const generation=this.generation;this.actions.add(key);this.mutating++;this.revision++;
+      try{
+        const result=await this.options.requestJSON("/api/documents/action",{scope:this.scope,id:document.id,action,...(purpose!==undefined?{purpose}:{})},{signal:this.controller.signal,timeout:30000});
+        if(!this.current(generation))return;
+        if(action==="remove"){this.documents=this.documents.filter(item=>item.id!==document.id);this.seen.delete(document.id);if(this.source?.documentId===document.id)this.source=null;}
+        else if(result.document)this.upsert(result.document);
+        this.options.onDirty?.();this.render();
+      }catch(error){if(this.current(generation)&&error.name!=="AbortError")this.reportError(error,true);}
+      finally{if(this.current(generation)){this.actions.delete(key);this.mutating=Math.max(0,this.mutating-1);this.revision++;this.schedule(0);}}
+    }
+    reviewError(document) {return document.status==="error"||document.analysis?.phase==="error"||Boolean(document.analysis?.error);}
+    status(document) {
+      if(document.status==="error")return "Could not read file";
+      if(document.analysis?.phase==="error"||document.analysis?.error)return "Review paused";
+      if(document.analysis?.disposition==="parked")return "Saved for later";
+      if(document.analysis?.disposition==="needs_reason")return "Needs your direction";
+      if(["pending","indexing"].includes(document.status))return "Reading file";
+      if(document.analysis?.phase==="deep")return "Reading in depth";
+      if(document.analysis?.phase==="quick"||!document.analysis?.summary)return "Checking relevance";
+      if(document.status==="partial")return "Partly readable";
+      return "Ready to review";
+    }
+    render() {
+      if(this.disposed)return;
+      const total=this.documents.length+this.uploads.length;
+      const counts=new Map();this.documents.forEach(document=>{const status=this.status(document);counts.set(status,(counts.get(status)||0)+1);});
+      const announcement=[`${total} ${total===1?"file":"files"}`,...[...counts].map(([status,count])=>`${count} ${status.toLowerCase()}`),...(this.uploads.length?[`${this.uploads.length} uploading`]:[]),...(this.uploadErrors.length?[`${this.uploadErrors.length} file issues`]:[])].join(". ");
+      if(this.liveStatus.textContent!==announcement)this.liveStatus.textContent=announcement;
+      this.attachButton.disabled=!this.allowed()||total>=MAX_FILES;
+      this.countButton.textContent=total?`Files ${total}`:"Files";this.countButton.hidden=!total&&!this.uploadErrors.length;
+      this.strip.hidden=!total&&!this.uploadErrors.length;this.strip.replaceChildren();
+      for(const document of this.documents){const chip=this.button("","document-chip",()=>this.open(document.id));
+        chip.setAttribute("aria-label",`${document.name||"File"} · ${this.status(document)}`);chip.append(this.node("span","document-chip-name",document.name||"File"),this.node("span","document-chip-status",this.status(document)));this.strip.append(chip);
+      }
+      for(const upload of this.uploads)this.strip.append(this.node("span","document-chip document-chip-pending",`${upload.name} · ${upload.status}…`));
+      if(this.uploadErrors.length){const errors=this.button(`${this.uploadErrors.length} file ${this.uploadErrors.length===1?"issue":"issues"}`,"document-chip document-chip-error",()=>this.open());this.strip.append(errors);}
+      // Preserve a purpose currently being typed across polling and upload progress renders.
+      const drafts=new Map();this.body.querySelectorAll?.("[data-document-purpose]").forEach(input=>drafts.set(input.dataset.documentPurpose,input.value));
+      const focused=this.doc.activeElement,purposeFocus=focused?.dataset?.documentPurpose,selection=purposeFocus?[focused.selectionStart,focused.selectionEnd]:null;
+      const sourceFocus=focused?.dataset?.documentSourceHeading,scrollTop=this.body.scrollTop;
+      this.body.replaceChildren();
+      if(this.connectionError){const error=this.node("div","documents-warning");error.append(this.node("p","",`Saved file details are retained. ${this.connectionError}`),this.button("Try again","documents-text-button",()=>this.refresh()));this.body.append(error);}
+      this.uploadErrors.forEach((error,index)=>{const item=this.node("div","documents-warning");item.append(this.node("strong","",error.name),this.node("p","",error.message),this.button("Dismiss issue","documents-text-button",()=>{this.uploadErrors.splice(index,1);this.render();}));this.body.append(item);});
+      if(!total&&!this.uploadErrors.length)this.body.append(this.node("p","documents-empty","Add a procedure, spreadsheet, screenshot or reference document. We’ll look for what matters to this conversation."));
+      for(const upload of this.uploads)this.body.append(this.node("p","documents-upload",`${upload.name} · ${upload.status}…`));
+      for(const document of this.documents)this.renderDocument(document,drafts);
+      this.sourceHeading=null;if(this.source)this.renderSource();this.body.scrollTop=scrollTop;
+      if(sourceFocus&&this.sourceHeading?.dataset.documentSourceHeading===sourceFocus)this.sourceHeading.focus?.({preventScroll:true});
+      if(purposeFocus){const input=[...this.body.querySelectorAll("[data-document-purpose]")].find(node=>node.dataset.documentPurpose===purposeFocus);input?.focus?.({preventScroll:true});if(selection&&input?.setSelectionRange)input.setSelectionRange(...selection);}
+    }
+    renderDocument(document,drafts) {
+      const card=this.node("section","documents-card");card.dataset.documentId=this.safeId(document.id);
+      const head=this.node("div","documents-card-heading"),title=this.node("div");title.append(this.node("h3","",document.name||"File"),this.node("p","documents-file-meta",`${document.kind||"Document"} · ${this.size(document.size)} · ${this.status(document)}`));
+      const remove=this.button("Remove","documents-text-button",()=>this.action(document,"remove"));remove.setAttribute("aria-label",`Remove ${document.name||"file"} from this conversation`);head.append(title,remove);card.append(head);
+      const analysis=document.analysis||{};
+      if(document.error)card.append(this.node("p","documents-warning",typeof document.error==="string"?document.error:"Some content could not be read."));
+      if(analysis.error)card.append(this.node("p","documents-warning",typeof analysis.error==="string"?analysis.error:analysis.error.message||"Review could not be completed. Try reviewing this file again."));
+      if(analysis.phase==="error"&&!analysis.error)card.append(this.node("p","documents-warning","Review could not be completed. Your saved file is retained."));
+      if(analysis.summary)card.append(this.node("p","documents-summary",analysis.summary));
+      const reviewed=Number(analysis.reviewed_chunks),chunks=Number(analysis.total_chunks);
+      if(Number.isFinite(reviewed)&&Number.isFinite(chunks)&&chunks>0)card.append(this.node("p","documents-progress",`${reviewed} of ${chunks} sections reviewed${reviewed<chunks?" · More reading continues in the background":""}.`));
+      if(document.coverage){
+        const coverage=typeof document.coverage==="string"?document.coverage:document.coverage.summary||document.coverage.note;if(coverage)card.append(this.node("p","documents-progress",coverage));
+        const indexed=Number(document.coverage.indexed_units),total=Number(document.coverage.total_units);
+        if(Number.isFinite(indexed)&&Number.isFinite(total)&&total>0)card.append(this.node("p","documents-progress",`${indexed}/${total} units indexed.`));
+      }
+      const limitations=[document.coverage?.limitations,analysis.limitations].flatMap(value=>Array.isArray(value)?value:typeof value==="string"?[value]:[]).filter(value=>typeof value==="string"&&value.trim());
+      if(limitations.length){const section=this.node("div","documents-limitations"),list=this.node("ul");section.append(this.node("h4","","Reading limits"));for(const limitation of new Set(limitations))list.append(this.node("li","",limitation));section.append(list);card.append(section);}
+      if(document.inventory)this.renderInventory(card,document.inventory);
+      const primary=typeof analysis.question==="string"?analysis.question.trim():"";
+      if(analysis.disposition==="needs_reason"){
+        if(primary)card.append(this.node("p","documents-purpose-question",primary));
+        const form=this.node("form","documents-purpose"),input=this.node("input");input.type="text";input.maxLength=1000;input.placeholder="What should I look for?";input.setAttribute("aria-label",`What should I look for in ${document.name||"this file"}?`);input.dataset.documentPurpose=document.id;input.value=drafts.get(document.id)||"";
+        const submit=this.node("button","documents-add","Use this context");submit.type="submit";
+        form.append(input,submit,this.button("Save for later","documents-text-button",()=>this.action(document,"park")));
+        form.addEventListener("submit",event=>{event.preventDefault();const purpose=input.value.trim();if(purpose)this.action(document,"purpose",purpose);});card.append(form);
+      }
+      if(this.reviewError(document))card.append(this.button("Retry review","documents-text-button",()=>this.action(document,"revisit")));
+      else if(analysis.disposition==="parked")card.append(this.button("Revisit this file","documents-text-button",()=>this.action(document,"revisit")));
+      const listed=Array.isArray(analysis.questions)?analysis.questions.filter(item=>item&&typeof item.text==="string"&&item.text.trim()):[];
+      const questions=(listed.length?listed:primary?[{id:"quick",text:primary,sources:analysis.sources||[]}]:[]).filter(item=>!(analysis.disposition==="needs_reason"&&item.text.trim()===primary));
+      if(questions.length){const section=this.node("div","documents-questions");section.append(this.node("h4","",analysis.disposition==="parked"?"Questions for later":"Questions to explore"));
+        for(const question of questions){if(!question?.text)continue;const row=this.node("div","documents-question");row.append(this.node("p","",question.text),this.button("Discuss","documents-text-button",()=>{this.close(false);this.emit({type:"question",document:copy(document),question:copy(question)});}));this.renderSources(row,document,question.sources||[]);section.append(row);}card.append(section);
+      }
+      this.renderSources(card,document,analysis.sources||[]);card.append(this.node("p","documents-evidence-note","Reference material to review, not an accepted process fact."));this.body.append(card);
+    }
+    renderInventory(card,inventory) {
+      const parts=[];
+      if(typeof inventory==="string")parts.push(inventory);
+      else if(Array.isArray(inventory))inventory.slice(0,12).forEach(item=>parts.push(typeof item==="string"?item:item?.label||item?.name||""));
+      else if(inventory&&typeof inventory==="object")for(const [key,value] of Object.entries(inventory)){if(typeof value==="number")parts.push(`${value} ${key.replaceAll("_"," ")}`);else if(typeof value==="string")parts.push(value);else if(Array.isArray(value)){
+        parts.push(`${value.length} ${key.replaceAll("_"," ")}`);
+        if(/sheet|tab/i.test(key)){const names=value.slice(0,12).map(item=>typeof item==="string"?item:item?.name||item?.label||"").filter(Boolean);if(names.length)parts.push(names.join(", ")+(value.length>12?` · ${value.length-12} more listed`:""));}
+      }}
+      if(parts.filter(Boolean).length)card.append(this.node("p","documents-progress",parts.filter(Boolean).join(" · ")));
+    }
+    renderSources(parent,document,sources) {
+      const valid=Array.isArray(sources)?sources.filter(source=>source&&typeof source.source_id==="string"):[];if(!valid.length)return;
+      const group=this.node("div","documents-sources");
+      for(const source of valid.slice(0,30)){const button=this.button(source.label||`${document.name} · Source`,"documents-source",()=>this.openSource(document,source));button.setAttribute("aria-label",`Read source: ${document.name} · ${source.label||source.source_id}`);button.dataset.documentSource=`${document.id}:${source.source_id}`;group.append(button);}parent.append(group);
+    }
+    async openSource(document,source) {
+      const generation=this.generation,scope=this.scope;if(!scope)return;
+      this.sourceReturnKey=`${document.id}:${source.source_id}`;
+      const selected=this.source={documentId:document.id,sourceId:source.source_id,label:this.sourceTitle(document,source.label||source.source_id),text:"Loading source…",loading:true};this.render();
+      try{
+        const result=await this.options.requestJSON("/api/documents/source",{scope,id:document.id,source_id:source.source_id},{signal:this.controller.signal,timeout:30000});
+        if(!this.current(generation)||this.source!==selected||!this.documents.some(item=>item.id===document.id))return;
+        this.source={documentId:document.id,sourceId:source.source_id,label:this.sourceTitle(document,result.source?.label||source.label||source.source_id),text:label(result.source?.text)||"This source has no readable text."};this.render();this.focusSource();
+      }catch(error){if(this.current(generation)&&this.source===selected&&error.name!=="AbortError"){this.source={documentId:document.id,sourceId:source.source_id,label:this.sourceTitle(document,source.label||source.source_id),text:message(error)};this.render();this.focusSource();}}
+    }
+    sourceTitle(document,reference) {const name=document.name||"File",text=label(reference);return text.includes(name)?text:`${name}${text?" · "+text:""}`;}
+    focusSource() {if(this.dialog.open){this.sourceHeading?.focus?.({preventScroll:true});this.sourceHeading?.scrollIntoView?.({block:"nearest"});}}
+    renderSource() {
+      const source=this.node("section","documents-source-preview"),heading=this.sourceHeading=this.node("h3","",this.source.label);heading.tabIndex=-1;heading.dataset.documentSourceHeading=`${this.source.documentId}:${this.source.sourceId}`;
+      source.append(heading,this.button("Close source","documents-text-button",()=>{const key=this.sourceReturnKey;this.source=null;this.sourceHeading=null;this.render();[...this.body.querySelectorAll(".documents-source")].find(button=>button.dataset.documentSource===key)?.focus?.({preventScroll:true});}));
+      const content=this.node("pre","documents-source-text",this.source.text);source.append(content);this.body.append(source);
+    }
+    size(bytes) {const value=Number(bytes)||0;return value>=1024*1024?`${(value/1024/1024).toFixed(1)} MiB`:value>=1024?`${Math.round(value/1024)} KiB`:`${value} bytes`;}
+    exportState() {return {scope:this.scope,documents:copy(this.documents)};}
+    async restoreState(saved) {
+      this.reset();if(!saved||typeof saved!=="object")return;
+      if(typeof saved.scope==="string"&&saved.scope)this.scope=saved.scope;
+      if(Array.isArray(saved.documents))this.setDocuments(saved.documents,false);this.render();
+      if(this.scope)await this.refresh();
+    }
+    cancel() {clearTimeout(this.pollTimer);this.pollTimer=null;this.controller.abort();}
+    reset() {
+      this.cancel();this.generation++;this.revision++;this.controller=new AbortController();this.scope=null;this.documents=[];this.uploads=[];this.uploadErrors=[];this.seen=new Map();this.sessionPromise=null;this.polling=null;this.mutating=0;this.actions.clear();this.source=null;this.sourceHeading=null;this.sourceReturnKey=null;this.connectionError="";this.lastError="";this.close(false);this.render();
+    }
+    dispose() {if(this.disposed)return;this.reset();this.disposed=true;this.cancel();window.removeEventListener?.("pagehide",this.pagehide);this.controls.replaceChildren();this.strip.replaceChildren();this.strip.hidden=true;}
+  }
+  window.CollectorDocuments={create:options=>new Documents(options)};
+})();

@@ -1,0 +1,5 @@
+# Document parsers verified in the configured Python runtime on 2026-11-02.
+# Legacy .xls requires conversion to .xlsx/.csv; xlrd is not installed.
+pypdf==6.10.0
+openpyxl==3.1.5
+Pillow==12.3.0

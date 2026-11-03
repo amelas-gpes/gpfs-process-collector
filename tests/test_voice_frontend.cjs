@@ -15,7 +15,7 @@ const nodes=new Map();
 const context={console,Blob,DataView,Uint8Array,AbortController,DOMException,WebSocket:FakeWebSocket,
  setTimeout,clearTimeout,Date,JSON,URL:{revokeObjectURL:v=>revoked.push(v)},
  atob:s=>Buffer.from(s,"base64").toString("binary"),
- document:{getElementById:id=>{if(!nodes.has(id))nodes.set(id,{hidden:false});return nodes.get(id);}},
+ document:{getElementById:id=>{if(!nodes.has(id))nodes.set(id,{hidden:false,dataset:{}});return nodes.get(id);}},
  window:{speechSynthesis:{cancel:()=>cancelCount++}}};
 vm.createContext(context);vm.runInContext(source,context,{filename:"app.js"});
 const t=context.window.__voiceTests;

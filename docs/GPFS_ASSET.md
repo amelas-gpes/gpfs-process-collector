@@ -1,0 +1,67 @@
+# GPFS vector presence
+
+The voice interface uses GPFS's supplied mark directly. It does not put a logo over an orb. The four taupe diamond elements receive small coordinated translations and rotations; the copper interlocking outline has a restrained change in bearing. The original company lettering below the symbol stays still.
+
+## Official source and fidelity
+
+Retrieved on 2026-11-02 from the official site:
+
+- SVG: <https://gpfs.com/images/logo/rev/rev_gpfs_stacked.svg>
+- Brand context: <https://gpfs.com/>
+- Site styles inspected: <https://gpfs.com/templates/yootheme_gp/css/custom.css?5.0.53> and <https://gpfs.com/templates/yootheme_gp/css/theme.12.css?1793645790>
+
+`web/assets/gpfs-logo.svg` is the **unmodified 6,971-byte original**. SHA-256:
+
+```text
+f7a6179bbe98c6477ff443a646e1253273305460231e888b1f83ef114425002b
+```
+
+Its original viewBox is `0 0 129.92136 45.69322`. The source contains 22 vector elements: 17 company-lettering elements and five symbol paths. `web/gpfs-presence.js` embeds their exact geometry and the four original diamond transforms. Wrapper groups provide movement; the source path data are not reshaped. The symbol has additional viewBox room for movement, and the stable lettering uses a cropped viewBox without changing its proportions. The full source lockup is also available to the app header and as the initial fallback.
+
+Verified colors:
+
+| Use | Color | Evidence |
+| --- | --- | --- |
+| Symbol outline | `#C9753A` | Official SVG's copper path |
+| Four diamonds and company lettering | `#8B7D65` | Official SVG fills |
+| Website accent | `#DC6E2C` | Site CSS `.uk-text-cookie` and `.primary4`, plus theme button/link styling |
+
+The moving mark retains its source copper/taupe fills. A low-opacity warm surface light is confined to duplicate copies of those same path contours. It has no blur, filter, exterior glow or silhouette scale. The website's accent orange does not replace the source logo colors. The official asset remains GPFS's identity; downloading it does not assert a new license or ownership.
+
+## Conversation behavior
+
+- **Listening:** a poised inward posture; microphone emphasis draws the four diamonds inward and brings surface light toward the center. Quiet speech receives a nonlinear response above a small noise floor. Pauses release gradually.
+- **Speaking:** a projecting outward posture driven by actual AI output activity and output amplitude. The light travels outward as emphasis increases. Playback remaining active preserves that posture through phrase pauses; completion returns to listening. Active microphone interruption takes receptive priority.
+- **Idle / ended / muted:** the existing pose settles to the composed original arrangement. A muted microphone cannot articulate the mark; actual AI playback can still speak while the microphone is muted.
+- **Connecting:** restrained inward activation during the actual connection state. **Processing:** a separate, small outward waiting motion during the actual processing state. Neither represents a percentage or estimated progress.
+
+Pose and audio envelopes carry continuously across state transitions. There is no spinning, repeated size pulse, rubber deformation, particle effect or large shadow.
+
+## Integration contract
+
+The component mounts synchronously and performs no network requests:
+
+```js
+const presence = window.GPFSPresence.create(element);
+presence.setState("idle");
+presence.setAudio({
+  input: 0, output: 0,
+  inputActive: false, outputActive: false, playbackActive: false,
+  muted: false, connected: false
+});
+presence.setVisible(true);
+// At permanent teardown:
+presence.dispose();
+```
+
+States: `idle`, `connecting`, `listening`, `speaking`, `processing`, `muted`, `ended`. Levels must be finite numbers between zero and one; invalid/out-of-range values are clamped. Connected Live voice only projects after real output activity. For auxiliary question playback without a WebRTC meter, the app's actual audio-element `playing` event may supply `speaking`; the logo then adopts a static projecting posture without inventing an amplitude signal. Explicit conversation labels remain in the app; the decorative vectors are hidden from assistive technology.
+
+Input noise floor is 0.018; output is 0.012. The additional visual envelope attacks in approximately 60 ms for input and 38 ms for output, and releases in 270 ms / 200 ms. Small pose inertia adds continuity. Animation caps at 30 rendered frames per second and sleeps once a silent pose settles. Panel visibility and document visibility suspend rendering; resuming never replays the hidden interval. Reduced motion removes articulation and animation frames, using a static state illumination change instead. Preference changes are observed at runtime.
+
+`inspect()` returns a read-only snapshot of the current pose. `sample(milliseconds)` advances and renders a deterministic frame for tests; it never generates audio. Test-only `create(element, {autoStart:false})` disables automatic animation. Snapshot fields are `state`, `mode`, `input`, `output`, `gather`, `project`, `tilt`, `band`, `light`, `parts` (five `{x,y,rotation}` objects in source order), `visible`, `reducedMotion`, and `renderCount`.
+
+## Verification boundary
+
+`tests/test_gpfs_presence.cjs` has 19 passing component checks, zero failures and zero skips. They verify the asset hash and source geometry, audio direction/attack/release/noise floor, playback gating, phrase pauses, interruption continuity, mute/end behavior, quiet auxiliary playback, actual waiting states, reduced motion, hidden suspension, 30 fps cap, settled render sleep, deterministic inspection and teardown.
+
+Those checks use synthetic numeric audio levels and virtual time. They do **not** prove physical microphone sensitivity, speaker sound, acoustic echo cancellation, or the finished screen's visual quality. Browser motion QA and the existing app test suites are reported separately in `BUILD_VERIFICATION.md`; do not infer a live hardware test from a synthetic motion probe.

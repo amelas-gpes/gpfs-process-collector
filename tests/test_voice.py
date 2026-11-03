@@ -71,6 +71,11 @@ class VoiceSessionTests(unittest.TestCase):
         self.assertTrue(speech["enabled"])
         self.assertEqual(speech["default_voice"], "marin")
         self.assertEqual(speech["model"], "gpt-realtime-2.1-mini")
+        self.assertEqual(speech["provider"], "openai")
+        self.assertEqual(speech["transport"], "openai-realtime-websocket")
+        self.assertEqual(json.loads(raw)["provider"], {"id": "openai", "label": "OpenAI"})
+        self.assertIn("recorded answer audio", json.loads(raw)["data_notice"])
+        self.assertIn("browser memory", json.loads(raw)["data_notice"])
         self.assertEqual({voice["id"] for voice in speech["voices"]},
                          {"marin", "cedar", "alloy", "ash", "ballad", "coral",
                           "echo", "sage", "shimmer", "verse"})
@@ -89,9 +94,11 @@ class VoiceSessionTests(unittest.TestCase):
         status, _, raw = self.request("/api/voice-session", {"voice": "cedar"})
         self.assertEqual(status, 200)
         result = json.loads(raw)
-        self.assertEqual(set(result), {"client_secret", "expires_at", "model", "voice"})
+        self.assertEqual(set(result), {"client_secret", "expires_at", "model", "voice", "provider", "transport"})
         self.assertEqual(result["client_secret"], EPHEMERAL_SENTINEL)
         self.assertEqual(result["voice"], "cedar")
+        self.assertEqual(result["provider"], "openai")
+        self.assertEqual(result["transport"], "openai-realtime-websocket")
         self.assertNotIn(PROJECT_SENTINEL.encode(), raw)
 
         path, body = self.client.request.call_args.args
@@ -179,6 +186,71 @@ class VoiceSessionTests(unittest.TestCase):
         self.assertEqual(set(connect.split()[1:]), {"'self'", "wss://api.openai.com"})
         self.assertNotIn("*", connect)
         self.assertEqual(headers["Cache-Control"], "no-store")
+
+
+class ProviderBoundaryTests(unittest.TestCase):
+    def test_injected_provider_can_be_configured_without_an_api_key_attribute(self):
+        class FakeIdentityProvider:
+            private_credential = "fake-private-identity-token-never-publish"
+
+            def public_config(self):
+                return {
+                    "api_configured": True,
+                    "provider": {"id": "synthetic-identity", "label": "Synthetic identity provider"},
+                    "models": {"interview": "synthetic-deployment"},
+                    "speech": {"enabled": False, "voices": []},
+                    "data_notice": "Synthetic test provider does not send data anywhere.",
+                }
+
+            def browser_connect_sources(self):
+                return ()
+
+        provider = FakeIdentityProvider()
+        self.assertFalse(hasattr(provider, "key"))
+        httpd = server.InterviewServer(("127.0.0.1", 0), server.Handler, client=provider)
+        worker = threading.Thread(target=httpd.serve_forever,
+                                  kwargs={"poll_interval": 0.01}, daemon=True)
+        worker.start()
+        try:
+            with urllib.request.urlopen(f"http://127.0.0.1:{httpd.server_port}/api/config", timeout=3) as response:
+                raw = response.read()
+                config = json.loads(raw)
+                self.assertTrue(config["api_configured"])
+                self.assertEqual(config["provider"]["id"], "synthetic-identity")
+                self.assertEqual(config["models"]["interview"], "synthetic-deployment")
+                self.assertEqual(config["csrf_token"], httpd.csrf_token)
+                self.assertEqual(config["version"], server.VERSION)
+                self.assertNotIn(provider.private_credential.encode(), raw)
+                policy = response.headers["Content-Security-Policy"]
+                connect = next(part.strip() for part in policy.split(";")
+                               if part.strip().startswith("connect-src"))
+                self.assertEqual(connect, "connect-src 'self'")
+        finally:
+            httpd.shutdown()
+            httpd.server_close()
+            worker.join(timeout=3)
+
+    def test_browser_sources_reject_malformed_wildcard_and_unapproved_origins(self):
+        for sources in (
+            ("*",), ("wss:",), ("wss://*.openai.com",), ("https://api.openai.com",),
+            ("wss://api.openai.com/",), ("wss://api.openai.com:443",),
+            ("wss://api.openai.com.attacker.example",), ("wss://attacker.example",),
+            ("wss://api.openai.com\r\nX-Injected: yes",), (None,),
+            "wss://api.openai.com", ["wss://api.openai.com"], None,
+        ):
+            with self.subTest(sources=sources):
+                with self.assertRaisesRegex(ValueError, "unsupported browser connection source"):
+                    server.validated_browser_connect_sources(sources)
+        self.assertEqual(server.validated_browser_connect_sources(("wss://api.openai.com",)),
+                         ("wss://api.openai.com",))
+
+    def test_unapproved_provider_browser_source_rejected_before_binding(self):
+        provider = Mock()
+        provider.browser_connect_sources.return_value = ("wss://unapproved.example",)
+        with patch.object(server.ThreadingHTTPServer, "__init__") as bind:
+            with self.assertRaisesRegex(ValueError, "unsupported browser connection source"):
+                server.InterviewServer(("127.0.0.1", 0), server.Handler, client=provider)
+        bind.assert_not_called()
 
 
 if __name__ == "__main__":

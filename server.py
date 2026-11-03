@@ -15,7 +15,7 @@ from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 import webbrowser
 
-VERSION = "0.2.0"
+VERSION = "0.2.1"
 APP_DIR = Path(__file__).resolve().parent
 WEB_DIR = APP_DIR / "web"
 MAX_JSON = 600_000
@@ -28,6 +28,9 @@ AI_VOICES = [
       for voice in ("alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse")),
 ]
 AI_VOICE_IDS = {voice["id"] for voice in AI_VOICES}
+# Provider implementations are server-owned. Future transports require an explicit
+# policy review here; client input and environment variables cannot widen CSP.
+APPROVED_BROWSER_CONNECT_SOURCES = frozenset({"wss://api.openai.com"})
 COVERAGE = {
     "name": "Name & other names", "purpose": "Purpose & result", "trigger": "Start, cadence & deadlines",
     "completion": "Finished condition", "accountable": "Accountability", "lifecycle": "Items, stages & handoffs",
@@ -372,6 +375,28 @@ class OpenAIClient:
         self.model = settings.get("INTERVIEW_MODEL", "gpt-5.4-mini")
         self.transcription_model = settings.get("TRANSCRIPTION_MODEL", "gpt-transcribe")
 
+    def public_config(self):
+        """Public capabilities only; configuration is not a live health check."""
+        return {
+            "api_configured": bool(self.key),
+            "provider": {"id": "openai", "label": "OpenAI"},
+            "models": {"interview": self.model, "transcription": self.transcription_model,
+                       "speech": SPEECH_MODEL},
+            "speech": {"enabled": bool(self.key), "model": SPEECH_MODEL,
+                       "default_voice": "marin", "voices": AI_VOICES,
+                       "provider": "openai", "transport": "openai-realtime-websocket"},
+            "data_notice": (
+                "Submitted interview text and recorded answer audio are sent to OpenAI. "
+                "Natural AI playback also sends question text to OpenAI. Generated playback audio "
+                "is held in browser memory rather than saved automatically. Installed computer "
+                "voices play locally. The server does not save interview content or recordings; "
+                "save a session or export explicitly to retain your work."
+            ),
+        }
+
+    def browser_connect_sources(self):
+        return ("wss://api.openai.com",)
+
     def request(self, path, body, content_type="application/json", timeout=90):
         if not self.key:
             raise APIError("The server has no OpenAI API key configured. Restart after completing secure setup.", 503)
@@ -456,7 +481,8 @@ class OpenAIClient:
                 or isinstance(expires_at, bool) or not isinstance(expires_at, (int, float))):
             raise APIError("The AI voice service did not return a valid short-lived session. Please try again.")
         # The persistent project key stays here. Only a short-lived client credential leaves the server.
-        return {"client_secret": token, "expires_at": expires_at, "model": SPEECH_MODEL, "voice": voice}
+        return {"client_secret": token, "expires_at": expires_at, "model": SPEECH_MODEL, "voice": voice,
+                "provider": "openai", "transport": "openai-realtime-websocket"}
 
     def interview(self, payload):
         context, turns = validate_payload(payload)
@@ -515,6 +541,15 @@ class OpenAIClient:
         return {"text": bounded_text(text, "Transcription", 6000, True)}
 
 
+def validated_browser_connect_sources(sources):
+    """Allow only reviewed complete origins, never wildcard or arbitrary URLs."""
+    if not isinstance(sources, tuple) or any(
+            not isinstance(source, str) or source not in APPROVED_BROWSER_CONNECT_SOURCES
+            for source in sources):
+        raise ValueError("The provider requested an unsupported browser connection source.")
+    return tuple(dict.fromkeys(sources))
+
+
 class InterviewServer(ThreadingHTTPServer):
     daemon_threads = True
     allow_reuse_address = True
@@ -522,8 +557,10 @@ class InterviewServer(ThreadingHTTPServer):
     def __init__(self, address, handler, client=None):
         if address[0] != "127.0.0.1":
             raise ValueError("This prototype can only bind to 127.0.0.1.")
-        super().__init__(address, handler)
         self.client = client if client is not None else OpenAIClient(load_settings())
+        # Validate provider-owned sources before binding or serving any response.
+        self.browser_connect_sources = validated_browser_connect_sources(self.client.browser_connect_sources())
+        super().__init__(address, handler)
         self.csrf_token = secrets.token_urlsafe(32)
         self.api_slots = threading.BoundedSemaphore(2)
 
@@ -545,7 +582,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("X-Frame-Options", "DENY")
         self.send_header("Cross-Origin-Resource-Policy", "same-origin")
         self.send_header("Permissions-Policy", "microphone=(self), camera=()")
-        self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' wss://api.openai.com; media-src 'self' blob:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'")
+        connect_sources = " ".join(("'self'", *self.server.browser_connect_sources))
+        self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src " + connect_sources + "; media-src 'self' blob:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'")
         self.end_headers()
 
     def _json(self, value, status=200):
@@ -568,12 +606,10 @@ class Handler(BaseHTTPRequestHandler):
         path = urlsplit(self.path).path
         if path == "/api/config":
             client = self.server.client
-            return self._json({"app_id": "voice-interviewer", "version": VERSION, "api_configured": bool(client.key),
-                               "models": {"interview": client.model, "transcription": client.transcription_model,
-                                          "speech": SPEECH_MODEL},
-                               "speech": {"enabled": bool(client.key), "model": SPEECH_MODEL,
-                                          "default_voice": "marin", "voices": AI_VOICES},
-                               "csrf_token": self.server.csrf_token})
+            config = dict(client.public_config())
+            config.update({"app_id": "voice-interviewer", "version": VERSION,
+                           "csrf_token": self.server.csrf_token})
+            return self._json(config)
         files = {"/": ("index.html", "text/html; charset=utf-8"),
                  "/index.html": ("index.html", "text/html; charset=utf-8"),
                  "/app.js": ("app.js", "text/javascript; charset=utf-8"),

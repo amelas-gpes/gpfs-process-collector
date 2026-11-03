@@ -57,3 +57,9 @@ The prototype uses the [Responses API's structured output format](https://develo
 ## Publication copy
 
 The repository copy keeps environment-file lookup and runtime logs inside its own directory, provides interpreter-configurable launch scripts, and uses generic branding. The original local installation is preserved. Local account setup records, credentials and host inventory receipts are excluded. Tests were rerun against this publication copy. No automatic installation or CI download workflow is included.
+
+## 0.2.1 provider interface and Azure direction
+
+The intended hosted application uses Azure/Microsoft Foundry and the managed AI application conventions. The local OpenAI adapter remains the only implemented provider. Public configuration now comes from the injected provider; voice sessions identify their transport and the browser rejects unsupported adapters instead of silently falling back. Browser connection origins remain explicitly restricted. No Azure resource or corporate repository was changed.
+
+The portable repository passed 64 offline Python tests and 9 Node voice checks. The installed copy has four fewer Python tests because its approved local credential lookup intentionally differs from the portable copy. Tests use synthetic credentials and mocked providers. Azure authentication, deployment, model availability and production operation remain unverified. See [Azure handoff](docs/AZURE_HANDOFF.md).

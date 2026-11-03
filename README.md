@@ -2,7 +2,7 @@
 
 An adaptive voice interviewer that helps people explain how a business process works today, then turns their account into a reviewable memo, process map and detailed procedure.
 
-Version **0.2.0** adds selectable natural AI voices and a preview before the interview.
+Version **0.2.1** includes selectable natural AI voices, preview before the interview and an initial provider interface for the Azure handoff.
 
 The interview follows a reusable process-capture framework. It elicits the eleven memo topics naturally, follows useful answers, parks tangents, keeps unknowns explicit and seeks participant confirmation before closing. **60 minutes is the adjustable planning default, not a cutoff.**
 
@@ -17,6 +17,10 @@ The interview follows a reusable process-capture framework. It elicits the eleve
 - Saves and restores sessions through explicit JSON files; exports memo/procedure Markdown and map SVG.
 
 This is a single-user local prototype. Teams participation is a later integration step.
+
+## Intended Azure handoff
+
+The hosted product will use Microsoft Foundry voice/model services and the organization's managed AI application patterns. The current OpenAI connection is a development adapter. [Azure architecture and developer handoff](docs/AZURE_HANDOFF.md) records the target structure, reusable interview behavior, provider contracts and remaining hosted work. The prototype's local Python server is not the production hosting plan.
 
 ## Requirements
 
@@ -93,4 +97,4 @@ With an existing Node installation, run the frontend protocol and media checks:
 & 'C:\path\to\existing\node.exe' .\tests\test_voice_frontend.cjs
 ```
 
-**61 Python tests and 8 Node checks passed.** The tests mock OpenAI and use temporary local servers or simulated browser APIs. They make no external API calls or downloads; Node is not required to run the application. See [build verification](docs/BUILD_VERIFICATION.md) for evidence and limits.
+**64 Python tests and 9 Node checks passed.** The tests mock OpenAI and use temporary local servers or simulated browser APIs. They make no external API calls or downloads; Node is not required to run the application. See [build verification](docs/BUILD_VERIFICATION.md) for evidence and limits.

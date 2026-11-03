@@ -265,6 +265,7 @@
     if (!state.voiceChoice?.startsWith("ai:")) return null;
     return naturalVoices().find(v => `ai:${v.id}` === state.voiceChoice) || null;
   }
+  function providerLabel() {return text(state.config?.provider?.label,80) || "the configured AI service";}
   function canSpeakChoice() {
     return selectedNaturalVoice() ? Boolean(state.config?.speech?.enabled && window.WebSocket) : Boolean(state.voice && window.speechSynthesis && window.SpeechSynthesisUtterance);
   }
@@ -297,7 +298,7 @@
     select.value = state.voiceChoice || "";
     state.voice = state.localVoices.find(v => localVoiceId(v) === state.voiceChoice) || null;
     const natural = selectedNaturalVoice();
-    $("voice-description").textContent = natural ? `${natural.description || natural.label} · AI-generated speech from OpenAI.` : state.voice ? "Installed computer voice · playback stays on this device." : "Choose an available voice to hear questions. Text remains available.";
+    $("voice-description").textContent = natural ? `${natural.description || natural.label} · AI-generated speech from ${providerLabel()}.` : state.voice ? "Installed computer voice · playback stays on this device." : "Choose an available voice to hear questions. Text remains available.";
     $("voice-availability").hidden = canSpeakChoice();
     $("voice-availability").textContent = canSpeakChoice() ? "" : natural ? "The natural AI voice is unavailable. You can choose an installed computer voice or read the questions." : "No selected voice is available. Choose another voice or read the questions.";
     updateControls();
@@ -322,6 +323,12 @@
     return new Blob([bytes],{type:"audio/wav"});
   }
   function naturalSpeechAudio(session, message, operation) {
+    if (session?.provider !== "openai" || session?.transport !== "openai-realtime-websocket") {
+      return Promise.reject(new Error("The selected AI voice connection is not supported by this version. Choose an installed computer voice or read the question on screen."));
+    }
+    return openAIRealtimeSpeechAudio(session, message, operation);
+  }
+  function openAIRealtimeSpeechAudio(session, message, operation) {
     return new Promise((resolve,reject) => {
       let settled=false,inputSent=false,responseSent=false,bytes=0,transcript="";
       const chunks=[];
@@ -368,7 +375,7 @@
             if(normalizedSpeech(transcript)!==normalizedSpeech(message)){fail("The AI voice did not read the question exactly, so playback was withheld. Try Preview or Listen again; the original question remains on screen.");return;}
             finish(null,pcmWave(chunks,bytes));
           } else if(packet.type==="error"){
-            fail("OpenAI could not generate the selected AI voice. Try again or choose an installed computer voice.");
+            fail(`${providerLabel()} could not generate the selected AI voice. Try again or choose an installed computer voice.`);
           }
         } catch {fail("The AI voice returned an incomplete response. Please try again.");}
       });
@@ -1124,7 +1131,7 @@
       state.draftVersion = draft ? (saved.draft_stale ? state.version-1 : state.version) : null;
       $("answer-text").value = text(saved.unsent_answer);
       renderTranscript(); renderDraft();
-      notice("Session opened locally with its timer paused. No interview content was sent to OpenAI by opening this file.");
+      notice("Session opened locally with its timer paused. No interview content was sent to an AI service by opening this file.");
       if (draft) tab("review");
     } catch (error) { notice(`Could not open session: ${error.message}`, true); }
   }
@@ -1260,10 +1267,11 @@
       const config = await response.json();
       if (typeof config.csrf_token !== "string") throw new Error("The local server did not provide a session token. Refresh this page.");
       state.config = config;
+      $("data-notice").textContent = text(config.data_notice,4000) || "Data handling information is unavailable. Check the service configuration before submitting interview content.";
       populateVoiceOptions();
       $("connection-state").className = `connection-state ${config.api_configured ? "good" : "bad"}`;
-      $("connection-state").querySelector("span").textContent = config.api_configured ? "Local server ready · API key configured" : "Local server ready · API key not configured";
-      if (!config.api_configured) notice("The local server is running, but its OpenAI API key is not configured. You can explore the synthetic example while the connection is resolved.",true);
+      $("connection-state").querySelector("span").textContent = config.api_configured ? "Local server ready · AI service configured" : "Local server ready · AI service not configured";
+      if (!config.api_configured) notice(`The local server is running, but its connection to ${providerLabel()} is not configured. You can explore the synthetic example while the connection is resolved.`,true);
     } catch(error) {
       $("connection-state").className = "connection-state bad";
       $("connection-state").querySelector("span").textContent = "Local server unavailable";

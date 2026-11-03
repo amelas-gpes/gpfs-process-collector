@@ -20,7 +20,7 @@ const context={console,Blob,DataView,Uint8Array,AbortController,DOMException,Web
 vm.createContext(context);vm.runInContext(source,context,{filename:"app.js"});
 const t=context.window.__voiceTests;
 if(!t)throw new Error("Test seam was not installed");
-const session={model:"gpt-realtime-2.1-mini",client_secret:"ephemeral-fake-test-token"};
+const session={provider:"openai",transport:"openai-realtime-websocket",model:"gpt-realtime-2.1-mini",client_secret:"ephemeral-fake-test-token"};
 const operation=()=>({controller:new AbortController(),socket:null,audio:null,url:null,timer:null});
 function begin(message="Hello there."){
  const op=operation(),promise=t.naturalSpeechAudio(session,message,op);
@@ -37,6 +37,13 @@ function complete(s,transcript="Hello there."){
 (async()=>{
  let passes=0;
  assert.equal(t.normalizedSpeech("HELLO, １２!"),t.normalizedSpeech("hello 12"));passes++;
+ {
+  const previousSocket=socket;
+  await assert.rejects(t.naturalSpeechAudio({...session,provider:"azure-foundry"},"Hello there.",operation()),/not supported by this version/);
+  await assert.rejects(t.naturalSpeechAudio({...session,transport:"unimplemented-transport"},"Hello there.",operation()),/not supported by this version/);
+  await assert.rejects(t.naturalSpeechAudio({model:session.model,client_secret:session.client_secret},"Hello there.",operation()),/not supported by this version/);
+  assert.equal(socket,previousSocket,"Unsupported connections must not create an OpenAI socket");passes++;
+ }
  {
   const run=begin();assert.equal(run.socket.sent.length,2);
   assert.equal(run.socket.sent[1].response.output_modalities[0],"audio");

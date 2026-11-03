@@ -86,7 +86,7 @@
             <label class="sr-only" for="answer-text">Your answer</label><textarea id="answer-text" rows="3" maxlength="6000" placeholder="Type an answer, or use the microphone…" disabled></textarea>
             <div class="composer-bottom"><button type="button" class="mic-button" id="record-answer" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M6 10v2a6 6 0 0 0 12 0v-2M12 18v3M9 21h6"/></svg><span>Record answer</span></button><span class="composer-hint" id="composer-hint">Review the transcript, then send.</span><button class="button primary" id="send-answer" type="submit" disabled>Send answer <span aria-hidden="true">↑</span></button></div>
           </form>
-          <p class="privacy-note"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="2"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></svg> Interview text and recorded answers are sent to OpenAI. Natural AI voices also send question text to OpenAI for AI-generated speech; installed computer voices play locally. Audio is held in memory and is not saved by this app.</p>
+          <p class="privacy-note"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="2"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></svg> <span id="data-notice">Loading the AI service data notice. Interview text and recordings may be sent to the configured AI service; review this notice before starting.</span></p>
         </div>
       </section>
     </section>

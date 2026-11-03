@@ -15,7 +15,7 @@ from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 import webbrowser
 
-VERSION = "0.4.0"
+VERSION = "0.5.0"
 APP_DIR = Path(__file__).resolve().parent
 WEB_DIR = APP_DIR / "web"
 MAX_JSON = 600_000

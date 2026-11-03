@@ -85,3 +85,17 @@ Actual browser checks used fictional data. Seven interview turns appeared exactl
 The native topic dialog fit at 320px and review navigation worked at 390px, with no horizontal document overflow; temporary viewport changes were reset. This is a targeted layout and interaction review, not full device, screen-reader, zoom or accessibility certification. Physical microphone behavior, print rendering and an exhaustive human interview were not retested. Export formats and interview rules were retained; prior export verification is recorded under 0.3.0.
 
 Existing Python, Node and browser resources were reused. No package, font, asset, framework or environment was installed or downloaded. Azure integration remains pending under the developer handoff.
+
+## 0.5.0 focused review and map workspace
+
+Review now has six mounted tab panels: Memo, Map, Procedure, Lifecycles, Variations and Review notes. Switching tabs changes visibility and selection without rebuilding the editors. The sixth panel groups open questions, validation notes, exceptions and controls. The launch brief is simpler, Save interview is directly accessible, Preview voice is outside the settings disclosure, and the memo foundation expands on narrow screens. The stylesheet was consolidated rather than layering another set of visual overrides.
+
+64 offline Python regressions, 9 voice checks and 9 UI-state checks passed. Three additional UI checks exercise retained editor/unsent-answer state, keyboard tab selection/roving focus and map scale/fit without changing SVG geometry or draft data. These simulated checks make no provider calls.
+
+Actual browser checks used the fictional invoice example. Memo and procedure edits survived switching panels and JSON save/open; an unsent answer was restored exactly. End/Home selected and focused the correct tab with one tab stop. Review notes contained all four question/validation/exception/control editors. Save cleared the Changes to save hint. Clear returned the selected review section to Memo. The direct Preview voice control reached Speaking with Marin and completed. No console warnings/errors were observed.
+
+Complete downloads were inspected with other panels hidden: the memo retained all eleven topics, the procedure retained all six step titles, and SVG retained all six titles and its original 760 by 998 dimensions/viewBox after zoom and Fit. JSON retained schema version 1, the draft edits and the unsent answer. Map scaling changed only its HTML stage.
+
+At 320px and 390px, the header controls, horizontally scrollable review tabs and local map controls fit without document horizontal overflow. Keyboard selection scrolled the final tab into view. The foundation collapsed on narrow screens and expanded on desktop; the temporary viewport override was reset. Print-media emulation showed all six panels and closed memo bodies displayed, with the tab bar hidden. Printed pagination, complete long-text printing, physical microphone capture and full accessibility/device certification were not verified.
+
+Existing Python, Node, browser, system fonts and inline SVG were reused. No package, browser, asset, font, framework or environment was installed or downloaded. Interview rules, memo requirements, evidence semantics and provider/export contracts were preserved. Azure integration remains pending under the handoff.

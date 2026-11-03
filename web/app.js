@@ -23,6 +23,8 @@
     materials:"Existing procedures, templates, examples and other useful records."
   };
   let foundationTopic = null, foundationReturnFocus = null, foundationRestoreFocus = true;
+  const REVIEW_SECTIONS = ["review-memo","review-map","review-procedure","review-lifecycles","review-variations","review-questions"];
+  const reviewUI = {section:"review-memo",mapScale:1,mapFit:true};
   const state = {
     context: null, turns: [], coverage: [], summary: "", draft: null,
     started: false, busy: false, version: 0, generation: 0,
@@ -83,6 +85,7 @@
     $("interview-view").hidden = name !== "interview";
     $("review-view").hidden = name !== "review";
     document.body?.classList.toggle("review-mode", name === "review");
+    if (name === "review") selectReviewSection(reviewUI.section);
     document.querySelectorAll(".nav-tab").forEach(button => {
       const active = button.dataset.tab === name;
       button.classList.toggle("active", active);
@@ -120,6 +123,19 @@
     if ($("setup-card")) $("setup-card").open = true;
     if ($("context-details")) $("context-details").open = true;
     revealAncestors($("context-form"));
+  }
+  function updateSaveHint() {
+    const hint = $("save-hint");
+    if (!hint) return;
+    const message = state.dirty ? "Changes to save" : "";
+    if (hint.textContent !== message) hint.textContent = message;
+    hint.hidden = !state.dirty;
+  }
+  function updateLaunchPlan() {
+    const hint = $("launch-plan-summary");
+    if (!hint) return;
+    const minutes = Number($("meeting-minutes").value);
+    hint.textContent = Number.isInteger(minutes) && minutes >= 1 && minutes <= 1440 ? `${minutes} min · flexible` : "Flexible duration";
   }
   function updateControls() {
     const ready = Boolean(state.config?.api_configured);
@@ -168,6 +184,7 @@
     $("current-focus").textContent = state.focus || "";
     $("closure-status").hidden = !state.closure.asked && !state.closure.confirmed;
     $("closure-status").textContent = state.closure.confirmed ? "Participant confirmed completeness." : state.closure.asked ? "Waiting for final confirmation." : "";
+    updateSaveHint(); updateLaunchPlan();
     updateTimer();
   }
   function setBusy(value, message = "") {
@@ -230,7 +247,7 @@
     $("foundation-dialog").addEventListener("close",() => {
       document.querySelectorAll("[data-foundation-topic]").forEach(button => button.classList.remove("selected"));
       const trigger = foundationReturnFocus?.isConnected ? foundationReturnFocus : document.querySelector(`[data-foundation-topic="${foundationTopic}"]`);
-      if (foundationRestoreFocus) trigger?.focus({preventScroll:true});
+      if (foundationRestoreFocus && trigger) {revealAncestors(trigger);trigger.focus({preventScroll:true});}
       foundationReturnFocus = null; foundationTopic = null; foundationRestoreFocus = true;
     });
   }
@@ -846,6 +863,7 @@
   function draftChanged(map = false) {
     state.draftEdited = true;
     state.dirty = true;
+    updateSaveHint();
     if (map) renderMap();
   }
   function bindDraftFields() {
@@ -870,6 +888,7 @@
     renderMemo();
     renderLifecycle();
     renderVariations();
+    selectReviewSection(reviewUI.section);
   }
   function formControl(label, tag, value, change, options = {}) {
     const wrap = el("div");
@@ -911,11 +930,45 @@
   }
   function jumpToReview(id) {
     const target = $(id);
-    if (!target) return;
+    if (!target || !selectReviewSection(id)) return;
     revealAncestors(target);
     target.scrollIntoView({behavior:"smooth",block:"start"});
     target.tabIndex = -1;
     target.focus({preventScroll:true});
+  }
+  function selectReviewSection(id, focusTab = false) {
+    if (!REVIEW_SECTIONS.includes(id)) return false;
+    reviewUI.section = id;
+    REVIEW_SECTIONS.forEach(section => {
+      const active = section === id;
+      const button = $(`review-tab-${section.slice(7)}`);
+      $(section).hidden = !active;
+      button.setAttribute("aria-selected",String(active));
+      button.tabIndex = active ? 0 : -1;
+      button.classList.toggle("active",active);
+    });
+    if (focusTab) {
+      const button = $(`review-tab-${id.slice(7)}`);
+      button.focus({preventScroll:true});
+      button.scrollIntoView({block:"nearest",inline:"nearest"});
+    }
+    if (id === "review-map" && reviewUI.mapFit) requestAnimationFrame(fitMapToWidth);
+    return true;
+  }
+  function reviewTabKey(event) {
+    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+    const index = REVIEW_SECTIONS.indexOf(event.currentTarget.dataset.reviewTarget);
+    const next = event.key === "ArrowRight" ? (index+1)%REVIEW_SECTIONS.length : event.key === "ArrowLeft" ? (index+REVIEW_SECTIONS.length-1)%REVIEW_SECTIONS.length : event.key === "Home" ? 0 : event.key === "End" ? REVIEW_SECTIONS.length-1 : -1;
+    if (index < 0 || next < 0) return;
+    event.preventDefault();
+    selectReviewSection(REVIEW_SECTIONS[next],true);
+  }
+  function initReviewTabs() {
+    document.querySelectorAll("[data-review-target]").forEach(button => {
+      button.addEventListener("click",() => selectReviewSection(button.dataset.reviewTarget,true));
+      button.addEventListener("keydown",reviewTabKey);
+    });
+    selectReviewSection(reviewUI.section);
   }
   function sourceCaption(id) {
     if (id === "context") return "Starting context";
@@ -1096,7 +1149,7 @@
   function renderMap() {
     const root = $("process-map");
     root.replaceChildren();
-    if (!state.draft?.steps.length) { root.append(el("p", "muted", "Add process steps to build the map.")); return; }
+    if (!state.draft?.steps.length) { root.append(el("p", "muted", "Add process steps to build the map.")); applyMapView(); return; }
     const steps = state.draft.steps;
     const connections = state.draft.connections;
     const positions = new Map();
@@ -1157,7 +1210,35 @@
       group.append(svgEl("text", {x:p.x,y:p.y+83,fill:"#707077","text-anchor":"middle","font-size":10,"font-family":"Segoe UI, Arial, sans-serif"}, owner.length > 48 ? owner.slice(0,47)+"…" : owner));
       svg.append(group);
     });
-    root.append(svg);
+    const stage = el("div","map-stage");
+    stage.dataset.intrinsicWidth = String(width);
+    stage.append(svg); root.append(stage);
+    applyMapView();
+    if (reviewUI.mapFit) requestAnimationFrame(fitMapToWidth);
+  }
+  function applyMapView() {
+    const stage = $("process-map").querySelector(".map-stage");
+    if (stage) stage.style.width = `${Number(stage.dataset.intrinsicWidth)*reviewUI.mapScale}px`;
+    const out = $("map-zoom-out"), inside = $("map-zoom-in"), fit = $("map-fit"), label = $("map-zoom-label");
+    if (out) out.disabled = !stage || reviewUI.mapScale <= .25;
+    if (inside) inside.disabled = !stage || reviewUI.mapScale >= 2;
+    if (fit) fit.disabled = !stage;
+    const zoomText = stage ? `${Math.round(reviewUI.mapScale*100)}%` : "";
+    if (label && label.textContent !== zoomText) label.textContent = zoomText;
+  }
+  function zoomMap(delta) {
+    reviewUI.mapFit = false;
+    reviewUI.mapScale = Math.max(.25,Math.min(2,Math.round((reviewUI.mapScale+delta)*100)/100));
+    applyMapView();
+  }
+  function fitMapToWidth() {
+    const viewport = $("process-map"), stage = viewport.querySelector(".map-stage");
+    if (!stage || reviewUI.section !== "review-map" || $("review-view").hidden || viewport.clientWidth <= 0) return;
+    const styles = getComputedStyle(viewport);
+    const available = viewport.clientWidth - (parseFloat(styles.paddingLeft)||0) - (parseFloat(styles.paddingRight)||0);
+    reviewUI.mapFit = true;
+    reviewUI.mapScale = Math.max(.25,Math.min(2,available/Number(stage.dataset.intrinsicWidth)));
+    applyMapView();
   }
 
   function download(content, filename, type) {
@@ -1171,6 +1252,7 @@
   function exportSession() {
     download(JSON.stringify(sessionObject(),null,2), `${safeFilename(state.context?.process_name || readContext().process_name)}-session.json`, "application/json");
     state.dirty = false;
+    updateSaveHint();
     notice("Interview saved. Keep the file somewhere approved for this process information.");
     closeMenu();
   }
@@ -1218,6 +1300,8 @@
     $("answer-text").value = "";
     $("global-notice").hidden = true;
     $("live-status").textContent = "";
+    reviewUI.mapScale = 1; reviewUI.mapFit = true;
+    selectReviewSection("review-memo");
     fillContext(context);
     renderTranscript(); renderDraft(); tab("interview"); closeMenu();
   }
@@ -1305,8 +1389,18 @@
   }
   function initEvents() {
     initFoundationDialog();
+    initReviewTabs();
     document.querySelectorAll(".nav-tab").forEach(button => button.addEventListener("click", () => tab(button.dataset.tab)));
-    document.querySelectorAll("[data-review-target]").forEach(button => button.addEventListener("click",() => jumpToReview(button.dataset.reviewTarget)));
+    $("map-zoom-out")?.addEventListener("click",() => zoomMap(-.25));
+    $("map-zoom-in")?.addEventListener("click",() => zoomMap(.25));
+    $("map-fit")?.addEventListener("click",fitMapToWidth);
+    window.addEventListener("resize",() => {if(reviewUI.mapFit)fitMapToWidth();});
+    const foundationDetails = $("foundation-details");
+    if (foundationDetails && window.matchMedia) {
+      const narrow = window.matchMedia("(max-width:650px)");
+      const adjustFoundation = () => {foundationDetails.open = !narrow.matches;};
+      adjustFoundation(); narrow.addEventListener("change",adjustFoundation);
+    }
     $("context-form").addEventListener("submit",startInterview);
     $("context-form").addEventListener("invalid",event => {revealAncestors(event.target);event.target.focus();},true);
     $("answer-form").addEventListener("submit",sendAnswer);
@@ -1318,6 +1412,7 @@
     $("voice-select").addEventListener("change",()=>{
       stopSpeaking();state.voiceChoice=$("voice-select").value;state.voiceChoiceUser=true;populateVoiceOptions();
       if(state.started)state.dirty=true;
+      updateSaveHint();
     });
     $("preview-voice").addEventListener("click",()=>{
       state.voiceChoiceUser=true;
@@ -1330,13 +1425,13 @@
       if(!state.started)return;
       if(state.timerStartedAt===null)state.timerStartedAt=Date.now();
       else{state.elapsedMs=elapsedMs();state.timerStartedAt=null;}
-      state.dirty=true;updateTimer();
+      state.dirty=true;updateSaveHint();updateTimer();
     });
     $("meeting-minutes").addEventListener("change",()=>{
       const value=Number($("meeting-minutes").value);
       if(!Number.isInteger(value)||value<1||value>1440){$("meeting-minutes").reportValidity();return;}
       if(state.context)state.context.meeting_minutes=value;
-      state.dirty=true;updateTimer();
+      state.dirty=true;updateSaveHint();updateLaunchPlan();updateTimer();
     });
     $("generate-draft").addEventListener("click",generateDraft);
     $("regenerate-draft").addEventListener("click",generateDraft);
@@ -1379,7 +1474,7 @@
       state.draft.variations.push({applies_to:"UNKNOWN / TBD",difference:"UNKNOWN / TBD",reason:"UNKNOWN / TBD",cost:"UNKNOWN / TBD",charging:"UNKNOWN / TBD",removability:"UNKNOWN / TBD",boundary:"variation",boundary_reason:"UNKNOWN / TBD — assess whether this is a variation or separate work.",evidence_turns:[]});
       draftChanged();renderVariations();
     });
-    document.querySelectorAll("#context-form input,#context-form textarea").forEach(input => input.addEventListener("input",() => {state.dirty = true;}));
+    document.querySelectorAll("#context-form input,#context-form textarea").forEach(input => input.addEventListener("input",() => {state.dirty = true;updateSaveHint();updateLaunchPlan();}));
     window.addEventListener("beforeunload",event => {if (state.dirty || state.recording || state.requestingMic || state.transcribing) {event.preventDefault(); event.returnValue = "";}});
     window.addEventListener("pagehide",() => {stopSpeaking(); finishRecording(true);});
     bindDraftFields();

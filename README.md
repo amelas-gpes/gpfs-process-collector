@@ -2,7 +2,7 @@
 
 An adaptive voice interviewer that helps people explain how a business process works today, then turns their account into a reviewable memo, process map and detailed procedure.
 
-Version **0.4.0** focuses the workspace on the current question and your reply. Earlier conversation remains accessible in history, memo topics open their reported findings and sources, and review navigation leads directly to the memo, map and procedure. The monochrome interface keeps optional context and secondary controls available without crowding the interview. Natural voice preview and the initial provider interface for the Azure handoff remain available.
+Version **0.5.0** introduces a calmer launch brief and six focused review tabs: Memo, Map, Procedure, Lifecycles, Variations and Review notes. Edits remain in place while switching sections. The map has local zoom and Fit to width controls, Save interview is directly accessible, and Preview voice sits beside the voice settings. The monochrome memo foundation remains visible on desktop and expands on smaller screens.
 
 The interview follows a reusable process-capture framework. It elicits the eleven memo topics naturally, follows useful answers, parks tangents, keeps unknowns explicit and seeks participant confirmation before closing. **60 minutes is the adjustable planning default, not a cutoff.**
 
@@ -55,7 +55,7 @@ Default model settings can be changed using `INTERVIEW_MODEL` and `TRANSCRIPTION
 
 ## Interview and review
 
-Open **Voice** and select **Preview** before starting. The ten AI choices are Marin, Cedar, Alloy, Ash, Ballad, Coral, Echo, Sage, Shimmer and Verse. Installed English voices appear separately under **Installed computer voices**. Selecting a computer voice is explicit; an AI playback failure does not silently switch voices. The selected voice is included when you save a session.
+Select **Preview voice** before starting. Open **Voice settings** to choose a voice. The ten AI choices are Marin, Cedar, Alloy, Ash, Ballad, Coral, Echo, Sage, Shimmer and Verse. Installed English voices appear separately under **Installed computer voices**. Selecting a computer voice is explicit; an AI playback failure does not silently switch voices. The selected voice is included when you save a session.
 
 1. Name one piece of recurring work. Add the interview goal, a role if known, and existing text you are permitted to share.
 2. Adjust the planned duration if useful. The elapsed timer can be paused; passing the plan never ends the interview.
@@ -65,9 +65,9 @@ Open **Voice** and select **Preview** before starting. The ten AI choices are Ma
 6. Select **Create draft** after any answer. Review and edit the memo, map, procedure, item lifecycles, variations and open questions. Draft generation includes a separate evidence audit; it can still misinterpret a statement.
 7. Save the session JSON before closing the tab. There is no automatic session persistence. New answers mark old drafts stale; regeneration asks before replacing edits.
 
-`Examples/Synthetic-reviewed-session.json` is a fictional review example. Open it through **Save & open → Open interview**; opening a saved file does not itself call the API. It demonstrates a 75-minute capture against a 60-minute plan with acknowledged gaps.
+`Examples/Synthetic-reviewed-session.json` is a fictional review example. Open it through **More → Open interview**; opening a saved file does not itself call the API. It demonstrates a 75-minute capture against a 60-minute plan with acknowledged gaps.
 
-Click a topic in **Memo foundation** to inspect the reported finding and its sources. Use **Earlier conversation** for the full transcript and the review section navigation for the memo, map, procedure and supporting details. Viewing these panels does not submit a question or change captured facts.
+Click a topic in **Memo foundation** to inspect the reported finding and its sources. Use **Earlier conversation** for the full transcript and the six review tabs for the memo, map, procedure and supporting details. Use Left/Right, Home or End to move between review tabs; edits are retained. Map zoom changes only the on-screen view, so the saved SVG keeps its original geometry. Viewing these panels does not submit a question or change captured facts.
 
 ## Memo requirements
 
@@ -100,4 +100,4 @@ With an existing Node installation, run the frontend protocol and media checks:
 & 'C:\path\to\existing\node.exe' .\tests\test_ui_state.cjs
 ```
 
-**64 Python tests and 15 Node checks passed (9 voice checks and 6 UI-state checks).** The tests mock OpenAI and use temporary local servers or simulated browser APIs. They make no external API calls or downloads; Node is not required to run the application. See [build verification](docs/BUILD_VERIFICATION.md) for evidence and limits.
+**64 Python tests and 18 Node checks passed (9 voice checks and 9 UI-state checks).** The tests mock OpenAI and use temporary local servers or simulated browser APIs. They make no external API calls or downloads; Node is not required to run the application. See [build verification](docs/BUILD_VERIFICATION.md) for evidence and limits.

@@ -1,6 +1,6 @@
 # Publication verification
 
-Verified on November 2, 2026, against the version 0.4.0 repository publication copy.
+Verified on November 2, 2026, against the version 0.5.0 repository publication copy.
 
 - **64 offline Python tests passed:** the original 45 prototype regressions, 4 portability checks and 15 voice/provider API tests. A synthetic injected identity provider works without an OpenAI key attribute; unsupported browser connection origins are rejected before binding. OpenAI responses were mocked; HTTP traffic stayed on temporary local servers.
 - **9 offline Node checks passed:** simulated Realtime event sequencing, PCM/WAV framing, speech-transcript mismatch rejection, cancellation, incomplete responses, audio-size limits, unrelated acknowledgments, Stop cleanup and unsupported provider/transport rejection before any socket is created. No browser or audio hardware was exercised by these tests.
@@ -27,3 +27,7 @@ The monochrome workspace was observed on desktop and at 320px/390px widths witho
 ## Focus and navigation checks in 0.4.0
 
 The 64 Python regressions and 9 voice checks passed. Six additional built-in Node UI-state checks cover exact turn partitioning, pending-question stability, evidence navigation, read-only reported findings, modal focus and review/context jumps with zero provider calls. Actual browser checks confirmed unique turn placement, topic details, Escape/close focus, source jumps, section navigation, preservation and restoration of an unsent answer, current-question narration, and 320px/390px reflow without document horizontal overflow. No console warnings/errors were observed. See [validation](../VALIDATION.md) for the observed scope and limits.
+
+## Review workspace checks in 0.5.0
+
+64 Python tests, 9 Node voice checks and 9 Node UI-state checks passed using existing runtimes. Browser checks confirmed persistent review edits, keyboard tab activation, save/open restoration, complete memo/procedure/SVG downloads with panels hidden, original SVG geometry after map zoom/Fit, and direct Marin preview. The 320px/390px layouts had no document horizontal overflow; temporary viewport overrides were reset. Print-media emulation exposed all panels and closed memo bodies; physical print pagination and long-text clipping were not established. No console warnings/errors were observed. See [validation](../VALIDATION.md) for the exact observations and limits.

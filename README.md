@@ -80,7 +80,7 @@ Default model settings can be changed using `INTERVIEW_MODEL` and `TRANSCRIPTION
 
 Reconnecting GPT-Live requires a bounded initial history (128 messages and a conservative 7,800 UTF-8 byte text allowance). If the full history cannot fit, the app keeps it intact and offers typing or a saved continuation. Conversation length is not governed by a time target or cutoff. Live access depends on the selected OpenAI project's permissions and quota; failures retain the transcript and give actionable feedback. Review navigation requires ending voice first so microphone controls remain visible.
 
-`Examples/Synthetic-reviewed-session.json` is a fictional review example. Open it through **More → Open interview**; opening a saved file does not itself call the API. It demonstrates a reviewed capture with acknowledged gaps. Historical timing fields in this example are ignored when it is opened.
+The built-in **Explore an example** and `Examples/Synthetic-reviewed-session.json` demonstrate a fictional, fully described process. Open the file through **More → Open interview**; loading either example does not itself call the API. The examples are illustrative, not verified company procedures.
 
 Select a topic in **Your memo** to inspect the reported finding and its sources. Use **Transcript** for the full conversation and the seven review tabs: Report, Memo, Map, Procedure, Lifecycles, Variations and Review notes. Use Left/Right, Home or End to move between review tabs; edits are retained. Canvas pan, zoom and selection affect the view; the SVG export includes the full workflow. Viewing these panels does not submit a question or change captured facts.
 

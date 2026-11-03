@@ -14,7 +14,7 @@
       if (typeof options?.requestJSON !== "function") throw new TypeError("A same-origin JSON request function is required.");
       this.options=options;this.doc=options.document||window.document;this.generation=0;this.revision=0;this.scope=null;this.documents=[];
       this.uploads=[];this.uploadErrors=[];this.seen=new Map();this.pollTimer=null;this.polling=null;this.sessionPromise=null;
-      this.mutating=0;this.sequence=0;this.disposed=false;this.restoreFocus=true;this.connectionError="";this.lastError="";this.source=null;
+      this.mutating=0;this.sequence=0;this.batchSequence=0;this.lifecycleStamp="";this.disposed=false;this.restoreFocus=true;this.connectionError="";this.lastError="";this.source=null;
       this.controller=new AbortController();this.actions=new Set();this.actionErrors=new Map();this.expandedAssets=new Map();this.build();this.render();
       this.suspended=false;this.pagehide=()=>this.suspend();this.pageshow=event=>{if(event.persisted)this.resume();};
       window.addEventListener?.("pagehide",this.pagehide);window.addEventListener?.("pageshow",this.pageshow);
@@ -25,6 +25,16 @@
     control(button,document,action,identity="") {button.classList.add("document-control");button.dataset.documentControl=JSON.stringify([document.id,action,identity]);return button;}
     visible(node) {for(let current=node;current;current=current.parentElement)if(current.hidden||(current.tagName==="DIALOG"&&!current.open))return false;return true;}
     emit(event) {this.options.onEvent?.(event);}
+    lifecycle() {
+      return {scope:this.scope,generation:this.generation,documents:copy(this.documents),uploading:this.uploads.length,mutating:this.mutating,
+        connectionError:this.connectionError,uploadErrors:this.uploadErrors.map(error=>({name:error.name,message:error.message}))};
+    }
+    changed(emit=true) {
+      const state=this.lifecycle(),stamp=JSON.stringify(state);
+      if(stamp===this.lifecycleStamp)return;
+      this.lifecycleStamp=stamp;
+      if(emit)this.emit({type:"changed",state});
+    }
     discuss(document,question) {
       if(this.options.canDiscuss?.()===false){this.options.notice?.("Wait for the current reply to finish, then choose Discuss again. The file question is retained.");return;}
       this.close(false);this.options.onDiscuss?.();this.emit({type:"question",document:copy(document),question:copy(question)});
@@ -154,9 +164,12 @@
         if(error){this.uploadErrors.push({name:file.name||"File",message:error});continue;}accepted.push(file);
       }
       this.uploadErrors=this.uploadErrors.slice(-20);
-      if(!accepted.length){this.render();this.open();return;}
+      if(!accepted.length){this.render();this.open();this.changed();return;}
+      const batchId=`upload_${++this.batchSequence}`;
       const queued=accepted.map(file=>({key:++this.sequence,name:file.name,status:"Waiting to upload",file}));
-      this.uploads.push(...queued);this.mutating++;this.revision++;this.options.onDirty?.();this.render();
+      this.uploads.push(...queued);this.mutating++;this.revision++;
+      this.emit({type:"upload_started",batchId,names:accepted.map(file=>file.name)});
+      this.options.onDirty?.();this.render();this.changed();
       if(this.assets)this.open();
       try{
         const scope=await this.ensureSession();
@@ -175,12 +188,13 @@
             if(error.name==="AbortError")error=new Error("Uploading took too long. Check Files before trying again.");
             this.uploadErrors.push({name:upload.name,message:message(error),file:upload.file});this.reportError(error,true);
           }finally{
-            if(this.current(generation)){this.uploads=this.uploads.filter(item=>item.key!==upload.key);this.render();}
+            if(this.current(generation)){this.uploads=this.uploads.filter(item=>item.key!==upload.key);this.render();this.changed();}
           }
         }
-      }catch(error){if(this.current(generation)&&error.name!=="AbortError"){
+      }catch(error){if(this.current(generation)&&!this.controller.signal.aborted){
+        if(error.name==="AbortError")error=new Error("Opening the file workspace took too long. Please try again.");
         this.uploadErrors.push(...queued.map(upload=>({name:upload.name,message:message(error),file:upload.file})));this.uploads=this.uploads.filter(item=>!queued.includes(item));this.reportError(error,true);this.render();
-      }}finally{if(this.current(generation)){this.mutating=Math.max(0,this.mutating-1);this.revision++;this.schedule(0);}}
+      }}finally{if(this.current(generation)){this.mutating=Math.max(0,this.mutating-1);this.revision++;this.changed();this.emit({type:"upload_settled",batchId});this.schedule(0);}}
     }
     async uploadFile(file,scope) {
       const controller=new AbortController(),outer=this.controller.signal,abort=()=>controller.abort();
@@ -192,7 +206,7 @@
           "X-Document-Scope":scope,"X-Document-Filename":encodeURIComponent(file.name)}
       });}finally{clearTimeout(timer);outer.removeEventListener("abort",abort);}
     }
-    upsert(document) {const index=this.documents.findIndex(item=>item.id===document.id);if(index<0)this.documents.push(copy(document));else this.documents[index]=copy(document);this.connectionError="";this.render();}
+    upsert(document) {const index=this.documents.findIndex(item=>item.id===document.id);if(index<0)this.documents.push(copy(document));else this.documents[index]=copy(document);this.connectionError="";this.render();this.changed();}
     setDocuments(documents,emit=true) {
       if(!Array.isArray(documents))throw new Error("The local file list was incomplete.");
       const next=documents.filter(item=>item&&typeof item.id==="string").map(copy);
@@ -206,7 +220,7 @@
         const key=`${version??"indexed"}:${available?document.chunk_count:0}:${document.analysis?.intent_version||0}`;
         if(this.seen.get(document.id)!==key){this.seen.set(document.id,key);if(emit)this.emit({type:"analysis",document:copy(document),analysis:copy(document.analysis||{})});}
       }}
-      this.render();if(changed&&emit)this.options.onDirty?.();
+      this.render();this.changed(emit);if(changed&&emit)this.options.onDirty?.();
     }
     pending() {return this.uploads.length||this.documents.some(item=>["pending","indexing"].includes(item.status)||["quick","deep"].includes(item.analysis?.phase));}
     schedule(delay) {
@@ -214,7 +228,7 @@
       if(this.disposed||this.suspended||!this.scope||(!this.documents.length&&!this.uploads.length))return;
       this.pollTimer=setTimeout(()=>{this.pollTimer=null;this.refresh();},delay===undefined?(this.pending()?2000:10000):delay);
     }
-    async refresh() {
+    async refresh(emit=true) {
       if(this.disposed||this.suspended||!this.scope)return;
       if(this.polling)return this.polling;
       if(this.mutating){this.schedule();return;}
@@ -223,20 +237,20 @@
         try{
           const result=await this.options.requestJSON("/api/documents/status",{scope,...this.context()},{signal:this.controller.signal,timeout:30000});
           if(!this.current(generation)||scope!==this.scope||revision!==this.revision)return;
-          this.setDocuments(result.documents);
-        }catch(error){if(this.current(generation)&&scope===this.scope&&revision===this.revision&&error.name!=="AbortError"){this.connectionError=message(error);this.reportError(error,false);this.render();}}
+          this.setDocuments(result.documents,emit);
+        }catch(error){if(this.current(generation)&&scope===this.scope&&revision===this.revision&&error.name!=="AbortError"){this.connectionError=message(error);this.reportError(error,false,emit);this.render();this.changed(emit);}}
         finally{if(this.current(generation))this.schedule();}
       })();this.polling=task;
       try{return await task;}finally{if(this.polling===task)this.polling=null;}
     }
-    reportError(error,notify) {
+    reportError(error,notify,emit=true) {
       const text=message(error);if(notify)this.options.notice?.(text,true);
-      if(this.lastError!==text){this.lastError=text;this.emit({type:"error",message:text});}
+      if(this.lastError!==text){this.lastError=text;if(emit)this.emit({type:"error",message:text});}
     }
     async action(document,action,purpose) {
       const key=document.id+":"+action;if(this.disposed||this.suspended||this.documentBusy(document.id)||!this.scope)return;
       const generation=this.generation;this.actions.add(key);this.mutating++;this.revision++;
-      this.render();
+      this.render();this.changed();
       try{
         const result=await this.options.requestJSON("/api/documents/action",{scope:this.scope,id:document.id,action,...(purpose!==undefined?{purpose}:{})},{signal:this.controller.signal,timeout:30000});
         if(!this.current(generation))return;
@@ -245,7 +259,7 @@
         else if(result.document)this.upsert(result.document);
         this.options.onDirty?.();this.render();
       }catch(error){if(this.current(generation)&&error.name!=="AbortError"){this.actionErrors.set(document.id,{action,purpose,message:message(error)});this.reportError(error,true);}}
-      finally{if(this.current(generation)){this.actions.delete(key);this.mutating=Math.max(0,this.mutating-1);this.revision++;this.render();this.schedule(0);}}
+      finally{if(this.current(generation)){this.actions.delete(key);this.mutating=Math.max(0,this.mutating-1);this.revision++;this.render();this.changed();this.schedule(0);}}
     }
     documentBusy(id) {return [...this.actions].some(key=>key.startsWith(id+":"));}
     reviewError(document) {return document.status==="error"||document.analysis?.phase==="error"||Boolean(document.analysis?.error);}
@@ -292,7 +306,7 @@
       const sourceFocus=focused?.dataset?.documentSourceHeading,cardFocus=focused?.dataset?.documentId,toggleFocus=focused?.dataset?.documentToggle,controlFocus=focused?.dataset?.documentControl,scrollTop=this.body.scrollTop;
       this.body.replaceChildren();
       if(this.connectionError){const error=this.node("div","documents-warning");error.append(this.node("p","",`Saved file details are retained. ${this.connectionError}`),this.button("Try again","documents-text-button",()=>this.refresh()));this.body.append(error);}
-      this.uploadErrors.forEach((error,index)=>{const item=this.node("div","documents-warning");item.append(this.node("strong","",error.name),this.node("p","",error.message));if(error.file){const retry=this.button("Retry upload","documents-text-button",()=>{if(!this.allowed())return;this.uploadErrors.splice(index,1);this.addFiles([error.file]);});retry.disabled=!this.allowed();item.append(retry);}item.append(this.button("Dismiss issue","documents-text-button",()=>{this.uploadErrors.splice(index,1);this.render();}));this.body.append(item);});
+      this.uploadErrors.forEach((error,index)=>{const item=this.node("div","documents-warning");item.append(this.node("strong","",error.name),this.node("p","",error.message));if(error.file){const retry=this.button("Retry upload","documents-text-button",()=>{if(!this.allowed())return;this.uploadErrors.splice(index,1);this.addFiles([error.file]);});retry.disabled=!this.allowed();item.append(retry);}item.append(this.button("Dismiss issue","documents-text-button",()=>{this.uploadErrors.splice(index,1);this.render();this.changed();}));this.body.append(item);});
       if(!total&&!this.uploadErrors.length)this.body.append(this.node("p","documents-empty","Add a procedure, spreadsheet, screenshot or reference document. We’ll look for what matters to this conversation."));
       for(const upload of this.uploads)this.body.append(this.node("p","documents-upload",`${upload.name} · ${upload.status}…`));
       for(const document of this.documents)this.renderDocument(document,drafts);
@@ -313,7 +327,7 @@
       const stage=this.node("div","documents-stage");stage.dataset.state=this.reviewError(document)||this.actionErrors.has(document.id)?"error":analysis.disposition==="parked"?"later":["pending","indexing"].includes(document.status)||["quick","deep"].includes(analysis.phase)?"working":"ready";
       stage.append(this.node("strong","documents-stage-label",this.status(document)));const detail=this.stageDetail(document);if(detail)stage.append(this.node("span","documents-stage-detail",detail));card.append(stage);
       if(analysis.disposition==="parked")card.append(this.node("p","documents-review-mode","Saved for later. Come back to it whenever it’s useful."));
-      else if(analysis.disposition==="relevant"&&["quick","deep"].includes(analysis.phase))card.append(this.node("p","documents-review-mode","Reading now · You can keep talking."));
+      else if(analysis.disposition==="relevant"&&["quick","deep"].includes(analysis.phase))card.append(this.node("p","documents-review-mode","Reviewing before the next question."));
       const failed=this.actionErrors.get(document.id);if(failed){const error=this.node("div","documents-warning");error.setAttribute("role","status");const retry=this.control(this.button("Retry action","documents-text-button",()=>this.action(document,failed.action,failed.purpose)),document,"retry-action",failed.action);retry.disabled=this.actions.has(document.id+":"+failed.action);error.append(this.node("p","",failed.message),retry);card.append(error);}
       if(document.error)card.append(this.node("p","documents-warning",typeof document.error==="string"?document.error:"Some content could not be read."));
       if(analysis.error)card.append(this.node("p","documents-warning",typeof analysis.error==="string"?analysis.error:analysis.error.message||"Review could not be completed. Try reviewing this file again."));
@@ -396,7 +410,7 @@
       this.reset();if(!saved||typeof saved!=="object")return;
       if(typeof saved.scope==="string"&&saved.scope)this.scope=saved.scope;
       if(Array.isArray(saved.documents))this.setDocuments(saved.documents,false);this.render();
-      if(this.scope)await this.refresh();
+      if(this.scope)await this.refresh(false);
     }
     cancel() {clearTimeout(this.pollTimer);this.pollTimer=null;this.controller.abort();}
     suspend() {
@@ -409,11 +423,11 @@
     }
     resume() {
       if(this.disposed||!this.suspended)return;
-      this.suspended=false;this.controller=new AbortController();this.render();void this.refresh();
+      this.suspended=false;this.controller=new AbortController();this.render();this.changed();void this.refresh();
     }
     reset() {
       this.clearDrop();
-      this.cancel();this.generation++;this.revision++;this.suspended=false;this.controller=new AbortController();this.scope=null;this.documents=[];this.uploads=[];this.uploadErrors=[];this.seen=new Map();this.sessionPromise=null;this.polling=null;this.mutating=0;this.actions.clear();this.actionErrors.clear();this.expandedAssets.clear();this.source=null;this.sourceHeading=null;this.sourceReturnKey=null;this.connectionError="";this.lastError="";this.close(false);this.render();
+      this.cancel();this.generation++;this.revision++;this.suspended=false;this.controller=new AbortController();this.scope=null;this.documents=[];this.uploads=[];this.uploadErrors=[];this.seen=new Map();this.sessionPromise=null;this.polling=null;this.mutating=0;this.actions.clear();this.actionErrors.clear();this.expandedAssets.clear();this.source=null;this.sourceHeading=null;this.sourceReturnKey=null;this.connectionError="";this.lastError="";this.close(false);this.render();this.changed(false);
     }
     dispose() {if(this.disposed)return;this.reset();this.disposed=true;this.cancel();window.removeEventListener?.("pagehide",this.pagehide);window.removeEventListener?.("pageshow",this.pageshow);for(const [target,name,fn] of this.dropListeners||[])target.removeEventListener?.(name,fn);this.dropListeners=[];this.dropOverlay?.remove();this.dropTarget?.classList.remove("document-drop-zone");this.assets?.replaceChildren();this.controls?.replaceChildren();if(this.strip){this.strip.replaceChildren();this.strip.hidden=true;}}
   }

@@ -350,6 +350,20 @@ body { height: 100vh; height: 100dvh; display: flex; flex-direction: column; ove
 /* ─── Interview workspace ────────────────────────────────────────────────── */
 .interview-layout { height: 100%; display: grid; grid-template-columns: minmax(0,1fr) 352px; }
 .interview-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.document-intake-panel { flex: none; margin: 8px 28px 12px; padding: 16px 18px 10px; border: 1px solid var(--accent-line); border-radius: var(--r-xl); background: var(--accent-soft); }
+.document-intake-copy strong { font-size: 15px; font-weight: 600; }
+.document-intake-copy p { margin: 4px 0 12px; color: var(--ink-2); font-size: 13.5px; line-height: 1.5; }
+.document-intake-steps { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0; padding: 0; list-style: none; counter-reset: intake; color: var(--muted); font-size: 12px; }
+.document-intake-steps li { display: flex; align-items: center; gap: 6px; counter-increment: intake; }
+.document-intake-steps li::before { content: counter(intake); display: grid; place-items: center; width: 20px; height: 20px; border: 1px solid var(--line-strong); border-radius: 50%; font-size: 11px; }
+.document-intake-steps [aria-current="step"] { color: var(--ink); font-weight: 600; }
+.document-intake-steps [aria-current="step"]::before { border-color: var(--accent); background: var(--accent); color: white; }
+.document-intake-steps .complete::before { border-color: var(--accent-line); background: var(--surface); }
+.document-intake-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px 12px; margin-top: 6px; }
+.document-intake-actions .text-button { min-height: 34px; padding: 5px 0; font-size: 12.5px; }
+.document-intake-panel[data-phase="error"] { border-color: var(--line-strong); background: var(--warm-soft); }
+@media(max-width:760px) { .document-intake-panel { margin: 6px 16px 10px; padding: 12px; } .document-intake-steps { gap: 8px 12px; } .document-intake-actions .text-button { min-height: 44px; } }
+@media(max-height:500px) { .document-intake-panel { max-height: 140px; overflow-y: auto; margin-top: 0; padding: 8px 12px; } .document-intake-copy p { margin-bottom: 6px; } }
 .workspace-toolbar { flex: none; min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 28px 8px; }
 .setup-card { min-width: 0; flex: 1; }
 #context-form label { margin: 0 0 4px 1px; color: var(--muted); font-family: var(--font-caps); font-size: 10.5px; font-weight: 500; letter-spacing: var(--track-section); }

@@ -71,13 +71,13 @@ let providerCalls=0,serializations=0;
 let timerId=0;const timers=new Map();
 const localSetTimeout=(fn,delay)=>{const id=++timerId;timers.set(id,{fn,delay});return id;};
 const localClearTimeout=id=>timers.delete(id);
-const context={console,document,Blob,DataView,Uint8Array,Date,JSON,AbortController,confirm:()=>true,XMLSerializer:class{serializeToString(){serializations++;return "old-svg-fallback";}},setTimeout:localSetTimeout,clearTimeout:localClearTimeout,getComputedStyle:()=>({paddingLeft:"10px",paddingRight:"10px"}),requestAnimationFrame:fn=>fn(),fetch:()=>{providerCalls++;throw Error("Unexpected provider request");},window:{speechSynthesis:{cancel:()=>{}},SpeechSynthesisUtterance:class{}}};
+const context={console,document,Blob,DataView,Uint8Array,Date,JSON,AbortController,DOMException,confirm:()=>true,XMLSerializer:class{serializeToString(){serializations++;return "old-svg-fallback";}},setTimeout:localSetTimeout,clearTimeout:localClearTimeout,getComputedStyle:()=>({paddingLeft:"10px",paddingRight:"10px"}),requestAnimationFrame:fn=>fn(),fetch:()=>{providerCalls++;throw Error("Unexpected provider request");},window:{speechSynthesis:{cancel:()=>{}},SpeechSynthesisUtterance:class{}}};
 const appSource=fs.readFileSync(path.join(__dirname,"..","web","app.js"),"utf8");
 const exportBindings=appSource.split("\n").filter(line=>/\$\("(?:export-working-map|export-map)"\)\.addEventListener/.test(line)).join("\n");
 const titleBinding=appSource.match(/\$\("process-name"\)\.addEventListener\("input",\(\)=>\{[\s\S]*?\n    \}\);/)?.[0]||"";
 const liveBindings=appSource.split("\n").filter(line=>/\$\("(?:stop-live|mute-live)"\)\.addEventListener/.test(line)).join("\n");
 const source=appSource
- .replace("  init();","  window.__sidebarTests={memoUI,selectMemoSection,memoTabKey,initMemoTabs,openDocumentAssets,updateAssetCount,placeConversationDock,setTranscriptFind,setTranscriptExport,initTranscriptTools,updateConversationControls,exerciseControls:updateControls};\n  init();")
+ .replace("  init();","  window.__sidebarTests={memoUI,selectMemoSection,memoTabKey,initMemoTabs,openDocumentAssets,updateAssetCount,placeConversationDock,setTranscriptFind,setTranscriptExport,initTranscriptTools,updateConversationControls,exerciseControls:updateControls,appendDocumentMessage,realRequest:request,createIntake:()=>documentIntake=createDocumentIntake(),setIntake:value=>{documentIntake=value;}};\n  init();")
  .replace(/  init\(\);\s*\}\)\(\);\s*$/,"  updateControls=()=>{updatePresence();}; window.__downloads=[]; download=(...args)=>window.__downloads.push(args); "+exportBindings+titleBinding+liveBindings+" window.__uiTests={normalizeDocumentEvidence,normalizeFindings,boundedVoiceDocuments,sourceCaption,scrollToElement,dismissInlineError,dismissNotice,placeMemo,resolveDocumentPurpose,skipQuestion,getPendingDocumentReason:()=>pendingDocumentReason,readingUI,refreshReadingSearch,moveReadingSearch,returnToSource,renderCoverage,state,renderTranscript,showFoundationTopic,initFoundationDialog,closeFoundationTopic,jumpToTurn,jumpToReview,tab,initReviewTabs,selectReviewSection,reviewTabKey,renderMap,renderWorkingMap,workflowCanvases,showWorkflowStep,renderWorkflowLegend,retryWorkflowLayout,ensureWorkflowAssets,renderSteps,updateWorkflowNavigation,updateCanvasControls,zoomMap,fitMapToWidth,conversationUI,selectConversationView,conversationTabKey,receiveLiveCaption,scheduleWorkflow,refreshWorkflow,clearState,sendAnswer,retryQuestion,setMemoSheet,setInterviewSettings,notice,applyInterview,markdown,memoMarkdown,normalizeDraft,ensureConversation,applyProcessTitle,documentContext,onDocumentEvent,snapshot,sessionObject,importSession,presenceState,updatePresence,startLiveConversation,setPresenceFake:value=>{gpfsPresence=value;},setDocumentController:value=>{documentController=value;},renderReport:typeof renderReport==='function'?renderReport:null,setRequest:fn=>{request=fn;}};\n})();");
 context.TextEncoder=TextEncoder;vm.createContext(context);vm.runInContext(source,context,{filename:"app.js"});
 const t=context.window.__uiTests;if(!t)throw Error("UI test seam was not installed");Object.assign(t,context.window.__sidebarTests);t.initFoundationDialog();t.initReviewTabs();
@@ -308,13 +308,15 @@ if(process.argv.includes("--usability-only")){
    t.setDocumentController({exportState:()=>({scope:"scope_SYNTHETIC_AUDIT",documents:files}),refresh:()=>refreshes++});
    t.setRequest(async(url,payload)=>{requests.push({url,payload});return {};});
    document.getElementById("answer-text").value="";t.state.turns=JSON.parse(JSON.stringify(base));t.onDocumentEvent({type:"analysis",document:file});
-   assert.match(t.state.turns.at(-1).text,/No readable source sections/);assert.equal(t.getPendingDocumentReason().questionId,t.state.turns.at(-1).id,"Purpose is bound to the question actually shown, even without an AI summary");
+   assert.equal(t.state.turns.at(-1).text,base[1].text,"An empty-file analysis does not interrupt the current interview");assert.equal(t.getPendingDocumentReason(),null);
+   t.onDocumentEvent({type:"question",document:file,question:{text:file.analysis.question,sources:[]}});
+   assert.match(t.state.turns.at(-1).text,/What would you like me to look for/);assert.equal(t.getPendingDocumentReason().questionId,t.state.turns.at(-1).id,"An explicitly selected purpose question is bound to the question actually shown");
    await t.resolveDocumentPurpose("Please retain the blank template.");assert.equal(requests.length,1);assert.equal(requests[0].payload.id,file.id);assert.equal(requests[0].payload.purpose,"Please retain the blank template.");assert.equal(refreshes,1);assert.equal(t.getPendingDocumentReason(),null);passes++;
    // Every new fixture intent has an independent question. Completed tray actions,
    // removal, and a newer file intent must not consume an ordinary next answer.
    for(const changed of ["answered-in-files","removed","new-intent"]){
     const next=JSON.parse(JSON.stringify(file));next.analysis.intent_version++;
-    t.state.turns=JSON.parse(JSON.stringify(base));files=[next];t.onDocumentEvent({type:"analysis",document:next});assert.ok(t.getPendingDocumentReason());
+    t.state.turns=JSON.parse(JSON.stringify(base));files=[next];t.onDocumentEvent({type:"question",document:next,question:{text:next.analysis.question,sources:[]}});assert.ok(t.getPendingDocumentReason());
     if(changed==="answered-in-files")next.analysis={...next.analysis,disposition:"relevant",purpose_attempted:true};
     if(changed==="removed")files=[];
     if(changed==="new-intent")next.analysis.intent_version++;
@@ -322,12 +324,12 @@ if(process.argv.includes("--usability-only")){
     file.analysis.intent_version+=3;
    }passes++;
    {
-    const next=JSON.parse(JSON.stringify(file));next.analysis.intent_version++;files=[next];t.state.turns=JSON.parse(JSON.stringify(base));t.onDocumentEvent({type:"analysis",document:next});
+    const next=JSON.parse(JSON.stringify(file));next.analysis.intent_version++;files=[next];t.state.turns=JSON.parse(JSON.stringify(base));t.onDocumentEvent({type:"question",document:next,question:{text:next.analysis.question,sources:[]}});
     t.onDocumentEvent({type:"question",document:{id:"doc_other_audit",name:"Other.csv",analysis:{disposition:"relevant"}},question:{text:"Who maintains this other tracker?",sources:[]}});
     const before=requests.length;await t.resolveDocumentPurpose("The AP manager.");assert.equal(requests.length,before);assert.equal(t.getPendingDocumentReason(),null);passes++;
    }
    {
-    const next=JSON.parse(JSON.stringify(file));next.analysis.intent_version+=2;files=[next];t.state.turns=JSON.parse(JSON.stringify(base));t.onDocumentEvent({type:"analysis",document:next});assert.ok(t.getPendingDocumentReason());
+    const next=JSON.parse(JSON.stringify(file));next.analysis.intent_version+=2;files=[next];t.state.turns=JSON.parse(JSON.stringify(base));t.onDocumentEvent({type:"question",document:next,question:{text:next.analysis.question,sources:[]}});assert.ok(t.getPendingDocumentReason());
     t.setRequest(async()=>{throw Error("Synthetic skip failure");});await t.skipQuestion();assert.equal(t.getPendingDocumentReason(),null,"An explicit skip clears file-purpose capture even if preparing the next topic fails");
     const before=requests.length;await t.resolveDocumentPurpose("The next ordinary answer.");assert.equal(requests.length,before);passes++;
    }
@@ -798,7 +800,7 @@ if(process.argv.includes("--usability-only")){
  }
  {
   checkpoint();t.clearState();const before=t.conversationUI.revision;t.onDocumentEvent({type:"received",document:fileRecord()});
-  assert.equal(t.state.turns.length,1);assert.equal(t.state.turns[0].role,"assistant");assert.equal(t.state.turns[0].document_event,true);assert.equal(t.state.turns[0].document_id,"doc_ref1");assert.equal(t.state.turns.some(turn=>turn.role==="user"),false);
+  assert.equal(t.state.turns.length,0,"A per-file receipt must not create a second acknowledgement or interview turn");assert.equal(t.state.dirty,true);
   assert.equal(document.getElementById("coverage-count").textContent,"0 / 11");assert.equal(t.conversationUI.revision,before);assert.equal(t.documentContext().current_question,"");passes++;
  }
  {
@@ -815,7 +817,7 @@ if(process.argv.includes("--usability-only")){
   checkpoint();t.clearState();t.ensureConversation();t.state.turns=[{id:"t002",role:"user",text:"A participant answer."},{id:"t003",role:"assistant",text:"The original question?"}];
   const file=fileRecord();file.analysis={...file.analysis,basis_turn_id:"t002",basis_question:"The original question?",acknowledgement:"I reviewed the reference.",question:"Does that match what you do?"};
   t.onDocumentEvent({type:"analysis",document:file});const count=t.state.turns.length;t.onDocumentEvent({type:"analysis",document:file});
-  assert.equal(count,3);assert.equal(t.state.turns.length,count,"Quick analysis must not append its question more than once");assert.equal(t.state.turns.at(-1).role,"assistant");assert.equal(t.state.turns.filter(turn=>turn.role==="user").length,1);assert.equal(document.getElementById("coverage-count").textContent,"0 / 11");passes++;
+  assert.equal(count,2,"An intermediate analysis question must wait for the completed document baseline");assert.equal(t.state.turns.length,count);assert.equal(t.state.turns.at(-1).text,"The original question?");assert.equal(t.state.turns.filter(turn=>turn.role==="user").length,1);assert.equal(document.getElementById("coverage-count").textContent,"0 / 11");passes++;
  }
  {
   checkpoint();t.clearState();t.ensureConversation();const docs=fakeDocuments();t.setDocumentController(docs);const beforeTurns=[{id:"t002",role:"user",text:"An actual participant answer."},{id:"t003",role:"assistant",text:"The saved current question?"}];t.state.turns=JSON.parse(JSON.stringify(beforeTurns));
@@ -839,7 +841,7 @@ if(process.argv.includes("--usability-only")){
  }
  {
   checkpoint();t.clearState();t.ensureConversation();t.state.turns=[{id:"t001",role:"assistant",text:"What happens next?"}];
-  t.onDocumentEvent({type:"received",document:fileRecord()});
+  t.appendDocumentMessage("Thanks for sharing. Give me a moment to digest the file.",fileRecord());
   assert.equal(document.getElementById("current-question").textContent,"What happens next?","A file receipt must not replace the question on the voice stage");
   assert.ok(document.getElementById("transcript").textContent.includes("File update"));
   assert.equal(document.getElementById("transcript").textContent.includes("Question 2"),false,"A receipt is not a numbered question");
@@ -930,7 +932,7 @@ if(process.argv.includes("--usability-only")){
   const doc={id:documentId,name:evidence.name,status:"ready",analysis:{phase:"complete",disposition:"relevant",summary:"Payment execution",sources:[{source_id:sourceId}],intent_version:0}};
   t.setDocumentController({exportState:()=>({scope:"testscope",documents:[doc]}),reset(){},render(){}});t.state.config={api_configured:true};
   t.onDocumentEvent({type:"analysis",document:doc,analysis:doc.analysis});
-  assert.equal(timers.size,1,"A file alone triggers workflow capture without waiting for a new spoken answer");const revision=t.conversationUI.revision;
+  assert.equal(timers.size,0,"Analysis events do not bypass the document intake coordinator with an independent workflow request");const revision=t.conversationUI.revision;
   t.onDocumentEvent({type:"analysis",document:doc,analysis:doc.analysis});assert.equal(t.conversationUI.revision,revision,"Polling the same file phase does not repeat capture");
   checkpoint();t.setRequest(async(url,payload)=>{assert.equal(url,"/api/workflow");assert.equal(payload.document_scope,"testscope");return {
    workflow:{title:"US payment execution",steps:[{id:"S1",title:"Client releases payment",evidence_turns:[sourceId]}],connections:[]},
@@ -1063,6 +1065,112 @@ if(process.argv.includes("--usability-only")){
   scroll.scrollTop=1900;t.renderTranscript();assert.equal(jump.hidden,true,"The latest-message action disappears when the reader reaches the end");
   scroll.scrollTop=0;scroll.scrollHeight=500;t.renderTranscript();assert.equal(jump.hidden,true,"Short conversations do not display unnecessary scroll navigation");
   const saved=t.state.turns;t.state.turns=[];scroll.scrollHeight=2400;t.renderTranscript();assert.equal(jump.hidden,true,"An empty transcript has no latest message");t.state.turns=saved;passes++;
+ }
+ // Exercise the actual coordinator through the app's document events and provider boundary.
+ {
+  checkpoint();t.conversationUI.live=null;t.clearState({process_name:"Document intake",objective:"Capture the reported process"});
+  vm.runInContext(fs.readFileSync(path.join(__dirname,"..","web","document-intake.js"),"utf8"),context,{filename:"document-intake.js"});
+  const ensure=id=>document.getElementById(id)||mount(id);
+  for(const id of ["document-intake-panel","document-intake-title","document-intake-detail","document-intake-retry","document-intake-continue","intake-step-upload","intake-step-review","intake-step-baseline","intake-step-question"])ensure(id);
+  t.state.config={api_configured:true,live:{enabled:true},speech:{enabled:false}};t.ensureConversation();
+  t.state.turns=[{id:"t002",role:"user",text:"Treasury receives the wire request."},{id:"t003",role:"assistant",text:"What happens next?"}];
+  t.state.summary="Previous accepted summary";t.conversationUI.workflow=graph("Previous accepted workflow");
+  const input=document.getElementById("answer-text");input.value="Keep my unsent clarification.";
+  const sourceId="doc_0123456789abcdef01234567_page1_c0",documentId="doc_0123456789abcdef01234567";
+  const evidence={id:sourceId,document_id:documentId,name:"Payment SOP.pdf",label:"Page 1",text:"Treasury checks the wire and the client releases it."};
+  const lifecycle={scope:"scope_intake",generation:1,documents:[],uploading:1,mutating:1,uploadErrors:[],connectionError:""};
+  const clone=value=>JSON.parse(JSON.stringify(value));
+  t.setDocumentController({lifecycle:()=>clone(lifecycle),exportState:()=>({scope:lifecycle.scope,documents:clone(lifecycle.documents)}),reset(){},render(){}});
+  let finishPause,finishBaseline,finishFollowup,stopCount=0,appendCount=0;const starts=[],requests=[];
+  const live={active:true,connected:true,stop(){stopCount++;this.active=false;this.connected=false;t.conversationUI.status="idle";return new Promise(resolve=>finishPause=resolve);},async start(payload){starts.push(payload);this.active=true;this.connected=true;},appendContext(){appendCount++;}};
+  t.conversationUI.live=live;t.conversationUI.status="listening";
+  t.setRequest((url,payload,options)=>{requests.push({url,payload,options});if(url==="/api/workflow")return new Promise(resolve=>finishBaseline=resolve);if(url==="/api/interview")return new Promise(resolve=>finishFollowup=resolve);throw Error(`Unexpected request: ${url}`);});
+  const intake=t.createIntake(),flush=async()=>{for(let i=0;i<12;i++)await Promise.resolve();};
+  t.onDocumentEvent({type:"upload_started",batchId:"batch-a",names:["Payment SOP.pdf"]});
+  t.onDocumentEvent({type:"upload_started",batchId:"batch-b",names:["Appendix.pdf"]});
+  t.exerciseControls();
+  assert.equal(stopCount,1,"Overlapping file batches pause the voice session only once");assert.equal(appendCount,0);
+  assert.equal(t.state.turns.filter(turn=>turn.document_event).length,1,"One intake acknowledgement covers the upload transaction");
+  assert.match(t.state.turns.at(-1).text,/Thanks for sharing.*moment to digest/);assert.equal(intake.phase,"uploading");
+  assert.equal(document.getElementById("document-intake-panel").hidden,false);assert.equal(current.hidden,true);
+  for(const id of ["start-live","send-answer","record-answer","skip-question","final-check","generate-draft","regenerate-draft","retry-question"])assert.equal(document.getElementById(id).disabled,true,`${id} is gated during file intake`);
+  assert.equal(input.value,"Keep my unsent clarification.");passes++;
+
+  const file={id:documentId,name:evidence.name,status:"ready",chunk_count:1,analysis:{phase:"quick",version:1,intent_version:0,disposition:"relevant",question:"Premature document question?"}};
+  lifecycle.documents=[file];t.onDocumentEvent({type:"received",document:file});t.onDocumentEvent({type:"analysis",document:file});
+  lifecycle.uploading=0;lifecycle.mutating=0;
+  t.onDocumentEvent({type:"upload_settled",batchId:"batch-a"});t.onDocumentEvent({type:"upload_settled",batchId:"batch-b"});await flush();
+  assert.equal(intake.phase,"reviewing");assert.equal(requests.length,0,"Quick review cannot start either a workflow or an interview request");
+  assert.equal(t.state.turns.length,3);assert.equal(t.state.summary,"Previous accepted summary");
+  assert.equal(await t.refreshWorkflow(),false,"Manual capture cannot race the file review");
+  await t.sendAnswer({preventDefault(){}});await t.startLiveConversation();assert.equal(requests.length,0);assert.equal(starts.length,0);
+  t.onDocumentEvent({type:"question",document:file,question:{text:"A selected question too soon?"}});assert.equal(appendCount,0);assert.equal(t.state.turns.length,3);passes++;
+
+  file.analysis={...file.analysis,phase:"complete",version:2,review_complete:false};
+  t.onDocumentEvent({type:"analysis",document:file});await flush();
+  assert.equal(requests.length,0,"A completed review still waits for the voice transcript to drain");
+  finishPause({finalized:true});await flush();
+  assert.equal(intake.phase,"baseline");assert.equal(requests.length,1);assert.equal(requests[0].url,"/api/workflow");
+  assert.equal(requests[0].payload.document_scope,"scope_intake");assert.equal(t.state.summary,"Previous accepted summary");
+  assert.equal(t.state.turns.some(turn=>turn.text==="Premature document question?"),false);passes++;
+
+  finishBaseline({workflow:graph("Reviewed payment process",[{id:"S1",title:"Client releases the wire",evidence_turns:[sourceId]}]),document_evidence:[evidence],memo_findings:[{key:"trigger",status:"captured",answer:"Treasury receives the request",evidence_turns:["t002"]}],coverage:[],summary:"Accepted document baseline",focus:"Confirm the release owner",parking_lot:["Confirm exceptions"]});await flush();
+  assert.equal(intake.phase,"question");assert.equal(requests.length,2);assert.equal(requests[1].url,"/api/interview");assert.equal(requests[1].payload.action,"document_followup");
+  assert.equal(requests[1].payload.previous_capture.summary,"Accepted document baseline");assert.equal(requests[1].payload.previous_capture.workflow.steps[0].title,"Client releases the wire");
+  assert.equal(t.state.summary,"Accepted document baseline");assert.equal(t.state.turns.length,3,"The follow-up must not appear until its request resolves");
+  t.applyInterview({question:"Stale question from before upload",summary:"Stale summary",coverage:[],memo_findings:[]});
+  assert.equal(t.state.turns.length,3,"A late ordinary interview result cannot interrupt document intake");assert.equal(t.state.summary,"Accepted document baseline");passes++;
+
+  finishFollowup({question:"Who confirms that the client released the wire?",summary:"Unrelated second snapshot",coverage:[],memo_findings:[],parking_lot:[]});await flush();t.exerciseControls();
+  assert.equal(intake.phase,"ready");assert.equal(t.state.turns.length,4);assert.equal(t.state.turns.at(-1).text,"Who confirms that the client released the wire?");
+  assert.equal(t.state.summary,"Accepted document baseline","The question response cannot overwrite the audited capture");assert.equal(t.state.memo_findings.find(item=>item.key==="trigger").answer,"Treasury receives the request");assert.equal(t.state.parking_lot[0],"Confirm exceptions");
+  assert.equal(t.conversationUI.workflow.steps[0].title,"Client releases the wire");assert.equal(t.state.documentEvidence[0].id,sourceId);
+  assert.equal(document.getElementById("document-intake-panel").hidden,true);assert.equal(current.hidden,false);assert.equal(document.getElementById("start-live").disabled,false);assert.equal(document.getElementById("send-answer").disabled,false);assert.equal(input.value,"Keep my unsent clarification.");
+  t.onDocumentEvent({type:"analysis",document:file});t.onDocumentEvent({type:"changed",state:clone(lifecycle)});await flush();
+  assert.equal(requests.length,2);assert.equal(t.state.turns.length,4,"Repeated final polling cannot add another follow-up");assert.equal(stopCount,1);passes++;
+
+  await t.startLiveConversation();assert.equal(starts.length,1);assert.equal(starts[0].document_scope,"scope_intake");assert.equal(starts[0].turns.some(turn=>turn.document_event),false);assert.equal(starts[0].turns.at(-1).text,t.state.turns.at(-1).text);assert.equal(appendCount,0,"Resumed voice receives the finalized scope once, with no competing per-file context injection");
+  intake.reset();t.setIntake(null);t.conversationUI.live=null;t.setDocumentController(null);t.clearState();passes++;
+ }
+ {
+  checkpoint();t.clearState({process_name:"Cancel stale question",objective:"Keep the current interview"});t.state.config={api_configured:true,speech:{enabled:false}};t.ensureConversation();
+  const intake=t.createIntake(),originalFetch=context.fetch;let completeResponse,signal;
+  context.fetch=async(_url,options)=>{signal=options.signal;return {ok:true,json:()=>new Promise(resolve=>completeResponse=resolve)};};
+  const pending=t.realRequest("/api/interview",{...t.snapshot(),action:"answer"});await nextMicrotask();
+  t.onDocumentEvent({type:"upload_started",batchId:"cancellation-check",names:["Reference.pdf"]});
+  assert.equal(signal.aborted,true,"Beginning file intake aborts a pending ordinary interview request");
+  const rejected=assert.rejects(pending,error=>error.name==="AbortError"&&!/too long/i.test(error.message));completeResponse({question:"A stale response delivered despite cancellation"});await rejected;
+  assert.equal(t.state.turns.some(turn=>turn.text==="A stale response delivered despite cancellation"),false);
+  intake.reset();t.setIntake(null);context.fetch=originalFetch;t.clearState();passes++;
+ }
+ {
+  const originalFetch=context.fetch,flush=async()=>{for(let i=0;i<12;i++)await Promise.resolve();};
+  for(const outcome of ["response","transport-error"]){
+   checkpoint();t.clearState({process_name:"Late cancellation",objective:"Keep accepted answers"});t.state.config={api_configured:true,speech:{enabled:false}};t.ensureConversation();
+   t.state.turns=[{id:"t001",role:"assistant",text:"What starts the process?"}];t.state.summary="Retain the accepted baseline";
+   const intake=t.createIntake();let finish,signal;
+   context.fetch=(_url,options)=>{signal=options.signal;return new Promise((resolve,reject)=>finish=()=>outcome==="response"?resolve({ok:true,json:async()=>({question:"Discard this stale question",summary:"Discard stale baseline",coverage:[],memo_findings:[]})}):reject(new TypeError("Late transport failure")));};
+   t.setRequest(t.realRequest);document.getElementById("answer-text").value="A supplier sends the request.";document.getElementById("retry-question").hidden=true;
+   document.getElementById("global-notice").hidden=true;document.getElementById("interview-error").hidden=true;
+   const sending=t.sendAnswer({preventDefault(){}});await flush();assert.equal(t.state.busy,true);
+   t.onDocumentEvent({type:"upload_started",batchId:"late-result",names:["Empty.csv"]});assert.equal(signal.aborted,true);
+   t.onDocumentEvent({type:"upload_settled",batchId:"late-result"});await flush();
+   assert.equal(intake.phase,"ready","An intake with no new evidence can finish before a cancelled request settles");
+   const acceptedTurns=JSON.stringify(t.state.turns);finish();await sending;
+   assert.equal(JSON.stringify(t.state.turns),acceptedTurns,"A late cancelled response cannot change the transcript after intake is ready");
+   assert.equal(t.state.turns.find(turn=>turn.role==="user").text,"A supplier sends the request.");assert.equal(t.state.summary,"Retain the accepted baseline");
+   assert.equal(document.getElementById("retry-question").hidden,true,"Intentional cancellation must not offer a misleading retry");
+   assert.equal(document.getElementById("global-notice").hidden,true);assert.equal(document.getElementById("interview-error").hidden,true,"Late cancellation must not display a timeout or transport failure");assert.equal(t.state.busy,false);
+   intake.reset();t.setIntake(null);passes++;
+  }
+  checkpoint();t.clearState();
+  context.fetch=(_url,options)=>new Promise((_resolve,reject)=>options.signal.addEventListener("abort",()=>reject(new DOMException("Aborted","AbortError")),{once:true}));
+  const deadline=t.realRequest("/api/interview",t.snapshot(),{timeout:731});
+  const deadlineRejected=assert.rejects(deadline,error=>error.name!=="AbortError"&&/took too long/.test(error.message));
+  const deadlineTimer=[...timers.values()].find(timer=>timer.delay===731);assert.ok(deadlineTimer);deadlineTimer.fn();await deadlineRejected;passes++;
+  const external=new AbortController(),cancelled=t.realRequest("/api/interview",t.snapshot(),{signal:external.signal});
+  const cancelledRejected=assert.rejects(cancelled,error=>error.name==="AbortError"&&!/too long/.test(error.message));external.abort();await cancelledRejected;
+  context.fetch=originalFetch;t.clearState();passes++;
  }
  checkpoint();console.log(JSON.stringify({tests_passed:passes,provider_calls:providerCalls,network_calls:0,real_browser:false}));
 })().catch(error=>{console.error(error);process.exitCode=1;});

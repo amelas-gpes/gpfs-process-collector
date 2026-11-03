@@ -62,8 +62,9 @@
   let documentController=null, pendingDocumentReason=null, restoringDocuments=false;
   let knowledgeUI=null;
   let gpfsPresence=null, auxiliaryVoiceState="idle", voiceEnded=false;
-  const documentQuestionsHandled=new Set(),documentVoiceUpdates=new Set(),documentCaptureUpdates=new Set();
-  const documentVoiceLatest=new Map();
+  const documentQuestionsHandled=new Set(),interviewRequests=new Set();
+  let documentIntake=null,intakeWasLive=false;
+  const intakeActive=()=>Boolean(documentIntake?.active);
   let documentEvidenceDialog=null;
 
   function el(tag, className, text) {
@@ -233,6 +234,7 @@
     $("closure-status").hidden = !state.closure.asked && !state.closure.confirmed;
     $("closure-status").textContent = state.closure.confirmed ? "You confirmed nothing is missing." : state.closure.asked ? "Waiting for your final confirmation." : "";
     updateConversationControls();
+    updateDocumentIntakeUI();
     updateSaveHint();
     if($("export-markdown"))$("export-markdown").title=state.draft?"Download the report as a Markdown file":"Create a draft to download the report";
   }
@@ -518,6 +520,7 @@
     updatePresence();
   }
   function presenceState() {
+    if(intakeActive())return auxiliaryVoiceState!=="idle"?auxiliaryVoiceState:"processing";
     if(conversationUI.live?.active||conversationUI.status==="closing")return conversationUI.status;
     if(state.requestingMic)return "connecting";
     if(state.recording)return "listening";
@@ -556,6 +559,7 @@
     $("mute-live").textContent=conversationUI.muted?"Unmute mic":"Mute mic";
     $("mute-live").setAttribute("aria-pressed",String(conversationUI.muted));
     $("type-instead").hidden=transcript||active||closing;
+    $("type-instead").disabled=state.busy||Boolean(state.recording)||state.requestingMic||state.transcribing;
     $("type-instead").textContent="Type instead";
     $("composer-area").hidden=active||closing||(!transcript&&!conversationUI.typing);
     $("skip-question").hidden=active||closing||(!transcript&&!conversationUI.typing)||!state.turns.some(turn=>turn.role==="assistant"&&!turn.document_event);
@@ -566,6 +570,7 @@
     updatePresence();
     $("start-live").querySelector("span").textContent=transcript?"Talk live":state.turns.length?"Continue talking":"Start talking";
     $("presence-caption").hidden=state.started;
+    if(intakeActive())for(const id of ["start-live","type-instead","send-answer","record-answer","skip-question","final-check","generate-draft","regenerate-draft","retry-question","preview-voice"])if($(id))$(id).disabled=true;
     if(returnFromVoice)$(transcript?"answer-text":"start-live").focus({preventScroll:true});
   }
   function ensureConversation() {
@@ -625,58 +630,96 @@
     content.omitted_documents=ordered.length-content.documents.length+(context.omitted_documents||0);
     return content;
   }
-  async function deliverDocumentContext(document, force=false) {
-    if(!conversationUI.live?.active||!conversationUI.live.appendContext)return;
-    const analysis=document.analysis||{},phase=(analysis.summary||analysis.acknowledgement||analysis.question)?(analysis.phase==="complete"?"complete":"quick"):
-      ["ready","partial"].includes(document.status)?"available":"received";
-    const id=`${document.id}_${analysis.intent_version||0}_${phase}`;
-    if(documentVoiceUpdates.has(id)&&!force)return;
-    documentVoiceUpdates.add(id);
-    documentVoiceLatest.set(document.id,id);
-    const generation=state.generation,live=conversationUI.live,scope=documentController?.exportState().scope;
-    try {
-      let content={file:document.name,state:phase,unconfirmed:true};
-      if(phase!=="received"&&scope){
-        const fresh=await request("/api/documents/context",{scope,query:documentContext().current_question.slice(-2000)});
-        content={...content,...boundedVoiceDocuments(fresh,document.id)};
-      }
-      const current=documentController?.exportState();
-      const currentFile=current?.documents?.find(file=>file.id===document.id);
-      if(generation!==state.generation||live!==conversationUI.live||!live.active||documentVoiceLatest.get(document.id)!==id||current?.scope!==scope||!currentFile||currentFile.archived||
-        currentFile.analysis?.disposition==="parked"||(currentFile.analysis?.intent_version||0)!==(analysis.intent_version||0)||
-        (["quick","available"].includes(phase)&&documentVoiceUpdates.has(`${document.id}_${analysis.intent_version||0}_complete`)))return;
-      const receipt=await live.appendContext(JSON.stringify(content),{id,replaceKey:document.id,kind:phase==="received"?"document_received":"document_findings"});
-      if(generation===state.generation&&receipt.status==="rejected")throw new Error("Voice context rejected");
-    }catch(error){if(generation===state.generation){documentVoiceUpdates.delete(id);notice("The file is saved, but the voice session didn’t receive its latest contents. You can review it in Files.",true);}}
+  function intakeSnapshot() {
+    return documentController?.lifecycle?.()||{...(documentController?.exportState()||{}),documents:documentController?.exportState().documents||[],uploading:0,mutating:0,uploadErrors:[]};
+  }
+  function updateDocumentIntakeUI() {
+    const panel=$("document-intake-panel");if(!panel||!documentIntake)return;
+    const phase=documentIntake.phase,active=documentIntake.active;
+    panel.hidden=!active;panel.dataset.phase=phase;
+    if(!active)return;
+    const copy={uploading:["Thanks for sharing","Give me a moment to digest the files. I’ll update the process before asking a follow-up."],
+      reviewing:["Reading your files","I’m reviewing the available content and checking what it establishes. No need to answer anything yet."],
+      baseline:["Updating the process","The review is finished. I’m updating and checking the notes and workflow together."],
+      question:["Preparing one follow-up","The new process baseline is ready. I’m checking for the next useful question."],
+      error:["File review needs attention",documentIntake.error]};
+    const [title,detail]=copy[phase]||copy.reviewing;
+    $("document-intake-title").textContent=title;$("document-intake-detail").textContent=detail+(intakeWasLive?" Voice is paused and the microphone is off.":"");
+    const stages=["uploading","reviewing","baseline","question"],index=stages.indexOf(phase);
+    ["upload","review","baseline","question"].forEach((name,i)=>{const step=$("intake-step-"+name);step?.classList.toggle("complete",i<index);if(step){if(i===index)step.setAttribute("aria-current","step");else step.removeAttribute("aria-current");}});
+    $("document-intake-retry").hidden=phase!=="error";$("document-intake-continue").hidden=phase!=="error";
+    $("current-question").hidden=true;$("thinking").hidden=true;
+  }
+  function captureForFollowup() {
+    const prior=conversationUI.workflow;
+    return clone({workflow:prior?{title:prior.title,steps:prior.steps,connections:prior.connections,open_questions:prior.open_questions}:{title:"",steps:[],connections:[],open_questions:[]},
+      memo_findings:state.memo_findings,summary:state.summary,focus:state.focus,parking_lot:state.parking_lot});
+  }
+  function createDocumentIntake() {
+    if(!window.CollectorDocumentIntake)return null;
+    return new window.CollectorDocumentIntake({
+      onStatus:()=>{updateControls();if(!intakeActive())$("current-question").hidden=!state.turns.some(turn=>turn.role==="assistant"&&!turn.document_event);},
+      onBegin:({signal,retry})=>{
+        intakeWasLive=Boolean(conversationUI.live?.active)||(retry&&intakeWasLive);stopSpeaking();
+        for(const controller of interviewRequests)controller.abort();
+        clearTimeout(conversationUI.flowTimer);conversationUI.flowTimer=null;conversationUI.flowAbort?.abort();
+        suppressWorkflowReadiness();pendingDocumentReason=null;
+        const paused=conversationUI.live?.stop()||Promise.resolve({finalized:true});
+        if(state.recording)finishRecording();
+        const acknowledgement="Thanks for sharing. Give me a moment to digest the file and update the process. Then I’ll follow up with a question.";
+        if(!retry)appendDocumentMessage(acknowledgement,{id:"doc_intake"});
+        updateDocumentIntakeUI();
+        return Promise.resolve(paused).then(()=>{if(!retry&&!signal.aborted&&(intakeWasLive||$("speak-questions").checked)&&canSpeakChoice())speak(acknowledgement,true);});
+      },
+      buildBaseline:async({signal})=>{
+        while(state.busy||state.recording||state.transcribing||state.requestingMic||conversationUI.flowBusy){
+          if(signal.aborted)throw new DOMException("Cancelled","AbortError");
+          await new Promise(resolve=>setTimeout(resolve,100));
+        }
+        if(signal.aborted)throw new DOMException("Cancelled","AbortError");
+        conversationUI.revision++;suppressWorkflowReadiness();
+        if(!await refreshWorkflow({documentIntake:true,signal}))throw new Error("The notes and workflow could not be updated. Your previous capture is safe. Try again.");
+        return captureForFollowup();
+      },
+      askFollowup:async({signal,baseline})=>{
+        const result=await request("/api/interview",{...snapshot(),action:"document_followup",previous_capture:baseline},{signal,documentIntake:true});
+        if(typeof result.question!=="string"||!result.question.trim())throw new Error("The baseline is ready, but the follow-up did not load. Try again.");
+        return {...result,question:text(result.question,6000)};
+      },
+      onComplete:(result,documents)=>{
+        // The audited baseline is already committed. Asking a question must not
+        // replace those notes with a second, independently generated snapshot.
+        if(state.turns.length>=400||state.turns.reduce((n,turn)=>n+turn.text.length,result.question.length)>400000)throw new Error("This interview is full. Save a copy before starting a continuation. Your updated baseline is retained.");
+        documents.forEach(file=>documentQuestionsHandled.add(`${file.id}_${file.analysis?.intent_version||0}`));
+        stopSpeaking();
+        state.turns.push({id:nextTurnId(),role:"assistant",text:result.question});state.version++;state.dirty=true;
+        // A generated process question is not implicit permission to reclassify
+        // a file. Purpose changes remain an explicit action in Assets.
+        renderTranscript();scrollConversation();
+        if((intakeWasLive||$("speak-questions").checked)&&canSpeakChoice())speak(result.question,true);
+      },
+      onEmpty:()=>{stopSpeaking();appendDocumentMessage("The files are saved in Assets. There is no new process evidence to add; your existing notes and workflow are unchanged.",{id:"doc_intake"});}
+    });
   }
   function onDocumentEvent(event) {
     const document=event.document,analysis=event.analysis||document?.analysis||{};
+    if(event.type==="upload_started"){
+      documentIntake?.observe(intakeSnapshot());documentIntake?.begin(event);return;
+    }
+    if(event.type==="changed"){if(!restoringDocuments)documentIntake?.observe(event.state);return;}
+    if(event.type==="upload_settled"){documentIntake?.observe(intakeSnapshot());documentIntake?.settle(event.batchId);return;}
     if(event.type==="received") {
       state.dirty=true;updateSaveHint();
-      if(conversationUI.live?.active)deliverDocumentContext(document);
-      else appendDocumentMessage(`Received ${document.name}. I’ll check it against what we’re discussing while you continue.`,document);
+      documentIntake?.include(document.id);
     } else if(event.type==="analysis") {
       state.dirty=true;updateSaveHint();
       if(state.draft&&reviewUI.section==="review-report")renderReport();
-      const captureKey=`${document.id}_${analysis.intent_version||0}_${document.chunk_count||document.coverage?.indexed_units||0}`;
-      if(!restoringDocuments&&hasDocumentEvidence()&&!documentCaptureUpdates.has(captureKey)&&ensureConversation()){
-        documentCaptureUpdates.add(captureKey);conversationUI.revision++;suppressWorkflowReadiness();scheduleWorkflow();
-      }
       if(restoringDocuments)return;
-      if(conversationUI.live?.active){deliverDocumentContext(document);return;}
-      if(!analysis.summary&&!analysis.acknowledgement&&!analysis.question)return;
       const key=`${document.id}_${analysis.intent_version||0}`;
-      if(documentQuestionsHandled.has(key))return;
-      const latestUser=[...state.turns].reverse().find(turn=>turn.role==="user")?.id||"";
-      const currentQuestion=documentContext().current_question;
-      // A late result belongs in the tray, not on top of a newer question or unsent answer.
-      if(state.busy||state.recording||state.transcribing||state.requestingMic||$("answer-text").value.trim()||latestUser!==String(analysis.basis_turn_id||"")||
-        String(analysis.basis_question||"")!==currentQuestion)return;
-      documentQuestionsHandled.add(key);
-      const question=analysis.disposition==="parked"?"":analysis.question||"";
-      const turn=appendDocumentMessage([analysis.acknowledgement,question].filter(Boolean).join(" "),document,Boolean(question));
-      if(analysis.disposition==="needs_reason"&&question&&turn)bindDocumentReason(document,turn.id,analysis);
+      if(!intakeActive()&&!documentQuestionsHandled.has(key)&&!document.archived&&analysis.disposition!=="parked")documentIntake?.begin({documentId:document.id,names:[document.name]});
+      documentIntake?.include(document.id);documentIntake?.observe(intakeSnapshot());
     } else if(event.type==="question") {
+      if(intakeActive()){notice("I’m still reviewing the files. I’ll follow up after the process has been updated.");return;}
       if(conversationUI.live?.active){
         conversationUI.live.appendContext(JSON.stringify({participant_selected_question:event.question.text,file:document.name,sources:event.question.sources||[],unconfirmed:true}),
           {id:`${document.id}_selected_${Date.now()}`,kind:"selected_document_question"});
@@ -704,7 +747,7 @@
     }catch(error){if(generation===state.generation)notice("Your answer is saved. In Files, you can say what to look for, or save the file for later.",true);}
   }
   async function startLiveConversation() {
-    if(state.busy||state.recording||state.transcribing||state.requestingMic||conversationUI.live?.active)return;
+    if(intakeActive()||state.busy||state.recording||state.transcribing||state.requestingMic||conversationUI.live?.active)return;
     if(!ensureConversation())return;
     stopSpeaking(); voiceEnded=false; conversationUI.typing=false; conversationUI.muted=false;
     if(!conversationUI.live) {
@@ -718,7 +761,8 @@
     }
     selectConversationView(conversationUI.view);
     await conversationUI.live.start({context:clone(state.context),turns:clone(state.turns.filter(turn=>!turn.document_event)),document_scope:documentController?.exportState().scope});
-    if(conversationUI.live?.active)for(const document of documentController?.exportState().documents||[])deliverDocumentContext(document,true);
+    // The new session is seeded once with the finalized document scope on the
+    // server. Re-appending every file would duplicate that context in fragments.
   }
   function receiveLiveCaption(caption) {
     if(!caption.text||!["user","assistant"].includes(caption.role))return;
@@ -756,6 +800,7 @@
     if(caption.final&&caption.role==="user"&&pendingDocumentReason)resolveDocumentPurpose(caption.text);
   }
   function scheduleWorkflow() {
+    if(intakeActive())return;
     if((!state.turns.some(t=>t.role==="user")&&!hasDocumentEvidence())||!state.config?.api_configured)return;
     if(conversationUI.flowBusy||conversationUI.flowTimer!==null||conversationUI.applied===conversationUI.revision)return;
     // A bounded checkpoint, not a debounce: continued speech cannot postpone it.
@@ -775,13 +820,16 @@
       return present&&present.text.startsWith(turn.text);
     });
   }
-  async function refreshWorkflow() {
+  async function refreshWorkflow(options={}) {
+    if(intakeActive()&&!options.documentIntake)return false;
     clearTimeout(conversationUI.flowTimer);conversationUI.flowTimer=null;
     if(state.busy){scheduleWorkflow();return;}
     if(conversationUI.flowBusy||conversationUI.applied===conversationUI.revision)return;
     if(!state.turns.some(t=>t.role==="user")&&!hasDocumentEvidence())return;
     const revision=conversationUI.revision,generation=state.generation, captured=snapshot();
     conversationUI.flowBusy=true;conversationUI.flowAbort=new AbortController();
+    const flowAbort=conversationUI.flowAbort,abort=()=>flowAbort.abort();
+    options.signal?.addEventListener("abort",abort,{once:true});if(options.signal?.aborted)abort();
     $("workflow-status").textContent=hasDocumentEvidence()?"Building and checking the documented workflow…":"Updating…";$("retry-workflow").hidden=true;
     if($("coverage-update-status"))$("coverage-update-status").textContent=hasDocumentEvidence()?"Reading the documented process…":"Updating…";
     try{
@@ -795,7 +843,7 @@
         summary:text(state.summary,6000),focus:text(state.focus,500),parking_lot:strings(state.parking_lot,50)
       });
       const result=await request("/api/workflow",captured,{signal:conversationUI.flowAbort.signal,timeout:hasDocumentEvidence()?360000:150000});
-      if(generation!==state.generation)return;
+      if(generation!==state.generation||options.signal?.aborted)return;
       if(!workflowEvidenceStillValid(captured))return;
       const pending=revision!==conversationUI.revision;
       const documentEvidence=mergeDocumentEvidence(result.document_evidence);
@@ -808,13 +856,15 @@
       conversationUI.workflow=workflow;state.documentEvidence=documentEvidence;
       applyProcessTitle(workflow.title);
       if(memo) Object.assign(state,memo);
-      if(pending)suppressWorkflowReadiness();else if(memo)announceReadiness();
+      if(pending||options.documentIntake)suppressWorkflowReadiness();else if(memo)announceReadiness();
       conversationUI.applied=revision;state.dirty=true;updateSaveHint();renderCoverage();updateControls();
       conversationUI.flowErrorNotified=false;
       const status=pending?"Updating latest answers…":"Up to date";
       if($("coverage-update-status"))$("coverage-update-status").textContent=status;
       renderWorkingMap();$("workflow-status").textContent=status;
+      return true;
     }catch(error){if(generation===state.generation&&error.name!=="AbortError"){
+      if(options.documentIntake)throw error;
       $("workflow-status").textContent="Couldn’t update. Your conversation is safe.";$("retry-workflow").hidden=false;
       if($("coverage-update-status"))$("coverage-update-status").textContent="Couldn’t update · Try again in Workflow";
       if(!conversationUI.flowErrorNotified){
@@ -822,6 +872,7 @@
         notice("The diagram and notes haven’t updated. Your transcript and last capture are safe. Try again in Workflow.",true);
       }
     }}finally{
+      options.signal?.removeEventListener("abort",abort);
       if(generation===state.generation){conversationUI.flowBusy=false;conversationUI.flowAbort=null;if(revision!==conversationUI.revision)scheduleWorkflow();}
     }
   }
@@ -840,7 +891,11 @@
   }
   async function request(path, data, options = {}) {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), options.timeout || 150000);
+    const interviewRequest=["/api/interview","/api/draft"].includes(path),intakeSequence=documentIntake?.sequence;
+    const replacedByIntake=()=>interviewRequest&&!options.documentIntake&&(intakeActive()||intakeSequence!==documentIntake?.sequence);
+    if(interviewRequest&&!options.documentIntake)interviewRequests.add(controller);
+    let timedOut=false;
+    const timeout = setTimeout(() => {timedOut=true;controller.abort();}, options.timeout || 150000);
     const external = options.signal;
     const abort = () => controller.abort();
     if (external) {
@@ -867,14 +922,20 @@
         throw new Error(message || "The interviewer isn’t available right now. Try again in a moment.");
       }
       const result=options.audio ? await response.blob() : await response.json();
+      if(replacedByIntake())throw new DOMException("File intake replaced this request","AbortError");
+      if(controller.signal.aborted)throw new DOMException("Request cancelled","AbortError");
       if(["/api/interview","/api/draft"].includes(path)&&data.document_revision!==activeDocumentSignature())
         throw new Error("Supporting files changed while this response was being prepared. Your existing capture is safe; try again with the current files.");
       return result;
     } catch (error) {
-      if (error.name === "AbortError" && !external?.aborted) throw new Error("That took too long. Your answer is safe — try again.");
+      // Intake cancellation stays cancellation even if a response/body finishes
+      // after the intake is ready, or rejects with a transport error instead.
+      if(replacedByIntake())throw new DOMException("File intake replaced this request","AbortError");
+      if (error.name === "AbortError" && timedOut && !external?.aborted) throw new Error("That took too long. Your answer is safe — try again.");
       if (error.name === "TypeError") throw new Error("The interviewer isn’t available right now. Try again in a moment.");
       throw error;
     } finally {
+      interviewRequests.delete(controller);
       clearTimeout(timeout);
       external?.removeEventListener("abort", abort);
     }
@@ -1105,6 +1166,7 @@
     conversationUI.readyAnnounced=complete;
   }
   function applyInterview(result) {
+    if(intakeActive())return;
     if (typeof result.question !== "string" || !result.question.trim()) throw new Error("The interviewer returned an incomplete question. Please try again.");
     const question = text(result.question,6000);
     const coverage = normalizeCoverage(result.coverage);
@@ -1151,7 +1213,7 @@
   async function sendAnswer(event) {
     event.preventDefault();
     const answer = $("answer-text").value.trim();
-    if (!answer || state.busy || state.recording || state.transcribing || state.requestingMic || conversationUI.live?.active || conversationUI.status==="closing") return;
+    if (intakeActive() || !answer || state.busy || state.recording || state.transcribing || state.requestingMic || conversationUI.live?.active || conversationUI.status==="closing") return;
     if (answer.length > 6000 || state.turns.length >= 399 || state.turns.reduce((n,t) => n+t.text.length,answer.length) > 400000) {notice("That’s too long to send. Shorten your answer, or save a copy and start a new interview.", true); return;}
     if(!ensureConversation())return;
     stopSpeaking();
@@ -1171,7 +1233,7 @@
       const result = await request("/api/interview", {...snapshot(), action: "answer"});
       if (generation === state.generation) {applyInterview(result);$("retry-question").hidden=true;}
     } catch (error) {
-      if (generation !== state.generation) return;
+      if (generation !== state.generation || intakeActive() || error.name==="AbortError") return;
       $("retry-question").hidden=false;
       renderTranscript();
       notice("Your answer is saved, but the next question didn’t load. Add more detail, or choose Try again.", true);
@@ -1180,15 +1242,15 @@
     }
   }
   async function retryQuestion() {
-    if(state.busy||conversationUI.live?.active)return;
+    if(intakeActive()||state.busy||conversationUI.live?.active)return;
     const generation=state.generation;setBusy(true);
     try{const result=await request("/api/interview",{...snapshot(),action:"answer"});if(generation===state.generation){applyInterview(result);$("retry-question").hidden=true;}}
-    catch(error){if(generation===state.generation)notice(error.message+" Your answers remain in the conversation.",true);}
+    catch(error){if(generation===state.generation&&!intakeActive()&&error.name!=="AbortError")notice(error.message+" Your answers remain in the conversation.",true);}
     finally{if(generation===state.generation)setBusy(false);}
   }
 
   async function skipQuestion() {
-    if (!state.started || state.busy || state.recording || state.transcribing || state.requestingMic) return;
+    if (intakeActive() || !state.started || state.busy || state.recording || state.transcribing || state.requestingMic) return;
     if ($("answer-text").value.trim() && !confirm("Skip this question? Your unsent answer will stay in the answer box.")) return;
     stopSpeaking();
     const generation = state.generation;
@@ -1197,11 +1259,11 @@
     try {
       const result = await request("/api/interview", {...snapshot("skip"), action: "skip"});
       if (generation === state.generation) applyInterview(result);
-    } catch (error) { if (generation === state.generation) notice(error.message, true); }
+    } catch (error) { if (generation === state.generation&&!intakeActive()&&error.name!=="AbortError") notice(error.message, true); }
     finally { if (generation === state.generation) setBusy(false); }
   }
   async function finalCheck() {
-    if (!state.started || state.busy || state.recording || state.transcribing || state.requestingMic) return;
+    if (intakeActive() || !state.started || state.busy || state.recording || state.transcribing || state.requestingMic) return;
     if ($("answer-text").value.trim()) {notice("Send your answer first, then wrap up."); return;}
     stopSpeaking();
     const generation = state.generation;
@@ -1209,26 +1271,26 @@
     try {
       const result = await request("/api/interview",{...snapshot("close"),action:"close"});
       if (generation === state.generation) applyInterview(result);
-    } catch(error) {if (generation === state.generation) notice(error.message,true);}
+    } catch(error) {if (generation === state.generation&&!intakeActive()&&error.name!=="AbortError") notice(error.message,true);}
     finally {if (generation === state.generation) setBusy(false);}
   }
 
   async function startRecording() {
     if (state.recording) { finishRecording(); return; }
-    if (state.busy || state.transcribing || state.requestingMic || conversationUI.live?.active || conversationUI.status==="closing") return;
+    if (intakeActive() || state.busy || state.transcribing || state.requestingMic || conversationUI.live?.active || conversationUI.status==="closing") return;
     if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
       notice("This browser can’t record audio. Try Chrome or Edge, or type your answer.", true);
       return;
     }
     if(!ensureConversation())return;
     stopSpeaking();
-    const generation = state.generation;
+    const generation = state.generation,intakeSequence=documentIntake?.sequence;
     state.requestingMic = true;
     updateControls();
     let stream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true, autoGainControl: true}});
-      if (generation !== state.generation || state.busy || state.transcribing || !state.started) { stream.getTracks().forEach(t => t.stop()); return; }
+      if (generation !== state.generation || intakeActive() || intakeSequence!==documentIntake?.sequence || state.busy || state.transcribing || !state.started) { stream.getTracks().forEach(t => t.stop()); return; }
       const mimeType = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg;codecs=opus"].find(type => MediaRecorder.isTypeSupported(type));
       const recorder = new MediaRecorder(stream, mimeType ? {mimeType} : undefined);
       const recording = {recorder, stream, chunks: [], startedAt: performance.now(), lastSound: performance.now(), hasSpeech: false, discard: false, timer: null, frame: null, context: null, generation};
@@ -1423,6 +1485,7 @@
     };
   }
   async function generateDraft() {
+    if(intakeActive())return;
     if (conversationUI.live?.active) {notice("Stop talking before you create a draft.");return;}
     if (state.busy || state.recording || state.transcribing || state.requestingMic || (!state.turns.some(t => t.role === "user")&&!hasDocumentEvidence())) return;
     if (state.draft && !confirm("Update the draft from the interview? Your edits to the current draft will be replaced.")) return;
@@ -1445,7 +1508,7 @@
       tab("review", true);
       if($("review-error"))$("review-error").hidden=true;
       notice("Your draft is ready. Check the steps and open questions.");
-    } catch (error) { if (generation === state.generation) notice(error.message, true); }
+    } catch (error) { if (generation === state.generation&&!intakeActive()&&error.name!=="AbortError") notice(error.message, true); }
     finally { if (generation === state.generation) setBusy(false); }
   }
   function draftChanged(map = false) {
@@ -2078,9 +2141,10 @@
     return (!state.dirty&&!knowledgeUI?.hasPending) || confirm("Open a different interview? Anything you haven’t saved will be cleared. "+(knowledgeUI?.hasPending?"A process submission is awaiting confirmation; replacing this session loses its retry information and does not cancel a server save. Recover its status first if needed.":"Save a copy first if you want to keep it."));
   }
   function clearState(context = null) {
+    documentIntake?.reset();intakeWasLive=false;for(const controller of interviewRequests)controller.abort();
     knowledgeUI?.reset();
     voiceEnded=false;
-    documentController?.reset();pendingDocumentReason=null;restoringDocuments=false;documentQuestionsHandled.clear();documentVoiceUpdates.clear();documentCaptureUpdates.clear();documentVoiceLatest.clear();
+    documentController?.reset();pendingDocumentReason=null;restoringDocuments=false;documentQuestionsHandled.clear();
     if(documentEvidenceDialog?.open)documentEvidenceDialog.close();
     workflowCanvases.forEach(canvas=>canvas.destroy());workflowCanvases.clear();
     if($("workflow-step-dialog")?.open)$("workflow-step-dialog").close();
@@ -2301,6 +2365,9 @@
     notice("Here’s a finished example. Look around — nothing in it is real.");
   }
   function initEvents() {
+    $("document-intake-assets").addEventListener("click",()=>openDocumentAssets());
+    $("document-intake-retry").addEventListener("click",()=>{documentIntake?.retry();documentController?.refresh();});
+    $("document-intake-continue").addEventListener("click",()=>{stopSpeaking();for(const file of intakeSnapshot().documents)documentQuestionsHandled.add(`${file.id}_${file.analysis?.intent_version||0}`);documentIntake?.reset();renderTranscript();notice("Continuing with the current capture. Files remain in Assets for review.");});
     initTranscriptTools();
     for(const kind of ["transcript","report"]){
       $(kind+"-search").addEventListener("input",()=>{readingUI[kind].index=0;refreshReadingSearch(kind);});
@@ -2328,9 +2395,10 @@
     $("stop-live").addEventListener("click",async()=>{voiceEnded=true;const wasConnected=conversationUI.live?.connected;const result=await conversationUI.live?.stop();updatePresence();if(wasConnected&&!result?.finalized)notice("Voice stopped early. The last few lines of the transcript may be missing.");});
     $("mute-live").addEventListener("click",()=>{conversationUI.muted=!conversationUI.muted;conversationUI.live?.setMuted(conversationUI.muted);updateControls();});
     $("type-instead").addEventListener("click",async()=>{
+      if(intakeActive())return;
       if(!ensureConversation())return;
       conversationUI.typing=true;selectConversationView("transcript");updateControls();
-      if(conversationUI.typing){$("answer-text").focus();if(!state.turns.some(turn=>!turn.document_event)&&!state.busy){const generation=state.generation;setBusy(true);try{const result=await request("/api/interview",{...snapshot(),action:"start"});if(generation===state.generation)applyInterview(result);}catch(error){notice(error.message,true);}finally{if(generation===state.generation)setBusy(false);}}}
+      if(conversationUI.typing){$("answer-text").focus();if(!state.turns.some(turn=>!turn.document_event)&&!state.busy){const generation=state.generation;setBusy(true);try{const result=await request("/api/interview",{...snapshot(),action:"start"});if(generation===state.generation)applyInterview(result);}catch(error){if(generation===state.generation&&!intakeActive()&&error.name!=="AbortError")notice(error.message,true);}finally{if(generation===state.generation)setBusy(false);}}}
     });
     $("retry-workflow").addEventListener("click",()=>{$("retry-workflow").dataset.layoutRetry?retryWorkflowLayout("live-workflow"):refreshWorkflow();});
     $("map-retry-layout").addEventListener("click",()=>retryWorkflowLayout("process-map"));
@@ -2430,10 +2498,11 @@
     bindDraftFields();
   }
   async function init() {
+    documentIntake=createDocumentIntake();
     if(window.GPFSPresence)gpfsPresence=window.GPFSPresence.create($("gpfs-presence"));
     initEvents(); renderCoverage(); updateControls();
     if(window.CollectorDocuments)documentController=window.CollectorDocuments.create({requestJSON:request,getContext:documentContext,config:()=>state.config,
-      canUpload:()=>Boolean(state.config?.api_configured)&&!state.importing,canDiscuss:()=>!state.busy&&!state.recording&&!state.transcribing&&!state.requestingMic,
+      canUpload:()=>Boolean(state.config?.api_configured)&&!state.importing,canDiscuss:()=>!intakeActive()&&!state.busy&&!state.recording&&!state.transcribing&&!state.requestingMic,
       onOpen:openDocumentAssets,onCountChange:updateAssetCount,onDiscuss:()=>{setMemoSheet(false,false);focusWorkspace("interview");},
       onEvent:onDocumentEvent,notice,onDirty:()=>{state.dirty=true;updateSaveHint();}});
     if(window.CollectorKnowledge)knowledgeUI=window.CollectorKnowledge.create({request,session:sessionObject,notice,onSubmitted:()=>{state.dirty=true;updateSaveHint();}});

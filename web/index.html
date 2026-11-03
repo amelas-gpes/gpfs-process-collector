@@ -15,6 +15,7 @@
   <script src="/workflow-graph.js" defer></script>
   <script src="/live-voice.js" defer></script>
   <script src="/documents.js" defer></script>
+  <script src="/document-intake.js" defer></script>
   <script src="/knowledge-ui.js" defer></script>
   <script src="/gpfs-presence.js" defer></script>
   <script src="/app.js" defer></script>
@@ -49,6 +50,11 @@
             <button type="button" id="conversation-tab-workflow" role="tab" aria-selected="false" aria-controls="workflow-panel" tabindex="-1" data-conversation-view="workflow" data-icon="workflow">Workflow</button>
           </nav><button class="memo-toggle" id="open-memo" aria-haspopup="dialog" aria-controls="memo-sheet" data-icon="memo" aria-label="Open notes, summary and assets" title="Notes, summary and uploaded assets"><span class="memo-toggle-label">Workspace</span><span id="coverage-mobile-count">0/11</span></button></div>
         </div>
+        <section id="document-intake-panel" class="document-intake-panel" aria-label="File review progress" hidden>
+          <div class="document-intake-copy" role="status" aria-live="polite"><strong id="document-intake-title">Reading your files</strong><p id="document-intake-detail"></p></div>
+          <ol class="document-intake-steps" aria-label="File review stages"><li id="intake-step-upload">Upload</li><li id="intake-step-review">Review</li><li id="intake-step-baseline">Update process</li><li id="intake-step-question">Follow up</li></ol>
+          <div class="document-intake-actions"><button type="button" id="document-intake-assets" class="text-button" data-icon="folder">View assets</button><button type="button" id="document-intake-retry" class="text-button" data-icon="refresh" hidden>Try again</button><button type="button" id="document-intake-continue" class="text-button" hidden>Continue without waiting</button></div>
+        </section>
         <div id="interview-error" class="inline-error" role="status" hidden><span></span><button type="button" aria-label="Dismiss interview error">Dismiss</button></div><section class="conversation-panel" aria-label="Process interview">
           <div class="stage-toolbar"><span class="session-presence" id="session-presence" hidden><i></i><span id="session-status"></span></span></div>
           <div class="stage-content">

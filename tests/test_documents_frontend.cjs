@@ -333,5 +333,81 @@ function response(document){return{ok:true,json:async()=>({document})};}
   assert.equal(h.events.filter(event=>event.type==="analysis").length,1,"Additional native-readable chunks must be available without a summary");
   h.api.reset();h.api.setDocuments([indexed]);assert.equal(h.events.filter(event=>event.type==="analysis").length,2,"A new interview must not reuse the old event-deduplication state");h.api.dispose();passes++;
  }
+ {
+  const session=deferred();let uploaded=0;const h=setup({request:()=>session.promise,fetch:async()=>response(doc({id:`doc_${++uploaded}`}))});
+  const files=[{name:"First.pdf",size:20,privateRawFile:"must not enter lifecycle"},{name:"Second.csv",size:30},{name:"Ignored.exe",size:10}];
+  const adding=h.api.addFiles(files),started=h.events.filter(event=>event.type==="upload_started");
+  assert.equal(started.length,1,"A selected batch is announced before opening the file workspace resolves");assert.deepEqual(Array.from(started[0].names),["First.pdf","Second.csv"]);assert.equal(h.uploads.length,0);
+  assert.equal(h.api.lifecycle().uploading,2);assert.equal(h.api.lifecycle().mutating,1);assert.equal(JSON.stringify(h.api.lifecycle()).includes("must not enter lifecycle"),false);
+  session.resolve({scope:"local-scope",documents:[]});await adding;
+  const settled=h.events.filter(event=>event.type==="upload_settled");assert.equal(settled.length,1);assert.equal(settled[0].batchId,started[0].batchId);
+  const final=h.events.filter(event=>event.type==="changed").at(-1).state;assert.equal(final.uploading,0);assert.equal(final.mutating,0);assert.equal(final.documents.length,2);assert.equal(final.uploadErrors.length,1);
+  assert.ok(h.events.indexOf(settled[0])>h.events.indexOf(h.events.filter(event=>event.type==="changed").at(-1)),"Batch completion follows the zero-counter snapshot");
+  final.documents[0].name="External mutation";assert.notEqual(h.api.documents[0].name,"External mutation","Lifecycle payloads cannot mutate controller records");h.api.dispose();passes++;
+ }
+ {
+  const first=deferred(),second=deferred(),h=setup({fetch:(url,request)=>request.body.name==="First.pdf"?first.promise:second.promise});
+  const a=h.api.addFiles([{name:"First.pdf",size:20}]),b=h.api.addFiles([{name:"Second.pdf",size:20}]);await tick();
+  const batches=h.events.filter(event=>event.type==="upload_started");assert.equal(batches.length,2);assert.notEqual(batches[0].batchId,batches[1].batchId);assert.equal(h.api.lifecycle().uploading,2);assert.equal(h.api.lifecycle().mutating,2);
+  first.resolve(response(doc({id:"doc_first"})));await a;assert.equal(h.api.lifecycle().uploading,1);assert.equal(h.api.lifecycle().mutating,1);assert.equal(h.events.filter(event=>event.type==="upload_settled").length,1);
+  second.resolve(response(doc({id:"doc_second"})));await b;assert.equal(h.api.lifecycle().uploading,0);assert.equal(h.api.lifecycle().mutating,0);assert.equal(h.api.lifecycle().documents.length,2);assert.equal(h.events.filter(event=>event.type==="upload_settled").length,2);h.api.dispose();passes++;
+ }
+ {
+  const h=setup(),pending=doc({status:"pending",chunk_count:0,analysis:{}}),failed={...pending,status:"error",error:"The file could not be extracted."};
+  h.api.setDocuments([pending]);h.api.setDocuments([failed]);const changes=h.events.filter(event=>event.type==="changed");
+  assert.equal(changes.length,2);assert.equal(changes.at(-1).state.documents[0].status,"error","Extraction failure reaches the coordinator without an analysis version");assert.equal(h.events.filter(event=>event.type==="analysis").length,0);
+  h.api.setDocuments([failed]);h.api.render();assert.equal(h.events.filter(event=>event.type==="changed").length,2,"Unchanged polling and rendering do not duplicate lifecycle events");
+  h.api.setDocuments([doc({status:"partial",analysis:{phase:"complete",version:1,review_complete:false}})]);assert.equal(h.events.filter(event=>event.type==="changed").at(-1).state.documents[0].analysis.review_complete,false,"Terminal partial review is preserved without claiming complete coverage");h.api.dispose();passes++;
+ }
+ {
+  let fails=true;const record=doc(),h=setup({request:async()=>{if(fails)throw Error("Status temporarily unavailable.");return{documents:[record]};}});h.api.scope="local-scope";h.api.setDocuments([record],false);
+  await h.api.refresh();assert.equal(h.events.filter(event=>event.type==="changed").length,1);assert.equal(h.events.filter(event=>event.type==="changed")[0].state.connectionError,"Status temporarily unavailable.");
+  await h.api.refresh();assert.equal(h.events.filter(event=>event.type==="changed").length,1,"Repeated connection errors do not reannounce");
+  fails=false;await h.api.refresh();assert.equal(h.events.filter(event=>event.type==="changed").length,2);assert.equal(h.events.filter(event=>event.type==="changed").at(-1).state.connectionError,"");
+  await h.api.refresh();assert.equal(h.events.filter(event=>event.type==="changed").length,2,"Recovery is emitted once even if the document record itself is unchanged");h.api.dispose();passes++;
+ }
+ {
+  let intent=0;const h=setup({request:async(url,body)=>({document:doc({analysis:{phase:body.action==="park"?"complete":"quick",disposition:body.action==="park"?"parked":"reviewing",version:++intent,intent_version:intent}})})});h.api.scope="local-scope";h.api.setDocuments([doc()],false);
+  for(const action of ["park","revisit","remove"]){
+   const before=h.events.length;await h.api.action(h.api.documents[0],action);const changes=h.events.slice(before).filter(event=>event.type==="changed");
+   assert.equal(changes[0].state.mutating,1);assert.equal(changes.at(-1).state.mutating,0,"Actions publish lifecycle completion after counters settle");
+   if(action==="remove")assert.equal(changes.at(-1).state.documents.length,0);else assert.equal(changes.at(-1).state.documents[0].analysis.disposition,action==="park"?"parked":"reviewing");
+  }h.api.dispose();passes++;
+ }
+ {
+  const h=setup({request:async()=>{throw Error("Direction was not saved.");}});h.api.scope="local-scope";h.api.setDocuments([doc()],false);await h.api.action(h.api.documents[0],"revisit");
+  assert.equal(h.api.lifecycle().mutating,0);assert.equal(h.events.filter(event=>event.type==="changed").at(-1).state.mutating,0);assert.equal(h.api.actionErrors.size,1);h.api.dispose();passes++;
+ }
+ {
+  for(const failure of [false,true]){
+   const h=setup({request:async()=>{if(failure)throw Error("Saved scope unavailable.");return{documents:[doc({analysis:{phase:"complete",version:2}})]};}});
+   await h.api.restoreState({scope:"saved-scope",documents:[doc({analysis:{phase:"deep",version:1}})]});assert.equal(h.events.length,0,"Restoring saved state, its initial refresh and any restore error stay passive");
+   assert.equal(h.api.lifecycle().scope,"saved-scope");assert.equal(Boolean(h.api.lifecycle().connectionError),failure);h.api.dispose();
+  }passes++;
+ }
+ {
+  for(const kind of ["failure","timeout"]){
+   const h=setup({request:async()=>{throw kind==="timeout"?new DOMException("Timed out","AbortError"):Error("Workspace unavailable.");}});
+   await h.api.addFiles([{name:"First.pdf",size:20},{name:"Second.pdf",size:20}]);assert.equal(h.api.lifecycle().uploading,0);assert.equal(h.api.lifecycle().mutating,0);assert.equal(h.api.lifecycle().uploadErrors.length,2);
+   assert.equal(h.events.filter(event=>event.type==="upload_started").length,1);assert.equal(h.events.filter(event=>event.type==="upload_settled").length,1,"A failed workspace request must release its accepted upload batch");assert.equal(h.uploads.length,0);h.api.dispose();
+  }passes++;
+ }
+ {
+  const h=setup({fetch:async(url,request)=>{if(request.body.name==="Failed.pdf")throw Error("Upload failed.");return response(doc());}});
+  await h.api.addFiles([{name:"Failed.pdf",size:20,privateRawFile:"private"},{name:"Saved.pdf",size:20}]);const state=h.api.lifecycle();
+  assert.equal(state.uploading,0);assert.equal(state.mutating,0);assert.equal(state.documents.length,1);assert.equal(state.uploadErrors.length,1);assert.deepEqual(Object.keys(state.uploadErrors[0]),["name","message"]);assert.equal(JSON.stringify(state).includes("privateRawFile"),false);assert.equal(h.events.filter(event=>event.type==="upload_settled").length,1);h.api.dispose();passes++;
+ }
+ {
+  for(const action of ["reset","suspend"]){
+   const pending=deferred(),h=setup({fetch:()=>pending.promise}),adding=h.api.addFiles([{name:"Old.pdf",size:20}]);await tick();const before=h.events.length;
+   h.api[action]();pending.resolve(response(doc()));await adding;assert.equal(h.events.length,before,"An old generation cannot publish upload progress or completion into the current interview");assert.equal(h.api.lifecycle().uploading,0);assert.equal(h.api.lifecycle().mutating,0);h.api.dispose();
+  }passes++;
+ }
+ {
+  const session=deferred(),h=setup({request:()=>session.promise}),adding=h.api.addFiles([{name:"Interrupted.pdf",size:20}]);
+  h.api.suspend();session.resolve({scope:"obsolete-scope",documents:[]});await adding;h.api.resume();
+  const recovered=h.events.filter(event=>event.type==="changed").at(-1).state;assert.equal(recovered.scope,null);assert.equal(recovered.uploading,0);assert.equal(recovered.mutating,0);assert.match(recovered.uploadErrors[0].message,/interrupted/);
+  h.findText("button","Dismiss issue").click();assert.equal(h.events.filter(event=>event.type==="changed").at(-1).state.uploadErrors.length,0,"Dismissing an upload issue updates the lifecycle without a poll");h.api.dispose();passes++;
+ }
  console.log(JSON.stringify({tests_passed:passes,network_calls:0,provider_calls:0,physical_files_uploaded:false}));
 })().catch(error=>{console.error(error);process.exitCode=1;});

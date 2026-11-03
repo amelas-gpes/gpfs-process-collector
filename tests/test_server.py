@@ -4,6 +4,7 @@ Run with the existing Python runtime; these tests never send model requests.
 """
 
 import copy
+from html.parser import HTMLParser
 import importlib.util
 import io
 import json
@@ -822,6 +823,30 @@ class HTTPBoundaryTests(unittest.TestCase):
             with self.subTest(path=path):
                 status, _, _ = self.request(path)
                 self.assertEqual(status, 404)
+
+    def test_every_deferred_entrypoint_script_is_served(self):
+        class Scripts(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self.paths = []
+
+            def handle_starttag(self, tag, attrs):
+                attributes = dict(attrs)
+                if tag == "script" and "defer" in attributes and attributes.get("src"):
+                    self.paths.append(attributes["src"])
+
+        status, _, html = self.request("/")
+        self.assertEqual(status, 200)
+        scripts = Scripts()
+        scripts.feed(html.decode("utf-8"))
+        self.assertIn("/document-intake.js", scripts.paths)
+        for path in scripts.paths:
+            with self.subTest(script=path):
+                status, headers, content = self.request(path)
+                self.assertEqual(status, 200)
+                self.assertIn("javascript", headers["Content-Type"])
+                self.assertEqual(content, (APP / "web" / path.lstrip("/")).read_bytes())
+        self.client.request.assert_not_called()
 
     def test_json_media_type_and_valid_json_are_required(self):
         status, _, _ = self.request("/api/interview", interview_payload(), headers={"Content-Type": "text/plain"})

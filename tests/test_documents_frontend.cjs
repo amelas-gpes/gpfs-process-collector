@@ -211,8 +211,8 @@ function response(document){return{ok:true,json:async()=>({document})};}
  }
  {
   const h=setup();h.api.setDocuments([doc({coverage:{indexed_units:10,total_units:50},analysis:{phase:"deep",disposition:"relevant",version:1,reviewed_chunks:3,total_chunks:12}})],false);
-  const stage=h.api.body.querySelector(".documents-stage");assert.match(stage.textContent,/Reading in depth/);assert.match(stage.textContent,/10\/50 units indexed/);assert.match(stage.textContent,/3 of 12 sections reviewed/);assert.equal(stage.dataset.state,"working");assert.match(h.api.body.textContent,/Reviewing now/);
-  h.api.setDocuments([doc({analysis:{phase:"complete",disposition:"parked",version:2}})],false);assert.equal(h.api.body.querySelector(".documents-stage").dataset.state,"later");assert.match(h.api.body.textContent,/Saved for later analysis/);
+  const stage=h.api.body.querySelector(".documents-stage");assert.match(stage.textContent,/Reading in depth/);assert.match(stage.textContent,/10\/50 units indexed/);assert.match(stage.textContent,/3 of 12 sections reviewed/);assert.equal(stage.dataset.state,"working");assert.match(h.api.body.textContent,/Reading now/);
+  h.api.setDocuments([doc({analysis:{phase:"complete",disposition:"parked",version:2}})],false);assert.equal(h.api.body.querySelector(".documents-stage").dataset.state,"later");assert.match(h.api.body.textContent,/Saved for later/);
   h.api.setDocuments([doc({analysis:{phase:"complete",disposition:"needs_reason",version:3}})],false);const field=h.api.body.querySelector(".documents-purpose-field");assert.equal(field.tagName,"LABEL");assert.match(field.textContent,/What should I look for/);assert.equal(field.querySelector("input").dataset.documentPurpose,"doc_1");assert.ok(h.findText("button","Review now"));assert.ok(h.findText("button","Save for later"));h.api.dispose();passes++;
  }
  console.log(JSON.stringify({tests_passed:passes,network_calls:0,provider_calls:0,physical_files_uploaded:false}));

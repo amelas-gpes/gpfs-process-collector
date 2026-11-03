@@ -86,7 +86,7 @@
       this.mini.classList.add("workflow-minimap");
       styles(this.mini,{position:"absolute",right:"14px",bottom:"14px",width:"144px",height:"88px",minWidth:"0",cursor:"crosshair"});
       this.miniWorld=svgNode(this.doc,"g");this.miniView=svgNode(this.doc,"rect",{class:"wf-mini-view",fill:"#6c809a24",stroke:"#6c809a","stroke-width":2,"vector-effect":"non-scaling-stroke",rx:4});this.mini.append(this.miniWorld,this.miniView);
-      this.hint=this.doc.createElement("div");this.hint.className="workflow-canvas-hint";this.hint.textContent="Drag to explore · Select a step for detail";
+      this.hint=this.doc.createElement("div");this.hint.className="workflow-canvas-hint";this.hint.textContent="Drag to move around · Select a step for details";
       styles(this.hint,{position:"absolute",left:"16px",bottom:"14px",pointerEvents:"none",maxWidth:"calc(100% - 190px)"});
       this.status=this.doc.createElement("div");this.status.setAttribute("role","status");this.status.setAttribute("aria-live","polite");styles(this.status,{position:"absolute",width:"1px",height:"1px",overflow:"hidden",clipPath:"inset(50%)",whiteSpace:"nowrap"});
       container.append(this.svg,this.mini,this.hint,this.status);
@@ -266,11 +266,11 @@
       this.world.querySelectorAll?.("[data-step-id]").forEach(node=>{const id=node.getAttribute("data-step-id"),active=id===this.selected;node.setAttribute("aria-pressed",String(active));node.setAttribute("opacity",this.following&&!related.has(id)?.28:1);const shape=node.querySelector(".workflow-node-shape");if(shape){shape.setAttribute("stroke-width",active?2.5:1.2);shape.setAttribute("stroke",active?"#dc6e2c":shape.getAttribute("data-base-stroke"));}});
       this.world.querySelectorAll?.("[data-edge-id]").forEach(node=>{node.setAttribute("opacity",this.following&&!activeEdges.has(node.getAttribute("data-edge-id"))?.22:1);});
       this.world.querySelectorAll?.("[data-edge-label-for]").forEach(node=>{node.setAttribute("opacity",this.following&&!activeEdges.has(node.getAttribute("data-edge-label-for"))?.22:1);});
-      this.hint.textContent=this.following?"Following reported routes · Choose a branch to continue":"Drag to explore · Select a step for detail";
+      this.hint.textContent=this.following?"Following the path · Choose a branch to continue":"Drag to move around · Select a step for details";
     }
     draw(){
       const doc=this.doc,layout=this.layout,data=this.graph;this.world.replaceChildren();this.miniWorld.replaceChildren();this.mini.hidden=false;
-      this.hint.textContent="Drag to explore · Select a step for detail";
+      this.hint.textContent="Drag to move around · Select a step for details";
       this.title.textContent=`Workflow: ${data.title||"Current process"}`;
       this.description.textContent=`${data.steps.length} reported steps and ${data.connections.length} reported connections. ${data.steps.map(step=>`${step.id}: ${step.title}, ${step.actor||"owner not established"}`).join(". ")}`;
       const defs=svgNode(doc,"defs"),arrow=svgNode(doc,"marker",{id:`${this.uid}-arrow`,viewBox:"0 0 10 10",refX:9,refY:5,markerWidth:6,markerHeight:6,orient:"auto-start-reverse"});arrow.append(svgNode(doc,"path",{class:"wf-arrow",d:"M 1 1 L 9 5 L 1 9 z",fill:"#9a9ca2"}));defs.append(arrow);this.world.append(defs);

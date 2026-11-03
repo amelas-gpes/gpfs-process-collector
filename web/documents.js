@@ -229,8 +229,8 @@
       const analysis=document.analysis||{};
       const stage=this.node("div","documents-stage");stage.dataset.state=this.reviewError(document)||this.actionErrors.has(document.id)?"error":analysis.disposition==="parked"?"later":["pending","indexing"].includes(document.status)||["quick","deep"].includes(analysis.phase)?"working":"ready";
       stage.append(this.node("strong","documents-stage-label",this.status(document)));const detail=this.stageDetail(document);if(detail)stage.append(this.node("span","documents-stage-detail",detail));card.append(stage);
-      if(analysis.disposition==="parked")card.append(this.node("p","documents-review-mode","Saved for later analysis. Continue the conversation; revisit this file whenever it becomes useful."));
-      else if(analysis.disposition==="relevant"&&["quick","deep"].includes(analysis.phase))card.append(this.node("p","documents-review-mode","Reviewing now · You can keep talking while reading continues."));
+      if(analysis.disposition==="parked")card.append(this.node("p","documents-review-mode","Saved for later. Come back to it whenever it’s useful."));
+      else if(analysis.disposition==="relevant"&&["quick","deep"].includes(analysis.phase))card.append(this.node("p","documents-review-mode","Reading now · You can keep talking."));
       const failed=this.actionErrors.get(document.id);if(failed){const error=this.node("div","documents-warning");error.setAttribute("role","status");const retry=this.button("Retry action","documents-text-button",()=>this.action(document,failed.action,failed.purpose));retry.disabled=this.actions.has(document.id+":"+failed.action);error.append(this.node("p","",failed.message),retry);card.append(error);}
       if(document.error)card.append(this.node("p","documents-warning",typeof document.error==="string"?document.error:"Some content could not be read."));
       if(analysis.error)card.append(this.node("p","documents-warning",typeof analysis.error==="string"?analysis.error:analysis.error.message||"Review could not be completed. Try reviewing this file again."));
@@ -258,7 +258,7 @@
       if(questions.length){const section=this.node("div","documents-questions");section.append(this.node("h4","",analysis.disposition==="parked"?"Questions for later":"Questions to explore"));
         for(const question of questions){if(!question?.text)continue;const row=this.node("div","documents-question");row.append(this.node("p","",question.text),this.button("Discuss","documents-text-button",()=>this.discuss(document,question)));this.renderSources(row,document,question.sources||[]);section.append(row);}card.append(section);
       }
-      this.renderSources(card,document,analysis.sources||[]);card.append(this.node("p","documents-evidence-note","Reference material · Interview confirmation still required."));
+      this.renderSources(card,document,analysis.sources||[]);card.append(this.node("p","documents-evidence-note","Reference only · Confirm details in the interview."));
       if(this.documentBusy(document.id))card.querySelectorAll?.("button").forEach(button=>{if(!button.classList.contains("documents-source"))button.disabled=true;});
       this.body.append(card);
     }

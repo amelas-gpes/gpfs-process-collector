@@ -103,7 +103,7 @@ assert.equal(new Set(walk(document.body).filter(node=>node.id.startsWith("turn-"
 }
 {
  const button=document.querySelector('[data-foundation-topic="purpose"]');t.showFoundationTopic("purpose",button);
- assert.equal(document.getElementById("foundation-topic-status").textContent,"Unknown / TBD");assert.match(document.getElementById("foundation-topic-answer").textContent,/Not yet established/);
+ assert.equal(document.getElementById("foundation-topic-status").textContent,"Unknown");assert.match(document.getElementById("foundation-topic-answer").textContent,/Not covered yet/);
  t.closeFoundationTopic();assert.equal(document.activeElement,button);passes++;
 }
 {
@@ -190,7 +190,7 @@ assert.equal(new Set(walk(document.body).filter(node=>node.id.startsWith("turn-"
  assert.equal(document.activeElement.id,"conversation-tab-transcript");assert.equal(document.activeElement.tabIndex,0,"Returning to Interview keeps the selected tab in the keyboard entry order");
  if(!document.getElementById("workflow-expand"))mount("workflow-expand","button",interview);
  t.selectConversationView("workflow");interview.classList.add("workflow-expanded");t.tab("review");t.tab("interview",true);
- assert.equal(document.activeElement.id,"workflow-expand","Expanded workflow returns focus to its visible Exit focus action");
+ assert.equal(document.activeElement.id,"workflow-expand","Expanded workflow returns focus to its visible Collapse action");
  interview.classList.remove("workflow-expanded");t.selectConversationView("transcript");passes++;
 }
 {
@@ -383,7 +383,7 @@ if(process.argv.includes("--usability-only")){
   checkpoint();t.state.turns=[{id:"t002",role:"user",text:"Receive the paper invoice."}];t.state.context={process_name:"Invoices"};
   t.conversationUI.workflow=graph("Retained flow");t.conversationUI.applied=-1;const prior=t.conversationUI.workflow;
   t.setRequest(async()=>{throw new Error("Temporary failure");});await t.refreshWorkflow();
-  assert.equal(t.conversationUI.workflow,prior,"Failure must retain the previous graph");assert.equal(document.getElementById("retry-workflow").hidden,false);assert.match(document.getElementById("workflow-status").textContent,/retained/);passes++;
+  assert.equal(t.conversationUI.workflow,prior,"Failure must retain the previous graph");assert.equal(document.getElementById("retry-workflow").hidden,false);assert.match(document.getElementById("workflow-status").textContent,/safe/);passes++;
  }
  {
   checkpoint();t.state.draft={title:"Owner-edited draft",steps:[{id:"manual",title:"Manual review step"}],connections:[]};t.state.draftEdited=true;
@@ -400,7 +400,7 @@ if(process.argv.includes("--usability-only")){
   assert.equal(prevented,true);assert.equal(t.state.busy,false);assert.equal(t.state.turns.length,2);
   assert.equal(t.state.turns[1].role,"user");assert.equal(t.state.turns[1].text,"A paper invoice arrives by post.");assert.equal(t.state.turns[1].id,"t002");
   assert.equal(document.getElementById("answer-text").value,"","Accepted answers must not remain as unsent duplicates after next-question failure");assert.equal(document.getElementById("retry-question").hidden,false);
-  assert.match(document.getElementById("notice-text").textContent,/answer is kept/);assert.equal(calls.length,1);assert.equal(workflowTimers().length,1,"Accepted evidence must schedule a workflow update even if the next question fails");
+  assert.match(document.getElementById("notice-text").textContent,/answer is saved/);assert.equal(calls.length,1);assert.equal(workflowTimers().length,1,"Accepted evidence must schedule a workflow update even if the next question fails");
   const [timerId,timer]=workflowTimers()[0];timers.delete(timerId);await timer.fn();
   assert.equal(calls[1].url,"/api/workflow");assert.equal(calls[1].payload.turns.filter(turn=>turn.role==="user").length,1);assert.equal(calls[1].payload.turns[1].text,"A paper invoice arrives by post.");
   assert.equal(t.conversationUI.workflow.title,"Paper invoice flow");passes++;
@@ -578,7 +578,7 @@ if(process.argv.includes("--usability-only")){
  {
   checkpoint();document.getElementById("global-notice").hidden=true;const made=fakeWorkflow(),data=graph("Retained process");
   t.renderMap(document.getElementById("live-workflow"),data);made[0].requests[0].reject(new Error("Current layout failed"));await nextMicrotask();
-  assert.equal(document.getElementById("global-notice").hidden,false);assert.match(document.getElementById("notice-text").textContent,/captured process is retained/);assert.match(document.getElementById("workflow-status").textContent,/paused/);assert.equal(data.steps[0].id,"S1");finishCanvases();passes++;
+  assert.equal(document.getElementById("global-notice").hidden,false);assert.match(document.getElementById("notice-text").textContent,/process is safe/);assert.match(document.getElementById("workflow-status").textContent,/Couldn’t/);assert.equal(data.steps[0].id,"S1");finishCanvases();passes++;
  }
  {
   checkpoint();const made=fakeWorkflow(),liveRoot=document.getElementById("live-workflow");t.state.turns=[{id:"t002",role:"user",text:"Reported evidence"}];
@@ -709,7 +709,7 @@ if(process.argv.includes("--usability-only")){
   const presence={states:[],visibility:[],audio:[],setState(value){this.states.push(value);},setVisible(value){this.visibility.push(value);},setAudio(value){this.audio.push(value);}};
   t.setPresenceFake(presence);t.state.started=true;t.updatePresence();assert.equal(presence.states.at(-1),"idle");
   t.conversationUI.flowBusy=true;t.updatePresence();assert.equal(presence.states.at(-1),"idle","Background workflow retrieval must not imply the conversation is processing");
-  t.conversationUI.flowBusy=false;t.state.busy=true;t.updatePresence();assert.equal(presence.states.at(-1),"processing");assert.equal(document.getElementById("presence-status").textContent,"Processing…");
+  t.conversationUI.flowBusy=false;t.state.busy=true;t.updatePresence();assert.equal(presence.states.at(-1),"processing");assert.equal(document.getElementById("presence-status").textContent,"Thinking…");
   t.state.busy=false;t.state.transcribing=true;t.updatePresence();assert.equal(presence.states.at(-1),"processing");
   t.state.transcribing=false;t.state.requestingMic=true;t.updatePresence();assert.equal(presence.states.at(-1),"connecting");
   t.state.requestingMic=false;t.state.recording={};t.updatePresence();assert.equal(presence.states.at(-1),"listening");
@@ -741,13 +741,13 @@ if(process.argv.includes("--usability-only")){
   assert.equal(presence.states.at(-1),"listening");assert.equal(presence.audio.length,audioCount,"Captions cannot synthesize playback energy or a speaking state");assert.ok(t.state.turns.some(turn=>turn.text.includes("output caption")));
   callbacks.onStatus("speaking");assert.equal(presence.states.at(-1),"speaking");assert.equal(document.getElementById("presence-status").textContent,"Speaking");
   t.conversationUI.muted=true;t.updatePresence();assert.equal(document.getElementById("session-status").textContent,"Speaking · mic muted");
-  callbacks.onStatus("muted");assert.equal(presence.states.at(-1),"muted");assert.equal(document.getElementById("presence-status").textContent,"Microphone muted");
+  callbacks.onStatus("muted");assert.equal(presence.states.at(-1),"muted");assert.equal(document.getElementById("presence-status").textContent,"Mic muted");
   callbacks.onStatus("processing");assert.equal(presence.states.at(-1),"processing");callbacks.onStatus("listening");
   const transcript=JSON.stringify(t.state.turns);t.selectConversationView("transcript");assert.equal(presence.visible.at(-1),false);assert.equal(t.conversationUI.live.connected,true);assert.equal(stops,0,"Hiding the visual must not stop the audio session");
   t.selectConversationView("voice");t.tab("review");assert.equal(interview.hidden,false,"An active session keeps microphone controls accessible");assert.equal(presence.visible.at(-1),true);
-  callbacks.onStatus("closing");assert.equal(presence.states.at(-1),"ended");assert.equal(document.getElementById("presence-status").textContent,"Finishing your transcript…");
+  callbacks.onStatus("closing");assert.equal(presence.states.at(-1),"ended");assert.equal(document.getElementById("presence-status").textContent,"Saving the transcript…");
   await document.getElementById("stop-live").listeners.click[0]({target:document.getElementById("stop-live")});
-  assert.equal(stops,1);assert.equal(presence.states.at(-1),"ended");assert.equal(document.getElementById("presence-status").textContent,"Voice ended");assert.equal(JSON.stringify(t.state.turns),transcript,"Ending the session preserves transcript content");
+  assert.equal(stops,1);assert.equal(presence.states.at(-1),"ended");assert.equal(document.getElementById("presence-status").textContent,"Voice off");assert.equal(JSON.stringify(t.state.turns),transcript,"Ending the session preserves transcript content");
   await t.startLiveConversation();assert.equal(starts,2);assert.equal(presence.states.at(-1),"listening","Continuing a conversation clears the ended posture");
   document.getElementById("mute-live").dispatch("click");assert.equal(t.conversationUI.muted,true);assert.equal(presence.states.at(-1),"muted");
   await document.getElementById("stop-live").listeners.click[0]({target:document.getElementById("stop-live")});t.clearState();assert.equal(presence.states.at(-1),"idle","A new interview resets the ended state");

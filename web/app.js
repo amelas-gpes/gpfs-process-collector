@@ -3,10 +3,10 @@
 (() => {
   const $ = (id) => document.getElementById(id);
   const TOPICS = [
-    ["name", "Name / scope"], ["purpose", "Purpose"], ["trigger", "Trigger"],
-    ["completion", "Completion"], ["accountable", "Accountable owner"], ["lifecycle", "Work lifecycle"],
-    ["checks", "Checks / controls"], ["variations", "Variations"], ["pain_points", "Pain points"],
-    ["risk", "Risk / impact"], ["materials", "Existing materials"]
+    ["name", "Name and scope"], ["purpose", "Purpose"], ["trigger", "Starting point"],
+    ["completion", "End point"], ["accountable", "Owner"], ["lifecycle", "Flow of work"],
+    ["checks", "Checks and controls"], ["variations", "Variations"], ["pain_points", "Pain points"],
+    ["risk", "Risks"], ["materials", "Documents"]
   ];
   const MEMO_HEADINGS = {
     name:"Name and other names",purpose:"Purpose",trigger:"Start, cadence and fixed deadlines",
@@ -115,7 +115,7 @@
     if(restore)focusWorkspace(id==="review-error"?"review":"interview");
   }
   function tab(name, focus = false) {
-    if(name==="review"&&(conversationUI.live?.active||conversationUI.status==="closing")){notice("End live voice before opening Review. Your microphone controls stay here.");return;}
+    if(name==="review"&&(conversationUI.live?.active||conversationUI.status==="closing")){notice("Stop talking before you open Review.");return;}
     $("interview-view").hidden = name !== "interview";
     $("review-view").hidden = name !== "review";
     document.body?.classList.toggle("review-mode", name === "review");
@@ -180,7 +180,7 @@
     const previouslyStarted = document.body?.classList.contains("interview-started");
     document.body?.classList.toggle("interview-started", state.started);
     if ($("setup-card") && previouslyStarted !== undefined && previouslyStarted !== state.started) $("setup-card").open = !state.started;
-    if ($("setup-summary")) $("setup-summary").textContent = state.started ? state.context?.process_name || "Interview" : "Space to think.";
+    if ($("setup-summary")) $("setup-summary").textContent = state.started ? state.context?.process_name || "Interview" : "New interview";
     $("start-interview").firstElementChild.textContent = state.started ? "New interview" : "Start interview";
     ["process-owner", "objective", "background"].forEach(id => { $(id).disabled = state.started || working || recording; });
     $("process-name").disabled=state.importing;
@@ -201,7 +201,7 @@
     $("draft-stale").hidden = !state.draft || state.draftVersion === state.version;
     $("thinking").hidden = !working;
     if ($("current-question")) $("current-question").setAttribute("aria-busy", String(state.busy));
-    $("thinking-text").textContent = state.requestingMic ? "Waiting for microphone permission…" : state.transcribing ? "Turning your recording into an editable answer…" : state.busyMessage || "Finding the next useful question…";
+    $("thinking-text").textContent = state.requestingMic ? "Waiting for microphone access…" : state.transcribing ? "Transcribing…" : state.busyMessage || "Thinking of the next question…";
     $("record-answer").classList.toggle("recording", recording);
     $("record-answer").setAttribute("aria-label",recording?"Finish recording":"Record an answer");
     $("record-answer").querySelector("span").textContent = recording ? "Finish" : "Speak";
@@ -217,10 +217,10 @@
     $("draft-content").classList.toggle("draft-content-loading", state.busy);
     $("draft-content").inert = state.busy;
     $("closure-status").hidden = !state.closure.asked && !state.closure.confirmed;
-    $("closure-status").textContent = state.closure.confirmed ? "Participant confirmed completeness." : state.closure.asked ? "Waiting for final confirmation." : "";
+    $("closure-status").textContent = state.closure.confirmed ? "You confirmed nothing is missing." : state.closure.asked ? "Waiting for your final confirmation." : "";
     updateConversationControls();
     updateSaveHint();
-    if($("export-markdown"))$("export-markdown").title=state.draft?"Download the complete business process report as Markdown":"Create a review draft to download the report";
+    if($("export-markdown"))$("export-markdown").title=state.draft?"Download the report as a Markdown file":"Create a draft to download the report";
   }
   function setBusy(value, message = "") {
     state.busy = value;
@@ -251,26 +251,26 @@
       node.classList.toggle("selected", foundationTopic === key && Boolean($("foundation-dialog")?.open));
       node.title = `${label}: ${finding?.status === "not_applicable" ? "not applicable (participant confirmed)" : status === "missing" ? "not yet explored" : status}`;
       node.setAttribute("aria-label", node.title);
-      node.append(el("span", "coverage-dot", status === "covered" ? "✓" : ""), el("span", "coverage-label", label), el("span", "coverage-state", finding?.status === "not_applicable" ? "Not applicable" : status === "covered" ? "Captured" : status === "partial" ? "Exploring" : "To explore"));
+      node.append(el("span", "coverage-dot", status === "covered" ? "✓" : ""), el("span", "coverage-label", label), el("span", "coverage-state", finding?.status === "not_applicable" ? "Not applicable" : status === "covered" ? "Covered" : status === "partial" ? "In progress" : ""));
       node.addEventListener("click", () => showFoundationTopic(key,node));
       root.append(node);
     });
     $("coverage-count").textContent = `${completed} / ${TOPICS.length}`;
     $("coverage-progress").style.width = `${(completed + partial * .5) / TOPICS.length * 100}%`;
     if($("coverage-mobile-count")) $("coverage-mobile-count").textContent=`${completed}/${TOPICS.length}`;
-    if($("coverage-summary")) $("coverage-summary").textContent=completed ? `${completed} topics captured` : "Building the picture";
+    if($("coverage-summary")) $("coverage-summary").textContent=completed === TOPICS.length ? "All topics covered" : "Topics covered";
     renderMemoContext();
     if(focusedTopic&&!$("foundation-dialog")?.open)document.querySelector(`[data-foundation-topic="${focusedTopic}"]`)?.focus({preventScroll:true});
     if(foundationTopic && $("foundation-dialog")?.open) showFoundationTopic(foundationTopic,document.querySelector(`[data-foundation-topic="${foundationTopic}"]`));
   }
   function renderMemoContext() {
-    if($("memo-focus")) $("memo-focus").textContent=state.focus || (state.started ? "Understanding how the work begins" : "The work you want to capture");
+    if($("memo-focus")) $("memo-focus").textContent=state.focus || (state.started ? "How the work begins" : "Getting started");
     const remaining=TOPICS.filter(([key])=>{
       const finding=state.memo_findings.find(f=>f.key===key),coverage=state.coverage.find(c=>c.key===key);
       return finding ? !["captured","not_applicable"].includes(finding.status) : coverage?.status!=="covered";
     }).map(([,label])=>label);
-    if($("memo-next")) $("memo-next").textContent=remaining.length ? remaining.slice(0,3).join(" · ")+(remaining.length>3?` + ${remaining.length-3} more`:"") : "All topics captured. Confirm any gaps before wrapping up.";
-    const next=$("memo-next-action");if(next){next.hidden=!remaining.length;next.textContent=remaining.length?`Explore ${remaining[0]} →`:"";next.onclick=()=>{const topic=TOPICS.find(([,label])=>label===remaining[0]);if(topic){setMemoSheet(false,false);showFoundationTopic(topic[0],document.querySelector(`[data-foundation-topic="${topic[0]}"]`));}};}
+    if($("memo-next")) $("memo-next").textContent=remaining.length ? remaining.slice(0,3).join(" · ")+(remaining.length>3?` + ${remaining.length-3} more`:"") : "Everything’s covered. Wrap up, or create a draft.";
+    const next=$("memo-next-action");if(next){next.hidden=!remaining.length;next.textContent=remaining.length?`Next: ${remaining[0]}`:"";next.onclick=()=>{const topic=TOPICS.find(([,label])=>label===remaining[0]);if(topic){setMemoSheet(false,false);showFoundationTopic(topic[0],document.querySelector(`[data-foundation-topic="${topic[0]}"]`));}};}
     $("working-summary").hidden=!state.summary; $("summary-text").textContent=state.summary;
     $("parking-panel").hidden=!state.parking_lot.length;
     $("parking-count").textContent=state.parking_lot.length ? `(${state.parking_lot.length})` : "";
@@ -301,14 +301,14 @@
   function showFoundationTopic(key, trigger) {
     if (!TOPICS.some(([topic]) => topic === key)) return;
     const dialog = $("foundation-dialog");
-    if (!dialog || typeof dialog.showModal !== "function") {notice("Topic details are unavailable in this browser. Please use a current browser.",true);return;}
+    if (!dialog || typeof dialog.showModal !== "function") {notice("This browser can’t show topic details. Try a current version of Chrome or Edge.",true);return;}
     const finding = state.memo_findings.find(item => item.key === key);
-    const labels = {unknown:"Unknown / TBD",partial:"Partial",captured:"Captured",not_applicable:"Not applicable"};
+    const labels = {unknown:"Unknown",partial:"In progress",captured:"Covered",not_applicable:"Not applicable"};
     foundationTopic = key; foundationReturnFocus = trigger?.closest?.("dialog")&&!trigger.closest("dialog").open ? $("open-memo") : trigger; foundationRestoreFocus = true;
     $("foundation-topic-title").textContent = MEMO_HEADINGS[key];
     $("foundation-topic-status").textContent = labels[finding?.status] || labels.unknown;
-    $("foundation-topic-answer").textContent = finding?.answer?.trim() ? finding.answer : "Not yet established in this interview.";
-    $("foundation-topic-hint").textContent = finding?.status==="partial" ? `Still to clarify: ${TOPIC_GUIDES[key]} Resolve the open detail or uncertainty before this topic can be complete. Review the cited answers for context.` : finding?.answer?.trim() ? "Reported from the interview; not independently verified. Review the cited answers for context." : TOPIC_GUIDES[key];
+    $("foundation-topic-answer").textContent = finding?.answer?.trim() ? finding.answer : "Not covered yet.";
+    $("foundation-topic-hint").textContent = finding?.status==="partial" ? `Still open: ${TOPIC_GUIDES[key]}` : finding?.answer?.trim() ? "From the interview — not independently verified." : TOPIC_GUIDES[key];
     $("foundation-topic-sources").replaceChildren(evidenceRow(finding?.evidence_turns || [], () => closeFoundationTopic(false)));
     if (!dialog.open) dialog.showModal();
     document.querySelectorAll("[data-foundation-topic]").forEach(button => button.classList.toggle("selected",button.dataset.foundationTopic === key));
@@ -397,7 +397,7 @@
   function selectConversationView(view, focus=false) {
     if (!["voice","transcript","workflow"].includes(view)) return;
     conversationUI.view=view;
-    if(view!=="workflow"){$("interview-view").classList.remove("workflow-expanded");if($("workflow-expand")){$("workflow-expand").setAttribute("aria-pressed","false");$("workflow-expand").textContent="Focus";}}
+    if(view!=="workflow"){$("interview-view").classList.remove("workflow-expanded");if($("workflow-expand")){$("workflow-expand").setAttribute("aria-pressed","false");$("workflow-expand").textContent="Expand";}}
     document.querySelectorAll("[data-conversation-view]").forEach(button=>{
       const active=button.dataset.conversationView===view;
       button.setAttribute("aria-selected",String(active)); button.tabIndex=active?0:-1;
@@ -416,7 +416,7 @@
     return voiceEnded?"ended":"idle";
   }
   function updatePresence() {
-    const status=presenceState(),labels={idle:"Ready when you are",connecting:"Connecting…",listening:"Listening",speaking:"Speaking",processing:"Processing…",muted:"Microphone muted",closing:"Finishing your transcript…",ended:"Voice ended"};
+    const status=presenceState(),labels={idle:"Ready when you are",connecting:"Connecting…",listening:"Listening",speaking:"Speaking",processing:"Thinking…",muted:"Mic muted",closing:"Saving the transcript…",ended:"Voice off"};
     gpfsPresence?.setState(status==="closing"?"ended":status);
     gpfsPresence?.setVisible(conversationUI.view==="voice"&&!$("interview-view")?.hidden&&!document.hidden);
     const label=$("presence-status");
@@ -437,19 +437,19 @@
     $("start-live").hidden=active||closing;
     $("start-live").disabled=!state.config?.live?.enabled||state.busy||Boolean(state.recording)||state.requestingMic||state.transcribing;
     $("stop-live").hidden=!active&&!closing; $("stop-live").disabled=closing;
-    $("stop-live").textContent=closing?"Finishing…":"End voice";
+    $("stop-live").textContent=closing?"Saving…":"Stop talking";
     $("mute-live").hidden=!conversationUI.live?.connected;
     $("mute-live").textContent=conversationUI.muted?"Unmute mic":"Mute mic";
     $("mute-live").setAttribute("aria-pressed",String(conversationUI.muted));
     $("type-instead").hidden=active||closing;
-    $("type-instead").textContent=conversationUI.typing?"Hide keyboard":"Type instead";
+    $("type-instead").textContent=conversationUI.typing?"Hide text box":"Type instead";
     $("composer-area").hidden=!conversationUI.typing;
     $("skip-question").hidden=!conversationUI.typing;
     $("voice-select").disabled=active||closing||Boolean(state.recording);
     $("preview-voice").disabled=active||closing||!canSpeakChoice()||state.busy||Boolean(state.recording);
     if(active||closing) for(const id of ["answer-text","send-answer","record-answer","skip-question","final-check","generate-draft","regenerate-draft"]) $(id).disabled=true;
     updatePresence();
-    $("start-live").querySelector("span").textContent=state.turns.length?"Continue voice":"Start voice";
+    $("start-live").querySelector("span").textContent=state.turns.length?"Continue talking":"Start talking";
     $("presence-caption").hidden=state.started;
   }
   function ensureConversation() {
@@ -489,7 +489,7 @@
       question:analysis.question||"",sources:(analysis.sources||[]).slice(0,3),questions_for_later:(analysis.questions||[]).slice(0,2),
       basis_question:analysis.basis_question||"",unconfirmed:true};
     conversationUI.live.appendContext(JSON.stringify(content),{id,kind:phase==="received"?"document_received":"document_findings"}).then(receipt=>{
-      if(generation===state.generation&&receipt.status==="rejected")notice("The file is retained, but its update did not reach the voice session. You can review it in Files.",true);
+      if(generation===state.generation&&receipt.status==="rejected")notice("The file is saved, but the voice session didn’t receive it. You can review it in Files.",true);
     });
   }
   function onDocumentEvent(event) {
@@ -539,14 +539,14 @@
     try {
       await request("/api/documents/action",{scope,id:pending.id,action:"purpose",purpose:text(answer,2000)});
       if(generation===state.generation)documentController?.refresh();
-    }catch(error){if(generation===state.generation)notice("Your answer is retained. You can give the file a short purpose or save it for later in Files.",true);}
+    }catch(error){if(generation===state.generation)notice("Your answer is saved. In Files, you can say what to look for, or save the file for later.",true);}
   }
   async function startLiveConversation() {
     if(state.busy||state.recording||state.transcribing||state.requestingMic||conversationUI.live?.active)return;
     if(!ensureConversation())return;
     stopSpeaking(); voiceEnded=false; conversationUI.typing=false; conversationUI.muted=false;
     if(!conversationUI.live) {
-      if(!window.CollectorLiveVoice){notice("Live voice could not load. Refresh or continue by typing.",true);return;}
+      if(!window.CollectorLiveVoice){notice("Voice couldn’t start. Refresh the page, or type instead.",true);return;}
       conversationUI.live=new window.CollectorLiveVoice({request,
         onStatus:status=>{conversationUI.status=status;updateControls();},
         onTranscript:receiveLiveCaption,
@@ -568,7 +568,7 @@
     const chunks=caption.text.match(/[\s\S]{1,6000}/g)||[];
     const other=state.turns.filter(t=>!ids.includes(t.id));
     if(other.length+chunks.length>400||other.reduce((n,t)=>n+t.text.length,0)+caption.text.length>400000){
-      conversationUI.live?.stop();notice("Interview limit reached. Save this session before continuing in a new interview.",true);return;
+      conversationUI.live?.stop();notice("This interview is full. Save a copy, then start a new one to continue.",true);return;
     }
     chunks.forEach((chunk,i)=>{
       let turn=state.turns.find(t=>t.id===ids[i]);
@@ -600,8 +600,8 @@
     if(!state.turns.some(t=>t.role==="user"))return;
     const revision=conversationUI.revision,generation=state.generation, captured=snapshot();
     conversationUI.flowBusy=true;conversationUI.flowAbort=new AbortController();
-    $("workflow-status").textContent="Updating from your latest answers…";$("retry-workflow").hidden=true;
-    if($("coverage-update-status"))$("coverage-update-status").textContent="Updating your memo…";
+    $("workflow-status").textContent="Updating…";$("retry-workflow").hidden=true;
+    if($("coverage-update-status"))$("coverage-update-status").textContent="Updating…";
     try{
       const result=await request("/api/workflow",captured,{signal:conversationUI.flowAbort.signal});
       if(generation!==state.generation)return;
@@ -616,11 +616,11 @@
       applyProcessTitle(workflow.title);
       if(memo) {Object.assign(state,memo);announceReadiness();}
       conversationUI.applied=revision;state.dirty=true;updateSaveHint();renderCoverage();
-      if($("coverage-update-status"))$("coverage-update-status").textContent="Up to date with your conversation";
-      renderWorkingMap();$("workflow-status").textContent="Up to date · Changes follow what you tell us.";
+      if($("coverage-update-status"))$("coverage-update-status").textContent="Up to date";
+      renderWorkingMap();$("workflow-status").textContent="Up to date";
     }catch(error){if(generation===state.generation&&error.name!=="AbortError"){
-      $("workflow-status").textContent="Update paused. Your conversation and previous flow are retained.";$("retry-workflow").hidden=false;
-      if($("coverage-update-status"))$("coverage-update-status").textContent="Update paused · retry in Workflow";
+      $("workflow-status").textContent="Couldn’t update. Your conversation is safe.";$("retry-workflow").hidden=false;
+      if($("coverage-update-status"))$("coverage-update-status").textContent="Couldn’t update · Try again in Workflow";
     }}finally{
       if(generation===state.generation){conversationUI.flowBusy=false;conversationUI.flowAbort=null;if(revision!==conversationUI.revision)scheduleWorkflow();}
     }
@@ -662,14 +662,14 @@
         const result = await response.json().catch(() => ({}));
         const message = text(result.error || result.message, 600);
         if (response.status >= 500 || [401, 402, 403, 429].includes(response.status) || /\b(?:API|OpenAI|Azure|credentials?|quota|billing|credits?|CSRF|endpoint|provider|configuration|configured)\b/i.test(message)) {
-          throw new Error(message || "The interviewer is unavailable. Please try again.");
+          throw new Error(message || "The interviewer isn’t available right now. Try again in a moment.");
         }
-        throw new Error(message || "The interviewer is unavailable. Please try again.");
+        throw new Error(message || "The interviewer isn’t available right now. Try again in a moment.");
       }
       return options.audio ? await response.blob() : await response.json();
     } catch (error) {
-      if (error.name === "AbortError" && !external?.aborted) throw new Error("The request took too long. Your answer is still available; please try again.");
-      if (error.name === "TypeError") throw new Error("The interviewer is unavailable. Please try again.");
+      if (error.name === "AbortError" && !external?.aborted) throw new Error("That took too long. Your answer is safe — try again.");
+      if (error.name === "TypeError") throw new Error("The interviewer isn’t available right now. Try again in a moment.");
       throw error;
     } finally {
       clearTimeout(timeout);
@@ -894,7 +894,7 @@
   }
   function announceReadiness() {
     const complete=memoComplete();
-    if(complete&&!conversationUI.readyAnnounced) notice("All 11 memo topics are captured. There is enough detail to review the process; you can keep talking.",false,"ready");
+    if(complete&&!conversationUI.readyAnnounced) notice("All 11 topics are covered. Create a draft whenever you’re ready, or keep talking.",false,"ready");
     if(!complete&&noticeKind==="ready") {clearTimeout(noticeTimer);$("global-notice").hidden=true;}
     conversationUI.readyAnnounced=complete;
   }
@@ -926,7 +926,7 @@
     event.preventDefault();
     if (state.busy || state.recording || state.transcribing || state.requestingMic) return;
     if (state.started) {
-      if (!confirm("Start a new interview? Unsaved conversation and draft edits in this tab will be cleared. Save the session first if you want to keep them.")) return;
+      if (!confirm("Start a new interview? Anything you haven’t saved in this tab will be cleared.")) return;
       const existing = state.context;
       clearState(existing);
       $("process-name").focus();
@@ -944,7 +944,7 @@
     event.preventDefault();
     const answer = $("answer-text").value.trim();
     if (!answer || !state.started || state.busy || state.recording || state.transcribing || state.requestingMic) return;
-    if (answer.length > 6000 || state.turns.length >= 399 || state.turns.reduce((n,t) => n+t.text.length,answer.length) > 400000) {notice("This answer or interview exceeds the prototype’s technical size limit. Shorten the answer, or create a draft and save this session.", true); return;}
+    if (answer.length > 6000 || state.turns.length >= 399 || state.turns.reduce((n,t) => n+t.text.length,answer.length) > 400000) {notice("That’s too long to send. Shorten your answer, or save a copy and start a new interview.", true); return;}
     stopSpeaking();
     const generation = state.generation;
     const turn = {id: nextTurnId(), role: "user", text: answer};
@@ -964,7 +964,7 @@
       if (generation !== state.generation) return;
       $("retry-question").hidden=false;
       renderTranscript();
-      notice("Your answer is kept in the conversation. The next question could not be prepared. Continue with more detail, or select Retry question.", true);
+      notice("Your answer is saved, but the next question didn’t load. Add more detail, or choose Try again.", true);
     } finally {
       if (generation === state.generation) {setBusy(false);scheduleWorkflow();$("answer-text").focus();}
     }
@@ -992,7 +992,7 @@
   }
   async function finalCheck() {
     if (!state.started || state.busy || state.recording || state.transcribing || state.requestingMic) return;
-    if ($("answer-text").value.trim()) {notice("Send the answer currently in the box before requesting the final completeness check."); return;}
+    if ($("answer-text").value.trim()) {notice("Send your answer first, then wrap up."); return;}
     stopSpeaking();
     const generation = state.generation;
     setBusy(true,"Checking for omissions, contradictions, and unresolved questions…");
@@ -1007,7 +1007,7 @@
     if (state.recording) { finishRecording(); return; }
     if (state.busy || state.transcribing || state.requestingMic || !state.started) return;
     if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
-      notice("This browser does not support microphone recording. Use a current Chrome or Edge browser, or type your answer.", true);
+      notice("This browser can’t record audio. Try Chrome or Edge, or type your answer.", true);
       return;
     }
     stopSpeaking();
@@ -1024,13 +1024,13 @@
       state.recording = recording;
       state.requestingMic = false;
       recorder.addEventListener("dataavailable", event => { if (event.data.size) recording.chunks.push(event.data); });
-      recorder.addEventListener("error", () => { recording.discard = true; notice("The microphone recording failed. Please try again or type your answer.", true); finishRecording(); });
+      recorder.addEventListener("error", () => { recording.discard = true; notice("Recording didn’t work. Try again, or type your answer.", true); finishRecording(); });
       recorder.addEventListener("stop", () => completeRecording(recording));
       recorder.start(250);
       recording.timer = setInterval(() => {
         const seconds = Math.floor((performance.now() - recording.startedAt) / 1000);
         $("recording-time").textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
-        if (seconds >= 90) { notice("The 90-second answer limit was reached. Review this part, then add more in another answer."); finishRecording(); }
+        if (seconds >= 90) { notice("That’s 90 seconds, the most for one answer. Send this part, then keep going."); finishRecording(); }
       }, 200);
       $("recording-time").textContent = "0:00";
       $("recording-label").textContent = "Listening · finish when you’re ready";
@@ -1074,7 +1074,7 @@
         if (rms > .018) { recording.hasSpeech = true; recording.lastSound = now; }
         const elapsed = now - recording.startedAt;
         if ($("stop-on-silence").checked && recording.hasSpeech && elapsed > 1800 && now - recording.lastSound > 2200) {
-          $("recording-label").textContent = "Pause detected · finishing answer";
+          $("recording-label").textContent = "Finishing…";
           finishRecording();
           return;
         }
@@ -1110,17 +1110,17 @@
       const result = await request("/api/transcribe", blob);
       if (recording.generation !== state.generation) return;
       const answer = text(result.text).trim();
-      if (!answer) throw new Error("No speech was recognized. Try again or type your answer.");
+      if (!answer) throw new Error("We didn’t catch that. Try again, or type your answer.");
       const existing = $("answer-text").value.trim();
       const combined = existing ? `${existing}\n\n${answer}` : answer;
       $("answer-text").value = combined;
       state.dirty = true;
       if (combined.length > 6000) {
-        notice("Your recording is transcribed, but the combined answer exceeds 6,000 characters. It is preserved below; shorten it before sending.",true);
+        notice("Your answer is over 6,000 characters. Shorten it before you send it.",true);
         return;
       }
-      notice("Review the transcript, then select Send.");
-    } catch (error) { if (recording.generation === state.generation) notice(`Transcription failed: ${error.message}`, true); }
+      notice("Check the text, then choose Send.");
+    } catch (error) { if (recording.generation === state.generation) notice(`Couldn’t transcribe that. ${error.message}`, true); }
     finally {
       if (recording.generation === state.generation) { state.transcribing = false; updateControls(); $("answer-text").focus(); }
     }
@@ -1189,10 +1189,10 @@
     };
   }
   async function generateDraft() {
-    if (conversationUI.live?.active) {notice("End live voice before creating the review draft.");return;}
+    if (conversationUI.live?.active) {notice("Stop talking before you create a draft.");return;}
     if (state.busy || state.recording || state.transcribing || state.requestingMic || !state.turns.some(t => t.role === "user")) return;
-    if (state.draft && !confirm("Replace the current draft with a new version from the interview? Any edits to the current draft will be replaced. Save a session or export first if you want to keep them.")) return;
-    if ($("answer-text").value.trim() && !confirm("There is an unsent answer. Generate a draft using only the answers already sent? The unsent text will stay in the answer box.")) return;
+    if (state.draft && !confirm("Update the draft from the interview? Your edits to the current draft will be replaced.")) return;
+    if ($("answer-text").value.trim() && !confirm("You have an unsent answer. Create the draft from your sent answers only? Your unsent text stays in the box.")) return;
     stopSpeaking();
     const generation = state.generation;
     const version = state.version;
@@ -1208,7 +1208,7 @@
       renderDraft();
       tab("review", true);
       if($("review-error"))$("review-error").hidden=true;
-      notice("Draft ready. Review the sources, steps and open questions.");
+      notice("Your draft is ready. Check the steps and open questions.");
     } catch (error) { if (generation === state.generation) notice(error.message, true); }
     finally { if (generation === state.generation) setBusy(false); }
   }
@@ -1233,9 +1233,9 @@
     if(!root)return;
     root.replaceChildren();if(!d)return;
     root.append(el("h1","report-title",d.title||state.context?.process_name||"Business process"));
-    root.append(el("p","report-status","Current-practice draft · Process owner review required"));
-    if(state.example)root.append(el("p","report-warning","Synthetic example — fictional process data."));
-    if(state.draftVersion!==state.version)root.append(el("p","report-warning","The interview has changed since this draft was created. Reconcile new answers before approval."));
+    root.append(el("p","report-status","Draft of current practice · Needs owner review"));
+    if(state.example)root.append(el("p","report-warning","Example — everything here is fictional."));
+    if(state.draftVersion!==state.version)root.append(el("p","report-warning","The interview has changed since this draft. Update the draft before approval."));
     const list=(parent,values,empty="Not established in this interview.")=>{const ul=el("ul");(values?.length?values:[empty]).forEach(value=>ul.append(el("li","",value)));parent.append(ul);};
     const fields=(parent,pairs)=>{const dl=el("dl","report-fields");pairs.forEach(([label,value])=>{dl.append(el("dt","",label),el("dd","",value||"UNKNOWN / TBD"));});parent.append(dl);};
     const contents=$("report-contents");contents?.replaceChildren(el("option","","Jump to section…"));
@@ -1319,7 +1319,7 @@
       context.tabIndex = -1;
       context.focus({preventScroll:true});
       if($("settings-source-return"))$("settings-source-return").hidden=false;
-      notice("This step cites the interview context. Validate it with the process owner.");
+      notice("This step comes from the interview setup, not an answer. Confirm it with the process owner.");
       return;
     }
     const turn = document.getElementById(`turn-${id}`);
@@ -1400,7 +1400,7 @@
       const remove = el("button", "remove-button", "Remove");
       remove.setAttribute("aria-label", `Remove step ${step.id}`);
       remove.addEventListener("click", () => {
-        if (!confirm(`Remove step ${step.id} and its map connections?`)) return;
+        if (!confirm(`Remove step ${step.id} and its connections?`)) return;
         state.draft.steps.splice(index, 1);
         state.draft.connections = state.draft.connections.filter(c => c.from !== step.id && c.to !== step.id);
         draftChanged(); renderSteps(); renderConnections(); renderMap();
@@ -1420,7 +1420,7 @@
       description.addEventListener("input", () => { step.description = description.value; draftChanged(); });
       const evidence = el("div", "evidence-row");
       evidence.append(el("span", "", "Sources:"));
-      if (!step.evidence_turns.length) evidence.append(el("span", "needs-evidence", "Needs validation · no cited answer"));
+      if (!step.evidence_turns.length) evidence.append(el("span", "needs-evidence", "Needs confirming · no source answer"));
       step.evidence_turns.forEach(id => {
         const source = el("button", "evidence-link", sourceCaption(id));
         source.title = `Source: ${id}`;
@@ -1429,14 +1429,14 @@
         evidence.append(source);
       });
       const extra = el("details","step-extra");
-      extra.append(el("summary","","Inputs, outputs, completion & handoff"));
+      extra.append(el("summary","","Inputs, outputs and handoff"));
       const extras = el("div","detail-two-columns");
       [["input","Input"],["output","Output"],["completion_criteria","Completion criteria"],["handoff","Next handoff"]].forEach(([key,label]) => extras.append(formControl(label,"textarea",step[key],v => {step[key]=v;draftChanged();},{max:6000,aria:`${label} for step ${step.id}`})));
       extra.append(extras);
       article.append(header,props,description,extra,evidence);
       root.append(article);
     });
-    if (!state.draft.steps.length) root.append(el("p", "muted", "No process steps yet. Continue the interview or add a step for owner review."));
+    if (!state.draft.steps.length) root.append(el("p", "muted", "No steps yet. Keep talking, or add one."));
   }
   function renderConnections() {
     const root = $("connection-rows");
@@ -1458,7 +1458,7 @@
       row.append(evidence);
       root.append(row);
     });
-    if (!state.draft.connections.length) root.append(el("p", "muted", "No connections have been defined. Add connections between the steps to show the flow."));
+    if (!state.draft.connections.length) root.append(el("p", "muted", "No connections yet. Connect steps to show the flow."));
   }
   function evidenceRow(ids = [], beforeJump = null) {
     const evidence = el("div","evidence-row");
@@ -1481,7 +1481,7 @@
       const item = el("details","memo-finding");
       const summary = el("summary","memo-finding-summary");
       const topic = `${String(index+1).padStart(2,"0")} · ${MEMO_HEADINGS[finding.key]||finding.key}`;
-      const statusLabels = {unknown:"Unknown / TBD",partial:"Partial",captured:"Captured",not_applicable:"Not applicable"};
+      const statusLabels = {unknown:"Unknown",partial:"In progress",captured:"Covered",not_applicable:"Not applicable"};
       const badge = el("span",`memo-status ${finding.status}`,statusLabels[finding.status]||statusLabels.unknown);
       summary.append(el("span","memo-topic",topic),badge);
       const body = el("div","memo-finding-body");
@@ -1513,7 +1513,7 @@
       const head = el("div","detail-item-head");
       const remove = el("button","remove-button","Remove");
       remove.setAttribute("aria-label",`Remove lifecycle item ${index+1}`);
-      remove.addEventListener("click",()=>{if(confirm("Remove this lifecycle item?")){state.draft.lifecycle_items.splice(index,1);draftChanged();renderLifecycle();}});
+      remove.addEventListener("click",()=>{if(confirm("Remove this item?")){state.draft.lifecycle_items.splice(index,1);draftChanged();renderLifecycle();}});
       head.append(el("h3","",`Item ${index+1}`),remove);
       card.append(head,formControl("Work item / document","textarea",item.item,v=>{item.item=v;draftChanged();},{max:6000,aria:`Name of lifecycle item ${index+1}`}));
       const fields = el("div","detail-two-columns");
@@ -1597,15 +1597,15 @@
         if(current)showWorkflowStep(current,root.id,true);
         else {workflowDetailReturn=null;$("workflow-step-dialog").close();}
       }
-      if(!graph?.steps.length){workflowCanvases.get(root.id)?.destroy();workflowCanvases.delete(root.id);root.replaceChildren(el("p","view-empty","Describe what starts the work. Your workflow will take shape here."));updateCanvasControls(root.id,{scale:1,hasGraph:false});return;}
+      if(!graph?.steps.length){workflowCanvases.get(root.id)?.destroy();workflowCanvases.delete(root.id);root.replaceChildren(el("p","view-empty","Steps appear here as you describe them."));updateCanvasControls(root.id,{scale:1,hasGraph:false});return;}
       let canvas=workflowCanvases.get(root.id);
       if(!canvas){canvas=window.CollectorWorkflow.create(root,{onSelectStep:step=>showWorkflowStep(step,root.id),onViewChange:info=>updateCanvasControls(root.id,info)});workflowCanvases.set(root.id,canvas);}
       const generation=state.generation;
-      canvas.update(graph).then(applied=>{if(!applied||state.generation!==generation||workflowCanvases.get(root.id)!==canvas)return;const retry=$(root.id==="live-workflow"?"retry-workflow":"map-retry-layout");if(retry?.dataset.layoutRetry){delete retry.dataset.layoutRetry;retry.hidden=true;if(root.id==="live-workflow")$("workflow-status").textContent="Diagram ready · Changes follow what you tell us.";const region=$(root.id==="live-workflow"?"interview-error":"review-error");if(region?.dataset.errorKind==="layout")region.hidden=true;}}).catch(()=>{if(state.generation!==generation||workflowCanvases.get(root.id)!==canvas)return;notice("The diagram could not be laid out. Your captured process is retained. Retry the layout.",true,"layout");const retry=$(root.id==="live-workflow"?"retry-workflow":"map-retry-layout");if(retry){retry.hidden=false;retry.dataset.layoutRetry="true";}if(root.id==="live-workflow")$("workflow-status").textContent="Diagram layout paused. Retry locally; your process is retained.";});
+      canvas.update(graph).then(applied=>{if(!applied||state.generation!==generation||workflowCanvases.get(root.id)!==canvas)return;const retry=$(root.id==="live-workflow"?"retry-workflow":"map-retry-layout");if(retry?.dataset.layoutRetry){delete retry.dataset.layoutRetry;retry.hidden=true;if(root.id==="live-workflow")$("workflow-status").textContent="Diagram ready";const region=$(root.id==="live-workflow"?"interview-error":"review-error");if(region?.dataset.errorKind==="layout")region.hidden=true;}}).catch(()=>{if(state.generation!==generation||workflowCanvases.get(root.id)!==canvas)return;notice("The diagram couldn’t be drawn. Your process is safe — try the layout again.",true,"layout");const retry=$(root.id==="live-workflow"?"retry-workflow":"map-retry-layout");if(retry){retry.hidden=false;retry.dataset.layoutRetry="true";}if(root.id==="live-workflow")$("workflow-status").textContent="Couldn’t draw the diagram. Your process is safe — try again.";});
       return;
     }
     root.replaceChildren();
-    if (!graph?.steps.length) { root.append(el("p", "muted", "Add process steps to build the map.")); if(!target)applyMapView(); return; }
+    if (!graph?.steps.length) { root.append(el("p", "muted", "Add steps to build the workflow.")); if(!target)applyMapView(); return; }
     const steps = graph.steps;
     const connections = graph.connections;
     const positions = new Map();
@@ -1713,7 +1713,7 @@
     download(JSON.stringify(sessionObject(),null,2), `${safeFilename(state.context?.process_name || readContext().process_name)}-session.json`, "application/json");
     state.dirty = false;
     updateSaveHint();
-    notice("Interview saved. Keep the file somewhere approved for this process information.");
+    notice("Saved. Keep the file somewhere approved for company information.");
     closeMenu();
   }
   function escapeMarkdown(value) { return String(value ?? "").replace(/([\\`*_{}\[\]<>#|])/g, "\\$1"); }
@@ -1774,10 +1774,10 @@
     return parts.join("\n\n")+"\n";
   }
   function exportTranscript(format="markdown") {
-    if(!state.turns.length){notice("Start a conversation or open a saved interview before exporting its transcript.");return;}
+    if(!state.turns.length){notice("There’s no conversation to export yet.");return;}
     const data=transcriptObject(),json=format==="json";
     download(json?JSON.stringify(data,null,2)+"\n":transcriptMarkdown(data),`${safeFilename(data.process.name)}-transcript.${json?"json":"md"}`,json?"application/json;charset=utf-8":"text/markdown;charset=utf-8");
-    closeMenu();notice("Transcript exported with memo context. Review business information before sharing. Export runs locally.");
+    closeMenu();notice("Transcript downloaded. Check it for sensitive details before you share it.");
   }
   function markdown() {
     const d = state.draft;
@@ -1819,9 +1819,9 @@
     return parts.filter(Boolean).join("\n\n")+"\n";
   }
   function canReplaceSession() {
-    if (conversationUI.live?.active || conversationUI.status==="closing") {notice("End live voice before replacing the session.");return false;}
-    if (state.recording || state.busy || state.transcribing || state.requestingMic) { notice("Finish the current recording or request before replacing the session."); return false; }
-    return (!state.dirty&&!knowledgeUI?.hasPending) || confirm("Replace the current session? Unsaved interview text and draft edits will be cleared. "+(knowledgeUI?.hasPending?"A process submission is awaiting confirmation; replacing this session loses its retry information and does not cancel a server save. Recover its status first if needed.":"Save the session first if you want to keep it."));
+    if (conversationUI.live?.active || conversationUI.status==="closing") {notice("Stop talking before you open another interview.");return false;}
+    if (state.recording || state.busy || state.transcribing || state.requestingMic) { notice("Wait for the current answer to finish first."); return false; }
+    return (!state.dirty&&!knowledgeUI?.hasPending) || confirm("Open a different interview? Anything you haven’t saved will be cleared. "+(knowledgeUI?.hasPending?"A process submission is awaiting confirmation; replacing this session loses its retry information and does not cancel a server save. Recover its status first if needed.":"Save a copy first if you want to keep it."));
   }
   function clearState(context = null) {
     knowledgeUI?.reset();
@@ -1833,11 +1833,11 @@
     clearTimeout(conversationUI.flowTimer);conversationUI.flowAbort?.abort();
     Object.assign(conversationUI,{workflow:null,revision:0,applied:-1,flowBusy:false,flowAbort:null,typing:false,status:"idle",readyAnnounced:false,captions:new Map()});
     selectConversationView("voice");renderWorkingMap();
-    if($("workflow-status"))$("workflow-status").textContent="Updates after your answers. Corrections can change the flow.";
+    if($("workflow-status"))$("workflow-status").textContent="Updates as you talk.";
     if($("retry-workflow"))$("retry-workflow").hidden=true;
     if ($("foundation-dialog")?.open) closeFoundationTopic(false);
     setMemoSheet(false,false);setInterviewSettings(false,false);
-    if($("coverage-update-status"))$("coverage-update-status").textContent="Updates as you share";
+    if($("coverage-update-status"))$("coverage-update-status").textContent="Updates as you talk";
     if($("jump-latest"))$("jump-latest").hidden=true;
     stopSpeaking();
     finishRecording(true);
@@ -1906,9 +1906,9 @@
     try {
       const saved = JSON.parse(await file.text());
       if(generation!==state.generation)return;
-      if(saved?.format==="ai-process-collector-transcript")throw new Error("This is a transcript for review and storage. To restore an interview, open the session JSON created by Save.");
+      if(saved?.format==="ai-process-collector-transcript")throw new Error("This is a transcript, not a saved interview. To reopen an interview, choose the file you saved with Save copy.");
       if (saved?.schema_version !== 1 || !saved.context || !Array.isArray(saved.turns)) throw new Error("Choose an interview file saved from this app.");
-      if (saved.turns.length > 400 || text(saved.context.objective).length > 500 || text(saved.context.background).length > 8000 || (typeof saved.unsent_answer === "string" && saved.unsent_answer.length > 18000)) throw new Error("The session exceeds the prototype’s context, answer, or 400-turn technical limit.");
+      if (saved.turns.length > 400 || text(saved.context.objective).length > 500 || text(saved.context.background).length > 8000 || (typeof saved.unsent_answer === "string" && saved.unsent_answer.length > 18000)) throw new Error("This interview is too long to open.");
       const context = {
         process_name:text(saved.context.process_name,500),process_owner:text(saved.context.process_owner,500),objective:text(saved.context.objective,500),background:text(saved.context.background,8000)
       };
@@ -1920,7 +1920,7 @@
         if (turn.text.length > 6000) throw new Error(`Turn ${turn.id} exceeds the 6,000-character limit.`);
         ids.add(turn.id); return {id:turn.id,role:turn.role,text:turn.text,...(turn.document_event===true?{document_event:true}:{}),...(typeof turn.document_id==="string"&&/^doc_[a-zA-Z0-9_]+$/.test(turn.document_id)?{document_id:turn.document_id}:{})};
       });
-      if (turns.reduce((n,t) => n+t.text.length,0) > 400000) throw new Error("The interview text exceeds the prototype’s 400,000-character technical limit.");
+      if (turns.reduce((n,t) => n+t.text.length,0) > 400000) throw new Error("This interview is too long to open.");
       const draft = saved.draft ? normalizeDraft(saved.draft,turns) : null;
       const workflow=saved.workflow?normalizeDraft(saved.workflow,turns):null;
       const findings = normalizeFindings(saved.memo_findings||[],turns);
@@ -1946,9 +1946,9 @@
       $("answer-text").value = unsent;
       renderTranscript(); renderDraft();
       if(state.example)knowledgeUI?.activateExample();
-      notice("Interview opened. Continue whenever you’re ready.");
+      notice("Interview opened. Pick up where you left off.");
       if (draft) tab("review");
-    } catch (error) { if(generation===state.generation)notice(`Could not open session: ${error.message}`, true); }
+    } catch (error) { if(generation===state.generation)notice(`Couldn’t open that interview. ${error.message}`, true); }
     finally {if(generation===state.generation){state.importing=false;setBusy(false);documentController?.render();}}
   }
   function loadExample() {
@@ -2042,7 +2042,7 @@
     state.dirty = false;
     renderTranscript(); renderDraft(); scrollConversation();
     knowledgeUI?.activateExample();
-    notice("Complete synthetic example opened. Explore the transcript, map, memo and procedure.");
+    notice("Here’s a finished example. Look around — nothing in it is real.");
   }
   function initEvents() {
     for(const kind of ["transcript","report"]){
@@ -2067,7 +2067,7 @@
     $("jump-latest").addEventListener("click",()=>{scrollConversation();$("jump-latest").hidden=true;});
     $("conversation-scroll").addEventListener("scroll",()=>{const pane=$("conversation-scroll");$("jump-latest").hidden=!state.turns.length||pane.scrollHeight-pane.clientHeight-pane.scrollTop<80;});
     $("start-live").addEventListener("click",startLiveConversation);
-    $("stop-live").addEventListener("click",async()=>{voiceEnded=true;const wasConnected=conversationUI.live?.connected;const result=await conversationUI.live?.stop();updatePresence();if(wasConnected&&!result?.finalized)notice("Voice ended. Check the last transcript lines; the connection closed before final captions were confirmed.");});
+    $("stop-live").addEventListener("click",async()=>{voiceEnded=true;const wasConnected=conversationUI.live?.connected;const result=await conversationUI.live?.stop();updatePresence();if(wasConnected&&!result?.finalized)notice("Voice stopped early. The last few lines of the transcript may be missing.");});
     $("mute-live").addEventListener("click",()=>{conversationUI.muted=!conversationUI.muted;conversationUI.live?.setMuted(conversationUI.muted);updateControls();});
     $("type-instead").addEventListener("click",async()=>{
       if(!ensureConversation())return;
@@ -2079,11 +2079,11 @@
     $("workflow-zoom-out").addEventListener("click",()=>workflowCanvases.get("live-workflow")?.zoom(-.15));
     $("workflow-zoom-in").addEventListener("click",()=>workflowCanvases.get("live-workflow")?.zoom(.15));
     $("workflow-fit").addEventListener("click",()=>workflowCanvases.get("live-workflow")?.fit());
-    for(const [button,id] of [["workflow-direction","live-workflow"],["map-direction","process-map"]])$(button).addEventListener("click",()=>{const canvas=workflowCanvases.get(id);if(canvas)canvas.setDirection(canvas.getDirection()==="DOWN"?"RIGHT":"DOWN").catch(()=>notice("The layout could not be changed. Your process is retained.",true));});
+    for(const [button,id] of [["workflow-direction","live-workflow"],["map-direction","process-map"]])$(button).addEventListener("click",()=>{const canvas=workflowCanvases.get(id);if(canvas)canvas.setDirection(canvas.getDirection()==="DOWN"?"RIGHT":"DOWN").catch(()=>notice("Couldn’t change the layout. Your process is safe.",true));});
     $("export-working-map").addEventListener("click",()=>{const svg=workflowCanvases.get("live-workflow")?.exportSVG();if(svg)download(svg,`${safeFilename(state.context?.process_name)}-working-flow.svg`,"image/svg+xml");});
     $("close-workflow-step").addEventListener("click",()=>$("workflow-step-dialog").close());
     $("workflow-step-dialog").addEventListener("close",()=>{workflowDetailReturn?.focus?.({preventScroll:true});workflowDetailReturn=null;workflowDetailSource=null;});
-    $("workflow-expand").addEventListener("click",()=>{const expanded=$("interview-view").classList.toggle("workflow-expanded");$("workflow-expand").setAttribute("aria-pressed",String(expanded));$("workflow-expand").textContent=expanded?"Exit focus":"Focus";requestAnimationFrame(()=>workflowCanvases.get("live-workflow")?.refresh());});
+    $("workflow-expand").addEventListener("click",()=>{const expanded=$("interview-view").classList.toggle("workflow-expanded");$("workflow-expand").setAttribute("aria-pressed",String(expanded));$("workflow-expand").textContent=expanded?"Collapse":"Focus";requestAnimationFrame(()=>workflowCanvases.get("live-workflow")?.refresh());});
     $("retry-question").addEventListener("click",retryQuestion);
     document.querySelectorAll("[data-conversation-view]").forEach(button=>{button.addEventListener("click",()=>selectConversationView(button.dataset.conversationView));button.addEventListener("keydown",conversationTabKey);});
     $("open-interview-settings").addEventListener("click",()=>setInterviewSettings(true));
@@ -2145,7 +2145,7 @@
       $("procedure-steps").lastElementChild.querySelector("input").focus();
     });
     $("add-connection").addEventListener("click",() => {
-      if (!state.draft || state.draft.steps.length < 2 || state.draft.connections.length >= 150) {notice("Add at least two steps before defining a connection. This prototype supports up to 150 connections."); return;}
+      if (!state.draft || state.draft.steps.length < 2 || state.draft.connections.length >= 150) {notice("Add at least two steps before you connect them."); return;}
       state.draft.connections.push({from:state.draft.steps[0].id,to:state.draft.steps[1].id,label:"",evidence_turns:[]});
       draftChanged(); renderConnections(); renderMap();
     });
@@ -2182,20 +2182,20 @@
     window.speechSynthesis?.addEventListener("voiceschanged", refreshVoices);
     try {
       const response = await fetch("/api/config",{credentials:"same-origin",cache:"no-store"});
-      if (!response.ok) throw new Error("The interviewer is unavailable. Please try again.");
+      if (!response.ok) throw new Error("The interviewer isn’t available right now. Try again in a moment.");
       const config = await response.json();
-      if (typeof config.csrf_token !== "string") throw new Error("The interviewer is unavailable. Please try again.");
+      if (typeof config.csrf_token !== "string") throw new Error("The interviewer isn’t available right now. Try again in a moment.");
       state.config = config;
       knowledgeUI?.configure(config);
       $("data-notice").textContent = text(config.data_notice,4000) || "Data handling information is unavailable. Check the service configuration before submitting interview content.";
       populateVoiceOptions();
       $("connection-state").hidden = true;
       $("connection-state").querySelector("span").textContent = config.api_configured ? "Ready" : "Unavailable";
-      if (!config.api_configured) notice("The interviewer is unavailable. Please try again.",true);
+      if (!config.api_configured) notice("The interviewer isn’t available right now. Try again in a moment.",true);
     } catch(error) {
       $("connection-state").hidden = true;
       $("connection-state").querySelector("span").textContent = "Unavailable";
-      notice("The interviewer is unavailable. Please try again.",true);
+      notice("The interviewer isn’t available right now. Try again in a moment.",true);
     }
     updateControls();
     documentController?.render();

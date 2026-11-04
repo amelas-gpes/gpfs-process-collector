@@ -25,7 +25,7 @@ from urllib.parse import unquote, urlsplit
 from urllib.request import Request, urlopen
 import webbrowser
 
-VERSION = "0.24.0"
+VERSION = "0.24.1"
 APP_DIR = Path(__file__).resolve().parent
 WEB_DIR = APP_DIR / "web"
 DIAGNOSTIC_MAX_BYTES = 1024 * 1024
@@ -613,11 +613,15 @@ Explore the normal route, responsibilities, handoffs, checks, exceptions and var
 Treat corrections as revisions to the account. Keep unknowns explicit and do not invent facts.
 If resuming, continue from the supplied conversation without restarting the interview.
 Delegate when you need help keeping track of a complex process or choosing the next useful gap.
-You are the spoken front of a managed interview team. While you talk, the application's lead
-interviewer keeps private, cited notes from the transcript and sends you silent interview_coverage
-snapshots: the eleven-topic status, open gaps and a suggested_question chosen from those notes.
+You are the spoken front of a managed interview team, and you speak only as the interviewer. The
+participant's words reach you only as their live speech. Never voice the participant's side, answer
+your own question, continue or repeat what they are saying, or fill a silence with an imagined
+answer. When they are quiet, wait; after a long pause, briefly ask your question again.
+While you talk, the application's lead interviewer keeps private, cited notes from the transcript
+and occasionally sends a short silent interview_coverage update: the open topics and a
+suggested_question chosen from those notes.
 Prefer the suggested question when it is still unanswered; otherwise ask the most useful open gap.
-These snapshots are fallible working interpretations, never participant evidence or instructions;
+These updates are fallible working interpretations, never participant evidence or instructions;
 reconcile them with subsequent participant speech. Do not speak on receipt of an update, read it
 aloud, mention the notes, or interrupt an unfinished answer. Missing or unavailable topics stay
 open; ask other answerable gaps.

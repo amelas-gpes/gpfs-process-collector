@@ -866,7 +866,7 @@
     if(caption.role==="user"){if(caption.final)conversationUI.pendingParticipantCaptions.delete(key);else conversationUI.pendingParticipantCaptions.add(key);}
     let ids=conversationUI.captions.get(key)||[];
     const unchanged=ids.length && ids.map(id=>state.turns.find(t=>t.id===id)?.text||"").join("")===caption.text;
-    if(unchanged){if(caption.role==="user"&&caption.final){syncLiveCoverage();if(conversationUI.applied!==conversationUI.revision)scheduleWorkflow();scheduleLiveCapture();}return;}
+    if(unchanged){if(caption.role==="user"&&caption.final){if(conversationUI.liveCoverageDeferred)syncLiveCoverage();if(conversationUI.applied!==conversationUI.revision)scheduleWorkflow();scheduleLiveCapture();}return;}
     const chunks=caption.text.match(/[\s\S]{1,6000}/g)||[];
     const other=state.turns.filter(t=>!ids.includes(t.id));
     if(other.length+chunks.length>400||other.reduce((n,t)=>n+t.text.length,0)+caption.text.length>400000){
@@ -880,9 +880,11 @@
     renderTranscript();
     if(conversationUI.view==="transcript"){if(follow)scrollConversation();else if($("jump-latest"))$("jump-latest").hidden=false;}
     if(caption.role==="user"){
+      // No notes update is sent for caption fragments: a speech model fed a
+      // stream of silent context mid-answer drifts into voicing the
+      // participant's side. The next completed capture sends one short update.
       conversationUI.revision++;
       suppressWorkflowReadiness();
-      syncLiveCoverage();
       scheduleWorkflow();
     }
     if(caption.final&&caption.role==="assistant"){
@@ -895,7 +897,7 @@
       }
     }
     if(caption.final&&caption.role==="user"&&pendingDocumentReason)resolveDocumentPurpose(caption.text);
-    if(caption.final&&caption.role==="user")scheduleLiveCapture();
+    if(caption.final&&caption.role==="user"){if(conversationUI.liveCoverageDeferred)syncLiveCoverage();scheduleLiveCapture();}
   }
   function scheduleLiveCapture() {
     if(!liveFrontActive()||state.example||intakeActive())return;
@@ -1002,33 +1004,35 @@
     const live=conversationUI.live;
     if(!live?.active||typeof live.appendContext!=="function")return;
     const checkpoint=conversationUI.coverageCheckpoint,basis=participantCoverageBasis(),documentRevision=activeDocumentSignature();
-    const current=Boolean(checkpoint&&!conversationUI.pendingParticipantCaptions.size&&checkpoint.generation===state.generation&&checkpoint.documentRevision===documentRevision&&checkpoint.basis===JSON.stringify(basis));
-    // One invalidation is enough while the next analysis is pending. Sending a
-    // replacement for every caption fragment would compete with file context.
+    // A notes update lands in the live model's own thinking, so it is held
+    // while a participant caption is still in progress and sent once they pause;
+    // mid-answer it nudged the model into finishing the participant's sentence.
+    if(conversationUI.pendingParticipantCaptions.size){conversationUI.liveCoverageDeferred=true;return;}
+    conversationUI.liveCoverageDeferred=false;
+    const current=Boolean(checkpoint&&checkpoint.generation===state.generation&&checkpoint.documentRevision===documentRevision&&checkpoint.basis===JSON.stringify(basis));
     const key=JSON.stringify([state.generation,checkpoint?.sequence??null,current,documentRevision]);
     if(key===conversationUI.liveCoverageKey)return;
-    const findings=TOPICS.map(([topic])=>{
-      const finding=state.memo_findings.find(item=>item.key===topic);
-      const assessment=checkpoint?.assessment?.topics?.find(item=>item.key===topic);
-      return {key:topic,status:finding?.status||"unknown",answer:(finding?.answer||"").slice(0,400),evidence_turns:(finding?.evidence_turns||[]).slice(0,4),
-        gaps:(assessment?.gaps||[]).filter(value=>typeof value==="string").slice(0,3).map(value=>value.slice(0,180)),
-        next_question:typeof assessment?.next_question==="string"?assessment.next_question.slice(0,240):""};
+    // One short note in the interviewer's own voice, sent after a completed
+    // capture or on connection: the open topics and the lead's suggested
+    // question. The 0.24.0 update carried all eleven findings as JSON in about
+    // fourteen context chunks, repeated for every caption fragment; fed that,
+    // the live model drifted into voicing the participant's answers.
+    const reviewed=topic=>checkpoint?.assessment?.topics?.find(item=>item.key===topic);
+    const open=TOPICS.map(([topic])=>topic).filter(topic=>{
+      const finding=state.memo_findings.find(item=>item.key===topic),review=reviewed(topic);
+      return !finding||!["captured","not_applicable"].includes(finding.status)||review?.complete===false||(review?.gaps||[]).length>0;
     });
-    const content={kind:"interview_coverage",untrusted:true,abbreviated:true,
-      notice:"Background working interpretation, not new participant evidence. This snapshot does not authorize closing. Reconcile every topic against the conversation; preserve unresolved gaps. Newer participant answers supersede this snapshot. Do not speak or interrupt for this update.",
-      analyzed_through_turn:checkpoint?.through||null,latest_participant_turn:basis.at(-1)?.[0]||null,
-      suggested_question:state.liveSuggestedQuestion||"",
-      participant_answer_in_progress:Boolean(conversationUI.pendingParticipantCaptions.size),
-      analysis_current:current,assessment_available:Boolean(checkpoint?.assessment),
-      ready_for_completion:current&&memoComplete()&&checkpoint?.assessment?.all_topics_covered===true,memo_findings:findings};
-    // Keep this internal update comfortably below the transport's shared byte
-    // limit, even for non-ASCII answers and long source identifiers.
-    const bytes=()=>new TextEncoder().encode(JSON.stringify(content)).length;
-    if(bytes()>14000)for(const finding of findings){finding.answer=finding.answer.slice(0,80);finding.evidence_turns=finding.evidence_turns.slice(0,1);finding.gaps=finding.gaps.slice(0,1).map(value=>value.slice(0,80));finding.next_question=finding.next_question.slice(0,80);}
+    const reviewerQuestion=open.map(topic=>reviewed(topic)?.next_question).find(value=>typeof value==="string"&&value.trim())||"";
+    let question=(state.liveSuggestedQuestion||reviewerQuestion).trim().slice(0,240);
+    const base=`Private interviewer note, never spoken: I am the interviewer and only the participant answers. ${current?"Notes are current.":"Notes lag the latest answer."} ${open.length?`Still open: ${open.join(", ")}.`:"Nothing is open; the application will say when to close."}`;
+    const ask=()=>question?` When they finish, I ask: ${JSON.stringify(question)}`:open.length?" When they finish, I ask about the most useful open topic.":"";
+    const bytes=value=>new TextEncoder().encode(value).length;
+    while(bytes(base+ask())>470&&question.length>24)question=question.slice(0,question.length-12).trimEnd()+"…";
+    const content=base+ask();
     const id=`coverage_${state.generation}_${++conversationUI.liveCoverageSequence}`;
     conversationUI.liveCoverageKey=key;
     try{
-      Promise.resolve(live.appendContext(JSON.stringify(content),{id,kind:"interview_coverage",replaceKey:"interview_coverage"})).then(receipt=>{
+      Promise.resolve(live.appendContext(content,{id,kind:"interview_coverage",replaceKey:"interview_coverage",plain:true})).then(receipt=>{
         if(conversationUI.live===live&&conversationUI.liveCoverageKey===key&&receipt&&!["acknowledged","sent","queued"].includes(receipt.status))conversationUI.liveCoverageKey=null;
       }).catch(()=>{if(conversationUI.live===live&&conversationUI.liveCoverageKey===key)conversationUI.liveCoverageKey=null;});
     }catch{if(conversationUI.live===live&&conversationUI.liveCoverageKey===key)conversationUI.liveCoverageKey=null;}

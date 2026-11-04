@@ -159,6 +159,8 @@ class DocumentGroundingHTTPTests(unittest.TestCase):
         LOCAL.mkdir(parents=True, exist_ok=True)
         self.temporary = tempfile.TemporaryDirectory(prefix="http-regression-", dir=LOCAL)
         self.client = GroundingProvider()
+        # These cases pin the reviewed-turn routes; live voice routing is covered in test_live.
+        self.client.voice_mode = "reviewed"
         self.httpd = server.InterviewServer(("127.0.0.1", 0), server.Handler, client=self.client,
                                             documents_root=Path(self.temporary.name) / "documents")
         self.worker = threading.Thread(target=self.httpd.serve_forever, kwargs={"poll_interval": .01}, daemon=True)

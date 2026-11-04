@@ -62,7 +62,7 @@
         audio:null, meters:[], frame:null, meterTimer:null, audioHandlers:[], ready:false, closing:false, muted:false, captions:{}, lastCaptionRole:null, seen:new Set(),
         sound:{input:0,output:0,inputActive:false,outputActive:false,playbackActive:false,
           playing:false,buffering:false,lastSample:null,lastInput:-Infinity,lastOutput:-Infinity},
-        timers:new Set(), finalized:false, stopResolve:null,
+        timers:new Set(), finalized:false, stopResolve:null, commentary:new Map(),
         greeting:Array.isArray(turns) && turns.length === 0 ? {status:"queued",event_id:null} : null,
         context:{records:new Map(),history:new Map(),pending:new Map(),bytes:0,events:0}};
       this.operation = op;
@@ -200,6 +200,8 @@
       if (event.type === "session.commentary.appended") {
         if (op.greeting?.status === "sent" && event.client_event_id === op.greeting.event_id && !op.closing)
           this.finishGreeting(op,"acknowledged",null,event);
+        const spoken = op.commentary.get(event.client_event_id);
+        if (spoken) {op.commentary.delete(event.client_event_id);spoken.resolve({status:"acknowledged",start_ms:Number.isFinite(event.start_ms)?event.start_ms:null});}
         return;
       }
       if (event.type === "session.thinking.appended") {
@@ -227,6 +229,12 @@
         if (pending) {
           this.finishContext(op,pending.record,"rejected","provider_rejected");
           if (!op.closing) this.notify("onError","Document context could not be added to live voice. Your conversation can continue.");
+          return;
+        }
+        const spoken = op.commentary.get(id);
+        if (spoken) {
+          op.commentary.delete(id);spoken.resolve({status:"rejected",reason:"provider_rejected"});
+          if (!op.closing) this.notify("onError","The interviewer could not be given its next line. The line is in the transcript; you can continue.");
           return;
         }
         // A late error for an already settled/cancelled context append is local
@@ -329,6 +337,23 @@
       catch {sendFailed=true;}
       if (sendFailed) {this.fail(op,"The typed answer could not reach live voice. Your transcript is retained; select Start voice to reconnect or continue by typing.");return false;}
       return true;
+    }
+    say(text) {
+      // An application-authorized line (acknowledgement, final check, review
+      // follow-up): the same commentary channel as the opening greeting. The
+      // caller records the exact text as the assistant's turn; the receipt only
+      // confirms delivery, never audible playback.
+      const op = this.operation;
+      const result = (status,reason) => Promise.resolve({status,...(reason ? {reason} : {})});
+      if (!this.connected || op.channel?.readyState !== "open") return result("unavailable","session_inactive");
+      if (typeof text !== "string" || !text.trim() || text.length > 1200) return result("rejected","invalid_text");
+      const event_id = `say_${op.id}_${++this.sequence}`;
+      return new Promise(resolve => {
+        op.commentary.set(event_id,{resolve});
+        try {op.channel.send(JSON.stringify({type:"session.commentary.append",event_id,delegation_id:null,
+          content:`Say exactly this line once, word for word, then listen: ${JSON.stringify(text)}`}));}
+        catch {op.commentary.delete(event_id);resolve({status:"rejected",reason:"send_failed"});}
+      });
     }
     appendContext(text, {id,kind="document_findings",replaceKey} = {}) {
       const op = this.operation;
@@ -554,6 +579,8 @@
       op.closing = true;op.controller.abort();
       this.finishGreeting(op,"cancelled","session_closed");
       this.cancelContext(op,"session_closed");
+      for (const spoken of op.commentary.values()) spoken.resolve({status:"cancelled",reason:"session_closed"});
+      op.commentary.clear();
       op.readyReject?.(new DOMException("Cancelled","AbortError"));
       for (const caption of Object.values(op.captions)) this.caption(op,caption,true);
       op.timers.forEach(clearTimeout);op.timers.clear();

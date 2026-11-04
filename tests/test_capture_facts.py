@@ -122,6 +122,27 @@ class ScopedReconciliationTests(unittest.TestCase):
         client.coordinator.interview(follow)
         self.assertEqual([fact["text"] for fact in seen[1]["fact_state"]["facts"]], ["A supplier email starts a case."])
 
+    def test_live_interviewer_caption_between_captures_keeps_the_ledger(self):
+        # In live voice the assistant turn after a capture is GPT-Live's own
+        # caption, not the lead's question. Participant-cited facts survive it.
+        client = SyntheticTeamProvider()
+        payload = client.payload()
+        seen = []
+
+        def response(model_input):
+            seen.append(model_input)
+            if len(seen) == 1:
+                return from_model_input(model_input, [operation("trigger", "A supplier email starts a case.", "u_trigger")],
+                                        {"trigger": "partial"})
+            return from_model_input(model_input)
+        typed_responder(client, response)
+        first = client.coordinator.interview(payload)
+        follow = reply_payload(payload, first, "The AP manager owns the result.")
+        follow["turns"][-2]["text"] = "Got it. And who looks after the result overall?"
+        client.coordinator.interview(follow)
+        self.assertEqual([fact["text"] for fact in seen[1]["fact_state"]["facts"]], ["A supplier email starts a case."])
+        self.assertEqual(client.request.call_count, 2)
+
     def test_unrelated_answer_keeps_the_fast_lead_despite_an_open_gap(self):
         client = SyntheticTeamProvider()
         client.agent_models["process_reviewer"] = "configured-reconciler"

@@ -68,6 +68,21 @@ function acknowledge(h,events=h.channels.at(-1).sent.filter(e=>e.type==="session
   await h.api.stop({immediate:true});assert.equal(h.tracks[0].stopped,true);assert.equal(h.peers[0].closed,true);passes++;
  }
  {
+  // An application-authorized line goes through the commentary channel; the receipt is delivery only.
+  const h=setup();await h.api.start();
+  assert.equal((await h.api.say("")).status,"rejected");
+  const receipt=h.api.say("Let me check that I have everything before we finish.");
+  const sent=h.channels.at(-1).sent.find(e=>e.type==="session.commentary.append"&&/Let me check/.test(e.content));
+  assert.ok(sent,"An authorized line uses session.commentary.append");assert.equal(sent.delegation_id,null);assert.match(sent.content,/word for word/);
+  h.event({type:"session.commentary.appended",client_event_id:sent.event_id,start_ms:1200});
+  const acknowledged=await receipt;assert.equal(acknowledged.status,"acknowledged");assert.equal(acknowledged.start_ms,1200);
+  const rejected=h.api.say("Thank you.");const second=h.channels.at(-1).sent.filter(e=>e.type==="session.commentary.append").at(-1);
+  h.event({type:"error",error:{client_event_id:second.event_id,message:"private provider detail"}});
+  assert.equal((await rejected).status,"rejected");assert.match(h.errors.at(-1),/next line/);assert.doesNotMatch(h.errors.at(-1),/private/);assert.equal(h.api.connected,true,"A rejected line does not end the session");
+  const pending=h.api.say("Goodbye.");await h.api.stop({immediate:true});assert.equal((await pending).status,"cancelled");
+  assert.equal((await h.api.say("After stop")).status,"unavailable");passes++;
+ }
+ {
   const h=setup();await h.api.start();
   h.event({type:"session.input_transcript.delta",event_id:"a",delta:"The invoice",start_ms:10,end_ms:500});
   h.event({type:"session.output_transcript.delta",event_id:"b",delta:"I see.",start_ms:300,end_ms:600});

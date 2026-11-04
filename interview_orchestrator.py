@@ -487,9 +487,9 @@ class Coordinator:
             # facts that cite the context itself. The transcript must still match.
             if turns[:len(state["turns"])] != state["turns"]:
                 return None
-            extra = turns[len(state["turns"]):]
-            if extra and extra[0]["role"] == "assistant" and extra[0]["text"] != state["capture"].get("question"):
-                return None
+            # The assistant line after a capture may be the lead's own question or,
+            # in live voice, the spoken interviewer's caption. Facts cite participant
+            # turns, which rebase re-checks, so either keeps the ledger.
             return state
 
     def fact_source_ids(self, payload):

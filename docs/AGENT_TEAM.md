@@ -110,9 +110,20 @@ Cards disclose their responsibilities and bounded status details. Completed revi
 
 During ordinary turns, reviewers remain on standby. Candidate topics say “Captured · awaiting review” and do not increase the official covered count. Actual completion-review waits say “Checking the recorded topics and process…” in both typed and voice status. Reused results are identified as prior work rather than a new provider invocation.
 
-## One reviewed voice
+## Live front, managed back (0.24.0)
 
-The active team voice uses this sequence:
+With `VOICE_MODE=live` (the default), GPT-Live (`gpt-live-1`, WebRTC) carries the spoken conversation: it listens, asks one question at a time and can be interrupted, with the lead's own model as its delegated reasoning backend. The managed team keeps working on the transcript behind it:
+
+1. Each final participant caption schedules one background lead call (`/api/agent-team/interview`, 400 ms debounce, one in flight; a newer answer queues one follow-up). Its fact transaction updates the notes, the coverage checkpoint and the advisory pre-check; its question is **not** spoken or added to the transcript. The ledger tolerates GPT-Live's own caption as the assistant turn after a capture.
+2. The lead's suggested question, open gaps and topic statuses reach GPT-Live silently as an `interview_coverage` snapshot; its instructions prefer that suggestion when still unanswered and forbid any self-initiated wrap-up.
+3. When the lead reaches completion readiness, the application records the fixed acknowledgement as the assistant's turn, has GPT-Live say exactly that line through the commentary channel, suppresses the caption of that reading, and runs the parallel completion review. The review's final omissions check or follow-up question is issued the same way. The participant's spoken reply to the recorded final check is confirmed by the unchanged zero-call path, and the session ends after the completion line.
+4. The working map starts alongside each capture, as in typed mode.
+
+GPT-Live's words are not authority: completion still requires the application's permit, and an interviewer line it improvises is ordinary transcript text. What is given up relative to reviewed turns is the pre-audio content gate on ordinary questions and the exact-transcript verification of playback. `VOICE_MODE=reviewed` restores the reviewed-turn voice below.
+
+## Reviewed voice (`VOICE_MODE=reviewed`)
+
+The reviewed team voice uses this sequence:
 
 1. Browser microphone capture produces a recorded answer segment.
 2. `/api/transcribe` returns text, which is added to the participant transcript.
@@ -126,7 +137,7 @@ Natural playback uses `gpt-realtime-2.1-mini` as a text reader, with no intervie
 
 The specialist models do not speak directly. Stale, cancelled, malformed or unapproved controlled-voice responses are not applied or played. Review and playback failures retain already accepted transcript text, but audio that failed transcription cannot be claimed as a saved answer. Physical microphone capture, sound quality, real interruptions and end-to-end spoken latency still need a hands-on test.
 
-The HTTP `/api/live-session` route rejects legacy direct-live requests with status 409 before provider work. The current browser uses reviewed turns. The older client implementation remains for legacy code/tests, but that HTTP route cannot issue a direct-live session.
+The HTTP `/api/live-session` route creates a GPT-Live session only in live mode; in reviewed mode it rejects the request with status 409 before provider work.
 
 Both `/api/interview` and `/api/agent-team/interview` route through the authoritative coordinator for the application's OpenAI client and its subclasses. Older text clients therefore receive the same completion gate. Isolated test adapters can still be injected at the server boundary; no browser parameter selects or weakens that adapter.
 

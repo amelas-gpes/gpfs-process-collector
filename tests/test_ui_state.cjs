@@ -1284,6 +1284,54 @@ if(process.argv.includes("--usability-only")){
   t.state.coverageVerified=false;t.clearState();assert.equal(Object.keys(t.state.advisory).length,0,"A new interview starts without advisory marks");assert.equal(t.state.provisionalQuestion,null);passes++;
  }
  {
+  // Live front, managed back: GPT-Live speaks; captions drive the background lead; the app owns completion.
+  checkpoint();t.clearState();t.conversationUI.live=null;t.state.started=true;t.state.context={process_name:"Live front",objective:"Keep the gates"};
+  t.state.config={api_configured:true,agent_team:{enabled:true,voice_mode:"live_front"},live:{enabled:true},speech:{enabled:false}};
+  let callbacks;const said=[],appended=[],stops=[];
+  context.window.CollectorLiveVoice=class{
+   constructor(options){callbacks=options;this.active=false;this.connected=false;}
+   async start(){this.active=true;this.connected=true;callbacks.onStatus("listening");return true;}
+   say(text){said.push(text);return Promise.resolve({status:"acknowledged"});}
+   appendContext(text,meta){appended.push({text,meta});return Promise.resolve({status:"acknowledged"});}
+   async stop(){stops.push(1);this.active=false;this.connected=false;callbacks.onStatus("idle");return{finalized:true};}
+  };
+  const settle=async()=>{for(let i=0;i<4;i++)await new Promise(resolve=>setImmediate(resolve));};
+  const runCaptureTimer=async()=>{const entry=[...timers.entries()].find(([,timer])=>timer.delay===400);assert.ok(entry,"A final participant caption schedules one background capture");timers.delete(entry[0]);entry[1].fn();await settle();};
+  const lastUser=()=>t.state.turns.findLast(turn=>turn.role==="user").id;
+  const reply=(question,kind="question",extra={})=>({question,summary:"Summary.",focus:"Focus",parking_lot:[],coverage:[],
+    memo_findings:[{key:"trigger",status:"captured",answer:"An email starts it.",evidence_turns:[lastUser()]}],capture_token:"live-token",coverage_verified:false,
+    completion:{ready_for_final_check:kind==="final_check"||kind==="complete",complete:kind==="complete"},
+    speech_authorization:{approved:true,kind,text:question,revision:"r",completion_allowed:kind==="complete"},...extra});
+  const calls=[];let answer=()=>({});t.setRequest(async(url,payload)=>{calls.push({url,payload});return answer(url,payload);});
+  await t.startLiveConversation();assert.ok(t.conversationUI.live instanceof context.window.CollectorLiveVoice,"live_front selects GPT-Live");
+  answer=url=>url==="/api/interview"?reply("Who receives the email?"):{};
+  callbacks.onTranscript({id:"c1",role:"assistant",text:"What starts the work?",final:true});
+  callbacks.onTranscript({id:"c2",role:"user",text:"An email starts it.",final:true});
+  await runCaptureTimer();
+  assert.equal(calls.filter(call=>call.url==="/api/interview").length,1);assert.equal(calls[0].payload.action,"answer");
+  assert.equal(t.state.memo_findings.find(f=>f.key==="trigger").status,"captured");assert.equal(t.state.captureToken,"live-token");
+  assert.ok(!t.state.turns.some(turn=>turn.text==="Who receives the email?"),"The lead's question is not spoken or added; GPT-Live asks its own");
+  assert.equal(t.state.liveSuggestedQuestion,"Who receives the email?");
+  assert.ok(appended.some(item=>JSON.parse(item.text).suggested_question==="Who receives the email?"),"The lead's suggestion reaches GPT-Live silently");
+  // Completion readiness: the app records the acknowledgement, has GPT-Live say it, runs the review, then issues the final check.
+  const ack="Let me check that I have everything before we finish.",finalCheck="Before we finish, is there anything else someone doing this work needs to know that we haven’t captured?";
+  answer=url=>url==="/api/interview"?reply(ack,"review_pending",{review_ticket:"ticket-1",agent_run_id:"run-1"}):url==="/api/agent-team/review"?reply(finalCheck,"final_check",{coverage_verified:true}):{};
+  callbacks.onTranscript({id:"c3",role:"assistant",text:"Who receives it?",final:true});
+  callbacks.onTranscript({id:"c4",role:"user",text:"The AP clerk receives it.",final:true});
+  await runCaptureTimer();
+  assert.equal(said.join("|"),[ack,finalCheck].join("|"),"Both authorized lines are given to GPT-Live in order");
+  assert.equal(t.state.turns.slice(-2).map(turn=>turn.text).join("|"),[ack,finalCheck].join("|"),"Authorized lines are the assistant's turns");
+  assert.equal(calls.filter(call=>call.url==="/api/agent-team/review").length,1);assert.equal(t.state.coverageVerified,true);assert.equal(t.state.closure.asked,true);
+  const before=t.state.turns.length;callbacks.onTranscript({id:"c5",role:"assistant",text:"Before we finish, is there anything else we missed?",final:true});
+  assert.equal(t.state.turns.length,before,"The caption of GPT-Live reading the authorized line is not added again");
+  answer=url=>url==="/api/interview"?reply("Thank you. All eleven sections are captured and you have confirmed the account.","complete",{coverage_verified:true,no_new_run:true}):{};
+  callbacks.onTranscript({id:"c6",role:"user",text:"No, nothing else to add.",final:true});
+  await runCaptureTimer();
+  assert.equal(t.state.closure.confirmed,true);assert.equal(said.length,3);
+  const ending=[...timers.entries()].find(([,timer])=>timer.delay===9000);assert.ok(ending,"The session ends after the completion line is spoken");timers.delete(ending[0]);ending[1].fn();await settle();assert.equal(stops.length,1);
+  t.clearState();t.conversationUI.live=null;delete context.window.CollectorLiveVoice;passes++;
+ }
+ {
   checkpoint();t.state.busy=false;t.conversationUI.live=null;t.conversationUI.status="idle";t.conversationUI.view="transcript";
   const ack="Let me check that I have everything before we finish.";
   t.applyInterview({question:ack,review_ticket:"wait-label-ticket",capture_token:"wait-label-capture",coverage_verified:false,speech_authorization:{approved:true,kind:"review_pending",text:ack,revision:"review-label"},completion:{ready_for_final_check:false,complete:false}});

@@ -35,7 +35,7 @@
     started: false, busy: false, importing:false, version: 0, generation: 0,
     draftVersion: null, draftEdited: false, example: false, dirty: false,
     config: null, utterance: null, voice: null, speechVersion: 0, captureToken:null, coverageVerified:false,
-    provisionalQuestion:null, advisory:{},
+    provisionalQuestion:null, advisory:{}, liveSuggestedQuestion:"",
     localVoices: [], voiceChoice: null, voiceChoiceUser: false, speechOperation: null,
     recording: null, requestingMic: false, transcribing: false,
     memo_findings: [], focus: "", parking_lot: [], closure: {asked:false,confirmed:false}, coverageNeedsReview:false, captureProvenance:null, documentEvidence:[],
@@ -77,6 +77,14 @@
   const reviewSource=()=>JSON.stringify([{...(state.context||{}),process_name:undefined},state.turns,activeDocumentSignature()]);
   function invalidateCompletionReview(){pendingCompletionReview?.controller?.abort();pendingCompletionReview=null;}
   const documentQuestionsHandled=new Set(),interviewRequests=new Set();
+  // Live front, managed back: GPT-Live speaks; the lead captures each spoken
+  // answer in the background and the application still owns completion.
+  let liveCapture=null,liveCaptureQueued=false,liveCaptureTimer=null,liveCapturedThrough=null,liveAuthorized=null,liveCompleteTimer=null;
+  const liveFrontActive=()=>Boolean(conversationUI.live?.active&&state.config?.agent_team?.voice_mode==="live_front");
+  function resetLiveFront(){
+    liveCapture?.controller.abort();liveCapture=null;liveCaptureQueued=false;liveCapturedThrough=null;liveAuthorized=null;
+    clearTimeout(liveCaptureTimer);liveCaptureTimer=null;clearTimeout(liveCompleteTimer);liveCompleteTimer=null;state.liveSuggestedQuestion="";
+  }
   // Background advisory check of provisional topics; never a completion permit.
   let advisoryCheck=null;
   const advisoryFor=finding=>finding&&state.advisory[finding.key]?.answer===finding.answer?state.advisory[finding.key]:null;
@@ -807,7 +815,7 @@
     if(!ensureConversation())return;
     stopSpeaking(); voiceEnded=false; conversationUI.typing=false; conversationUI.muted=false;
     if(!conversationUI.live) {
-      if(state.config?.agent_team?.enabled){
+      if(state.config?.agent_team?.enabled&&state.config.agent_team.voice_mode!=="live_front"){
         if(!window.CollectorControlledVoice){notice("Voice couldn’t start. Refresh the page, or type instead.",true);return;}
         conversationUI.live=new window.CollectorControlledVoice({request,getSnapshot:snapshot,
           opening:async({signal})=>state.turns.some(turn=>!turn.document_event)?null:request("/api/interview",{...snapshot(),action:"start"},{signal}),
@@ -829,6 +837,7 @@
             outputActive:reviewedPlaybackActive&&reviewedPlaybackLevel>.01,playbackActive:reviewedPlaybackActive})
         });
       }else{
+      // GPT-Live is the spoken front; the managed team runs on its captions.
       if(!window.CollectorLiveVoice){notice("Voice couldn’t start. Refresh the page, or type instead.",true);return;}
       conversationUI.live=new window.CollectorLiveVoice({request,
         onStatus:status=>{conversationUI.status=status;updateControls();},
@@ -838,6 +847,7 @@
       });
       }
     }
+    resetLiveFront();
     selectConversationView(conversationUI.view);
     const live=conversationUI.live,generation=state.generation;
     conversationUI.liveCoverageKey=null;
@@ -848,12 +858,15 @@
   }
   function receiveLiveCaption(caption) {
     if(!caption.text||!["user","assistant"].includes(caption.role))return;
-    const scroll=$("conversation-scroll"), follow=scroll.scrollHeight-scroll.clientHeight-scroll.scrollTop<80;
     const key=`${caption.role}:${caption.id}`;
+    // While the interviewer is reading an application-authorized line, that
+    // line is already the assistant's turn; its spoken caption is not added again.
+    if(caption.role==="assistant"&&liveAuthorized&&Date.now()<liveAuthorized.until&&!conversationUI.captions.has(key))return;
+    const scroll=$("conversation-scroll"), follow=scroll.scrollHeight-scroll.clientHeight-scroll.scrollTop<80;
     if(caption.role==="user"){if(caption.final)conversationUI.pendingParticipantCaptions.delete(key);else conversationUI.pendingParticipantCaptions.add(key);}
     let ids=conversationUI.captions.get(key)||[];
     const unchanged=ids.length && ids.map(id=>state.turns.find(t=>t.id===id)?.text||"").join("")===caption.text;
-    if(unchanged){if(caption.role==="user"&&caption.final){syncLiveCoverage();if(conversationUI.applied!==conversationUI.revision)scheduleWorkflow();}return;}
+    if(unchanged){if(caption.role==="user"&&caption.final){syncLiveCoverage();if(conversationUI.applied!==conversationUI.revision)scheduleWorkflow();scheduleLiveCapture();}return;}
     const chunks=caption.text.match(/[\s\S]{1,6000}/g)||[];
     const other=state.turns.filter(t=>!ids.includes(t.id));
     if(other.length+chunks.length>400||other.reduce((n,t)=>n+t.text.length,0)+caption.text.length>400000){
@@ -882,6 +895,70 @@
       }
     }
     if(caption.final&&caption.role==="user"&&pendingDocumentReason)resolveDocumentPurpose(caption.text);
+    if(caption.final&&caption.role==="user")scheduleLiveCapture();
+  }
+  function scheduleLiveCapture() {
+    if(!liveFrontActive()||state.example||intakeActive())return;
+    if(liveCapture){liveCaptureQueued=true;return;}
+    clearTimeout(liveCaptureTimer);
+    liveCaptureTimer=setTimeout(()=>{liveCaptureTimer=null;void runLiveCapture();},400);
+  }
+  async function runLiveCapture() {
+    if(!liveFrontActive()||liveCapture||state.example||intakeActive())return;
+    const latest=state.turns.findLast(turn=>turn.role==="user"&&!turn.document_event);
+    if(!latest||liveCapturedThrough===`${latest.id}:${latest.text}`)return;
+    const generation=state.generation,controller=new AbortController(),check={controller,generation};
+    liveCapture=check;liveCaptureQueued=false;
+    try{
+      const result=await request("/api/interview",{...snapshot(),action:"answer"},{signal:controller.signal});
+      if(liveCapture!==check||generation!==state.generation||!liveFrontActive())return;
+      liveCapturedThrough=`${latest.id}:${latest.text}`;
+      await applyLiveCapture(result);
+    }catch(error){
+      if(generation===state.generation&&error.name!=="AbortError")notice("The notes could not be updated from the last answer. Voice continues; the next answer refreshes them. "+(error?.message||""),true);
+    }finally{
+      if(liveCapture===check){liveCapture=null;if(liveCaptureQueued)scheduleLiveCapture();}
+    }
+  }
+  function authorizeLiveUtterance(text) {
+    // The application records the exact line as the interviewer's turn and
+    // asks GPT-Live to read it; the spoken caption of that reading is not added.
+    state.turns.push({id:nextTurnId(),role:"assistant",text});state.version++;state.dirty=true;
+    liveAuthorized={text,until:Date.now()+20000};
+    renderTranscript();scrollConversation();
+    void Promise.resolve(conversationUI.live?.say?.(text)).catch(()=>{});
+  }
+  async function applyLiveCapture(result) {
+    if(intakeActive()||!liveFrontActive())return;
+    const kind=result?.speech_authorization?.kind;
+    if(typeof result.question!=="string"||!result.question.trim())throw new Error("The interviewer returned an incomplete capture.");
+    if(typeof result.capture_token==="string"&&result.capture_token&&result.capture_token.length<=4096)state.captureToken=result.capture_token;
+    state.coverageVerified=result.coverage_verified===true;state.completion=result.completion||null;
+    if(!result.preserve_capture){
+      const documentEvidence=mergeDocumentEvidence(result.document_evidence);
+      const findings=normalizeFindings(result.memo_findings||[],state.turns,documentEvidence);
+      state.coverage=normalizeCoverage(result.coverage);state.summary=text(result.summary,6000);
+      state.memo_findings=findings;state.documentEvidence=documentEvidence;
+      state.focus=text(result.focus,500);state.parking_lot=strings(result.parking_lot,50);
+      rememberCoverageCheckpoint(state.turns,conversationUI.revision,activeDocumentSignature(),result.coverage_assessment);
+    }
+    state.liveSuggestedQuestion=kind==="question"?text(result.question,1600):"";
+    state.version++;state.dirty=true;renderTranscript();announceReadiness();
+    if(kind==="question"){syncLiveCoverage();scheduleAdvisoryCoverage();return;}
+    if(kind==="review_pending"){
+      authorizeLiveUtterance(text(result.question,6000));
+      rememberCompletionReview(result);
+      if(pendingCompletionReview?.ticket===result.review_ticket)pendingCompletionReview.acknowledged=true;
+      try{const reviewed=await requestCompletionReview();if(liveFrontActive())await applyLiveCapture(reviewed);}
+      catch(error){if(error.name!=="AbortError")notice("The completion review did not finish. Voice continues; keep talking, or stop talking and choose Try again.",true);}
+      return;
+    }
+    if(["final_check","pause","complete"].includes(kind)){
+      state.closure={asked:kind!=="pause",confirmed:kind==="complete"&&coverageVerified()&&result.completion?.complete===true};
+      authorizeLiveUtterance(text(result.question,6000));
+      rememberCompletionReview(result);
+      if(kind==="complete"){clearTimeout(liveCompleteTimer);liveCompleteTimer=setTimeout(()=>{liveCompleteTimer=null;if(liveFrontActive()){voiceEnded=true;void conversationUI.live.stop();}},9000);}
+    }
   }
   function scheduleWorkflow() {
     if(intakeActive()||state.importing)return;
@@ -940,6 +1017,7 @@
     const content={kind:"interview_coverage",untrusted:true,abbreviated:true,
       notice:"Background working interpretation, not new participant evidence. This snapshot does not authorize closing. Reconcile every topic against the conversation; preserve unresolved gaps. Newer participant answers supersede this snapshot. Do not speak or interrupt for this update.",
       analyzed_through_turn:checkpoint?.through||null,latest_participant_turn:basis.at(-1)?.[0]||null,
+      suggested_question:state.liveSuggestedQuestion||"",
       participant_answer_in_progress:Boolean(conversationUI.pendingParticipantCaptions.size),
       analysis_current:current,assessment_available:Boolean(checkpoint?.assessment),
       ready_for_completion:current&&memoComplete()&&checkpoint?.assessment?.all_topics_covered===true,memo_findings:findings};
@@ -2523,7 +2601,7 @@
   function clearState(context = null) {
     reviewPauseSequence++;
     invalidateCompletionReview();state.captureToken=null;state.coverageVerified=false;
-    cancelAdvisoryCoverage();state.advisory={};state.provisionalQuestion=null;voiceSessionPrefetch?.controller.abort();voiceSessionPrefetch=null;
+    cancelAdvisoryCoverage();state.advisory={};state.provisionalQuestion=null;voiceSessionPrefetch?.controller.abort();voiceSessionPrefetch=null;resetLiveFront();
     documentIntake?.reset();intakeWasLive=false;for(const controller of interviewRequests)controller.abort();
     knowledgeUI?.reset();
     voiceEnded=false;
@@ -2785,7 +2863,7 @@
     $("jump-latest").addEventListener("click",()=>{scrollConversation();$("jump-latest").hidden=true;});
     $("conversation-scroll").addEventListener("scroll",updateConversationScroll);
     $("start-live").addEventListener("click",startLiveConversation);
-    $("stop-live").addEventListener("click",async()=>{voiceEnded=true;const wasConnected=conversationUI.live?.connected;const result=await conversationUI.live?.stop();updatePresence();if(wasConnected&&!result?.finalized)notice("Voice stopped early. The last few lines of the transcript may be missing.");});
+    $("stop-live").addEventListener("click",async()=>{voiceEnded=true;liveAuthorized=null;clearTimeout(liveCompleteTimer);liveCompleteTimer=null;const wasConnected=conversationUI.live?.connected;const result=await conversationUI.live?.stop();updatePresence();if(wasConnected&&!result?.finalized)notice("Voice stopped early. The last few lines of the transcript may be missing.");});
     $("mute-live").addEventListener("click",()=>{conversationUI.muted=!conversationUI.muted;conversationUI.live?.setMuted(conversationUI.muted);updateControls();});
     $("type-instead").addEventListener("click",async()=>{
       if(intakeActive())return;

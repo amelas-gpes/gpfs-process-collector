@@ -3,8 +3,10 @@
 (function (global) {
   "use strict";
   // 1.8 s of silence ends a spoken answer: long enough to survive a mid-sentence
-  // pause, short enough that the turn does not feel laggy.
-  const SILENCE_MS=1800, MIN_SPEECH_MS=550, MAX_SEGMENT_MS=90000;
+  // pause, short enough that the turn does not feel laggy. A segment with less
+  // than MIN_VOICED_MS of actual voiced audio (a cough, a playback echo tail) is
+  // dropped locally instead of being sent for transcription.
+  const SILENCE_MS=1800, MIN_SPEECH_MS=550, MIN_VOICED_MS=250, MAX_SEGMENT_MS=90000, MAX_EMPTY_TRANSCRIPTS=3;
   const KINDS=new Set(["question","final_check","complete","pause","review_pending"]);
   const REVIEW_ACK="Let me check that I have everything before we finish.";
   const PARTIAL_REVIEW_ACK="Let me check what we have and keep the unanswered parts open.";
@@ -61,10 +63,14 @@
         if(!op.muted&&!op.processing){
           op.analyser.getFloatTimeDomainData(op.samples);
           level=Math.sqrt(op.samples.reduce((sum,value)=>sum+value*value,0)/op.samples.length);
-          const segment=op.segment,now=this.now();
+          const segment=op.segment,now=this.now(),elapsed=op.frameAt===undefined?0:Math.max(0,now-op.frameAt);
+          op.frameAt=now;
           if(segment&&!segment.finishing){
-            if(level>=0.022){if(segment.firstSpeech===null)segment.firstSpeech=now;segment.lastSpeech=now;}
-            if(segment.firstSpeech!==null&&now-segment.firstSpeech>=MIN_SPEECH_MS&&now-segment.lastSpeech>=SILENCE_MS)this.finishSegment(op);
+            if(level>=0.022){if(segment.firstSpeech===null)segment.firstSpeech=now;segment.lastSpeech=now;segment.voicedMs+=elapsed;}
+            if(segment.firstSpeech!==null&&now-segment.firstSpeech>=MIN_SPEECH_MS&&now-segment.lastSpeech>=SILENCE_MS){
+              if(segment.voicedMs>=MIN_VOICED_MS)this.finishSegment(op);
+              else{this.discardSegment(op);this.listen(op);}
+            }
           }
         }
         this.notify("onAudioFrame",{input:Math.min(1,level/0.15),output:0,inputActive:level>=0.022,outputActive:false,playbackActive:false,muted:op.muted,connected:op.ready});
@@ -80,7 +86,7 @@
       try{
         const mime=["audio/webm;codecs=opus","audio/webm","audio/mp4","audio/ogg;codecs=opus"].find(type=>this.Recorder.isTypeSupported?.(type));
         const recorder=new this.Recorder(op.stream,mime?{mimeType:mime}:undefined);
-        const segment={recorder,chunks:[],firstSpeech:null,lastSpeech:null,finishing:false,discard:false,timer:null};op.segment=segment;
+        const segment={recorder,chunks:[],firstSpeech:null,lastSpeech:null,voicedMs:0,finishing:false,discard:false,timer:null};op.segment=segment;op.frameAt=undefined;
         recorder.addEventListener("dataavailable",event=>{if(!segment.discard&&event.data?.size)segment.chunks.push(event.data);});
         recorder.addEventListener("error",()=>{if(this.current(op))void this.fail(op,"Audio capture did not finish. Earlier answers are saved; continue by typing or reconnect.");});
         recorder.addEventListener("stop",()=>{
@@ -127,7 +133,16 @@
       catch{const error=new Error("Transcription failed");error.voiceMessage="I could not transcribe that answer. Earlier answers are saved. Please repeat it after reconnecting, or type it.";throw error;}
       if(!this.current(op)||signal.aborted||op.muted)return;
       const text=typeof transcript?.text==="string"?transcript.text.trim():"";
-      if(!text){const error=new Error("Empty transcription");error.voiceMessage="I could not transcribe that answer. Earlier answers are saved. Please repeat it after reconnecting, or type it.";throw error;}
+      if(!text){
+        // Nothing intelligible was said (noise, an echo tail, a breath). Keep
+        // listening rather than ending the session; only a run of empty
+        // segments suggests a microphone problem worth stopping for.
+        op.emptyTranscripts=(op.emptyTranscripts||0)+1;
+        if(op.emptyTranscripts>=MAX_EMPTY_TRANSCRIPTS){const error=new Error("Empty transcription");error.voiceMessage="I could not make out an answer several times in a row. Earlier answers are saved. Check the microphone and reconnect, or type it.";throw error;}
+        this.notify("onNotice","I didn’t catch that. Please say it again, or type it.");
+        return;
+      }
+      op.emptyTranscripts=0;
       this.options.onAnswer(text);
       if(!this.current(op)||signal.aborted||op.muted)return;
       const snapshot=this.options.getSnapshot(),basis=sourceSignature(snapshot);

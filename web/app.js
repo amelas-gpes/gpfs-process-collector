@@ -822,6 +822,7 @@
           speak:speakReviewed,stopPlayback:stopSpeaking,
           onStatus:status=>{conversationUI.status=status;updateControls();if(status==="listening")scheduleWorkflow();},
           onError:message=>{if(pendingCompletionReview){$("retry-question").hidden=false;$("retry-question").textContent="Retry completion review";}notice(message,true);},
+          onNotice:message=>notice(message),
           onAudioFrame:frame=>gpfsPresence?.setAudio({...frame,output:reviewedPlaybackLevel,
             outputActive:reviewedPlaybackActive&&reviewedPlaybackLevel>.01,playbackActive:reviewedPlaybackActive})
         });

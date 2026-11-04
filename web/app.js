@@ -72,7 +72,9 @@
   const coverageVerified=()=>!state.config?.agent_team?.enabled||state.coverageVerified===true;
   const provisionalFinding=finding=>!coverageVerified()&&["captured","not_applicable"].includes(finding?.status);
   const findingStatusLabel=finding=>provisionalFinding(finding)?"Captured · awaiting review":finding?.status==="not_applicable"?"Not applicable":finding?.status==="captured"?"Covered":finding?.status==="partial"?"In progress":"Unknown";
-  const reviewSource=()=>JSON.stringify([state.context,state.turns,activeDocumentSignature()]);
+  // The working map may name the process while a review is in flight; the
+  // title is not participant evidence, so it does not invalidate the review.
+  const reviewSource=()=>JSON.stringify([{...(state.context||{}),process_name:undefined},state.turns,activeDocumentSignature()]);
   function invalidateCompletionReview(){pendingCompletionReview?.controller?.abort();pendingCompletionReview=null;}
   const documentQuestionsHandled=new Set(),interviewRequests=new Set();
   // Background advisory check of provisional topics; never a completion permit.

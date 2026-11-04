@@ -10,7 +10,10 @@
   const KINDS=new Set(["question","final_check","complete","pause","review_pending"]);
   const REVIEW_ACK="Let me check that I have everything before we finish.";
   const PARTIAL_REVIEW_ACK="Let me check what we have and keep the unanswered parts open.";
-  const sourceSignature=value=>JSON.stringify([value?.context||{},value?.turns||[],value?.document_revision||""]);
+  // Staleness is about participant evidence: turns, files and the context the
+  // participant supplied. The process title is set by the working map while a
+  // turn is in flight, so it is not part of this basis.
+  const sourceSignature=value=>JSON.stringify([{...(value?.context||{}),process_name:undefined},value?.turns||[],value?.document_revision||""]);
   class CollectorControlledVoice {
     constructor(options={}) {
       for(const key of ["request","getSnapshot","onAnswer","onResult","speak"]){if(typeof options[key]!=="function")throw new TypeError(`Controlled voice requires ${key}.`);}

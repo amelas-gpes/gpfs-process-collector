@@ -186,6 +186,13 @@ const check=async(name,fn)=>{await fn();passed++;};
     review.resolve(response({...approved("Have I missed anything else?","final_check"),capture_token:"capture-reviewed",coverage_verified:true}));await sending;
     assert.equal(h.t.state.turns.filter(turn=>turn.text===reviewAck().question).length,1);assert.equal(h.t.state.coverageVerified,true);assert.equal(h.t.snapshot().capture_token,"capture-reviewed");assert.equal(h.t.state.busy,false);
   });
+  await check("a process title set by the working map during the review does not discard the review",async()=>{
+    const h=setup(),review=deferred();h.route(url=>url==="/api/agent-team/interview"?response(reviewAck()):url==="/api/agent-team/review"?review.promise:response({}));h.node("answer-text").value="That completes the remaining detail.";
+    const sending=h.t.sendAnswer({preventDefault(){}});await flush();assert.equal(h.t.state.busy,true);
+    h.t.state.context.process_name="Named by the working map";
+    review.resolve(response({...approved("Have I missed anything else?","final_check"),capture_token:"capture-reviewed",coverage_verified:true}));await sending;
+    assert.equal(h.t.state.coverageVerified,true,"The review result is applied despite the title change");assert.equal(h.t.state.turns.at(-1).text,"Have I missed anything else?");assert.ok(!h.notices.some(item=>/conversation changed/.test(item.message)));
+  });
   await check("failed review retries its ticket with the visible failure notice and retains confirmation continuity",async()=>{
     const h=setup();let reviews=0,interviews=0;const finalQuestion="Have I missed anything else?",failure={...approved("The review could not finish. Your capture is saved.","pause"),preserve_capture:true,review_retry_required:true,review_ticket:"review-ticket-one",capture_token:"capture-failed",coverage_verified:false};
     h.route((url,options)=>{

@@ -14,6 +14,9 @@ from test_server import server, interview_payload, interview_result, process_dra
 from test_interview_coverage import fixture
 from fact_fixture import as_fact_delta
 
+# A completion review is one process-review call plus one coverage call per topic group.
+REVIEW_CALLS = 1 + len(server.interview_coverage.COVERAGE_REVIEW_GROUPS)
+
 
 class SyntheticTeamProvider(server.OpenAIClient):
     def __init__(self):
@@ -182,7 +185,7 @@ class CoordinatorBoundaryTests(unittest.TestCase):
         client = SyntheticTeamProvider()
         payload, pending = prepared_review(client)
         result = client.coordinator.review(payload)
-        self.assertEqual(client.request.call_count, 3)
+        self.assertEqual(client.request.call_count, 1 + REVIEW_CALLS)
         self.assertEqual([call.args[1]["text"]["format"]["name"] for call in client.request.call_args_list].count("team_interview_capture"), 1)
         self.assertTrue(result["coverage_verified"])
         self.assertEqual(result["speech_authorization"]["kind"], "final_check")
@@ -193,7 +196,7 @@ class CoordinatorBoundaryTests(unittest.TestCase):
         client = SyntheticTeamProvider()
         payload, result = reviewed_capture(client)
         confirmed = client.coordinator.interview(reply_payload(payload, result, "No, nothing else."))
-        self.assertEqual(client.request.call_count, 3)
+        self.assertEqual(client.request.call_count, 1 + REVIEW_CALLS)
         self.assertTrue(confirmed["completion"]["complete"])
         self.assertTrue(confirmed["closure"]["confirmed"])
         self.assertEqual(confirmed["speech_authorization"]["kind"], "complete")
@@ -213,7 +216,7 @@ class CoordinatorBoundaryTests(unittest.TestCase):
         payload, result = reviewed_capture(client)
         answer = client.coordinator.interview(reply_payload(payload, result, "Yes."))
         self.assertEqual(answer["question"], "What should we add to the account?")
-        self.assertEqual(client.request.call_count, 3)
+        self.assertEqual(client.request.call_count, 1 + REVIEW_CALLS)
         self.assertFalse(answer["completion"]["complete"])
         self.assertFalse(answer["completion"]["ready_for_final_check"])
 
@@ -221,7 +224,7 @@ class CoordinatorBoundaryTests(unittest.TestCase):
         client = SyntheticTeamProvider()
         payload, result = reviewed_capture(client)
         answer = client.coordinator.interview(reply_payload(payload, result, "Thank you."))
-        self.assertEqual(client.request.call_count, 3)
+        self.assertEqual(client.request.call_count, 1 + REVIEW_CALLS)
         self.assertEqual(answer["speech_authorization"]["kind"], "final_check")
         self.assertFalse(answer["completion"]["complete"])
 
@@ -230,7 +233,7 @@ class CoordinatorBoundaryTests(unittest.TestCase):
         payload, result = reviewed_capture(client)
         client.incomplete("checks")
         answer = client.coordinator.interview(reply_payload(payload, result, "Actually the coordinator never reviews these."))
-        self.assertEqual(client.request.call_count, 4)
+        self.assertEqual(client.request.call_count, 2 + REVIEW_CALLS)
         self.assertFalse(answer["coverage_verified"])
         self.assertFalse(answer["completion"]["complete"])
         with self.assertRaises(server.APIError):
@@ -247,7 +250,7 @@ class CoordinatorBoundaryTests(unittest.TestCase):
                 else:
                     follow["_supporting_documents"] = {"pending_documents": [{"id": "new-file"}]}
                 answer = client.coordinator.interview(follow)
-                self.assertEqual(client.request.call_count, 4)
+                self.assertEqual(client.request.call_count, 2 + REVIEW_CALLS)
                 self.assertFalse(answer["completion"]["complete"])
 
     def test_material_process_gap_demotes_status_and_returns_its_question_directly(self):
@@ -257,7 +260,7 @@ class CoordinatorBoundaryTests(unittest.TestCase):
         self.assertEqual(result["question"], "Who receives the corrected invoice?")
         self.assertFalse(result["completion"]["complete"])
         self.assertEqual(next(item for item in result["memo_findings"] if item["key"] == "lifecycle")["status"], "partial")
-        self.assertEqual(client.request.call_count, 3)
+        self.assertEqual(client.request.call_count, 1 + REVIEW_CALLS)
 
     def test_shallow_all_full_claim_is_demoted_by_independent_assessment(self):
         client = SyntheticTeamProvider()
@@ -278,18 +281,18 @@ class CoordinatorBoundaryTests(unittest.TestCase):
         self.assertNotIn("PRIVATE_SENTINEL", json.dumps(failed))
         self.assertEqual(len(failed["memo_findings"]), 11)
         self.assertEqual(client.coordinator.review(payload), failed)
-        self.assertEqual(client.request.call_count, 3)
+        self.assertEqual(client.request.call_count, 1 + REVIEW_CALLS)
         client.faults.clear()
         payload["capture_token"] = failed["capture_token"]
         payload["turns"].append({"id": "a_review_failure", "role": "assistant", "text": failed["question"]})
         retried = client.coordinator.review({**payload, "retry_review": True})
-        self.assertEqual(client.request.call_count, 5)
+        self.assertEqual(client.request.call_count, 1 + 2 * REVIEW_CALLS)
         self.assertEqual(retried["speech_authorization"]["kind"], "final_check")
         lead = next(row for row in retried["agent_team"]["agents"] if row["role"] == "lead_interviewer")
         self.assertEqual((lead["calls"], lead["reason_code"]), (0, "prior_result_reused"))
         confirmed = client.coordinator.interview(reply_payload(payload, retried, "No, nothing else."))
         self.assertTrue(confirmed["completion"]["complete"])
-        self.assertEqual(client.request.call_count, 5)
+        self.assertEqual(client.request.call_count, 1 + 2 * REVIEW_CALLS)
 
     def test_concurrent_review_requests_coalesce_and_success_is_idempotent(self):
         client = SyntheticTeamProvider()
@@ -307,7 +310,7 @@ class CoordinatorBoundaryTests(unittest.TestCase):
             self.assertEqual(first.result(timeout=4), second.result(timeout=4))
         saved = client.coordinator.review(payload)
         self.assertEqual(saved["speech_authorization"]["kind"], "final_check")
-        self.assertEqual(client.request.call_count, 3)
+        self.assertEqual(client.request.call_count, 1 + REVIEW_CALLS)
 
     def test_overlapping_answers_share_generation_and_cannot_publish_old_ticket(self):
         client = SyntheticTeamProvider()
@@ -351,7 +354,7 @@ class CoordinatorBoundaryTests(unittest.TestCase):
         complete = client.coordinator.interview(follow)
         self.assertTrue(complete["completion"]["complete"])
         self.assertEqual(complete["memo_findings"][5]["answer"], result["memo_findings"][5]["answer"])
-        self.assertEqual(client.request.call_count, 3)
+        self.assertEqual(client.request.call_count, 1 + REVIEW_CALLS)
 
     def test_ticket_rejects_new_user_turn_changed_history_context_and_documents(self):
         for change in ("user", "history", "context", "documents", "assistant"):
@@ -585,6 +588,73 @@ class CoordinatorBoundaryTests(unittest.TestCase):
                 client.coordinator.workflow(payload)
 
 
+class GroupedReviewTests(unittest.TestCase):
+    def test_completion_review_assesses_topic_groups_concurrently_and_merges_them(self):
+        client = SyntheticTeamProvider()
+        bodies = []
+        client.hooks["process_coverage_assessment"] = bodies.append
+        _, result = reviewed_capture(client)
+        groups = [tuple(group) for group in server.interview_coverage.COVERAGE_REVIEW_GROUPS]
+        self.assertEqual(len(bodies), len(groups))
+        requested = []
+        for body in bodies:
+            content = json.loads(body["input"][0]["content"])
+            group = tuple(content["assess_topics"])
+            requested.append(group)
+            self.assertEqual(body["text"]["format"]["schema"]["properties"]["topics"]["items"]["properties"]["key"]["enum"], list(group))
+            self.assertEqual(len(content["candidate_findings"]), 11, "Every group sees all candidate findings for context")
+            self.assertIn("ASSESS ONLY THESE TOPICS", body["instructions"])
+        self.assertEqual(sorted(requested), sorted(groups))
+        self.assertTrue(result["coverage_verified"])
+        self.assertEqual([item["key"] for item in result["coverage_assessment"]["topics"]], list(server.COVERAGE))
+        self.assertEqual(result["speech_authorization"]["kind"], "final_check")
+
+    def test_one_failed_group_fails_the_whole_review_without_partial_authority(self):
+        client = SyntheticTeamProvider()
+        calls = []
+
+        def fail_second(body):
+            calls.append(body)
+            if len(calls) == 2:
+                raise server.APIError("Synthetic group failure")
+        client.hooks["process_coverage_assessment"] = fail_second
+        _, result = reviewed_capture(client)
+        self.assertFalse(result["coverage_verified"])
+        self.assertTrue(result["review_retry_required"])
+        self.assertFalse(result["completion"]["ready_for_final_check"])
+        self.assertTrue(all(item["status"] != "captured" for item in result["memo_findings"]))
+
+    def test_advisory_check_assesses_only_captured_topics_and_leaves_the_capture_alone(self):
+        client = SyntheticTeamProvider()
+        client.incomplete("risk")
+        payload = client.payload()
+        result = client.coordinator.interview(payload)
+        self.assertEqual(result["speech_authorization"]["kind"], "question")
+        bodies = []
+        client.hooks["process_coverage_assessment"] = bodies.append
+        follow = copy.deepcopy(payload)
+        follow.update(capture_token=result["capture_token"])
+        follow["turns"].append({"id": "a_shown", "role": "assistant", "text": result["question"]})
+        advisory = client.coordinator.advisory_coverage(follow)
+        captured = [item["key"] for item in result["memo_findings"] if item["status"] in ("captured", "not_applicable")]
+        self.assertEqual(len(bodies), 1)
+        self.assertEqual(json.loads(bodies[0]["input"][0]["content"])["assess_topics"], captured)
+        self.assertEqual([item["key"] for item in advisory["topics"]], captured)
+        self.assertNotIn("risk", advisory["answers"])
+        self.assertEqual(advisory["answers"]["name"], next(item["answer"] for item in result["memo_findings"] if item["key"] == "name"))
+        self.assertTrue(advisory["advisory"])
+        cached = client.coordinator.interview({**payload, "capture_token": result["capture_token"]})
+        self.assertTrue(cached["no_new_run"])
+        self.assertFalse(cached["coverage_verified"], "An advisory check never verifies official coverage")
+        with self.assertRaises(server.APIError) as caught:
+            client.coordinator.advisory_coverage(payload)
+        self.assertEqual(caught.exception.status, 409)
+        changed = copy.deepcopy(follow)
+        changed["turns"].append({"id": "u_more", "role": "user", "text": "One more thing."})
+        with self.assertRaises(server.APIError):
+            client.coordinator.advisory_coverage(changed)
+
+
 class AgentTeamHTTPTests(unittest.TestCase):
     def setUp(self):
         local = Path(__file__).resolve().parents[1] / "work"
@@ -626,11 +696,31 @@ class AgentTeamHTTPTests(unittest.TestCase):
             self.assertEqual(status, 200)
             self.assertEqual(progress["status"], "pending" if route == "interview" else "completed")
             self.assertEqual(len(progress["agents"]), 3)
-            self.assertNotIn("question", json.dumps(progress))
+            # Execution metadata only: no transcript text or capture prose. The
+            # provisional question is empty because the offline provider never streams.
+            self.assertNotIn("summary", json.dumps(progress))
+            self.assertNotIn(payload["turns"][-1]["text"], json.dumps(progress))
+            self.assertEqual(progress["provisional_question"], "")
             status, cancelled = self.post("/api/agent-team/cancel", {"run_id": payload["agent_run_id"]})
             self.assertEqual((status, cancelled["cancelled"]), (200, True))
             _, progress = self.post("/api/agent-team/status", {"run_id": payload["agent_run_id"]})
             self.assertTrue(progress["cancelled"])
+
+    def test_advisory_coverage_endpoint_is_scoped_and_guarded(self):
+        self.client.incomplete("risk")
+        payload = self.client.payload()
+        status, result = self.post("/api/agent-team/interview", payload)
+        self.assertEqual(status, 200)
+        follow = {**payload, "capture_token": result["capture_token"],
+                  "turns": payload["turns"] + [{"id": "a_shown", "role": "assistant", "text": result["question"]}]}
+        status, advisory = self.post("/api/agent-team/coverage", follow)
+        self.assertEqual(status, 200, advisory)
+        self.assertEqual(len(advisory["topics"]), 10)
+        self.assertTrue(all(item["key"] != "risk" for item in advisory["topics"]))
+        status, refused = self.post("/api/agent-team/coverage", payload)
+        self.assertEqual(status, 409)
+        status, _ = self.post("/api/agent-team/coverage", follow, csrf=False)
+        self.assertEqual(status, 403)
 
     def test_all_team_endpoints_retain_csrf_and_same_origin_checks(self):
         for name in ("interview", "review", "workflow", "status", "cancel"):
@@ -666,7 +756,7 @@ class AgentTeamHTTPTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertTrue(confirmed["completion"]["complete"])
         self.assertTrue(confirmed["no_new_run"])
-        self.assertEqual(self.client.request.call_count, 3)
+        self.assertEqual(self.client.request.call_count, 1 + REVIEW_CALLS)
 
     def test_review_endpoint_rejects_forged_ticket_before_provider_access(self):
         payload = self.client.payload()

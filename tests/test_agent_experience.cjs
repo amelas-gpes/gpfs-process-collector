@@ -134,6 +134,16 @@ const check=async(name,fn)=>{await fn();passed++;};
     const result=h.t.request("/api/workflow",{...h.t.snapshot(),document_scope:"scope-test"});await h.timer(150);assert.equal(h.team.length,1);assert.equal(h.team[0].status,"running");
     pending.resolve(response({agent_team:{run_id:runId,status:"completed",agents:[],events:[]},workflow:{steps:[]}}));await result;assert.equal(h.team.at(-1).status,"completed");assert.equal([...h.timers.values()].filter(timer=>timer.ms===900||timer.ms===150).length,0);
   });
+  await check("a streamed provisional question shows while the lead finishes, then clears",async()=>{
+    const h=setup(),pending=deferred();let runId;h.route((url,options)=>{const data=JSON.parse(options.body);if(url==="/api/agent-team/interview"){runId=data.agent_run_id;return pending.promise;}if(url==="/api/agent-team/status")return response({run_id:runId,status:"running",agents:[{role:"lead_interviewer",status:"running"}],events:[],provisional_question:"What starts the intake?"});throw Error(url);});
+    const lead=h.t.request("/api/interview",h.t.snapshot());await h.timer(150);assert.equal(h.t.state.provisionalQuestion,"What starts the intake?");
+    pending.resolve(response({...approved("What starts the intake?"),agent_team:{run_id:runId,status:"completed",agents:[],events:[]}}));await lead;await flush();assert.equal(h.t.state.provisionalQuestion,null,"The accepted response replaces the provisional text");
+  });
+  await check("a background map never shows a provisional question",async()=>{
+    const h=setup(),pending=deferred();let runId;h.route((url,options)=>{const data=JSON.parse(options.body);if(url==="/api/agent-team/workflow"){runId=data.agent_run_id;return pending.promise;}if(url==="/api/agent-team/status")return response({run_id:runId,status:"running",agents:[],events:[],provisional_question:"Leaked?"});throw Error(url);});
+    const map=h.t.request("/api/workflow",h.t.snapshot());await h.timer(150);assert.equal(h.t.state.provisionalQuestion,null);
+    pending.resolve(response({agent_team:{run_id:runId,status:"completed",agents:[],events:[]},workflow:{steps:[]}}));await map;
+  });
   await check("newer run owns the panel when an older completion arrives",async()=>{
     const h=setup(),first=deferred(),second=deferred(),ids=[];h.route((url,options)=>{assert.equal(url,"/api/agent-team/workflow");ids.push(JSON.parse(options.body).agent_run_id);return ids.length===1?first.promise:second.promise;});
     const old=h.t.request("/api/workflow",h.t.snapshot()),fresh=h.t.request("/api/workflow",h.t.snapshot());second.resolve(response({agent_team:{run_id:ids[1],status:"completed"}}));await fresh;first.resolve(response({agent_team:{run_id:ids[0],status:"completed"}}));await old;

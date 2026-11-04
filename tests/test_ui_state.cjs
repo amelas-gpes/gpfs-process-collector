@@ -1250,12 +1250,38 @@ if(process.argv.includes("--usability-only")){
   const topic=document.querySelector('[data-foundation-topic="name"]');assert.equal(topic.classList.contains("covered"),false);assert.match(topic.querySelector(".coverage-state").textContent,/awaiting review/);t.showFoundationTopic("name",topic);assert.match(document.getElementById("foundation-topic-status").textContent,/awaiting review/);t.closeFoundationTopic(false);
   t.state.coverageVerified=true;t.renderCoverage();assert.equal(document.getElementById("coverage-count").textContent,"11 / 11");assert.equal(document.querySelector('[data-foundation-topic="name"]').classList.contains("covered"),true);passes++;
   t.state.captureToken="opaque-server-capability";assert.equal(t.snapshot().capture_token,"opaque-server-capability");assert.ok(!JSON.stringify(t.sessionObject()).includes("opaque-server-capability"),"Server review capabilities must not be persisted in saved files");passes++;
-  t.conversationUI.revision=20;t.conversationUI.applied=0;t.conversationUI.flowBusy=false;t.conversationUI.live=null;t.state.busy=false;t.conversationUI.view="voice";checkpoint();t.scheduleWorkflow();assert.equal(workflowTimers().length,0,"Ordinary voice turns must not compete with background map requests");
-  t.selectConversationView("workflow");assert.equal(workflowTimers().length,1,"Opening Workflow schedules its deferred current map");checkpoint();t.state.busy=true;t.scheduleWorkflow();assert.equal(workflowTimers().length,0,"Foreground review retains priority over map generation");t.state.busy=false;passes++;
+  t.conversationUI.revision=20;t.conversationUI.applied=0;t.conversationUI.flowBusy=false;t.conversationUI.live=null;t.state.busy=false;t.conversationUI.view="voice";checkpoint();t.scheduleWorkflow();assert.equal(workflowTimers().length,1,"Ordinary turns schedule the map alongside the lead, whichever view is open");
+  checkpoint();t.state.busy=true;t.scheduleWorkflow();assert.equal(workflowTimers().length,1,"A lead turn in progress does not postpone the concurrent map");t.state.busy=false;
+  checkpoint();t.state.importing=true;t.scheduleWorkflow();assert.equal(workflowTimers().length,0,"Opening a saved interview must not start a map request");t.state.importing=false;
+  checkpoint();t.selectConversationView("workflow");assert.equal(workflowTimers().length,1,"Opening Workflow still refreshes a map that is behind");passes++;
   checkpoint();t.state.example=true;t.conversationUI.applied=-1;let exampleCalls=0;t.setRequest(async()=>{exampleCalls++;return memoResult("Explicit fictional refresh");});
   for(const view of ["workflow","transcript","voice","workflow"])t.selectConversationView(view);
   assert.equal(workflowTimers().length,0,"Built-in or reopened synthetic examples must not schedule provider work when browsing views");assert.equal(exampleCalls,0);passes++;
   await t.refreshWorkflow();assert.equal(exampleCalls,1,"An explicit refresh remains available in example mode");assert.equal(t.conversationUI.workflow.title,"Explicit fictional refresh");t.state.example=false;passes++;
+ }
+ {
+  // Advisory pre-check of provisional topics: display-only, bound to the exact captured answer.
+  checkpoint();t.clearState();t.state.config={api_configured:true,agent_team:{enabled:true},speech:{enabled:false}};t.state.started=true;t.state.context={process_name:"Advisory test"};
+  t.state.turns=[{id:"t001",role:"assistant",text:"What starts the work?"},{id:"t002",role:"user",text:"An email starts it."}];t.state.captureToken="capture-advisory";
+  const calls=[];t.setRequest(async(url,payload)=>{calls.push({url,payload});return {advisory:true,revision:"r1",answers:{trigger:"An email starts the work."},topics:[{key:"trigger",complete:true,gaps:[],next_question:""}]};});
+  const settle=()=>new Promise(resolve=>setImmediate(resolve));
+  const reply=(question,findings)=>({question,summary:"",focus:"",parking_lot:[],coverage:[],memo_findings:findings,speech_authorization:{approved:true,kind:"question",text:question},capture_token:"capture-advisory"});
+  t.applyInterview(reply("Who receives the email?",[{key:"trigger",status:"captured",answer:"An email starts the work.",evidence_turns:["t002"]},{key:"purpose",status:"partial",answer:"A registered invoice.",evidence_turns:["t002"]}]));
+  assert.equal(calls.length,1);assert.equal(calls[0].url,"/api/agent-team/coverage");assert.equal(calls[0].payload.capture_token,"capture-advisory");
+  assert.match(document.getElementById("coverage-summary").textContent,/checking/);
+  await settle();await settle();
+  assert.equal(t.state.advisory.trigger.complete,true);
+  let item=document.querySelector('[data-foundation-topic="trigger"]');assert.match(item.querySelector(".coverage-state").textContent,/pre-checked/);
+  assert.equal(item.classList.contains("covered"),false,"An advisory check never counts as official coverage");assert.equal(document.getElementById("coverage-count").textContent,"0 / 11");
+  assert.match(document.getElementById("coverage-summary").textContent,/1 captured · awaiting review · 1 pre-checked/);
+  t.showFoundationTopic("trigger",item);assert.match(document.getElementById("foundation-topic-status").textContent,/pre-checked/);t.closeFoundationTopic(false);
+  // Topics already pre-checked for the same answer are not checked again; a changed answer loses its mark.
+  t.applyInterview(reply("Who logs it?",[{key:"trigger",status:"captured",answer:"An email starts the work.",evidence_turns:["t002"]}]));
+  assert.equal(calls.length,1,"An unchanged pre-checked topic needs no new advisory call");
+  t.state.memo_findings.find(f=>f.key==="trigger").answer="A phone call starts the work.";t.renderCoverage();
+  item=document.querySelector('[data-foundation-topic="trigger"]');assert.match(item.querySelector(".coverage-state").textContent,/awaiting review/);
+  t.state.coverageVerified=true;t.renderCoverage();assert.equal(document.querySelector('[data-foundation-topic="trigger"]').classList.contains("covered"),true,"Official review supersedes advisory marks");
+  t.state.coverageVerified=false;t.clearState();assert.equal(Object.keys(t.state.advisory).length,0,"A new interview starts without advisory marks");assert.equal(t.state.provisionalQuestion,null);passes++;
  }
  {
   checkpoint();t.state.busy=false;t.conversationUI.live=null;t.conversationUI.status="idle";t.conversationUI.view="transcript";

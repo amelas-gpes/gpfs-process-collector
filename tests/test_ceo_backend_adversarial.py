@@ -6,7 +6,8 @@ import sys
 import unittest
 from unittest.mock import patch
 
-from test_interview_orchestrator import SyntheticTeamProvider, prepared_review, reviewed_capture, reply_payload, server
+from test_interview_orchestrator import (REVIEW_CALLS, SyntheticTeamProvider, prepared_review, reviewed_capture,
+                                         reply_payload, server)
 
 
 class CancellationRaceTests(unittest.TestCase):
@@ -193,7 +194,7 @@ class PartialReviewTests(unittest.TestCase):
         self.assertFalse(pending["completion"]["complete"])
         self.assertFalse(pending["coverage_verified"])
         result = client.coordinator.review(payload)
-        self.assertEqual(client.request.call_count, 3)
+        self.assertEqual(client.request.call_count, 1 + REVIEW_CALLS)
         self.assertEqual(result["speech_authorization"]["kind"], "pause")
         self.assertFalse(result["completion"]["complete"])
         self.assertFalse(result["completion"]["ready_for_final_check"])
@@ -206,7 +207,7 @@ class PartialReviewTests(unittest.TestCase):
         acknowledgement = client.coordinator.interview(reply_payload(payload, result, "Understood."))
         self.assertEqual(acknowledgement["speech_authorization"]["kind"], "pause")
         self.assertTrue(acknowledgement["no_new_run"])
-        self.assertEqual(client.request.call_count, 3)
+        self.assertEqual(client.request.call_count, 1 + REVIEW_CALLS)
 
     def test_untouched_or_other_answerable_partial_topic_prevents_partial_review(self):
         for status in ("unknown", "partial"):
@@ -330,7 +331,7 @@ class CoverageAuthorityStressTests(unittest.TestCase):
             response = client.coordinator.interview(reply_payload(payload, reviewed, text))
             self.assertFalse(response["completion"]["complete"])
             self.assertNotEqual(response["speech_authorization"]["kind"], "complete")
-            self.assertEqual(client.request.call_count, 4)
+            self.assertEqual(client.request.call_count, 2 + REVIEW_CALLS)
 
 
 class CachePressureTests(unittest.TestCase):
@@ -347,7 +348,7 @@ class CachePressureTests(unittest.TestCase):
             with self.assertRaises(server.APIError) as caught:
                 client.coordinator.review({**first, "retry_review": True})
             self.assertEqual(caught.exception.status, 409)
-            self.assertEqual(client.request.call_count, 36)
+            self.assertEqual(client.request.call_count, 12 * (1 + REVIEW_CALLS))
             for ticket in client.coordinator._tickets.values():
                 ticket["at"] -= 1801
             payload, pending = prepared_review(client)

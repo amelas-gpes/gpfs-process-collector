@@ -25,8 +25,10 @@ def operation(topic, text, source="u1", *, kind="detail", op="add", target="", r
 
 
 def from_model_input(model_input, operations=(), statuses=None, unavailable=()):
+    # Keep the server's scoped reconciliation targets: only those need a row.
     state = {"revision": model_input["fact_state"]["base_revision"],
-             "topics": model_input["fact_state"]["topics"], "facts": model_input["fact_state"]["facts"]}
+             "topics": model_input["fact_state"]["topics"], "facts": model_input["fact_state"]["facts"],
+             "reconciliation_targets": model_input["fact_state"]["reconciliation_targets"]}
     return transaction(state, operations, statuses, unavailable)
 
 
@@ -39,6 +41,112 @@ def typed_responder(client, callback):
         result = callback(model_input)
         return {"status": "completed", "output": [{"content": [{"type": "output_text", "text": json.dumps(result)}]}]}
     client.request = Mock(side_effect=reply)
+
+
+class ScopedReconciliationTests(unittest.TestCase):
+    """Only open claims the latest answer could affect need an explicit reconciliation row."""
+
+    def setUp(self):
+        self.context = {"process_name": "Invoice intake"}
+        self.turns = [{"id": "a1", "role": "assistant", "text": "Who owns the overall result?"},
+                      {"id": "u1", "role": "user",
+                       "text": "I don't know who owns the overall result, and I am not sure where the procedure is kept."}]
+        self.documents = []
+
+    def seeded(self):
+        state = facts.empty_state()
+        delta = transaction(state, [
+            operation("accountable", "The accountable owner is unknown.", kind="gap"),
+            operation("materials", "The procedure's storage location is not specified.", kind="gap")],
+            {"accountable": "partial", "materials": "partial"})
+        server.check_schema(delta, facts.FACT_DELTA_SCHEMA)
+        return facts.apply_delta(state, delta, self.context, self.turns, self.documents)
+
+    def test_turn_focus_pairs_the_latest_answer_with_its_question(self):
+        self.assertIsNone(facts.turn_focus([{"id": "a1", "role": "assistant", "text": "What starts it?"}]))
+        self.assertEqual(facts.turn_focus(self.turns), {"answer": self.turns[1]["text"], "question": self.turns[0]["text"]})
+        notice = {"id": "n1", "role": "user", "text": "File update", "document_event": True}
+        self.assertEqual(facts.turn_focus(self.turns + [notice])["answer"], self.turns[1]["text"])
+
+    def test_untouched_gap_needs_no_row_but_can_still_be_resolved_explicitly(self):
+        state = self.seeded()
+        self.turns += [{"id": "a2", "role": "assistant", "text": "Which role owns the overall result?"},
+                       {"id": "u2", "role": "user", "text": "The AP manager owns it."}]
+        focus = facts.turn_focus(self.turns)
+        scoped = facts.reconciliation_targets(state, focus)
+        self.assertEqual([fact["topic"] for fact in scoped], ["accountable"])
+        self.assertEqual(len(facts.reconciliation_targets(state)), 2)
+        schema = facts.schema_for(state, facts.sources(self.context, self.turns, self.documents), focus)
+        self.assertEqual(schema["properties"]["fact_reconciliations"]["maxItems"], 1)
+        self.assertEqual(list(schema["properties"])[0], "question", "The question streams first")
+        model = facts.model_state(state, focus)
+        self.assertEqual(model["reconciliation_targets"], [scoped[0]["id"]])
+        self.assertEqual([fact["id"] for fact in facts.reconciliation_targets(model)], [scoped[0]["id"]],
+                         "A model-facing state carries the already selected targets")
+        resolved = operation("accountable", "The AP manager owns the overall result.", "u2",
+                             op="replace", target=scoped[0]["id"], reason="resolved_gap")
+        delta = transaction(state, [resolved])
+        delta["fact_reconciliations"] = [{"target_id": scoped[0]["id"], "disposition": "replace",
+                                          "basis": "The AP manager is now named as the owner."}]
+        with self.assertRaises(ValueError):
+            facts.apply_delta(state, delta, self.context, self.turns, self.documents)
+        after = facts.apply_delta(state, delta, self.context, self.turns, self.documents, focus)
+        answers = {item["key"]: item["answer"] for item in facts.findings(after)}
+        self.assertEqual(answers["accountable"], "The AP manager owns the overall result.")
+        self.assertIn("storage location is not specified", answers["materials"])
+        materials_gap = next(fact for fact in after["facts"] if fact["topic"] == "materials" and fact["state"] == "active")
+        retire = operation("materials", "", "u2", op="remove", target=materials_gap["id"], reason="withdrawal")
+        delta = transaction(after, [retire])
+        delta["fact_reconciliations"] = []
+        self.assertEqual(facts.reconciliation_targets(after, focus), [])
+        later = facts.apply_delta(after, delta, self.context, self.turns, self.documents, focus)
+        self.assertEqual(next(item for item in facts.findings(later) if item["key"] == "materials")["status"], "unknown")
+
+    def test_renamed_process_keeps_participant_cited_facts(self):
+        # The working map names the process after the first turn; that context
+        # change must not discard the private ledger or force a full re-seed.
+        client = SyntheticTeamProvider()
+        payload = client.payload()
+        seen = []
+
+        def response(model_input):
+            seen.append(model_input)
+            if len(seen) == 1:
+                return from_model_input(model_input, [operation("trigger", "A supplier email starts a case.", "u_trigger")],
+                                        {"trigger": "partial"})
+            return from_model_input(model_input)
+        typed_responder(client, response)
+        first = client.coordinator.interview(payload)
+        follow = reply_payload(payload, first, "The finance team lead is accountable for the whole process.")
+        follow["context"] = {**follow["context"], "process_name": "Monthly expense claim approval"}
+        client.coordinator.interview(follow)
+        self.assertEqual([fact["text"] for fact in seen[1]["fact_state"]["facts"]], ["A supplier email starts a case."])
+
+    def test_unrelated_answer_keeps_the_fast_lead_despite_an_open_gap(self):
+        client = SyntheticTeamProvider()
+        client.agent_models["process_reviewer"] = "configured-reconciler"
+        payload = client.payload()
+        next(turn for turn in payload["turns"] if turn["id"] == "u_accountable")["text"] = "I don't know who owns the overall result."
+        seen = []
+
+        def response(model_input):
+            seen.append(model_input)
+            if len(seen) == 1:
+                result = from_model_input(model_input, [operation("accountable", "The accountable owner is unknown.",
+                                                                  "u_accountable", kind="gap")], {"accountable": "partial"})
+                result["question"] = "Where is the written procedure kept?"
+                return result
+            return from_model_input(model_input)
+        typed_responder(client, response)
+        first = client.coordinator.interview(payload)
+        self.assertEqual(first["question"], "Where is the written procedure kept?")
+        second = client.coordinator.interview(reply_payload(payload, first, "On the finance team's shared drive."))
+        self.assertEqual([call.args[1]["model"] for call in client.request.call_args_list], ["synthetic-lead", "synthetic-lead"])
+        self.assertEqual(seen[1]["fact_state"]["reconciliation_targets"], [])
+        self.assertTrue(any(fact["kind"] == "gap" for fact in seen[1]["fact_state"]["facts"]),
+                        "The untouched gap stays visible to the lead")
+        self.assertEqual(next(row["model"] for row in second["agent_team"]["agents"] if row["role"] == "lead_interviewer"),
+                         "synthetic-lead")
 
 
 class FactTransactionTests(unittest.TestCase):
@@ -652,9 +760,11 @@ class FactCoordinatorTests(unittest.TestCase):
         result = client.coordinator.interview(follow)
         self.assertEqual(next(item["answer"] for item in result["memo_findings"] if item["key"] == "checks"), alpha["text"])
         self.assertEqual(client.request.call_args.args[1]["model"], "synthetic-lead")
+        # Renaming the process (the working map does this) keeps the same
+        # interview's pins; only a different transcript or token loses them.
         changed = copy.deepcopy(follow)
         changed["context"]["process_name"] = "A different process"
-        self.assertEqual(client.coordinator.fact_source_ids(changed), [])
+        self.assertEqual(client.coordinator.fact_source_ids(changed), ["doc_alpha"])
         changed = copy.deepcopy(follow)
         changed["turns"][0]["text"] = "A changed account."
         self.assertEqual(client.coordinator.fact_source_ids(changed), [])

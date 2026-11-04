@@ -45,6 +45,58 @@ def topic(assessment, key):
     return next(item for item in assessment["topics"] if item["key"] == key)
 
 
+class GroupedAssessmentTests(unittest.TestCase):
+    """The completion review runs topic groups concurrently; validation stays whole-account."""
+
+    def test_groups_cover_every_topic_exactly_once(self):
+        keys = [key for group in coverage.COVERAGE_REVIEW_GROUPS for key in group]
+        self.assertEqual(sorted(keys), sorted(coverage.TOPIC_DIMENSIONS))
+        self.assertEqual(len(keys), len(set(keys)))
+
+    def test_group_schema_and_instructions_are_limited_to_the_group(self):
+        schema = coverage.group_schema(("purpose", "name"))
+        topics = schema["properties"]["topics"]
+        self.assertEqual(topics["items"]["properties"]["key"]["enum"], ["name", "purpose"])
+        self.assertEqual((topics["minItems"], topics["maxItems"]), (2, 2))
+        self.assertIn("capture_repair", coverage.group_schema(("name",), repair=True)["properties"]["topics"]["items"]["properties"])
+        with self.assertRaises(ValueError):
+            coverage.group_schema(("unknown",))
+        instructions = coverage.group_instructions(("name", "purpose"))
+        self.assertIn("ASSESS ONLY THESE TOPICS, EACH EXACTLY ONCE, IN THIS ORDER: name, purpose", instructions)
+        self.assertIn("name: everyday_name", instructions)
+        self.assertNotIn("lifecycle: items_and_stages", instructions)
+        self.assertEqual(coverage.group_instructions(tuple(coverage.TOPIC_DIMENSIONS)), coverage.AUDIT_INSTRUCTIONS)
+        self.assertIn("EXPLICIT CAPTURE REPAIR RULES", coverage.group_instructions(("risk",), repair=True))
+
+    def test_merge_requires_every_requested_topic_once_and_nothing_else(self):
+        _, assessment, _ = fixture()
+        by_key = {item["key"]: item for item in assessment["topics"]}
+        groups = coverage.COVERAGE_REVIEW_GROUPS
+        parts = [(group, {"topics": [by_key[key] for key in reversed(group)]}) for group in groups]
+        merged = coverage.merge_group_assessments(parts)
+        self.assertEqual([item["key"] for item in merged["topics"]], list(coverage.TOPIC_DIMENSIONS))
+        with self.assertRaises(ValueError):
+            coverage.merge_group_assessments([(groups[0], {"topics": [by_key[key] for key in groups[0][:-1]]})])
+        with self.assertRaises(ValueError):
+            coverage.merge_group_assessments([(groups[0], {"topics": [by_key[key] for key in groups[0]] + [by_key["risk"]]})])
+        with self.assertRaises(ValueError):
+            coverage.merge_group_assessments([(groups[0], {"topics": [by_key[groups[0][0]]] * len(groups[0])})])
+
+    def test_subset_assessment_describes_only_the_requested_topics(self):
+        findings, assessment, turns = fixture()
+        risk = topic(assessment, "risk")
+        with self.assertRaises(ValueError):
+            coverage.apply_assessment(findings, {"topics": [risk]}, turns)
+        revised, public = coverage.apply_assessment(findings, {"topics": [risk]}, turns, required_keys=["risk"])
+        self.assertEqual([item["key"] for item in public["topics"]], ["risk"])
+        self.assertTrue(public["all_topics_covered"])
+        self.assertEqual(revised, findings)
+        with self.assertRaises(ValueError):
+            coverage.apply_assessment(findings, {"topics": [risk]}, turns, required_keys=["risk", "name"])
+        with self.assertRaises(ValueError):
+            coverage.apply_assessment(findings, {"topics": [risk]}, turns, required_keys=["unknown"])
+
+
 class CoverageAssessmentTests(unittest.TestCase):
     def repair_fixture(self, status="captured"):
         findings, assessment, turns = fixture()

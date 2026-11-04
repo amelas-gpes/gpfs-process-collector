@@ -34,6 +34,11 @@ correction is not a withdrawal of later steps. “That's about it” does not re
 Ambiguous scope should prompt one clarification. Summaries and gap lists describe the cumulative
 account. An explicit whole-account withdrawal can still remove the complete graph.
 
+Since 0.23.0 the working-map request starts when an answer is sent, alongside the lead's capture
+call, instead of after it and only while Workflow is visible. It still carries the detached previous
+capture, runs the document audit when file evidence is present, and waits for document intake and
+for a completion review. A newer answer during a map update schedules one follow-up once it finishes.
+
 The output remains a working interpretation. An exact quote establishes where an edit came from;
 it cannot prove that the model understood its scope correctly. The ordinary bounded request-size
 limit still applies, including the prior-capture payload. No new dependencies or runtimes are needed.

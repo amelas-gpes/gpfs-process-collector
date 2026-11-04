@@ -2,7 +2,9 @@
  * interview response -> authorized playback. No direct model-to-speaker path. */
 (function (global) {
   "use strict";
-  const SILENCE_MS=2200, MIN_SPEECH_MS=550, MAX_SEGMENT_MS=90000;
+  // 1.8 s of silence ends a spoken answer: long enough to survive a mid-sentence
+  // pause, short enough that the turn does not feel laggy.
+  const SILENCE_MS=1800, MIN_SPEECH_MS=550, MAX_SEGMENT_MS=90000;
   const KINDS=new Set(["question","final_check","complete","pause","review_pending"]);
   const REVIEW_ACK="Let me check that I have everything before we finish.";
   const PARTIAL_REVIEW_ACK="Let me check what we have and keep the unanswered parts open.";

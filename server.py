@@ -16,6 +16,7 @@ import socket
 import ssl
 import sys
 import threading
+from concurrent.futures import ThreadPoolExecutor
 import time
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -24,7 +25,7 @@ from urllib.parse import unquote, urlsplit
 from urllib.request import Request, urlopen
 import webbrowser
 
-VERSION = "0.22.0"
+VERSION = "0.23.0"
 APP_DIR = Path(__file__).resolve().parent
 WEB_DIR = APP_DIR / "web"
 DIAGNOSTIC_MAX_BYTES = 1024 * 1024
@@ -1614,8 +1615,11 @@ def apply_workflow_update(update, previous, turns, documents=None):
         check_retained(finding, old)
         if old and old["status"] != "unknown" and finding["status"] == "unknown":
             if not finding["evidence_turns"] or any(source not in participant_text for source in finding["evidence_turns"]):
-                raise ValueError("Withdrawing a memo finding must cite participant correction evidence.")
-    findings.update(finding_updates)
+                # A withdrawal without participant evidence cannot erase a known
+                # topic. Keep the prior finding; nothing from the dropped entry
+                # is retained, and the graph edits in the same update stay valid.
+                continue
+        findings[key] = finding
     return validate_workflow_capture({
         "title": update["title"], "steps": list(steps.values()), "connections": list(edges.values()),
         "open_questions": update["open_questions"], "memo_findings": list(findings.values()),
@@ -1679,9 +1683,59 @@ class OpenAIClient:
     def browser_connect_sources(self):
         return ("wss://api.openai.com",)
 
-    def request(self, path, body, content_type="application/json", timeout=90):
+    @staticmethod
+    def _read_stream(response, on_text):
+        """Collect Responses API server-sent events into the final response object.
+
+        on_text receives the output text accumulated so far after each delta and
+        returns True once it has seen what it needs; it is not called again.
+        """
+        pieces, pending, final, announced, total = [], [], None, False, 0
+
+        def dispatch():
+            nonlocal final, announced
+            if not pending:
+                return
+            raw = "\n".join(pending)
+            pending.clear()
+            if raw == "[DONE]":
+                return
+            event = json.loads(raw)
+            if not isinstance(event, dict):
+                raise ValueError("Unexpected stream event.")
+            kind = event.get("type", "")
+            if kind == "response.output_text.delta" and isinstance(event.get("delta"), str):
+                pieces.append(event["delta"])
+                if not announced:
+                    try:
+                        announced = bool(on_text("".join(pieces)))
+                    except Exception:
+                        announced = True  # An observer failure must not stall the response.
+            elif kind in ("response.completed", "response.incomplete", "response.failed") and isinstance(event.get("response"), dict):
+                final = event["response"]
+            elif kind == "error":
+                raise ValueError("The provider reported a stream error.")
+
+        for line in response:
+            total += len(line)
+            if total > 4 * 1024 * 1024:
+                raise ValueError("The streamed response exceeds the local size limit.")
+            text = line.decode("utf-8").rstrip("\r\n")
+            if text.startswith("data:"):
+                pending.append(text[5:].strip())
+            elif not text:
+                dispatch()
+        dispatch()
+        if final is None:
+            raise ValueError("The stream ended before the response completed.")
+        return final
+
+    def request(self, path, body, content_type="application/json", timeout=90, on_text=None):
         if not self.key:
             raise APIError("The server has no OpenAI API key configured. Restart after completing secure setup.", 503)
+        streaming = on_text is not None and path == "responses" and isinstance(body, dict)
+        if streaming:
+            body = {**body, "stream": True}
         data = json.dumps(body).encode("utf-8") if isinstance(body, dict) else body
         request = Request("https://api.openai.com/v1/" + path, data=data,
                           headers={"Authorization": "Bearer " + self.key, "Content-Type": content_type}, method="POST")
@@ -1702,7 +1756,14 @@ class OpenAIClient:
         try:
             try:
                 with urlopen(request, timeout=timeout) as response:
-                    raw = response.read(4 * 1024 * 1024)
+                    if streaming:
+                        try:
+                            raw = self._read_stream(response, on_text)
+                        except (ValueError, UnicodeError):
+                            metrics.update(error_category="invalid_response")
+                            raise APIError("OpenAI returned an unreadable response. Please try again.") from None
+                    else:
+                        raw = response.read(4 * 1024 * 1024)
             except HTTPError as error:
                 code = ""
                 error_type = ""
@@ -1764,7 +1825,7 @@ class OpenAIClient:
                 metrics.update(status=status, error_category=category, error_type=type(cause).__name__)
                 raise APIError(message, status) from None
             try:
-                result = json.loads(raw)
+                result = raw if streaming else json.loads(raw)
             except (ValueError, UnicodeError):
                 metrics.update(error_category="invalid_response")
                 raise APIError("OpenAI returned an unreadable response. Please try again.") from None
@@ -1779,7 +1840,8 @@ class OpenAIClient:
                     # Logging cannot turn a valid response into a failed request.
                     pass
 
-    def structured(self, instructions, payload, schema, name, max_tokens, reasoning_effort="low", input_content=None, request_timeout=None, model_override=None):
+    def structured(self, instructions, payload, schema, name, max_tokens, reasoning_effort="low", input_content=None,
+                   request_timeout=None, model_override=None, on_text=None):
         # A JSON Schema is a tree on the wire. deepcopy preserves Python object
         # aliases (such as STRINGS), which would also constrain unrelated lists
         # when an evidence array is narrowed. Materialize independent tree nodes.
@@ -1851,7 +1913,8 @@ class OpenAIClient:
                 "text": {"format": {"type": "json_schema", "name": name, "strict": True, "schema": response_schema}}}
         if effective_model.startswith(("gpt-5", "gpt-6")):
             body["reasoning"] = {"effort": reasoning_effort}
-        result = self.request("responses", body, **({"timeout": request_timeout} if request_timeout is not None else {}))
+        result = self.request("responses", body, **({"timeout": request_timeout} if request_timeout is not None else {}),
+                              **({"on_text": on_text} if on_text is not None else {}))
         if result.get("status") not in (None, "completed"):
             raise APIError("The model did not finish its response. Your session is retained; try again.")
         texts = []
@@ -1996,20 +2059,62 @@ class OpenAIClient:
         return {"sdp": answer, "session_id": session_id, "model": LIVE_MODEL,
                 **({"document_evidence": document_evidence} if supporting else {})}
 
-    def assess_coverage(self, findings, context, turns, supporting, force=False, model_override=None, allow_capture_repair=False):
-        """No full circle without an independent, dimension-by-dimension explanation."""
+    def assess_coverage(self, findings, context, turns, supporting, force=False, model_override=None,
+                        allow_capture_repair=False, topics=None, split=False):
+        """No full circle without an independent, dimension-by-dimension explanation.
+
+        split runs the eleven topics as concurrent topic groups: the same transcript
+        and candidate findings reach every call, each assesses only its own topics,
+        and the merged result passes the unchanged full validation. topics limits
+        the assessment to a subset (an advisory check); the result then describes
+        that subset only.
+        """
         if not force and not any(item["status"] in ("captured", "not_applicable") for item in findings):
             return findings, None
+        requested = [key for key in interview_coverage.TOPIC_DIMENSIONS if key in set(topics)] if topics else None
         try:
-            schema = interview_coverage.REPAIR_ASSESSMENT_SCHEMA if allow_capture_repair else interview_coverage.ASSESSMENT_SCHEMA
-            assessment = self.structured(
-                interview_coverage.REPAIR_AUDIT_INSTRUCTIONS if allow_capture_repair else interview_coverage.AUDIT_INSTRUCTIONS,
-                {"context": context, "turns": turns, "candidate_findings": findings,
-                 "supporting_documents": supporting},
-                schema, "process_coverage_assessment", 14000,
-                reasoning_effort="medium", request_timeout=120,
-                **({"model_override": model_override} if model_override else {}))
-            check_schema(assessment, schema)
+            if topics and (not requested or len(requested) != len(set(topics))):
+                raise ValueError("Coverage assessment requires known memo topics.")
+            if requested:
+                groups = [tuple(requested)]
+            elif split:
+                groups = [tuple(group) for group in interview_coverage.COVERAGE_REVIEW_GROUPS]
+            else:
+                groups = [tuple(interview_coverage.TOPIC_DIMENSIONS)]
+            scoped = requested is not None or len(groups) > 1
+            model = {"model_override": model_override} if model_override else {}
+
+            def assess_group(group):
+                if scoped:
+                    schema = interview_coverage.group_schema(group, allow_capture_repair)
+                    instructions = interview_coverage.group_instructions(group, allow_capture_repair)
+                else:
+                    schema = interview_coverage.REPAIR_ASSESSMENT_SCHEMA if allow_capture_repair else interview_coverage.ASSESSMENT_SCHEMA
+                    instructions = interview_coverage.REPAIR_AUDIT_INSTRUCTIONS if allow_capture_repair else interview_coverage.AUDIT_INSTRUCTIONS
+                payload = {"context": context, "turns": turns, "candidate_findings": findings,
+                           **({"assess_topics": list(group)} if scoped else {}),
+                           "supporting_documents": supporting}
+                result = self.structured(instructions, payload, schema, "process_coverage_assessment",
+                                         8000 if scoped else 14000, reasoning_effort="medium", request_timeout=120, **model)
+                if scoped:
+                    # Strict output cannot return another group's topics; offline
+                    # fixtures may. Keep only the topics this group was asked for.
+                    if not isinstance(result, dict) or not isinstance(result.get("topics"), list):
+                        raise ValueError("Invalid coverage group result.")
+                    result = {"topics": [topic for topic in result["topics"]
+                                         if isinstance(topic, dict) and topic.get("key") in group]}
+                check_schema(result, schema)
+                return group, result
+
+            if len(groups) == 1:
+                parts = [assess_group(groups[0])]
+            else:
+                with ThreadPoolExecutor(max_workers=len(groups), thread_name_prefix="coverage-review") as pool:
+                    parts = list(pool.map(assess_group, groups))
+            assessment = interview_coverage.merge_group_assessments(parts) if scoped else parts[0][1]
+            if requested:
+                return interview_coverage.apply_assessment(
+                    findings, assessment, turns, document_evidence_catalog(supporting), required_keys=requested)
             apply = interview_coverage.apply_repair_assessment if allow_capture_repair else interview_coverage.apply_assessment
             return apply(
                 findings, assessment, turns, document_evidence_catalog(supporting))
@@ -2250,7 +2355,9 @@ class InterviewServer(ThreadingHTTPServer):
         self.diagnostics_path = (Path(documents_root).parent if documents_root else APP_DIR / "work") / "server-lifecycle.jsonl"
         if isinstance(self.client, OpenAIClient):
             self.client.diagnostic_callback = self.record_event
-        self.api_slots = threading.BoundedSemaphore(2)
+        # A turn may run the lead, the working map, an advisory coverage check and
+        # a voice token request at once; each is one provider-bound request.
+        self.api_slots = threading.BoundedSemaphore(4)
         self.upload_slots = threading.BoundedSemaphore(2)
         self.connection_slots = threading.BoundedSemaphore(self.max_connections)
         try:
@@ -2496,7 +2603,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         if path not in ("/api/interview", "/api/draft", "/api/transcribe", "/api/voice-session", "/api/live-session", "/api/workflow",
                         "/api/agent-team/interview", "/api/agent-team/workflow", "/api/agent-team/review",
-                        "/api/agent-team/status", "/api/agent-team/cancel"):
+                        "/api/agent-team/coverage", "/api/agent-team/status", "/api/agent-team/cancel"):
             return self._json({"error": "Not found."}, 404)
         try:
             if self.headers.get("Transfer-Encoding"):
@@ -2522,7 +2629,8 @@ class Handler(BaseHTTPRequestHandler):
                     payload.pop("supporting_documents", None)
                     scope = payload.get("document_scope")
                     if scope and path in ("/api/interview", "/api/live-session", "/api/workflow", "/api/draft",
-                                          "/api/agent-team/interview", "/api/agent-team/workflow", "/api/agent-team/review"):
+                                          "/api/agent-team/interview", "/api/agent-team/workflow", "/api/agent-team/review",
+                                          "/api/agent-team/coverage"):
                         context, turns = validate_payload(payload)
                         basis = (self.server.client.coordinator.retrieval_basis(payload)
                                  if isinstance(self.server.client, OpenAIClient) and path in
@@ -2530,7 +2638,7 @@ class Handler(BaseHTTPRequestHandler):
                         retrieval_turns = basis["turns"] if basis else turns
                         source_ids = basis["preferred_source_ids"] if basis else prior_document_source_ids(payload)
                         if (not basis and isinstance(self.server.client, OpenAIClient) and path in
-                                ("/api/interview", "/api/agent-team/interview")):
+                                ("/api/interview", "/api/agent-team/interview", "/api/agent-team/coverage")):
                             # The browser need not resend derived memo prose to
                             # keep earlier facts. Rehydrate exact private-ledger
                             # citations through the current scoped store first.
@@ -2558,7 +2666,7 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/live-session":
                 return self._json({"error": "This interview uses reviewed voice turns. Refresh the page to continue with the current interviewer."}, 409)
             if not self.server.api_slots.acquire(blocking=False):
-                return self._json({"error": "Two requests are already processing. Wait for them to finish."}, 429)
+                return self._json({"error": "Several requests are already processing. Wait for them to finish."}, 429)
             try:
                 client = self.server.client
                 if path == "/api/agent-team/interview":
@@ -2567,6 +2675,8 @@ class Handler(BaseHTTPRequestHandler):
                     result = client.coordinator.review(payload)
                 elif path == "/api/agent-team/workflow":
                     result = client.coordinator.workflow(payload)
+                elif path == "/api/agent-team/coverage":
+                    result = client.coordinator.advisory_coverage(payload)
                 elif path == "/api/interview":
                     result = client.coordinator.interview(payload) if isinstance(client, OpenAIClient) else client.interview(payload)
                 elif path == "/api/draft":

@@ -33,6 +33,7 @@ class QuestionContextTests(unittest.TestCase):
         self.assertIn(server.CURIOSITY_POLICY, policy)
         self.assertIn(server.QUESTIONING_POLICY, policy)
         self.assertIn(server.CORRECTION_SCOPE_POLICY, policy)
+        self.assertEqual(policy.count(server.QUESTION_SELECTION_POLICY), 1)
         self.assertIn(server.interview_coverage.TOPIC_RUBRIC, policy)
         self.assertIn('NEVER evidence', policy)
         self.assertIn('not universal requirements', policy)

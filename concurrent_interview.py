@@ -61,26 +61,8 @@ def question_policy(api):
     return QUESTION_POLICY + "\n" + "\n".join(
         getattr(api, name, "") for name in
         ("QUESTIONING_POLICY", "CURIOSITY_POLICY", "CORRECTION_SCOPE_POLICY")) + "\n" + (
-        getattr(coverage, "TOPIC_RUBRIC", "")) + """
-
-NEXT QUESTION SELECTION (apply after reading all sources):
-1. Identify the participant's current activity and the exact material uncertainty in their latest
-answer. If they name a consequential check, decision or automatic action without explaining how
-they judge its result, deepen that mechanism before moving to a different topic. Naming the action
-does not answer this. Inspect the whole answer, not only its last action. For example, a reported
-automatic connection leaves its usable/readiness signal unexplained; reconciling two balances
-leaves the comparison/acceptance method unexplained. Probe such an actual ambiguity before asking
-what happens next. These are examples of judgment, not mandatory questions or assumed practices.
-Ask for one concrete missing fact; do not ask a broad retelling.
-2. If that information is already explained or unavailable, pick up an unresolved thread they
-volunteered (an alternate route, wait, handoff or practical problem). Inspect earlier answers too.
-Do not invent a new hypothetical branch while a reported one is still unexplained.
-3. If these threads are sufficiently understood, widen to a materially missing topic. Also widen
-when recent questions keep circling a local detail without useful new information. The rubric's
-printed order is NOT question order: do not default to the trigger just because it is missing.
-Keep responsibility for all topics over the conversation; depth does not justify endless drilling.
-4. Check your chosen information need once more against the full transcript, corrections, explicit
-unknowns and excerpts. Ask ONE request, not a mechanism plus a second who/how/why subquestion.
+        getattr(coverage, "TOPIC_RUBRIC", "")) + "\n" + (
+        getattr(api, "QUESTION_SELECTION_POLICY", "")) + """
 Only the short response and request_review flag are returned; keep this selection work silent.
 """
 

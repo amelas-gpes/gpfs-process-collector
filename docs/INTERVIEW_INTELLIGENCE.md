@@ -1,5 +1,7 @@
 # Interview intelligence — 0.25.0
 
+**0.25.1 follow-up:** the detailed selection policy is now shared with GPT-Live and its delegated backend. The original 0.25.0 merge retained the broader live interviewing rules but omitted this newer policy from the live prompt. [Live prompt validation](LIVE_PROMPT_PARITY.md) records the correction and its separate measurements; the reviewed-turn evidence below remains historical.
+
 Version 0.25.0 merges the local interview-intelligence candidate with upstream live-voice changes through 0.24.1. GPT-Live remains the default spoken interviewer; full managed-team captures update its notes and suggestions in the background. The question-only concurrent path serves typed and reviewed-turn interviews, and cannot intercept active live capture requests. Switching to live cancels pending concurrent capture work. Suggested process titles remain separate from source context; manual context changes invalidate pending responses and reviews.
 
 The provider and browser measurements below describe the **pre-merge reviewed-turn candidate**, not the default live voice. They do **not establish acceptance of the immediate-conversation requirement**. Provider trials show useful improvements and remaining question-quality failures; reviewed-turn synthetic audio still has substantial silence. Physical participant testing and sustained, adaptive interview acceptance remain outstanding for the merged release.

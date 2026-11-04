@@ -24,6 +24,11 @@
     button(text,className,fn) {const button=this.node("button",className,text);button.type="button";button.addEventListener("click",fn);return button;}
     control(button,document,action,identity="") {button.classList.add("document-control");button.dataset.documentControl=JSON.stringify([document.id,action,identity]);return button;}
     visible(node) {for(let current=node;current;current=current.parentElement)if(current.hidden||(current.tagName==="DIALOG"&&!current.open))return false;return true;}
+    focusDocumentFallback(id) {
+      const card=this.body.querySelector?.(`[data-document-id="${this.safeId(id)}"]`)||this.body.querySelector?.(".documents-card");
+      const target=card||(this.assets?this.attachButton:this.dialog?.querySelector?.(".documents-close"))||this.attachButton;
+      if(target&&!target.disabled&&this.visible(target)){if(card)card.tabIndex=-1;target.focus?.({preventScroll:true});}
+    }
     emit(event) {this.options.onEvent?.(event);}
     lifecycle() {
       return {scope:this.scope,generation:this.generation,documents:copy(this.documents),uploading:this.uploads.length,mutating:this.mutating,
@@ -312,10 +317,10 @@
       for(const document of this.documents)this.renderDocument(document,drafts);
       this.sourceHeading=null;if(this.source)this.renderSource();this.body.scrollTop=scrollTop;
       if(sourceFocus&&this.sourceHeading?.dataset.documentSourceHeading===sourceFocus&&this.visible(this.sourceHeading))this.sourceHeading.focus?.({preventScroll:true});
-      if(cardFocus)this.body.querySelector?.(`[data-document-id="${this.safeId(cardFocus)}"]`)?.focus?.({preventScroll:true});
+      if(cardFocus)this.focusDocumentFallback(cardFocus);
       if(toggleFocus)[...this.body.querySelectorAll(".documents-detail-toggle")].find(button=>button.dataset.documentToggle===toggleFocus)?.focus?.({preventScroll:true});
-      if(controlFocus){const control=[...this.body.querySelectorAll(".document-control")].find(button=>button.dataset.documentControl===controlFocus);if(control&&!control.disabled&&this.visible(control))control.focus?.({preventScroll:true});}
-      if(purposeFocus){const input=[...this.body.querySelectorAll("[data-document-purpose]")].find(node=>node.dataset.documentPurpose===purposeFocus);input?.focus?.({preventScroll:true});if(selection&&input?.setSelectionRange)input.setSelectionRange(...selection);}
+      if(controlFocus){const control=[...this.body.querySelectorAll(".document-control")].find(button=>button.dataset.documentControl===controlFocus);if(control&&!control.disabled&&this.visible(control))control.focus?.({preventScroll:true});else this.focusDocumentFallback(JSON.parse(controlFocus)[0]);}
+      if(purposeFocus){const input=[...this.body.querySelectorAll("[data-document-purpose]")].find(node=>node.dataset.documentPurpose===purposeFocus);if(input){input.focus?.({preventScroll:true});if(selection&&input.setSelectionRange)input.setSelectionRange(...selection);}else this.focusDocumentFallback(purposeFocus);}
     }
     renderDocument(document,drafts) {
       const card=this.node("section","documents-card");card.dataset.documentId=this.safeId(document.id);
@@ -339,7 +344,12 @@
         const toggle=this.button("Review details & sources","documents-detail-toggle",()=>{const open=content.hidden;content.hidden=!open;this.expandedAssets.set(document.id,open);toggle.setAttribute("aria-expanded",String(open));});
         toggle.dataset.documentToggle=document.id;toggle.setAttribute("aria-expanded",String(expanded));toggle.setAttribute("aria-controls",content.id);card.append(toggle,content);
       }
-      if(analysis.summary)content.append(this.node("p","documents-summary",analysis.summary));
+      if(analysis.summary){
+        if(analysis.summary_basis==="initial_review"){
+          const overview=this.node("section","documents-overview");overview.append(this.node("h4","","Initial overview"),this.node("p","documents-summary",analysis.summary));
+          overview.append(this.node("p","documents-progress",analysis.summary_basis_note||"Written from the initial review selection. Current review status and limitations are shown separately."));content.append(overview);
+        }else content.append(this.node("p","documents-summary",analysis.summary));
+      }
       if(document.coverage){
         const coverage=typeof document.coverage==="string"?document.coverage:document.coverage.summary||document.coverage.note;if(coverage)content.append(this.node("p","documents-progress",coverage));
       }

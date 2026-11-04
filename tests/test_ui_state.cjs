@@ -769,7 +769,7 @@ if(process.argv.includes("--usability-only")){
   t.clearState();assert.equal(t.state.captureProvenance,null);assert.equal(Object.hasOwn(t.sessionObject(),"capture_provenance"),false,"A new ordinary interview cannot inherit the simulation marker");
   t.ensureConversation();assert.equal(Object.hasOwn(t.sessionObject(),"capture_provenance"),false);
   await open(saved);const ordinary={...saved,closure:{asked:true,confirmed:true}};delete ordinary.capture_provenance;await open(ordinary);
-  assert.equal(t.state.captureProvenance,null);assert.equal(Object.hasOwn(t.sessionObject(),"capture_provenance"),false,"Older ordinary saved sessions keep their no-provenance behavior");assert.equal(t.sessionObject().closure.confirmed,true,"Ordinary participant confirmation remains unchanged");
+  assert.equal(t.state.captureProvenance,null);assert.equal(Object.hasOwn(t.sessionObject(),"capture_provenance"),false,"Older ordinary saved sessions keep their no-provenance behavior");assert.equal(t.sessionObject().closure.confirmed,false,"Imported confirmation must be revisited after a fresh coverage assessment");
   t.clearState();passes++;
  }
  const fileRecord=(overrides={})=>({id:"doc_ref1",name:"Reference.pdf",kind:"pdf",status:"ready",size:1234,coverage:{indexed_units:2,total_units:3,limitations:["A visual appendix could not be interpreted."]},analysis:{phase:"complete",disposition:"relevant",version:1,intent_version:1,summary:"Unconfirmed document summary sentinel",question:"Does the reported process use this approval?",questions:[],sources:[{source_id:"source_page2",label:"Reference.pdf · Page2"}],observations:[{text:"Unconfirmed document observation sentinel",sources:[{source_id:"source_page1",label:"Reference.pdf · Page1"}]}],limitations:["Formula values were not recalculated."]},...overrides});
@@ -1082,7 +1082,7 @@ if(process.argv.includes("--usability-only")){
   const clone=value=>JSON.parse(JSON.stringify(value));
   t.setDocumentController({lifecycle:()=>clone(lifecycle),exportState:()=>({scope:lifecycle.scope,documents:clone(lifecycle.documents)}),reset(){},render(){}});
   let finishPause,finishBaseline,finishFollowup,stopCount=0,appendCount=0;const starts=[],requests=[];
-  const live={active:true,connected:true,stop(){stopCount++;this.active=false;this.connected=false;t.conversationUI.status="idle";return new Promise(resolve=>finishPause=resolve);},async start(payload){starts.push(payload);this.active=true;this.connected=true;},appendContext(){appendCount++;}};
+  const appended=[];const live={active:true,connected:true,stop(){stopCount++;this.active=false;this.connected=false;t.conversationUI.status="idle";return new Promise(resolve=>finishPause=resolve);},async start(payload){starts.push(payload);this.active=true;this.connected=true;},appendContext(content,options){appendCount++;appended.push({content:JSON.parse(content),options});}};
   t.conversationUI.live=live;t.conversationUI.status="listening";
   t.setRequest((url,payload,options)=>{requests.push({url,payload,options});if(url==="/api/workflow")return new Promise(resolve=>finishBaseline=resolve);if(url==="/api/interview")return new Promise(resolve=>finishFollowup=resolve);throw Error(`Unexpected request: ${url}`);});
   const intake=t.createIntake(),flush=async()=>{for(let i=0;i<12;i++)await Promise.resolve();};
@@ -1111,13 +1111,13 @@ if(process.argv.includes("--usability-only")){
   assert.equal(requests.length,0,"A completed review still waits for the voice transcript to drain");
   finishPause({finalized:true});await flush();
   assert.equal(intake.phase,"baseline");assert.equal(requests.length,1);assert.equal(requests[0].url,"/api/workflow");
-  assert.equal(requests[0].options.timeout,420000,"Document capture leaves time for generation, audit, and HTTP overhead");
+  assert.equal(requests[0].options.timeout,510000,"Document capture allows generation, source audit, coverage assessment and overhead");
   assert.equal(requests[0].payload.document_scope,"scope_intake");assert.equal(t.state.summary,"Previous accepted summary");
   assert.equal(t.state.turns.some(turn=>turn.text==="Premature document question?"),false);passes++;
 
   finishBaseline({workflow:graph("Reviewed payment process",[{id:"S1",title:"Client releases the wire",evidence_turns:[sourceId]}]),document_evidence:[evidence],memo_findings:[{key:"trigger",status:"captured",answer:"Treasury receives the request",evidence_turns:["t002"]}],coverage:[],summary:"Accepted document baseline",focus:"Confirm the release owner",parking_lot:["Confirm exceptions"]});await flush();
   assert.equal(intake.phase,"question");assert.equal(requests.length,2);assert.equal(requests[1].url,"/api/interview");assert.equal(requests[1].payload.action,"document_followup");
-  assert.equal(requests[1].options.timeout,210000,"The follow-up allows both 90-second provider calls and HTTP overhead");
+  assert.equal(requests[1].options.timeout,330000,"The follow-up allows two 90-second calls, the 120-second coverage assessment and overhead");
   assert.equal(requests[1].payload.previous_capture.summary,"Accepted document baseline");assert.equal(requests[1].payload.previous_capture.workflow.steps[0].title,"Client releases the wire");
   assert.equal(t.state.summary,"Accepted document baseline");assert.equal(t.state.turns.length,3,"The follow-up must not appear until its request resolves");
   t.applyInterview({question:"Stale question from before upload",summary:"Stale summary",coverage:[],memo_findings:[]});
@@ -1131,7 +1131,7 @@ if(process.argv.includes("--usability-only")){
   t.onDocumentEvent({type:"analysis",document:file});t.onDocumentEvent({type:"changed",state:clone(lifecycle)});await flush();
   assert.equal(requests.length,2);assert.equal(t.state.turns.length,4,"Repeated final polling cannot add another follow-up");assert.equal(stopCount,1);passes++;
 
-  await t.startLiveConversation();assert.equal(starts.length,1);assert.equal(starts[0].document_scope,"scope_intake");assert.equal(starts[0].turns.some(turn=>turn.document_event),false);assert.equal(starts[0].turns.at(-1).text,t.state.turns.at(-1).text);assert.equal(appendCount,0,"Resumed voice receives the finalized scope once, with no competing per-file context injection");
+  await t.startLiveConversation();assert.equal(starts.length,1);assert.equal(starts[0].document_scope,"scope_intake");assert.equal(starts[0].turns.some(turn=>turn.document_event),false);assert.equal(starts[0].turns.at(-1).text,t.state.turns.at(-1).text);assert.equal(appendCount,1,"Resumed voice receives only the coverage snapshot; finalized files are seeded once on the server");assert.equal(appended[0].options.kind,"interview_coverage");assert.equal(appended[0].content.analysis_current,true);
   intake.reset();t.setIntake(null);t.conversationUI.live=null;t.setDocumentController(null);t.clearState();passes++;
  }
  {
@@ -1173,6 +1173,99 @@ if(process.argv.includes("--usability-only")){
   const external=new AbortController(),cancelled=t.realRequest("/api/interview",t.snapshot(),{signal:external.signal});
   const cancelledRejected=assert.rejects(cancelled,error=>error.name==="AbortError"&&!/too long/.test(error.message));external.abort();await cancelledRejected;
   context.fetch=originalFetch;t.clearState();passes++;
+ }
+ {
+  const sources=[{id:"u_mixed",role:"user",text:"The operations manager owns the overall result. I do not know the exact folder."}];
+  const findings=t.normalizeFindings([{key:"accountable",status:"captured",answer:"The operations manager owns the overall result.",evidence_turns:["u_mixed"]},{key:"materials",status:"captured",answer:"The exact folder is unknown.",evidence_turns:["u_mixed"]}],sources,[]);
+  assert.equal(findings.find(item=>item.key==="accountable").status,"captured","An unrelated uncertainty in the same source turn cannot erase a known role");assert.equal(findings.find(item=>item.key==="materials").status,"partial","Uncertainty in the actual topic answer must still veto completion");passes++;
+ }
+ {
+  checkpoint();t.clearState();t.state.config={api_configured:true,speech:{enabled:false}};
+  for(const id of ["draft-title","draft-overview","draft-trigger","draft-inputs","draft-outputs","draft-open-questions","draft-validation-notes","draft-exceptions","draft-controls","procedure-steps","connection-rows","memo-summary","lifecycle-items","variation-items"])if(!document.getElementById(id))mount(id,"div",review);
+  const findings=completeFindings(),turns=[{id:"t002",role:"user",text:"Reported process facts."}];findings[7].status="not_applicable";findings[7].answer="The participant explicitly reported that variations do not apply.";
+  const saved={schema_version:1,context:{process_name:"Saved process",objective:"Review the process"},turns,coverage:memoKeys.map(key=>({key,status:"covered"})),memo_findings:findings,summary:"Preserve the reported account.",closure:{asked:true,confirmed:true},draft:{title:"Saved report",steps:[],connections:[],memo_summary:findings}};
+  const raw=JSON.stringify(saved);let calls=0;t.setRequest(async()=>{calls++;throw Error("Import cannot request a provider");});
+  await t.importSession({size:raw.length,text:async()=>raw});
+  assert.equal(calls,0);assert.equal(workflowTimers().length,0,"Opening a file must not schedule automatic provider analysis");assert.equal(JSON.stringify(saved),raw,"The supplied source remains unchanged");assert.equal(t.state.closure.confirmed,false);assert.equal(t.state.coverageNeedsReview,true);
+  assert.equal(t.state.memo_findings.every(item=>item.status==="partial"),true);assert.equal(t.state.draft.memo_summary.every(item=>item.status==="partial"),true);assert.equal(t.state.coverage.every(item=>item.status!=="covered"),true);assert.equal(document.getElementById("coverage-count").textContent,"0 / 11");
+  assert.deepEqual(JSON.parse(JSON.stringify(t.state.memo_findings.map(({key,answer,evidence_turns})=>({key,answer,evidence_turns})))),findings.map(({key,answer,evidence_turns})=>({key,answer,evidence_turns})));assert.notEqual(t.state.draftVersion,t.state.version);
+  assert.match(document.getElementById("notice-text").textContent,/provisional.*Recheck coverage/);assert.equal(document.getElementById("retry-workflow").hidden,false);assert.equal(document.getElementById("retry-workflow").textContent,"Recheck coverage");passes++;
+  t.setRequest(async(_path,_payload,options)=>{calls++;assert.equal(options.timeout,330000);return {workflow:graph("Reviewed process"),memo_findings:findings,coverage:[],summary:"Preserve the reported account.",focus:"",parking_lot:[],coverage_assessment:{all_topics_covered:true,topics:[]}};});
+  await t.refreshWorkflow();assert.equal(calls,1);assert.equal(t.state.coverageNeedsReview,false);assert.equal(document.getElementById("coverage-count").textContent,"11 / 11");assert.equal(t.state.closure.confirmed,false,"Rechecking topic coverage cannot manufacture a new participant confirmation");assert.equal(document.getElementById("retry-workflow").dataset.coverageRecheck,undefined);t.clearState();passes++;
+ }
+ {
+  checkpoint();t.clearState();t.state.started=true;t.state.context={process_name:"Incomplete review"};t.state.config={api_configured:true,speech:{enabled:false}};t.state.turns=[{id:"t002",role:"user",text:"A paper invoice arrives by post."}];let calls=0;
+  const result={...memoResult("Retained process"),coverage_assessment:{all_topics_covered:false,review_available:false,topics:[],limitation:"Review unavailable"}};
+  t.setRequest(async()=>{calls++;return result;});await t.refreshWorkflow();
+  assert.equal(t.conversationUI.workflow.title,"Retained process");assert.match(document.getElementById("coverage-update-status").textContent,/Coverage review incomplete/);assert.equal(document.getElementById("retry-workflow").hidden,false);assert.equal(document.getElementById("retry-workflow").textContent,"Recheck coverage");assert.equal(workflowTimers().length,0,"Coverage review failure must not schedule an automatic provider retry");passes++;
+  result.coverage_assessment={all_topics_covered:false,review_available:true,topics:[]};await t.refreshWorkflow();assert.equal(calls,2,"Explicit recheck can run even when the diagram is already current");assert.equal(t.state.coverageNeedsReview,false);assert.equal(document.getElementById("retry-workflow").dataset.coverageRecheck,undefined);t.clearState();passes++;
+ }
+ {
+  checkpoint();const originalFetch=context.fetch;
+  context.fetch=(_url,options)=>new Promise((_resolve,reject)=>options.signal.addEventListener("abort",()=>reject(new DOMException("Aborted","AbortError")),{once:true}));
+  for(const [path,budget] of [["/api/interview",330000],["/api/workflow",330000],["/api/draft",330000],["/api/voice-session",150000]]){
+   const external=new AbortController(),pending=t.realRequest(path,t.snapshot(),{signal:external.signal});
+   assert.ok([...timers.values()].some(timer=>timer.delay===budget),`${path} must allow its aggregate provider stages while retaining a bounded deadline`);
+   const rejected=assert.rejects(pending,error=>error.name==="AbortError");external.abort();await rejected;
+  }
+  context.fetch=originalFetch;passes++;
+ }
+ // Coverage feedback is a silent working interpretation, never a participant turn.
+ {
+  checkpoint();t.clearState();t.state.started=true;t.state.context={process_name:"Synthetic coverage",objective:"Capture all sections"};t.state.config={api_configured:true,live:{enabled:true},speech:{enabled:false}};
+  const keys=["name","purpose","trigger","completion","accountable","lifecycle","checks","variations","pain_points","risk","materials"];
+  const findings=keys.map(key=>({key,status:"captured",answer:"A supported account for this synthetic test.",evidence_turns:["t002"]}));
+  const assessment={all_topics_covered:true,topics:keys.map(key=>({key,gaps:[],next_question:"",complete:true}))};
+  t.state.turns=[{id:"t002",role:"user",text:"A participant account."}];t.state.memo_findings=findings;
+  const updates=[];let speech=0,stops=0;
+  const live={active:false,connected:false,async start(){this.active=true;this.connected=true;},stop(){stops++;this.active=false;this.connected=false;},sendText(){speech++;},appendContext(content,options){updates.push({content:JSON.parse(content),raw:content,options});return Promise.resolve({status:"acknowledged"});}};
+  t.conversationUI.live=live;const beforeStart=JSON.stringify(t.state.turns);await t.startLiveConversation();
+  assert.equal(updates.length,1);assert.equal(updates[0].content.analysis_current,false,"Saved greens without a current accepted checkpoint cannot authorize live completion");assert.equal(updates[0].content.ready_for_completion,false);assert.equal(updates[0].content.memo_findings.length,11);assert.equal(updates[0].content.latest_participant_turn,"t002");assert.equal(updates[0].content.analyzed_through_turn,null);assert.equal(JSON.stringify(t.state.turns),beforeStart);passes++;
+  const result=()=>({workflow:graph("Synthetic coverage"),memo_findings:findings,coverage:[],summary:"Reported facts",focus:"Coverage",parking_lot:[],coverage_assessment:assessment});
+  t.setRequest(async()=>result());await t.refreshWorkflow();
+  assert.equal(updates.length,2);assert.equal(updates.at(-1).content.analysis_current,true);assert.equal(updates.at(-1).content.ready_for_completion,true);assert.equal(updates.at(-1).content.analyzed_through_turn,"t002");assert.equal(updates.at(-1).options.kind,"interview_coverage");assert.equal(updates.at(-1).options.replaceKey,"interview_coverage");assert.equal(JSON.stringify(t.state.turns),beforeStart);assert.equal(speech,0);assert.equal(stops,0);passes++;
+  t.receiveLiveCaption({id:"coverage-correction",role:"user",text:"A later correction",final:false});
+  assert.equal(updates.length,3);assert.equal(updates.at(-1).content.analysis_current,false);assert.equal(updates.at(-1).content.ready_for_completion,false);assert.notEqual(updates.at(-1).content.latest_participant_turn,"t002");
+  t.receiveLiveCaption({id:"coverage-correction",role:"user",text:"A later correction continues",final:false});t.receiveLiveCaption({id:"coverage-correction",role:"user",text:"A later correction continues",final:true});
+  assert.equal(updates.length,3,"Caption fragments must send one invalidation while analysis is pending");assert.equal(speech,0);passes++;
+  let finish;checkpoint();t.setRequest(()=>new Promise(resolve=>finish=resolve));const pending=t.refreshWorkflow();
+  t.receiveLiveCaption({id:"coverage-correction",role:"user",text:"A later correction continues with another detail",final:true});finish(result());await pending;
+  assert.equal(updates.at(-1).content.analysis_current,false,"An append-only checkpoint can publish notes while its completion signal remains stale");assert.equal(updates.at(-1).content.ready_for_completion,false);passes++;
+  checkpoint();assessment.all_topics_covered=false;assessment.topics.find(topic=>topic.key==="risk").gaps=["Failure consequences remain unexplained."];assessment.topics.find(topic=>topic.key==="risk").next_question="What happens if the notice is wrong?";
+  t.setRequest(async()=>result());await t.refreshWorkflow();
+  assert.equal(updates.at(-1).content.analysis_current,true);assert.equal(updates.at(-1).content.ready_for_completion,false,"An independent incomplete assessment overrides all-green memo statuses");assert.match(updates.at(-1).content.memo_findings.find(topic=>topic.key==="risk").gaps[0],/consequences/);assert.match(updates.at(-1).content.memo_findings.find(topic=>topic.key==="risk").next_question,/notice/);passes++;
+  const updateCount=updates.length;live.stop();await t.startLiveConversation();assert.equal(updates.length,updateCount+1,"A reconnected session receives its own coverage context");assert.equal(updates.at(-1).content.analysis_current,true);assert.equal(new Set(updates.map(update=>update.options.id)).size,updates.length);passes++;
+  t.receiveLiveCaption({id:"unfinished-coverage-answer",role:"user",text:"A thought that has not ended",final:false});checkpoint();t.setRequest(async()=>result());await t.refreshWorkflow();
+  assert.equal(updates.at(-1).content.analysis_current,false,"Matching text is insufficient while a participant caption is still in progress");assert.equal(updates.at(-1).content.participant_answer_in_progress,true);assert.equal(updates.at(-1).content.ready_for_completion,false);
+  t.receiveLiveCaption({id:"unfinished-coverage-answer",role:"user",text:"A thought that has not ended",final:true});assert.equal(updates.at(-1).content.analysis_current,true);assert.equal(updates.at(-1).content.participant_answer_in_progress,false);passes++;
+  t.conversationUI.revision++;for(const finding of findings)finding.answer="界".repeat(4000);for(const topic of assessment.topics){topic.gaps=["界".repeat(500),"界".repeat(500),"界".repeat(500)];topic.next_question="界".repeat(500);}
+  checkpoint();t.setRequest(async()=>result());await t.refreshWorkflow();assert.ok(new TextEncoder().encode(updates.at(-1).raw).length<=14000,"Large and non-ASCII findings must stay within the shared live-context budget");assert.equal(updates.at(-1).content.abbreviated,true);assert.equal(t.state.memo_findings[0].answer.length,4000,"Only the voice hint is abbreviated; accepted findings remain intact");passes++;
+  const oldCount=updates.length;t.conversationUI.revision++;checkpoint();t.setRequest(async()=>{throw Error("Capture unavailable");});await t.refreshWorkflow();assert.equal(updates.length,oldCount,"A failed capture cannot publish an invented coverage checkpoint");
+  live.active=false;t.conversationUI.live=null;t.clearState();passes++;
+ }
+ {
+  checkpoint();t.state.config={api_configured:true,agent_team:{enabled:true},speech:{enabled:false}};t.state.started=true;t.state.context={process_name:"Review test"};
+  t.state.turns=[{id:"t002",role:"user",text:"A definite reported process account."}];t.state.memo_findings=["name","purpose","trigger","completion","accountable","lifecycle","checks","variations","pain_points","risk","materials"].map(key=>({key,status:"captured",answer:"A definite reported detail.",evidence_turns:["t002"]}));
+  t.state.coverageVerified=false;t.renderCoverage();assert.equal(document.getElementById("coverage-count").textContent,"0 / 11");assert.match(document.getElementById("coverage-summary").textContent,/11 captured.*awaiting review/);assert.match(document.getElementById("memo-next").textContent,/awaiting.*review/);
+  const topic=document.querySelector('[data-foundation-topic="name"]');assert.equal(topic.classList.contains("covered"),false);assert.match(topic.querySelector(".coverage-state").textContent,/awaiting review/);t.showFoundationTopic("name",topic);assert.match(document.getElementById("foundation-topic-status").textContent,/awaiting review/);t.closeFoundationTopic(false);
+  t.state.coverageVerified=true;t.renderCoverage();assert.equal(document.getElementById("coverage-count").textContent,"11 / 11");assert.equal(document.querySelector('[data-foundation-topic="name"]').classList.contains("covered"),true);passes++;
+  t.state.captureToken="opaque-server-capability";assert.equal(t.snapshot().capture_token,"opaque-server-capability");assert.ok(!JSON.stringify(t.sessionObject()).includes("opaque-server-capability"),"Server review capabilities must not be persisted in saved files");passes++;
+  t.conversationUI.revision=20;t.conversationUI.applied=0;t.conversationUI.flowBusy=false;t.conversationUI.live=null;t.state.busy=false;t.conversationUI.view="voice";checkpoint();t.scheduleWorkflow();assert.equal(workflowTimers().length,0,"Ordinary voice turns must not compete with background map requests");
+  t.selectConversationView("workflow");assert.equal(workflowTimers().length,1,"Opening Workflow schedules its deferred current map");checkpoint();t.state.busy=true;t.scheduleWorkflow();assert.equal(workflowTimers().length,0,"Foreground review retains priority over map generation");t.state.busy=false;passes++;
+  checkpoint();t.state.example=true;t.conversationUI.applied=-1;let exampleCalls=0;t.setRequest(async()=>{exampleCalls++;return memoResult("Explicit fictional refresh");});
+  for(const view of ["workflow","transcript","voice","workflow"])t.selectConversationView(view);
+  assert.equal(workflowTimers().length,0,"Built-in or reopened synthetic examples must not schedule provider work when browsing views");assert.equal(exampleCalls,0);passes++;
+  await t.refreshWorkflow();assert.equal(exampleCalls,1,"An explicit refresh remains available in example mode");assert.equal(t.conversationUI.workflow.title,"Explicit fictional refresh");t.state.example=false;passes++;
+ }
+ {
+  checkpoint();t.state.busy=false;t.conversationUI.live=null;t.conversationUI.status="idle";t.conversationUI.view="transcript";
+  const ack="Let me check that I have everything before we finish.";
+  t.applyInterview({question:ack,review_ticket:"wait-label-ticket",capture_token:"wait-label-capture",coverage_verified:false,speech_authorization:{approved:true,kind:"review_pending",text:ack,revision:"review-label"},completion:{ready_for_final_check:false,complete:false}});
+  let finish;t.setRequest(()=>new Promise(resolve=>finish=resolve));const reviewing=t.retryQuestion();t.exerciseControls();
+  assert.equal(document.getElementById("thinking-text").textContent,"Checking the recorded topics and process…");t.updatePresence();assert.equal(document.getElementById("presence-status").textContent,"Checking the recorded topics and process…");
+  t.conversationUI.live={active:true,connected:true};t.conversationUI.status="processing";t.updatePresence();assert.equal(document.getElementById("session-status").textContent,"Checking the recorded topics and process…");
+  t.conversationUI.live=null;t.conversationUI.status="idle";finish({question:"Which handoff needs more detail?",coverage_verified:true});await reviewing;
+  t.state.busy=true;t.state.busyMessage="";t.exerciseControls();assert.equal(document.getElementById("thinking-text").textContent,"Thinking of the next question…");t.updatePresence();assert.equal(document.getElementById("presence-status").textContent,"Thinking…");t.state.busy=false;passes++;
  }
  checkpoint();console.log(JSON.stringify({tests_passed:passes,provider_calls:providerCalls,network_calls:0,real_browser:false}));
 })().catch(error=>{console.error(error);process.exitCode=1;});

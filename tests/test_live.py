@@ -9,6 +9,7 @@ import urllib.request
 from unittest.mock import Mock, patch
 
 from test_server import server, interview_payload, process_draft, memo_findings, interview_result
+from test_interview_coverage import fixture as coverage_fixture
 
 KEY = 'sk-test-private-live-sentinel'
 SDP = 'v=0\r\nm=audio 9 UDP/TLS/RTP/SAVPF 111\r\n'
@@ -132,10 +133,22 @@ class LiveContractTests(unittest.TestCase):
 
     def test_workflow_capture_derives_canonical_coverage_from_validated_findings(self):
         capture = workflow_update_result()
+        supported, assessment, source_turns = coverage_fixture()
+        supported_by_key = {finding['key']: finding for finding in supported}
+        capture['memo_findings'][0] = supported_by_key['name']
         capture['memo_findings'].reverse()
-        capture['memo_findings'][0].update(status='not_applicable', answer='No materials apply.', evidence_turns=['u1'])
-        self.client.structured = Mock(return_value=capture)
-        result = self.client.workflow(interview_payload())
+        absent = 'There are no existing written materials for this work.'
+        capture['memo_findings'][0].update(status='not_applicable', answer=absent, evidence_turns=['u_materials'])
+        source_turns[-1]['text'] = absent
+        material = next(topic for topic in assessment['topics'] if topic['key'] == 'materials')
+        material.update(explanation=absent, not_applicable_reason=absent,
+                        not_applicable_evidence_turns=['u_materials'])
+        for dimension in material['dimensions']:
+            dimension.update(status='not_applicable', detail=absent)
+        payload = interview_payload()
+        payload['turns'].extend(source_turns)
+        self.client.structured = Mock(side_effect=[capture, assessment])
+        result = self.client.workflow(payload)
         self.assertEqual([item['key'] for item in result['memo_findings']], list(server.COVERAGE))
         self.assertEqual([item['key'] for item in result['coverage']], list(server.COVERAGE))
         coverage = {item['key']: item for item in result['coverage']}
@@ -146,19 +159,25 @@ class LiveContractTests(unittest.TestCase):
         self.assertEqual(coverage['name']['label'], server.COVERAGE['name'])
         self.assertNotIn('closure', result)
         self.assertNotIn('question', result)
-        self.client.structured.assert_called_once()
+        self.assertEqual([call.args[3] for call in self.client.structured.call_args_list],
+                         ['working_process_map', 'process_coverage_assessment'])
+        self.assertFalse(result['coverage_assessment']['all_topics_covered'])
 
     def test_workflow_snapshot_uses_the_same_all_eleven_readiness_gate(self):
         capture = workflow_update_result()
-        self.client.structured = Mock(return_value=capture)
-        self.assertFalse(self.client.workflow(interview_payload())['ready_for_draft'])
-        capture['memo_findings'] = [
-            {'key': key, 'status': 'not_applicable' if key == 'variations' else 'captured',
-             'answer': 'Synthetic participant basis.', 'evidence_turns': ['u1']}
-            for key in server.COVERAGE]
-        self.assertTrue(self.client.workflow(interview_payload())['ready_for_draft'])
+        findings, assessment, source_turns = coverage_fixture()
+        payload = interview_payload()
+        payload['turns'].extend(source_turns)
+        self.client.structured = Mock(side_effect=lambda *args, **kwargs: copy.deepcopy(
+            assessment if args[3] == 'process_coverage_assessment' else capture))
+        self.assertFalse(self.client.workflow(payload)['ready_for_draft'])
+        capture['memo_findings'] = findings
+        result = self.client.workflow(payload)
+        self.assertTrue(result['ready_for_draft'])
+        self.assertTrue(result['coverage_assessment']['all_topics_covered'])
         capture['memo_findings'][0]['status'] = 'partial'
-        self.assertFalse(self.client.workflow(interview_payload())['ready_for_draft'])
+        self.assertFalse(self.client.workflow(payload)['ready_for_draft'],
+                         'A favorable assessment cannot promote an incomplete original finding')
 
     def test_all_provider_paths_ignore_legacy_interview_timing_but_keep_process_deadlines(self):
         payload = interview_payload()
@@ -398,15 +417,17 @@ class LiveHTTPTests(unittest.TestCase):
                     self.assertNotIn(KEY.encode(), raw)
         self.client.request.assert_not_called()
 
-    def test_live_endpoint_returns_sdp_and_never_credentials(self):
+    def test_unguarded_live_endpoint_is_disabled_without_provider_access(self):
         status, raw = self.request('/api/live-session', live_payload())
-        self.assertEqual(status, 200)
-        self.assertEqual(json.loads(raw)['session_id'], 'live_http')
+        self.assertEqual(status, 409)
+        self.assertIn('reviewed voice turns', json.loads(raw)['error'])
+        self.client.request.assert_not_called()
         self.assertNotIn(KEY.encode(), raw)
 
     def test_config_exposes_live_capability_without_promising_access(self):
         config = self.client.public_config()
-        self.assertEqual(config['live']['model'], 'gpt-live-1')
+        self.assertEqual(config['live']['model'], 'gpt-6-luna')
+        self.assertEqual(config['live']['transport'], 'reviewed-turns')
         self.assertTrue(config['live']['enabled'])
         self.assertNotIn(KEY, json.dumps(config))
 
@@ -414,7 +435,7 @@ class LiveHTTPTests(unittest.TestCase):
         payload = live_payload()
         payload['turns'][0]['role'] = 'system'
         status, _ = self.request('/api/live-session', payload)
-        self.assertEqual(status, 400)
+        self.assertEqual(status, 409)
         self.client.request.assert_not_called()
 
 

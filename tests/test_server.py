@@ -60,7 +60,8 @@ def memo_findings():
     findings = [{"key": key, "status": "unknown", "answer": "UNKNOWN", "evidence_turns": []}
                 for key in server.COVERAGE]
     by_key = {finding["key"]: finding for finding in findings}
-    by_key["name"].update(status="captured", answer="Invoice approval", evidence_turns=["context"])
+    # A supplied title does not establish alternate names or the complete name topic.
+    by_key["name"].update(status="partial", answer="Invoice approval", evidence_turns=["context"])
     by_key["lifecycle"].update(status="partial", answer="Invoices are logged by the AP clerk, then approved by a manager or referred to the buyer.", evidence_turns=["u1", "u2"])
     return findings
 
@@ -76,6 +77,20 @@ def interview_result():
         "memo_findings": memo_findings(),
         "coverage": [{"key": key, "label": label, "status": "partial"} for key, label in server.COVERAGE.items()],
     }
+
+
+def incomplete_assessment(findings):
+    """Conservative offline review fixture; it makes no semantic completeness claim."""
+    return {"topics": [{"key": finding["key"], "explanation": finding["answer"],
+                         "evidence_turns": list(finding["evidence_turns"]),
+                         "dimensions": [{"key": key, "status": "unresolved",
+                                         "detail": "This dimension needs further participant detail.",
+                                         "evidence_turns": list(finding["evidence_turns"])}
+                                        for key in server.interview_coverage.TOPIC_DIMENSIONS[finding["key"]]],
+                         "gaps": ["The partial test account does not establish this complete section."],
+                         "next_question": "", "participant_unavailable": False,
+                         "unavailable_evidence_turns": [], "not_applicable_reason": "",
+                         "not_applicable_evidence_turns": []} for finding in findings]}
 
 
 def process_variation(evidence=None):
@@ -178,7 +193,10 @@ class EvidenceValidationTests(unittest.TestCase):
         ])
         result = interview_result()
         result['memo_findings'][0].update(status='captured', answer='The fund controller is accountable.', evidence_turns=['u3'])
-        self.assertEqual(server.validate_interview(result, payload['turns'])['memo_findings'][0]['status'], 'partial')
+        # Syntactic validation does not decide what an entire source turn means.
+        # The independent per-dimension audit checks whether this particular
+        # assertion is supported; unrelated uncertainty must not demote it.
+        self.assertEqual(server.validate_interview(result, payload['turns'])['memo_findings'][0]['status'], 'captured')
         result['memo_findings'][0].update(status='captured', evidence_turns=['u4'])
         self.assertEqual(server.validate_interview(result, payload['turns'])['memo_findings'][0]['status'], 'captured')
 
@@ -409,6 +427,29 @@ class GraphRoutingContractTests(unittest.TestCase):
 
 
 class NextQuestionAuditTests(unittest.TestCase):
+    def test_claimed_completion_receives_independent_assessment_before_question_audit(self):
+        from test_interview_coverage import fixture
+        findings, assessment, turns = fixture()
+        payload = interview_payload()
+        payload["turns"] = turns
+        candidate = interview_result()
+        candidate["memo_findings"] = findings
+        client = server.OpenAIClient({"OPENAI_API_KEY": "sk-synthetic-independent-coverage"})
+        client.request = Mock(side_effect=[self.response(candidate), self.response(assessment),
+                                          self.response({"question": "Is there a correction to this account?"})])
+        result = client.interview(payload)
+        calls = [call.args[1] for call in client.request.call_args_list]
+        self.assertEqual([body["text"]["format"]["name"] for body in calls],
+                         ["process_interview", "process_coverage_assessment", "process_next_question_audit"])
+        assessment_input = json.loads(calls[1]["input"][0]["content"])
+        audit_input = json.loads(calls[2]["input"][0]["content"])
+        self.assertEqual(assessment_input["turns"], turns)
+        self.assertEqual(assessment_input["candidate_findings"], findings)
+        self.assertEqual(audit_input["coverage_assessment"], result["coverage_assessment"])
+        self.assertTrue(result["ready_for_draft"])
+        self.assertTrue(result["coverage_assessment"]["all_topics_covered"])
+        self.assertFalse(result["closure"]["confirmed"])
+
     @staticmethod
     def response(value):
         return {"status": "completed", "output": [{"content": [
@@ -465,8 +506,8 @@ class NextQuestionAuditTests(unittest.TestCase):
                 result = client.interview(payload)
                 self.assertEqual(client.request.call_count, 1)
                 if action == "close":
-                    self.assertTrue(result["question"].startswith(server.FINAL_CHECK_PREFIX))
-                    self.assertEqual(result["closure"], {"asked": True, "confirmed": False})
+                    self.assertTrue(result["question"].startswith(server.PARTIAL_CHECK_PREFIX))
+                    self.assertEqual(result["closure"], {"asked": False, "confirmed": False})
                 else:
                     self.assertEqual(result["question"], interview_result()["question"])
 
@@ -821,6 +862,33 @@ class HTTPBoundaryTests(unittest.TestCase):
         name = body["text"]["format"]["name"]
         if name == "process_next_question_audit":
             result = {"question": json.loads(body["input"][0]["content"])["candidate_question"]}
+        elif name == "team_interviewer_response":
+            result = {"question": json.loads(body["input"][0]["content"])["candidate_question"], "intent": "ask"}
+        elif name == "team_interview_capture":
+            supplied = json.loads(body["input"][0]["content"])
+            # This HTTP fixture describes a new partial interview. Return the
+            # actual private fact protocol; production has no legacy fallback.
+            result = {key: copy.deepcopy(self.mock_interview[key])
+                      for key in ("question", "summary", "focus", "parking_lot")}
+            result.update(base_revision=supplied["fact_state"]["base_revision"],
+                fact_reconciliations=[{"target_id": item["id"], "disposition": "unchanged",
+                    "basis": "This controlled HTTP fixture supplies no revision to the prior assertion.",
+                    "evidence_turns": list(item["evidence_turns"])}
+                    for item in server.capture_facts.reconciliation_targets(supplied["fact_state"])],
+                topic_states=[{"key": f["key"], "status": f["status"], "participant_unavailable": False}
+                              for f in self.mock_interview["memo_findings"]],
+                fact_operations=[{"op": "add", "topic": f["key"], "target_id": "",
+                    "kind": "not_applicable" if f["status"] == "not_applicable" else "detail",
+                    "text": f["answer"], "evidence_turns": list(f["evidence_turns"]), "reason": "new_evidence"}
+                    for f in self.mock_interview["memo_findings"] if f["status"] != "unknown"])
+        elif name == "process_coverage_assessment":
+            result = incomplete_assessment(json.loads(body["input"][0]["content"])["candidate_findings"])
+            if 'capture_repair' in body['text']['format']['schema']['properties']['topics']['items']['properties']:
+                for topic in result['topics']:
+                    topic['capture_repair'] = {'needed': False}
+        elif name == "process_specialist_review":
+            result = {"summary": "The partial test account still needs review.", "evidence_turns": [],
+                      "findings": [], "next_question": "", "no_material_blockers": False}
         else:
             result = self.mock_draft if name in ("process_draft", "process_draft_audit") else self.mock_interview
         return {"status": "completed", "output": [{"content": [{"type": "output_text", "text": json.dumps(result)}]}]}
@@ -932,7 +1000,10 @@ class HTTPBoundaryTests(unittest.TestCase):
         status, _, raw = self.request("/api/interview", interview_payload())
         self.assertEqual(status, 200)
         self.assertIn("releases payment", json.loads(raw)["question"])
-        self.assertEqual(self.client.request.call_count, 2)
+        self.assertEqual(self.client.request.call_count, 1)
+        self.assertEqual({call.args[1]["text"]["format"]["name"] for call in self.client.request.call_args_list},
+                         {"team_interview_capture"})
+        self.assertFalse(json.loads(raw)["completion"]["complete"])
         for call in self.client.request.call_args_list:
             path, body = call.args
             self.assertEqual(path, "responses")
@@ -974,7 +1045,7 @@ class HTTPBoundaryTests(unittest.TestCase):
         self.assertEqual(json.loads(raw)["error"], "A controlled upstream test failure.")
         self.assertNotIn(self.test_key.encode(), raw)
 
-    def test_close_action_asks_a_completeness_check_without_confirming_it(self):
+    def test_close_action_reviews_open_sections_without_claiming_final_completeness(self):
         payload = interview_payload()
         payload["action"] = "close"
         repetitive_gap = "Who releases payment after the manager approves?"
@@ -983,10 +1054,11 @@ class HTTPBoundaryTests(unittest.TestCase):
         status, _, raw = self.request("/api/interview", payload)
         self.assertEqual(status, 200)
         result = json.loads(raw)
-        self.assertEqual(result["closure"], {"asked": True, "confirmed": False})
-        self.assertTrue(result["question"].startswith(server.FINAL_CHECK_PREFIX))
+        self.assertEqual(result["closure"], {"asked": False, "confirmed": False})
+        self.assertFalse(result["question"].startswith(server.FINAL_CHECK_PREFIX))
+        self.assertIn("?", result["question"])
         self.assertNotEqual(result["question"], repetitive_gap)
-        self.assertIn("haven't captured", result["question"])
+        self.assertFalse(result["completion"]["complete"])
         sent = json.loads(self.client.request.call_args.args[1]["input"][0]["content"])
         self.assertEqual(sent["action"], "close")
 
@@ -998,10 +1070,11 @@ class HTTPBoundaryTests(unittest.TestCase):
         status, _, raw = self.request("/api/interview", payload)
         self.assertEqual(status, 200)
         result = json.loads(raw)
-        self.assertTrue(result["question"].startswith(server.FINAL_CHECK_PREFIX))
-        self.assertEqual(result["closure"], {"asked": True, "confirmed": False})
+        self.assertFalse(result["question"].startswith(server.FINAL_CHECK_PREFIX))
+        self.assertIn("?", result["question"])
+        self.assertEqual(result["closure"], {"asked": False, "confirmed": False})
 
-    def test_blank_question_after_confirmed_reply_becomes_an_acknowledgment(self):
+    def test_prior_final_check_reply_cannot_close_an_incomplete_account(self):
         payload = interview_payload()
         payload["turns"].extend([
             {"id": "a3", "role": "assistant", "text": server.FINAL_CHECK_PREFIX + " that we missed?"},
@@ -1012,10 +1085,10 @@ class HTTPBoundaryTests(unittest.TestCase):
         status, _, raw = self.request("/api/interview", payload)
         self.assertEqual(status, 200)
         result = json.loads(raw)
-        self.assertEqual(result["closure"], {"asked": True, "confirmed": True})
-        self.assertIn("captured for review", result["question"])
-        self.assertIn("unknowns remain open", result["question"])
-        self.assertNotIn("?", result["question"])
+        self.assertFalse(result["closure"]["confirmed"])
+        self.assertFalse(result["ready_for_draft"])
+        self.assertIn("?", result["question"])
+        self.assertNotIn("create or update the draft now", result["question"])
 
     def test_legacy_meeting_time_is_ignored_and_never_sent_to_the_provider(self):
         for planned, elapsed in ((60, 90), (0, -1), ('unlimited', 'ignored'), (None, None), (10**20, 10**30)):

@@ -85,6 +85,9 @@ class GroundingProvider(server.OpenAIClient):
     def __init__(self):
         super().__init__({"OPENAI_API_KEY": KEY})
         self.request = Mock(side_effect=self.upstream)
+        # Isolate the document source contract; managed closure has a separate
+        # real-Coordinator/offline-provider HTTP regression suite.
+        self.coordinator.interview = self.interview
 
     def upstream(self, path, body, *args, **kwargs):
         if path == "live/sessions":
@@ -182,8 +185,8 @@ class DocumentGroundingHTTPTests(unittest.TestCase):
                        document_evidence=[{"id": "FORGED_CATALOG_SENTINEL"}])
         return payload
 
-    def test_all_four_routes_and_all_three_audits_receive_the_same_scoped_source(self):
-        for route in ("interview", "workflow", "draft", "live-session"):
+    def test_three_text_routes_and_all_three_audits_receive_the_same_scoped_source(self):
+        for route in ("interview", "workflow", "draft"):
             with self.subTest(route=route):
                 status, result = self.post("/api/" + route, self.payload())
                 self.assertEqual(status, 200, result)
@@ -199,11 +202,10 @@ class DocumentGroundingHTTPTests(unittest.TestCase):
                 self.assertTrue(support["unconfirmed"])
                 self.assertEqual(support["documents"][0]["excerpts"], expected_sources)
                 self.assertTrue(support["documents"][0]["context_coverage"]["complete_text"])
-        live = next(call.args[1]["session"] for call in calls if call.args[0] == "live/sessions")
-        for location in (live["instructions"], live["delegation"]["responses"]["instructions"]):
-            for source in expected_sources:
-                self.assertIn(source["id"], location)
-                self.assertIn(source["text"], location.replace("\\n", "\n"))
+        # Unreviewed live sessions are disabled even with an authorized scope.
+        status, _ = self.post("/api/live-session", self.payload())
+        self.assertEqual(status, 409)
+        self.assertEqual(self.client.request.call_args_list, calls)
         for call in calls:
             serialized = json.dumps(call.args[1])
             for forbidden in (self.scope, "FORGED_REFERENCE_SENTINEL", "FORGED_CATALOG_SENTINEL", KEY):
@@ -224,7 +226,7 @@ class DocumentGroundingHTTPTests(unittest.TestCase):
             payload = self.payload()
             payload["document_scope"] = other_scope
             status, result = self.post("/api/" + route, payload)
-            self.assertEqual(status, 200, result)
+            self.assertEqual(status, 409 if route == "live-session" else 200, result)
         for call in self.client.request.call_args_list:
             serialized = json.dumps(call.args[1])
             for forbidden in (self.record["id"], "DocumentIdentitySentinel", "DocumentClosingSentinel",
@@ -254,14 +256,22 @@ class LocalDocumentExperienceTests(unittest.TestCase):
         cls.service._worker.join(timeout=2)
         cls.temporary.cleanup()
 
-    def test_actual_pdf_is_complete_before_background_ai_review_even_for_unmatched_query(self):
+    def test_actual_pdf_preserves_all_native_pages_but_withholds_unread_visual_coverage(self):
         support = self.service.supporting_context(self.scope, "Everything should be in the file")
         self.assertTrue(support["unconfirmed"])
         actual = support["documents"][0]
-        self.assertTrue(actual["context_coverage"]["complete_text"])
+        self.assertFalse(actual["context_coverage"]["complete_text"])
         self.assertEqual(actual["context_coverage"]["included_chunks"], self.record["chunk_count"])
-        self.assertEqual(actual["review"]["indexed_units"], 11)
+        self.assertLess(actual["review"]["indexed_units"], 11)
         self.assertEqual(actual["review"]["total_units"], 11)
+        self.assertFalse(actual["review"]["review_complete"])
+        native = [source for source in actual["excerpts"] if not source.get("requires_vision")]
+        visual = [source for source in actual["excerpts"] if source.get("requires_vision")]
+        self.assertEqual({source["location"]["page"] for source in native}, set(range(1, 12)))
+        self.assertTrue(visual, "The actual fixture has mixed visual pages that require independent reading")
+        self.assertTrue(actual["review"]["limitations"])
+        for source in visual:
+            self.assertTrue(source.get("native_text_preserved"))
         expected = self.store.chunks(self.scope, self.record["id"], limit=120)["chunks"]
         self.assertEqual(actual["excerpts"], expected, "The middle and final appendices must survive retrieval without a keyword match")
         all_text = " ".join(" ".join(source["text"] for source in actual["excerpts"]).split())

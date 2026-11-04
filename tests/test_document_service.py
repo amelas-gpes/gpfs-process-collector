@@ -113,14 +113,19 @@ class DocumentServiceTests(unittest.TestCase):
         support = service.supporting_context(self.scope, 'AnotherCompletelyMissingTerm')
         self.assertEqual(len(support['documents']), 6)
         self.assertEqual(support['omitted_documents'], 1)
+        self.assertEqual({item['id'] for item in support['source_versions']}, {record['id'] for record in records})
+        versions = {item['id']: item['source_revision'] for item in support['source_versions']}
         for document in support['documents']:
+            self.assertEqual(document['source_revision'], versions[document['id']])
             self.assertEqual(len(document['summary']), 700)
             self.assertTrue(document['summary_excerpt'])
             self.assertEqual(len(document['questions']), 2)
             self.assertTrue(document['excerpts'])
             self.assertTrue(document['context_coverage']['complete_text'])
         service.action(self.scope, records[0]['id'], 'park')
-        self.assertNotIn(records[0]['id'], [item['id'] for item in service.supporting_context(self.scope, 'AnotherCompletelyMissingTerm')['documents']])
+        parked_context = service.supporting_context(self.scope, 'AnotherCompletelyMissingTerm')
+        self.assertNotIn(records[0]['id'], [item['id'] for item in parked_context['documents']])
+        self.assertNotIn(records[0]['id'], [item['id'] for item in parked_context['source_versions']])
 
     def test_reason_is_requested_once_then_unrelated_document_is_parked_without_question(self):
         calls = []
@@ -166,10 +171,39 @@ class DocumentServiceTests(unittest.TestCase):
         self.assertEqual((relevant_result['relevance'], relevant_result['relevance_reason'], relevant_result['disposition']),
                          ('relevant', 'quick assessment', 'relevant'))
         self.assertEqual(relevant_result['summary'], 'Whole process identity and scope.')
+        self.assertEqual(relevant_result['summary_basis'], 'initial_review')
+        self.assertEqual(relevant_result['summary_at_review_version'], 1)
+        self.assertGreater(relevant_result['version'], relevant_result['summary_at_review_version'])
+        self.assertEqual(relevant_result['summary_basis_note'], service_module.INITIAL_SUMMARY_NOTE)
         self.assertEqual(relevant_result['queries'], ['process identity', 'final appendix'])
         available = {item['id']: item for item in service.supporting_context(self.scope, 'important')['documents']}
         self.assertEqual(set(available), {relevant['id'], unrelated['id']})
         self.assertEqual(available[unrelated['id']]['disposition'], 'needs_reason')
+        self.assertEqual(available[relevant['id']]['summary_basis'], 'initial_review')
+        self.assertEqual(available[relevant['id']]['summary_at_review_version'], 1)
+        self.assertEqual(available[relevant['id']]['summary_basis_note'], service_module.INITIAL_SUMMARY_NOTE)
+        self.assertTrue(available[relevant['id']]['review']['review_complete'])
+
+    def test_older_summary_gets_historical_basis_without_database_write_or_provider_call(self):
+        record = self.store.add(self.scope, 'old-overview.csv', b'name,value\nfictional,42\n', self.context)
+        record = self.store.extract(self.scope, record['id'])
+        old_analysis = {'summary': 'Graphics were not reviewed in this initial selection.',
+                        'phase': 'complete', 'review_complete': True, 'version': 8,
+                        'disposition': 'relevant'}
+        self.store.update(self.scope, record['id'], {'analysis': old_analysis})
+        with self.store._db() as db:
+            before = db.execute('SELECT record FROM documents WHERE id=?', (record['id'],)).fetchone()[0]
+        service = self.service(lambda *args: self.fail('Metadata projection cannot call a provider.'))
+        public = service.status(self.scope)[0]['analysis']
+        self.assertEqual(public['summary'], old_analysis['summary'])
+        self.assertEqual(public['summary_basis'], 'initial_review')
+        self.assertIsNone(public['summary_at_review_version'])
+        support = service.supporting_context(self.scope, 'fictional')['documents'][0]
+        self.assertEqual(support['summary_basis_note'], service_module.INITIAL_SUMMARY_NOTE)
+        self.assertTrue(support['review']['review_complete'])
+        with self.store._db() as db:
+            after = db.execute('SELECT record FROM documents WHERE id=?', (record['id'],)).fetchone()[0]
+        self.assertEqual(before, after)
 
     def test_initial_document_text_is_available_before_model_review_without_repeating_intake(self):
         service = self.service(lambda *args: self.fail('Supporting context must not require a provider request.'))
@@ -215,9 +249,12 @@ class DocumentServiceTests(unittest.TestCase):
         self.store.archive(self.scope, record['id'])
         removed = service.supporting_context(self.scope, 'common', source_ids=[previous['id'], foreign_source['id']])
         self.assertEqual(removed['documents'], [])
+        self.assertEqual(removed['source_versions'], [])
         self.assertEqual(len(removed['retained_evidence']), 1)
         self.assertEqual(removed['retained_evidence'][0], {**previous, 'retained_only': True,
-                                                        'archived': True, 'disposition': 'awaiting_review'})
+                                                         'archived': True, 'disposition': 'awaiting_review',
+                                                         'extraction_version': self.store.get(self.scope, record['id'])['extraction_version'],
+                                                         'extraction_needs_reindex': False})
         self.assertEqual(service.supporting_context(self.scope, 'common')['retained_evidence'], [])
         with self.assertRaises(PermissionError):
             service.source(self.scope, record['id'], previous['id'])
@@ -229,8 +266,46 @@ class DocumentServiceTests(unittest.TestCase):
         self.store.update(self.scope, failed['id'], {'status': 'error', 'error': 'Unable to decode.'})
         support = service.supporting_context(self.scope, 'the file has everything')
         self.assertEqual(support['documents'], [])
+        self.assertEqual(support['source_versions'], [])
+        for item in support['pending_documents']:
+            self.assertRegex(item['source_revision'], r'^[a-f0-9]{64}$')
         self.assertEqual({item['id']: item['status'] for item in support['pending_documents']},
                          {pending['id']: 'pending', failed['id']: 'error'})
+
+    def test_source_revision_ignores_query_selection_and_review_progress(self):
+        service = self.service(lambda *args: self.fail('Source metadata must not call the provider.'))
+        rows = ''.join(f'{i},{"EarlyNeedle" if i < 100 else "LateNeedle" if i > 900 else "Middle"} ' + 'x' * 200 + '\n' for i in range(1000))
+        record = self.store.add(self.scope, 'large-revision.csv', ('step,detail\n' + rows).encode(), self.context)
+        self.store.extract(self.scope, record['id'])
+        first = service.supporting_context(self.scope, 'EarlyNeedle')['documents'][0]
+        second = service.supporting_context(self.scope, 'LateNeedle')['documents'][0]
+        self.assertNotEqual([c['id'] for c in first['excerpts']], [c['id'] for c in second['excerpts']])
+        self.assertEqual(first['source_revision'], second['source_revision'])
+        self.assertRegex(first['source_revision'], r'^[a-f0-9]{64}$')
+        self.store.update(self.scope, record['id'], {'analysis': {'phase': 'complete', 'version': 500,
+                          'cursor': 500, 'summary': 'Changed progress overview', 'review_complete': True,
+                          'reviewed_chunks': 500, 'disposition': 'relevant'}})
+        for _ in range(3):
+            service.status(self.scope)
+        third = service.supporting_context(self.scope, 'NeverMatches')['documents'][0]
+        self.assertEqual(first['source_revision'], third['source_revision'])
+        self.assertNotIn(self.scope, first['source_revision'])
+
+    def test_source_revision_changes_for_explicit_purpose_and_revisit(self):
+        service = self.service(lambda context, record, chunks, phase: response(chunks))
+        record = service.upload(self.scope, 'intent-revision.csv', b'important,value\nFictional,42\n')
+        self.wait(record['id'])
+        original = service.supporting_context(self.scope, 'important')['documents'][0]['source_revision']
+        service.action(self.scope, record['id'], 'purpose', 'Use this for the fictional receiving step.')
+        purpose_revision = service.supporting_context(self.scope, 'important')['documents'][0]['source_revision']
+        self.assertNotEqual(original, purpose_revision)
+        self.wait(record['id'])
+        self.assertEqual(purpose_revision, service.supporting_context(self.scope, 'different query')['documents'][0]['source_revision'])
+        service.action(self.scope, record['id'], 'revisit')
+        revisited = service.supporting_context(self.scope, 'important')['documents'][0]['source_revision']
+        self.assertNotEqual(purpose_revision, revisited)
+        self.wait(record['id'])
+        self.assertEqual(revisited, service.supporting_context(self.scope, '')['documents'][0]['source_revision'])
 
     def test_remove_during_provider_request_invalidates_late_result_and_keeps_original(self):
         entered, release, finished = threading.Event(), threading.Event(), threading.Event()
@@ -553,6 +628,51 @@ class DocumentServiceTests(unittest.TestCase):
         self.assertFalse(result['analysis']['review_complete'], 'Reviewing available text must not claim the unread chart tab was reviewed')
 
     @unittest.skipUnless(importlib.util.find_spec('pypdf'), 'Existing pypdf runtime required')
+    def test_empty_required_visual_result_pauses_without_cursor_credit_or_poll_retry(self):
+        import io
+        from pypdf import PdfWriter
+        writer = PdfWriter()
+        writer.add_blank_page(width=100, height=100)
+        writer.add_blank_page(width=100, height=100)
+        data = io.BytesIO()
+        writer.write(data)
+        record = self.store.add(self.scope, 'fictional-two-page.pdf', data.getvalue())
+        calls = []
+        fail_visual = {'enabled': True}
+        def analyze(context, current, chunks, phase):
+            calls.append((phase, [c['id'] for c in chunks]))
+            value = response(chunks)
+            visual = next((c for c in chunks if c.get('requires_vision')), None)
+            if visual:
+                if phase == 'deep' and fail_visual['enabled']:
+                    value['observations'] = [{'text': 'Must not merge failed visual claim', 'sources': [visual['id']]}]
+                else:
+                    value['extracted_text'] = 'Synthetic description: this fictional page is blank.'
+            return value
+        manager = self.service(analyze)
+        paused = self.wait(record['id'], 'error')
+        self.assertEqual(len(calls), 2)
+        self.assertFalse(paused['analysis']['review_complete'])
+        self.assertTrue(paused['analysis']['retry_required'])
+        self.assertIn('no transcription or description', paused['analysis']['error'])
+        self.assertIn(service_module.VISUAL_REVIEW_INCOMPLETE, paused['analysis']['limitations'])
+        self.assertLess(paused['analysis']['reviewed_chunks'], paused['analysis']['total_chunks'])
+        self.assertNotIn('Must not merge failed visual claim', json.dumps(paused['analysis']))
+        self.assertEqual(paused['coverage']['indexed_units'], 1)
+        for _ in range(4):
+            manager.status(self.scope)
+        threading.Event().wait(.03)
+        self.assertEqual(len(calls), 2, 'Polling never pays for an incomplete visual response again')
+        fail_visual['enabled'] = False
+        manager.action(self.scope, record['id'], 'revisit')
+        completed = self.wait(record['id'])
+        self.assertEqual(len(calls), 4)
+        self.assertTrue(completed['analysis']['review_complete'])
+        self.assertFalse(completed['analysis']['retry_required'])
+        self.assertNotIn(service_module.VISUAL_REVIEW_INCOMPLETE, completed['analysis']['limitations'])
+        self.assertEqual(completed['coverage']['indexed_units'], 2)
+        self.assertEqual(self.store.original_path(self.scope, record['id']).read_bytes(), data.getvalue())
+
     def test_native_visual_batches_are_single_source_and_every_page_becomes_searchable(self):
         from pypdf import PdfWriter
         import io

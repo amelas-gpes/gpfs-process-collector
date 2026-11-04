@@ -32,6 +32,9 @@ class FakeProvider(server.OpenAIClient):
         super().__init__({'OPENAI_API_KEY': KEY})
         self.analysis_calls = []
         self.request = Mock(side_effect=self.upstream)
+        # This suite isolates scoped document hydration with its existing fake
+        # interviewer. Real coordinator closure is covered by its integration suite.
+        self.coordinator.interview = self.interview
 
     def analyze_document(self, context, record, chunks, phase, store):
         self.analysis_calls.append((context, record['id'], phase))

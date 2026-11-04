@@ -227,6 +227,9 @@ class DocumentFollowupHTTPTests(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory(prefix="http-", dir=local)
         self.payload = followup_payload()
         self.client = provider(self.payload)
+        # These HTTP fixtures isolate source hydration and the follow-up adapter.
+        # The real manager's completion boundary is exercised separately.
+        self.client.coordinator.interview = self.client.interview
         self.httpd = server.InterviewServer(("127.0.0.1", 0), server.Handler, client=self.client,
                                             documents_root=Path(self.temporary.name) / "documents")
         self.worker = threading.Thread(target=self.httpd.serve_forever, kwargs={"poll_interval": .01}, daemon=True)

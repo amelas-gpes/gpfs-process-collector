@@ -92,10 +92,17 @@ check("memo capture and participant confirmation remain separate",() => {
   assert.equal(data.memo.topics.find(t=>t.key==="trigger").status,"captured","Live memo findings, not edited draft findings, are exported");
   assert.equal(data.memo.topics.find(t=>t.key==="variations").status,"not_applicable");
   app.state.closure={asked:true,confirmed:true};data=app.transcriptObject();assert.equal(data.memo.closure.confirmed,true);
-  app.state.turns[1].text="I think the analyst receives the request; I am not sure who owns the handoff.";
-  app.state.memo_findings=app.normalizeFindings(findings,app.state.turns);
+  app.state.turns[1].text="The analyst receives the request by email; I am not sure who owns the handoff.";
+  // Model/source assessment supplies topic-specific partial statuses. Export
+  // must preserve those gaps without erasing supported facts in the same turn.
+  const assessed=findings.map(finding=>finding.key==="accountable"?{...finding,status:"partial",answer:"The accountable handoff owner is not established."}:finding.key==="trigger"?{...finding,answer:"The analyst receives the request by email."}:finding);
+  app.state.memo_findings=app.normalizeFindings(assessed,app.state.turns);
   data=app.transcriptObject();assert.equal(data.memo.all_topics_captured,false);
-  assert.ok(data.memo.topics.every(t=>t.status==="partial"));
+  assert.equal(data.memo.topics.find(t=>t.key==="accountable").status,"partial");
+  assert.equal(data.memo.topics.find(t=>t.key==="trigger").status,"captured","Unrelated uncertainty must not erase the source-supported trigger");
+  const risk=assessed.find(finding=>finding.key==="risk");risk.answer="Failure probably delays the next team.";risk.status="captured";
+  app.state.memo_findings=app.normalizeFindings(assessed,app.state.turns);data=app.transcriptObject();
+  assert.equal(data.memo.topics.find(t=>t.key==="risk").status,"partial","An uncertain topic answer cannot export as covered despite its supplied status");
   assert.equal(data.memo.closure.confirmed,true,"A reported confirmation must not erase unresolved evidence");
 });
 

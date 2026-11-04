@@ -14,6 +14,7 @@ import itertools
 import json
 import os
 from pathlib import Path
+from pathlib import PurePosixPath
 import re
 import secrets
 import sqlite3
@@ -22,6 +23,7 @@ import threading
 import time
 import warnings
 import zipfile
+from xml.etree import ElementTree
 
 MAX_FILE_BYTES = 64 * 1024 * 1024
 MAX_FILES_PER_SCOPE = 20
@@ -40,6 +42,9 @@ MAX_PDF_PAGE_BYTES = 16 * 1024 * 1024
 MAX_PDF_CONTENT_BYTES = 128 * 1024 * 1024
 MAX_IMAGE_PIXELS = 40_000_000
 MAX_INVENTORY_BYTES = 50 * 1024
+EXTRACTION_VERSION = 2  # Includes mixed visual coverage and decoded PDF bounds.
+INITIAL_SUMMARY_NOTE = ('Written from the initial review selection. Later review may have changed coverage; '
+                        'current review status and limitations are shown separately.')
 SUPPORTED_TYPES = {'.pdf': 'application/pdf', '.png': 'image/png',
                    '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                    '.xlsm': 'application/vnd.ms-excel.sheet.macroEnabled.12',
@@ -148,6 +153,36 @@ class _Chunks:
 
 
 class DocumentStore:
+    @staticmethod
+    def extraction_current(record):
+        return record.get('extraction_version') == EXTRACTION_VERSION
+
+    @staticmethod
+    def _read_record(record):
+        analysis = record.get('analysis') or {}
+        if analysis.get('summary') and not analysis.get('summary_basis'):
+            # Existing overviews were also retained from the initial selection.
+            # Its exact creation version was not saved; do not invent one or
+            # write a migration merely to explain the historical scope.
+            record['analysis'] = {**analysis, 'summary_basis': 'initial_review',
+                                  'summary_basis_note': INITIAL_SUMMARY_NOTE,
+                                  'summary_at_review_version': None}
+        # Conservative read projection, not a bulk migration. Old exact chunks
+        # remain available as provenance, but old parser capabilities cannot
+        # authorize full coverage. Revisit explicitly reindexes the original.
+        if record.get('status') in ('ready', 'partial', 'error') and not DocumentStore.extraction_current(record):
+            notice = 'Saved extraction predates the current completeness checks. Revisit this file to re-index it before claiming a full review.'
+            record['extraction_needs_reindex'] = True
+            if record['status'] != 'error':
+                record['status'] = 'partial'
+            coverage = record.get('coverage') or {}
+            record['coverage'] = {**coverage, 'indexed_units': 0,
+                                  'limitations': list(dict.fromkeys([*coverage.get('limitations', []), notice]))}
+            analysis = record.get('analysis') or {}
+            record['analysis'] = {**analysis, 'phase': 'error', 'review_complete': False,
+                                  'error': analysis.get('error') or notice}
+        return record
+
     def __init__(self, root):
         self.root = _private_dir(root).resolve()
         self.db_path = self.root / 'documents.sqlite3'
@@ -228,7 +263,7 @@ class DocumentStore:
         row = db.execute('SELECT record FROM documents WHERE id=? AND scope=?', (document_id, digest)).fetchone()
         if not row:
             raise PermissionError('Document is not available in this interview.')
-        return digest, json.loads(row['record'])
+        return digest, self._read_record(json.loads(row['record']))
 
     def add(self, scope, filename, data, context=None):
         if not isinstance(filename, str) or not filename.strip() or len(filename) > 250:
@@ -247,7 +282,8 @@ class DocumentStore:
                   'sha256': hashlib.sha256(data).hexdigest(), 'status': 'pending', 'archived': False,
                   'created_at': now, 'updated_at': now, 'context': attachment_context,
                   'inventory': {}, 'coverage': {'indexed_units': 0, 'total_units': 0, 'limitations': []},
-                  'chunk_count': 0, 'error': None, 'analysis': {}, 'revision': 0}
+                  'chunk_count': 0, 'error': None, 'analysis': {}, 'revision': 0,
+                  'extraction_version': EXTRACTION_VERSION, 'extraction_needs_reindex': False}
         with self._db() as db:
             db.execute('BEGIN IMMEDIATE')
             digest = self._authorize(db, scope)
@@ -262,7 +298,7 @@ class DocumentStore:
     def list(self, scope, include_archived=False):
         with self._db() as db:
             digest = self._authorize(db, scope)
-            records = [json.loads(row[0]) for row in db.execute('SELECT record FROM documents WHERE scope=? ORDER BY rowid', (digest,))]
+            records = [self._read_record(json.loads(row[0])) for row in db.execute('SELECT record FROM documents WHERE scope=? ORDER BY rowid', (digest,))]
         return records if include_archived else [record for record in records if not record['archived']]
 
     def get(self, scope, document_id):
@@ -364,8 +400,14 @@ class DocumentStore:
             unit = location.get('page', 'image')
             if unit not in reviewed:
                 reviewed.append(unit)
+            # Unit presence detects the first visual read. Its content digest
+            # also detects a later correction without using mutable review
+            # progress/version counters as a source identity.
+            record.setdefault('visual_transcription_hashes', {})[str(unit)] = hashlib.sha256(text.encode('utf-8')).hexdigest()
             coverage = record['coverage']
-            coverage['indexed_units'] = inventory.get('text_pages', 0) + len(reviewed)
+            # A mixed page has native text and a separate visual source, but is
+            # still one unit. Visual transcription must not count it twice.
+            coverage['indexed_units'] = inventory.get('text_only_pages', inventory.get('text_pages', 0)) + len(reviewed)
             coverage['limitations'] = [entry for entry in coverage['limitations'] if 'native visual review' not in entry]
             unresolved = [page for page in inventory.get('vision_pages', []) if page not in reviewed]
             if unresolved:
@@ -392,7 +434,7 @@ class DocumentStore:
             lock = self._locks.setdefault(document_id, threading.Lock())
         with lock:
             record = self.get(scope, document_id)
-            if record['archived'] or record['status'] in ('ready', 'partial'):
+            if record['archived'] or (record['status'] in ('ready', 'partial') and self.extraction_current(record)):
                 return record
             self.update(scope, document_id, {'status': 'indexing', 'error': None})
             chunks = _Chunks(record)
@@ -410,7 +452,9 @@ class DocumentStore:
                     db.executemany('INSERT INTO chunks VALUES (?,?,?,?,?,?)',
                                    [(item['id'], document_id, digest, item['label'], item['text'], json.dumps(item['location'])) for item in chunks.items])
                     current.update(status=status, inventory=inventory, coverage=coverage,
-                                   chunk_count=len(chunks.items), error=None, updated_at=time.time(), revision=current['revision'] + 1)
+                                   visual_transcription_hashes={},
+                                   chunk_count=len(chunks.items), error=None, extraction_version=EXTRACTION_VERSION,
+                                   extraction_needs_reindex=False, updated_at=time.time(), revision=current['revision'] + 1)
                     db.execute('UPDATE documents SET record=? WHERE id=?', (json.dumps(current), document_id))
                 return current
             except Exception as error:
@@ -473,15 +517,23 @@ def _pdf(path, record, chunks):
     count = len(reader.pages)
     if not 1 <= count <= MAX_PDF_PAGES:
         raise ExtractionError('PDF page count exceeds the 500-page limit or is empty; no partial index was published.')
-    missing, failures, content_bytes, indexed, page_inventory = [], [], 0, 0, []
+    missing, failures, mixed, content_bytes, indexed, page_inventory = [], [], [], 0, 0, []
     for number, page in enumerate(reader.pages, 1):
         try:
             contents = page.get_contents()
-            length = len(contents.get_data()) if contents else 0
+            # ContentStream is a dictionary-like object and can be false even
+            # when it contains decoded bytes. Test presence, not truthiness.
+            length = len(contents.get_data()) if contents is not None else 0
             content_bytes += length
             if length > MAX_PDF_PAGE_BYTES or content_bytes > MAX_PDF_CONTENT_BYTES:
                 raise ExtractionError('PDF decoded content exceeds 16 MiB per page or 128 MiB total; no partial index was published.')
             text = page.extract_text() or ''
+            # Text extraction does not read image pixels, diagram geometry or
+            # painted form contents. Detect paint operations without decoding
+            # image pixels; decorative and meaningful graphics are both honest
+            # review requirements until inspected.
+            paints = {b'Do', b'INLINE IMAGE', b'S', b's', b'f', b'F', b'f*', b'B', b'B*', b'b', b'b*', b'sh'}
+            visual = bool(contents is not None and any(operator in paints for _, operator in contents.operations))
         except DocumentError:
             raise
         except Exception:
@@ -499,16 +551,24 @@ def _pdf(path, record, chunks):
                        {'page': number, 'requires_vision': True, 'origin': 'visual_placeholder'})
             continue
         chunks.add(f'p{number}', f'{record["name"]} · page {number}', text, {'page': number})
+        if visual:
+            mixed.append(number)
+            chunks.add(f'p{number}_visual', f'{record["name"]} · page {number} · visual content',
+                       'This PDF page also contains visual graphics. Its native text is indexed separately; graphic contents and layout require native visual review and have not been read.',
+                       {'page': number, 'requires_vision': True, 'origin': 'visual_placeholder', 'native_text_preserved': True})
         page_inventory.append({'page': number, 'text_chars': len(text), 'sample': re.sub(r'\s+', ' ', text).strip()[:180],
-                               'requires_vision': False})
+                               'requires_vision': visual})
         indexed += 1
     limitations = []
     if missing:
         limitations.append(f'{len(missing)} pages contain no extractable text and require native visual review; they were not treated as read.')
     if failures:
         limitations.append(f'{len(failures)} pages could not be decoded and require review.')
-    return ({'pages': count, 'page_inventory': page_inventory, 'text_pages': indexed, 'vision_pages': sorted(missing + failures), 'failed_pages': failures,
-             'requires_vision': bool(missing or failures)}, {'indexed_units': indexed, 'total_units': count, 'limitations': limitations})
+    if mixed:
+        limitations.append(f'{len(mixed)} pages contain native text plus graphics; text is preserved separately, but graphics and layout still require native visual review.')
+    return ({'pages': count, 'page_inventory': page_inventory, 'text_pages': indexed, 'text_only_pages': indexed - len(mixed),
+             'mixed_visual_pages': mixed, 'vision_pages': sorted(missing + failures + mixed), 'failed_pages': failures,
+             'requires_vision': bool(missing or failures or mixed)}, {'indexed_units': indexed - len(mixed), 'total_units': count, 'limitations': limitations})
 
 
 def _png(path, record, chunks):
@@ -543,7 +603,7 @@ def _zip_check(path):
                     raise ExtractionError('Workbook ZIP exceeds encryption, compression-ratio or inflated-size safety limits.')
                 if item.filename.startswith('/') or '..' in Path(item.filename).parts:
                     raise ExtractionError('Workbook ZIP contains an unsafe member name.')
-                if item.filename.lower().endswith('.xml'):
+                if item.filename.lower().endswith(('.xml', '.rels')):
                     tail = b''
                     with archive.open(item) as stream:
                         while block := stream.read(65536):
@@ -646,6 +706,7 @@ def _workbook(path, record, chunks):
     from openpyxl import load_workbook
     _zip_check(path)
     with ExitStack() as cleanup:
+        archive = cleanup.enter_context(zipfile.ZipFile(path))
         book = load_workbook(path, read_only=True, data_only=False, keep_links=False, keep_vba=False)
         cleanup.callback(book.close)
         cached = load_workbook(path, read_only=True, data_only=True, keep_links=False, keep_vba=False)
@@ -679,6 +740,22 @@ def _workbook(path, record, chunks):
                     yield number, row
             item = _row_chunks(record, chunks, index, sheet.title, rows())
             item['visibility'] = sheet.sheet_state
+            # openpyxl's read-only cell stream intentionally omits worksheet
+            # drawings. Preserve their presence rather than claiming the tab
+            # was fully read just because its cells were indexed.
+            source_path = getattr(sheet, '_worksheet_path', None)
+            if not isinstance(source_path, str):
+                raise ExtractionError('Worksheet source location is unavailable; visual completeness could not be established.')
+            source_path = PurePosixPath(source_path.lstrip('/'))
+            relations_path = str(source_path.parent / '_rels' / (source_path.name + '.rels'))
+            if relations_path in archive.namelist():
+                with archive.open(relations_path) as stream:
+                    relations = ElementTree.parse(stream).getroot()
+                graphics = sorted({relation.get('Type', '').rsplit('/', 1)[-1] for relation in relations
+                                   if relation.get('Type', '').rsplit('/', 1)[-1] in
+                                   {'drawing', 'vmlDrawing', 'image', 'chart', 'oleObject', 'control', 'ctrlProp', 'diagramData', 'diagramLayout'}})
+                if graphics:
+                    item.update(requires_vision=True, unread_visual_parts=graphics)
             inventory.append(item)
             if sum(item['populated_cells'] for item in inventory) > MAX_CELLS:
                 raise ExtractionError('Workbook exceeds two million populated cells; no partial index was published.')
@@ -686,15 +763,18 @@ def _workbook(path, record, chunks):
         missing = sum(item['formulas_without_cached_values'] for item in inventory)
         if missing:
             limitations.append(f'{missing} formula cells have no cached result. Formulas were indexed as text, never executed.')
-        chart_sheets = sum(bool(item.get('requires_vision')) for item in inventory)
+        chart_sheets = sum(item.get('kind') == 'chart_sheet' for item in inventory)
         if chart_sheets:
             limitations.append(f'{chart_sheets} chart-only tabs have inventory entries but require visual review; no chart contents were inferred.')
+        mixed_sheets = sum(bool(item.get('unread_visual_parts')) for item in inventory)
+        if mixed_sheets:
+            limitations.append(f'{mixed_sheets} worksheets contain drawings, charts, images or embedded objects that cell extraction does not read. Cell text is indexed; export the visual content as PDF or PNG for review. No graphic content was inferred.')
         if record['kind'] == 'xlsm':
             limitations.append('Macros are preserved in the original only and were never executed or interpreted.')
         return ({'sheets': inventory, 'sheet_count': len(inventory), 'rows': sum(item['rows'] for item in inventory),
                  'formula_cells': sum(item['formula_cells'] for item in inventory), 'macros_executed': False,
                  'formula_policy': 'Formula text and saved cached values only; no recalculation.'},
-                {'indexed_units': len(inventory) - chart_sheets, 'total_units': len(inventory), 'limitations': limitations})
+                {'indexed_units': len(inventory) - chart_sheets - mixed_sheets, 'total_units': len(inventory), 'limitations': limitations})
 
 
 def _csv(path, record, chunks):

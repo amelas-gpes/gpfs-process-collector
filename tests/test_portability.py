@@ -100,6 +100,14 @@ class RepositoryPortabilityTests(unittest.TestCase):
         self.assertNotEqual(work_dir, app_dir)
         self.assertEqual(work_dir.parent, app_dir)
 
+    def test_agent_role_models_can_be_configured_without_exposing_credentials(self):
+        settings = {'AGENT_INTERVIEW_MODEL': 'lead-fixture', 'AGENT_COVERAGE_MODEL': 'coverage-fixture',
+                    'AGENT_PROCESS_MODEL': 'process-fixture', 'AGENT_DOCUMENT_MODEL': 'document-fixture'}
+        with patch.dict(os.environ, settings):
+            config = server.OpenAIClient(server.load_settings()).public_config()
+        self.assertEqual(config['agent_team']['models'], dict(zip(
+            ('lead_interviewer', 'coverage_reviewer', 'process_reviewer', 'document_analyst'), settings.values())))
+
     def test_foreground_launch_keeps_the_owned_server_in_the_managed_session(self):
         with patch.object(sys, "argv", ["launcher.py", "--no-browser", "--foreground", "--port", "8783"]), \
              patch.object(launcher, "config", return_value=None), \

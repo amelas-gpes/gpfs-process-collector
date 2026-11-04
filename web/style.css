@@ -458,6 +458,8 @@ body.interview-started #welcome-example { display: none; }
 .dock-secondary:not(:has(button:not([hidden]))) { visibility: hidden; }
 .dock-secondary { display: flex; gap: 4px; color: var(--muted); font-size: 12px; }
 .thinking { display: flex; justify-content: center; align-items: center; gap: 10px; margin: 0 auto 10px; width: max-content; max-width: 100%; padding: 6px 14px; border-radius: var(--r-pill); background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink-2); font-size: 13px; }
+.thinking:has(#pause-completion-review:not([hidden])) { flex-wrap: wrap; }
+#pause-completion-review { flex: none; min-height: 44px; }
 .pulse-dot { flex: none; width: 6px; height: 6px; margin-right: 16px; border-radius: 50%; background: var(--copper); animation: dots 1.2s infinite linear; }
 .recording-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); animation: live-ring 1.4s ease-out infinite; }
 .composer-area { width: min(100%, 780px); margin: 0 auto 12px; }
@@ -608,6 +610,7 @@ body.interview-started #welcome-example { display: none; }
 .working-summary, .parking-panel { margin: 16px 0 0; padding-top: 14px; border-top: 1px solid var(--line); }
 .working-summary h3, .parking-panel h3 { margin: 0 0 6px; color: var(--ink); font-size: 13px; }
 .working-summary p, .parking-panel ul { margin: 0; color: var(--ink-2); font-size: 13px; line-height: 1.65; }
+.working-summary p { white-space: pre-wrap; }
 .parking-panel ul { padding-left: 18px; }
 .memo-footer { flex: none; margin-top: 12px; padding-top: 14px; border-top: 1px solid var(--line); }
 .memo-actions { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.35fr); gap: 8px; }
@@ -1237,6 +1240,21 @@ dialog[open]::backdrop { background: var(--scrim); backdrop-filter: blur(6px); }
   #transcript-dock-host #conversation-dock .composer-area { margin: 0; }
 }
 @media (prefers-reduced-motion:reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media (forced-colors: active) {
+  /* Mask icons are painted backgrounds. Keep their ink in the system palette
+     instead of letting forced colors replace it with the canvas background. */
+  [data-icon]::before, [data-icon-end]::after, .dialog-close::before,
+  .documents-close::before, .remove-button::before, .notice::before,
+  .notice button::before, .example-banner > span::before, .play-turn::before,
+  .workflow-gaps::before, .memo-focus::before, .coverage-dot::after,
+  .draft-pill::before, .editable-label::before, .memo-finding-summary::after,
+  .step-extra > summary::after, .connections-editor > summary::after,
+  .review-guidance::before, .inline-error::before, .reading-search::before,
+  .document-chip::before, .documents-add::before {
+    forced-color-adjust: none;
+    background-color: CanvasText !important;
+  }
+}
 @media print {
   :root { color-scheme: light; }
   html, body { height: auto; overflow: visible; }

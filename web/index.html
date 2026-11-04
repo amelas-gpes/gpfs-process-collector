@@ -11,13 +11,16 @@
   <link rel="stylesheet" href="/documents.css">
   <link rel="stylesheet" href="/knowledge-ui.css">
   <link rel="stylesheet" href="/gpfs-presence.css">
+  <link rel="stylesheet" href="/agent-team.css">
   <script src="/vendor/elk.bundled.js" defer></script>
   <script src="/workflow-graph.js" defer></script>
   <script src="/live-voice.js" defer></script>
+  <script src="/controlled-voice.js" defer></script>
   <script src="/documents.js" defer></script>
   <script src="/document-intake.js" defer></script>
   <script src="/knowledge-ui.js" defer></script>
   <script src="/gpfs-presence.js" defer></script>
+  <script src="/agent-team.js" defer></script>
   <script src="/app.js" defer></script>
 </head>
 <body>
@@ -50,6 +53,7 @@
             <button type="button" id="conversation-tab-workflow" role="tab" aria-selected="false" aria-controls="workflow-panel" tabindex="-1" data-conversation-view="workflow" data-icon="workflow">Workflow</button>
           </nav><button class="memo-toggle" id="open-memo" aria-haspopup="dialog" aria-controls="memo-sheet" data-icon="memo" aria-label="Open notes, summary and assets" title="Notes, summary and uploaded assets"><span class="memo-toggle-label">Workspace</span><span id="coverage-mobile-count">0/11</span></button></div>
         </div>
+        <section id="agent-team" class="agent-team" aria-label="Interview team"></section>
         <section id="document-intake-panel" class="document-intake-panel" aria-label="File review progress" hidden>
           <div class="document-intake-copy" role="status" aria-live="polite"><strong id="document-intake-title">Reading your files</strong><p id="document-intake-detail"></p></div>
           <ol class="document-intake-steps" aria-label="File review stages"><li id="intake-step-upload">Upload</li><li id="intake-step-review">Review</li><li id="intake-step-baseline">Update process</li><li id="intake-step-question">Follow up</li></ol>
@@ -98,7 +102,7 @@
             </div>
             <div id="workflow-panel" class="conversation-view" role="tabpanel" aria-labelledby="conversation-tab-workflow" tabindex="0" hidden><div class="workflow-canvas-tools"><div class="workflow-update"><p class="workflow-status" id="workflow-status" role="status">Your workflow takes shape as you talk.</p><button class="text-button small" id="retry-workflow" type="button" data-icon="refresh" hidden>Try again</button></div><div class="canvas-actions" role="group" aria-label="Workflow view"><button id="workflow-zoom-out" aria-label="Zoom workflow out" data-icon="minus" disabled></button><output id="workflow-zoom-label" aria-label="Workflow zoom">100%</output><button id="workflow-zoom-in" aria-label="Zoom workflow in" data-icon="plus" disabled></button><button id="workflow-fit" title="Show the complete workflow" data-icon="fit" disabled>Fit</button><button id="workflow-direction" data-icon="swap" disabled aria-label="Switch workflow to top-to-bottom layout" title="Horizontal layout. Switch to vertical">Horizontal</button><button id="workflow-expand" data-icon="expand" aria-pressed="false" aria-label="Expand workflow workspace">Expand</button><button id="export-working-map" data-icon="download" disabled aria-label="Download workflow" title="Download the workflow as an image (SVG)">Download</button></div></div><div class="workflow-navigation" id="workflow-navigation" hidden><label for="workflow-step-select">Step</label><select id="workflow-step-select" aria-label="Find a workflow step"></select><button id="workflow-follow" type="button" data-icon="route" aria-pressed="false">Follow path</button><select id="workflow-path-previous" aria-label="Previous step on path" hidden></select><select id="workflow-path-next" aria-label="Next step on path" hidden></select><output id="workflow-path-status" role="status"></output></div><p id="workflow-gaps" class="workflow-gaps" role="status" hidden></p><div id="live-workflow" class="live-workflow" tabindex="0" aria-label="Workflow"><p class="view-empty">Steps appear here as you describe them.</p></div><details id="workflow-legend" class="workflow-legend" hidden><summary>Diagram key</summary><ul id="workflow-legend-items"></ul></details></div>
           </div>
-          <div id="conversation-dock-host"><div id="conversation-dock" class="conversation-dock"><div class="thinking" id="thinking" hidden><span class="pulse-dot"></span><span id="thinking-text">Thinking…</span></div>
+          <div id="conversation-dock-host"><div id="conversation-dock" class="conversation-dock"><div class="thinking" id="thinking" hidden><span class="pulse-dot"></span><span id="thinking-text">Thinking…</span><button type="button" class="text-button" id="pause-completion-review" hidden>Pause review</button></div>
           <div class="composer-area" id="composer-area" hidden>
             <div class="recording-status" id="recording-status" role="status" hidden><span class="recording-dot"></span><span id="recording-label">Listening</span><span id="recording-time">0:00</span><button id="cancel-recording" class="text-button small" data-icon="x">Discard</button></div>
             <form id="answer-form" class="answer-composer"><label class="reply-label" for="answer-text">Your reply</label><textarea id="answer-text" rows="1" maxlength="6000" placeholder="Reply, add details, or correct something…" disabled></textarea><div class="composer-bottom"><button type="button" class="mic-button" id="record-answer" aria-label="Dictate a reply to review before sending" title="Dictate a reply to review before sending" data-icon="mic" disabled><span>Dictate</span></button><span class="composer-hint" id="composer-hint">Ctrl / ⌘ + Enter to send</span><button class="button primary" id="send-answer" type="submit" data-icon="arrow-up" disabled>Send</button></div></form>

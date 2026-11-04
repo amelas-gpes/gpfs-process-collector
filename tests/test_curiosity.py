@@ -130,7 +130,7 @@ def candidate_capture(case):
     findings = [{"key": key, "status": "unknown", "answer": "UNKNOWN", "evidence_turns": []}
                 for key in server.COVERAGE]
     next(finding for finding in findings if finding["key"] == "name").update(
-        status="captured", answer=case["process_name"], evidence_turns=["context"])
+        status="partial", answer=case["process_name"], evidence_turns=["context"])
     next(finding for finding in findings if finding["key"] == "lifecycle").update(
         status="partial", answer=participant["text"], evidence_turns=[participant["id"]])
     return {"question": case["candidate_question"], "summary": "A fictional account with unresolved detail.",
@@ -181,7 +181,13 @@ class CuriosityPolicyContractTests(unittest.TestCase):
                 client = server.OpenAIClient({"OPENAI_API_KEY": "sk-fictional-curiosity-contract"})
                 client.structured = Mock(side_effect=[candidate, {"question": case["contract_example"]}])
                 result = client.interview(payload)
-                self.assertEqual(result, {**expected, "question": case["contract_example"]})
+                if case["id"] == "explicit_stop":
+                    self.assertIn("stop here", result["question"])
+                    self.assertIn("partial capture", result["question"])
+                    self.assertNotIn("?", result["question"])
+                    self.assertEqual({**result, "question": expected["question"]}, expected)
+                else:
+                    self.assertEqual(result, {**expected, "question": case["contract_example"]})
                 self.assertEqual(payload, original_payload)
                 audited = client.structured.call_args_list[1].args[1]
                 self.assertEqual(audited["memo_findings"], expected["memo_findings"])

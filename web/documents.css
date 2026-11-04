@@ -63,6 +63,8 @@
 .documents-card h3 { margin:0; font-size:16px; }
 .documents-file-meta { margin:4px 0 12px; color:var(--muted); font-size:12px; }
 .documents-summary { margin:0 0 10px; color:var(--ink-2); font-size:14px; line-height:1.7; white-space:pre-wrap; }
+.documents-overview { margin-bottom:12px; }
+.documents-overview h4 { margin:0 0 6px; color:var(--ink-2); font-size:12.5px; font-weight:650; }
 .documents-progress { margin:5px 0; color:var(--muted); font-size:12px; line-height:1.6; }
 .documents-purpose { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:16px 0 6px; }
 .documents-purpose-field { display:flex; flex:1 1 100%; flex-direction:column; gap:6px; color:var(--ink-2); font-size:13px; font-weight:600; }

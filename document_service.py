@@ -16,13 +16,14 @@ import sys
 import threading
 
 try:
-    from documents import DocumentError
+    from documents import DocumentError, INITIAL_SUMMARY_NOTE
 except ImportError:  # The local app intentionally launches Python with -I.
     spec = importlib.util.spec_from_file_location('documents', Path(__file__).with_name('documents.py'))
     module = importlib.util.module_from_spec(spec)
     sys.modules['documents'] = module
     spec.loader.exec_module(module)
     DocumentError = module.DocumentError
+    INITIAL_SUMMARY_NOTE = module.INITIAL_SUMMARY_NOTE
 
 MAX_BATCH_CHARS = 24000
 MAX_BATCH_CHUNKS = 8
@@ -34,6 +35,12 @@ MAX_ANALYSIS_BYTES = 200 * 1024
 MAX_SUPPORT_CHARS = 60000
 MAX_SUPPORT_CHUNKS = 120
 MAX_SUPPORT_DOCUMENTS = 6
+VISUAL_REVIEW_INCOMPLETE = ('Visual review returned no transcription or description for a required page or image. '
+                          'That source has not been counted as read. Revisit this file to retry; no automatic retry will run.')
+
+
+class VisualReviewIncomplete(DocumentError):
+    """A controlled explanation, never a provider exception or document text."""
 
 
 def _text(value, name, maximum):
@@ -113,13 +120,17 @@ class DocumentService:
             else:
                 self._contexts.setdefault(scope, {})
             for record in records:
+                if record.get('extraction_needs_reindex'):
+                    continue  # Explicit Revisit only; no startup/poll paid retries.
                 analysis = record.get('analysis') or {}
                 failure = self._failures.get((scope, record['id']))
                 if failure and failure[0] == analysis.get('intent_version', 0):
                     # A storage failure may prevent the paused state from being
                     # persisted. Keep it visible and suppress poll-driven paid
                     # retries until the user explicitly changes the intent.
-                    record['analysis'] = {**analysis, 'phase': 'error', 'error': failure[1]}
+                    record['analysis'] = {**analysis, 'phase': 'error', 'error': failure[1],
+                                          'review_complete': False, 'retry_required': True, 'retry_reason': failure[1],
+                                          'limitations': list(dict.fromkeys([*analysis.get('limitations', []), failure[1]]))}
                     continue
                 phase = analysis.get('phase')
                 if record['status'] == 'error' or phase == 'error':
@@ -172,18 +183,22 @@ class DocumentService:
             continuation = None
             try:
                 continuation = self._run(scope, document_id, generation, phase)
-            except Exception:
+            except Exception as error:
                 # Provider/parser exceptions may contain private document text. Keep
                 # ordinary status output controlled and preserve cursor/originals.
                 with self._condition:
-                    message = 'Document review paused after an invalid response or service error. Revisit to retry.'
+                    message = (VISUAL_REVIEW_INCOMPLETE if isinstance(error, VisualReviewIncomplete)
+                               else 'Document review paused after an invalid response or service error. Revisit to retry.')
                     if not self._closed:
                         self._failures[(scope, document_id)] = (generation, message)
                         try:
                             current = self._current(scope, document_id, generation)
                             if current:
                                 analysis = current.get('analysis') or {}
-                                analysis.update(phase='error', error=message, version=analysis.get('version', 0) + 1)
+                                analysis.update(phase='error', error=message, review_complete=False,
+                                                retry_required=True, retry_reason=message,
+                                                limitations=list(dict.fromkeys([*analysis.get('limitations', []), message])),
+                                                version=analysis.get('version', 0) + 1)
                                 self.store.update(scope, document_id, {'analysis': analysis})
                         except Exception:
                             # Failure reporting must not kill the sole worker.
@@ -259,6 +274,8 @@ class DocumentService:
                                     'sources': [{'source_id': source, 'label': allowed[source]['label']} for source in dict.fromkeys(sources)]})
         if clean['extracted_text'] and sum(bool(chunk.get('requires_vision')) for chunk in chunks) != 1:
             raise DocumentError('A visual transcription must identify exactly one supplied visual source.')
+        if any(chunk.get('requires_vision') for chunk in chunks) and not clean['extracted_text']:
+            raise VisualReviewIncomplete(VISUAL_REVIEW_INCOMPLETE)
         return clean
 
     @staticmethod
@@ -281,6 +298,8 @@ class DocumentService:
         # Keep the initial identity/scope while retaining section-level claims.
         if phase == 'quick' or not analysis.get('summary'):
             analysis['summary'] = result['summary']
+            analysis.update(summary_basis='initial_review', summary_basis_note=INITIAL_SUMMARY_NOTE,
+                            summary_at_review_version=analysis.get('version', 0) + 1)
         queries = result['queries'] if phase == 'quick' else [*analysis.get('queries', []), *result['queries']]
         analysis.update(queries=list(dict.fromkeys(queries))[:12],
                         error=None, version=analysis.get('version', 0) + 1)
@@ -319,7 +338,8 @@ class DocumentService:
     def _review_complete(record, analysis, cursor, total):
         coverage = record.get('coverage') or {}
         units = coverage.get('total_units', 0)
-        return (total > 0 and cursor >= total and units > 0
+        return (not record.get('extraction_needs_reindex', False)
+                and total > 0 and cursor >= total and units > 0
                 and coverage.get('indexed_units', 0) >= units
                 and not analysis.get('limit_indicator', False))
 
@@ -327,6 +347,8 @@ class DocumentService:
         with self._condition:
             record = self._current(scope, document_id, generation)
         if not record:
+            return
+        if record.get('extraction_needs_reindex') and record['status'] not in ('pending', 'indexing'):
             return
         if record['status'] in ('pending', 'indexing'):
             record = self.store.extract(scope, document_id)
@@ -410,8 +432,12 @@ class DocumentService:
                 phase = 'deep' if record['status'] not in ('pending', 'indexing') else 'quick'
             else:
                 self.store.archive(scope, document_id, False)
+                prior_retry_reason = analysis.get('retry_reason')
+                if prior_retry_reason:
+                    analysis['limitations'] = [item for item in analysis.get('limitations', []) if item != prior_retry_reason]
                 analysis.update(phase='quick', parked_by_user=False, disposition='reviewing', question='', error=None)
-                if record['status'] == 'error':
+                analysis.update(retry_required=False, retry_reason='')
+                if record['status'] == 'error' or record.get('extraction_needs_reindex'):
                     self.store.update(scope, document_id, {'status': 'pending', 'error': None})
                 phase = 'quick'
             analysis['phase'] = phase
@@ -420,7 +446,8 @@ class DocumentService:
                 # that context, not a quick sample followed by an old end cursor.
                 analysis.update(cursor=0, reviewed_chunks=0, review_complete=False)
             current = self.store.update(scope, document_id, {'analysis': analysis})
-            self._schedule(scope, document_id, generation, phase)
+            if action == 'revisit' or not current.get('extraction_needs_reindex'):
+                self._schedule(scope, document_id, generation, phase)
             return current
 
     def source(self, scope, document_id, source_id):
@@ -428,6 +455,24 @@ class DocumentService:
         if record['archived']:
             raise PermissionError('This document has been removed from the interview.')
         return self.store.source(scope, document_id, source_id)
+
+    @staticmethod
+    def _source_revision(record):
+        """Source/intent identity, independent of query selection and progress.
+
+        The document ID identifies an upload separately. This digest contains
+        no scope capability or filesystem location. Revisit/purpose changes
+        increment intent_version; parser upgrades change extraction_version.
+        """
+        analysis = record.get('analysis') or {}
+        inventory = record.get('inventory') or {}
+        basis = {'schema': 1, 'file_sha256': record.get('sha256'),
+                 'extraction_version': record.get('extraction_version'),
+                 'intent_version': analysis.get('intent_version', 0),
+                 'purpose': analysis.get('purpose', ''),
+                 'visual_transcribed_units': sorted(set(inventory.get('visual_transcribed_units', [])), key=str),
+                 'visual_transcription_hashes': record.get('visual_transcription_hashes', {})}
+        return hashlib.sha256(json.dumps(basis, sort_keys=True, separators=(',', ':'), ensure_ascii=True).encode('utf-8')).hexdigest()
 
     def supporting_context(self, scope, query, source_ids=()):
         """Return bounded, source-authorized evidence without waiting for AI review.
@@ -478,6 +523,8 @@ class DocumentService:
                 record = all_records[identity]
                 retained_candidates[source_id] = {**chunk, 'retained_only': True,
                                                    'archived': bool(record['archived']),
+                                                   'extraction_version': record.get('extraction_version'),
+                                                   'extraction_needs_reindex': bool(record.get('extraction_needs_reindex')),
                                                    'disposition': (record.get('analysis') or {}).get('disposition', 'awaiting_review')}
         chunks = self.store.search(scope, query, ids=list(records), limit=12) if records else []
         candidates = {}
@@ -546,6 +593,12 @@ class DocumentService:
             summary = analysis.get('summary', '')
             complete_text = len(grouped[identity]) == totals[identity] and not any(chunk.get('requires_vision') for chunk in grouped[identity])
             result.append({'id': identity, 'name': record['name'], 'summary': summary[:700],
+                           'source_revision': self._source_revision(record),
+                           'summary_basis': analysis.get('summary_basis'),
+                           'summary_basis_note': analysis.get('summary_basis_note', ''),
+                           'summary_at_review_version': analysis.get('summary_at_review_version'),
+                           'extraction_version': record.get('extraction_version'),
+                           'extraction_needs_reindex': bool(record.get('extraction_needs_reindex')),
                            'summary_excerpt': len(summary) > 700, 'basis_question': analysis.get('basis_question', '')[:1000],
                            'disposition': analysis.get('disposition', 'awaiting_review'),
                            'review': {'phase': analysis.get('phase', 'pending'),
@@ -570,13 +623,21 @@ class DocumentService:
                            'Distinguish documented practice from verified current practice; ask only about meaningful gaps, contradictions '
                            'or whether the document reflects current practice, proportionate to the task. Pending review or uncertain '
                            'relevance does not prevent reading available text. Never claim full review when coverage is incomplete. '
+                           'A summary labeled initial_review is a historical overview of the initial selection, not current '
+                           'review progress. Current structured review and context_coverage fields govern coverage claims. '
                            'Retained-only evidence from parked or removed files is solely provenance for existing cited capture; '
                            'do not use it to extract new facts or reopen that document.'),
                 'omitted_documents': max(0, len(records) - len(identities)),
+                # Routing identity for all active indexed files, independent of
+                # the six-file excerpt selection. This catalog conveys no
+                # evidence content and grants no coverage/reading credit.
+                'source_versions': [{'id': identity, 'source_revision': self._source_revision(records[identity])}
+                                    for identity in sorted(records)],
                 'retained_evidence': retained,
                 'omitted_prior_sources': len(set(retained_candidates) | {source_id for items in preferred.values() for source_id in items})
                                          - len(included & (set(retained_candidates) | {source_id for items in preferred.values() for source_id in items})),
                 'pending_documents': [{'id': record['id'], 'name': record['name'], 'status': record['status'],
+                                       'source_revision': self._source_revision(record),
                                        'error': record.get('error')} for identity, record in active.items() if identity not in records],
                 'context_budget': {'characters': characters, 'max_characters': MAX_SUPPORT_CHARS,
                                    'chunks': count, 'max_chunks': MAX_SUPPORT_CHUNKS},

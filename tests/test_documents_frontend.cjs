@@ -52,6 +52,19 @@ function response(document){return{ok:true,json:async()=>({document})};}
 (async()=>{
  let passes=0;
  {
+  const h=setup({inline:true});h.api.setDocuments([doc({coverage:{indexed_units:3,total_units:3},analysis:{phase:"complete",disposition:"relevant",summary:"Some sections have not yet been reviewed.",summary_basis:"initial_review",summary_basis_note:"This overview was written from the initial selection; current coverage is separate.",summary_at_review_version:1,reviewed_chunks:3,total_chunks:3,version:4,limitations:["Current detail still needs participant confirmation."]}})],false);h.api.open("doc_1");
+  assert.equal(h.api.body.querySelector(".documents-overview").querySelector("h4").textContent,"Initial overview");assert.match(h.api.body.querySelector(".documents-overview").textContent,/initial selection/);assert.match(h.api.body.querySelector(".documents-stage-detail").textContent,/3 of 3 sections reviewed/);assert.match(h.api.body.querySelector(".documents-summary").textContent,/not yet been reviewed/);assert.match(h.api.body.querySelector(".documents-limitations").textContent,/participant confirmation/);h.api.dispose();passes++;
+ }
+ {
+  const pending=deferred(),h=setup({inline:true,request:()=>pending.promise});h.api.scope="local-scope";h.api.setDocuments([doc(),doc({id:"doc_2",name:"Second.pdf"})],false);
+  h.api.body.querySelectorAll(".document-control").find(button=>JSON.parse(button.dataset.documentControl)[1]==="remove").focus();
+  const removing=h.api.action(h.api.documents[0],"remove");assert.equal(h.document.activeElement.dataset.documentId,"doc_1","Pending removal keeps keyboard focus on the file card");pending.resolve({removed:true});await removing;assert.equal(h.document.activeElement.dataset.documentId,"doc_2","Removing a file focuses a remaining file");h.api.body.querySelectorAll(".document-control").find(button=>JSON.parse(button.dataset.documentControl)[1]==="remove").focus();await h.api.action(h.api.documents[0],"remove");assert.equal(h.document.activeElement,h.api.attachButton,"Removing the final file focuses Add files");h.api.dispose();passes++;
+ }
+ {
+  const pending=deferred(),h=setup({inline:true,request:()=>pending.promise});h.api.scope="local-scope";h.api.setDocuments([doc()],false);h.api.body.querySelectorAll(".document-control").find(button=>JSON.parse(button.dataset.documentControl)[1]==="remove").focus();const removing=h.api.action(h.api.documents[0],"remove");
+  const composer=h.document.createElement("textarea");h.dropTarget.append(composer);composer.focus();pending.resolve({removed:true});await removing;assert.equal(h.document.activeElement,composer,"A completed removal must not steal focus after the user moves to their reply");h.api.dispose();passes++;
+ }
+ {
   const h=setup({inline:true}),questions=[{id:"q1",text:"Who checks the payment?",sources:[{source_id:"p1",label:"Page 1"}]},{id:"q2",text:"Who releases the payment?",sources:[{source_id:"p1",label:"Page 1"}]}];
   const file=doc({analysis:{phase:"complete",disposition:"relevant",summary:"Payment review",sources:[{source_id:"p1",label:"Page 1"}],questions}});h.api.setDocuments([file],false);h.api.open(file.id);
   for(const action of ["remove","park","source","discuss"]){
@@ -311,7 +324,7 @@ function response(document){return{ok:true,json:async()=>({document})};}
  }
  {
   const h=setup();h.api.setDocuments([doc({coverage:{indexed_units:10,total_units:50},analysis:{phase:"deep",disposition:"relevant",version:1,reviewed_chunks:3,total_chunks:12}})],false);
-  const stage=h.api.body.querySelector(".documents-stage");assert.match(stage.textContent,/Reading in depth/);assert.match(stage.textContent,/10\/50 units indexed/);assert.match(stage.textContent,/3 of 12 sections reviewed/);assert.equal(stage.dataset.state,"working");assert.match(h.api.body.textContent,/Reading now/);
+  const stage=h.api.body.querySelector(".documents-stage");assert.match(stage.textContent,/Reading in depth/);assert.match(stage.textContent,/10\/50 units indexed/);assert.match(stage.textContent,/3 of 12 sections reviewed/);assert.equal(stage.dataset.state,"working");assert.match(h.api.body.textContent,/Reading in depth/);
   h.api.setDocuments([doc({analysis:{phase:"complete",disposition:"parked",version:2}})],false);assert.equal(h.api.body.querySelector(".documents-stage").dataset.state,"later");assert.match(h.api.body.textContent,/Saved for later/);
   h.api.setDocuments([doc({analysis:{phase:"complete",disposition:"needs_reason",version:3}})],false);const field=h.api.body.querySelector(".documents-purpose-field");assert.equal(field.tagName,"LABEL");assert.match(field.textContent,/What should I look for/);assert.equal(field.querySelector("input").dataset.documentPurpose,"doc_1");assert.ok(h.findText("button","Review now"));assert.ok(h.findText("button","Save for later"));h.api.dispose();passes++;
  }

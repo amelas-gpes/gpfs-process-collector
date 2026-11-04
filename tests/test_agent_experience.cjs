@@ -40,11 +40,12 @@ function setup(){
     removeAttribute(name){if(name==="src")this.url=null;}
   }
   class Socket{
-    constructor(url){this.url=url;this.listeners={};this.sent=[];this.closed=false;sockets.push(this);}
+    constructor(url){this.url=url;this.listeners={};this.sent=[];this.closed=false;this.readyState=1;sockets.push(this);}
     addEventListener(type,fn){(this.listeners[type]??=[]).push(fn);}
+    removeEventListener(type,fn){this.listeners[type]=(this.listeners[type]||[]).filter(item=>item!==fn);}
     send(text){this.sent.push(JSON.parse(text));}
     close(){this.closed=true;}
-    packet(value){for(const fn of this.listeners.message||[])fn({data:JSON.stringify(value)});}
+    packet(value){for(const fn of [...(this.listeners.message||[])])fn({data:JSON.stringify(value)});}
   }
   class Utterance{constructor(text){this.text=text;}}
   const setTimeout=(fn,ms)=>{const id=++serial;timers.set(id,{fn,ms});return id;},clearTimeout=id=>timers.delete(id);
@@ -74,7 +75,7 @@ function setup(){
   const tick=async(ms,nextLevel)=>{now+=ms;level=nextLevel;const pending=[...frames.entries()];frames.clear();for(const[,fn]of pending)fn();await flush();};
   const say=async()=>{await tick(100,.08);await tick(600,.08);await tick(2200,0);};
   const timer=async ms=>{const pair=[...timers].find(([,value])=>value.ms===ms);assert.ok(pair,"Expected a "+ms+"ms timer");timers.delete(pair[0]);await pair[1].fn();await flush();};
-  const speech=async transcript=>{const socket=sockets.at(-1);assert.ok(socket,"Expected buffered speech socket");socket.packet({type:"session.created"});const item=socket.sent.find(item=>item.type==="conversation.item.create").item;socket.packet({type:"conversation.item.done",item});socket.packet({type:"response.output_audio.delta",delta:Buffer.from([0,0,0,0]).toString("base64")});socket.packet({type:"response.output_audio_transcript.done",transcript});socket.packet({type:"response.done",response:{status:"completed"}});await flush();};
+  const speech=async transcript=>{const socket=sockets.at(-1);assert.ok(socket,"Expected buffered speech socket");socket.packet({type:"session.created"});await flush();const item=socket.sent.find(item=>item.type==="conversation.item.create").item;socket.packet({type:"conversation.item.done",item});socket.packet({type:"response.output_audio.delta",delta:Buffer.from([0,0,0,0]).toString("base64")});socket.packet({type:"response.output_audio_transcript.done",transcript});socket.packet({type:"response.done",response:{status:"completed"}});await flush();};
   const voiceSession={provider:"openai",transport:"openai-realtime-websocket",model:"synthetic-model",client_secret:"synthetic-not-a-secret"};
   const standard=(result=approved())=>(url)=>{if(url==="/api/transcribe")return response({text:"An analyst reviews the file."});if(url==="/api/agent-team/interview")return response(result);if(url==="/api/voice-session")return response(voiceSession);if(url==="/api/agent-team/cancel")return response({});throw Error("Unexpected request "+url);};
   return{t,context,window,node,track,stream,calls,sockets,audio,utterances,revoked,team,teamOptions,recorders,notices,timers,frames,tick,say,timer,speech,voiceSession,standard,
@@ -123,11 +124,11 @@ const check=async(name,fn)=>{await fn();passed++;};
   });
   await check("unapproved response never reaches app transcript or speech",async()=>{
     const h=setup(),result=approved("We have covered everything.","complete");delete result.speech_authorization;h.route(h.standard(result));h.t.state.turns=[{id:"t001",role:"assistant",text:"What starts the work?"}];await h.t.startLiveConversation();await h.say();
-    assert.equal(h.t.state.turns.length,2);assert.equal(h.t.state.turns.at(-1).role,"user");assert.equal(h.sockets.length,0);assert.equal(h.audio.length,0);assert.equal(h.track.stopped,1);assert.match(h.notices.at(-1).message,/speech check/);
+    assert.equal(h.t.state.turns.length,2);assert.equal(h.t.state.turns.at(-1).role,"user");assert.ok(h.sockets.every(s=>s.closed&&s.sent.length===0));assert.equal(h.audio.length,0);assert.equal(h.track.stopped,1);assert.match(h.notices.at(-1).message,/speech check/);
   });
   await check("authorization cannot override an incomplete server completion assessment",async()=>{
     const h=setup(),result=approved("The interview is complete.","complete");result.completion.complete=false;h.route(h.standard(result));h.t.state.turns=[{id:"t001",role:"assistant",text:"Which sections are still unclear?"}];await h.t.startLiveConversation();await h.say();
-    assert.equal(h.t.state.turns.length,2);assert.equal(h.t.state.closure.confirmed,false);assert.equal(h.sockets.length,0);assert.equal(h.track.stopped,1);assert.match(h.notices.at(-1).message,/completion check/);
+    assert.equal(h.t.state.turns.length,2);assert.equal(h.t.state.closure.confirmed,false);assert.ok(h.sockets.every(s=>s.closed&&s.sent.length===0));assert.equal(h.track.stopped,1);assert.match(h.notices.at(-1).message,/completion check/);
   });
   await check("current team requests route and publish their real status",async()=>{
     const h=setup(),pending=deferred();let runId;h.route((url,options)=>{const data=JSON.parse(options.body);if(url==="/api/agent-team/workflow"){runId=data.agent_run_id;return pending.promise;}if(url==="/api/agent-team/status"){assert.equal(data.run_id,runId);assert.equal(data.document_scope,"scope-test");assert.equal(options.headers["X-CSRF-Token"],"synthetic-csrf");return response({run_id:runId,status:"running",agents:[{role:"coverage_reviewer",status:"running"}],events:[]});}throw Error(url);});

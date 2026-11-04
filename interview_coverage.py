@@ -10,11 +10,11 @@ import re
 
 TOPIC_DIMENSIONS = {
     "name": {
-        "everyday_name": "Everyday name and the work it identifies.",
+        "everyday_name": "Everyday name, included work, scope and boundaries.",
         "other_names": "Other team, checklist or system names, or an explicit absence of other names.",
     },
     "purpose": {
-        "delivered_result": "What the client or firm has at the end that it did not have at the start.",
+        "delivered_result": "The actual result or value for the person, recipient, client or organization.",
     },
     "trigger": {
         "initiating_event": "The actual initiating event and how it is detected.",
@@ -30,7 +30,7 @@ TOPIC_DIMENSIONS = {
         "overall_role": "Role accountable for the overall result, distinguished from merely performing or reviewing a step.",
     },
     "lifecycle": {
-        "items_and_stages": "Relevant work items and their stages/statuses in the participant's words.",
+        "items_and_stages": "Relevant inputs, outputs, work items and their stages/statuses in the participant's words.",
         "actions_and_rules": "Practical actions, order, dependencies and decision/branch rules.",
         "performers": "Who performs each material action.",
         "systems_and_locations": "Where items are worked on and recorded; only locations needed to understand the process.",
@@ -45,12 +45,12 @@ TOPIC_DIMENSIONS = {
         "retained_evidence": "Proof retained, its location and who records it, or an explicitly reported absence of proof.",
     },
     "variations": {
-        "applicability": "Which client, fund, country, currency or system differences apply, or an explicit absence of differences.",
+        "applicability": "Which differences in client, fund, country, currency, system, equipment, input availability or other reported circumstances change the work, or an explicit absence of differences.",
         "changed_work": "Exact changes from normal work and whether start, accountability or finish changes the process boundary.",
         "reason": "Participant's stated reason for each difference, without inventing contract or regulatory obligations.",
         "effort": "Reported additional effort, people, reviews or deadline impact; estimates are attributed.",
-        "charging": "Whether the difference is charged for; unknown billing is unresolved, not no charge.",
-        "removal_constraints": "Who would object or what constrains removing the difference; no redesign decision is implied.",
+        "charging": "Where commercial charging applies, whether the difference is charged for; unknown billing is unresolved, not no charge.",
+        "removal_constraints": "Where relevant to this activity, reported constraints on removing the difference; no redesign decision is implied.",
     },
     "pain_points": {
         "manual_work": "Manual or time-consuming work, errors, rekeying, reconciliation, chasing and workarounds, or an explicit absence.",
@@ -65,7 +65,18 @@ TOPIC_DIMENSIONS = {
     },
 }
 
-TOPIC_RUBRIC = "TOPIC EXPLANATION REQUIREMENTS\n" + "\n".join(
+DOMAIN_POLICY = """Apply this framework to the stated activity, including personal and nonbusiness work.
+Use domain knowledge to recognize useful questions, never to establish process facts or claim
+professional credentials. Clarify ambiguous terminology and revise your domain understanding when corrected.
+Commercial charging, clients/funds, formal approvals, retained records and removal constraints are
+conditional dimensions, not universal requirements. Do not force a hobby or personal setup into a
+commercial framework. An explicit participant description establishing a noncommercial personal scope
+can justify charging being not_applicable; cite that statement and explain the relevance decision.
+Otherwise unknown commercial charging stays unresolved. Generalize other non-applicability only when
+the participant's stated scope or explicit reason actually establishes it; omission alone never does.
+"""
+
+TOPIC_RUBRIC = DOMAIN_POLICY + "\nTOPIC EXPLANATION REQUIREMENTS\n" + "\n".join(
     f"{topic}: " + "; ".join(f"{key}: {detail}" for key, detail in dimensions.items())
     for topic, dimensions in TOPIC_DIMENSIONS.items()
 )

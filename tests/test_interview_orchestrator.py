@@ -529,7 +529,7 @@ class CoordinatorBoundaryTests(unittest.TestCase):
                         if row["role"] == "document_analyst")
         self.assertEqual(document["status"], "error")
 
-    def test_workflow_runs_only_lead_and_on_demand_document_audit(self):
+    def test_workflow_audits_transcript_and_document_sources_without_completion_authority(self):
         for docs in (False, True):
             client = SyntheticTeamProvider()
             payload = client.payload()
@@ -537,12 +537,15 @@ class CoordinatorBoundaryTests(unittest.TestCase):
                 payload["_supporting_documents"] = {"documents": [{"id": "doc_example", "name": "Procedure", "review": {"phase": "complete"},
                     "excerpts": [{"id": "doc_example_1", "text": "The analyst registers the invoice."}]}]}
             result = client.coordinator.workflow(payload)
-            self.assertEqual(client.request.call_count, 2 if docs else 1)
+            self.assertEqual(client.request.call_count, 2)
             self.assertEqual(client.request.call_args_list[0].args[1]["model"], client.agent_models["process_reviewer"])
             self.assertEqual(next(row["model"] for row in result["agent_team"]["agents"] if row["role"] == "lead_interviewer"),
                              client.agent_models["process_reviewer"])
             if docs:
                 self.assertEqual(client.request.call_args_list[1].args[1]["model"], client.agent_models["document_analyst"])
+            else:
+                self.assertEqual(client.request.call_args_list[1].args[1]["model"], client.agent_models["process_reviewer"])
+                self.assertEqual(next(row["calls"] for row in result["agent_team"]["agents"] if row["role"] == "lead_interviewer"), 2)
             self.assertFalse(result["completion"]["complete"])
             self.assertFalse(result["coverage_verified"])
             self.assertTrue(all(row["status"] == "idle" for row in result["agent_team"]["agents"]

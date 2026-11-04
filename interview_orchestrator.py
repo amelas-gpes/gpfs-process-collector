@@ -47,7 +47,9 @@ Passive requirements such as 'differences must be resolved' do not identify who
 resolves them. Keep that actor unknown unless evidence names them; a reviewer is
 not automatically the resolver, approver or accountable process owner.
 Use each fact in its proper section: system/team names are not alternate names for
-the process; normal situational branches belong in flow of work; known artifacts
+the process; normal situational branches belong in flow of work, and a stated
+difference in equipment, available inputs or circumstances can also establish a
+separate partial variation with the same exact source; known artifacts
 make materials at least partial. Event-driven cadence is known even if numerical
 frequency or deadline is unknown. Keep those distinct remaining gaps explicit.
 Before asking, check whether the precise information was already supplied. Ask
@@ -370,6 +372,8 @@ class Coordinator:
     def _remember(self, capture, context, turns, supporting, token, run, ticket=None, fact_state=None):
         capability = uuid.uuid4().hex + uuid.uuid4().hex
         capture["capture_token"] = capability
+        if fact_state is not None:
+            capture['topic_discussion'] = capture_facts.discussion(fact_state)
         with self._lock:
             now = time.monotonic()
             family, generation = self._run_families[run.run_id]
@@ -874,17 +878,19 @@ class Coordinator:
             return {"update": update, "capture": capture}
         proposed = run.run_role("lead_interviewer", initial_workflow)
         update, capture = proposed["update"], proposed["capture"]
-        if evidence:
-            def audited_workflow():
-                audit = self.client.structured(api.WORKFLOW_AUDIT_INSTRUCTIONS,
-                    {"context": context, "turns": turns, "previous_capture": previous,
-                     "supporting_documents": supporting, "candidate_update": update},
-                    api.WORKFLOW_AUDIT_SCHEMA, "team_working_map_source_audit", 24000,
-                    reasoning_effort="medium", request_timeout=240,
-                    model_override=self.client.agent_models["document_analyst"])
-                audited = api.apply_workflow_audit(update, audit, previous)
-                return api.apply_workflow_update(audited, previous, turns, evidence)
-            capture = run.run_role("document_analyst", audited_workflow)
+        def audited_workflow():
+            audit = self.client.structured(api.WORKFLOW_AUDIT_INSTRUCTIONS,
+                {"context": context, "turns": turns, "previous_capture": previous,
+                 "supporting_documents": supporting, "candidate_update": update},
+                api.WORKFLOW_AUDIT_SCHEMA, "team_working_map_source_audit", 24000 if evidence else 12000,
+                reasoning_effort="medium", request_timeout=240 if evidence else 120,
+                model_override=self.client.agent_models["document_analyst"] if evidence else lead_model)
+            audited = api.apply_workflow_audit(update, audit, previous)
+            return api.apply_workflow_update(audited, previous, turns, evidence)
+        # Transcript-only maps need the same source check as documentary maps.
+        # This stays in the bounded background worker, never the question path.
+        # The lead's existing two-call budget covers generation plus source audit.
+        capture = run.run_role("document_analyst" if evidence else "lead_interviewer", audited_workflow)
         run.defer_roles(("coverage_reviewer", "process_reviewer"))
         if run.public_status()["cancelled"] or run.public_status()["stale"]:
             raise api.APIError("This workflow response was cancelled or replaced. The existing map is unchanged.", 409)

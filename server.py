@@ -24,7 +24,7 @@ from urllib.parse import unquote, urlsplit
 from urllib.request import Request, urlopen
 import webbrowser
 
-VERSION = "0.22.0"
+VERSION = "0.24.0"
 APP_DIR = Path(__file__).resolve().parent
 WEB_DIR = APP_DIR / "web"
 DIAGNOSTIC_MAX_BYTES = 1024 * 1024
@@ -97,7 +97,7 @@ APPROVED_BROWSER_CONNECT_SOURCES = frozenset({"wss://api.openai.com"})
 COVERAGE = {
     "name": "Name & other names", "purpose": "Purpose & result", "trigger": "Start, cadence & deadlines",
     "completion": "Finished condition", "accountable": "Accountability", "lifecycle": "Items, stages & handoffs",
-    "checks": "Checks, approvals & proof", "variations": "Client & fund differences",
+    "checks": "Checks, approvals & proof", "variations": "Variations and conditions",
     "pain_points": "Manual work & pain", "risk": "Consequences of failure", "materials": "Existing materials",
 }
 
@@ -739,8 +739,13 @@ and required completion conditions across sections. Establish the selected proce
 regional/client/alternative routes are excluded or conditional, and which completion checks remain
 mandatory even when a named owner or detailed assignment is unresolved. Then compare the candidate
 to those source requirements. A plausible candidate is not the starting authority.
-INDEPENDENT DOCUMENT SOURCE AND SCOPE AUDIT
+INDEPENDENT SOURCE AND SCOPE AUDIT
 Check candidate_update against the exact supporting document excerpts and participant account.
+For transcript-only work, use the participant statements themselves. An ordering of answers is
+not automatically an ordering of operations. A gap saying the order of two checks is unknown
+cannot coexist with a definite edge imposing that order. Remove that unsupported candidate edge,
+retain both known checks and preserve the precise ordering gap. Conversely, do not erase a
+reported completion prerequisite merely because its ordering relative to another check is unknown.
 Return only a compact correction delta in the supplied audit schema, not a repeated map.
 The candidate is unpublished and untrusted;
 its assertions, citations and open questions are not evidence. Do not simply endorse its structure.
@@ -1687,7 +1692,7 @@ class OpenAIClient:
             name = output_format.get("name")
             if name in {"document_context_review", "working_process_map", "working_process_map_audit",
                         "process_interview", "process_next_question_audit", "process_draft", "process_draft_audit",
-                        "team_interview_capture", "team_interviewer_response", "team_working_process_map",
+                        "conversation_question", "team_interview_capture", "team_interviewer_response", "team_working_process_map",
                         "team_working_map_source_audit", "process_coverage_assessment", "process_specialist_review"}:
                 stage = name
         started = time.monotonic()
@@ -2171,9 +2176,23 @@ class OpenAIClient:
         )
         result = self.request("audio/transcriptions", b"".join(parts), "multipart/form-data; boundary=" + boundary)
         text = result.get("text", "")
+        def report(outcome, category):
+            if self.diagnostic_callback:
+                try:
+                    self.diagnostic_callback('transcription_result', stage='transcription',
+                                             outcome=outcome, error_category=category)
+                except Exception:
+                    pass
         if not isinstance(text, str) or not text.strip():
+            report('rejected', 'no_speech')
             raise APIError("No speech was recognized. Try recording again or type your answer.")
-        return {"text": bounded_text(text, "Transcription", 6000, True)}
+        try:
+            recognized = bounded_text(text, "Transcription", 6000, True)
+        except ValueError:
+            report('rejected', 'text_limit')
+            raise
+        report('accepted', 'none')
+        return {"text": recognized}
 
 
 def validated_browser_connect_sources(sources):
@@ -2245,6 +2264,9 @@ class InterviewServer(ThreadingHTTPServer):
         if isinstance(self.client, OpenAIClient):
             self.client.diagnostic_callback = self.record_event
         self.api_slots = threading.BoundedSemaphore(2)
+        self.conversation = (local_module('concurrent_interview', 'concurrent_interview.py').ConcurrentInterview(
+            self.client, sys.modules[__name__], validate_sources=self.validate_conversation_sources)
+            if isinstance(self.client, OpenAIClient) else None)
         self.upload_slots = threading.BoundedSemaphore(2)
         self.connection_slots = threading.BoundedSemaphore(self.max_connections)
         try:
@@ -2341,7 +2363,17 @@ class InterviewServer(ThreadingHTTPServer):
         result.update(status="completed", synthetic_example=True)
         return result
 
+    def validate_conversation_sources(self, payload):
+        snapshot = payload.get('_conversation_document_snapshot')
+        if not snapshot:
+            return True
+        scope, query, source_ids, context, original_binding = snapshot
+        current = self.documents.supporting_context(scope, query, source_ids=source_ids)
+        return interview_orchestrator.Coordinator._source_binding(context, current) == original_binding
+
     def server_close(self):
+        if getattr(self, 'conversation', None):
+            self.conversation.close()
         super().server_close()
         if getattr(self, "example_knowledge", None):
             self.example_knowledge.close()
@@ -2441,6 +2473,7 @@ class Handler(BaseHTTPRequestHandler):
                            "documents": {"enabled": True, "max_file_bytes": documents.MAX_FILE_BYTES,
                                          "max_files": documents.MAX_FILES_PER_SCOPE,
                                          "types": ["pdf", "png", "xlsx", "xlsm", "csv"]}})
+            config['concurrent_interview'] = {'enabled': self.server.conversation is not None}
             identity = self.server.knowledge_auth.admin(self)
             config["knowledge_admin_enabled"] = bool(identity)
             config["knowledge_admin_mode"] = "Local owner development mode" if identity == "local-owner" else ("Trusted administrator" if identity else "")
@@ -2452,6 +2485,7 @@ class Handler(BaseHTTPRequestHandler):
                  "/vendor/elk.bundled.js": ("vendor/elk.bundled.js", "text/javascript; charset=utf-8"),
                  "/live-voice.js": ("live-voice.js", "text/javascript; charset=utf-8"),
                  "/controlled-voice.js": ("controlled-voice.js", "text/javascript; charset=utf-8"),
+                 "/concurrent-interview.js": ("concurrent-interview.js", "text/javascript; charset=utf-8"),
                  "/agent-team.js": ("agent-team.js", "text/javascript; charset=utf-8"),
                  "/agent-team.css": ("agent-team.css", "text/css; charset=utf-8"),
                  "/documents.js": ("documents.js", "text/javascript; charset=utf-8"),
@@ -2491,7 +2525,8 @@ class Handler(BaseHTTPRequestHandler):
         if path not in ("/api/interview", "/api/draft", "/api/transcribe", "/api/voice-session", "/api/live-session", "/api/workflow",
                         "/api/agent-team/interview", "/api/agent-team/workflow", "/api/agent-team/review",
                         "/api/agent-team/status", "/api/agent-team/cancel"):
-            return self._json({"error": "Not found."}, 404)
+            if path not in ('/api/conversation/turn', '/api/conversation/status', '/api/conversation/sync'):
+                return self._json({"error": "Not found."}, 404)
         try:
             if self.headers.get("Transfer-Encoding"):
                 raise ValueError("Chunked request bodies are not supported.")
@@ -2514,14 +2549,21 @@ class Handler(BaseHTTPRequestHandler):
                     payload.pop("_supporting_documents", None)
                     payload.pop("document_evidence", None)
                     payload.pop("supporting_documents", None)
+                    payload.pop('_conversation_document_snapshot', None)
                     scope = payload.get("document_scope")
                     if scope and path in ("/api/interview", "/api/live-session", "/api/workflow", "/api/draft",
-                                          "/api/agent-team/interview", "/api/agent-team/workflow", "/api/agent-team/review"):
+                                          "/api/agent-team/interview", "/api/agent-team/workflow", "/api/agent-team/review",
+                                          '/api/conversation/turn', '/api/conversation/status', '/api/conversation/sync'):
                         context, turns = validate_payload(payload)
                         basis = (self.server.client.coordinator.retrieval_basis(payload)
                                  if isinstance(self.server.client, OpenAIClient) and path in
-                                 ("/api/interview", "/api/agent-team/interview", "/api/agent-team/review") else None)
+                                 ("/api/interview", "/api/agent-team/interview", "/api/agent-team/review",
+                                  '/api/conversation/turn', '/api/conversation/status', '/api/conversation/sync') else None)
                         retrieval_turns = basis["turns"] if basis else turns
+                        if path.startswith('/api/conversation/'):
+                            retrieval_turns = list(retrieval_turns)
+                            while retrieval_turns and retrieval_turns[-1].get('role') == 'assistant':
+                                retrieval_turns.pop()
                         source_ids = basis["preferred_source_ids"] if basis else prior_document_source_ids(payload)
                         if (not basis and isinstance(self.server.client, OpenAIClient) and path in
                                 ("/api/interview", "/api/agent-team/interview")):
@@ -2534,10 +2576,24 @@ class Handler(BaseHTTPRequestHandler):
                             if len(source_ids) > 500:
                                 raise ValueError("This capture references too many document excerpts.")
                         query = (" ".join(turn["text"] for turn in retrieval_turns[-3:]) or context["process_name"])[-2000:]
+                        if path.startswith('/api/conversation/') and not basis and self.server.conversation:
+                            selection = self.server.conversation.retrieval_basis(payload)
+                            if selection:
+                                query, source_ids = selection['query'], selection['source_ids']
                         payload["_supporting_documents"] = self.server.documents.supporting_context(
                             scope, query, source_ids=source_ids)
                         document_snapshot = (scope, query, source_ids, context,
                             interview_orchestrator.Coordinator._source_binding(context, payload["_supporting_documents"]))
+                        payload['_conversation_document_snapshot'] = document_snapshot
+            if path.startswith('/api/conversation/'):
+                if not self.server.conversation:
+                    return self._json({'error': 'Concurrent interviewing is unavailable for this provider.'}, 409)
+                # Polling and waiting for background analysis must not occupy a
+                # foreground slot needed by transcription or speech credentials.
+                if path.endswith('/status'):
+                    return self._json(self.server.conversation.status(payload))
+                if path.endswith('/sync'):
+                    return self._json(self.server.conversation.sync(payload))
             if path in ("/api/agent-team/status", "/api/agent-team/cancel"):
                 if not isinstance(payload, dict):
                     raise ValueError("Agent status requires an object.")
@@ -2555,7 +2611,9 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json({"error": "Two requests are already processing. Wait for them to finish."}, 429)
             try:
                 client = self.server.client
-                if path == "/api/agent-team/interview":
+                if path == '/api/conversation/turn':
+                    result = self.server.conversation.turn(payload)
+                elif path == "/api/agent-team/interview":
                     result = client.coordinator.interview(payload)
                 elif path == "/api/agent-team/review":
                     result = client.coordinator.review(payload)

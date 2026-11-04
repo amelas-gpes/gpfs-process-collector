@@ -31,7 +31,7 @@
   const REVIEW_SECTIONS = ["review-report","review-memo","review-map","review-procedure","review-lifecycles","review-variations","review-questions"];
   const reviewUI = {section:"review-report"};
   const state = {
-    context: null, turns: [], coverage: [], summary: "", draft: null, processNameManual:false,
+    context: null, turns: [], coverage: [], summary: "", draft: null, processNameManual:false, derivedProcessTitle:"",
     started: false, busy: false, importing:false, version: 0, generation: 0,
     draftVersion: null, draftEdited: false, example: false, dirty: false,
     config: null, utterance: null, voice: null, speechVersion: 0, captureToken:null, coverageVerified:false,
@@ -64,6 +64,8 @@
   let gpfsPresence=null, auxiliaryVoiceState="idle", voiceEnded=false;
   let agentTeamUI=null, activeTeamRun=null, reviewedPlaybackLevel=0, reviewedPlaybackActive=false;
   let pendingCompletionReview=null;
+  let concurrentInterview=null;
+  let topicDiscussion=[],analysisCheckpoint=null;
   let reviewPauseSequence=0;
   const REVIEW_ACK="Let me check that I have everything before we finish.";
   const PARTIAL_REVIEW_ACK="Let me check what we have and keep the unanswered parts open.";
@@ -168,14 +170,18 @@
     $("objective").value = context?.objective || "Understand the current process, responsibilities, handoffs, and exceptions.";
     $("background").value = context?.background || "";
   }
+  function processDisplayName(context=state.context) {
+    return (!state.processNameManual&&state.derivedProcessTitle)||context?.process_name||"";
+  }
   function applyProcessTitle(value) {
     if(state.processNameManual||(!state.turns.some(turn=>turn.role==="user")&&!state.documentEvidence.length))return;
     const title=typeof value==="string"&&value.length<=180?value.trim():"";
     if(!title||/^(unknown|untitled|process|workflow|interview|not established)(\s*[-—:].*)?$/i.test(title))return;
-    state.context=state.context||readContext();
-    if(state.context.process_name===title)return;
-    state.context.process_name=title;$("process-name").value=title;
-    state.version++;state.dirty=true;$("live-status").textContent=`Process named: ${title}. You can edit the title above.`;updateSaveHint();
+    if(state.derivedProcessTitle===title)return;
+    // A derived label is presentation metadata. Changing source context here
+    // would invalidate the concurrent question, voice and analysis revisions.
+    state.derivedProcessTitle=title;$("process-name").value=title;
+    state.dirty=true;$("live-status").textContent=`Process named: ${title}. You can edit the title above.`;updateSaveHint();
   }
   function revealAncestors(target) {
     for (let node = target; node; node = node.parentElement) {
@@ -200,13 +206,14 @@
   function updateControls() {
     const ready = Boolean(state.config?.api_configured);
     const working = state.busy || state.transcribing || state.requestingMic;
+    if($('retry-transcription'))$('retry-transcription').disabled=working||Boolean(conversationUI.live?.operation?.processing);
     const recording = Boolean(state.recording);
     const atLimit = state.turns.length >= 399 || state.turns.reduce((n,t) => n+t.text.length,0) >= 394000;
     $("start-interview").disabled = working || recording || (!ready && !state.started);
     const previouslyStarted = document.body?.classList.contains("interview-started");
     document.body?.classList.toggle("interview-started", state.started);
     if ($("setup-card") && previouslyStarted !== undefined && previouslyStarted !== state.started) $("setup-card").open = !state.started;
-    if ($("setup-summary")) $("setup-summary").textContent = state.started ? state.context?.process_name || "Interview" : "New interview";
+    if ($("setup-summary")) $("setup-summary").textContent = state.started ? processDisplayName() || "Interview" : "New interview";
     $("start-interview").firstElementChild.textContent = state.started ? "New interview" : "Start interview";
     ["process-owner", "objective", "background"].forEach(id => { $(id).disabled = state.started || working || recording; });
     $("process-name").disabled=state.importing;
@@ -214,7 +221,7 @@
     $("send-answer").disabled = working || recording || !ready || atLimit || !$("answer-text").value.trim();
     $("record-answer").disabled = working || !ready || atLimit;
     $("skip-question").disabled = !state.started || working || recording || !ready || atLimit;
-    const finalReviewReady=!state.config?.agent_team?.enabled||state.completion?.ready_for_final_check===true;
+    const finalReviewReady=state.config?.concurrent_interview?.enabled||!state.config?.agent_team?.enabled||state.completion?.ready_for_final_check===true;
     $("final-check").disabled = !state.started || working || recording || !ready || atLimit || !finalReviewReady || !state.turns.some(t => t.role === "user");
     $("final-check").title=finalReviewReady?"Confirm whether anything is missing":"Required topics still need clarification before the final check";
     $("composer-hint").textContent = atLimit ? "Interview limit reached. Create a draft or save this session." : "Ctrl / ⌘ + Enter to send";
@@ -274,9 +281,12 @@
     let partial = 0;
     let documented = 0;
     let provisional = 0;
+    let discussedCount=0;
     TOPICS.forEach(([key, label]) => {
       const item = state.coverage.find(c => c.key === key);
       const finding = state.memo_findings.find(c => c.key === key);
+      const discussed=topicDiscussion.find(row=>row.key===key)?.discussed===true||Boolean(finding&&finding.status!=='unknown'&&finding.evidence_turns?.length);
+      if(discussed)discussedCount++;
       const awaitingReview=provisionalFinding(finding)||(!coverageVerified()&&!finding&&item?.status==="covered");
       const status = awaitingReview?"partial":finding ? (["not_applicable","captured"].includes(finding.status) ? "covered" : finding.status==="partial" ? "partial" : "missing") : ["partial","covered"].includes(item?.status) ? item.status : "missing";
       if(awaitingReview)provisional++;
@@ -289,16 +299,18 @@
       node.setAttribute("aria-haspopup", "dialog");
       node.setAttribute("aria-controls", "foundation-dialog");
       node.classList.toggle("selected", foundationTopic === key && Boolean($("foundation-dialog")?.open));
-      node.title = `${label}: ${awaitingReview?"captured; awaiting review":documentOnlyFinding(finding)?"documented; confirmation pending":finding?.status === "not_applicable" ? "not applicable (participant confirmed)" : status === "missing" ? "not yet explored" : status}`;
+      node.title = `${label}: ${awaitingReview?"captured; awaiting review":documentOnlyFinding(finding)?"documented; confirmation pending":finding?.status === "not_applicable" ? "not applicable (participant confirmed)" : status === "missing" ? (discussed?'discussed; needs detail':'no detail captured yet') : status}`;
       node.setAttribute("aria-label", node.title);
-      node.append(el("span", "coverage-dot", status === "covered" ? "✓" : ""), el("span", "coverage-label", label), el("span", "coverage-state", awaitingReview?"Captured · awaiting review":finding?.status === "not_applicable" ? "Not applicable" : status === "covered" ? "Covered" : status === "partial" ? (documentOnlyFinding(finding)?"Documented":"In progress") : ""));
+      node.append(el("span", "coverage-dot", status === "covered" ? "✓" : ""), el("span", "coverage-label", label), el("span", "coverage-state", awaitingReview?"Captured · awaiting review":finding?.status === "not_applicable" ? "Not applicable" : status === "covered" ? "Covered" : status === "partial" ? (documentOnlyFinding(finding)?"Documented":"Discussed · needs detail") : discussed?'Discussed · needs detail':""));
       node.addEventListener("click", () => showFoundationTopic(key,node));
       root.append(node);
     });
     $("coverage-count").textContent = `${completed} / ${TOPICS.length}`;
     $("coverage-progress").style.width = `${(completed + partial * .5) / TOPICS.length * 100}%`;
     if($("coverage-mobile-count")) $("coverage-mobile-count").textContent=`${completed}/${TOPICS.length}`;
-    if($("coverage-summary")) $("coverage-summary").textContent=provisional?`${provisional} captured · awaiting review`:documented?`${documented} documented · ${completed} confirmed`:completed === TOPICS.length ? "All topics covered" : "Topics covered";
+    if($("coverage-summary")) $("coverage-summary").textContent=provisional?`${provisional} captured · awaiting review`:documented?`${documented} documented · ${completed} confirmed`:completed === TOPICS.length ? "All topics covered" : "Topics fully captured";
+    if($('discussion-progress'))$('discussion-progress').textContent=`${discussedCount} of ${TOPICS.length} topics discussed`;
+    renderAnalysisThrough();
     renderMemoContext();
     if(focusedTopic&&!$("foundation-dialog")?.open)document.querySelector(`[data-foundation-topic="${focusedTopic}"]`)?.focus({preventScroll:true});
     if(foundationTopic && $("foundation-dialog")?.open) showFoundationTopic(foundationTopic,document.querySelector(`[data-foundation-topic="${foundationTopic}"]`));
@@ -319,6 +331,26 @@
     if($("parking-empty"))$("parking-empty").hidden=Boolean(state.parking_lot.length);
     $("parking-list").hidden=!state.parking_lot.length;
     $("parking-list").replaceChildren(...state.parking_lot.map(item=>el("li","",item)));
+  }
+  function renderAnalysisThrough(){
+    const node=$('analysis-through');if(!node)return;
+    const basis=participantCoverageBasis(),count=basis.length;
+    node.hidden=!state.config?.concurrent_interview?.enabled||!count;
+    if(node.hidden)return;
+    const current=analysisCheckpoint&&analysisCheckpoint.basis===JSON.stringify(basis)&&analysisCheckpoint.documents===activeDocumentSignature();
+    node.textContent=current?`Notes include all ${count} saved answers`:
+      !analysisCheckpoint?`Updating notes for answer ${count}`:
+      analysisCheckpoint.count<count?`Notes through answer ${analysisCheckpoint.count} · answer ${count} pending`:
+      'Notes are updating for the revised conversation or files';
+  }
+  function rememberDiscussion(result,captured){
+    const allowed=new Set(['context',...captured.turns.map(turn=>turn.id),...state.documentEvidence.map(source=>source.id)]);
+    topicDiscussion=(result.topic_discussion||[]).filter(row=>TOPICS.some(([key])=>key===row.key)).map(row=>({
+      key:row.key,discussed:row.discussed===true&&Array.isArray(row.evidence_turns)&&row.evidence_turns.some(id=>allowed.has(id)),
+      evidence_turns:Array.isArray(row.evidence_turns)?row.evidence_turns.filter(id=>allowed.has(id)):[]
+    }));
+    const basis=participantCoverageBasis(captured.turns);
+    analysisCheckpoint={basis:JSON.stringify(basis),count:basis.length,documents:captured.document_revision??activeDocumentSignature()};
   }
   function selectMemoSection(section, focus=false) {
     if(!MEMO_SECTIONS.includes(section))return;
@@ -680,6 +712,8 @@
     return new window.CollectorDocumentIntake({
       onStatus:()=>{updateControls();if(!intakeActive())$("current-question").hidden=!state.turns.some(turn=>turn.role==="assistant"&&!turn.document_event);},
       onBegin:({signal,retry})=>{
+        concurrentInterview?.reset();
+        conversationUI.live?.discardPendingAudio?.();
         intakeWasLive=Boolean(conversationUI.live?.active)||(retry&&intakeWasLive);stopSpeaking();
         for(const controller of interviewRequests)controller.abort();
         clearTimeout(conversationUI.flowTimer);conversationUI.flowTimer=null;conversationUI.flowAbort?.abort();
@@ -782,11 +816,21 @@
             conversationUI.revision++;suppressWorkflowReadiness();renderTranscript();scrollConversation();
           },
           onResult:result=>{applyInterview(result);scheduleWorkflow();},
+          onTranscriptionRecovery:info=>{
+            if($('retry-transcription'))$('retry-transcription').hidden=!info.available;
+            if(!info.available&&$('interview-error')?.dataset.errorKind==='transcription')$('interview-error').hidden=true;
+          },
           onReviewAcknowledged:result=>{if(pendingCompletionReview?.ticket===result.review_ticket)pendingCompletionReview.acknowledged=true;},
           review:(_result,options)=>requestCompletionReview(options),
           speak:speakReviewed,stopPlayback:stopSpeaking,
+          prepareSpeech:({signal})=>{
+            const voice=selectedNaturalVoice();
+            return voice&&window.CollectorSpeechPreparation?new window.CollectorSpeechPreparation(
+              (id,signal)=>request("/api/voice-session",{voice:id},{signal,timeout:30000}),voice.id,{signal}):null;
+          },
+          onTurnTiming:record=>{voiceTimingRecords.push({...record,answer_number:state.turns.filter(t=>t.role==="user"&&!t.document_event).length});if(voiceTimingRecords.length>100)voiceTimingRecords.shift();if($("export-voice-timing"))$("export-voice-timing").disabled=false;},
           onStatus:status=>{conversationUI.status=status;updateControls();if(status==="listening")scheduleWorkflow();},
-          onError:message=>{if(pendingCompletionReview){$("retry-question").hidden=false;$("retry-question").textContent="Retry completion review";}notice(message,true);},
+          onError:message=>{if(pendingCompletionReview){$("retry-question").hidden=false;$("retry-question").textContent="Retry completion review";}notice(message,true,conversationUI.live?.hasPendingAudio?'transcription':'voice');},
           onAudioFrame:frame=>gpfsPresence?.setAudio({...frame,output:reviewedPlaybackLevel,
             outputActive:reviewedPlaybackActive&&reviewedPlaybackLevel>.01,playbackActive:reviewedPlaybackActive})
         });
@@ -847,6 +891,7 @@
   }
   function scheduleWorkflow() {
     if(intakeActive())return;
+    if(state.config?.concurrent_interview?.enabled&&concurrentInterview?.token)return;
     // Built-in and saved fictional examples already contain their diagram.
     // Browsing them must not replace it with paid, newly generated work.
     // Explicit refresh/intake actions still call refreshWorkflow directly.
@@ -999,6 +1044,11 @@
     renderMap($("live-workflow"),conversationUI.workflow);
   }
   async function request(path, data, options = {}) {
+    if(path==='/api/interview'&&!options.concurrentBypass&&state.config?.concurrent_interview?.enabled&&
+       !options.documentIntake&&['start','answer','skip','close'].includes(data?.action)){
+      const interviewer=getConcurrentInterview();
+      return data.action==='close'?interviewer.sync(data,options):interviewer.turn(data,options);
+    }
     const controller = new AbortController();
     const interviewRequest=["/api/interview","/api/draft","/api/agent-team/review"].includes(path),intakeSequence=documentIntake?.sequence;
     const replacedByIntake=()=>interviewRequest&&!options.documentIntake&&(intakeActive()||intakeSequence!==documentIntake?.sequence);
@@ -1006,7 +1056,7 @@
     let timedOut=false;
     // Aggregate deadlines include the sequential generation, evidence/coverage
     // review and question audit calls, plus bounded transport overhead.
-    const aggregateTimeout=["/api/interview","/api/workflow","/api/draft","/api/agent-team/review"].includes(path)?330000:150000;
+    const aggregateTimeout=["/api/interview","/api/workflow","/api/draft","/api/agent-team/review","/api/conversation/sync"].includes(path)?330000:150000;
     const timeout = setTimeout(() => {timedOut=true;controller.abort();}, options.timeout || aggregateTimeout);
     const external = options.signal;
     const abort = () => controller.abort();
@@ -1178,6 +1228,10 @@
   function normalizedSpeech(value) {
     return value.normalize("NFKC").toLocaleLowerCase("en").replace(/[^\p{L}\p{N}]/gu, "");
   }
+  const voiceTimingRecords=[];
+  // Local metadata only: no audio, transcript, credentials or API telemetry.
+  // Browser playback events are an approximation, not physical-speaker proof.
+  window.CollectorVoiceDiagnostics={snapshot:()=>clone(voiceTimingRecords)};
   function pcmWave(chunks, length) {
     if (length < 2 || length % 2) throw new Error("The AI voice returned incomplete audio. Please try again.");
     const bytes = new Uint8Array(44 + length);
@@ -1213,8 +1267,14 @@
       };
       if(operation.controller.signal.aborted){abort();return;}
       operation.controller.signal.addEventListener("abort",abort,{once:true});
+      const sendInput=()=>{
+        if(inputSent||settled)return;inputSent=true;
+        socket.send(JSON.stringify({type:"conversation.item.create",item:{id:itemId,type:"message",role:"user",content:[{type:"input_text",text:message}]}}));
+      };
+      const prepared=operation.preparedSocket;
+      operation.preparedSocket=null;
       try {
-        socket=new WebSocket(`wss://api.openai.com/v1/realtime?model=${encodeURIComponent(session.model)}`,["realtime",`openai-insecure-api-key.${session.client_secret}`]);
+        socket=prepared||new WebSocket(`wss://api.openai.com/v1/realtime?model=${encodeURIComponent(session.model)}`,["realtime",`openai-insecure-api-key.${session.client_secret}`]);
         operation.socket=socket;
       } catch {fail("The natural AI voice could not connect. Please try again or choose an installed computer voice.");return;}
       socket.addEventListener("message",event => {
@@ -1223,8 +1283,7 @@
         let packet;try{packet=JSON.parse(event.data);}catch{fail("The AI voice returned an unreadable response.");return;}
         try {
           if(packet.type==="session.created"&&!inputSent){
-            inputSent=true;
-            socket.send(JSON.stringify({type:"conversation.item.create",item:{id:itemId,type:"message",role:"user",content:[{type:"input_text",text:message}]}}));
+            sendInput();
           } else if(packet.type==="conversation.item.done"&&packet.item?.id===itemId&&packet.item?.role==="user"&&!responseSent){
             responseSent=true;
             socket.send(JSON.stringify({type:"response.create",response:{output_modalities:["audio"],max_output_tokens:2048}}));
@@ -1248,6 +1307,7 @@
       });
       socket.addEventListener("error",()=>fail("The natural AI voice connection failed. Please try again or choose an installed computer voice."));
       socket.addEventListener("close",()=>{if(!settled)fail("The natural AI voice connection closed before the question was ready. Please try again.");});
+      if(prepared){try{sendInput();}catch{fail("The prepared voice connection closed. Please try again.");}}
     });
   }
   async function speakNatural(message, voice, version) {
@@ -1296,7 +1356,10 @@
     try{
       const voice=selectedNaturalVoice();
       if(voice){
-        const session=await request("/api/voice-session",{voice:voice.id},{signal:operation.controller.signal,timeout:60000});
+        const prepared=await options.preparation?.take(voice.id);
+        if(prepared)operation.preparedSocket=prepared.socket;
+        if(operation.controller.signal.aborted){prepared?.socket.close();throw new DOMException("Playback cancelled","AbortError");}
+        const session=prepared?.session||await request("/api/voice-session",{voice:voice.id},{signal:operation.controller.signal,timeout:60000});
         const blob=await naturalSpeechAudio(session,message,operation);
         if(operation.controller.signal.aborted)throw new DOMException("Playback cancelled","AbortError");
         operation.url=URL.createObjectURL(blob);operation.audio=new Audio(operation.url);
@@ -1316,7 +1379,7 @@
           operation.controller.signal.addEventListener("abort",cancelled,{once:true});
           operation.audio.addEventListener("ended",()=>finish(),{once:true});
           operation.audio.addEventListener("error",()=>finish(new Error("The reviewed question could not play. It remains in the transcript.")),{once:true});
-          operation.audio.addEventListener("playing",()=>{if(state.speechOperation!==operation||operation.controller.signal.aborted)return;reviewedPlaybackActive=true;updatePresence();});
+          operation.audio.addEventListener("playing",()=>{if(state.speechOperation!==operation||operation.controller.signal.aborted)return;reviewedPlaybackActive=true;options.onPlaybackStart?.();updatePresence();});
           operation.audio.addEventListener("waiting",()=>{if(state.speechOperation!==operation||operation.controller.signal.aborted)return;reviewedPlaybackActive=false;updatePresence();});
           operation.audio.addEventListener("pause",()=>{if(state.speechOperation!==operation)return;reviewedPlaybackActive=false;reviewedPlaybackLevel=0;updatePresence();});
           if(operation.controller.signal.aborted){cancelled();return;}
@@ -1329,7 +1392,7 @@
           const cancelled=()=>finish(new DOMException("Playback cancelled","AbortError"));
           const finish=error=>{operation.controller.signal.removeEventListener("abort",cancelled);error?reject(error):resolve();};
           operation.controller.signal.addEventListener("abort",cancelled,{once:true});
-          utterance.onstart=()=>{if(state.speechOperation!==operation||operation.controller.signal.aborted)return;reviewedPlaybackActive=true;updatePresence();};utterance.onend=()=>finish();
+          utterance.onstart=()=>{if(state.speechOperation!==operation||operation.controller.signal.aborted)return;reviewedPlaybackActive=true;options.onPlaybackStart?.();updatePresence();};utterance.onend=()=>finish();
           utterance.onerror=()=>finish(new Error("The selected voice could not play the reviewed question."));
           if(operation.controller.signal.aborted){cancelled();return;}
           window.speechSynthesis.speak(utterance);
@@ -1382,6 +1445,43 @@
     const collect=value=>{if(Array.isArray(value))value.forEach(collect);else if(value&&typeof value==="object")for(const [key,item] of Object.entries(value)){if(key==="evidence_turns"&&Array.isArray(item))item.filter(id=>typeof id==="string"&&id.startsWith("doc_")).forEach(id=>cited.add(id));else collect(item);}};
     collect([conversationUI.workflow,state.memo_findings,state.draft]);
     return {context:clone(state.context),turns:clone(state.turns),session:{closure_requested:action === "close"},document_revision:activeDocumentSignature(),document_source_ids:[...cited],...(state.captureToken?{capture_token:state.captureToken}:{}),...(documentController?.exportState().scope?{document_scope:documentController.exportState().scope}:{})};
+  }
+  function getConcurrentInterview(){
+    if(!concurrentInterview){
+      if(!window.CollectorConcurrentInterview)throw new Error('Refresh the app to load the concurrent interviewer.');
+      concurrentInterview=new window.CollectorConcurrentInterview({
+        request:(path,data,options)=>request(path,data,{...options,concurrentBypass:true}),
+        getSnapshot:snapshot,getGeneration:()=>state.generation,
+        applyCapture:(capture,{snapshot:captured})=>applyBackgroundCapture(capture,captured),
+        onStatus:status=>{
+          if(status.agent_team)agentTeamUI?.render(status.agent_team);
+          const node=$('analysis-status');if(!node)return;
+          node.hidden=status.state==='idle';
+          node.textContent=({queued:'Notes queued — keep talking.',working:'Updating notes and workflow while you talk.',
+            ready:'Notes caught up. Wrap up when you’re ready for the final checks.',
+            syncing:'Catching up and checking the latest answers…',error:'Notes need attention. Your conversation is retained; Wrap up retries the analysis.'})[status.state]||'';
+          renderAnalysisThrough();
+        }
+      });
+    }
+    return concurrentInterview;
+  }
+  function applyBackgroundCapture(result,captured){
+    if(intakeActive()||!workflowEvidenceStillValid(captured))return;
+    const evidence=mergeDocumentEvidence([...(result.document_evidence||[]),...(result.workflow_capture?.document_evidence||[])]);
+    const findings=normalizeFindings(result.memo_findings||[],captured.turns,evidence);
+    const graph=result.workflow_capture?.workflow;
+    const workflow=graph?normalizeDraft(graph,captured.turns,evidence):null;
+    state.memo_findings=findings;state.coverage=normalizeCoverage(result.coverage);
+    state.summary=text(result.summary,6000);state.focus=text(result.focus,500);
+    state.parking_lot=strings(result.parking_lot,50);state.documentEvidence=evidence;
+    rememberDiscussion(result,captured);
+    // Background observations are provisional until the current transcript
+    // passes the explicit synchronized completion/review path.
+    state.coverageVerified=false;state.completion=null;state.closure={asked:false,confirmed:false};
+    state.dirty=true;
+    if(workflow){conversationUI.workflow=workflow;conversationUI.applied=conversationUI.revision;applyProcessTitle(workflow.title);renderWorkingMap();$('workflow-status').textContent='Updated through the latest answer';}
+    renderCoverage();updateControls();updateSaveHint();
   }
   function rememberCompletionReview(result){
     delete $("retry-question").dataset.resumeReview;
@@ -1453,13 +1553,21 @@
     if(intakeActive())return;
     if (typeof result.question !== "string" || !result.question.trim()) throw new Error("The interviewer returned an incomplete question. Please try again.");
     const question = text(result.question,6000);
+    if(!result.preserve_capture)rememberDiscussion(result,snapshot());
+    if(result.workflow_capture?.workflow){
+      const evidence=mergeDocumentEvidence([...(result.document_evidence||[]),...(result.workflow_capture.document_evidence||[])]);
+      const graph=normalizeDraft(result.workflow_capture.workflow,state.turns,evidence);
+      state.documentEvidence=evidence;conversationUI.workflow=graph;conversationUI.applied=conversationUI.revision;applyProcessTitle(graph.title);renderWorkingMap();$('workflow-status').textContent='Updated through the latest answer';
+    }
     if(result.speech_authorization?.kind==="review_pending"&&((question!==REVIEW_ACK&&!(result.review_purpose==="partial"&&question===PARTIAL_REVIEW_ACK))||result.speech_authorization.approved!==true||result.speech_authorization.text!==question||typeof result.review_ticket!=="string"||!result.review_ticket||result.review_ticket.length>4096||result.coverage_verified===true||result.completion?.complete===true||result.completion?.ready_for_final_check===true))throw new Error("The completion review acknowledgement was invalid.");
     if(typeof result.capture_token==="string"&&result.capture_token&&result.capture_token.length<=4096)state.captureToken=result.capture_token;
     state.coverageVerified=result.coverage_verified===true;
     state.completion=result.completion||null;
     if(result.preserve_capture){
       state.turns.push({id:nextTurnId(),role:"assistant",text:question});state.version++;state.dirty=true;
-      state.closure={asked:false,confirmed:false};rememberCompletionReview(result);renderTranscript();scrollConversation();return;
+      state.closure={asked:false,confirmed:false};rememberCompletionReview(result);renderTranscript();scrollConversation();
+      if($("speak-questions").checked&&!conversationUI.live?.active&&result.speech_authorization?.kind!=="review_pending")speak(question,true);
+      return;
     }
     const coverage = normalizeCoverage(result.coverage);
     const summary = text(result.summary,6000);
@@ -1835,7 +1943,7 @@
     const root=$("report-content"),d=state.draft;
     if(!root)return;
     root.replaceChildren();if(!d)return;
-    root.append(el("h1","report-title",d.title||state.context?.process_name||"Business process"));
+    root.append(el("h1","report-title",d.title||processDisplayName()||"Business process"));
     root.append(el("p","report-status","Draft of current practice · Needs owner review"));
     if(state.example)root.append(el("p","report-warning","Example — everything here is fictional."));
     if(state.draftVersion!==state.version)root.append(el("p","report-warning","The interview has changed since this draft. Update the draft before approval."));
@@ -1844,7 +1952,7 @@
     const contents=$("report-contents");contents?.replaceChildren(el("option","","Jump to section…"));
     const section=(title)=>{const part=el("section","report-section");part.id=`report-section-${root.querySelectorAll(".report-section").length+1}`;part.tabIndex=-1;part.append(el("h2","",title));root.append(part);if(contents){const option=el("option","",title);option.value=part.id;contents.append(option);}return part;};
     let part=section("1. Business context");
-    fields(part,[["Process",state.context?.process_name],["Process owner / role",state.context?.process_owner],["Interview objective",state.context?.objective],["Supplied context and material",state.context?.background]]);
+    fields(part,[["Process",processDisplayName()],["Process owner / role",state.context?.process_owner],["Interview objective",state.context?.objective],["Supplied context and material",state.context?.background]]);
     part=section("2. Overview and boundaries");part.append(el("p","",d.overview));fields(part,[["Trigger / starting condition",d.trigger]]);part.append(el("h3","","Inputs"));list(part,d.inputs);part.append(el("h3","","Outputs"));list(part,d.outputs);
     part=section("3. Memo foundation");
     (d.memo_summary||[]).forEach(f=>{const item=el("section","report-finding");item.append(el("h3","",MEMO_HEADINGS[f.key]||f.key),el("span","report-finding-status",provisionalFinding(f)?"Captured · awaiting review":f.status.replaceAll("_"," ")),el("p","",f.answer),evidenceRow(f.evidence_turns));part.append(item);});
@@ -2326,10 +2434,10 @@
   }
   function sessionObject() {
     const provenance=state.captureProvenance===null?null:savedCaptureProvenance(state.captureProvenance);
-    return {document_evidence:state.documentEvidence,workflow:conversationUI.workflow,schema_version:1,saved_at:new Date().toISOString(),context:state.context||readContext(),process_name_manual:state.processNameManual,documents:documentController?.exportState()||null,document_questions_handled:[...documentQuestionsHandled],turns:state.turns,coverage:state.coverage,summary:state.summary,memo_findings:state.memo_findings,focus:state.focus,parking_lot:state.parking_lot,closure:provenance?{...state.closure,confirmed:false}:state.closure,...(provenance?{capture_provenance:provenance}:{}),draft:state.draft,draft_stale:Boolean(state.draft&&state.draftVersion!==state.version),draft_edited:state.draftEdited,synthetic_example:state.example,unsent_answer:$("answer-text").value,voice_choice:state.voiceChoice,knowledge_process_id:knowledgeUI?.processId||null,knowledge_status:knowledgeUI?.exportReceipt()||null};
+    return {document_evidence:state.documentEvidence,workflow:conversationUI.workflow,schema_version:1,saved_at:new Date().toISOString(),context:state.context||readContext(),process_name_manual:state.processNameManual,derived_process_title:state.derivedProcessTitle,documents:documentController?.exportState()||null,document_questions_handled:[...documentQuestionsHandled],turns:state.turns,coverage:state.coverage,summary:state.summary,memo_findings:state.memo_findings,focus:state.focus,parking_lot:state.parking_lot,closure:provenance?{...state.closure,confirmed:false}:state.closure,...(provenance?{capture_provenance:provenance}:{}),draft:state.draft,draft_stale:Boolean(state.draft&&state.draftVersion!==state.version),draft_edited:state.draftEdited,synthetic_example:state.example,unsent_answer:$("answer-text").value,voice_choice:state.voiceChoice,knowledge_process_id:knowledgeUI?.processId||null,knowledge_status:knowledgeUI?.exportReceipt()||null};
   }
   function exportSession() {
-    download(JSON.stringify(sessionObject(),null,2), `${safeFilename(state.context?.process_name || readContext().process_name)}-session.json`, "application/json");
+    download(JSON.stringify(sessionObject(),null,2), `${safeFilename(processDisplayName() || readContext().process_name)}-session.json`, "application/json");
     state.dirty = false;
     updateSaveHint();
     notice("Saved. Keep the file somewhere approved for company information.");
@@ -2350,7 +2458,7 @@
     });
     return {format:"ai-process-collector-transcript",schema_version:1,exported_at:new Date().toISOString(),
       app_version:typeof state.config?.version==="string"?state.config.version:"unknown",
-      process:{name:context.process_name||"Untitled process",owner_role:context.process_owner||"",objective:context.objective||"",background:context.background||""},
+      process:{name:processDisplayName(context)||"Untitled process",owner_role:context.process_owner||"",objective:context.objective||"",background:context.background||""},
       synthetic_example:state.example===true,
       capture:{in_progress:Boolean(state.busy||state.recording||state.transcribing||conversationUI.live?.active||conversationUI.status==="closing"||conversationUI.flowBusy),
         scope_note:"Snapshot of all stored transcript text in order. Live captions may be provisional. Unsent text, recordings and supporting documents are not included. Export time is not an interview or turn timestamp.",
@@ -2407,7 +2515,7 @@
     const md = escapeMarkdown;
     const list = (values, empty="Not established in this interview.") => values.length ? values.map(v => `- ${md(v)}`).join("\n") : `- ${md(empty)}`;
     const sources = ids => ids.length ? ids.map(id=>md(state.documentEvidence.some(source=>source.id===id)?`${sourceCaption(id)} (${id})`:id)).join(", ") : "No cited source — UNKNOWN / TBD";
-    const parts = [`# ${md(d.title || state.context?.process_name || "Process procedure")}`, "**DRAFT — process owner review required**", state.example ? "**Synthetic example — fictional process data.**" : "", state.draftVersion !== state.version ? "**The interview has changed since this draft was created. Reconcile the new answers before approval.**" : "",`Final completeness check: ${state.closure.confirmed?"participant confirmed":state.closure.asked?"asked; participant confirmation pending":"not yet requested"}.`,"## Contents","- [Business context](#business-context)\n- [Overview](#overview)\n- [Memo foundation](#memo-foundation)\n- [Procedure](#procedure)\n- [Process connections](#process-connections)\n- [Item lifecycles](#item-lifecycles)\n- [Variations and boundaries](#variations-and-boundaries)\n- [Exceptions](#exceptions)\n- [Controls](#controls)\n- [Open questions](#open-questions)\n- [Validation notes](#validation-notes)\n- [Parked topics](#parked-topics)\n- [Interview evidence](#interview-evidence)","## Business context",`- Process: ${md(state.context?.process_name||d.title)}`,`- Process owner / role: ${md(state.context?.process_owner||"UNKNOWN / TBD")}`,"### Interview objective",md(state.context?.objective||"Not specified."),"### Supplied context and material",md(state.context?.background||"No additional context supplied."),"## Overview",md(d.overview),"## Memo foundation"];
+    const parts = [`# ${md(d.title || processDisplayName() || "Process procedure")}`, "**DRAFT — process owner review required**", state.example ? "**Synthetic example — fictional process data.**" : "", state.draftVersion !== state.version ? "**The interview has changed since this draft was created. Reconcile the new answers before approval.**" : "",`Final completeness check: ${state.closure.confirmed?"participant confirmed":state.closure.asked?"asked; participant confirmation pending":"not yet requested"}.`,"## Contents","- [Business context](#business-context)\n- [Overview](#overview)\n- [Memo foundation](#memo-foundation)\n- [Procedure](#procedure)\n- [Process connections](#process-connections)\n- [Item lifecycles](#item-lifecycles)\n- [Variations and boundaries](#variations-and-boundaries)\n- [Exceptions](#exceptions)\n- [Controls](#controls)\n- [Open questions](#open-questions)\n- [Validation notes](#validation-notes)\n- [Parked topics](#parked-topics)\n- [Interview evidence](#interview-evidence)","## Business context",`- Process: ${md(processDisplayName()||d.title)}`,`- Process owner / role: ${md(state.context?.process_owner||"UNKNOWN / TBD")}`,"### Interview objective",md(state.context?.objective||"Not specified."),"### Supplied context and material",md(state.context?.background||"No additional context supplied."),"## Overview",md(d.overview),"## Memo foundation"];
     d.memo_summary.forEach(finding => parts.push(`### ${md(MEMO_HEADINGS[finding.key]||finding.key)}`,`Status: ${md(provisionalFinding(finding)?"Captured · awaiting review":finding.status.replaceAll("_"," "))}`,md(finding.answer),`Sources: ${sources(finding.evidence_turns)}`));
     parts.push("## Trigger",md(d.trigger),"## Inputs",list(d.inputs),"## Outputs",list(d.outputs),"## Procedure");
     d.steps.forEach((s,i) => parts.push(`### ${i+1}. ${md(s.title)} (${md(s.id)})`,`- Owner / role: ${md(s.actor||"UNKNOWN / TBD")}`,`- System / tool: ${md(s.system||"UNKNOWN / TBD")}`,`- Type: ${md(s.type)}`,`- Input: ${md(s.input||"UNKNOWN / TBD")}`,`- Output: ${md(s.output||"UNKNOWN / TBD")}`,`- Completion criteria: ${md(s.completion_criteria||"UNKNOWN / TBD")}`,`- Next handoff: ${md(s.handoff||"UNKNOWN / TBD")}`,"",md(s.description),"",`Sources: ${sources(s.evidence_turns)}`));
@@ -2437,7 +2545,7 @@
   }
   function memoMarkdown() {
     const d=state.draft,md=escapeMarkdown;
-    const parts=[`# ${md(state.context?.process_name||d.title)} — process capture memo`,"**CURRENT-PRACTICE DRAFT — process owner review required**",state.example?"**Synthetic example — fictional process data.**":"",`Account confirmation: ${state.closure.confirmed?"participant confirmed":state.closure.asked?"requested; pending":"not yet requested"}. Process owner approval: pending.`,"Sources distinguish participant answers, supplied context and cited document excerpts; they are not independent verification. UNKNOWN / TBD and unreviewed material remain visible gaps."];
+    const parts=[`# ${md(processDisplayName()||d.title)} — process capture memo`,"**CURRENT-PRACTICE DRAFT — process owner review required**",state.example?"**Synthetic example — fictional process data.**":"",`Account confirmation: ${state.closure.confirmed?"participant confirmed":state.closure.asked?"requested; pending":"not yet requested"}. Process owner approval: pending.`,"Sources distinguish participant answers, supplied context and cited document excerpts; they are not independent verification. UNKNOWN / TBD and unreviewed material remain visible gaps."];
     d.memo_summary.forEach((finding,index)=>parts.push(`## ${index+1}. ${md(MEMO_HEADINGS[finding.key]||finding.key)}`,`Status: ${md(provisionalFinding(finding)?"Captured · awaiting review":finding.status.replaceAll("_"," "))}`,md(finding.answer),`Source: ${finding.evidence_turns.length?finding.evidence_turns.map(md).join(", "):"UNKNOWN / TBD"}`));
     if(d.variations.length){parts.push("## Variation differences");d.variations.forEach((v,index)=>parts.push(`### ${index+1}. ${md(v.applies_to)}`,`- What differs: ${md(v.difference)}`,`- Why: ${md(v.reason)}`,`- What it costs us: ${md(v.cost)}`,`- Do we charge: ${md(v.charging)}`,`- Could it go away: ${md(v.removability)}`,`- Boundary: ${md(v.boundary.replaceAll("_"," "))}. ${md(v.boundary_reason)}`));}
     parts.push("## Questions for the process owner",d.open_questions.length?d.open_questions.map((q,index)=>`${index+1}. ${md(q)}`).join("\n"):"No open questions recorded; the process owner should still review the draft.");
@@ -2450,6 +2558,8 @@
     return (!state.dirty&&!knowledgeUI?.hasPending) || confirm("Open a different interview? Anything you haven’t saved will be cleared. "+(knowledgeUI?.hasPending?"A process submission is awaiting confirmation; replacing this session loses its retry information and does not cancel a server save. Recover its status first if needed.":"Save a copy first if you want to keep it."));
   }
   function clearState(context = null) {
+    concurrentInterview?.reset();
+    conversationUI.live?.discardPendingAudio?.();topicDiscussion=[];analysisCheckpoint=null;
     reviewPauseSequence++;
     invalidateCompletionReview();state.captureToken=null;state.coverageVerified=false;
     documentIntake?.reset();intakeWasLive=false;for(const controller of interviewRequests)controller.abort();
@@ -2480,7 +2590,7 @@
     setTranscriptFind(false,false);setTranscriptExport(false,false);
     for(const id of ["interview-error","review-error"])if($(id))$(id).hidden=true;
     state.version++;
-    Object.assign(state,{context,processNameManual:Boolean(context?.process_name),turns:[],coverage:[],summary:"",draft:null,started:false,busy:false,importing:false,requestingMic:false,transcribing:false,draftVersion:null,draftEdited:false,example:false,dirty:false,memo_findings:[],focus:"",parking_lot:[],closure:{asked:false,confirmed:false},coverageNeedsReview:false,captureProvenance:null,documentEvidence:[]});
+    Object.assign(state,{context,processNameManual:Boolean(context?.process_name),derivedProcessTitle:"",turns:[],coverage:[],summary:"",draft:null,started:false,busy:false,importing:false,requestingMic:false,transcribing:false,draftVersion:null,draftEdited:false,example:false,dirty:false,memo_findings:[],focus:"",parking_lot:[],closure:{asked:false,confirmed:false},coverageNeedsReview:false,captureProvenance:null,documentEvidence:[]});
     $("answer-text").value = "";
     if($("retry-question"))$("retry-question").hidden=true;
     clearTimeout(noticeTimer);noticeTimer=null;noticeKind="general";
@@ -2544,6 +2654,8 @@
       const context = {
         process_name:text(saved.context.process_name,500),process_owner:text(saved.context.process_owner,500),objective:text(saved.context.objective,500),background:text(saved.context.background,8000)
       };
+      if(saved.derived_process_title!==undefined&&(typeof saved.derived_process_title!=="string"||saved.derived_process_title.length>180))throw new Error("The saved process title is invalid.");
+      const derivedTitle=text(saved.derived_process_title,180);
       const captureProvenance=savedCaptureProvenance(saved.capture_provenance);
       if(captureProvenance&&saved.closure&&typeof saved.closure==="object"&&Object.hasOwn(saved.closure,"confirmed")&&saved.closure.confirmed!==false)throw new Error("A document-derived simulation cannot claim participant confirmation. The current interview has not been replaced.");
       const ids = new Set();
@@ -2572,8 +2684,9 @@
       knowledgeUI?.restore(saved.knowledge_process_id,saved.knowledge_status);
       generation=state.generation;
       Object.assign(state,{documentEvidence,turns,coverage,summary,draft,started:turns.length>0,busy:true,importing:true,example:saved.synthetic_example===true,draftEdited:saved.draft_edited===true,memo_findings:findings,focus,parking_lot:parked,captureProvenance,coverageNeedsReview:true,closure:{asked:saved.closure?.asked===true,confirmed:false}});
-      updateControls();
       state.processNameManual=saved.process_name_manual===undefined?Boolean(context.process_name):saved.process_name_manual===true;
+      if(!state.processNameManual)applyProcessTitle(derivedTitle||workflow?.title);
+      $("process-name").value=processDisplayName(context);updateControls();
       (Array.isArray(saved.document_questions_handled)?saved.document_questions_handled:[]).filter(value=>typeof value==="string"&&value.length<160).slice(0,200).forEach(value=>documentQuestionsHandled.add(value));
       if(documents&&documentController){restoringDocuments=true;try{await documentController.restoreState(documents);}finally{if(generation===state.generation)restoringDocuments=false;}}
       if(generation!==state.generation)return;
@@ -2699,6 +2812,11 @@
     $("back-to-source").addEventListener("click",returnToSource);
     $("settings-source-return").addEventListener("click",returnToSource);
     for(const id of ["interview-error","review-error"])$(id).querySelector("button").addEventListener("click",()=>dismissInlineError(id));
+    $('retry-transcription')?.addEventListener('click',async()=>{
+      const live=conversationUI.live;if(!live?.hasPendingAudio)return;
+      $('retry-transcription').disabled=true;
+      try{await live.retryTranscription();}finally{updateControls();}
+    });
     for(const [prefix,id] of [["workflow","live-workflow"],["map","process-map"]]){
       $(prefix+"-step-select").addEventListener("change",()=>{const canvas=workflowCanvases.get(id),step=$(prefix+"-step-select").value;if(canvas?.getPathNavigation?.().following)canvas.followPath(step);else canvas?.focusStep(step,{readable:true,keyboard:false,select:true});});
       $(prefix+"-follow").addEventListener("click",()=>{const canvas=workflowCanvases.get(id);if(canvas?.getPathNavigation?.().following)canvas.leavePath();else canvas?.followPath($(prefix+"-step-select").value);});
@@ -2727,7 +2845,7 @@
     $("workflow-zoom-in").addEventListener("click",()=>workflowCanvases.get("live-workflow")?.zoom(.15));
     $("workflow-fit").addEventListener("click",()=>workflowCanvases.get("live-workflow")?.fit());
     for(const [button,id] of [["workflow-direction","live-workflow"],["map-direction","process-map"]])$(button).addEventListener("click",()=>{const canvas=workflowCanvases.get(id);if(canvas)canvas.setDirection(canvas.getDirection()==="DOWN"?"RIGHT":"DOWN").catch(()=>notice("Couldn’t change the layout. Your process is safe.",true));});
-    $("export-working-map").addEventListener("click",()=>{const svg=workflowCanvases.get("live-workflow")?.exportSVG();if(svg)download(svg,`${safeFilename(state.context?.process_name)}-working-flow.svg`,"image/svg+xml");});
+    $("export-working-map").addEventListener("click",()=>{const svg=workflowCanvases.get("live-workflow")?.exportSVG();if(svg)download(svg,`${safeFilename(processDisplayName())}-working-flow.svg`,"image/svg+xml");});
     $("close-workflow-step").addEventListener("click",()=>$("workflow-step-dialog").close());
     $("workflow-step-dialog").addEventListener("close",()=>{workflowDetailReturn?.focus?.({preventScroll:true});workflowDetailReturn=null;workflowDetailSource=null;});
     $("workflow-expand").addEventListener("click",()=>setWorkflowExpanded(!$("interview-view").classList.contains("workflow-expanded")));
@@ -2757,6 +2875,7 @@
       if(state.started)state.dirty=true;
       updateSaveHint();
     });
+    $("export-voice-timing").addEventListener("click",()=>download(JSON.stringify({version:state.config?.version,measurement:"Browser events; not physical audio or perceived responsiveness",turns:voiceTimingRecords},null,2),"voice-timings.json","application/json"));
     $("preview-voice").addEventListener("click",()=>{
       state.voiceChoiceUser=true;
       speak("Hello. I am your process interviewer. Tell me how the work begins, and we can take it one step at a time.");
@@ -2781,7 +2900,7 @@
     $("welcome-example").addEventListener("click",loadExample);
     $("leave-example").addEventListener("click",() => {if (canReplaceSession()) {clearState(); $("process-name").focus();}});
     $("export-markdown").addEventListener("click",() => {if (state.draft) download(markdown(),`${safeFilename(state.draft.title)}-DRAFT.md`,"text/markdown;charset=utf-8");});
-    $("export-memo").addEventListener("click",()=>{if(state.draft)download(memoMarkdown(),`${safeFilename(state.context?.process_name||state.draft.title)}-memo-DRAFT.md`,"text/markdown;charset=utf-8");});
+    $("export-memo").addEventListener("click",()=>{if(state.draft)download(memoMarkdown(),`${safeFilename(processDisplayName()||state.draft.title)}-memo-DRAFT.md`,"text/markdown;charset=utf-8");});
     $("export-map").addEventListener("click",() => {const exported=workflowCanvases.get("process-map")?.exportSVG();if(exported)download(exported,`${safeFilename(state.draft.title)}-DRAFT-map.svg`,"image/svg+xml");});
     $("add-step").addEventListener("click",() => {
       if (!state.draft || state.draft.steps.length >= 80) return;
@@ -2808,7 +2927,7 @@
     });
     document.querySelectorAll("#process-name,#process-owner,#objective,#background").forEach(input => input.addEventListener("input",() => {state.dirty = true;updateSaveHint();}));
     $("process-name").addEventListener("input",()=>{
-      state.processNameManual=Boolean($("process-name").value.trim());
+      state.processNameManual=Boolean($("process-name").value.trim());state.derivedProcessTitle="";
       if(state.context){state.context.process_name=$("process-name").value.trim();state.version++;if(conversationUI.workflow)conversationUI.workflow.title=state.context.process_name;}
       updateControls();
     });

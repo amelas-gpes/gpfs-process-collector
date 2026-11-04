@@ -86,7 +86,22 @@ result, required ordering and handoff wherever the evidence supplies them. A nam
 stage/check alone is insufficient when its mechanism is available. Record each
 completion condition and normal branch, not just a broad closeout label. Known
 working artifacts belong in materials even when their availability is unknown.
-The purpose can be a firm OR client result; no additional client result is required.
+The purpose can be a personal, firm OR client result; no additional client result is required.
+Apply commercial charging and organizational variation-removal questions only when relevant to
+the reported scope. Explicit personal/noncommercial scope can justify non-applicability; cite it.
+Do not manufacture a gap about removing spare equipment or redesigning a personal activity.
+
+Topic assignment is not exclusive. One cited statement can establish different
+facts in more than one section. Preserve a reported conditional route in lifecycle;
+also add its supported variation in variations when the person describes changed
+work for different equipment, systems, available inputs or circumstances. A normal
+branch belongs in lifecycle, but that does not erase a separately reported reason
+that the work differs. Backfill the second section even when that source was
+already captured under the first. Keep each section's remaining gaps explicit;
+one alternate route does not establish all variation dimensions. Distinguish the
+first action from the initiating event: 'first I retrieve the bag' explains sequence,
+not why or when the process begins, its cadence or deadline. Do not manufacture
+trigger facts from the position of a step in the conversation.
 
 Use add with an empty target_id for a new detail, explicit gap, or participant's
 N/A basis. Use replace/remove only for an identified existing fact ID with exact
@@ -468,6 +483,23 @@ def findings(state):
         result.append({"key": key, "status": state["topics"][key]["status"] if facts else "unknown",
                        "answer": answer, "evidence_turns": refs})
     return result
+
+
+def discussion(state):
+    """Source-backed discussion progress, separate from completeness proposals.
+
+    A topic can have useful recorded testimony while remaining partial. Absence
+    notes alone and retired source facts must not count as discussed testimony.
+    """
+    rows = []
+    for key in TOPICS:
+        refs = list(dict.fromkeys(ref for fact in state['facts']
+            if fact['state'] == 'active' and fact['topic'] == key
+            for ref in fact['evidence_turns']))
+        discussed = bool(state['topics'][key]['discussed'] and refs)
+        rows.append({'key': key, 'discussed': discussed,
+                     'evidence_turns': refs if discussed else []})
+    return rows
 
 
 def public_capture(state, delta, labels):

@@ -780,18 +780,18 @@ if(process.argv.includes("--usability-only")){
  }
  {
   checkpoint();t.clearState();t.ensureConversation();t.applyProcessTitle("Invoice approval");assert.equal(t.state.context.process_name,"","A document or model title without a participant answer cannot name the process");
-  t.state.turns=[{id:"t002",role:"user",text:"We approve vendor invoices."}];t.applyProcessTitle("Invoice approval");assert.equal(t.state.context.process_name,"Invoice approval");assert.equal(document.getElementById("process-name").value,"Invoice approval");
-  const title=t.state.context.process_name;for(const generic of ["UNKNOWN","Untitled","Workflow","Not established"])t.applyProcessTitle(generic);assert.equal(t.state.context.process_name,title);
-  assert.doesNotThrow(()=>t.applyProcessTitle("X".repeat(181)),"A valid long workflow title must not fail an otherwise accepted capture");assert.equal(t.state.context.process_name,title);passes++;
+  t.state.turns=[{id:"t002",role:"user",text:"We approve vendor invoices."}];const sourceContext=JSON.stringify(t.snapshot().context);t.applyProcessTitle("Invoice approval");assert.equal(t.state.context.process_name,"");assert.equal(t.state.derivedProcessTitle,"Invoice approval");assert.equal(document.getElementById("process-name").value,"Invoice approval");assert.equal(JSON.stringify(t.snapshot().context),sourceContext,"Automatic naming must not invalidate pending source revisions");
+  const title=t.state.derivedProcessTitle;for(const generic of ["UNKNOWN","Untitled","Workflow","Not established"])t.applyProcessTitle(generic);assert.equal(t.state.derivedProcessTitle,title);
+  assert.doesNotThrow(()=>t.applyProcessTitle("X".repeat(181)),"A valid long workflow title must not fail an otherwise accepted capture");assert.equal(t.state.derivedProcessTitle,title);passes++;
  }
  {
-  checkpoint();document.getElementById("process-name").value="Owner's chosen title";document.getElementById("process-name").dispatch("input");assert.equal(t.state.processNameManual,true);t.applyProcessTitle("A model-proposed replacement");assert.equal(t.state.context.process_name,"Owner's chosen title");
+  checkpoint();document.getElementById("process-name").value="Owner's chosen title";document.getElementById("process-name").dispatch("input");assert.equal(t.state.processNameManual,true);assert.equal(t.state.derivedProcessTitle,"");t.applyProcessTitle("A model-proposed replacement");assert.equal(t.state.context.process_name,"Owner's chosen title");
   const saved=t.sessionObject();assert.equal(saved.process_name_manual,true);t.state.dirty=false;await t.importSession({size:JSON.stringify(saved).length,text:async()=>JSON.stringify(saved)});
   assert.equal(t.state.processNameManual,true);assert.equal(t.state.context.process_name,"Owner's chosen title");t.applyProcessTitle("Another model title");assert.equal(t.state.context.process_name,"Owner's chosen title");passes++;
  }
  {
   checkpoint();t.clearState();t.ensureConversation();t.state.turns=[{id:"t002",role:"user",text:"We log invoices."}];t.applyProcessTitle("Automatically inferred title");
-  const saved=t.sessionObject();assert.equal(saved.process_name_manual,false);t.state.dirty=false;await t.importSession({size:JSON.stringify(saved).length,text:async()=>JSON.stringify(saved)});assert.equal(t.state.processNameManual,false);t.applyProcessTitle("More precise inferred title");assert.equal(t.state.context.process_name,"More precise inferred title");passes++;
+  const saved=t.sessionObject();assert.equal(saved.process_name_manual,false);assert.equal(saved.context.process_name,"");assert.equal(saved.derived_process_title,"Automatically inferred title");t.state.dirty=false;await t.importSession({size:JSON.stringify(saved).length,text:async()=>JSON.stringify(saved)});assert.equal(t.state.processNameManual,false);assert.equal(t.state.derivedProcessTitle,"Automatically inferred title");assert.equal(document.getElementById("process-name").value,"Automatically inferred title");t.applyProcessTitle("More precise inferred title");assert.equal(t.state.context.process_name,"");assert.equal(t.state.derivedProcessTitle,"More precise inferred title");passes++;
  }
  {
   checkpoint();const docs=fakeDocuments();t.setDocumentController(docs);t.state.context={process_name:"Invoice process"};t.state.turns=[{id:"t002",role:"user",text:"Participant-confirmed intake."}];
@@ -937,7 +937,7 @@ if(process.argv.includes("--usability-only")){
   checkpoint();t.setRequest(async(url,payload)=>{assert.equal(url,"/api/workflow");assert.equal(payload.document_scope,"testscope");return {
    workflow:{title:"US payment execution",steps:[{id:"S1",title:"Client releases payment",evidence_turns:[sourceId]}],connections:[]},
    document_evidence:[evidence],memo_findings:[{key:"name",status:"captured",answer:"US payment execution",evidence_turns:[sourceId]}],coverage:[],summary:"Documented process",focus:"Named owner",parking_lot:[]};});
-  await t.refreshWorkflow();assert.equal(t.conversationUI.workflow.steps.length,1);assert.equal(t.state.context.process_name,"US payment execution");
+  await t.refreshWorkflow();assert.equal(t.conversationUI.workflow.steps.length,1);assert.equal(t.state.context.process_name,"");assert.equal(t.state.derivedProcessTitle,"US payment execution");
   assert.equal(t.state.memo_findings.find(f=>f.key==="name").status,"partial","Documented detail must not become participant-confirmed coverage");
   assert.match(t.sourceCaption(sourceId),/Payment SOP.pdf.*Page 1/);assert.equal(t.snapshot().document_source_ids[0],sourceId);
   t.jumpToTurn(sourceId);assert.equal(document.getElementById("document-evidence-dialog").open,true);assert.match(document.getElementById("document-evidence-dialog").textContent,/client releases the wire/);document.getElementById("document-evidence-dialog").close();

@@ -21,6 +21,7 @@
   <script src="/knowledge-ui.js" defer></script>
   <script src="/gpfs-presence.js" defer></script>
   <script src="/agent-team.js" defer></script>
+  <script src="/concurrent-interview.js" defer></script>
   <script src="/app.js" defer></script>
 </head>
 <body>
@@ -59,7 +60,7 @@
           <ol class="document-intake-steps" aria-label="File review stages"><li id="intake-step-upload">Upload</li><li id="intake-step-review">Review</li><li id="intake-step-baseline">Update process</li><li id="intake-step-question">Follow up</li></ol>
           <div class="document-intake-actions"><button type="button" id="document-intake-assets" class="text-button" data-icon="folder">View assets</button><button type="button" id="document-intake-retry" class="text-button" data-icon="refresh" hidden>Try again</button><button type="button" id="document-intake-continue" class="text-button" hidden>Continue without waiting</button></div>
         </section>
-        <div id="interview-error" class="inline-error" role="status" hidden><span></span><button type="button" aria-label="Dismiss interview error">Dismiss</button></div><section class="conversation-panel" aria-label="Process interview">
+        <div id="interview-error" class="inline-error" role="status" hidden><span></span><button type="button" aria-label="Dismiss interview error">Dismiss</button><button type="button" id="retry-transcription" hidden>Retry recording</button></div><section class="conversation-panel" aria-label="Process interview">
           <div class="stage-toolbar"><span class="session-presence" id="session-presence" hidden><i></i><span id="session-status"></span></span></div>
           <div class="stage-content">
             <div id="voice-panel" class="conversation-view voice-stage" role="tabpanel" aria-labelledby="conversation-tab-voice" tabindex="0">
@@ -121,6 +122,9 @@
           <button type="button" id="memo-tab-assets" role="tab" aria-selected="false" aria-controls="memo-panel-assets" tabindex="-1" data-memo-section="assets">Assets <span id="memo-assets-count" class="memo-tab-count" hidden>0</span></button>
         </nav>
         <section id="memo-panel-notes" class="memo-panel" role="tabpanel" aria-labelledby="memo-tab-notes" tabindex="0">
+          <p id="analysis-status" class="coverage-update-status" role="status" aria-live="polite" hidden></p>
+          <p id="discussion-progress" class="coverage-update-status" role="status">0 of 11 topics discussed</p>
+          <p id="analysis-through" class="coverage-update-status" hidden></p>
           <div class="coverage-heading"><span id="coverage-summary">Topics covered</span><span id="coverage-count">0 / 11</span></div><div class="coverage-track" aria-hidden="true"><span id="coverage-progress"></span></div><div id="coverage-update-status" class="coverage-update-status" role="status">Updates as you talk</div>
           <div class="memo-scroll"><div class="memo-focus"><span class="section-eyebrow">NOW DISCUSSING</span><p id="memo-focus">Getting started</p></div><div id="foundation-details"><div id="coverage-list" class="coverage-list" aria-label="Topics"></div></div></div>
         </section>
@@ -158,7 +162,7 @@
             <button class="text-button" type="button" id="settings-source-return" data-icon="arrow-left" hidden>Back to what you were reviewing</button><div class="settings-heading"><h3 id="settings-title">Settings</h3><button type="button" class="text-button" id="close-interview-settings">Done</button></div>
             <button type="button" id="open-knowledge-admin" class="button secondary small" data-icon="db" hidden>Company knowledge (admin)</button>
             <p>When you type instead of talk, questions can be read aloud.</p>
-            <div id="voice-options" class="voice-options"><span id="voice-summary-label" hidden>Voice settings</span><div class="voice-options-content"><div class="voice-choice-row"><label for="voice-select">Voice</label><select id="voice-select" aria-describedby="voice-description"></select></div><p id="voice-description" class="voice-description"></p><div class="voice-settings"><label class="check-label"><input type="checkbox" id="speak-questions"> Read questions aloud</label><label class="check-label"><input type="checkbox" id="stop-on-silence" checked> Stop recording when I pause</label></div><p id="voice-availability" hidden></p></div></div><button type="button" class="button secondary small" id="preview-voice" data-icon="play">Preview voice</button><span id="voice-status" role="status" hidden></span><button class="text-button small" id="stop-speaking" data-icon="x" hidden>Stop voice</button>
+            <div id="voice-options" class="voice-options"><span id="voice-summary-label" hidden>Voice settings</span><div class="voice-options-content"><div class="voice-choice-row"><label for="voice-select">Voice</label><select id="voice-select" aria-describedby="voice-description"></select></div><p id="voice-description" class="voice-description"></p><div class="voice-settings"><label class="check-label"><input type="checkbox" id="speak-questions"> Read questions aloud</label><label class="check-label"><input type="checkbox" id="stop-on-silence" checked> Stop recording when I pause</label></div><p id="voice-availability" hidden></p></div></div><button type="button" class="button secondary small" id="preview-voice" data-icon="play">Preview voice</button><button type="button" class="text-button small" id="export-voice-timing" disabled>Save voice timings</button><span id="voice-status" role="status" hidden></span><button class="text-button small" id="stop-speaking" data-icon="x" hidden>Stop voice</button>
             <p id="data-notice"></p>
                       <div id="context-details">
               <label for="process-owner">Process owner</label><input id="process-owner" maxlength="180" placeholder="Name or role (optional)">

@@ -4,6 +4,7 @@ This is the standing interview and write-up policy for AI Process Collector. It 
 
 ## Agent policy
 
+- Adapt the framework to the participant's actual industry, function or personal activity. Professional knowledge guides curiosity; it supplies no facts about this process. Personal work is valid. Commercial charging, client/fund outcomes and organizational constraints on removing variations apply only where the stated scope supports their relevance. Do not ask someone to redesign a hobby activity or justify keeping spare equipment merely to fill a commercial field. Use their explicit scope to explain non-applicability; do not equate missing information with non-applicability.
 - Discover how the work actually runs today. Use participants' statements and supplied evidence. Never invent a step, check, owner, location, system, stage, rule, number or fact. Distinguish a participant's account from independently checked evidence.
 - Treat the eleven memo topics below as the permanent coverage guide. Elicit them naturally, follow useful answers, and return to unanswered topics. Do not read the eleven questions as a fixed script or repeatedly ask for something already answered.
 - Begin with one piece of recurring work the participant knows. Establish its start, accountable role and finish. A role is sufficient; record `TBD` if accountability is genuinely unassigned. Do not appoint an owner.
@@ -80,7 +81,7 @@ Use these distinctions only to preserve the memo's capture boundaries; do not de
 
 Effort, using a different system and feeling different are not boundary tests. Extra client-specific work should be flagged as a variation where the boundary tests support it; do not assume it is outside the contract or uncharged. Keep controls, policies, systems, templates and reports used within the work in their relevant steps. If producing a report is itself the recurring work, capture that reporting process.
 
-For **each variation**, capture these six fields:
+For **each variation**, capture the applicable fields below. First assess relevance to the stated activity. The commercial charging and removal fields are conditional: for an explicitly personal, noncommercial process, explain non-applicability from that source instead of manufacturing billing or redesign questions. Preserve unknown applicable details as gaps.
 
 | Field | Required detail |
 | --- | --- |

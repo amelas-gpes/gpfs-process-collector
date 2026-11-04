@@ -1530,7 +1530,10 @@
       if (generation !== state.generation || intakeActive() || error.name==="AbortError") return;
       $("retry-question").hidden=false;
       renderTranscript();
-      notice(pendingCompletionReview?"Your answers are saved. The completion review did not finish; choose Try again to resume it.":"Your answer is saved, but the next question didn’t load. Add more detail, or choose Try again.", true);
+      // Keep the server's reason (quota, key, rate limit, timeout) visible; a
+      // generic notice alone leaves the participant unable to fix the cause.
+      const reason=typeof error?.message==="string"&&error.message.trim()?" "+error.message.trim():"";
+      notice((pendingCompletionReview?"Your answers are saved. The completion review did not finish; choose Try again to resume it.":"Your answer is saved, but the next question didn’t load. Add more detail, or choose Try again.")+reason, true);
     } finally {
       if (generation === state.generation&&pauseSequence===reviewPauseSequence) {setBusy(false);scheduleWorkflow();$("answer-text").focus();}
     }

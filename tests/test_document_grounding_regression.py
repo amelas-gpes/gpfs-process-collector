@@ -26,7 +26,13 @@ if str(Path(__file__).parent) not in sys.path:
 from test_server import server, interview_payload, interview_result, process_draft
 from test_live import SDP, workflow_update_result
 
-LOCAL = APP / ".local" / "document-experience"
+def long_path(path):
+    """Windows: use an extended-length root so deep fixtures can be created and cleaned up."""
+    path = Path(path).resolve()
+    return Path("\\\\?\\" + str(path)) if sys.platform == "win32" and not str(path).startswith("\\\\?\\") else path
+
+
+LOCAL = long_path(APP / ".local" / "document-experience")
 REPLAY = LOCAL / "fa17-replay.json"
 KEY = "sk-synthetic-document-grounding-never-real"
 

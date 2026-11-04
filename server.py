@@ -1019,6 +1019,15 @@ def next_uncovered_question(result):
                     "risk": "What happens if this work is done incorrectly?",
                     "materials": "What written guidance is available for someone learning this work?",
                 }[key]
+    # Every open topic is partial without a reviewer question (for example, the
+    # lead proposed closing language that the boundary rejected). Name the open
+    # sections rather than asking a vague question the participant cannot act on.
+    open_labels = [COVERAGE[key] for key in COVERAGE
+                   if findings[key]["status"] not in ("captured", "not_applicable")
+                   and not assessments.get(key, {}).get("participant_unavailable")]
+    if open_labels:
+        return ("Some sections still need clarification: " + "; ".join(open_labels)
+                + ". Which of these can you help explain next?")
     return "Some sections still need clarification before this is complete. Which open detail can you help explain next?"
 
 
@@ -1081,10 +1090,7 @@ def enforce_closure(result, turns, action):
     if result["closure"]["confirmed"]:
         after_check = [t for t in turns[checks[-1] + 1:] if t["role"] == "user" and not t.get("document_event")] if checks else []
         # A correction or new exception is not an affirmative closure response.
-        has_reply = bool(after_check) and bool(re.fullmatch(
-            r"\s*(?:no[,.!]?\s*)?(?:nothing (?:else|more)|that(?:['’]s| is) all|"
-            r"(?:this|that) captures my account|correct|no)[.!]?"
-            r"(?:\s*(?:this|that) captures my account[.!]?)?\s*", after_check[-1]["text"], re.I))
+        has_reply = bool(after_check) and bool(agent_team.FINAL_CONFIRMATION.fullmatch(after_check[-1]["text"]))
         if not has_reply:
             result["closure"]["confirmed"] = False
         elif not result["question"].strip():
@@ -1886,7 +1892,7 @@ class OpenAIClient:
                                "file_data": "data:application/pdf;base64," + base64.b64encode(page).decode(),
                                "detail": "high"})
             elif record["kind"] == "png":
-                raw = store.original_path(record["_scope"], record["id"]).read_bytes()
+                raw = store.original_bytes(record["_scope"], record["id"])
                 inputs.append({"type": "input_image", "image_url": "data:image/png;base64," + base64.b64encode(raw).decode(),
                                "detail": "high"})
         if not inputs:

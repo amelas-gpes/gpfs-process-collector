@@ -49,6 +49,28 @@ class DocumentStoreTests(unittest.TestCase):
     def add_csv(self, content=b'name,value\nalpha,42\n', **kwargs):
         return self.store.add(self.scope, 'sample.csv', content, **kwargs)
 
+    @unittest.skipUnless(documents.sys.platform == 'win32', 'Windows MAX_PATH boundary')
+    def test_deep_store_works_beyond_windows_max_path_with_plain_public_paths(self):
+        # A nested checkout pushes <root>/<64-char scope>/<doc id>/.pending-<24> past 260
+        # characters. Clean up through an extended-length root: plain rmtree cannot
+        # remove files whose plain path exceeds MAX_PATH.
+        base = tempfile.TemporaryDirectory(dir='\\\\?\\' + documents.os.path.abspath(tempfile.gettempdir()))
+        self.addCleanup(base.cleanup)
+        root = Path(base.name[4:]) / ('nested-' * ((190 - len(base.name)) // 7)) / 'documents'
+        self.assertLess(len(str(root)), documents.LONG_PATH_THRESHOLD)
+        self.assertGreater(len(str(root)) + 1 + 64 + 1 + 28 + 1 + len('.pending-') + 24, 260)
+        store = documents.DocumentStore(root)
+        scope = store.create_scope()
+        record = store.add(scope, 'sample.csv', b'name,value\nalpha,42\n')
+        record = store.extract(scope, record['id'])
+        self.assertEqual(record['status'], 'ready')
+        self.assertEqual(store.chunks(scope, record['id'])['total'], 1)
+        original = store.original_path(scope, record['id'])
+        self.assertFalse(str(original).startswith('\\\\?\\'))
+        self.assertTrue(original.is_relative_to(root))
+        self.assertEqual(store.original_bytes(scope, record['id']), b'name,value\nalpha,42\n')
+        self.assertEqual(documents.DocumentStore(root).get(scope, record['id'])['status'], 'ready')
+
     def test_original_and_atomic_metadata_survive_reload_with_private_permissions(self):
         with patch.object(documents.os, 'chmod', wraps=documents.os.chmod) as change:
             record = self.add_csv(context={'latest_question': 'Which tracker?', 'turns': [{'id': 'u1', 'role': 'user', 'text': 'This one.'}], 'OPENAI_API_KEY': 'must-not-store'})

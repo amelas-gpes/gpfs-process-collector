@@ -112,7 +112,7 @@
       const controller=new AbortController();op.workController=controller;
       const abort=()=>controller.abort();op.controller.signal.addEventListener("abort",abort,{once:true});
       try{await task(controller.signal);}
-      catch(error){if(this.current(op)&&!controller.signal.aborted)await this.fail(op,error?.voiceMessage||"The review could not finish. Your saved answers are retained. Continue by typing or reconnect.");}
+      catch(error){if(this.current(op)&&!controller.signal.aborted)await this.fail(op,error?.voiceMessage||"The review could not finish. "+(typeof error?.message==="string"&&error.message.trim()?error.message.trim()+" ":"")+"Your saved answers are retained. Continue by typing or reconnect.");}
       finally{
         op.controller.signal.removeEventListener("abort",abort);
         if(op.workController===controller){op.workController=null;op.processing=false;}

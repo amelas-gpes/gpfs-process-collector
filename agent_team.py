@@ -35,6 +35,15 @@ ROLE_CONTRACTS = {
 }
 CORE_ROLES = ("lead_interviewer", "coverage_reviewer", "process_reviewer")
 FINAL_CHECK_PREFIX = "Before we finish, is there anything else"
+# A plain closing reply to the final omissions check. Trailing qualifiers that
+# add nothing ("to add", "from me") are accepted; anything that continues the
+# sentence with new content ("…, unless", "…, but") is not a confirmation.
+FINAL_CONFIRMATION = re.compile(
+    r"\s*(?:(?:no|nope)[,.!]?\s*)?"
+    r"(?:nothing (?:else|more|further)(?: (?:to add|from me|comes to mind|(?:that )?i can think of))?|"
+    r"that(?:['’]s| is) (?:all|everything|it)(?: (?:from me|for now|(?:that )?i can think of))?|"
+    r"(?:this|that) (?:captures my account|covers (?:it|everything))|correct|no|nope)[.!]?"
+    r"(?:\s*(?:this|that) captures my account[.!]?)?\s*", re.I)
 _SOURCE_ID = re.compile(r"^[A-Za-z0-9_-]{1,200}$")
 _MODEL_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,119}$")
 _REASONS = {"", "cancelled", "stale_revision", "call_budget_exhausted", "role_already_invoked",
@@ -444,10 +453,7 @@ def explicit_final_confirmation(ledger):
         return False
     if not turns[-2]["text"].startswith(FINAL_CHECK_PREFIX):
         return False
-    return bool(re.fullmatch(
-        r"\s*(?:no[,.!]?\s*)?(?:nothing (?:else|more)|that(?:['’]s| is) (?:all|everything)|"
-        r"(?:this|that) (?:captures my account|covers (?:it|everything))|correct|no)[.!]?"
-        r"(?:\s*(?:this|that) captures my account[.!]?)?\s*", turns[-1]["text"], re.I))
+    return bool(FINAL_CONFIRMATION.fullmatch(turns[-1]["text"]))
 
 
 def participant_has_more_to_add(ledger):

@@ -603,6 +603,10 @@ body.interview-started #welcome-example { display: none; }
 .coverage-state { color: var(--muted); font-size: 12px; text-align: right; }
 .coverage-item.covered .coverage-state { color: var(--sage); }
 .coverage-item.partial .coverage-state { color: var(--amber); }
+/* Advisory pre-check of a provisional topic: display-only, pending the completion review. */
+.coverage-item.advisory-ok .coverage-dot { border-color: var(--sage); background: conic-gradient(var(--sage) 0 50%, transparent 0); }
+.coverage-item.advisory-ok .coverage-state { color: var(--sage); }
+.coverage-item.advisory-gap .coverage-state { color: var(--amber); font-weight: 600; }
 .memo-next { margin: 16px 0 0; padding-top: 14px; border-top: 1px solid var(--line); }
 .memo-next p { margin: 4px 0 0; color: var(--ink-2); font-size: 13px; line-height: 1.6; }
 #memo-next-action { padding: 6px 0; color: var(--accent); text-align: left; font-weight: 600; }

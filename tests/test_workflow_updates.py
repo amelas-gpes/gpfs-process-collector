@@ -337,9 +337,17 @@ class WorkflowUpdateTests(unittest.TestCase):
         retraction = {'key': 'materials', 'status': 'unknown', 'answer': 'Materials no longer established.', 'evidence_turns': []}
         original['turns'].append({'id': 'file_notice', 'role': 'user', 'document_event': True,
                                   'text': 'No materials are established by this document.'})
+        previous_materials = next(f for f in original['previous_capture']['memo_findings'] if f['key'] == 'materials')
         for sources in ([], ['context'], ['a1'], ['file_notice'], ['invented']):
-            with self.subTest(sources=sources), self.assertRaises(server.APIError):
-                self.client(update(memo_findings=[{**retraction, 'evidence_turns': sources}])).workflow(original)
+            with self.subTest(sources=sources):
+                # An unsupported withdrawal keeps the prior finding; nothing from
+                # the dropped entry is retained, and the graph edits in the same
+                # update are not discarded with it.
+                result = self.client(update(memo_findings=[{**retraction, 'evidence_turns': sources}])).workflow(original)
+                by_key = {f['key']: f for f in result['memo_findings']}
+                self.assertEqual(by_key['materials'], previous_materials)
+                self.assertEqual(by_key['lifecycle'], original['previous_capture']['memo_findings'][5])
+                self.assertTrue(result['workflow']['steps'])
         original['turns'].append({'id': 'u4', 'role': 'user', 'text': 'I withdraw the Jira and Confluence references; I do not know which documents are used.'})
         retraction['evidence_turns'] = ['u4']
         result = self.client(update(memo_findings=[retraction])).workflow(original)

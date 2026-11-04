@@ -68,6 +68,64 @@ function acknowledge(h,events=h.channels.at(-1).sent.filter(e=>e.type==="session
   await h.api.stop({immediate:true});assert.equal(h.tracks[0].stopped,true);assert.equal(h.peers[0].closed,true);passes++;
  }
  {
+  // An application-authorized line goes through session.instructions.append (verbatim wording; commentary may be paraphrased); the receipt is delivery only.
+  const h=setup();await h.api.start();
+  assert.equal((await h.api.say("")).status,"rejected");
+  const receipt=h.api.say("Let me check that I have everything before we finish.");
+  const sent=h.channels.at(-1).sent.find(e=>e.type==="session.instructions.append"&&/Let me check/.test(e.content));
+  assert.ok(sent,"An authorized line uses session.instructions.append");assert.equal(sent.delegation_id,null);assert.match(sent.content,/word for word/);
+  assert.ok(!h.channels.at(-1).sent.some(e=>e.type==="session.commentary.append"&&/Let me check/.test(e.content)),"Exact lines never go through the paraphrasing commentary channel");
+  h.event({type:"session.instructions.appended",client_event_id:sent.event_id,start_ms:1200});
+  const acknowledged=await receipt;assert.equal(acknowledged.status,"acknowledged");assert.equal(acknowledged.start_ms,1200);
+  const rejected=h.api.say("Thank you.");const second=h.channels.at(-1).sent.filter(e=>e.type==="session.instructions.append").at(-1);
+  h.event({type:"error",error:{client_event_id:second.event_id,message:"private provider detail"}});
+  assert.equal((await rejected).status,"rejected");assert.match(h.errors.at(-1),/next line/);assert.doesNotMatch(h.errors.at(-1),/private/);assert.equal(h.api.connected,true,"A rejected line does not end the session");
+  const pending=h.api.say("Goodbye.");await h.api.stop({immediate:true});assert.equal((await pending).status,"cancelled");
+  assert.equal((await h.api.say("After stop")).status,"unavailable");passes++;
+ }
+ {
+  // A plain note is one unwrapped thinking event, and must fit a single append.
+  const h=setup();await h.api.start();
+  const note="Private interviewer note, never spoken: I am the interviewer and only the participant answers. Still open: trigger.";
+  const receipt=h.api.appendContext(note,{id:"note_1",kind:"interview_coverage",replaceKey:"interview_coverage",plain:true});
+  const sent=h.channels.at(-1).sent.filter(e=>e.type==="session.thinking.append");
+  assert.equal(sent.length,1,"A plain note is a single event");assert.equal(sent[0].content,note,"No chunk prefix or JSON wrapper around the note");
+  acknowledge(h,sent);assert.equal((await receipt).status,"acknowledged");
+  const tooLong=await h.api.appendContext("n".repeat(481),{id:"note_2",kind:"interview_coverage",plain:true});
+  assert.equal(tooLong.status,"rejected");assert.equal(tooLong.reason,"invalid_context");
+  await h.api.stop({immediate:true});passes++;
+ }
+ {
+  // Input transcriber stream markers are never participant words.
+  const h=setup();await h.api.start();
+  h.event({type:"session.input_transcript.delta",event_id:"m1",delta:"stream_start|",start_ms:1400,end_ms:1600});
+  assert.equal(h.captions.length,0,"A bare stream marker produces no caption");
+  h.event({type:"session.input_transcript.delta",event_id:"m2",delta:"stream_start|Hello",start_ms:1600,end_ms:2000});
+  assert.equal(h.captions.at(-1).text,"Hello","A marker glued to speech is stripped");
+  h.event({type:"session.input_transcript.delta",event_id:"m3",delta:" ...",start_ms:2000,end_ms:2200});
+  assert.equal(h.captions.at(-1).text,"Hello","Punctuation-only fragments are ignored");
+  await h.api.stop({immediate:true});passes++;
+ }
+ {
+  // Over silence the transcriber invents fragments ("a young woman"); a caption whose
+  // timeline window held no microphone energy is dropped, speech is kept, and the
+  // interviewer's own captions are never gated.
+  const h=setup({metering:true});await h.api.start();h.remote(0);await tick();h.step(40);
+  h.event({type:"session.input_transcript.delta",event_id:"g1",delta:"a young woman",start_ms:20,end_ms:60});
+  assert.equal(h.captions.filter(c=>c.role==="user").length,0,"A fragment over a silent microphone is not a participant caption");
+  h.event({type:"session.output_transcript.delta",event_id:"g2",delta:"What starts the work?",start_ms:20,end_ms:400});
+  assert.equal(h.captions.at(-1).role,"assistant","Interviewer captions are never gated by the microphone");
+  h.streams[0].level=.05;h.step(16);h.step(16);assert.equal(h.audioFrames.at(-1).inputActive,true);
+  h.event({type:"session.input_transcript.delta",event_id:"g3",delta:"An email starts it.",start_ms:70,end_ms:300});
+  assert.equal(h.captions.at(-1).text,"An email starts it.","Speech over measured microphone energy is kept");
+  h.streams[0].level=0;for(let i=0;i<20;i++)h.step(16);assert.equal(h.audioFrames.at(-1).inputActive,false);
+  h.event({type:"session.input_transcript.delta",event_id:"g4",delta:" a close-up",start_ms:2600,end_ms:2800});
+  assert.equal(h.captions.at(-1).text,"An email starts it.","A later silent-window fragment is dropped");
+  h.event({type:"session.input_transcript.delta",event_id:"g5",delta:" Then we approve it.",delta_without_timing:true});
+  assert.equal(h.captions.at(-1).text,"An email starts it. Then we approve it.","Without timeline timestamps nothing is judged, so the caption is kept");
+  await h.api.stop({immediate:true});passes++;
+ }
+ {
   const h=setup();await h.api.start();
   h.event({type:"session.input_transcript.delta",event_id:"a",delta:"The invoice",start_ms:10,end_ms:500});
   h.event({type:"session.output_transcript.delta",event_id:"b",delta:"I see.",start_ms:300,end_ms:600});

@@ -6,7 +6,7 @@ let harness=fs.readFileSync(path.join(__dirname,"test_agent_experience.cjs"),"ut
 assert.ok(harness.includes("function setup()"));
 harness=harness.replace('const controlled=', 'const concurrent=fs.readFileSync(path.join(__dirname,"../web/concurrent-interview.js"),"utf8");\nconst controlled=');
 harness=harness.replace('updateControls=()=>{updatePresence();};', 'const realUpdateControls=updateControls; updateControls=()=>{updatePresence();}; renderCoverage=()=>{}; renderWorkingMap=()=>{}; updateSaveHint=()=>{}; updateConversationControls=()=>{}; updateDocumentIntakeUI=()=>{};');
-harness=harness.replace('setTeam:value=>', 'finalCheck,applyBackgroundCapture,applyProcessTitle,sessionObject,transcriptObject,checkControls:realUpdateControls,resetConcurrent:()=>concurrentInterview?.reset(),setTeam:value=>');
+harness=harness.replace('setTeam:value=>', 'finalCheck,runLiveCapture,applyBackgroundCapture,sessionObject,transcriptObject,checkControls:realUpdateControls,resetConcurrent:()=>concurrentInterview?.reset(),setTeam:value=>');
 harness=harness.replace('vm.runInContext(controlled,context,', 'vm.runInContext(concurrent,context,{filename:"concurrent-interview.js"});vm.runInContext(controlled,context,');
 harness+='\nmodule.exports={setup,approved,response,flush,deferred};';
 const exported={exports:{}};
@@ -31,6 +31,31 @@ await check("voice answer uses fast path and listens while analysis is pending",
  h.route(url=>url==="/api/transcribe"?response({text:"The clerk records the request."}):url==="/api/conversation/turn"?response(fast()):url==="/api/conversation/status"?analysis.promise:Promise.reject(Error(url)));
  await h.t.startLiveConversation();await h.say();assert.ok(h.calls.some(call=>call.url==="/api/conversation/turn"));assert.equal(h.calls.some(call=>call.url==="/api/agent-team/interview"),false);assert.equal(h.utterances.length,1);h.utterances[0].onend();await flush();assert.equal(h.t.conversationUI.status,"listening");assert.equal(h.track.enabled,true);
  await h.timer(650);analysis.resolve(response(readyCapture("Background voice notes")));await flush();assert.equal(h.t.state.summary,"Background voice notes");assert.equal(h.t.conversationUI.status,"listening");assert.equal(h.utterances.length,1);await h.t.conversationUI.live.stop();
+});
+await check("live voice captures use the managed team even with concurrent interviewing enabled",async()=>{
+ const h=concurrentSetup();h.t.state.config.agent_team.voice_mode="live_front";
+ h.t.conversationUI.live={active:true,updateCoverage(){}};
+ h.t.state.turns.push({id:"live-user",role:"user",text:"The clerk records the request."});
+ h.route(url=>url==="/api/agent-team/interview"?response({...approved(),summary:"Full live capture",coverage:[],memo_findings:[],capture_token:"live-capture"}):url==="/api/agent-team/status"?response({status:"completed",agents:[],events:[]}):Promise.reject(Error(url)));
+ await h.t.runLiveCapture();assert.equal(h.calls[0].url,"/api/agent-team/interview");assert.equal(h.calls.some(call=>call.url.startsWith("/api/conversation/")),false);
+ assert.equal(h.t.state.summary,"Full live capture");assert.equal(h.t.state.captureToken,"live-capture");
+ assert.equal(h.t.state.liveSuggestedQuestion,approved().question);assert.equal(h.t.state.turns.at(-1).id,"live-user");
+});
+for(const restarting of [false,true])await check("starting or resuming live voice cancels a prior concurrent capture",async()=>{
+ const h=concurrentSetup(),analysis=deferred();h.route(url=>url==="/api/conversation/turn"?response(fast()):url==="/api/conversation/status"?analysis.promise:Promise.reject(Error(url)));
+ await h.t.request("/api/interview",{...h.t.snapshot(),action:"answer"});await h.timer(650);
+ h.t.state.config.agent_team.voice_mode="live_front";
+ h.window.CollectorLiveVoice=class{async start(){this.active=true;}updateCoverage(){}};
+ if(restarting)h.t.conversationUI.live=new h.window.CollectorLiveVoice();
+ await h.t.startLiveConversation();assert.equal(h.calls[1].options.signal.aborted,true);
+ analysis.resolve(response(readyCapture("Obsolete typed capture")));await flush();assert.equal(h.t.state.summary,"");assert.equal(h.t.conversationUI.live.active,true);
+});
+await check("a suggested title during reviewed voice does not invalidate its response",async()=>{
+ const h=concurrentSetup(),question=deferred();h.t.state.voiceChoice="local:synthetic";h.t.state.voice={name:"Synthetic",lang:"en-US"};
+ h.route(url=>url==="/api/transcribe"?response({text:"I set up my drone."}):question.promise);
+ await h.t.startLiveConversation();await h.say();const basis=JSON.stringify(h.t.snapshot().context);h.t.applyProcessTitle("Drone setup");
+ question.resolve(response(fast()));await flush();assert.equal(JSON.stringify(h.t.snapshot().context),basis);assert.equal(h.utterances.length,1);
+ h.utterances[0].onend();await flush();assert.equal(h.t.conversationUI.status,"listening");await h.t.conversationUI.live.stop();h.t.resetConcurrent();
 });
 await check("wrap up uses synchronization even while capture is incomplete",async()=>{
  const h=concurrentSetup(),sync=deferred();h.t.state.turns.push({id:"t002",role:"user",text:"The clerk reviews it."});

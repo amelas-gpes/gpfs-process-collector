@@ -21,7 +21,7 @@ ROLE_CONTRACTS = {
         "contract": "Respond to the participant and choose one grounded next question. Only the manager may authorize final completion.",
     },
     "coverage_reviewer": {
-        "label": "Coverage reviewer", "max_calls": 1, "max_output_tokens": 14000, "timeout_seconds": 120,
+        "label": "Coverage reviewer", "max_calls": 1, "max_output_tokens": 24000, "timeout_seconds": 120,
         "contract": "Independently test all eleven topics against participant evidence. Return the validated public coverage assessment; never manufacture evidence.",
     },
     "process_reviewer": {
@@ -35,6 +35,15 @@ ROLE_CONTRACTS = {
 }
 CORE_ROLES = ("lead_interviewer", "coverage_reviewer", "process_reviewer")
 FINAL_CHECK_PREFIX = "Before we finish, is there anything else"
+# A plain closing reply to the final omissions check. Trailing qualifiers that
+# add nothing ("to add", "from me") are accepted; anything that continues the
+# sentence with new content ("…, unless", "…, but") is not a confirmation.
+FINAL_CONFIRMATION = re.compile(
+    r"\s*(?:(?:no|nope)[,.!]?\s*)?"
+    r"(?:nothing (?:else|more|further)(?: (?:to add|from me|comes to mind|(?:that )?i can think of))?|"
+    r"that(?:['’]s| is) (?:all|everything|it)(?: (?:from me|for now|(?:that )?i can think of))?|"
+    r"(?:this|that) (?:captures my account|covers (?:it|everything))|correct|no|nope)[.!]?"
+    r"(?:\s*(?:this|that) captures my account[.!]?)?\s*", re.I)
 _SOURCE_ID = re.compile(r"^[A-Za-z0-9_-]{1,200}$")
 _MODEL_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,119}$")
 _REASONS = {"", "cancelled", "stale_revision", "call_budget_exhausted", "role_already_invoked",
@@ -290,6 +299,7 @@ class TeamRun:
             raise ValueError("Unknown specialist model configuration.")
         self._lock = threading.RLock()
         self._cancelled = self._stale = False
+        self._provisional = ""
         self._events, self._results = [], {}
         self._used_calls = self._reserved_tokens = 0
         self._agents = {}
@@ -300,6 +310,16 @@ class TeamRun:
             self._agents[role] = {"role": role, "label": ROLE_CONTRACTS[role]["label"], "status": "pending",
                                   "model": model, "calls": 0, "max_calls": ROLE_CONTRACTS[role]["max_calls"], "reason_code": "",
                                   "started_at": None, "finished_at": None}
+
+    def set_provisional_question(self, question):
+        """The lead's question as it streams in: display-only until the capture is accepted."""
+        if not isinstance(question, str) or not 0 < len(question) <= 1600:
+            return False
+        with self._lock:
+            if self._cancelled or self._stale:
+                return False
+            self._provisional = question
+            return True
 
     def role_settings(self, role):
         if role not in self._agents:
@@ -430,6 +450,7 @@ class TeamRun:
                       "idle" if all(state == "idle" for state in states) else "pending")
             return {"run_id": self.run_id, "revision": self.ledger.revision, "status": status,
                     "cancelled": self._cancelled, "stale": self._stale,
+                    "provisional_question": "" if self._cancelled or self._stale else self._provisional,
                     "agents": copy.deepcopy(list(self._agents.values())), "events": copy.deepcopy(self._events),
                     "budget": {"max_calls": self.max_calls, "used_calls": self._used_calls,
                                "reserved_max_output_tokens": self._reserved_tokens,
@@ -444,10 +465,7 @@ def explicit_final_confirmation(ledger):
         return False
     if not turns[-2]["text"].startswith(FINAL_CHECK_PREFIX):
         return False
-    return bool(re.fullmatch(
-        r"\s*(?:no[,.!]?\s*)?(?:nothing (?:else|more)|that(?:['’]s| is) (?:all|everything)|"
-        r"(?:this|that) (?:captures my account|covers (?:it|everything))|correct|no)[.!]?"
-        r"(?:\s*(?:this|that) captures my account[.!]?)?\s*", turns[-1]["text"], re.I))
+    return bool(FINAL_CONFIRMATION.fullmatch(turns[-1]["text"]))
 
 
 def participant_has_more_to_add(ledger):

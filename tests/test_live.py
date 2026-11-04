@@ -417,23 +417,55 @@ class LiveHTTPTests(unittest.TestCase):
                     self.assertNotIn(KEY.encode(), raw)
         self.client.request.assert_not_called()
 
-    def test_unguarded_live_endpoint_is_disabled_without_provider_access(self):
+    def reviewed(self):
+        self.client.voice_mode = 'reviewed'
+        self.addCleanup(setattr, self.client, 'voice_mode', 'live')
+
+    def test_reviewed_mode_keeps_the_live_endpoint_disabled(self):
+        self.reviewed()
         status, raw = self.request('/api/live-session', live_payload())
         self.assertEqual(status, 409)
         self.assertIn('reviewed voice turns', json.loads(raw)['error'])
         self.client.request.assert_not_called()
         self.assertNotIn(KEY.encode(), raw)
 
+    def test_live_mode_routes_to_gpt_live_with_the_team_lead_as_its_backend(self):
+        self.assertEqual(self.client.voice_mode, 'live')
+        status, raw = self.request('/api/live-session', live_payload())
+        self.assertEqual(status, 200, raw)
+        result = json.loads(raw)
+        self.assertEqual((result['model'], result['sdp']), ('gpt-live-1', SDP))
+        self.assertNotIn(KEY, raw.decode())
+        body = self.client.request.call_args.args[1]
+        self.assertEqual(self.client.request.call_args.args[0], 'live/sessions')
+        self.assertEqual(body['session']['model'], 'gpt-live-1')
+        self.assertEqual(body['session']['delegation']['responses']['model'], self.client.agent_models['lead_interviewer'])
+        instructions = body['session']['instructions']
+        self.assertIn('suggested_question', instructions)
+        self.assertIn('The application alone decides when the interview is complete.', instructions)
+        self.assertIn('say that sentence once', instructions)
+        self.assertIn('word for word, and then listen', instructions)
+        self.assertNotIn('delegate a coverage', instructions)
+
     def test_config_exposes_live_capability_without_promising_access(self):
         config = self.client.public_config()
-        self.assertEqual(config['live']['model'], 'gpt-6-luna')
-        self.assertEqual(config['live']['transport'], 'reviewed-turns')
+        self.assertEqual(config['live']['model'], 'gpt-live-1')
+        self.assertEqual(config['live']['transport'], 'gpt-live-webrtc')
+        self.assertEqual(config['agent_team']['voice_mode'], 'live_front')
         self.assertTrue(config['live']['enabled'])
         self.assertNotIn(KEY, json.dumps(config))
+        reviewed = server.OpenAIClient({'OPENAI_API_KEY': KEY, 'VOICE_MODE': 'reviewed'}).public_config()
+        self.assertEqual(reviewed['live']['model'], 'gpt-6-luna')
+        self.assertEqual(reviewed['live']['transport'], 'reviewed-turns')
+        self.assertEqual(reviewed['agent_team']['voice_mode'], 'reviewed_turns')
 
     def test_invalid_payload_is_rejected_before_creating_a_billed_session(self):
         payload = live_payload()
         payload['turns'][0]['role'] = 'system'
+        status, _ = self.request('/api/live-session', payload)
+        self.assertEqual(status, 400)
+        self.client.request.assert_not_called()
+        self.reviewed()
         status, _ = self.request('/api/live-session', payload)
         self.assertEqual(status, 409)
         self.client.request.assert_not_called()

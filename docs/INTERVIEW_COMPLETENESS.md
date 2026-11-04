@@ -2,7 +2,7 @@
 
 The current managed-team implementation is described in [AGENT_TEAM.md](AGENT_TEAM.md). Version 0.22.0 uses one lead call for ordinary turns, explicit parallel review only at completion readiness, and zero further calls for an unchanged final confirmation. Candidate topics are provisional; every required dimension and the practical process must pass current independent review before the final omissions check. New substantive evidence invalidates the prior completion authority. Managed review may publish an explicitly cited repair when a summary omitted facts already supplied, but cannot manufacture missing testimony.
 
-Version 0.21.0 replaced direct live audio with controlled turns and blocked the legacy direct-live session endpoint. The following 0.20 description is historical; its per-turn review timing and direct-live limitations do not describe the current UI.
+Version 0.24.0 brings GPT-Live back as the spoken front (`VOICE_MODE=live`, the default) while the managed team runs on the transcript behind it: the lead captures each spoken answer in the background, the application records and issues the acknowledgement, the final omissions check and the completion line, and the completion permit is unchanged. Version 0.21.0 had replaced direct live audio with reviewed turns, which remain available as `VOICE_MODE=reviewed`. The following 0.20 description is historical; its per-turn review timing does not describe the current UI.
 
 Version 0.20.0 makes topic coverage depend on an explanation of the relevant process facts. Mentioning a topic, naming a tool, writing a heading or reaching the end of one line of questioning is insufficient.
 
@@ -28,9 +28,9 @@ A local “No” answers the preceding local question. It does not confirm all s
 
 ## Live voice
 
-The browser sends bounded coverage snapshots through the existing silent context channel after accepted capture updates and on connection. Snapshots contain all eleven findings, gaps, suggested follow-ups, the analyzed participant turn and freshness. New speech invalidates earlier readiness. Incomplete captions, changed documents, unaudited restored captures and lagging analyses cannot authorize completion. These snapshots are interpretations, never participant evidence, and do not trigger speech.
+The browser sends one short note through the silent context channel after a completed capture and on connection, as a single event in the interviewer's own voice: whether the notes are current, the open topics and a suggested next question. It is held while a participant caption is in progress. Caption fragments send nothing, and a participant caption is recorded only when the microphone held speech during its timeline window (0.24.1; the earlier eleven-finding JSON snapshot repeated per fragment made the live model voice the participant's answers). New speech invalidates earlier readiness. Incomplete captions, changed documents, unaudited restored captures and lagging analyses cannot authorize completion. These updates are interpretations, never participant evidence, and do not trigger speech.
 
-Direct voice instructions require a delegated eleven-topic review before suggesting closure. Absence of current audited coverage prohibits an autonomous completion claim. The direct live audio stream has no deterministic pre-audio content gate: prompt compliance and physical microphone/speaker turn-taking still require live evaluation. Offline transport tests and text-model evaluations do not establish those behaviors.
+Live voice instructions forbid any self-initiated closure; the application issues the acknowledgement, the final check and the completion line as exact lines to say, and only its permit completes the interview. The live audio stream still has no deterministic pre-audio content gate on ordinary questions: prompt compliance and physical microphone/speaker turn-taking require live evaluation. Offline transport tests and text-model evaluations do not establish those behaviors.
 
 ## Validation approach
 

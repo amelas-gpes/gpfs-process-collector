@@ -6,6 +6,7 @@ semantic quality of a live model's eventual question.
 import copy
 import json
 from pathlib import Path
+import sys
 import tempfile
 import threading
 import unittest
@@ -223,6 +224,10 @@ class DocumentFollowupTests(unittest.TestCase):
 class DocumentFollowupHTTPTests(unittest.TestCase):
     def setUp(self):
         local = Path(__file__).resolve().parents[1] / ".local" / "document-followup-tests"
+        if sys.platform == "win32" and not str(local).startswith("\\\\?\\"):
+            # Deep fixture paths exceed MAX_PATH from a nested checkout; an
+            # extended-length root lets them be created and cleaned up.
+            local = Path("\\\\?\\" + str(local))
         local.mkdir(parents=True, exist_ok=True)
         self.temporary = tempfile.TemporaryDirectory(prefix="http-", dir=local)
         self.payload = followup_payload()

@@ -63,7 +63,7 @@ function setup(){
     updateControls=()=>{updatePresence();}; renderTranscript=()=>{}; scrollConversation=()=>{};
     selectConversationView=view=>{conversationUI.view=view;}; scheduleWorkflow=()=>{};
     notice=(message,error)=>window.__notices.push({message,error}); setBusy=value=>{state.busy=value;};
-    window.__experience={state,conversationUI,request,snapshot,speakReviewed,stopSpeaking,startLiveConversation,sendAnswer,retryQuestion,pauseCompletionReview,
+    window.__experience={state,conversationUI,request,snapshot,speakReviewed,stopSpeaking,startLiveConversation,sendAnswer,retryQuestion,pauseCompletionReview,applyProcessTitle,
       setTeam:value=>{agentTeamUI=value;},setDocuments:value=>{documentController=value;}};
   `;
   const source=app.replace(/  init\(\);\s*\}\)\(\);\s*$/,seam+"\n})();");
@@ -135,6 +135,16 @@ const check=async(name,fn)=>{await fn();passed++;};
     const result=h.t.request("/api/workflow",{...h.t.snapshot(),document_scope:"scope-test"});await h.timer(150);assert.equal(h.team.length,1);assert.equal(h.team[0].status,"running");
     pending.resolve(response({agent_team:{run_id:runId,status:"completed",agents:[],events:[]},workflow:{steps:[]}}));await result;assert.equal(h.team.at(-1).status,"completed");assert.equal([...h.timers.values()].filter(timer=>timer.ms===900||timer.ms===150).length,0);
   });
+  await check("a streamed provisional question shows while the lead finishes, then clears",async()=>{
+    const h=setup(),pending=deferred();let runId;h.route((url,options)=>{const data=JSON.parse(options.body);if(url==="/api/agent-team/interview"){runId=data.agent_run_id;return pending.promise;}if(url==="/api/agent-team/status")return response({run_id:runId,status:"running",agents:[{role:"lead_interviewer",status:"running"}],events:[],provisional_question:"What starts the intake?"});throw Error(url);});
+    const lead=h.t.request("/api/interview",h.t.snapshot());await h.timer(150);assert.equal(h.t.state.provisionalQuestion,"What starts the intake?");
+    pending.resolve(response({...approved("What starts the intake?"),agent_team:{run_id:runId,status:"completed",agents:[],events:[]}}));await lead;await flush();assert.equal(h.t.state.provisionalQuestion,null,"The accepted response replaces the provisional text");
+  });
+  await check("a background map never shows a provisional question",async()=>{
+    const h=setup(),pending=deferred();let runId;h.route((url,options)=>{const data=JSON.parse(options.body);if(url==="/api/agent-team/workflow"){runId=data.agent_run_id;return pending.promise;}if(url==="/api/agent-team/status")return response({run_id:runId,status:"running",agents:[],events:[],provisional_question:"Leaked?"});throw Error(url);});
+    const map=h.t.request("/api/workflow",h.t.snapshot());await h.timer(150);assert.equal(h.t.state.provisionalQuestion,null);
+    pending.resolve(response({agent_team:{run_id:runId,status:"completed",agents:[],events:[]},workflow:{steps:[]}}));await map;
+  });
   await check("newer run owns the panel when an older completion arrives",async()=>{
     const h=setup(),first=deferred(),second=deferred(),ids=[];h.route((url,options)=>{assert.equal(url,"/api/agent-team/workflow");ids.push(JSON.parse(options.body).agent_run_id);return ids.length===1?first.promise:second.promise;});
     const old=h.t.request("/api/workflow",h.t.snapshot()),fresh=h.t.request("/api/workflow",h.t.snapshot());second.resolve(response({agent_team:{run_id:ids[1],status:"completed"}}));await fresh;first.resolve(response({agent_team:{run_id:ids[0],status:"completed"}}));await old;
@@ -176,6 +186,20 @@ const check=async(name,fn)=>{await fn();passed++;};
     await h.t.retryQuestion();await h.t.retryQuestion();assert.equal(h.calls.filter(call=>call.url==="/api/agent-team/review").length,1);
     review.resolve(response({...approved("Have I missed anything else?","final_check"),capture_token:"capture-reviewed",coverage_verified:true}));await sending;
     assert.equal(h.t.state.turns.filter(turn=>turn.text===reviewAck().question).length,1);assert.equal(h.t.state.coverageVerified,true);assert.equal(h.t.snapshot().capture_token,"capture-reviewed");assert.equal(h.t.state.busy,false);
+  });
+  await check("a process title set by the working map during the review does not discard the review",async()=>{
+    const h=setup(),review=deferred();h.route(url=>url==="/api/agent-team/interview"?response(reviewAck()):url==="/api/agent-team/review"?review.promise:response({}));h.node("answer-text").value="That completes the remaining detail.";
+    const sending=h.t.sendAnswer({preventDefault(){}});await flush();assert.equal(h.t.state.busy,true);
+    const originalContext=JSON.stringify(h.t.state.context);h.t.applyProcessTitle("Named by the working map");
+    assert.equal(JSON.stringify(h.t.state.context),originalContext);assert.equal(h.t.state.derivedProcessTitle,"Named by the working map");
+    review.resolve(response({...approved("Have I missed anything else?","final_check"),capture_token:"capture-reviewed",coverage_verified:true}));await sending;
+    assert.equal(h.t.state.coverageVerified,true,"The review result is applied despite the title change");assert.equal(h.t.state.turns.at(-1).text,"Have I missed anything else?");assert.ok(!h.notices.some(item=>/conversation changed/.test(item.message)));
+  });
+  await check("a manual process context edit invalidates a pending review",async()=>{
+    const h=setup(),review=deferred();h.route(url=>url==="/api/agent-team/interview"?response(reviewAck()):url==="/api/agent-team/review"?review.promise:response({}));h.node("answer-text").value="That completes the remaining detail.";
+    const sending=h.t.sendAnswer({preventDefault(){}});await flush();h.t.state.context.process_name="A different process scope";
+    review.resolve(response({...approved("Have I missed anything else?","final_check"),capture_token:"capture-reviewed",coverage_verified:true}));await sending;
+    assert.equal(h.t.state.coverageVerified,false);assert.notEqual(h.t.state.turns.at(-1).text,"Have I missed anything else?");
   });
   await check("failed review retries its ticket with the visible failure notice and retains confirmation continuity",async()=>{
     const h=setup();let reviews=0,interviews=0;const finalQuestion="Have I missed anything else?",failure={...approved("The review could not finish. Your capture is saved.","pause"),preserve_capture:true,review_retry_required:true,review_ticket:"review-ticket-one",capture_token:"capture-failed",coverage_verified:false};

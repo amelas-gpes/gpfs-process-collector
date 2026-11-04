@@ -15,6 +15,7 @@ from interview_coverage import finding_reports_unavailable_knowledge
 REVIEW_ACKNOWLEDGEMENT = "Let me check that I have everything before we finish."
 PARTIAL_REVIEW_ACKNOWLEDGEMENT = "Let me check what we have and keep the unanswered parts open."
 MAX_REVIEW_TICKETS = 128
+_PROVISIONAL_QUESTION = re.compile(r'\s*\{\s*"question"\s*:\s*"((?:[^"\\]|\\.)*)"')
 _COMPLETION_SPEECH = re.compile(
     r"\b(?:this|the|our|your) (?:interview|conversation|account|capture|documentation) "
     r"(?:is|looks|seems|has been) (?:complete|completed|finished|done|ready)\b|"
@@ -190,7 +191,8 @@ class Coordinator:
         def assess():
             findings, assessment = self.client.assess_coverage(
                 capture["memo_findings"], context, turns, supporting,
-                force=True, model_override=self.client.agent_models["coverage_reviewer"], allow_capture_repair=True)
+                force=True, model_override=self.client.agent_models["coverage_reviewer"], allow_capture_repair=True,
+                split=True)
             box["findings"] = findings
             if not assessment or assessment.get("review_available") is False:
                 raise self.api.APIError("Coverage review did not finish. Your account is retained; retry the review.")
@@ -484,11 +486,14 @@ class Coordinator:
             state = max(((index, item) for index, item in enumerate(self._captures.values())
                          if item["family"] == family and time.monotonic() - item["at"] < 1800),
                         key=lambda pair: (pair[1]["generation"], pair[0]))[1]
-            if state["context"] != context or turns[:len(state["turns"])] != state["turns"]:
+            # A changed context (for example the working map naming the process)
+            # does not discard participant-cited facts: rebase retires only the
+            # facts that cite the context itself. The transcript must still match.
+            if turns[:len(state["turns"])] != state["turns"]:
                 return None
-            extra = turns[len(state["turns"]):]
-            if extra and extra[0]["role"] == "assistant" and extra[0]["text"] != state["capture"].get("question"):
-                return None
+            # The assistant line after a capture may be the lead's own question or,
+            # in live voice, the spoken interviewer's caption. Facts cite participant
+            # turns, which rebase re-checks, so either keeps the ledger.
             return state
 
     def fact_source_ids(self, payload):
@@ -574,15 +579,43 @@ class Coordinator:
                                            "revision": ledger.revision, "completion_allowed": True}
         return self._remember(capture, context, turns, supporting, state["token"], state["run"], fact_state=state.get("fact_state"))
 
+    @staticmethod
+    def _prior_context(previous):
+        """The prior capture as lead context: its gaps and questions, not the full reviews.
+
+        A completion review can run to 14k tokens. Re-sending it on every later
+        turn slows the lead without adding evidence; the open gaps, reviewer
+        questions and material findings are what the next question needs.
+        """
+        context = {key: copy.deepcopy(previous[key]) for key in ("summary", "focus", "parking_lot") if key in previous}
+        assessment = previous.get("coverage_assessment")
+        if isinstance(assessment, dict):
+            context["coverage_assessment"] = {
+                "review_available": assessment.get("review_available", True),
+                "all_topics_covered": assessment.get("all_topics_covered", False),
+                "topics": [{key: copy.deepcopy(topic.get(key)) for key in
+                            ("key", "complete", "gaps", "next_question", "participant_unavailable")}
+                           for topic in assessment.get("topics", []) if isinstance(topic, dict)]}
+        review = previous.get("process_review")
+        if isinstance(review, dict):
+            context["process_review"] = {
+                "review_available": review.get("review_available", True),
+                "no_material_blockers": review.get("no_material_blockers", False),
+                "next_question": review.get("next_question", ""),
+                "findings": [{key: copy.deepcopy(finding.get(key)) for key in ("id", "kind", "material", "detail", "question")}
+                             for finding in review.get("findings", []) if isinstance(finding, dict)]}
+        return context
+
+    def _usable_question(self, value):
+        return (isinstance(value, str) and 0 < len(value) <= 1600 and value.count("?") == 1
+                and value.rstrip().endswith("?") and not self.api.WRAP_UP_LANGUAGE.search(value)
+                and not _COMPLETION_SPEECH.search(value))
+
     def _authorize(self, capture, run, question, kind):
         if kind == "question":
-            def usable(value):
-                return (isinstance(value, str) and 0 < len(value) <= 1600 and value.count("?") == 1
-                        and value.rstrip().endswith("?") and not self.api.WRAP_UP_LANGUAGE.search(value)
-                        and not _COMPLETION_SPEECH.search(value))
-            if not usable(question):
+            if not self._usable_question(question):
                 question = self.api.next_uncovered_question(capture)
-            if not usable(question):
+            if not self._usable_question(question):
                 question = "What can you clarify about the remaining open part of this process?"
         capture["question"] = question
         capture["speech_authorization"] = {"approved": True, "kind": kind, "text": question,
@@ -617,8 +650,11 @@ class Coordinator:
         new_document_baseline = any(fact_state.get("seeded_document_versions", {}).get(identity) != revision
                                     for identity, revision in selected_document_versions.items())
         baseline_seed = new_document_baseline or large_rebuild
+        # Only open claims the latest answer could affect need explicit reconciliation
+        # (and the stronger reconciliation model); untouched gaps keep their wording.
+        focus = capture_facts.turn_focus(turns)
         model_role = ("document_analyst" if baseline_seed else "process_reviewer"
-                      if capture_facts.reconciliation_targets(fact_state) else "lead_interviewer")
+                      if capture_facts.reconciliation_targets(fact_state, focus) else "lead_interviewer")
         lead_model = self.client.agent_models[model_role]
         token, run = self._new_run(payload, context, turns, evidence, lead_model=lead_model)
         self._claim_family(payload, run)
@@ -656,10 +692,8 @@ class Coordinator:
             return self._remember(capture, context, turns, supporting, token, run, fact_state=fact_state)
         extra = {}
         if prior:
-            extra["previous_capture"] = {key: copy.deepcopy(prior["capture"][key]) for key in
-                ("summary", "focus", "parking_lot", "coverage_assessment", "process_review")
-                if key in prior["capture"]}
-        extra["fact_state"] = capture_facts.model_state(fact_state)
+            extra["previous_capture"] = self._prior_context(prior["capture"])
+        extra["fact_state"] = capture_facts.model_state(fact_state, focus)
         extra["untouched_topics"] = [key for key, state in fact_state["topics"].items() if not state["discussed"]]
         if action == "document_followup":
             if payload.get("previous_capture") is None or supporting.get("pending_documents") or any(
@@ -669,9 +703,24 @@ class Coordinator:
             # topic statuses and closure claims never seed interview progress.
             if not prior:
                 extra["document_followup_requested"] = True
+        def observe(text):
+            # The question is the first streamed field. Publish it for display as
+            # soon as it is complete and passes the same checks as a final question;
+            # the capture itself is applied only after the whole response validates.
+            match = _PROVISIONAL_QUESTION.match(text)
+            if not match:
+                return False
+            try:
+                question = json.loads('"' + match.group(1) + '"')
+            except ValueError:
+                return True
+            if self._usable_question(question):
+                run.set_provisional_question(question)
+            return True
+
         def initial_capture():
             nonlocal fact_state
-            request_schema = capture_facts.schema_for(fact_state, capture_facts.sources(context, turns, evidence))
+            request_schema = capture_facts.schema_for(fact_state, capture_facts.sources(context, turns, evidence), focus)
             transaction = self.client.structured(
             api.FACT_INTERVIEW_INSTRUCTIONS + api.foundation_instructions() + FAST_CAPTURE_POLICY +
             (api.DOCUMENT_FOLLOWUP_INSTRUCTIONS if action == "document_followup" else "") + capture_facts.FACT_CAPTURE_POLICY,
@@ -680,9 +729,9 @@ class Coordinator:
             "team_interview_capture", 12000 if baseline_seed or (not extra["fact_state"]["facts"]
                 and (evidence or len(turns) > 12 or sum(len(turn["text"]) for turn in turns) >= 6000))
                 else 6500, reasoning_effort="low",
-            model_override=lead_model)
+            model_override=lead_model, on_text=observe)
             api.check_schema(transaction, request_schema)
-            fact_state = capture_facts.apply_delta(fact_state, transaction, context, turns, evidence)
+            fact_state = capture_facts.apply_delta(fact_state, transaction, context, turns, evidence, focus)
             capture = capture_facts.public_capture(fact_state, transaction, api.COVERAGE)
             if not capture["question"].strip():
                 capture["question"] = api.next_uncovered_question(capture)
@@ -855,6 +904,40 @@ class Coordinator:
             with self._lock:
                 entry["running"] = False
                 event.set()
+
+    def advisory_coverage(self, payload):
+        """Check the provisional topics of the current capture in the background.
+
+        The result is display-only: it never changes the private ledger, the
+        published capture or the completion permit, which still require the full
+        completion review bound to the actual run. Each check is one coverage call
+        limited to the topics the lead marked captured or not applicable.
+        """
+        api = self.api
+        context, turns = api.validate_payload(payload)
+        supporting = payload.get("_supporting_documents", {})
+        state = self._fact_record(payload, context, turns)
+        if not state:
+            raise api.APIError("No current capture is available to check. Continue the interview first.", 409)
+        capture = state["capture"]
+        extra = turns[len(state["turns"]):]
+        if extra and not (len(extra) == 1 and extra[0]["role"] == "assistant"
+                          and extra[0]["text"] == capture.get("question")):
+            raise api.APIError("The account changed since this capture; the next answer refreshes it.", 409)
+        findings = copy.deepcopy(capture.get("memo_findings", []))
+        keys = [item["key"] for item in findings if item["status"] in ("captured", "not_applicable")]
+        revision = state["run"].ledger.revision
+        if not keys:
+            return {"advisory": True, "revision": revision, "topics": [], "answers": {}}
+        _, assessment = self.client.assess_coverage(
+            findings, context, state["turns"], supporting, force=True,
+            model_override=self.client.agent_models["coverage_reviewer"], topics=keys)
+        if not assessment or assessment.get("review_available") is False:
+            raise api.APIError("The advisory check did not finish. Captured topics stay provisional.")
+        return {"advisory": True, "revision": revision,
+                "topics": [{"key": topic["key"], "complete": topic["complete"], "gaps": topic["gaps"][:6],
+                            "next_question": topic["next_question"]} for topic in assessment["topics"]],
+                "answers": {item["key"]: item["answer"] for item in findings if item["key"] in keys}}
 
     def workflow(self, payload):
         api = self.api

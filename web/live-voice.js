@@ -62,7 +62,7 @@
         audio:null, meters:[], frame:null, meterTimer:null, audioHandlers:[], ready:false, closing:false, muted:false, captions:{}, lastCaptionRole:null, seen:new Set(),
         sound:{input:0,output:0,inputActive:false,outputActive:false,playbackActive:false,
           playing:false,buffering:false,lastSample:null,lastInput:-Infinity,lastOutput:-Infinity},
-        timers:new Set(), finalized:false, stopResolve:null,
+        timers:new Set(), finalized:false, stopResolve:null, commentary:new Map(),
         greeting:Array.isArray(turns) && turns.length === 0 ? {status:"queued",event_id:null} : null,
         context:{records:new Map(),history:new Map(),pending:new Map(),bytes:0,events:0}};
       this.operation = op;
@@ -197,9 +197,11 @@
       try {event = JSON.parse(data);} catch {return this.fail(op,"Live voice returned an unreadable event. Your transcript is retained.");}
       if (!event || typeof event !== "object" || Array.isArray(event)) return this.fail(op,"Live voice returned an unreadable event. Your transcript is retained.");
       if (event.type === "session.closed") {op.finalized = true;this.cleanup(op);return;}
-      if (event.type === "session.commentary.appended") {
+      if (event.type === "session.commentary.appended" || event.type === "session.instructions.appended") {
         if (op.greeting?.status === "sent" && event.client_event_id === op.greeting.event_id && !op.closing)
           this.finishGreeting(op,"acknowledged",null,event);
+        const spoken = op.commentary.get(event.client_event_id);
+        if (spoken) {op.commentary.delete(event.client_event_id);spoken.resolve({status:"acknowledged",start_ms:Number.isFinite(event.start_ms)?event.start_ms:null});}
         return;
       }
       if (event.type === "session.thinking.appended") {
@@ -229,13 +231,20 @@
           if (!op.closing) this.notify("onError","Document context could not be added to live voice. Your conversation can continue.");
           return;
         }
+        const spoken = op.commentary.get(id);
+        if (spoken) {
+          op.commentary.delete(id);spoken.resolve({status:"rejected",reason:"provider_rejected"});
+          if (!op.closing) this.notify("onError","The interviewer could not be given its next line. The line is in the transcript; you can continue.");
+          return;
+        }
         // A late error for an already settled/cancelled context append is local
         // to that command; it must not tear down a healthy voice connection.
         if (typeof id === "string" && id.startsWith(`context_${op.id}_`) && /^\d+$/.test(id.slice(`context_${op.id}_`.length))) return;
         this.fail(op,"GPT-Live could not complete the voice request. Your transcript is retained; stop voice and try again.");return;
       }
       if (event.type === "session.started" && !op.closing) {
-        op.ready = true;op.readyResolve?.();this.measureAudio(op);this.sendGreeting(op);this.flushContext(op);return;
+        op.ready = true;op.sessionStartedAt = window.performance?.now?.() ?? Date.now();
+        op.readyResolve?.();this.measureAudio(op);this.sendGreeting(op);this.flushContext(op);return;
       }
       const role = event.type === "session.input_transcript.delta" ? "user" : event.type === "session.output_transcript.delta" ? "assistant" : null;
       if (!role || typeof event.delta !== "string" || !event.delta) return;
@@ -249,6 +258,16 @@
       // final=true is a quiet UI checkpoint, not proof that a speaker finished a turn.
       const start = Number.isFinite(event.start_ms) ? event.start_ms : null;
       const end = Number.isFinite(event.end_ms) ? event.end_ms : start;
+      if (role === "user") {
+        // The input transcriber emits stream markers and, over silence or room
+        // noise, invented fragments ("a young woman", "a person is"). Neither is
+        // participant speech: markers are stripped, and a fragment whose timeline
+        // window held no measured microphone energy is dropped before it can
+        // become a transcript turn or start a background capture.
+        event.delta = event.delta.replace(/\bstream_[a-z_]*\|/g,"");
+        if (!/[\p{L}\p{N}]/u.test(event.delta)) return;
+        if (!this.heardSpeech(op,start,end)) return;
+      }
       const speakerChanged = op.lastCaptionRole !== null && op.lastCaptionRole !== role;
       if (speakerChanged) {
         const previous = op.captions[op.lastCaptionRole];
@@ -330,7 +349,36 @@
       if (sendFailed) {this.fail(op,"The typed answer could not reach live voice. Your transcript is retained; select Start voice to reconnect or continue by typing.");return false;}
       return true;
     }
-    appendContext(text, {id,kind="document_findings",replaceKey} = {}) {
+    say(text) {
+      // An application-authorized line (acknowledgement, final check, review
+      // follow-up). GPT-Live may paraphrase commentary, so an exact line goes
+      // through session.instructions.append, which the provider documents for
+      // verbatim wording. The caller records the exact text as the assistant's
+      // turn; the receipt only confirms delivery, never audible playback.
+      const op = this.operation;
+      const result = (status,reason) => Promise.resolve({status,...(reason ? {reason} : {})});
+      if (!this.connected || op.channel?.readyState !== "open") return result("unavailable","session_inactive");
+      if (typeof text !== "string" || !text.trim() || text.length > 1200) return result("rejected","invalid_text");
+      const event_id = `say_${op.id}_${++this.sequence}`;
+      return new Promise(resolve => {
+        op.commentary.set(event_id,{resolve});
+        try {op.channel.send(JSON.stringify({type:"session.instructions.append",event_id,delegation_id:null,
+          content:`Say exactly this line now, once, word for word, then stop and listen: ${JSON.stringify(text)}`}));}
+        catch {op.commentary.delete(event_id);resolve({status:"rejected",reason:"send_failed"});}
+      });
+    }
+    heardSpeech(op, start, end) {
+      // Maps a caption's session timeline to the local microphone meter. Without
+      // a running meter or timeline timestamps there is nothing to judge, so the
+      // caption is kept; metering is a filter, never a reason to lose speech.
+      if (start === null || !Number.isFinite(op.sessionStartedAt) || !op.speech || op.audioContext?.state !== "running" ||
+          !op.meters.some(meter=>meter.role === "input") || !op.meterSamples) return true;
+      const from = op.sessionStartedAt + start - 1500, to = op.sessionStartedAt + (end ?? start) + 1500;
+      return op.speech.some(window => window.from <= to && (window.to ?? Infinity) >= from);
+    }
+    appendContext(text, {id,kind="document_findings",replaceKey,plain=false} = {}) {
+      // plain: one short note sent as a single event without the chunk wrapper,
+      // for the interviewer's own notes update; it must fit one append.
       const op = this.operation;
       const result = (status,reason) => Promise.resolve({id:id ?? null,kind,status,reason});
       if (!op || op.closing) return result("unavailable","session_inactive");
@@ -354,7 +402,13 @@
       }
       const parts = [];
       let part = "";
-      for (const character of text) {
+      if (plain) {
+        if (encoder.encode(text).length > CONTEXT_CONTENT_BYTES) {
+          this.notify("onError","Document context is empty, too large, or has an invalid reference. Your conversation can continue.");
+          return result("rejected","invalid_context");
+        }
+        parts.push(text);
+      } else for (const character of text) {
         // Reserve three digits for the final chunk numbers before splitting.
         if (encoder.encode(contextContent(id,kind,part + character,256,256,replaceKey)).length > CONTEXT_CONTENT_BYTES) {
           parts.push(part);part = "";
@@ -363,7 +417,7 @@
         part += character;
       }
       if (part) parts.push(part);
-      const contents = parts.map((value,index) => contextContent(id,kind,value,index + 1,parts.length,replaceKey));
+      const contents = plain ? [text] : parts.map((value,index) => contextContent(id,kind,value,index + 1,parts.length,replaceKey));
       const bytes = contents.reduce((total,content) => total + encoder.encode(content).length,0);
       const replacedBytes=superseded.reduce((total,record)=>total+record.bytes,0),replacedEvents=superseded.reduce((total,record)=>total+record.contents.length,0);
       if (parts.length > CONTEXT_QUEUE_EVENTS || parts.join("") !== text ||
@@ -469,12 +523,14 @@
           raw[meter.role] = Math.max(raw[meter.role],Math.sqrt(sum/meter.buffer.length)*gain);
         }
       }
+      if (op.meters.some(meter=>meter.role === "input")) op.meterSamples = (op.meterSamples || 0) + 1;
       for (const role of ["input","output"]) {
         const input = role === "input", allowed = input ? !op.muted : audible;
         const floor = input ? .004 : .002, onset = input ? .008 : .006;
         const wasActive = sound[`${role}Active`];
         if (allowed && raw[role] >= (wasActive ? floor*1.25 : onset)) sound[input ? "lastInput" : "lastOutput"] = now;
         sound[`${role}Active`] = allowed && now-sound[input ? "lastInput" : "lastOutput"] < (input ? 100 : 90);
+        if (input) this.recordSpeech(op,sound.inputActive,now);
         const target = allowed && sound[`${role}Active`] ? Math.sqrt(Math.min(1,Math.max(0,raw[role]-floor)/.16)) : 0;
         const time = target > sound[role] ? 35 : input ? 160 : 190;
         sound[role] += (target-sound[role])*(1-Math.exp(-elapsed/time));
@@ -487,6 +543,15 @@
       this.setStatus(!op.ready ? "connecting" : sound.playbackActive ? "speaking" : op.muted ? "muted" :
         sound.buffering && !sound.inputActive ? "processing" : "listening");
       this.publishAudio(op);
+    }
+    recordSpeech(op, active, now) {
+      // Local windows of microphone energy, used to tell transcribed speech from
+      // the transcriber's silence inventions. Bounded; oldest windows drop first.
+      op.speech ??= [];
+      const last = op.speech.at(-1);
+      if (active) {
+        if (!last || last.to !== null) {op.speech.push({from:now-150,to:null});if (op.speech.length > 128) op.speech.shift();}
+      } else if (last && last.to === null) last.to = now+150;
     }
     cancelAudioFrame(op) {
       if (op.frame !== null) window.cancelAnimationFrame?.(op.frame);
@@ -554,6 +619,8 @@
       op.closing = true;op.controller.abort();
       this.finishGreeting(op,"cancelled","session_closed");
       this.cancelContext(op,"session_closed");
+      for (const spoken of op.commentary.values()) spoken.resolve({status:"cancelled",reason:"session_closed"});
+      op.commentary.clear();
       op.readyReject?.(new DOMException("Cancelled","AbortError"));
       for (const caption of Object.values(op.captions)) this.caption(op,caption,true);
       op.timers.forEach(clearTimeout);op.timers.clear();

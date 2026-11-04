@@ -26,7 +26,13 @@ if str(Path(__file__).parent) not in sys.path:
 from test_server import server, interview_payload, interview_result, process_draft
 from test_live import SDP, workflow_update_result
 
-LOCAL = APP / ".local" / "document-experience"
+def long_path(path):
+    """Windows: use an extended-length root so deep fixtures can be created and cleaned up."""
+    path = Path(path).resolve()
+    return Path("\\\\?\\" + str(path)) if sys.platform == "win32" and not str(path).startswith("\\\\?\\") else path
+
+
+LOCAL = long_path(APP / ".local" / "document-experience")
 REPLAY = LOCAL / "fa17-replay.json"
 KEY = "sk-synthetic-document-grounding-never-real"
 
@@ -153,6 +159,8 @@ class DocumentGroundingHTTPTests(unittest.TestCase):
         LOCAL.mkdir(parents=True, exist_ok=True)
         self.temporary = tempfile.TemporaryDirectory(prefix="http-regression-", dir=LOCAL)
         self.client = GroundingProvider()
+        # These cases pin the reviewed-turn routes; live voice routing is covered in test_live.
+        self.client.voice_mode = "reviewed"
         self.httpd = server.InterviewServer(("127.0.0.1", 0), server.Handler, client=self.client,
                                             documents_root=Path(self.temporary.name) / "documents")
         self.worker = threading.Thread(target=self.httpd.serve_forever, kwargs={"poll_interval": .01}, daemon=True)

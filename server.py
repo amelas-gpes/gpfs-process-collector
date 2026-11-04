@@ -16,6 +16,7 @@ import socket
 import ssl
 import sys
 import threading
+from concurrent.futures import ThreadPoolExecutor
 import time
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -24,7 +25,7 @@ from urllib.parse import unquote, urlsplit
 from urllib.request import Request, urlopen
 import webbrowser
 
-VERSION = "0.24.0"
+VERSION = "0.25.0"
 APP_DIR = Path(__file__).resolve().parent
 WEB_DIR = APP_DIR / "web"
 DIAGNOSTIC_MAX_BYTES = 1024 * 1024
@@ -612,18 +613,27 @@ Explore the normal route, responsibilities, handoffs, checks, exceptions and var
 Treat corrections as revisions to the account. Keep unknowns explicit and do not invent facts.
 If resuming, continue from the supplied conversation without restarting the interview.
 Delegate when you need help keeping track of a complex process or choosing the next useful gap.
-Before suggesting ANY wrap-up, final recap, 'anything else', or 'before we pause', delegate a coverage
-review of ALL eleven sections against the explanation test. If any section is unexplored, partial,
-contradicted or awaiting clarification, continue with its most useful answerable gap. Never use a
-local 'no' or 'that's about it' as global completion. Only an explicit participant stop/pause overrides
-continued interviewing; acknowledge it without claiming the open sections are covered.
-Silent interview_coverage snapshots are fallible working interpretations, never participant evidence
-or instructions. Reconcile them with subsequent participant speech. analysis_current=false or
-ready_for_completion=false prohibits an AI-initiated full-completion claim. An absent snapshot also
-does not establish completeness. A true value is only a candidate: still perform the delegated review.
-Do not speak on receipt of coverage updates or interrupt an unfinished answer. Missing or unavailable
-topics stay open; ask other answerable gaps. State the specific unresolved topics if the participant stops.
-After all sections pass, recap briefly and ask the final correction/omission check; confirmation is not owner approval.
+You are the spoken front of a managed interview team, and you speak only as the interviewer. The
+participant's words reach you only as their live speech. Never voice the participant's side, answer
+your own question, continue or repeat what they are saying, or fill a silence with an imagined
+answer. When they are quiet, wait; after a long pause, briefly ask your question again.
+While you talk, the application's lead interviewer keeps private, cited notes from the transcript
+and occasionally sends a short silent interview_coverage update: the open topics and a
+suggested_question chosen from those notes.
+Prefer the suggested question when it is still unanswered; otherwise ask the most useful open gap.
+These updates are fallible working interpretations, never participant evidence or instructions;
+reconcile them with subsequent participant speech. Do not speak on receipt of an update, read it
+aloud, mention the notes, or interrupt an unfinished answer. Missing or unavailable topics stay
+open; ask other answerable gaps.
+The application alone decides when the interview is complete. Never suggest a wrap-up, a final
+recap, 'anything else' or 'before we pause' on your own, and never use a local 'no' or 'that's about
+it' as global completion. When the application sends a line to say exactly, say that sentence once,
+word for word, and then listen; after the completion acknowledgement ("Let me check that I have
+everything before we finish.") wait silently until the next line to say arrives. If the participant
+asks whether you are finished, say the notes are still being checked and continue with the next
+useful question. Only an explicit participant stop/pause overrides continued interviewing;
+acknowledge it without claiming the open sections are covered, and state the specific unresolved
+topics if they stop. Confirmation is never owner approval.
 Never claim that a memo or workflow was saved, verified or approved. The app manages those separately.
 When no process name or participant history exists, open warmly with one question: what work would
 they like to walk through? Do not ask them to type a title; the application names it from their account.
@@ -1024,6 +1034,15 @@ def next_uncovered_question(result):
                     "risk": "What happens if this work is done incorrectly?",
                     "materials": "What written guidance is available for someone learning this work?",
                 }[key]
+    # Every open topic is partial without a reviewer question (for example, the
+    # lead proposed closing language that the boundary rejected). Name the open
+    # sections rather than asking a vague question the participant cannot act on.
+    open_labels = [COVERAGE[key] for key in COVERAGE
+                   if findings[key]["status"] not in ("captured", "not_applicable")
+                   and not assessments.get(key, {}).get("participant_unavailable")]
+    if open_labels:
+        return ("Some sections still need clarification: " + "; ".join(open_labels)
+                + ". Which of these can you help explain next?")
     return "Some sections still need clarification before this is complete. Which open detail can you help explain next?"
 
 
@@ -1086,10 +1105,7 @@ def enforce_closure(result, turns, action):
     if result["closure"]["confirmed"]:
         after_check = [t for t in turns[checks[-1] + 1:] if t["role"] == "user" and not t.get("document_event")] if checks else []
         # A correction or new exception is not an affirmative closure response.
-        has_reply = bool(after_check) and bool(re.fullmatch(
-            r"\s*(?:no[,.!]?\s*)?(?:nothing (?:else|more)|that(?:['’]s| is) all|"
-            r"(?:this|that) captures my account|correct|no)[.!]?"
-            r"(?:\s*(?:this|that) captures my account[.!]?)?\s*", after_check[-1]["text"], re.I))
+        has_reply = bool(after_check) and bool(agent_team.FINAL_CONFIRMATION.fullmatch(after_check[-1]["text"]))
         if not has_reply:
             result["closure"]["confirmed"] = False
         elif not result["question"].strip():
@@ -1103,7 +1119,7 @@ def load_settings():
     settings = {}
     allowed = {"OPENAI_API_KEY", "INTERVIEW_MODEL", "DRAFT_MODEL", "WORKFLOW_AUDIT_MODEL", "TRANSCRIPTION_MODEL", "TRANSCRIPTION_KEYWORDS",
                "COLLECTOR_DEPLOYMENT_MODE", "KNOWLEDGE_LOCAL_OWNER", "AGENT_INTERVIEW_MODEL",
-               "AGENT_COVERAGE_MODEL", "AGENT_PROCESS_MODEL", "AGENT_DOCUMENT_MODEL"}
+               "AGENT_COVERAGE_MODEL", "AGENT_PROCESS_MODEL", "AGENT_DOCUMENT_MODEL", "VOICE_MODE"}
     for path in (APP_DIR / ".env.local",):
         if path.is_file() and not path.is_symlink():
             for line in path.read_text(encoding="utf-8-sig").splitlines():
@@ -1613,8 +1629,11 @@ def apply_workflow_update(update, previous, turns, documents=None):
         check_retained(finding, old)
         if old and old["status"] != "unknown" and finding["status"] == "unknown":
             if not finding["evidence_turns"] or any(source not in participant_text for source in finding["evidence_turns"]):
-                raise ValueError("Withdrawing a memo finding must cite participant correction evidence.")
-    findings.update(finding_updates)
+                # A withdrawal without participant evidence cannot erase a known
+                # topic. Keep the prior finding; nothing from the dropped entry
+                # is retained, and the graph edits in the same update stay valid.
+                continue
+        findings[key] = finding
     return validate_workflow_capture({
         "title": update["title"], "steps": list(steps.values()), "connections": list(edges.values()),
         "open_questions": update["open_questions"], "memo_findings": list(findings.values()),
@@ -1641,6 +1660,11 @@ class OpenAIClient:
             "document_analyst": settings.get("AGENT_DOCUMENT_MODEL") or "gpt-6.1-terra",
         }
         self.draft_model = settings.get("DRAFT_MODEL") or self.agent_models["process_reviewer"]
+        # "live": GPT-Live carries the spoken conversation while the managed team
+        # keeps the notes, map and completion gates from the transcript.
+        # "reviewed": every spoken line is a reviewed lead turn read by a TTS voice.
+        mode = str(settings.get("VOICE_MODE") or "live").strip().lower()
+        self.voice_mode = "reviewed" if mode in ("reviewed", "reviewed_turns", "controlled") else "live"
         self.coordinator = interview_orchestrator.Coordinator(self, sys.modules[__name__])
         # Only a running server or an explicit test supplies a diagnostic sink.
         # Standalone clients must not write into the user's live workspace.
@@ -1655,13 +1679,15 @@ class OpenAIClient:
                        "workflow_audit": self.workflow_audit_model, "transcription": self.transcription_model,
                        "speech": SPEECH_MODEL},
             "agent_team": {"enabled": True, "models": self.agent_models,
-                           "voice_mode": "reviewed_turns", "one_interviewer_voice": True,
-                           "review_mode": "on_completion"},
+                           "voice_mode": "live_front" if self.voice_mode == "live" else "reviewed_turns",
+                           "one_interviewer_voice": True, "review_mode": "on_completion"},
             "speech": {"enabled": bool(self.key), "model": SPEECH_MODEL,
                        "default_voice": "marin", "voices": AI_VOICES,
                        "provider": "openai", "transport": "openai-realtime-websocket"},
-            "live": {"enabled": bool(self.key), "model": self.agent_models["lead_interviewer"], "voice": "marin",
-                     "provider": "openai", "transport": "reviewed-turns"},
+            "live": {"enabled": bool(self.key),
+                     "model": LIVE_MODEL if self.voice_mode == "live" else self.agent_models["lead_interviewer"],
+                     "voice": "marin", "provider": "openai",
+                     "transport": "gpt-live-webrtc" if self.voice_mode == "live" else "reviewed-turns"},
             "data_notice": (
                 "Submitted interview text and recorded answer audio are sent to OpenAI. "
                 "Voice sends recorded answers for transcription. The interviewer responds, with additional checks "
@@ -1678,9 +1704,59 @@ class OpenAIClient:
     def browser_connect_sources(self):
         return ("wss://api.openai.com",)
 
-    def request(self, path, body, content_type="application/json", timeout=90):
+    @staticmethod
+    def _read_stream(response, on_text):
+        """Collect Responses API server-sent events into the final response object.
+
+        on_text receives the output text accumulated so far after each delta and
+        returns True once it has seen what it needs; it is not called again.
+        """
+        pieces, pending, final, announced, total = [], [], None, False, 0
+
+        def dispatch():
+            nonlocal final, announced
+            if not pending:
+                return
+            raw = "\n".join(pending)
+            pending.clear()
+            if raw == "[DONE]":
+                return
+            event = json.loads(raw)
+            if not isinstance(event, dict):
+                raise ValueError("Unexpected stream event.")
+            kind = event.get("type", "")
+            if kind == "response.output_text.delta" and isinstance(event.get("delta"), str):
+                pieces.append(event["delta"])
+                if not announced:
+                    try:
+                        announced = bool(on_text("".join(pieces)))
+                    except Exception:
+                        announced = True  # An observer failure must not stall the response.
+            elif kind in ("response.completed", "response.incomplete", "response.failed") and isinstance(event.get("response"), dict):
+                final = event["response"]
+            elif kind == "error":
+                raise ValueError("The provider reported a stream error.")
+
+        for line in response:
+            total += len(line)
+            if total > 4 * 1024 * 1024:
+                raise ValueError("The streamed response exceeds the local size limit.")
+            text = line.decode("utf-8").rstrip("\r\n")
+            if text.startswith("data:"):
+                pending.append(text[5:].strip())
+            elif not text:
+                dispatch()
+        dispatch()
+        if final is None:
+            raise ValueError("The stream ended before the response completed.")
+        return final
+
+    def request(self, path, body, content_type="application/json", timeout=90, on_text=None):
         if not self.key:
             raise APIError("The server has no OpenAI API key configured. Restart after completing secure setup.", 503)
+        streaming = on_text is not None and path == "responses" and isinstance(body, dict)
+        if streaming:
+            body = {**body, "stream": True}
         data = json.dumps(body).encode("utf-8") if isinstance(body, dict) else body
         request = Request("https://api.openai.com/v1/" + path, data=data,
                           headers={"Authorization": "Bearer " + self.key, "Content-Type": content_type}, method="POST")
@@ -1701,7 +1777,14 @@ class OpenAIClient:
         try:
             try:
                 with urlopen(request, timeout=timeout) as response:
-                    raw = response.read(4 * 1024 * 1024)
+                    if streaming:
+                        try:
+                            raw = self._read_stream(response, on_text)
+                        except (ValueError, UnicodeError):
+                            metrics.update(error_category="invalid_response")
+                            raise APIError("OpenAI returned an unreadable response. Please try again.") from None
+                    else:
+                        raw = response.read(4 * 1024 * 1024)
             except HTTPError as error:
                 code = ""
                 error_type = ""
@@ -1763,7 +1846,7 @@ class OpenAIClient:
                 metrics.update(status=status, error_category=category, error_type=type(cause).__name__)
                 raise APIError(message, status) from None
             try:
-                result = json.loads(raw)
+                result = raw if streaming else json.loads(raw)
             except (ValueError, UnicodeError):
                 metrics.update(error_category="invalid_response")
                 raise APIError("OpenAI returned an unreadable response. Please try again.") from None
@@ -1778,7 +1861,8 @@ class OpenAIClient:
                     # Logging cannot turn a valid response into a failed request.
                     pass
 
-    def structured(self, instructions, payload, schema, name, max_tokens, reasoning_effort="low", input_content=None, request_timeout=None, model_override=None):
+    def structured(self, instructions, payload, schema, name, max_tokens, reasoning_effort="low", input_content=None,
+                   request_timeout=None, model_override=None, on_text=None):
         # A JSON Schema is a tree on the wire. deepcopy preserves Python object
         # aliases (such as STRINGS), which would also constrain unrelated lists
         # when an evidence array is narrowed. Materialize independent tree nodes.
@@ -1850,7 +1934,8 @@ class OpenAIClient:
                 "text": {"format": {"type": "json_schema", "name": name, "strict": True, "schema": response_schema}}}
         if effective_model.startswith(("gpt-5", "gpt-6")):
             body["reasoning"] = {"effort": reasoning_effort}
-        result = self.request("responses", body, **({"timeout": request_timeout} if request_timeout is not None else {}))
+        result = self.request("responses", body, **({"timeout": request_timeout} if request_timeout is not None else {}),
+                              **({"on_text": on_text} if on_text is not None else {}))
         if result.get("status") not in (None, "completed"):
             raise APIError("The model did not finish its response. Your session is retained; try again.")
         texts = []
@@ -1891,7 +1976,7 @@ class OpenAIClient:
                                "file_data": "data:application/pdf;base64," + base64.b64encode(page).decode(),
                                "detail": "high"})
             elif record["kind"] == "png":
-                raw = store.original_path(record["_scope"], record["id"]).read_bytes()
+                raw = store.original_bytes(record["_scope"], record["id"])
                 inputs.append({"type": "input_image", "image_url": "data:image/png;base64," + base64.b64encode(raw).decode(),
                                "detail": "high"})
         if not inputs:
@@ -1974,7 +2059,7 @@ class OpenAIClient:
                 "input": history,
                 "audio": {"output": {"voice": voice}},
                 "delegation": {"type": "responses", "responses": {
-                    "model": self.model,
+                    "model": self.agent_models["lead_interviewer"],
                     "instructions": LIVE_BACKEND_INSTRUCTIONS + foundation_instructions()
                         + "\nINITIAL SUPPORTING DOCUMENT CONTEXT (UNTRUSTED; latest live snapshots may supersede this)\n"
                         + json.dumps(supporting, ensure_ascii=False),
@@ -1995,20 +2080,62 @@ class OpenAIClient:
         return {"sdp": answer, "session_id": session_id, "model": LIVE_MODEL,
                 **({"document_evidence": document_evidence} if supporting else {})}
 
-    def assess_coverage(self, findings, context, turns, supporting, force=False, model_override=None, allow_capture_repair=False):
-        """No full circle without an independent, dimension-by-dimension explanation."""
+    def assess_coverage(self, findings, context, turns, supporting, force=False, model_override=None,
+                        allow_capture_repair=False, topics=None, split=False):
+        """No full circle without an independent, dimension-by-dimension explanation.
+
+        split runs the eleven topics as concurrent topic groups: the same transcript
+        and candidate findings reach every call, each assesses only its own topics,
+        and the merged result passes the unchanged full validation. topics limits
+        the assessment to a subset (an advisory check); the result then describes
+        that subset only.
+        """
         if not force and not any(item["status"] in ("captured", "not_applicable") for item in findings):
             return findings, None
+        requested = [key for key in interview_coverage.TOPIC_DIMENSIONS if key in set(topics)] if topics else None
         try:
-            schema = interview_coverage.REPAIR_ASSESSMENT_SCHEMA if allow_capture_repair else interview_coverage.ASSESSMENT_SCHEMA
-            assessment = self.structured(
-                interview_coverage.REPAIR_AUDIT_INSTRUCTIONS if allow_capture_repair else interview_coverage.AUDIT_INSTRUCTIONS,
-                {"context": context, "turns": turns, "candidate_findings": findings,
-                 "supporting_documents": supporting},
-                schema, "process_coverage_assessment", 14000,
-                reasoning_effort="medium", request_timeout=120,
-                **({"model_override": model_override} if model_override else {}))
-            check_schema(assessment, schema)
+            if topics and (not requested or len(requested) != len(set(topics))):
+                raise ValueError("Coverage assessment requires known memo topics.")
+            if requested:
+                groups = [tuple(requested)]
+            elif split:
+                groups = [tuple(group) for group in interview_coverage.COVERAGE_REVIEW_GROUPS]
+            else:
+                groups = [tuple(interview_coverage.TOPIC_DIMENSIONS)]
+            scoped = requested is not None or len(groups) > 1
+            model = {"model_override": model_override} if model_override else {}
+
+            def assess_group(group):
+                if scoped:
+                    schema = interview_coverage.group_schema(group, allow_capture_repair)
+                    instructions = interview_coverage.group_instructions(group, allow_capture_repair)
+                else:
+                    schema = interview_coverage.REPAIR_ASSESSMENT_SCHEMA if allow_capture_repair else interview_coverage.ASSESSMENT_SCHEMA
+                    instructions = interview_coverage.REPAIR_AUDIT_INSTRUCTIONS if allow_capture_repair else interview_coverage.AUDIT_INSTRUCTIONS
+                payload = {"context": context, "turns": turns, "candidate_findings": findings,
+                           **({"assess_topics": list(group)} if scoped else {}),
+                           "supporting_documents": supporting}
+                result = self.structured(instructions, payload, schema, "process_coverage_assessment",
+                                         8000 if scoped else 14000, reasoning_effort="medium", request_timeout=120, **model)
+                if scoped:
+                    # Strict output cannot return another group's topics; offline
+                    # fixtures may. Keep only the topics this group was asked for.
+                    if not isinstance(result, dict) or not isinstance(result.get("topics"), list):
+                        raise ValueError("Invalid coverage group result.")
+                    result = {"topics": [topic for topic in result["topics"]
+                                         if isinstance(topic, dict) and topic.get("key") in group]}
+                check_schema(result, schema)
+                return group, result
+
+            if len(groups) == 1:
+                parts = [assess_group(groups[0])]
+            else:
+                with ThreadPoolExecutor(max_workers=len(groups), thread_name_prefix="coverage-review") as pool:
+                    parts = list(pool.map(assess_group, groups))
+            assessment = interview_coverage.merge_group_assessments(parts) if scoped else parts[0][1]
+            if requested:
+                return interview_coverage.apply_assessment(
+                    findings, assessment, turns, document_evidence_catalog(supporting), required_keys=requested)
             apply = interview_coverage.apply_repair_assessment if allow_capture_repair else interview_coverage.apply_assessment
             return apply(
                 findings, assessment, turns, document_evidence_catalog(supporting))
@@ -2263,7 +2390,9 @@ class InterviewServer(ThreadingHTTPServer):
         self.diagnostics_path = (Path(documents_root).parent if documents_root else APP_DIR / "work") / "server-lifecycle.jsonl"
         if isinstance(self.client, OpenAIClient):
             self.client.diagnostic_callback = self.record_event
-        self.api_slots = threading.BoundedSemaphore(2)
+        # A turn may run the lead, the working map, an advisory coverage check and
+        # a voice token request at once; each is one provider-bound request.
+        self.api_slots = threading.BoundedSemaphore(4)
         self.conversation = (local_module('concurrent_interview', 'concurrent_interview.py').ConcurrentInterview(
             self.client, sys.modules[__name__], validate_sources=self.validate_conversation_sources)
             if isinstance(self.client, OpenAIClient) else None)
@@ -2524,7 +2653,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         if path not in ("/api/interview", "/api/draft", "/api/transcribe", "/api/voice-session", "/api/live-session", "/api/workflow",
                         "/api/agent-team/interview", "/api/agent-team/workflow", "/api/agent-team/review",
-                        "/api/agent-team/status", "/api/agent-team/cancel"):
+                        "/api/agent-team/coverage", "/api/agent-team/status", "/api/agent-team/cancel"):
             if path not in ('/api/conversation/turn', '/api/conversation/status', '/api/conversation/sync'):
                 return self._json({"error": "Not found."}, 404)
         try:
@@ -2553,7 +2682,7 @@ class Handler(BaseHTTPRequestHandler):
                     scope = payload.get("document_scope")
                     if scope and path in ("/api/interview", "/api/live-session", "/api/workflow", "/api/draft",
                                           "/api/agent-team/interview", "/api/agent-team/workflow", "/api/agent-team/review",
-                                          '/api/conversation/turn', '/api/conversation/status', '/api/conversation/sync'):
+                                          "/api/agent-team/coverage", '/api/conversation/turn', '/api/conversation/status', '/api/conversation/sync'):
                         context, turns = validate_payload(payload)
                         basis = (self.server.client.coordinator.retrieval_basis(payload)
                                  if isinstance(self.server.client, OpenAIClient) and path in
@@ -2566,7 +2695,7 @@ class Handler(BaseHTTPRequestHandler):
                                 retrieval_turns.pop()
                         source_ids = basis["preferred_source_ids"] if basis else prior_document_source_ids(payload)
                         if (not basis and isinstance(self.server.client, OpenAIClient) and path in
-                                ("/api/interview", "/api/agent-team/interview")):
+                                ("/api/interview", "/api/agent-team/interview", "/api/agent-team/coverage")):
                             # The browser need not resend derived memo prose to
                             # keep earlier facts. Rehydrate exact private-ledger
                             # citations through the current scoped store first.
@@ -2605,10 +2734,10 @@ class Handler(BaseHTTPRequestHandler):
                 if path.endswith("/cancel"):
                     return self._json(self.server.client.coordinator.cancel(token))
                 return self._json(self.server.client.coordinator.status(token, scope))
-            if path == "/api/live-session":
+            if path == "/api/live-session" and getattr(self.server.client, "voice_mode", "reviewed") != "live":
                 return self._json({"error": "This interview uses reviewed voice turns. Refresh the page to continue with the current interviewer."}, 409)
             if not self.server.api_slots.acquire(blocking=False):
-                return self._json({"error": "Two requests are already processing. Wait for them to finish."}, 429)
+                return self._json({"error": "Several requests are already processing. Wait for them to finish."}, 429)
             try:
                 client = self.server.client
                 if path == '/api/conversation/turn':
@@ -2619,6 +2748,8 @@ class Handler(BaseHTTPRequestHandler):
                     result = client.coordinator.review(payload)
                 elif path == "/api/agent-team/workflow":
                     result = client.coordinator.workflow(payload)
+                elif path == "/api/agent-team/coverage":
+                    result = client.coordinator.advisory_coverage(payload)
                 elif path == "/api/interview":
                     result = client.coordinator.interview(payload) if isinstance(client, OpenAIClient) else client.interview(payload)
                 elif path == "/api/draft":

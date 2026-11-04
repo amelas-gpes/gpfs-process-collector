@@ -59,25 +59,54 @@ class ExtractionError(DocumentError):
     pass
 
 
+LONG_PATH_THRESHOLD = 200
+
+
+def _long_path(path):
+    """Return the Windows extended-length form of a path that could exceed MAX_PATH.
+
+    The store nests a 64-character scope digest, a document ID and a temporary
+    upload name under the application directory. Without the system-wide
+    long-path setting, Windows rejects paths over 260 characters once the
+    checkout lives a few folders deep, and uploads then fail with
+    FileNotFoundError. Only paths long enough to be at risk receive the
+    ``\\\\?\\`` prefix, so ordinary paths the store returns stay plain and
+    comparable. Callers apply this at the operating-system boundary only.
+    """
+    path = Path(path)
+    if os.name != 'nt':
+        return path
+    raw = os.fspath(path)
+    if raw.startswith(('\\\\?\\', '\\\\.\\')) or len(raw) < LONG_PATH_THRESHOLD:
+        return path
+    # The prefix disables normalization, so normalize first.
+    raw = os.path.abspath(raw)
+    if raw.startswith('\\\\'):
+        return Path('\\\\?\\UNC\\' + raw[2:])
+    return Path('\\\\?\\' + raw)
+
+
 def _private_dir(path):
     path = Path(path)
-    if path.is_symlink():
+    target = _long_path(path)
+    if target.is_symlink():
         raise DocumentError('Document storage cannot use a symbolic-link directory.')
-    path.mkdir(parents=True, exist_ok=True, mode=0o700)
-    os.chmod(path, 0o700)
+    target.mkdir(parents=True, exist_ok=True, mode=0o700)
+    os.chmod(target, 0o700)
     return path
 
 
 def _atomic_write(path, data):
-    temporary = path.with_name('.pending-' + secrets.token_hex(12))
+    target = _long_path(path)
+    temporary = _long_path(path.with_name('.pending-' + secrets.token_hex(12)))
     try:
         with open(temporary, 'xb') as stream:
             os.chmod(temporary, 0o600)
             stream.write(data)
             stream.flush()
             os.fsync(stream.fileno())
-        os.replace(temporary, path)
-        os.chmod(path, 0o600)
+        os.replace(temporary, target)
+        os.chmod(target, 0o600)
     finally:
         if temporary.exists():
             temporary.unlink()
@@ -203,7 +232,7 @@ class DocumentStore:
         self._permissions()
 
     def _permissions(self):
-        for path in self.root.glob('documents.sqlite3*'):
+        for path in _long_path(self.root).glob('documents.sqlite3*'):
             for attempt in range(6):
                 try:
                     if path.is_file() and not path.is_symlink():
@@ -222,7 +251,7 @@ class DocumentStore:
 
     @contextmanager
     def _db(self):
-        db = sqlite3.connect(self.db_path, timeout=30)
+        db = sqlite3.connect(_long_path(self.db_path), timeout=30)
         try:
             db.row_factory = sqlite3.Row
             db.execute('PRAGMA journal_mode=WAL')
@@ -424,9 +453,14 @@ class DocumentStore:
         with self._db() as db:
             digest, record = self._record(db, scope, document_id)
         path = self.root / digest / document_id / ('original.' + record['kind'])
-        if path.is_symlink() or path.parent.is_symlink() or not path.is_file():
+        target = _long_path(path)
+        if target.is_symlink() or target.parent.is_symlink() or not target.is_file():
             raise DocumentError('The original document is unavailable.')
         return path
+
+    def original_bytes(self, scope, document_id):
+        """Read the original through a path form that works at any depth."""
+        return _long_path(self.original_path(scope, document_id)).read_bytes()
 
     def extract(self, scope, document_id):
         self.get(scope, document_id)  # Authorize before retaining any worker lock.
@@ -439,7 +473,7 @@ class DocumentStore:
             self.update(scope, document_id, {'status': 'indexing', 'error': None})
             chunks = _Chunks(record)
             try:
-                path = self.original_path(scope, document_id)
+                path = _long_path(self.original_path(scope, document_id))
                 extractor = {'pdf': _pdf, 'png': _png, 'xlsx': _workbook, 'xlsm': _workbook,
                              'csv': _csv, 'xls': _legacy_xls}[record['kind']]
                 inventory, coverage = extractor(path, record, chunks)
@@ -497,7 +531,7 @@ class DocumentStore:
         record = self.get(scope, document_id)
         if record['kind'] != 'pdf' or not isinstance(page_number, int) or isinstance(page_number, bool):
             raise DocumentError('Choose a PDF page by its one-based number.')
-        reader = PdfReader(self.original_path(scope, document_id))
+        reader = PdfReader(_long_path(self.original_path(scope, document_id)))
         if reader.is_encrypted:
             raise DocumentError('Encrypted PDFs must be unlocked before upload.')
         if not 1 <= page_number <= min(len(reader.pages), MAX_PDF_PAGES):

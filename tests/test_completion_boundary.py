@@ -39,6 +39,24 @@ class CompletionBoundaryTests(unittest.TestCase):
         self.assertFalse(result["closure"]["confirmed"])
         self.assertIn("produce", result["question"])
 
+    def test_fallback_question_names_open_sections_when_every_gap_is_partial(self):
+        # A rejected closing proposal with only partial topics must still give the
+        # participant something concrete to act on, not a vague prompt.
+        result = self.partial()
+        for finding in result["memo_findings"]:
+            finding["status"] = "partial"
+        question = server.next_uncovered_question(result)
+        self.assertTrue(question.endswith("?"))
+        self.assertEqual(question.count("?"), 1)
+        self.assertIn("Consequences of failure", question)
+        self.assertFalse(server.WRAP_UP_LANGUAGE.search(question))
+        result["coverage_assessment"] = {"topics": [
+            {"key": finding["key"], "participant_unavailable": True, "next_question": ""}
+            for finding in result["memo_findings"] if finding["key"] != "risk"]}
+        question = server.next_uncovered_question(result)
+        self.assertIn("Consequences of failure", question)
+        self.assertNotIn("Existing materials", question)
+
     def test_manual_check_names_gaps_without_announcing_completion(self):
         result = self.partial()
         server.enforce_closure(result, interview_payload()["turns"], "close")

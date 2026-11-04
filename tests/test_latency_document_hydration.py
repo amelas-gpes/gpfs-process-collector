@@ -9,7 +9,7 @@ from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 from unittest.mock import Mock
 
-from test_interview_orchestrator import SyntheticTeamProvider
+from test_interview_orchestrator import REVIEW_CALLS, SyntheticTeamProvider
 from test_server import server
 
 
@@ -67,7 +67,7 @@ class ReviewSourceHydrationTests(unittest.TestCase):
         self.assertEqual(reviewed['speech_authorization']['kind'], 'final_check')
         self.assertEqual(self.hydrate.call_args.args[1], initial_query)
         self.assertTrue(self.hydrate.call_args.kwargs['source_ids'])
-        self.assertEqual(self.client.request.call_count, 3)
+        self.assertEqual(self.client.request.call_count, 1 + REVIEW_CALLS)
         payload.pop('review_ticket')
         payload['capture_token'] = reviewed['capture_token']
         payload['turns'] += [{'id': 'global_check', 'role': 'assistant', 'text': reviewed['question']},
@@ -75,7 +75,7 @@ class ReviewSourceHydrationTests(unittest.TestCase):
         code, completed = self.post('/api/interview', payload)
         self.assertEqual(code, 200, completed)
         self.assertTrue(completed['completion']['complete'])
-        self.assertEqual(self.client.request.call_count, 3)
+        self.assertEqual(self.client.request.call_count, 1 + REVIEW_CALLS)
         self.assertEqual(self.hydrate.call_args.args[1], initial_query)
 
     def test_archiving_source_invalidates_prepared_review_before_provider_work(self):

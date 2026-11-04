@@ -141,21 +141,33 @@ def _object(properties):
 
 _TEXT = {"type": "string"}
 _TEXTS = {"type": "array", "items": _TEXT}
+# Output length drives review latency. These caps keep a dimension's detail to a
+# concise explanation and a gap to one sentence; a repaired topic explanation can
+# still carry a full lifecycle account.
 DIMENSION_SCHEMA = _object({
     "key": _TEXT,
     "status": {"type": "string", "enum": ["supported", "unresolved", "not_applicable"]},
-    "detail": _TEXT, "evidence_turns": _TEXTS,
+    "detail": {"type": "string", "maxLength": 800}, "evidence_turns": _TEXTS,
 })
 TOPIC_SCHEMA = _object({
     "key": {"type": "string", "enum": list(TOPIC_DIMENSIONS)},
-    "explanation": _TEXT, "evidence_turns": _TEXTS,
+    "explanation": {"type": "string", "maxLength": 4000}, "evidence_turns": _TEXTS,
     "dimensions": {"type": "array", "items": DIMENSION_SCHEMA},
-    "gaps": _TEXTS, "next_question": _TEXT,
+    "gaps": {"type": "array", "items": {"type": "string", "maxLength": 500}},
+    "next_question": {"type": "string", "maxLength": 1200},
     "participant_unavailable": {"type": "boolean"},
     "unavailable_evidence_turns": _TEXTS,
-    "not_applicable_reason": _TEXT, "not_applicable_evidence_turns": _TEXTS,
+    "not_applicable_reason": {"type": "string", "maxLength": 1200}, "not_applicable_evidence_turns": _TEXTS,
 })
 ASSESSMENT_SCHEMA = _object({"topics": {"type": "array", "items": TOPIC_SCHEMA}})
+# The completion review runs these groups concurrently; each sees the whole
+# transcript and all candidate findings but assesses only its own topics. The
+# groups balance dimension counts (9, 12 and 11) so no call dominates the wait.
+COVERAGE_REVIEW_GROUPS = (
+    ("name", "purpose", "trigger", "completion"),
+    ("accountable", "lifecycle", "checks"),
+    ("variations", "pain_points", "risk", "materials"),
+)
 CAPTURE_REPAIR_SCHEMA = _object({"needed": {"type": "boolean"}})
 REPAIR_TOPIC_SCHEMA = copy.deepcopy(TOPIC_SCHEMA)
 REPAIR_TOPIC_SCHEMA["properties"]["capture_repair"] = CAPTURE_REPAIR_SCHEMA
@@ -197,6 +209,52 @@ reported elsewhere in the transcript. Read all relevant participant turns before
 Unknown/partial topics cannot be promoted by a repair. If a repair cannot meet all these conditions,
 leave needed=false and retain the precise factual gap. Never repeat an already answered question.
 """
+
+def group_rubric(keys):
+    return "TOPIC EXPLANATION REQUIREMENTS\n" + "\n".join(
+        f"{topic}: " + "; ".join(f"{key}: {detail}" for key, detail in TOPIC_DIMENSIONS[topic].items())
+        for topic in keys)
+
+
+def group_schema(keys, repair=False):
+    """The assessment schema restricted to one topic group, each topic exactly once."""
+    keys = [key for key in TOPIC_DIMENSIONS if key in set(keys)]
+    if not keys:
+        raise ValueError("A coverage group needs known topics.")
+    schema = copy.deepcopy(REPAIR_ASSESSMENT_SCHEMA if repair else ASSESSMENT_SCHEMA)
+    schema["properties"]["topics"]["items"]["properties"]["key"] = {"type": "string", "enum": keys}
+    schema["properties"]["topics"].update(minItems=len(keys), maxItems=len(keys))
+    return schema
+
+
+def group_instructions(keys, repair=False):
+    """Audit instructions with the rubric limited to one group of topics."""
+    keys = [key for key in TOPIC_DIMENSIONS if key in set(keys)]
+    base = REPAIR_AUDIT_INSTRUCTIONS if repair else AUDIT_INSTRUCTIONS
+    if len(keys) == len(TOPIC_DIMENSIONS):
+        return base
+    return (base.replace(TOPIC_RUBRIC, group_rubric(keys))
+            + "\nASSESS ONLY THESE TOPICS, EACH EXACTLY ONCE, IN THIS ORDER: " + ", ".join(keys)
+            + ". The other candidate findings are supplied for context only; do not return them. "
+            "Keep explanations concise and cite evidence rather than restating it.\n")
+
+
+def merge_group_assessments(parts):
+    """Combine per-group results; every requested topic exactly once, none extra."""
+    topics = {}
+    for keys, assessment in parts:
+        if not isinstance(assessment, dict) or not isinstance(assessment.get("topics"), list):
+            raise ValueError("Invalid coverage group result.")
+        for topic in assessment["topics"]:
+            key = topic.get("key") if isinstance(topic, dict) else None
+            if key not in keys or key in topics:
+                raise ValueError("A coverage group returned an unexpected or duplicate topic.")
+            topics[key] = topic
+        for key in keys:
+            if key not in topics:
+                raise ValueError("A coverage group omitted a requested topic.")
+    return {"topics": [topics[key] for key in TOPIC_DIMENSIONS if key in topics]}
+
 
 _EMPTY_DETAIL = re.compile(r"^(?:unknown|tbd|not established|not discussed|unclear|n/?a|none|yes|no)[.! ]*$", re.I)
 _UNAVAILABLE = re.compile(
@@ -256,12 +314,14 @@ def _strings(value, label, limit=100):
     return [_text(item, label) for item in value]
 
 
-def apply_assessment(findings, assessment, turns, documents=None):
+def apply_assessment(findings, assessment, turns, documents=None, required_keys=None):
     """Return (demotion-only findings, public assessment); never mutate inputs.
 
     Missing required dimensions demote a claimed completion. Malformed topology,
     unknown evidence IDs and assistant citations reject the entire assessment.
-    The caller must already have validated the proposed finding evidence.
+    The caller must already have validated the proposed finding evidence. With
+    required_keys, only that subset is assessed (an advisory check); the public
+    all_topics_covered then describes that subset only.
     """
     if not isinstance(findings, list) or len(findings) != len(TOPIC_DIMENSIONS):
         raise ValueError("Assessment requires all eleven original memo findings.")
@@ -270,9 +330,16 @@ def apply_assessment(findings, assessment, turns, documents=None):
         raise ValueError("Assessment requires unique known memo topic keys.")
     if not isinstance(assessment, dict) or set(assessment) != {"topics"}:
         raise ValueError("Invalid topic assessment object.")
+    if required_keys is None:
+        required = list(TOPIC_DIMENSIONS)
+    else:
+        required = [key for key in TOPIC_DIMENSIONS if key in set(required_keys)]
+        if not required or len(required) != len(set(required_keys)):
+            raise ValueError("Assessment requires known memo topic keys.")
     topics = assessment["topics"]
-    if not isinstance(topics, list) or len(topics) != len(TOPIC_DIMENSIONS):
-        raise ValueError("The assessment must contain all eleven topics.")
+    if not isinstance(topics, list) or len(topics) != len(required):
+        raise ValueError("The assessment must contain all eleven topics." if required_keys is None
+                         else "The assessment must contain every requested topic exactly once.")
     participant = {t["id"]: t.get("text", "") for t in turns
                    if t.get("role") == "user" and t.get("document_event") is not True}
     document_ids = {source["id"] for source in documents or []}
@@ -296,7 +363,7 @@ def apply_assessment(findings, assessment, turns, documents=None):
         if not isinstance(raw, dict) or set(raw) != set(TOPIC_SCHEMA["properties"]):
             raise ValueError("Invalid topic assessment fields.")
         key = raw["key"]
-        if not isinstance(key, str) or key not in TOPIC_DIMENSIONS or key in public:
+        if not isinstance(key, str) or key not in required or key in public:
             raise ValueError("Assessment has an unknown or duplicate topic.")
         explanation = _text(raw["explanation"], "Topic explanation")
         refs = sources(raw["evidence_turns"])
@@ -353,7 +420,7 @@ def apply_assessment(findings, assessment, turns, documents=None):
                        "participant_unavailable": unavailable, "unavailable_evidence_turns": unavailable_refs,
                        "not_applicable_reason": na_reason, "not_applicable_evidence_turns": na_refs,
                        "complete": complete}
-    return revised, {"topics": [public[key] for key in TOPIC_DIMENSIONS],
+    return revised, {"topics": [public[key] for key in required],
                      "all_topics_covered": all(topic["complete"] for topic in public.values())}
 
 

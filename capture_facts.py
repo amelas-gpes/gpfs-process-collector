@@ -31,7 +31,11 @@ _RECONCILIATION = {"anyOf": [
     _object({"target_id": _TEXT, "disposition": {"type": "string", "enum": ["replace", "remove"]},
              "basis": _TEXT}),
 ]}
+# The question comes first so a streamed response can show it while the fact
+# transaction is still being written. Reasoning precedes all output tokens, so
+# the order of emitted fields does not shorten the model's deliberation.
 FACT_DELTA_SCHEMA = _object({
+    "question": _TEXT,
     "base_revision": _TEXT,
     "fact_reconciliations": {"type": "array", "items": _RECONCILIATION},
     "topic_states": {"type": "array", "items": _object({
@@ -48,7 +52,7 @@ FACT_DELTA_SCHEMA = _object({
         "reason": {"type": "string", "enum": ["new_evidence", "participant_correction", "capture_correction", "resolved_gap", "withdrawal"]},
     })},
     "summary": _TEXT, "focus": _TEXT,
-    "parking_lot": {"type": "array", "items": _TEXT}, "question": _TEXT,
+    "parking_lot": {"type": "array", "items": _TEXT},
 })
 
 FACT_CAPTURE_POLICY = """
@@ -57,7 +61,11 @@ The application assembles memo_findings; you provide one question and fact chang
 Copy base_revision from fact_state. The private fact_state is an aid, not evidence.
 First reconcile every fact ID in fact_state.reconciliation_targets against the FULL
 current testimony, including facts answered earlier but never reflected in the ledger.
-Return exactly one fact_reconciliations row for each target. unchanged requires a
+Those targets are the open gaps and unresolved claims the latest answer could affect.
+Return exactly one fact_reconciliations row for each target. Any other listed gap
+stays retained unless the testimony answers it; then resolve it with an explicit
+replace/remove operation even though no reconciliation row is required for it.
+unchanged requires a
 specific, cited basis explaining the precise remaining unknown. Each basis is at
 most 25 words and 180 characters: name the remaining gap or the change, do not
 rewrite the fact, quote the transcript, or repeat source text. Do not say a broad
@@ -142,17 +150,63 @@ _UNRESOLVED_QUALIFIER = re.compile(
     r"\b(?:cannot|can't|can’t) (?:confirm|identify|explain)\b", re.I)
 
 
-def reconciliation_targets(state):
-    """Select claims for explicit inspection; this never changes their status."""
-    return [fact for fact in state["facts"] if fact.get("state", "active") == "active"
-            and (fact["kind"] == "gap" or _UNRESOLVED_QUALIFIER.search(fact["text"]))]
+_STOPWORDS = frozenset("""
+about after again against although always another anyone anything around because before being
+between both cannot could does doing done during each either every everything from further have
+having here into its itself just like more most much must never none nothing once only other
+over same several should since some such than that their them then there these they this those
+through under until very were what when where whether which while whom will with within without
+would your
+""".split())
 
 
-def schema_for(state, allowed_sources=None):
+def turn_focus(turns):
+    """The latest participant answer and the question it answered, or None before any answer."""
+    for index in range(len(turns) - 1, -1, -1):
+        turn = turns[index]
+        if turn.get("role") == "user" and not turn.get("document_event"):
+            previous = turns[index - 1] if index else None
+            question = previous["text"] if previous and previous.get("role") == "assistant" else ""
+            return {"answer": turn.get("text", ""), "question": question}
+    return None
+
+
+def _content_words(text):
+    # Compare short stems so "rejection" and "rejections" count as the same word.
+    return {word[:5] for word in re.findall(r"[a-z0-9]+", text.lower()) if len(word) >= 4 and word not in _STOPWORDS}
+
+
+def _touched(fact, focus):
+    """Could the latest answer (scoped by its question) affect this open claim?"""
+    scope = focus["question"] + " " + focus["answer"]
+    if re.search(r"\b(?:" + _TOPIC_WORDS[fact["topic"]] + r")", scope, re.I):
+        return True
+    return len(_content_words(fact["text"]) & _content_words(scope)) >= 2
+
+
+def reconciliation_targets(state, focus=None):
+    """Select claims for explicit inspection; this never changes their status.
+
+    With a focus (the latest answer and its question), only open claims that answer
+    could affect are selected: the reconciliation rows the model must return stay
+    short and an untouched gap keeps its exact prior wording. A model-facing
+    fact_state carries the already selected IDs so fixtures stay consistent.
+    """
+    if "reconciliation_targets" in state:
+        chosen = set(state["reconciliation_targets"])
+        return [fact for fact in state["facts"] if fact["id"] in chosen]
+    targets = [fact for fact in state["facts"] if fact.get("state", "active") == "active"
+               and (fact["kind"] == "gap" or _UNRESOLVED_QUALIFIER.search(fact["text"]))]
+    if focus is None:
+        return targets
+    return [fact for fact in targets if _touched(fact, focus)]
+
+
+def schema_for(state, allowed_sources=None, focus=None):
     """Constrain opaque capabilities instead of asking a model to copy hashes."""
     schema = copy.deepcopy(FACT_DELTA_SCHEMA)
     schema["properties"]["base_revision"] = {"type": "string", "enum": [state["revision"]]}
-    targets = [fact["id"] for fact in reconciliation_targets(state)]
+    targets = [fact["id"] for fact in reconciliation_targets(state, focus)]
     reconciliations = schema["properties"]["fact_reconciliations"]
     reconciliations.update(minItems=len(targets), maxItems=len(targets))
     for branch in reconciliations["items"]["anyOf"]:
@@ -319,9 +373,9 @@ def rebase(state, context, turns, documents):
     return _refresh(state)
 
 
-def model_state(state):
+def model_state(state, focus=None):
     return {"base_revision": state["revision"], "topics": copy.deepcopy(state["topics"]),
-            "reconciliation_targets": [fact["id"] for fact in reconciliation_targets(state)],
+            "reconciliation_targets": [fact["id"] for fact in reconciliation_targets(state, focus)],
             "facts": [{key: copy.deepcopy(fact[key]) for key in
                        ("id", "topic", "kind", "text", "evidence_turns", "origin")}
                       for fact in state["facts"] if fact["state"] == "active"]}
@@ -330,7 +384,7 @@ def model_state(state):
 _TOPIC_WORDS = {
     "name": r"name|called|alias", "purpose": r"purpose|result|outcome|deliver",
     "trigger": r"start|trigger|cadence|frequency|deadline|receiv|detect",
-    "completion": r"finish|complet|clos|handoff|settle", "accountable": r"owner|accountab|responsib",
+    "completion": r"finish|complet|clos|handoff|settle", "accountable": r"owner|owns?\b|accountab|responsib",
     "lifecycle": r"step|route|stage|handoff|workflow|release|receive|next|prepar|process",
     "checks": r"check|approv|review|sign.off|control|reconcil", "variations": r"varia|differ|client|fund|country|currency",
     "pain_points": r"pain|manual|difficult|rekey|effort|time|bottleneck", "risk": r"risk|wrong|fail|consequence|impact",
@@ -391,7 +445,7 @@ def _unavailable(topic, gaps, turns):
     return True
 
 
-def apply_delta(state, delta, context, turns, documents):
+def apply_delta(state, delta, context, turns, documents, focus=None):
     """Apply an already schema-checked transaction atomically to private state."""
     if delta["base_revision"] != state["revision"]:
         raise ValueError("Fact transaction refers to a stale capture revision.")
@@ -401,7 +455,7 @@ def apply_delta(state, delta, context, turns, documents):
     if len(operations) > MAX_OPERATIONS:
         raise ValueError("Too many fact operations in one answer.")
     result, catalog, seen = copy.deepcopy(state), sources(context, turns, documents), set()
-    required = {fact["id"] for fact in reconciliation_targets(state)}
+    required = {fact["id"] for fact in reconciliation_targets(state, focus)}
     reconciliations = delta.get("fact_reconciliations")
     if (not isinstance(reconciliations, list) or len(reconciliations) != len(required)
             or any(not isinstance(row, dict) for row in reconciliations)

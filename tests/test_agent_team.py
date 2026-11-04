@@ -281,13 +281,18 @@ class CompletionPermitTests(unittest.TestCase):
     def test_explicit_nothing_more_variants_are_accepted_without_accepting_trailing_additions(self):
         ledger, _, _ = inputs(confirmed=True)
         data = ledger.snapshot
-        for answer in ("No, that's everything.", "No, that covers it.", "That covers everything."):
+        for answer in ("No, that's everything.", "No, that covers it.", "That covers everything.",
+                       "No, nothing else to add.", "Nope, that's it.", "That's everything from me.",
+                       "Nothing more comes to mind.", "No, nothing else I can think of."):
             data["turns"][-1]["text"] = answer
             self.assertTrue(team_module.explicit_final_confirmation(
-                team_module.build_evidence_ledger(data["context"], data["turns"])))
-        data["turns"][-1]["text"] = "No, that covers it. Actually, there is another exception."
-        self.assertFalse(team_module.explicit_final_confirmation(
-            team_module.build_evidence_ledger(data["context"], data["turns"])))
+                team_module.build_evidence_ledger(data["context"], data["turns"])), answer)
+        for answer in ("No, that covers it. Actually, there is another exception.",
+                       "Nothing else, unless the client rejects it.", "Yes, that's all.",
+                       "Correct, but one route is missing.", "That's it for the approval step."):
+            data["turns"][-1]["text"] = answer
+            self.assertFalse(team_module.explicit_final_confirmation(
+                team_module.build_evidence_ledger(data["context"], data["turns"])), answer)
 
     def test_user_stop_is_partial_even_after_successful_reviews(self):
         run = complete_team(confirmed=True)

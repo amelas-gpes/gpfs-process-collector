@@ -103,7 +103,7 @@ function acknowledge(h,events=h.channels.at(-1).sent.filter(e=>e.type==="session
   h.event({type:"session.input_transcript.delta",event_id:"m2",delta:"stream_start|Hello",start_ms:1600,end_ms:2000});
   assert.equal(h.captions.at(-1).text,"Hello","A marker glued to speech is stripped");
   h.event({type:"session.input_transcript.delta",event_id:"m3",delta:" ...",start_ms:2000,end_ms:2200});
-  assert.equal(h.captions.at(-1).text,"Hello","Punctuation-only fragments are ignored");
+  assert.equal(h.captions.at(-1).text,"Hello ...","Punctuation in an existing answer is preserved");
   await h.api.stop({immediate:true});passes++;
  }
  {
@@ -133,11 +133,11 @@ function acknowledge(h,events=h.channels.at(-1).sent.filter(e=>e.type==="session
   const user=h.captions.filter(c=>c.role==="user"),assistant=h.captions.filter(c=>c.role==="assistant");
   const participantCaptions=[...new Map(user.map(c=>[c.id,c])).values()];
   assert.equal(participantCaptions.map(c=>c.text).join(""),"The invoice arrives by email.","Assistant acknowledgments must not discard participant text");
-  assert.notEqual(user[0].id,user.at(-1).id,"Speaker changes keep separate chronological transcript captions");
+  assert.equal(user[0].id,user.at(-1).id,"A listening cue does not split the participant's answer");
   assert.equal(assistant[0].text,"I see.");assert.equal(participantCaptions.reduce((total,c)=>total+c.fragments.length,0),2);
   const count=h.captions.length;h.event({type:"session.input_transcript.delta",event_id:"c",delta:" arrives by email.",start_ms:510,end_ms:1000});assert.equal(h.captions.length,count,"Repeated event IDs are ignored");
   h.event({type:"session.input_transcript.delta",event_id:"d",delta:"Then we approve it.",start_ms:4500,end_ms:5500});
-  assert.notEqual(h.captions.at(-1).id,user.at(-1).id);assert.equal(h.captions.at(-2).final,true);
+  assert.equal(h.captions.at(-1).id,user.at(-1).id,"A pause without a substantive new question may continue the same answer");
   await h.api.stop({immediate:true});assert.equal(h.captions.at(-1).final,true);passes++;
  }
  {

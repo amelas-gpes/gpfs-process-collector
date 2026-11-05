@@ -129,3 +129,12 @@ Use fictional or appropriately permitted process information for acceptance revi
 - Stop playback, change voice or begin recording while AI audio is pending: the pending operation must be cancelled and stale audio must not play. If the returned transcript differs from the question, withhold playback and leave the original question available as text.
 
 Teams participation, production deployment, production retention/access controls and a guarantee that a participant has nothing further to say are outside the demonstrated prototype evidence. Teams connection is a later integration step.
+## November 5, 2026 GPFS extension
+
+The original eleven-topic memorandum above is retained as historical source.
+The current GPFS deployment extends its coverage contract to sixteen topics by
+adding scope, business rules/lineage, connected processes, data/systems and
+volume/effort. The current owning rubric is `interview_coverage.py` and the standing
+policy is `FOUNDATION.md`. See [the GPFS extension](GPFS_INTERVIEW_INTELLIGENCE.md)
+for current behavior and [QA/UAT limits](GPFS_QA_UAT_2026-11-05.md). This extension
+does not establish an approved company standard from one participant's account.

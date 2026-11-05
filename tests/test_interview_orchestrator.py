@@ -133,7 +133,7 @@ class CoordinatorBoundaryTests(unittest.TestCase):
         result = client.coordinator.interview(payload)
         client.request.assert_not_called()
         server.check_schema({key: result[key] for key in server.INTERVIEW_SCHEMA["properties"]}, server.INTERVIEW_SCHEMA)
-        self.assertEqual(len(result["memo_findings"]), 11)
+        self.assertEqual(len(result["memo_findings"]), 16)
         self.assertFalse(result["coverage_verified"])
         self.assertFalse(result["completion"]["complete"])
         self.assertTrue(all(row["status"] == "idle" for row in result["agent_team"]["agents"]))
@@ -167,7 +167,8 @@ class CoordinatorBoundaryTests(unittest.TestCase):
             self.assertEqual(retained, finding["answer"])
         self.assertNotIn("FORGED_BROWSER_FACT", json.dumps(sent))
         instructions = client.request.call_args.args[1]["instructions"]
-        self.assertIn("important current ambiguity", instructions)
+        self.assertIn("Follow the practical walkthrough, learning scope naturally", instructions)
+        self.assertIn("Address a material ambiguity", instructions)
         self.assertIn("untouched", instructions)
 
     def test_all_candidate_topics_acknowledge_once_without_review_calls(self):
@@ -279,20 +280,22 @@ class CoordinatorBoundaryTests(unittest.TestCase):
         self.assertTrue(failed["review_retry_required"])
         self.assertFalse(failed["coverage_verified"])
         self.assertNotIn("PRIVATE_SENTINEL", json.dumps(failed))
-        self.assertEqual(len(failed["memo_findings"]), 11)
+        self.assertEqual(len(failed["memo_findings"]), 16)
+        failed_calls = client.request.call_count
         self.assertEqual(client.coordinator.review(payload), failed)
-        self.assertEqual(client.request.call_count, 1 + REVIEW_CALLS)
+        self.assertEqual(client.request.call_count, failed_calls)
+        self.assertLessEqual(failed_calls, 1 + REVIEW_CALLS)
         client.faults.clear()
         payload["capture_token"] = failed["capture_token"]
         payload["turns"].append({"id": "a_review_failure", "role": "assistant", "text": failed["question"]})
         retried = client.coordinator.review({**payload, "retry_review": True})
-        self.assertEqual(client.request.call_count, 1 + 2 * REVIEW_CALLS)
+        self.assertEqual(client.request.call_count, failed_calls + REVIEW_CALLS)
         self.assertEqual(retried["speech_authorization"]["kind"], "final_check")
         lead = next(row for row in retried["agent_team"]["agents"] if row["role"] == "lead_interviewer")
         self.assertEqual((lead["calls"], lead["reason_code"]), (0, "prior_result_reused"))
         confirmed = client.coordinator.interview(reply_payload(payload, retried, "No, nothing else."))
         self.assertTrue(confirmed["completion"]["complete"])
-        self.assertEqual(client.request.call_count, 1 + 2 * REVIEW_CALLS)
+        self.assertEqual(client.request.call_count, failed_calls + REVIEW_CALLS)
 
     def test_concurrent_review_requests_coalesce_and_success_is_idempotent(self):
         client = SyntheticTeamProvider()
@@ -605,7 +608,7 @@ class GroupedReviewTests(unittest.TestCase):
             group = tuple(content["assess_topics"])
             requested.append(group)
             self.assertEqual(body["text"]["format"]["schema"]["properties"]["topics"]["items"]["properties"]["key"]["enum"], list(group))
-            self.assertEqual(len(content["candidate_findings"]), 11, "Every group sees all candidate findings for context")
+            self.assertEqual(len(content["candidate_findings"]), 16, "Every group sees all candidate findings for context")
             self.assertIn("ASSESS ONLY THESE TOPICS", body["instructions"])
         self.assertEqual(sorted(requested), sorted(groups))
         self.assertTrue(result["coverage_verified"])
@@ -718,7 +721,7 @@ class AgentTeamHTTPTests(unittest.TestCase):
                   "turns": payload["turns"] + [{"id": "a_shown", "role": "assistant", "text": result["question"]}]}
         status, advisory = self.post("/api/agent-team/coverage", follow)
         self.assertEqual(status, 200, advisory)
-        self.assertEqual(len(advisory["topics"]), 10)
+        self.assertEqual(len(advisory["topics"]), 15)
         self.assertTrue(all(item["key"] != "risk" for item in advisory["topics"]))
         status, refused = self.post("/api/agent-team/coverage", payload)
         self.assertEqual(status, 409)

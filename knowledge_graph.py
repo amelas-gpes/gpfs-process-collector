@@ -21,7 +21,7 @@ from pathlib import Path
 
 RELATIONSHIPS = frozenset(('provides_input_to', 'produces', 'consumes', 'hands_off_to',
                            'requires_approval_from', 'happens_after', 'uses_system',
-                           'performed_by', 'variant_of'))
+                           'performed_by', 'variant_of', 'subprocess_of', 'parallel_with', 'shares_calculation_with'))
 ACTIONS = {'confirm': 'confirmed', 'reject': 'rejected', 'dispute': 'disputed', 'clarify': 'awaiting_clarification'}
 
 def now():

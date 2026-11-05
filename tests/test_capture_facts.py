@@ -465,12 +465,12 @@ class FactTransactionTests(unittest.TestCase):
 
 
 class FactCoordinatorTests(unittest.TestCase):
-    def test_long_eleven_turn_seed_has_larger_bound_but_next_delta_stays_small(self):
+    def test_long_sixteen_turn_seed_has_larger_bound_but_next_delta_stays_small(self):
         client = SyntheticTeamProvider()
         payload = client.payload()
         for turn in payload["turns"]:
             turn["text"] += " The participant supplied additional process detail." * 15
-        self.assertEqual(len(payload["turns"]), 11)
+        self.assertEqual(len(payload["turns"]), 16)
         self.assertGreater(sum(len(turn["text"]) for turn in payload["turns"]), 6000)
         seen = []
         def response(model_input):

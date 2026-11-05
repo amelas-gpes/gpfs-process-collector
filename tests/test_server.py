@@ -304,7 +304,7 @@ class EvidenceValidationTests(unittest.TestCase):
 
     def test_all_eleven_memo_topics_are_included_even_when_unknown(self):
         draft = server.validate_draft(process_draft(), interview_payload()["turns"])
-        self.assertEqual(len(draft["memo_summary"]), 11)
+        self.assertEqual(len(draft["memo_summary"]), 16)
         self.assertEqual({item["key"] for item in draft["memo_summary"]}, set(server.COVERAGE))
         self.assertTrue(any(item["status"] == "unknown" and not item["evidence_turns"] for item in draft["memo_summary"]))
 

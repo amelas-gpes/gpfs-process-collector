@@ -21,7 +21,7 @@ class CompletionBoundaryTests(unittest.TestCase):
             "question": "That helps round out the picture. Anything else before we pause?"}])
         result = client.interview(interview_payload())
         self.assertEqual(client.structured.call_count, 2)
-        self.assertIn("produce", result["question"])
+        self.assertEqual("What starts this work?", result["question"])
         self.assertFalse(result["ready_for_draft"])
         self.assertEqual(result["closure"], {"asked": False, "confirmed": False})
 
@@ -37,7 +37,7 @@ class CompletionBoundaryTests(unittest.TestCase):
         server.enforce_closure(result, payload["turns"], "answer")
         server.enforce_response_boundary(result, payload["turns"], "answer")
         self.assertFalse(result["closure"]["confirmed"])
-        self.assertIn("produce", result["question"])
+        self.assertEqual("What starts this work?", result["question"])
 
     def test_fallback_question_names_open_sections_when_every_gap_is_partial(self):
         # A rejected closing proposal with only partial topics must still give the

@@ -8,6 +8,7 @@ import hashlib
 import json
 import re
 import uuid
+import gpfs_interview
 
 from interview_coverage import TOPIC_DIMENSIONS, explicit_knowledge_gap, finding_reports_unavailable_knowledge
 
@@ -54,8 +55,15 @@ FACT_DELTA_SCHEMA = _object({
     "summary": _TEXT, "focus": _TEXT,
     "parking_lot": {"type": "array", "items": _TEXT},
 })
+FACT_DELTA_SCHEMA["properties"].update({
+    "tag_operations": {"type": "array", "items": gpfs_interview.TAG_OPERATION},
+    "connections_out": gpfs_interview.CONNECTIONS,
+    "active_modules": {"type": "array", "items": {"type": "string", "enum": ["fund", "gp_carry", "manco", "multi_entity", "calculation", "spreadsheet", "client_approval", "client_specific"]}},
+    "recap_due": {"type": "string", "enum": ["none", "scope_boundary", "walkthrough"]},
+})
+FACT_DELTA_SCHEMA["required"] = list(FACT_DELTA_SCHEMA["properties"])
 
-FACT_CAPTURE_POLICY = """
+FACT_CAPTURE_POLICY = gpfs_interview.CAPTURE_POLICY + "\nControlled taxonomy vocabulary: " + json.dumps(gpfs_interview.FACETS) + "\n" + """
 Return the fact-transaction schema, not the older full memo_findings response.
 The application assembles memo_findings; you provide one question and fact changes.
 Copy base_revision from fact_state. The private fact_state is an aid, not evidence.
@@ -94,10 +102,10 @@ result, required ordering and handoff wherever the evidence supplies them. A nam
 stage/check alone is insufficient when its mechanism is available. Record each
 completion condition and normal branch, not just a broad closeout label. Known
 working artifacts belong in materials even when their availability is unknown.
-The purpose can be a personal, firm OR client result; no additional client result is required.
-Apply commercial charging and organizational variation-removal questions only when relevant to
-the reported scope. Explicit personal/noncommercial scope can justify non-applicability; cite it.
-Do not manufacture a gap about removing spare equipment or redesigning a personal activity.
+The purpose can be a firm, internal team or client result; no extra client result
+is required. Charging and variation-removal questions apply only when relevant to
+reported scope. Cite an explicit scope-based reason for non-applicability; never
+convert unknown applicable billing, approval or removal information into N/A.
 
 Topic assignment is not exclusive. One cited statement can establish different
 facts in more than one section. Preserve a reported conditional route in lifecycle;
@@ -127,7 +135,7 @@ must not bundle a supported route with an unrelated 'not yet known' sentence.
 resolved_gap applies only to an existing gap record. Correcting a detail or an old
 mixed capture uses capture_correction, retaining every still-supported condition.
 
-Return all eleven topic_states. unknown means no usable detail or discussed gap;
+Return all sixteen topic_states. unknown means no usable detail or discussed gap;
 a discussed but unavailable detail is partial. participant_unavailable=true requires
 an explicit, topic-specific participant knowledge limit supported by the gap's cited
 participant turn (a short answer can be scoped by the immediately preceding question).
@@ -274,6 +282,7 @@ def _refresh(state):
         remove = {fact["id"] for fact in retired[:len(state["facts"]) - MAX_FACT_RECORDS]}
         state["facts"] = [fact for fact in state["facts"] if fact["id"] not in remove]
     state["revision"] = _digest({"facts": state["facts"], "topics": state["topics"],
+                                 "tags": state.get("tags", []), "connections_out": state.get("connections_out", []),
                                  "seeded_document_versions": state.get("seeded_document_versions", {})})
     return state
 
@@ -370,11 +379,16 @@ def rebase(state, context, turns, documents):
         if fact["state"] == "active" and any(catalog.get(ref) != value for ref, value in fact["sources"].items()):
             fact["state"] = "retired_source"
             state["topics"][fact["topic"]].update(status="partial", participant_unavailable=False)
+    for key in ("tags", "connections_out"):
+        state[key] = [item for item in state.get(key, [])
+                      if all(catalog.get(ref) == fingerprint for ref, fingerprint in item["sources"].items())]
     return _refresh(state)
 
 
 def model_state(state, focus=None):
     return {"base_revision": state["revision"], "topics": copy.deepcopy(state["topics"]),
+            "tags": [{k: copy.deepcopy(v) for k, v in item.items() if k != "sources"} for item in state.get("tags", [])],
+            "connections_out": [{k: copy.deepcopy(v) for k, v in item.items() if k != "sources"} for item in state.get("connections_out", [])],
             "reconciliation_targets": [fact["id"] for fact in reconciliation_targets(state, focus)],
             "facts": [{key: copy.deepcopy(fact[key]) for key in
                        ("id", "topic", "kind", "text", "evidence_turns", "origin")}
@@ -389,6 +403,11 @@ _TOPIC_WORDS = {
     "checks": r"check|approv|review|sign.off|control|reconcil", "variations": r"varia|differ|client|fund|country|currency",
     "pain_points": r"pain|manual|difficult|rekey|effort|time|bottleneck", "risk": r"risk|wrong|fail|consequence|impact",
     "materials": r"material|file|template|procedure|document|location|stored|retention",
+    "scope": r"entity|entities|fund|manco|standard|client|scope|parent|enterprise",
+    "rules": r"rule|source|agreement|lpa|side.letter|calculat|method|policy|interpret",
+    "connections": r"upstream|downstream|parallel|depend|input|output|handoff|process",
+    "data_systems": r"data|system|record|origin|manual|import|spreadsheet|workbook|rekey",
+    "volume": r"volume|count|many|peak|effort|time|frequency|exception",
 }
 
 _REPORTED_GAP = re.compile(
@@ -435,7 +454,7 @@ def _unavailable(topic, gaps, turns):
             prior_question = turns[index - 1]["text"] if index and turns[index - 1]["role"] == "assistant" else ""
             # The question scopes a short answer; only the participant answer
             # establishes unavailability. A generic document caveat cannot be
-            # spread over all eleven topics without topic-specific support.
+            # spread over all sixteen topics without topic-specific support.
             scope = turn["text"] + " " + prior_question
             if re.search(_TOPIC_WORDS[topic], scope, re.I):
                 found = True
@@ -451,10 +470,42 @@ def apply_delta(state, delta, context, turns, documents, focus=None):
         raise ValueError("Fact transaction refers to a stale capture revision.")
     rows, operations = delta["topic_states"], delta["fact_operations"]
     if len(rows) != len(TOPICS) or {row["key"] for row in rows} != set(TOPICS):
-        raise ValueError("All eleven fact topic states are required exactly once.")
+        raise ValueError("All sixteen fact topic states are required exactly once.")
     if len(operations) > MAX_OPERATIONS:
         raise ValueError("Too many fact operations in one answer.")
     result, catalog, seen = copy.deepcopy(state), sources(context, turns, documents), set()
+    tags = copy.deepcopy(result.get("tags", []))
+    tag_seen = set()
+    for operation in delta.get("tag_operations", []):
+        if len(delta["tag_operations"]) > 128:
+            raise ValueError("Too many taxonomy operations.")
+        candidate = {key: operation[key] for key in gpfs_interview.TAG_FIELDS}
+        if operation["op"] != "remove":
+            gpfs_interview.validate_metadata({"taxonomy": [candidate]}, catalog)
+            gpfs_interview.validate_corroboration({"taxonomy": [candidate]}, turns, documents)
+        elif not candidate["evidence_turns"] or not set(candidate["evidence_turns"]) <= set(catalog):
+            raise ValueError("Removing a tag requires exact correction evidence.")
+        target = operation["target_id"]
+        if operation["op"] == "add":
+            if target:
+                raise ValueError("An added tag cannot replace a prior tag.")
+        else:
+            old = next((item for item in tags if item["id"] == target), None)
+            if not old or target in tag_seen or old["facet"] != candidate["facet"]:
+                raise ValueError("A tag correction requires one active tag in its facet.")
+            tags.remove(old)
+            tag_seen.add(target)
+        if operation["op"] != "remove" and not any(all(item[k] == v for k, v in candidate.items()) for item in tags):
+            tags.append({"id": "tag_" + uuid.uuid4().hex, **candidate,
+                         "sources": {ref: copy.deepcopy(catalog[ref]) for ref in candidate["evidence_turns"]}})
+    if len(tags) > 128:
+        raise ValueError("Too many active taxonomy records.")
+    result["tags"] = tags
+    connections = delta.get("connections_out", [
+        {key: value for key, value in item.items() if key != "sources"} for item in result.get("connections_out", [])])
+    gpfs_interview.validate_metadata({"connections_out": connections}, catalog)
+    result["connections_out"] = [{**copy.deepcopy(item), "sources": {
+        ref: copy.deepcopy(catalog[ref]) for ref in item["evidence_turns"]}} for item in connections]
     required = {fact["id"] for fact in reconciliation_targets(state, focus)}
     reconciliations = delta.get("fact_reconciliations")
     if (not isinstance(reconciliations, list) or len(reconciliations) != len(required)
@@ -560,7 +611,10 @@ def public_capture(state, delta, labels):
     return {"question": delta["question"], "summary": delta["summary"], "focus": delta["focus"],
             "parking_lot": delta["parking_lot"], "memo_findings": findings(state),
             "coverage": [{"key": key, "label": labels[key], "status": "missing"} for key in TOPICS],
-            "closure": {"asked": False, "confirmed": False}, "ready_for_draft": False}
+            "closure": {"asked": False, "confirmed": False}, "ready_for_draft": False,
+            "taxonomy": [{k: copy.deepcopy(v) for k, v in item.items() if k not in ("id", "sources")} for item in state.get("tags", [])],
+            "connections_out": [{k: copy.deepcopy(v) for k, v in item.items() if k != "sources"} for item in state.get("connections_out", [])],
+            "active_modules": delta.get("active_modules", []), "recap_due": delta.get("recap_due", "none")}
 
 
 def sync_review(state, capture, context, turns, documents):

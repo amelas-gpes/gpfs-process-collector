@@ -6,6 +6,17 @@ model's confident interpretation of valid source IDs is semantically correct.
 """
 import copy
 import re
+try:
+    import gpfs_interview
+except ModuleNotFoundError:
+    # This dependency is a fixed sibling, also when loaded by path under -I.
+    import importlib.util
+    from pathlib import Path
+    import sys
+    _gpfs_spec = importlib.util.spec_from_file_location("gpfs_interview", Path(__file__).with_name("gpfs_interview.py"))
+    gpfs_interview = importlib.util.module_from_spec(_gpfs_spec)
+    sys.modules["gpfs_interview"] = gpfs_interview
+    _gpfs_spec.loader.exec_module(gpfs_interview)
 
 
 TOPIC_DIMENSIONS = {
@@ -65,15 +76,70 @@ TOPIC_DIMENSIONS = {
     },
 }
 
-DOMAIN_POLICY = """Apply this framework to the stated activity, including personal and nonbusiness work.
-Use domain knowledge to recognize useful questions, never to establish process facts or claim
-professional credentials. Clarify ambiguous terminology and revise your domain understanding when corrected.
-Commercial charging, clients/funds, formal approvals, retained records and removal constraints are
-conditional dimensions, not universal requirements. Do not force a hobby or personal setup into a
-commercial framework. An explicit participant description establishing a noncommercial personal scope
-can justify charging being not_applicable; cite that statement and explain the relevance decision.
-Otherwise unknown commercial charging stays unresolved. Generalize other non-applicability only when
-the participant's stated scope or explicit reason actually establishes it; omission alone never does.
+# Existing keys retain their meaning; five explicit discovery topics make the
+# GPFS deployment's coverage contract sixteen topics, not fifteen.
+TOPIC_DIMENSIONS.update({
+    "scope": {
+        "entity_types": "Reported entity/product types, or explicit enterprise/non-entity scope.",
+        "applicability": "Single entity, several with same logic, or variants and their branch points.",
+        "client_applicability": "General GPFS practice versus client-specific work; participant's basis for a standard, or explicit unknown.",
+        "parent_process": "Parent lifecycle and process/subprocess boundary, or explicit whole-process scope.",
+    },
+    "rules": {
+        "sources": "Material business rules and their reported source, distinguishing reviewed documents from mentions.",
+        "authority_and_conflict": "Reported authority on conflicting sources and escalation, without deciding interpretation.",
+        "interpretation": "Who interprets the rule and where the interpretation is recorded.",
+        "implementation": "How the rule becomes a calculation, configuration, workpaper or system action; distinguish economics from implementation.",
+        "client_modifications": "Reported client changes and their source, or explicit absence.",
+        "calculation": "When this work performs a material calculation: inputs/origins, sequence, dimensions, dates/proration, prior period, rounding/tie-out, overrides and corrections. Otherwise explicit scope-based non-applicability; upstream calculations are dependencies, not a new walkthrough.",
+    },
+    "connections": {
+        "upstream": "Named upstream work, supplied output and readiness state, or explicit absence.",
+        "downstream": "Named downstream consumers/processes and what they use, or explicit absence.",
+        "embedded_parallel": "Reported embedded/parallel processes and shared data/calculations, or explicit absence.",
+        "dependencies": "Work that must finish first, blocking conditions and how readiness is known.",
+    },
+    "data_systems": {
+        "system_of_record": "Reported authoritative record for each material result, not an AI designation.",
+        "inputs_and_origin": "Material inputs and their person/process/system origins.",
+        "entry_mode": "Manual, import, calculated or system-generated data; where figures are re-keyed.",
+        "workpapers": "Workpapers/spreadsheets, logic ownership and logic existing only in a sheet, where applicable.",
+        "calculation_location": "Where material calculations occur and whether repeated; explicit absence where applicable.",
+        "storage": "File locations and information existing only in files versus structured records.",
+    },
+    "volume": {
+        "counts": "Normal counts of relevant entities, clients, investors or transactions; attributed estimates allowed.",
+        "peaks": "Reported peaks or explicit absence of meaningful peaks.",
+        "exception_rate": "Attributed rough exception frequency or explicit unavailability; do not demand invented measurements.",
+        "effort_by_step": "Most effortful steps and attributed elapsed/active effort estimates, retaining uncertainty.",
+    },
+})
+TOPIC_DIMENSIONS["trigger"]["upstream_source"] = "What produces the initiating input and its ready state; distinguish first action from initiating event."
+TOPIC_DIMENSIONS["completion"]["downstream_consumer"] = "Who or what uses the output next, or an explicit absence of another consumer."
+TOPIC_DIMENSIONS["lifecycle"]["exceptions_and_returns"] += " Ask one neutral open question if unanswered; accept explicit absence and retain frequent returns in the main route."
+TOPIC_DIMENSIONS["checks"].update({
+    "review_levels": "Each reported review level, role and what that reviewer actually checks.",
+    "review_nature": "Substantive, exception-based or approval-only review, attributed without inferring duplication.",
+    "client_role": "Client review versus approval and its exact point, or explicit scope-based non-applicability.",
+    "blocking": "What is held pending review/approval and rejection or delay handling.",
+    "thresholds": "Amount or other conditions changing approval path, or explicit absence.",
+    "segregation": "Reported dual control/segregation and whether procedural or system-enforced, or explicit absence.",
+    "escalation_override": "Who may escalate/override and how authority/reasons are recorded, or explicit absence.",
+    "enforcement": "System restrictions versus policy, and reported overlap between reviews; overlap is not proof of redundancy.",
+})
+TOPIC_DIMENSIONS["variations"].update({
+    "classification": "Structural, client-specific, presentation or unclassified, with substantive/presentation distinction.",
+    "source_and_standard": "Reported source, affected normal step and known standard basis; a single account does not establish an approved standard.",
+})
+
+DOMAIN_POLICY = gpfs_interview.CONTEXT + """Use domain knowledge to recognize useful
+questions, never to establish process facts or professional credentials. Clarify
+ambiguous terms and revise when corrected. Commercial charging, client approvals
+and removal constraints are not universal requirements; apply them only where
+the participant's scope supports them.
+Explicit noncommercial scope can justify not_applicable with a cited reason;
+unknown applicable information remains unresolved. Do not force enterprise work
+into a fund or client framework. Absence of evidence never establishes N/A.
 """
 
 TOPIC_RUBRIC = DOMAIN_POLICY + "\nTOPIC EXPLANATION REQUIREMENTS\n" + "\n".join(
@@ -162,11 +228,12 @@ TOPIC_SCHEMA = _object({
 ASSESSMENT_SCHEMA = _object({"topics": {"type": "array", "items": TOPIC_SCHEMA}})
 # The completion review runs these groups concurrently; each sees the whole
 # transcript and all candidate findings but assesses only its own topics. The
-# groups balance dimension counts (9, 12 and 11) so no call dominates the wait.
+# Four groups keep scope, rules, controls/data and operating effort review bounded.
 COVERAGE_REVIEW_GROUPS = (
-    ("name", "purpose", "trigger", "completion"),
-    ("accountable", "lifecycle", "checks"),
-    ("variations", "pain_points", "risk", "materials"),
+    ("name", "purpose", "trigger", "completion", "scope"),
+    ("accountable", "lifecycle", "rules", "connections"),
+    ("checks", "variations", "data_systems"),
+    ("pain_points", "risk", "materials", "volume"),
 )
 CAPTURE_REPAIR_SCHEMA = _object({"needed": {"type": "boolean"}})
 REPAIR_TOPIC_SCHEMA = copy.deepcopy(TOPIC_SCHEMA)
@@ -324,7 +391,7 @@ def apply_assessment(findings, assessment, turns, documents=None, required_keys=
     all_topics_covered then describes that subset only.
     """
     if not isinstance(findings, list) or len(findings) != len(TOPIC_DIMENSIONS):
-        raise ValueError("Assessment requires all eleven original memo findings.")
+        raise ValueError("Assessment requires all sixteen original memo findings.")
     original = {item.get("key"): item for item in findings if isinstance(item, dict)}
     if set(original) != set(TOPIC_DIMENSIONS):
         raise ValueError("Assessment requires unique known memo topic keys.")
@@ -338,7 +405,7 @@ def apply_assessment(findings, assessment, turns, documents=None, required_keys=
             raise ValueError("Assessment requires known memo topic keys.")
     topics = assessment["topics"]
     if not isinstance(topics, list) or len(topics) != len(required):
-        raise ValueError("The assessment must contain all eleven topics." if required_keys is None
+        raise ValueError("The assessment must contain all sixteen topics." if required_keys is None
                          else "The assessment must contain every requested topic exactly once.")
     participant = {t["id"]: t.get("text", "") for t in turns
                    if t.get("role") == "user" and t.get("document_event") is not True}

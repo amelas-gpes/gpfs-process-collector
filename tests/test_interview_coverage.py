@@ -25,6 +25,11 @@ def fixture():
         "pain_points": "The analyst manually copies invoice fields into the register. Corrections require another entry and chasing the supplier, delaying release until the corrected record arrives.",
         "risk": "Missing a duplicate could cause Treasury to pay twice. A late handoff can miss the supplier deadline.",
         "materials": "The AP checklist and register template are in the AP Teams files. They are available to the team, but no file has been supplied or reviewed in this interview.",
+        "scope": "This enterprise AP intake subprocess serves the GPFS business. The AP manager reports the common team procedure from the written checklist, with a Fund B currency branch. Treasury payment execution is the parent lifecycle's next separate process.",
+        "rules": "The AP manager interprets the AP checklist and approval matrix and records conflict resolutions in the register. The matrix governs approval; Fund B's documented client request adds the currency check. Intake performs no economic calculation; Treasury calculates payments separately.",
+        "connections": "Supplier invoicing supplies the incoming invoice; Treasury payment execution consumes the checked invoice after queue acceptance. There are no embedded processes, shared calculations or parallel dependencies in this intake account.",
+        "data_systems": "The AP register is the reported final record of intake. The analyst manually copies supplier invoice data; the purchasing system supplies order data. The checklist is a workpaper without calculations. Invoice and approvals live in AP Teams files. Intake does not calculate or repeat an amount.",
+        "volume": "The AP manager estimates 30 invoices per normal day and 60 at month end. About one in ten needs supplier correction. Manual registration takes about two minutes per invoice; chasing corrections takes most effort. These counts and times are participant estimates.",
     }
     turns = [{"id": f"u_{key}", "role": "user", "text": fact} for key, fact in facts.items()]
     findings = [{"key": key, "status": "captured", "answer": fact, "evidence_turns": [f"u_{key}"]}
@@ -280,7 +285,7 @@ class CoverageAssessmentTests(unittest.TestCase):
 
     def test_missing_dimensions_fail_closed_without_erasing_supported_details(self):
         findings, assessment, turns = fixture()
-        topic(assessment, "trigger")["dimensions"].pop()
+        topic(assessment, "trigger")["dimensions"] = [d for d in topic(assessment, "trigger")["dimensions"] if d["key"] != "deadlines"]
         revised, public = coverage.apply_assessment(findings, assessment, turns)
         self.assertEqual(next(item for item in revised if item["key"] == "trigger")["status"], "partial")
         missing = next(item for item in topic(public, "trigger")["dimensions"] if item["key"] == "deadlines")
@@ -410,7 +415,7 @@ class CoverageAssessmentTests(unittest.TestCase):
         self.assertEqual((findings, assessment, turns), original)
 
     def test_schema_and_rubric_cover_the_same_eleven_topics(self):
-        self.assertEqual(len(coverage.TOPIC_DIMENSIONS), 11)
+        self.assertEqual(len(coverage.TOPIC_DIMENSIONS), 16)
         self.assertEqual(coverage.TOPIC_SCHEMA["properties"]["key"]["enum"], list(coverage.TOPIC_DIMENSIONS))
         self.assertIn("unknown isn't", coverage.AUDIT_INSTRUCTIONS)
         self.assertIn("Do not initiate a final omissions check", coverage.COMPLETION_POLICY)

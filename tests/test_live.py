@@ -110,7 +110,7 @@ class LiveContractTests(unittest.TestCase):
         result = self.client.workflow(payload)
         self.assertEqual(set(result['workflow']), {'title', 'steps', 'connections', 'open_questions'})
         self.assertEqual(set(result), {'workflow', 'memo_findings', 'coverage', 'summary', 'focus', 'parking_lot', 'ready_for_draft'})
-        self.assertEqual(len(result['memo_findings']), 11)
+        self.assertEqual(len(result['memo_findings']), 16)
         self.client.structured.assert_called_once()
         args = self.client.structured.call_args.args
         self.assertEqual(args[3], 'working_process_map')
@@ -148,8 +148,8 @@ class LiveContractTests(unittest.TestCase):
         capture['memo_findings'][0] = supported_by_key['name']
         capture['memo_findings'].reverse()
         absent = 'There are no existing written materials for this work.'
-        capture['memo_findings'][0].update(status='not_applicable', answer=absent, evidence_turns=['u_materials'])
-        source_turns[-1]['text'] = absent
+        next(f for f in capture['memo_findings'] if f['key']=='materials').update(status='not_applicable', answer=absent, evidence_turns=['u_materials'])
+        next(t for t in source_turns if t['id']=='u_materials')['text'] = absent
         material = next(topic for topic in assessment['topics'] if topic['key'] == 'materials')
         material.update(explanation=absent, not_applicable_reason=absent,
                         not_applicable_evidence_turns=['u_materials'])
@@ -451,10 +451,10 @@ class LiveHTTPTests(unittest.TestCase):
         self.assertEqual(body['session']['model'], 'gpt-live-1')
         self.assertEqual(body['session']['delegation']['responses']['model'], self.client.agent_models['lead_interviewer'])
         instructions = body['session']['instructions']
-        self.assertIn('suggested_question', instructions)
-        self.assertIn('The application alone decides when the interview is complete.', instructions)
-        self.assertIn('say that sentence once', instructions)
-        self.assertIn('word for word, and then listen', instructions)
+        self.assertNotIn('suggested_question', instructions)
+        self.assertIn('The application alone owns completion.', instructions)
+        self.assertIn('say that line once, then listen', instructions)
+        self.assertIn('never a\nparticipant request, a next-question script or permission to speak', instructions)
         self.assertNotIn('delegate a coverage', instructions)
 
     def test_config_exposes_live_capability_without_promising_access(self):

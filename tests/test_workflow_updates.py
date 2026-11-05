@@ -220,7 +220,7 @@ class WorkflowUpdateTests(unittest.TestCase):
         self.assertEqual(result['workflow']['steps'], [revised, *before['previous_capture']['workflow']['steps'][1:]])
         self.assertEqual(result['workflow']['connections'][1:], before['previous_capture']['workflow']['connections'][1:])
         by_key = {f['key']: f for f in result['memo_findings']}
-        self.assertEqual(by_key['materials'], before['previous_capture']['memo_findings'][-1])
+        self.assertEqual(by_key['materials'], next(f for f in before['previous_capture']['memo_findings'] if f['key']=='materials'))
         self.assertIn('prioritize', by_key['lifecycle']['answer'])
         self.assertEqual(original, before, 'The accepted prior capture and transcript must remain untouched.')
         sent = client.structured.call_args.args[1]
@@ -275,7 +275,7 @@ class WorkflowUpdateTests(unittest.TestCase):
         del original['previous_capture']
         result = self.client(update()).workflow(original)
         self.assertEqual(result['workflow']['steps'], [])
-        self.assertEqual(len(result['memo_findings']), 11)
+        self.assertEqual(len(result['memo_findings']), 16)
         self.assertTrue(all(f['status'] == 'unknown' for f in result['memo_findings']))
 
     def test_unknown_target_or_mismatched_quote_cannot_delete_anything(self):

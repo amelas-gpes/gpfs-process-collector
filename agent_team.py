@@ -22,7 +22,7 @@ ROLE_CONTRACTS = {
     },
     "coverage_reviewer": {
         "label": "Coverage reviewer", "max_calls": 1, "max_output_tokens": 24000, "timeout_seconds": 120,
-        "contract": "Independently test all eleven topics against participant evidence. Return the validated public coverage assessment; never manufacture evidence.",
+        "contract": "Independently test all sixteen topics against participant evidence. Return the validated public coverage assessment; never manufacture evidence.",
     },
     "process_reviewer": {
         "label": "Process reviewer", "max_calls": 1, "max_output_tokens": 8000, "timeout_seconds": 90,

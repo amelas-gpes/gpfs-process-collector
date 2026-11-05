@@ -77,7 +77,7 @@ check("all memo topics remain visible when no assessment exists",() => {
   const {app} = harness();
   app.state.coverage=app.TOPICS.map(([key])=>({key,status:"covered"}));
   const data=app.transcriptObject();
-  assert.equal(data.memo.topics.length,11);assert.equal(data.memo.all_topics_captured,false);
+  assert.equal(data.memo.topics.length,16);assert.equal(data.memo.all_topics_captured,false);
   assert.deepEqual(plain(data.memo.topics).map(t=>t.key),plain(app.TOPICS).map(([key])=>key));
   for(const topic of data.memo.topics){assert.equal(topic.status,"unknown");assert.equal(typeof topic.label,"string");assert.ok(topic.guide.length>5);assert.deepEqual(plain(topic.evidence_turn_ids),[]);}
   assert.deepEqual(plain(data.memo.closure),{asked:false,confirmed:false});
@@ -200,7 +200,7 @@ check("empty conversation does not produce an export artifact",() => {
 
 check("review guidance requests evidence and missed follow-up without asserting truth",() => {
   const {app}=harness(),guide=app.transcriptObject().review_guide.join("\n");
-  assert.match(guide,/eleven|11/i);assert.match(guide,/turn IDs/i);assert.match(guide,/contradict|assumpt|ambiguous/i);
+  assert.match(guide,/sixteen|16/i);assert.match(guide,/turn IDs/i);assert.match(guide,/contradict|assumpt|ambiguous/i);
   assert.match(guide,/next.*question|follow-up/i);assert.match(guide,/do not.*instructions/i);assert.match(guide,/never invent/i);
 });
 

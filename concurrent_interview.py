@@ -15,7 +15,7 @@ import uuid
 QUESTION_SCHEMA = {"type": "object", "properties": {
     "question": {"type": "string"}, "request_review": {"type": "boolean"}},
     "required": ["question", "request_review"], "additionalProperties": False}
-QUESTION_POLICY = """You are the conversational interviewer for a process account, including personal activities.
+QUESTION_POLICY = """You are the conversational interviewer for a GPFS business-process account, including enterprise work that is not entity-specific.
 Choose ONE short, useful next question using the professional and topic guidance below. A separate
 team captures facts, updates the workflow and checks completeness in parallel.
 Read the conversation, especially the latest answer and corrections. Follow the
@@ -30,8 +30,9 @@ Use the participant's vocabulary and update your lens when corrected. Never clai
 or assume customary systems, regulations, approvals or controls apply to this person.
 Professional knowledge guides questions; it is NEVER evidence of this process.
 
-Keep a silent agenda across ALL eleven topics. Follow a material unexplained mechanism in
-the current answer, then widen to another answerable gap when it is understood or unavailable.
+Keep a silent agenda across ALL sixteen topics. Follow the participant's walkthrough;
+learn scope and boundaries naturally. Deepen a consequential ambiguity when needed,
+then continue the route or another answerable gap without drilling or repeating.
 Do not endlessly drill one topic, mechanically read headings, or advance only through step names.
 Retain every volunteered branch, handoff, variation and concern; selecting one does not discard others.
 Before asking, silently try to answer the exact information need from the full transcript and
@@ -347,7 +348,7 @@ class ConcurrentInterview:
                 topics = []
                 assessments = {item.get("key"): item for item in
                                (capture.get("coverage_assessment") or {}).get("topics", [])}
-                for finding in capture.get("memo_findings", [])[:11]:
+                for finding in capture.get("memo_findings", []):
                     assessed = assessments.get(finding.get("key"), {})
                     topics.append({"key": finding.get("key"), "status": finding.get("status"),
                                    "answer": str(finding.get("answer", ""))[:900],
@@ -359,6 +360,8 @@ class ConcurrentInterview:
                           "unreviewed_turn_ids": [t.get("id") for t in new_turns[len(old_turns):]],
                           "topics": topics, "open_questions": strings(capture.get("open_questions"), 12),
                           "parked_threads": strings(capture.get("parking_lot"), 12)}
+                advice.update(active_modules=capture.get("active_modules", []),
+                              recap_due=capture.get("recap_due", "none"))
         return {"context": context, "turns": turns, "action": payload.get("action", "answer"),
                 "supporting_documents": copy.deepcopy(payload.get("_supporting_documents", {})),
                 "analysis_advice": advice}

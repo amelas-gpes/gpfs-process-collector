@@ -21,7 +21,7 @@ _COMPLETION_SPEECH = re.compile(
     r"(?:is|looks|seems|has been) (?:complete|completed|finished|done|ready)\b|"
     r"\b(?:we(?:['’]re| are)|you(?:['’]re| are)) (?:all set|done|finished)\b|"
     r"\b(?:no (?:further|more) questions|that(?:['’]s| is) all (?:I|we) need)\b|"
-    r"\b(?:all|every) (?:(?:eleven|11|required) )?(?:topics|sections) (?:are|have been) (?:covered|captured|complete)\b|"
+    r"\b(?:all|every) (?:(?:sixteen|16|eleven|11|required) )?(?:topics|sections) (?:are|have been) (?:covered|captured|complete)\b|"
     r"\b(?:anything|something|what) (?:else |important |more )*(?:[^?!.]{0,160})"
     r"(?:haven['’]t|have not|not yet|not) (?:asked|captured|covered|discussed|mentioned)\b|"
     r"\b(?:anything|something|what) (?:else )?(?:[^?!.]{0,80})(?:we|I) (?:missed|have missed)\b|"
@@ -37,6 +37,11 @@ _COMPLETION_SPEECH = re.compile(
     r"(?: (?:the |this |our )?(?:interview|conversation|session)\b| (?:now|here)\b|(?=\s*[?!.]|$))",
     re.I)
 FAST_CAPTURE_POLICY = """
+Streaming transcript checkpoints are incremental text, not proof that a person
+finished an answer. Capture what the words establish; do not label a short last
+fragment as an abandoned or unfinished answer, or ask them to finish a pronoun.
+Use the complete accumulated text. A reported documentation site establishes
+existing material even though no document has been attached or reviewed.
 This is the conversational capture pass. Stored capture is a server-validated aid,
 not new evidence. Reuse its supported facts and topic progress instead of asking
 the participant to repeat them. Correct it when the current answer changes facts.
@@ -58,14 +63,15 @@ only a distinct material gap instead of rewording an answered completion questio
 For documents, retain specific supported controls and handoffs with documentary
 attribution. Unconfirmed current practice does not justify discarding those details
 or treating documentary instructions as participant testimony.
-Ask one focused question. First address an important current ambiguity, correction,
+Ask one focused question. First repair a misunderstanding or apply a correction.
+Follow the practical walkthrough, learning scope naturally. Address a material ambiguity
 or a second issue the participant volunteered. Otherwise prefer a genuinely untouched
 topic over repeatedly drilling into a partial topic or an acknowledged unavailable detail.
 Before changing subjects, follow the actual item/branch just described to its next
 necessary transition: if the participant has edited an item or put it in an intermediate
 folder but has not explained its onward handoff/release, ask what happens to that item
 next. A folder label such as Ready is not evidence of review, release or acceptance.
-This immediate reported-route gap outranks an untouched heading; do not substitute
+A reported-route gap may matter more than an untouched heading; do not substitute
 a new trigger/purpose question or invent a hypothetical exception.
 Do not mechanically march through headings or ask a bundled checklist question.
 Mark a topic captured only when the full section can be explained from the participant's
@@ -76,7 +82,7 @@ the materials exist and are available but have not been attached or independentl
 an upload or independent file verification is not a prerequisite for this section. Preserve
 that unreviewed status, never imply the file was read, and do not treat its contents as
 confirmed current practice. Missing inventory, availability or needed references remain gaps.
-Never authorize completion or say goodbye. When you think all eleven sections are
+Never authorize completion or say goodbye. When you think all sixteen sections are
 understood, the application will acknowledge once and arrange the final review.
 """
 
@@ -505,8 +511,11 @@ class Coordinator:
         state = self._fact_record(payload, context, turns)
         if not state or not state.get("fact_state"):
             return []
-        return sorted({ref for fact in state["fact_state"]["facts"] if fact["state"] == "active"
-                       for ref, source in fact["sources"].items() if source["authority"] == "document"})
+        ledger = state["fact_state"]
+        records = [fact for fact in ledger["facts"] if fact["state"] == "active"]
+        records += ledger.get("tags", []) + ledger.get("connections_out", [])
+        return sorted({ref for fact in records for ref, source in fact["sources"].items()
+                       if source["authority"] == "document"})
 
     def _fact_base(self, payload, context, turns, evidence, supporting=None):
         """Reuse private facts; selection omission must not erase source claims."""
@@ -570,7 +579,7 @@ class Coordinator:
             capture["speech_authorization"] = {"approved": True, "kind": "question" if more else "final_check",
                 "text": question, "revision": ledger.revision, "completion_allowed": False}
             return self._remember(capture, context, turns, supporting, state["token"], state["run"], state.get("ticket"), state.get("fact_state"))
-        question = "Thank you. All eleven sections are captured and you have confirmed the account. It is ready for process-owner review."
+        question = "Thank you. All sixteen sections are captured and you have confirmed the account. It is ready for process-owner review."
         capture.update(question=question, closure={"asked": True, "confirmed": True}, ready_for_draft=True)
         capture["completion"].update(allowed=True, complete=True, partial=False, participant_confirmed=True,
                                      ready_for_final_check=True, blockers=[], revision=ledger.revision,

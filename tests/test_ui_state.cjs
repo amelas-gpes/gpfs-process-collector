@@ -457,7 +457,7 @@ if(process.argv.includes("--usability-only")){
   const pending=t.refreshWorkflow(),baseline=received.previous_capture;
   assert.deepEqual(Object.keys(baseline.workflow).sort(),["connections","open_questions","steps","title"]);
   assert.equal(baseline.workflow.steps.length,2);assert.equal(baseline.workflow.connections[0].to,"S2");
-  assert.equal(baseline.workflow.open_questions[0],"Who owns the register?");assert.equal(baseline.memo_findings.length,11);
+  assert.equal(baseline.workflow.open_questions[0],"Who owns the register?");assert.equal(baseline.memo_findings.length,16);
   assert.equal(baseline.memo_findings.find(f=>f.key==="trigger").answer,"Paper invoice received.");
   assert.equal(baseline.summary,"Invoice receipt and logging.");assert.equal(baseline.focus,"Register ownership");assert.equal(baseline.parking_lot[0],"Electronic invoices later.");
   assert.equal(Object.hasOwn(t.snapshot(),"previous_capture"),false,"General interview and voice snapshots must not carry workflow update state");
@@ -475,7 +475,7 @@ if(process.argv.includes("--usability-only")){
   let received;t.setRequest(async(_url,payload)=>{received=payload;return {workflow:graph("Fresh process")};});await t.refreshWorkflow();
   const baseline=received.previous_capture;
   assert.equal(baseline.workflow.title,"");assert.equal(baseline.workflow.steps.length,0);assert.equal(baseline.workflow.connections.length,0);assert.equal(baseline.workflow.open_questions.length,0);
-  assert.equal(baseline.memo_findings.length,11);assert.ok(baseline.memo_findings.every(f=>f.status==="unknown"&&f.evidence_turns.length===0));
+  assert.equal(baseline.memo_findings.length,16);assert.ok(baseline.memo_findings.every(f=>f.status==="unknown"&&f.evidence_turns.length===0));
   assert.equal(baseline.summary,"");assert.equal(baseline.focus,"");assert.equal(baseline.parking_lot.length,0,"A cleared interview cannot inherit a former process's map or memo");passes++;
  }
  {
@@ -533,7 +533,7 @@ if(process.argv.includes("--usability-only")){
   t.setRequest(async()=>memoResult("Current paper flow"));await t.refreshWorkflow();
   assert.equal(t.conversationUI.workflow.title,"Current paper flow");assert.equal(t.state.memo_findings.find(finding=>finding.key==="trigger").answer,"A paper invoice arrives by post.");
   assert.equal(t.state.coverage.find(item=>item.key==="trigger").status,"covered");assert.equal(t.state.summary,"Paper invoices are received by post.");assert.equal(t.state.focus,"Who opens incoming post");assert.equal(t.state.parking_lot[0],"Digital invoice intake is separate.");
-  assert.equal(document.getElementById("coverage-count").textContent,"1 / 11");assert.equal(document.querySelector('[data-foundation-topic="trigger"]').classList.contains("covered"),true);
+  assert.equal(document.getElementById("coverage-count").textContent,"1 / 16");assert.equal(document.querySelector('[data-foundation-topic="trigger"]').classList.contains("covered"),true);
   assert.equal(dialog.open,true);assert.equal(document.getElementById("foundation-topic-answer").textContent,"A paper invoice arrives by post.","An open memo topic must reflect accepted live coverage updates");
   assert.equal(t.state.draft,edited);assert.equal(t.state.draftEdited,true);assert.equal(t.state.closure,closure,"Live coverage must not imply participant completeness confirmation");t.closeFoundationTopic();passes++;
  }
@@ -559,7 +559,7 @@ if(process.argv.includes("--usability-only")){
  {
   checkpoint();t.conversationUI.applied=-1;let complete;t.setRequest(()=>new Promise(resolve=>complete=resolve));const pending=t.refreshWorkflow();t.clearState();const clearedMemo=memoSnapshot();
   complete(memoResult("Prior interview memo"));await pending;
-  assert.equal(t.conversationUI.workflow,null);assert.equal(memoSnapshot(),clearedMemo,"A cleared interview must ignore late memo coverage from an older session");assert.equal(document.getElementById("coverage-count").textContent,"0 / 11");passes++;
+  assert.equal(t.conversationUI.workflow,null);assert.equal(memoSnapshot(),clearedMemo,"A cleared interview must ignore late memo coverage from an older session");assert.equal(document.getElementById("coverage-count").textContent,"0 / 16");passes++;
  }
  {
   checkpoint();t.state.turns=[{id:"t001",role:"assistant",text:"What starts the work?"},{id:"t002",role:"user",text:"A paper invoice arrives."}];t.state.context={process_name:"Invoices"};t.renderTranscript();
@@ -594,7 +594,7 @@ if(process.argv.includes("--usability-only")){
   const pending=[...timers.entries()].filter(([,timer])=>timer.delay===3000);assert.equal(pending.length,1);assert.notEqual(pending[0][0],first[0]);
   timers.delete(pending[0][0]);pending[0][1].fn();assert.equal(document.getElementById("global-notice").hidden,true);passes++;
  }
- const memoKeys=["name","purpose","trigger","completion","accountable","lifecycle","checks","variations","pain_points","risk","materials"];
+ const memoKeys=["name","purpose","trigger","completion","accountable","lifecycle","checks","variations","pain_points","risk","materials","scope","rules","connections","data_systems","volume"];
  const completeFindings=()=>memoKeys.map(key=>({key,status:"captured",answer:`Reported ${key} detail.`,evidence_turns:["t002"]}));
  const interviewResult=findings=>({question:"Anything to correct?",ready_for_draft:true,coverage:memoKeys.map(key=>({key,status:"covered"})),memo_findings:findings,summary:"Reported process.",focus:"Completeness",parking_lot:[]});
  {
@@ -619,7 +619,7 @@ if(process.argv.includes("--usability-only")){
   requests[0].resolve({...memoResult("Captured invoice receipt"),memo_findings:completeFindings(),coverage:memoKeys.map(key=>({key,status:"covered"}))});
   await firstRequest;
   assert.equal(t.conversationUI.workflow.title,"Captured invoice receipt","A checkpoint must render while later answers continue arriving");
-  assert.equal(t.state.memo_findings.length,11,"The checkpoint commits its graph and memo together");
+  assert.equal(t.state.memo_findings.length,16,"The checkpoint commits its graph and memo together");
   assert.equal(t.conversationUI.applied,capturedRevision);assert.ok(t.conversationUI.applied<t.conversationUI.revision);
   assert.equal(document.getElementById("workflow-status").textContent,"Updating latest answers…");
   assert.equal(document.getElementById("coverage-update-status").textContent,"Updating latest answers…");
@@ -654,7 +654,7 @@ if(process.argv.includes("--usability-only")){
   checkpoint();document.getElementById("global-notice").hidden=true;t.state.turns=[{id:"t002",role:"user",text:"Reported process facts."}];
   const findings=completeFindings();if(incomplete==="missing")findings.pop();else findings[5].status=incomplete;
   t.applyInterview(interviewResult(findings));assert.equal(document.getElementById("global-notice").hidden,true,`Model readiness must not surface an enough-detail notification with a ${incomplete} topic`);
-  assert.notEqual(document.getElementById("coverage-count").textContent,"11 / 11",`An explicit ${incomplete} finding must not display a full coverage circle from a contradictory model coverage flag`);passes++;
+  assert.notEqual(document.getElementById("coverage-count").textContent,"16 / 16",`An explicit ${incomplete} finding must not display a full coverage circle from a contradictory model coverage flag`);passes++;
  }
  {
   checkpoint();document.getElementById("global-notice").hidden=true;t.state.turns=[{id:"t002",role:"user",text:"Reported process facts."}];
@@ -668,8 +668,8 @@ if(process.argv.includes("--usability-only")){
  {
   checkpoint();t.state.turns=[{id:"t002",role:"user",text:"Reported process facts."}];t.state.context={process_name:"Invoices"};t.conversationUI.applied=-1;t.conversationUI.readyAnnounced=false;
   document.getElementById("global-notice").hidden=true;t.setRequest(async()=>({...memoResult("Complete live process"),memo_findings:completeFindings(),coverage:memoKeys.map(key=>({key,status:"covered"}))}));
-  await t.refreshWorkflow();assert.equal(document.getElementById("coverage-count").textContent,"11 / 11");assert.equal(document.getElementById("global-notice").hidden,false,"The live workflow/memo path must announce full coverage without relying on a typed-interview readiness flag");
-  assert.match(document.getElementById("notice-text").textContent,/all 11|enough detail/i);passes++;
+  await t.refreshWorkflow();assert.equal(document.getElementById("coverage-count").textContent,"16 / 16");assert.equal(document.getElementById("global-notice").hidden,false,"The live workflow/memo path must announce full coverage without relying on a typed-interview readiness flag");
+  assert.match(document.getElementById("notice-text").textContent,/all 16|enough detail/i);passes++;
  }
  {
   checkpoint();t.state.context={process_name:"Invoice process",process_owner:"Accountable owner sentinel",objective:"Interview objective sentinel",background:"Existing materials sentinel"};
@@ -801,7 +801,7 @@ if(process.argv.includes("--usability-only")){
  {
   checkpoint();t.clearState();const before=t.conversationUI.revision;t.onDocumentEvent({type:"received",document:fileRecord()});
   assert.equal(t.state.turns.length,0,"A per-file receipt must not create a second acknowledgement or interview turn");assert.equal(t.state.dirty,true);
-  assert.equal(document.getElementById("coverage-count").textContent,"0 / 11");assert.equal(t.conversationUI.revision,before);assert.equal(t.documentContext().current_question,"");passes++;
+  assert.equal(document.getElementById("coverage-count").textContent,"0 / 16");assert.equal(t.conversationUI.revision,before);assert.equal(t.documentContext().current_question,"");passes++;
  }
  {
   checkpoint();const base=[{id:"t002",role:"user",text:"A confirmed participant answer."},{id:"t003",role:"assistant",text:"A newer interview question?"}];
@@ -817,7 +817,7 @@ if(process.argv.includes("--usability-only")){
   checkpoint();t.clearState();t.ensureConversation();t.state.turns=[{id:"t002",role:"user",text:"A participant answer."},{id:"t003",role:"assistant",text:"The original question?"}];
   const file=fileRecord();file.analysis={...file.analysis,basis_turn_id:"t002",basis_question:"The original question?",acknowledgement:"I reviewed the reference.",question:"Does that match what you do?"};
   t.onDocumentEvent({type:"analysis",document:file});const count=t.state.turns.length;t.onDocumentEvent({type:"analysis",document:file});
-  assert.equal(count,2,"An intermediate analysis question must wait for the completed document baseline");assert.equal(t.state.turns.length,count);assert.equal(t.state.turns.at(-1).text,"The original question?");assert.equal(t.state.turns.filter(turn=>turn.role==="user").length,1);assert.equal(document.getElementById("coverage-count").textContent,"0 / 11");passes++;
+  assert.equal(count,2,"An intermediate analysis question must wait for the completed document baseline");assert.equal(t.state.turns.length,count);assert.equal(t.state.turns.at(-1).text,"The original question?");assert.equal(t.state.turns.filter(turn=>turn.role==="user").length,1);assert.equal(document.getElementById("coverage-count").textContent,"0 / 16");passes++;
  }
  {
   checkpoint();t.clearState();t.ensureConversation();const docs=fakeDocuments();t.setDocumentController(docs);const beforeTurns=[{id:"t002",role:"user",text:"An actual participant answer."},{id:"t003",role:"assistant",text:"The saved current question?"}];t.state.turns=JSON.parse(JSON.stringify(beforeTurns));
@@ -1131,7 +1131,7 @@ if(process.argv.includes("--usability-only")){
   t.onDocumentEvent({type:"analysis",document:file});t.onDocumentEvent({type:"changed",state:clone(lifecycle)});await flush();
   assert.equal(requests.length,2);assert.equal(t.state.turns.length,4,"Repeated final polling cannot add another follow-up");assert.equal(stopCount,1);passes++;
 
-  await t.startLiveConversation();assert.equal(starts.length,1);assert.equal(starts[0].document_scope,"scope_intake");assert.equal(starts[0].turns.some(turn=>turn.document_event),false);assert.equal(starts[0].turns.at(-1).text,t.state.turns.at(-1).text);assert.equal(appendCount,1,"Resumed voice receives only the coverage snapshot; finalized files are seeded once on the server");assert.equal(appended[0].options.kind,"interview_coverage");assert.match(appended[0].text,/Notes are current/);
+  await t.startLiveConversation();assert.equal(starts.length,1);assert.equal(starts[0].document_scope,"scope_intake");assert.equal(starts[0].turns.some(turn=>turn.document_event),false);assert.equal(starts[0].turns.at(-1).text,t.state.turns.at(-1).text);assert.equal(appendCount,1,"Resumed voice receives only the coverage snapshot; finalized files are seeded once on the server");assert.equal(appended[0].options.kind,"interview_coverage");assert.match(appended[0].text,/Notes cover the current/);
   intake.reset();t.setIntake(null);t.conversationUI.live=null;t.setDocumentController(null);t.clearState();passes++;
  }
  {
@@ -1187,11 +1187,11 @@ if(process.argv.includes("--usability-only")){
   const raw=JSON.stringify(saved);let calls=0;t.setRequest(async()=>{calls++;throw Error("Import cannot request a provider");});
   await t.importSession({size:raw.length,text:async()=>raw});
   assert.equal(calls,0);assert.equal(workflowTimers().length,0,"Opening a file must not schedule automatic provider analysis");assert.equal(JSON.stringify(saved),raw,"The supplied source remains unchanged");assert.equal(t.state.closure.confirmed,false);assert.equal(t.state.coverageNeedsReview,true);
-  assert.equal(t.state.memo_findings.every(item=>item.status==="partial"),true);assert.equal(t.state.draft.memo_summary.every(item=>item.status==="partial"),true);assert.equal(t.state.coverage.every(item=>item.status!=="covered"),true);assert.equal(document.getElementById("coverage-count").textContent,"0 / 11");
+  assert.equal(t.state.memo_findings.every(item=>item.status==="partial"),true);assert.equal(t.state.draft.memo_summary.every(item=>item.status==="partial"),true);assert.equal(t.state.coverage.every(item=>item.status!=="covered"),true);assert.equal(document.getElementById("coverage-count").textContent,"0 / 16");
   assert.deepEqual(JSON.parse(JSON.stringify(t.state.memo_findings.map(({key,answer,evidence_turns})=>({key,answer,evidence_turns})))),findings.map(({key,answer,evidence_turns})=>({key,answer,evidence_turns})));assert.notEqual(t.state.draftVersion,t.state.version);
   assert.match(document.getElementById("notice-text").textContent,/provisional.*Recheck coverage/);assert.equal(document.getElementById("retry-workflow").hidden,false);assert.equal(document.getElementById("retry-workflow").textContent,"Recheck coverage");passes++;
   t.setRequest(async(_path,_payload,options)=>{calls++;assert.equal(options.timeout,330000);return {workflow:graph("Reviewed process"),memo_findings:findings,coverage:[],summary:"Preserve the reported account.",focus:"",parking_lot:[],coverage_assessment:{all_topics_covered:true,topics:[]}};});
-  await t.refreshWorkflow();assert.equal(calls,1);assert.equal(t.state.coverageNeedsReview,false);assert.equal(document.getElementById("coverage-count").textContent,"11 / 11");assert.equal(t.state.closure.confirmed,false,"Rechecking topic coverage cannot manufacture a new participant confirmation");assert.equal(document.getElementById("retry-workflow").dataset.coverageRecheck,undefined);t.clearState();passes++;
+  await t.refreshWorkflow();assert.equal(calls,1);assert.equal(t.state.coverageNeedsReview,false);assert.equal(document.getElementById("coverage-count").textContent,"16 / 16");assert.equal(t.state.closure.confirmed,false,"Rechecking topic coverage cannot manufacture a new participant confirmation");assert.equal(document.getElementById("retry-workflow").dataset.coverageRecheck,undefined);t.clearState();passes++;
  }
  {
   checkpoint();t.clearState();t.state.started=true;t.state.context={process_name:"Incomplete review"};t.state.config={api_configured:true,speech:{enabled:false}};t.state.turns=[{id:"t002",role:"user",text:"A paper invoice arrives by post."}];let calls=0;
@@ -1213,45 +1213,44 @@ if(process.argv.includes("--usability-only")){
  // Coverage feedback is a silent working interpretation, never a participant turn.
  {
   checkpoint();t.clearState();t.state.started=true;t.state.context={process_name:"Synthetic coverage",objective:"Capture all sections"};t.state.config={api_configured:true,live:{enabled:true},speech:{enabled:false}};
-  const keys=["name","purpose","trigger","completion","accountable","lifecycle","checks","variations","pain_points","risk","materials"];
+  const keys=["name","purpose","trigger","completion","accountable","lifecycle","checks","variations","pain_points","risk","materials","scope","rules","connections","data_systems","volume"];
   const findings=keys.map(key=>({key,status:"captured",answer:"A supported account for this synthetic test.",evidence_turns:["t002"]}));
   const assessment={all_topics_covered:true,topics:keys.map(key=>({key,gaps:[],next_question:"",complete:true}))};
   t.state.turns=[{id:"t002",role:"user",text:"A participant account."}];t.state.memo_findings=findings;
   const updates=[];let speech=0,stops=0;
   const live={active:false,connected:false,async start(){this.active=true;this.connected=true;},stop(){stops++;this.active=false;this.connected=false;},sendText(){speech++;},appendContext(content,options){updates.push({text:content,raw:content,options});return Promise.resolve({status:"acknowledged"});}};
   t.conversationUI.live=live;const beforeStart=JSON.stringify(t.state.turns);await t.startLiveConversation();
-  assert.equal(updates.length,1);assert.match(updates[0].text,/^Private interviewer note, never spoken: I am the interviewer and only the participant answers\./,"The note is the interviewer's own, first person");
-  assert.match(updates[0].text,/Notes lag the latest answer/,"Saved greens without a current accepted checkpoint are not reported as current");assert.match(updates[0].text,/Nothing is open; the application will say when to close/,"All-captured notes leave no open topic and give the model no closing authority");
-  assert.doesNotMatch(updates[0].text,/A supported account|evidence_turns|I ask:/,"The note carries no finding text and no question when none is suggested");assert.equal(updates[0].options.plain,true,"The note is one unwrapped context event");assert.equal(JSON.stringify(t.state.turns),beforeStart);passes++;
+  assert.equal(updates.length,0,"Saved findings without a current accepted checkpoint send no live update");
+  assert.equal(JSON.stringify(t.state.turns),beforeStart);passes++;
   const result=()=>({workflow:graph("Synthetic coverage"),memo_findings:findings,coverage:[],summary:"Reported facts",focus:"Coverage",parking_lot:[],coverage_assessment:assessment});
   t.setRequest(async()=>result());await t.refreshWorkflow();
-  assert.equal(updates.length,2);assert.match(updates.at(-1).text,/Notes are current/);assert.match(updates.at(-1).text,/Nothing is open/);assert.equal(updates.at(-1).options.kind,"interview_coverage");assert.equal(updates.at(-1).options.replaceKey,"interview_coverage");assert.equal(JSON.stringify(t.state.turns),beforeStart);assert.equal(speech,0);assert.equal(stops,0);passes++;
+  assert.equal(updates.length,1);assert.match(updates.at(-1).text,/Notes cover the current/);assert.match(updates.at(-1).text,/Nothing is open/);assert.equal(updates.at(-1).options.kind,"interview_coverage");assert.equal(updates.at(-1).options.replaceKey,"interview_coverage");assert.equal(updates.at(-1).options.plain,true);assert.equal(JSON.stringify(t.state.turns),beforeStart);assert.equal(speech,0);assert.equal(stops,0);passes++;
   t.receiveLiveCaption({id:"coverage-correction",role:"user",text:"A later correction",final:false});
   t.receiveLiveCaption({id:"coverage-correction",role:"user",text:"A later correction continues",final:false});t.receiveLiveCaption({id:"coverage-correction",role:"user",text:"A later correction continues",final:true});
-  assert.equal(updates.length,2,"Caption fragments send no notes update; a stream of silent context mid-answer made the live model voice the participant");assert.equal(speech,0);passes++;
+  assert.equal(updates.length,1,"Caption fragments send no notes update; a stream of silent context mid-answer made the live model voice the participant");assert.equal(speech,0);passes++;
   let finish;checkpoint();t.setRequest(()=>new Promise(resolve=>finish=resolve));const pending=t.refreshWorkflow();
   t.receiveLiveCaption({id:"coverage-correction",role:"user",text:"A later correction continues with another detail",final:true});finish(result());await pending;
-  assert.match(updates.at(-1).text,/Notes lag the latest answer/,"An append-only checkpoint can publish notes while they lag the newest answer");passes++;
+  assert.equal(updates.length,1,"A checkpoint that lags the newest answer sends no update");passes++;
   checkpoint();assessment.all_topics_covered=false;assessment.topics.find(topic=>topic.key==="risk").gaps=["Failure consequences remain unexplained."];assessment.topics.find(topic=>topic.key==="risk").next_question="What happens if the notice is wrong?";
   t.setRequest(async()=>result());await t.refreshWorkflow();
-  assert.match(updates.at(-1).text,/Notes are current/);assert.match(updates.at(-1).text,/Still open: risk\./,"A reviewer gap keeps its topic open in the note even when the memo is all green");assert.match(updates.at(-1).text,/I ask: "What happens if the notice is wrong\?"/,"The reviewer's question is the suggestion when the lead has none");assert.ok(new TextEncoder().encode(updates.at(-1).raw).length<=480,"The note fits one context event");passes++;
-  const updateCount=updates.length;live.stop();await t.startLiveConversation();assert.equal(updates.length,updateCount+1,"A reconnected session receives its own coverage context");assert.match(updates.at(-1).text,/Notes are current/);assert.equal(new Set(updates.map(update=>update.options.id)).size,updates.length);passes++;
+  assert.match(updates.at(-1).text,/Notes cover the current/);assert.match(updates.at(-1).text,/Still open: risk\./,"A reviewer gap keeps its topic open in the note even when the memo is all green");assert.doesNotMatch(updates.at(-1).text,/What happens if the notice is wrong|I ask:/,"The reviewer cannot supply a spoken question through silent context");assert.ok(new TextEncoder().encode(updates.at(-1).raw).length<=480,"The note fits one context event");passes++;
+  const updateCount=updates.length;live.stop();await t.startLiveConversation();assert.equal(updates.length,updateCount+1,"A reconnected session receives its own coverage context");assert.match(updates.at(-1).text,/Notes cover the current/);assert.equal(new Set(updates.map(update=>update.options.id)).size,updates.length);passes++;
   const heldCount=updates.length;t.receiveLiveCaption({id:"unfinished-coverage-answer",role:"user",text:"A thought that has not ended",final:false});checkpoint();t.setRequest(async()=>result());await t.refreshWorkflow();
   assert.equal(updates.length,heldCount,"A note is held while a participant caption is still in progress; mid-answer it made the live model finish the participant's sentence");
   t.receiveLiveCaption({id:"unfinished-coverage-answer",role:"user",text:"A thought that has not ended",final:true});
-  assert.equal(updates.length,heldCount+1,"The held note is sent once the participant pauses");assert.match(updates.at(-1).text,/Notes are current/,"The capture already covered the finished caption's text");
-  t.conversationUI.revision++;checkpoint();t.setRequest(async()=>result());await t.refreshWorkflow();assert.match(updates.at(-1).text,/Notes are current/,"The next completed capture reports current notes");passes++;
+  assert.equal(updates.length,heldCount+1,"The held note is sent once the participant pauses");assert.match(updates.at(-1).text,/Notes cover the current/,"The capture already covered the finished caption's text");
+  t.conversationUI.revision++;checkpoint();t.setRequest(async()=>result());await t.refreshWorkflow();assert.match(updates.at(-1).text,/Notes cover the current/,"The next completed capture reports current notes");passes++;
   t.conversationUI.revision++;for(const finding of findings)finding.answer="界".repeat(4000);for(const topic of assessment.topics){topic.gaps=["界".repeat(500),"界".repeat(500),"界".repeat(500)];topic.next_question="界".repeat(500);}
-  checkpoint();t.setRequest(async()=>result());await t.refreshWorkflow();assert.ok(new TextEncoder().encode(updates.at(-1).raw).length<=480,"A long non-ASCII suggested question is trimmed so the note still fits one event");assert.match(updates.at(-1).text,/I ask: "界+…"/,"The trimmed question is marked as cut");assert.doesNotMatch(updates.at(-1).text,/界{200}/);assert.equal(t.state.memo_findings[0].answer.length,4000,"Accepted findings remain intact");passes++;
+  checkpoint();t.setRequest(async()=>result());await t.refreshWorkflow();assert.ok(new TextEncoder().encode(updates.at(-1).raw).length<=480,"Coverage labels fit one event regardless of reviewer verbosity");assert.doesNotMatch(updates.at(-1).text,/界|I ask:/,"Findings and suggested questions are omitted from the live note");assert.equal(t.state.memo_findings[0].answer.length,4000,"Accepted findings remain intact");passes++;
   const oldCount=updates.length;t.conversationUI.revision++;checkpoint();t.setRequest(async()=>{throw Error("Capture unavailable");});await t.refreshWorkflow();assert.equal(updates.length,oldCount,"A failed capture cannot publish an invented coverage checkpoint");
   live.active=false;t.conversationUI.live=null;t.clearState();passes++;
  }
  {
   checkpoint();t.state.config={api_configured:true,agent_team:{enabled:true},speech:{enabled:false}};t.state.started=true;t.state.context={process_name:"Review test"};
-  t.state.turns=[{id:"t002",role:"user",text:"A definite reported process account."}];t.state.memo_findings=["name","purpose","trigger","completion","accountable","lifecycle","checks","variations","pain_points","risk","materials"].map(key=>({key,status:"captured",answer:"A definite reported detail.",evidence_turns:["t002"]}));
-  t.state.coverageVerified=false;t.renderCoverage();assert.equal(document.getElementById("coverage-count").textContent,"0 / 11");assert.match(document.getElementById("coverage-summary").textContent,/11 captured.*awaiting review/);assert.match(document.getElementById("memo-next").textContent,/awaiting.*review/);
+  t.state.turns=[{id:"t002",role:"user",text:"A definite reported process account."}];t.state.memo_findings=["name","purpose","trigger","completion","accountable","lifecycle","checks","variations","pain_points","risk","materials","scope","rules","connections","data_systems","volume"].map(key=>({key,status:"captured",answer:"A definite reported detail.",evidence_turns:["t002"]}));
+  t.state.coverageVerified=false;t.renderCoverage();assert.equal(document.getElementById("coverage-count").textContent,"0 / 16");assert.match(document.getElementById("coverage-summary").textContent,/16 captured.*awaiting review/);assert.match(document.getElementById("memo-next").textContent,/awaiting.*review/);
   const topic=document.querySelector('[data-foundation-topic="name"]');assert.equal(topic.classList.contains("covered"),false);assert.match(topic.querySelector(".coverage-state").textContent,/awaiting review/);t.showFoundationTopic("name",topic);assert.match(document.getElementById("foundation-topic-status").textContent,/awaiting review/);t.closeFoundationTopic(false);
-  t.state.coverageVerified=true;t.renderCoverage();assert.equal(document.getElementById("coverage-count").textContent,"11 / 11");assert.equal(document.querySelector('[data-foundation-topic="name"]').classList.contains("covered"),true);passes++;
+  t.state.coverageVerified=true;t.renderCoverage();assert.equal(document.getElementById("coverage-count").textContent,"16 / 16");assert.equal(document.querySelector('[data-foundation-topic="name"]').classList.contains("covered"),true);passes++;
   t.state.captureToken="opaque-server-capability";assert.equal(t.snapshot().capture_token,"opaque-server-capability");assert.ok(!JSON.stringify(t.sessionObject()).includes("opaque-server-capability"),"Server review capabilities must not be persisted in saved files");passes++;
   t.conversationUI.revision=20;t.conversationUI.applied=0;t.conversationUI.flowBusy=false;t.conversationUI.live=null;t.state.busy=false;t.conversationUI.view="voice";checkpoint();t.scheduleWorkflow();assert.equal(workflowTimers().length,1,"Ordinary turns schedule the map alongside the lead, whichever view is open");
   checkpoint();t.state.busy=true;t.scheduleWorkflow();assert.equal(workflowTimers().length,1,"A lead turn in progress does not postpone the concurrent map");t.state.busy=false;
@@ -1275,7 +1274,7 @@ if(process.argv.includes("--usability-only")){
   await settle();await settle();
   assert.equal(t.state.advisory.trigger.complete,true);
   let item=document.querySelector('[data-foundation-topic="trigger"]');assert.match(item.querySelector(".coverage-state").textContent,/pre-checked/);
-  assert.equal(item.classList.contains("covered"),false,"An advisory check never counts as official coverage");assert.equal(document.getElementById("coverage-count").textContent,"0 / 11");
+  assert.equal(item.classList.contains("covered"),false,"An advisory check never counts as official coverage");assert.equal(document.getElementById("coverage-count").textContent,"0 / 16");
   assert.match(document.getElementById("coverage-summary").textContent,/1 captured · awaiting review · 1 pre-checked/);
   t.showFoundationTopic("trigger",item);assert.match(document.getElementById("foundation-topic-status").textContent,/pre-checked/);t.closeFoundationTopic(false);
   // Topics already pre-checked for the same answer are not checked again; a changed answer loses its mark.
@@ -1314,8 +1313,9 @@ if(process.argv.includes("--usability-only")){
   assert.equal(calls.filter(call=>call.url==="/api/interview").length,1);assert.equal(calls[0].payload.action,"answer");
   assert.equal(t.state.memo_findings.find(f=>f.key==="trigger").status,"captured");assert.equal(t.state.captureToken,"live-token");
   assert.ok(!t.state.turns.some(turn=>turn.text==="Who receives the email?"),"The lead's question is not spoken or added; GPT-Live asks its own");
-  assert.equal(t.state.liveSuggestedQuestion,"Who receives the email?");
-  assert.ok(appended.some(item=>/I ask: "Who receives the email\?"/.test(item.text)&&item.meta.plain===true),"The lead's suggestion reaches GPT-Live silently as one interviewer note");
+  assert.equal(t.state.liveSuggestedQuestion,"");
+  assert.ok(appended.some(item=>/Notes cover the current/.test(item.text)&&item.meta.plain===true),"Current capture status reaches GPT-Live silently");
+  assert.ok(appended.every(item=>!item.text.includes("Who receives the email?")),"The background lead never scripts the live follow-up");
   // Completion readiness: the app records the acknowledgement, has GPT-Live say it, runs the review, then issues the final check.
   const ack="Let me check that I have everything before we finish.",finalCheck="Before we finish, is there anything else someone doing this work needs to know that we haven’t captured?";
   answer=url=>url==="/api/interview"?reply(ack,"review_pending",{review_ticket:"ticket-1",agent_run_id:"run-1"}):url==="/api/agent-team/review"?reply(finalCheck,"final_check",{coverage_verified:true}):{};

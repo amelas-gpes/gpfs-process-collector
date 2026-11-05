@@ -34,8 +34,8 @@ assert(turns.filter(t=>t.role==="user").length>=6);
 assert(turns.filter(t=>t.role==="assistant").length>=6);
 assert.equal(new Set(turns.map(t=>t.id)).size,turns.length,"Transcript IDs must be unique");
 assert(turns.every(t=>typeof t.text==="string" && t.text.trim().length>0));checks++;
-assert.equal(state.memo_findings.length,11);
-assert.equal(new Set(state.memo_findings.map(f=>f.key)).size,11);
+assert.equal(state.memo_findings.length,16);
+assert.equal(new Set(state.memo_findings.map(f=>f.key)).size,16);
 for(const finding of state.memo_findings){
   assert.equal(finding.status,"captured",`${finding.key} must have a full check after normalization`);
   assert(present(finding.answer),`${finding.key} needs a substantive answer`);

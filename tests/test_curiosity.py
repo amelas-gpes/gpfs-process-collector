@@ -165,7 +165,10 @@ class CuriosityPolicyContractTests(unittest.TestCase):
         session = client.request.call_args.args[1]["session"]
         top = session["instructions"]
         delegated = session["delegation"]["responses"]["instructions"]
-        self.assertIn(server.CURIOSITY_POLICY, top)
+        self.assertIn(server.QUESTION_SELECTION_POLICY, top)
+        self.assertIn("participant keeps the floor", top)
+        self.assertIn("Do not wait for background notes", top)
+        self.assertLess(len(server.LIVE_INSTRUCTIONS), 16000)
         self.assertIn(server.CURIOSITY_POLICY, delegated)
         self.assertNotIn("SERVER-OWNED INTERVIEW FOUNDATION", top)
         self.assertIn("SERVER-OWNED INTERVIEW FOUNDATION", delegated)

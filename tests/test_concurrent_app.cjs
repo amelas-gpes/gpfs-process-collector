@@ -39,7 +39,7 @@ await check("live voice captures use the managed team even with concurrent inter
  h.route(url=>url==="/api/agent-team/interview"?response({...approved(),summary:"Full live capture",coverage:[],memo_findings:[],capture_token:"live-capture"}):url==="/api/agent-team/status"?response({status:"completed",agents:[],events:[]}):Promise.reject(Error(url)));
  await h.t.runLiveCapture();assert.equal(h.calls[0].url,"/api/agent-team/interview");assert.equal(h.calls.some(call=>call.url.startsWith("/api/conversation/")),false);
  assert.equal(h.t.state.summary,"Full live capture");assert.equal(h.t.state.captureToken,"live-capture");
- assert.equal(h.t.state.liveSuggestedQuestion,approved().question);assert.equal(h.t.state.turns.at(-1).id,"live-user");
+ assert.equal(h.t.state.liveSuggestedQuestion,"");assert.equal(h.t.state.turns.at(-1).id,"live-user");
 });
 for(const restarting of [false,true])await check("starting or resuming live voice cancels a prior concurrent capture",async()=>{
  const h=concurrentSetup(),analysis=deferred();h.route(url=>url==="/api/conversation/turn"?response(fast()):url==="/api/conversation/status"?analysis.promise:Promise.reject(Error(url)));

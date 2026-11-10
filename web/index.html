@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fcfaf7">
-  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1c1916">
+  <meta name="theme-color" content="#ffffff">
+  <script src="/theme.js"></script>
   <title>AI Process Collector</title>
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/documents.css">
@@ -34,7 +34,7 @@
       <button type="button" id="export-session" aria-label="Save a copy of this interview" title="Save a copy of this interview to your computer" data-icon="download">Save copy</button>
       <button type="button" id="export-transcript-menu" data-icon="file" disabled>Export transcript</button>
       <button type="button" id="submit-process-menu" data-icon="send">Submit process</button>
-      <button type="button" id="open-interview-settings" aria-haspopup="dialog" aria-controls="interview-settings" title="Voice, interview context and data settings" data-icon="sliders">Settings</button>
+      <button type="button" id="open-interview-settings" aria-haspopup="dialog" aria-controls="interview-settings" title="Appearance, voice, interview context and data settings" data-icon="sliders">Settings</button>
       <button type="button" id="import-session" data-icon="folder">Open saved interview…</button>
       <button type="button" id="load-example" data-icon="sparkle">See an example</button>
       <button type="button" id="reset-session" class="danger-text" data-icon="trash">Start over</button>
@@ -160,6 +160,12 @@
 <dialog id="knowledge-admin" class="knowledge-dialog knowledge-admin" aria-labelledby="knowledge-admin-title"></dialog>
 <dialog id="interview-settings" class="interview-settings" aria-labelledby="settings-title">
             <button class="text-button" type="button" id="settings-source-return" data-icon="arrow-left" hidden>Back to what you were reviewing</button><div class="settings-heading"><h3 id="settings-title">Settings</h3><button type="button" class="text-button" id="close-interview-settings">Done</button></div>
+            <label for="theme-select">Appearance</label>
+            <select id="theme-select">
+              <option value="system">Use system setting</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
             <button type="button" id="open-knowledge-admin" class="button secondary small" data-icon="db" hidden>Company knowledge (admin)</button>
             <p>When you type instead of talk, questions can be read aloud.</p>
             <div id="voice-options" class="voice-options"><span id="voice-summary-label" hidden>Voice settings</span><div class="voice-options-content"><div class="voice-choice-row"><label for="voice-select">Voice</label><select id="voice-select" aria-describedby="voice-description"></select></div><p id="voice-description" class="voice-description"></p><div class="voice-settings"><label class="check-label"><input type="checkbox" id="speak-questions"> Read questions aloud</label><label class="check-label"><input type="checkbox" id="stop-on-silence" checked> Stop recording when I pause</label></div><p id="voice-availability" hidden></p></div></div><button type="button" class="button secondary small" id="preview-voice" data-icon="play">Preview voice</button><button type="button" class="text-button small" id="export-voice-timing" disabled>Save voice timings</button><span id="voice-status" role="status" hidden></span><button class="text-button small" id="stop-speaking" data-icon="x" hidden>Stop voice</button>

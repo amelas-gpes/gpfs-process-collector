@@ -347,7 +347,7 @@
       this.world.append(edgeLabels);
       layout.children.forEach(position=>{
         const step=data.steps.find(item=>item.id===position.id),{x,y,width:w,height:h}=position,metrics=nodeMetrics(step),type=metrics.type,theme=TYPES[type],color=colorFor(step.actor);
-        const group=svgNode(doc,"g",{"data-step-id":step.id,"data-step-type":type,"data-node-box":`${x} ${y} ${w} ${h}`,tabindex:"0",role:"button","aria-label":`${step.id}: ${step.title}. ${theme.label}. ${step.actor||"Owner not established"}. Show details.`,"aria-pressed":"false"});styles(group,{cursor:"pointer",outline:"none"});
+        const group=svgNode(doc,"g",{"data-step-id":step.id,"data-step-type":type,"data-node-box":`${x} ${y} ${w} ${h}`,tabindex:"0",role:"button","aria-label":`${step.id}: ${step.title}. ${theme.label}. ${step.actor||"Owner not established"}. Show details.`,"aria-pressed":"false",style:`--actor-color: ${color}`});styles(group,{cursor:"pointer",outline:"none"});
         group.append(svgNode(doc,"title",{},`${step.id}: ${step.title}\n${step.description||""}\nOwner: ${step.actor||"Not established"}\nSystem: ${step.system||"Not established"}`));
         const shape=nodeShape(doc,type,x,y,w,h);shape.classList.add("workflow-node-shape");if(type==="decision")shape.classList.add("is-decision");shape.setAttribute("data-base-stroke",theme.stroke);group.append(shape);
         if(type==="subprocess")group.append(svgNode(doc,"path",{d:`M ${x+13} ${y+1} V ${y+h-1} M ${x+w-13} ${y+1} V ${y+h-1}`,stroke:theme.stroke,fill:"none","stroke-width":1}));

@@ -2720,6 +2720,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(config)
         files = {"/": ("index.html", "text/html; charset=utf-8"),
                  "/index.html": ("index.html", "text/html; charset=utf-8"),
+                 "/theme.js": ("theme.js", "text/javascript; charset=utf-8"),
                  "/app.js": ("app.js", "text/javascript; charset=utf-8"),
                  "/workflow-graph.js": ("workflow-graph.js", "text/javascript; charset=utf-8"),
                  "/vendor/elk.bundled.js": ("vendor/elk.bundled.js", "text/javascript; charset=utf-8"),

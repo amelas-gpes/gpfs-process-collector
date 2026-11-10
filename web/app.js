@@ -53,6 +53,8 @@
     play: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m5 3 7 5-7 5Z"/></svg>'
   };
   const workflowCanvases=new Map();
+  const workflowPlayers=new Map();
+  let draftComponentDesigns=new Map();
   const WORKFLOW_TYPES = {
     activity:["Activity","Work performed by a person or system."],
     decision:["Decision","Follow the route that matches the stated condition."],
@@ -202,6 +204,7 @@
       button.classList.toggle("active", active);
       if (active) button.setAttribute("aria-current", "page"); else button.removeAttribute("aria-current");
     });
+    syncWorkflowVisibility();
     updatePresence();
     if (focus) focusWorkspace(name);
   }
@@ -594,13 +597,28 @@
       else if(!$("transcript-find").hidden&&$("transcript-find").contains(event.target)){event.preventDefault();setTranscriptFind(false);}
     });
   }
-  function rememberSourceOrigin(){sourceOrigin={generation:state.generation,review:!$("review-view").hidden,section:reviewUI.section,view:conversationUI.view,scroll:$("conversation-scroll").scrollTop,reviewScroll:$("review-view").scrollTop,topic:foundationTopic,memoOpen:Boolean($("memo-sheet")?.open),focus:document.activeElement,turn:document.activeElement?.dataset?.sourceTurn,step:workflowDetailSource?{...workflowDetailSource}:null};}
+  function rememberSourceOrigin(focus=document.activeElement){sourceOrigin={generation:state.generation,review:!$("review-view").hidden,section:reviewUI.section,view:conversationUI.view,scroll:$("conversation-scroll").scrollTop,reviewScroll:$("review-view").scrollTop,topic:foundationTopic,memoOpen:Boolean($("memo-sheet")?.open),focus,turn:focus?.dataset?.sourceTurn,step:workflowDetailSource&&$("workflow-step-dialog")?.open?{...workflowDetailSource,opener:workflowDetailReturn}:null};}
   function returnToSource(){
     const origin=sourceOrigin;sourceOrigin=null;if($("source-return"))$("source-return").hidden=true;if($("settings-source-return"))$("settings-source-return").hidden=true;if(!origin||origin.generation!==state.generation)return;
     setInterviewSettings(false,false);
     if(origin.review){tab("review");selectReviewSection(origin.section);$("review-view").scrollTop=origin.reviewScroll;}else{tab("interview");selectConversationView(origin.view);$("conversation-scroll").scrollTop=origin.scroll;}
     if(origin.topic){if(origin.memoOpen)setMemoSheet(true);showFoundationTopic(origin.topic,document.querySelector(`[data-foundation-topic="${origin.topic}"]`));}
-    else if(origin.step){const graph=origin.step.containerId==="live-workflow"?conversationUI.workflow:state.draft,step=graph?.steps.find(s=>s.id===origin.step.stepId);if(step){workflowCanvases.get(origin.step.containerId)?.focusStep?.(step.id);showWorkflowStep(step,origin.step.containerId);}}
+    else if(origin.step){
+      const {containerId,stepId,opener}=origin.step,step=workflowGraph(containerId)?.steps.find(item=>item.id===stepId);
+      if(step){
+        if(workflowPlayers.get(containerId)?.selected){
+          const focus=opener?.isConnected?opener:$(workflowPrefix(containerId)+"-mode-walkthrough");
+          focus?.focus({preventScroll:true});
+        }else workflowCanvases.get(containerId)?.focusStep?.(step.id);
+        showWorkflowStep(step,containerId);
+      }
+    }
+    else if(origin.cinematicId){
+      const surface=$(workflowPrefix(origin.cinematicId)+"-walkthrough");
+      const link=origin.focus?.isConnected&&surface.contains(origin.focus)?origin.focus:
+        [...surface.querySelectorAll(".evidence-link")].find(item=>item.dataset.sourceTurn===origin.turn);
+      (link||$(workflowPrefix(origin.cinematicId)+"-mode-walkthrough"))?.focus({preventScroll:true});
+    }
     else {const surface=origin.review?$(origin.section):$(origin.view+"-panel"),replacement=origin.turn?[...surface.querySelectorAll(".evidence-link")].find(link=>link.dataset.sourceTurn===origin.turn):null;const focus=replacement||(origin.focus?.isConnected&&surface.contains(origin.focus)?origin.focus:null)||$(origin.review?`review-tab-${origin.section.slice(7)}`:`conversation-tab-${origin.view}`);focus?.focus({preventScroll:true});}
   }
   function placeConversationDock(focused=document.activeElement) {
@@ -622,6 +640,7 @@
       if(active&&focus)button.focus();
     });
     for(const name of ["voice","transcript","workflow"]) if($(name+"-panel")) $(name+"-panel").hidden=name!==view;
+    syncWorkflowVisibility();
     placeConversationDock(dockFocus||document.activeElement);
     if(view==="workflow"){requestAnimationFrame(()=>workflowCanvases.get("live-workflow")?.refresh());if(state.config?.agent_team?.enabled)scheduleWorkflow();}
     if(view==="transcript")requestAnimationFrame(updateConversationScroll);
@@ -2117,6 +2136,7 @@
       const documentEvidence=mergeDocumentEvidence(result.document_evidence);
       const draft=normalizeDraft(result.draft,state.turns,documentEvidence);
       state.documentEvidence=documentEvidence;state.draft=draft;
+      draftComponentDesigns.clear();
       state.draftVersion = version;
       state.draftEdited = false;
       state.dirty = true;
@@ -2281,6 +2301,7 @@
       button.scrollIntoView({block:"nearest",inline:"nearest"});
     }
     if (id === "review-map") requestAnimationFrame(fitMapToWidth);
+    syncWorkflowVisibility();
     return true;
   }
   function reviewTabKey(event) {
@@ -2343,6 +2364,7 @@
       remove.setAttribute("aria-label", `Remove step ${step.id}`);
       remove.addEventListener("click", () => {
         if (!confirm(`Remove step ${step.id} and its connections?`)) return;
+        draftComponentDesigns.delete(step.id);
         state.draft.steps.splice(index, 1);
         state.draft.connections = state.draft.connections.filter(c => c.from !== step.id && c.to !== step.id);
         draftChanged(); renderSteps(); renderConnections(); renderMap();focusAfterEditorRemoval("procedure-steps",index,"add-step");
@@ -2352,7 +2374,11 @@
       props.append(
         formControl("Owner / role", "input", step.actor, v => {step.actor = v; draftChanged(true);}, {aria: `Owner of step ${step.id}`}),
         formControl("System / tool", "input", step.system, v => {step.system = v; draftChanged(true);}, {aria: `System for step ${step.id}`}),
-        formControl("Step type", "select", step.type, v => {step.type = v; draftChanged(true);}, {aria: `Type of step ${step.id}`, choices: Object.entries(WORKFLOW_TYPES).map(([value,[label]])=>[value,label])})
+        formControl("Step type", "select", step.type, v => {
+          step.type=v;
+          if(draftComponentDesigns.has(step.id)&&!validDesign(step,draftComponentDesigns.get(step.id)))draftComponentDesigns.delete(step.id);
+          draftChanged(true);
+        }, {aria: `Type of step ${step.id}`, choices: Object.entries(WORKFLOW_TYPES).map(([value,[label]])=>[value,label])})
       );
       const description = el("textarea", "step-description");
       description.value = step.description;
@@ -2411,7 +2437,7 @@
       source.title = `Source: ${id}`;
       source.dataset.sourceTurn=id;
       source.setAttribute("aria-label",`Read ${sourceCaption(id)}`);
-      source.addEventListener("click",() => {rememberSourceOrigin();beforeJump?.();jumpToTurn(id,false);});
+      source.addEventListener("click",() => {rememberSourceOrigin(source);beforeJump?.();jumpToTurn(id,false);});
       evidence.append(source);
     });
     return evidence;
@@ -2487,6 +2513,91 @@
     });
     if (!state.draft.variations.length) root.append(el("p","map-help","UNKNOWN / TBD — no variations were established. An empty list does not confirm that there are none."));
   }
+  const workflowPrefix=id=>id==="live-workflow"?"workflow":"map";
+  const workflowGraph=id=>id==="live-workflow"?conversationUI.workflow:state.draft;
+  function validDesign(step,design){
+    return typeof design==="string"&&design.length<=64&&window.CollectorComponents?.forDisplay?.(step,design)?.id===design;
+  }
+  function savedDesigns(values,draft){
+    const designs=new Map();
+    if(!values||typeof values!=="object"||Array.isArray(values))return designs;
+    // Only visit the normalized draft's (at most 80) step IDs. Ignore obsolete local preferences.
+    for(const step of draft?.steps||[]){
+      if(Object.hasOwn(values,step.id)&&validDesign(step,values[step.id]))designs.set(step.id,values[step.id]);
+    }
+    return designs;
+  }
+  function cinematicGraph(id,graph){
+    return id==="process-map"&&graph&&draftComponentDesigns.size?
+      {...graph,component_designs:Object.fromEntries(draftComponentDesigns)}:graph;
+  }
+
+  function syncWorkflowVisibility(pageVisible=true) {
+    for(const [id,view] of workflowPlayers){
+      const live=id==="live-workflow";
+      const inWorkspace=live?!$("interview-view").hidden&&conversationUI.view==="workflow":
+        !$("review-view").hidden&&reviewUI.section==="review-map";
+      const visible=Boolean(pageVisible&&view.selected&&inWorkspace&&!document.hidden);
+      if(visible===view.visible)continue;
+      view.visible=visible;
+      if(visible)view.player.update(cinematicGraph(id,workflowGraph(id)),{live});
+      view.player.setVisible(visible);
+    }
+  }
+  function selectWorkflowMode(id,mode,focus=false) {
+    const prefix=workflowPrefix(id),mount=$(prefix+"-walkthrough"),diagram=$(prefix+"-diagram");
+    if(!mount||!diagram)return;
+    const selected=mode==="walkthrough";
+    let view=workflowPlayers.get(id);
+    if(selected&&!view){
+      if(!window.CollectorWalkthrough?.create){
+        notice("Cinematic view could not load. You can explore the captured routes in Diagram.",true);
+        return;
+      }
+      const player=window.CollectorWalkthrough.create(mount,{
+        ...(id==="process-map"?{onSetDesign(stepId,design){
+          if(!view?.visible||workflowPlayers.get(id)!==view)return false;
+          const step=state.draft?.steps.find(item=>item.id===stepId);
+          if(!step)return false;
+          if(design===null){
+            if(!draftComponentDesigns.delete(stepId))return true;
+          }else{
+            if(!validDesign(step,design))return false;
+            if(draftComponentDesigns.get(stepId)===design)return true;
+            draftComponentDesigns.set(stepId,design);
+          }
+          state.dirty=true;updateSaveHint();
+          view.player.update(cinematicGraph(id,state.draft),{live:false});
+          return true;
+        }}:{}),
+        renderEvidence(refs){
+          return evidenceRow(refs,()=>{if(sourceOrigin)sourceOrigin.cinematicId=id;});
+        },
+        onDetails(stepId){
+          const step=workflowGraph(id)?.steps.find(item=>item.id===stepId);
+          if(step)showWorkflowStep(step,id);
+        },
+        onExit(){selectWorkflowMode(id,"diagram",true);}
+      });
+      view={player,selected:false,visible:false,diagramDirty:false};
+      workflowPlayers.set(id,view);
+    }
+    if(view)view.selected=selected;
+    diagram.hidden=selected;
+    mount.hidden=!selected;
+    if(id==="process-map")$("export-map").hidden=selected;
+    for(const choice of ["diagram","walkthrough"]){
+      const button=$(prefix+"-mode-"+choice);
+      button.setAttribute("aria-pressed",String(choice===mode));
+      if(focus&&choice===mode)button.focus({preventScroll:true});
+    }
+    syncWorkflowVisibility();
+    if(!selected&&view?.diagramDirty){
+      view.diagramDirty=false;
+      return renderMap($(id),workflowGraph(id));
+    }
+    if(!selected)requestAnimationFrame(()=>workflowCanvases.get(id)?.refresh());
+  }
   function showWorkflowStep(step, containerId, refresh=false) {
     const dialog=$("workflow-step-dialog"),body=$("workflow-step-content");if(!dialog)return;
     if(!refresh)workflowDetailReturn=document.activeElement;
@@ -2512,7 +2623,17 @@
       }
       section.append(list);body.append(section);
     }
-    const follow=el("button","button secondary small","Follow this path");follow.type="button";follow.addEventListener("click",()=>{workflowDetailReturn=null;dialog.close();workflowCanvases.get(containerId)?.followPath(step.id);});body.append(follow);
+    const inWalkthrough=workflowPlayers.get(containerId)?.selected;
+    const follow=el("button","button secondary small",inWalkthrough?"Follow in diagram":"Follow this path");
+    follow.type="button";follow.addEventListener("click",async()=>{
+      workflowDetailReturn=null;dialog.close();
+      if(inWalkthrough){
+        const generation=state.generation;
+        await selectWorkflowMode(containerId,"diagram",true);
+        if(generation!==state.generation||workflowPlayers.get(containerId)?.selected)return;
+      }
+      workflowCanvases.get(containerId)?.followPath(step.id);
+    });body.append(follow);
     if(!dialog.open)dialog.showModal();
   }
   function renderWorkflowLegend(id,graph){
@@ -2534,7 +2655,7 @@
     if($(prefix+"-direction")){$(prefix+"-direction").disabled=!info.hasGraph;$(prefix+"-direction").textContent=info.direction==="DOWN"?"Vertical":"Horizontal";$(prefix+"-direction").setAttribute("aria-label",info.direction==="DOWN"?"Vertical layout. Switch to horizontal layout":"Horizontal layout. Switch to vertical layout");$(prefix+"-direction").title=$(prefix+"-direction").getAttribute("aria-label");}
     updateWorkflowNavigation(id,info);
     const exportButton=$(id==="live-workflow"?"export-working-map":"export-map");
-    if(exportButton)exportButton.disabled=!info.hasGraph||Boolean(info.updating)||info.exportReady===false;
+    if(exportButton)exportButton.disabled=Boolean(workflowPlayers.get(id)?.diagramDirty)||!info.hasGraph||Boolean(info.updating)||info.exportReady===false;
   }
   function updateWorkflowNavigation(id,info) {
     const prefix=id==="live-workflow"?"workflow":"map";
@@ -2612,9 +2733,18 @@
   }
   function renderMap(target = null, graph = state.draft) {
     const root=target||$("process-map");renderWorkflowLegend(root.id,graph);
+    const walkthrough=workflowPlayers.get(root.id);
+    if(walkthrough?.visible)walkthrough.player.update(cinematicGraph(root.id,graph),{live:root.id==="live-workflow"});
     if(workflowDetailSource?.containerId===root.id&&$("workflow-step-dialog")?.open){
       const current=graph?.steps.find(step=>step.id===workflowDetailSource.stepId);
       if(current)showWorkflowStep(current,root.id,true);else{workflowDetailReturn=null;$("workflow-step-dialog").close();}
+    }
+    if(walkthrough?.selected){
+      // The local cinematic renderer receives working captures above. Lay out the static
+      // diagram once, with the latest graph, when the reviewer returns to that view.
+      walkthrough.diagramDirty=true;
+      $(root.id==="live-workflow"?"export-working-map":"export-map").disabled=true;
+      return;
     }
     if(!graph?.steps.length){
       workflowCanvases.get(root.id)?.destroy();workflowCanvases.delete(root.id);root.classList.remove("workflow-fallback");root.classList.remove("workflow-canvas");Object.assign(root.style,{position:"",overflow:"",touchAction:""});
@@ -2627,11 +2757,12 @@
     try{
       root.classList.remove("workflow-fallback");
       if(!canvas){canvas=window.CollectorWorkflow.create(root,{onSelectStep:step=>showWorkflowStep(step,root.id),onViewChange:info=>updateCanvasControls(root.id,info)});workflowCanvases.set(root.id,canvas);}
+      const current=()=>state.generation===generation&&workflowCanvases.get(root.id)===canvas&&!workflowPlayers.get(root.id)?.diagramDirty;
       const pending=canvas.update(graph);
-      pending.then(applied=>{
-        if(!applied||state.generation!==generation||workflowCanvases.get(root.id)!==canvas)return;
+      return pending.then(applied=>{
+        if(!applied||!current())return;
         const retry=$(root.id==="live-workflow"?"retry-workflow":"map-retry-layout");if(retry?.dataset.layoutRetry){delete retry.dataset.layoutRetry;retry.hidden=true;if(root.id==="live-workflow")$("workflow-status").textContent="Diagram ready";const region=$(root.id==="live-workflow"?"interview-error":"review-error");if(region?.dataset.errorKind==="layout")region.hidden=true;}
-      }).catch(()=>{if(state.generation===generation&&workflowCanvases.get(root.id)===canvas)fail();});
+      }).catch(()=>{if(current())fail();});
     }catch{if(state.generation===generation)fail();}
   }
   function zoomMap(delta){workflowCanvases.get("process-map")?.zoom(delta);}
@@ -2642,12 +2773,13 @@
     const link = el("a"); link.href = url; link.download = filename; document.body.append(link); link.click(); link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 10000);
   }
-  function sessionObject() {
+  function sessionObject({includePresentation=false}={}) {
     const provenance=state.captureProvenance===null?null:savedCaptureProvenance(state.captureProvenance);
-    return {taxonomy:state.taxonomy,connections_out:state.connections_out,document_evidence:state.documentEvidence,workflow:conversationUI.workflow,schema_version:1,saved_at:new Date().toISOString(),context:state.context||readContext(),process_name_manual:state.processNameManual,derived_process_title:state.derivedProcessTitle,documents:documentController?.exportState()||null,document_questions_handled:[...documentQuestionsHandled],turns:state.turns,coverage:state.coverage,summary:state.summary,memo_findings:state.memo_findings,focus:state.focus,parking_lot:state.parking_lot,closure:provenance?{...state.closure,confirmed:false}:state.closure,...(provenance?{capture_provenance:provenance}:{}),draft:state.draft,draft_stale:Boolean(state.draft&&state.draftVersion!==state.version),draft_edited:state.draftEdited,synthetic_example:state.example,unsent_answer:$("answer-text").value,voice_choice:state.voiceChoice,knowledge_process_id:knowledgeUI?.processId||null,knowledge_status:knowledgeUI?.exportReceipt()||null};
+    const presentation=includePresentation&&draftComponentDesigns.size?{presentation:{component_designs:Object.fromEntries(draftComponentDesigns)}}:{};
+    return {...presentation,taxonomy:state.taxonomy,connections_out:state.connections_out,document_evidence:state.documentEvidence,workflow:conversationUI.workflow,schema_version:1,saved_at:new Date().toISOString(),context:state.context||readContext(),process_name_manual:state.processNameManual,derived_process_title:state.derivedProcessTitle,documents:documentController?.exportState()||null,document_questions_handled:[...documentQuestionsHandled],turns:state.turns,coverage:state.coverage,summary:state.summary,memo_findings:state.memo_findings,focus:state.focus,parking_lot:state.parking_lot,closure:provenance?{...state.closure,confirmed:false}:state.closure,...(provenance?{capture_provenance:provenance}:{}),draft:state.draft,draft_stale:Boolean(state.draft&&state.draftVersion!==state.version),draft_edited:state.draftEdited,synthetic_example:state.example,unsent_answer:$("answer-text").value,voice_choice:state.voiceChoice,knowledge_process_id:knowledgeUI?.processId||null,knowledge_status:knowledgeUI?.exportReceipt()||null};
   }
   function exportSession() {
-    download(JSON.stringify(sessionObject(),null,2), `${safeFilename(processDisplayName() || readContext().process_name)}-session.json`, "application/json");
+    download(JSON.stringify(sessionObject({includePresentation:true}),null,2), `${safeFilename(processDisplayName() || readContext().process_name)}-session.json`, "application/json");
     state.dirty = false;
     updateSaveHint();
     notice("Saved. Keep the file somewhere approved for company information.");
@@ -2775,6 +2907,7 @@
     return (!state.dirty&&!knowledgeUI?.hasPending) || confirm("Open a different interview? Anything you haven’t saved will be cleared. "+(knowledgeUI?.hasPending?"A process submission is awaiting confirmation; replacing this session loses its retry information and does not cancel a server save. Recover its status first if needed.":"Save a copy first if you want to keep it."));
   }
   function clearState(context = null) {
+    draftComponentDesigns.clear();
     concurrentInterview?.reset();
     conversationUI.live?.discardPendingAudio?.();topicDiscussion=[];analysisCheckpoint=null;
     reviewPauseSequence++;
@@ -2785,6 +2918,12 @@
     voiceEnded=false;
     documentController?.reset();pendingDocumentReason=null;restoringDocuments=false;documentQuestionsHandled.clear();
     if(documentEvidenceDialog?.open)documentEvidenceDialog.close();
+    for(const [id,view] of workflowPlayers){
+      view.diagramDirty=false;
+      selectWorkflowMode(id,"diagram");
+      view.player.destroy();
+    }
+    workflowPlayers.clear();
     workflowCanvases.forEach(canvas=>canvas.destroy());workflowCanvases.clear();
     if($("workflow-step-dialog")?.open)$("workflow-step-dialog").close();
     conversationUI.live?.stop({immediate:true});
@@ -2886,6 +3025,7 @@
       const documentEvidence=normalizeDocumentEvidence(saved.document_evidence);
       const draft = saved.draft ? normalizeDraft(saved.draft,turns,documentEvidence) : null;
       const workflow=saved.workflow?normalizeDraft(saved.workflow,turns,documentEvidence):null;
+      const designs=savedDesigns(saved.presentation?.component_designs,draft);
       const findings = normalizeFindings(saved.memo_findings||[],turns,documentEvidence);
       // A local file can preserve the reported account, but cannot establish a
       // fresh server assessment. Keep every answer/source while reopening status.
@@ -2900,6 +3040,7 @@
       normalizeCoverage(saved.coverage);
       const coverage=findings.map(finding=>({key:finding.key,label:TOPICS.find(([key])=>key===finding.key)[1],status:finding.status==="unknown"?"missing":"partial"})),unsent=text(saved.unsent_answer),documents=savedDocumentState(saved.documents);
       clearState(context);
+      draftComponentDesigns=designs;
       knowledgeUI?.restore(saved.knowledge_process_id,saved.knowledge_status);
       generation=state.generation;
       Object.assign(state,{...discovery,documentEvidence,turns,coverage,summary,draft,started:turns.length>0,busy:true,importing:true,example:saved.synthetic_example===true,draftEdited:saved.draft_edited===true,memo_findings:findings,focus,parking_lot:parked,captureProvenance,coverageNeedsReview:true,closure:{asked:saved.closure?.asked===true,confirmed:false}});
@@ -3048,6 +3189,9 @@
       try{await live.retryTranscription();}finally{updateControls();}
     });
     for(const [prefix,id] of [["workflow","live-workflow"],["map","process-map"]]){
+      for(const mode of ["diagram","walkthrough"]){
+        $(prefix+"-mode-"+mode).addEventListener("click",()=>selectWorkflowMode(id,mode));
+      }
       $(prefix+"-step-select").addEventListener("change",()=>{const canvas=workflowCanvases.get(id),step=$(prefix+"-step-select").value;if(canvas?.getPathNavigation?.().following)canvas.followPath(step);else canvas?.focusStep(step,{readable:true,keyboard:false,select:true});});
       $(prefix+"-follow").addEventListener("click",()=>{const canvas=workflowCanvases.get(id);if(canvas?.getPathNavigation?.().following)canvas.leavePath();else canvas?.followPath($(prefix+"-step-select").value);});
       for(const direction of ["previous","next"])$(prefix+"-path-"+direction).addEventListener("change",event=>workflowCanvases.get(id)?.navigatePath(event.target.value,direction));
@@ -3075,7 +3219,7 @@
     $("workflow-zoom-in").addEventListener("click",()=>workflowCanvases.get("live-workflow")?.zoom(.15));
     $("workflow-fit").addEventListener("click",()=>workflowCanvases.get("live-workflow")?.fit());
     for(const [button,id] of [["workflow-direction","live-workflow"],["map-direction","process-map"]])$(button).addEventListener("click",()=>{const canvas=workflowCanvases.get(id);if(canvas)canvas.setDirection(canvas.getDirection()==="DOWN"?"RIGHT":"DOWN").catch(()=>notice("Couldn’t change the layout. Your process is safe.",true));});
-    $("export-working-map").addEventListener("click",()=>{const svg=workflowCanvases.get("live-workflow")?.exportSVG();if(svg)download(svg,`${safeFilename(processDisplayName())}-working-flow.svg`,"image/svg+xml");});
+    $("export-working-map").addEventListener("click",()=>{if($("export-working-map").disabled)return;const svg=workflowCanvases.get("live-workflow")?.exportSVG();if(svg)download(svg,`${safeFilename(processDisplayName())}-working-flow.svg`,"image/svg+xml");});
     $("close-workflow-step").addEventListener("click",()=>$("workflow-step-dialog").close());
     $("workflow-step-dialog").addEventListener("close",()=>{workflowDetailReturn?.focus?.({preventScroll:true});workflowDetailReturn=null;workflowDetailSource=null;});
     $("workflow-expand").addEventListener("click",()=>setWorkflowExpanded(!$("interview-view").classList.contains("workflow-expanded")));
@@ -3083,6 +3227,10 @@
     $("pause-completion-review").addEventListener("click",pauseCompletionReview);
     document.querySelectorAll("[data-conversation-view]").forEach(button=>{button.addEventListener("click",()=>selectConversationView(button.dataset.conversationView));button.addEventListener("keydown",conversationTabKey);});
     $("open-interview-settings").addEventListener("click",()=>setInterviewSettings(true));
+    $("open-component-library")?.addEventListener("click",()=>{
+      closeMenu(true);
+      window.CollectorComponentLibrary.open({opener:$("session-menu-toggle")});
+    });
     $("close-interview-settings").addEventListener("click",()=>setInterviewSettings(false));
     $("interview-settings").addEventListener("close",()=>{if(settingsRestoreFocus)$("session-menu-toggle").focus({preventScroll:true});});
     initFoundationDialog();
@@ -3131,7 +3279,7 @@
     $("leave-example").addEventListener("click",() => {if (canReplaceSession()) {clearState(); $("process-name").focus();}});
     $("export-markdown").addEventListener("click",() => {if (state.draft) download(markdown(),`${safeFilename(state.draft.title)}-DRAFT.md`,"text/markdown;charset=utf-8");});
     $("export-memo").addEventListener("click",()=>{if(state.draft)download(memoMarkdown(),`${safeFilename(processDisplayName()||state.draft.title)}-memo-DRAFT.md`,"text/markdown;charset=utf-8");});
-    $("export-map").addEventListener("click",() => {const exported=workflowCanvases.get("process-map")?.exportSVG();if(exported)download(exported,`${safeFilename(state.draft.title)}-DRAFT-map.svg`,"image/svg+xml");});
+    $("export-map").addEventListener("click",() => {if($("export-map").disabled)return;const exported=workflowCanvases.get("process-map")?.exportSVG();if(exported)download(exported,`${safeFilename(state.draft.title)}-DRAFT-map.svg`,"image/svg+xml");});
     $("add-step").addEventListener("click",() => {
       if (!state.draft || state.draft.steps.length >= 80) return;
       let n = state.draft.steps.length + 1;
@@ -3164,8 +3312,9 @@
     $("process-name").addEventListener("change",()=>{if(conversationUI.workflow)renderWorkingMap();if(conversationUI.live?.active)conversationUI.live.appendContext(`The participant edited the process title to: ${$("process-name").value}`,{id:`title_${Date.now()}`,kind:"process_title"});});
     window.addEventListener("beforeunload",event => {if (state.dirty || knowledgeUI?.hasPending || state.recording || state.requestingMic || state.transcribing) {event.preventDefault(); event.returnValue = "";}});
     document.addEventListener("visibilitychange",updatePresence);
-    window.addEventListener("pagehide",() => {stopSpeaking(); finishRecording(true);gpfsPresence?.setVisible(false);});
-    window.addEventListener("pageshow",event=>{if(event.persisted)updatePresence();});
+    document.addEventListener("visibilitychange",()=>syncWorkflowVisibility());
+    window.addEventListener("pagehide",() => {stopSpeaking(); finishRecording(true);gpfsPresence?.setVisible(false);syncWorkflowVisibility(false);});
+    window.addEventListener("pageshow",event=>{if(event.persisted){updatePresence();syncWorkflowVisibility();}});
     bindDraftFields();
   }
   async function init() {

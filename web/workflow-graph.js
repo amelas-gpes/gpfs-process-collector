@@ -60,6 +60,16 @@
     return {type,width,height,contentWidth,contentHeight,blocks,diamond};
   }
   function edgeMetrics(value){const width=clamp(measureText(value,11,500)+24,44,200),lines=wrapText(value,width-24,11,500);return {width,height:lines.length*15+14,lines};}
+  function cinematicNodeMetrics(step) {
+    const width=150;
+    const titleLines=wrapText(step.title||step.id,width-12,15,600);
+    return {width,height:Math.max(108,76+16*titleLines.length),titleLines};
+  }
+  function cinematicEdgeMetrics(label) {
+    const width=clamp(measureText(label,12,500)+14,28,107);
+    const lines=wrapText(label,width-14,12,500);
+    return {width,height:lines.length*14+6,lines};
+  }
   function colorFor(actor) {let hash=0;for(const ch of string(actor))hash=(hash*31+ch.charCodeAt(0))>>>0;return PALETTE[hash%PALETTE.length];}
   function nodeShape(doc,type,x,y,w,h,mini=false){
     const theme=TYPES[type]||TYPES.activity,attrs={fill:theme.fill,stroke:theme.stroke,"stroke-width":mini?0:1.4};
@@ -84,7 +94,7 @@
     connections.forEach(edge=>{incoming.get(edge.to).push(edge);outgoing.get(edge.from).push(edge);});
     return {title:string(graph.title),steps,connections,incoming,outgoing};
   }
-  function elkGraph(data,direction="RIGHT") {
+  function elkGraph(data,direction="RIGHT",cinematic=false) {
     const vertical=direction==="DOWN";
     return {id:"workflow",layoutOptions:{
       "elk.algorithm":"layered","elk.direction":vertical?"DOWN":"RIGHT","elk.edgeRouting":"ORTHOGONAL",
@@ -93,17 +103,26 @@
       "elk.layered.spacing.edgeNodeBetweenLayers":"28","elk.spacing.edgeEdge":"24",
       "elk.layered.spacing.edgeEdgeBetweenLayers":"20","elk.layered.considerModelOrder.strategy":"NODES_AND_EDGES",
       "elk.layered.nodePlacement.strategy":"NETWORK_SIMPLEX","elk.layered.cycleBreaking.strategy":"MODEL_ORDER",
-      "elk.layered.crossingMinimization.strategy":"LAYER_SWEEP","elk.separateConnectedComponents":"true"
+      "elk.layered.crossingMinimization.strategy":"LAYER_SWEEP","elk.separateConnectedComponents":"true",
+      ...(cinematic ? {
+        "elk.padding":"[top=18,left=18,bottom=18,right=18]",
+        "elk.spacing.nodeNode":"22","elk.layered.spacing.nodeNodeBetweenLayers":"22",
+        "elk.spacing.edgeNode":"14","elk.layered.spacing.edgeNodeBetweenLayers":"14",
+        "elk.spacing.edgeEdge":"12","elk.layered.spacing.edgeEdgeBetweenLayers":"12",
+        "elk.layered.wrapping.strategy":"MULTI_EDGE","elk.aspectRatio":"1.9"
+      } : {})
     },children:data.steps.map(step=>{
-      const {width,height}=nodeMetrics(step);
+      const {width,height}=cinematic ? cinematicNodeMetrics(step) : nodeMetrics(step);
       return {id:step.id,width,height,layoutOptions:{"elk.portConstraints":"FIXED_POS"},ports:[
         {id:`${step.id}::in`,x:vertical?width/2:0,y:vertical?0:height/2,width:0,height:0,layoutOptions:{"elk.port.side":vertical?"NORTH":"WEST"}},
         // ELK normalizes side ports to the box border; the wave's midpoint is inset.
-        {id:`${step.id}::out`,x:vertical?width/2:width,y:vertical?height:height/2,width:0,height:0,layoutOptions:{"elk.port.side":vertical?"SOUTH":"EAST","elk.port.borderOffset":vertical&&step.type==="document"?"-14":"0"}}
+        {id:`${step.id}::out`,x:vertical?width/2:width,y:vertical?height:height/2,width:0,height:0,layoutOptions:{"elk.port.side":vertical?"SOUTH":"EAST","elk.port.borderOffset":vertical&&!cinematic&&step.type==="document"?"-14":"0"}}
       ]};
-    }),edges:data.connections.map(edge=>({id:edge.id,sources:[`${edge.from}::out`],targets:[`${edge.to}::in`],
-        labels:edge.label?[{id:`${edge.id}-label`,text:string(edge.label),width:edgeMetrics(edge.label).width,height:edgeMetrics(edge.label).height}]:[]
-      }))};
+    }),edges:data.connections.map(edge=>{
+      const size=edge.label && (cinematic ? cinematicEdgeMetrics(edge.label) : edgeMetrics(edge.label));
+      return {id:edge.id,sources:[`${edge.from}::out`],targets:[`${edge.to}::in`],
+        labels:size?[{id:`${edge.id}-label`,text:string(edge.label),width:size.width,height:size.height}]:[]};
+    })};
   }
   function points(section) {return [section.startPoint,...(section.bendPoints||[]),section.endPoint].filter(Boolean);}
   function roundedPath(vertices,radius=7) {
@@ -118,6 +137,44 @@
     }
     if(vertices.length>1)d+=` L ${vertices.at(-1).x} ${vertices.at(-1).y}`;
     return d;
+  }
+  let cinematicEngine;
+  async function cinematicLayout(graph) {
+    const data=model(graph);
+    if(!data.steps.length)return {width:0,height:0,nodes:[],edges:[]};
+    if(!scope.ELK)throw new Error("The local workflow layout engine could not load.");
+    cinematicEngine ||= new scope.ELK();
+    const prepare=()=>elkGraph(data,"RIGHT",true);
+    const complete=layout=>Number.isFinite(layout?.width)&&Number.isFinite(layout?.height)&&
+      layout.children?.length===data.steps.length && layout.edges?.length===data.connections.length &&
+      layout.edges.every(edge=>edge.sections?.length && edge.sections.every(section=>section.startPoint&&section.endPoint));
+    let layout;
+    try { layout=await cinematicEngine.layout(prepare()); }
+    catch { /* Some combinations of joins and loops cannot be folded by ELK. */ }
+    if(!complete(layout)) {
+      // The wrapping pass can return a graph with a missing routed section.
+      // Use the ordinary layered routing pass so every captured connection is selectable.
+      const input=prepare();
+      input.layoutOptions["elk.layered.wrapping.strategy"]="OFF";
+      layout=await cinematicEngine.layout(input);
+      if(!complete(layout))throw new Error("The complete workflow layout could not be calculated.");
+    }
+    const steps=new Map(data.steps.map(step=>[step.id,step]));
+    const connections=new Map(data.connections.map(edge=>[edge.id,edge]));
+    const nodes=layout.children.map(({id,x,y,width,height})=>{
+      const step=steps.get(id);
+      return {id,step,x,y,width,height,titleLines:cinematicNodeMetrics(step).titleLines};
+    });
+    const edges=layout.edges.map(item=>{
+      const edge=connections.get(item.id);
+      const paths=item.sections.map(section=>{
+        const vertices=points(section);
+        return {d:roundedPath(vertices),points:vertices};
+      });
+      const labels=(item.labels||[]).map(({x,y,width,height})=>({x,y,width,height,lines:cinematicEdgeMetrics(edge.label).lines}));
+      return {key:JSON.stringify([edge.from,edge.to,edge.label||""]),edge,paths,labels};
+    });
+    return {width:layout.width,height:layout.height,nodes,edges};
   }
   class Canvas {
     constructor(container,options={}) {
@@ -392,5 +449,5 @@
       this.dead=true;this.pending=false;this.version++;this.observer?.disconnect();try{this.engine.terminateWorker?.();}catch{/* ELK's in-process browser worker has no terminate method. */}this.listeners.forEach(([target,name,fn,options])=>target.removeEventListener(name,fn,options));this.listeners=[];this.container.replaceChildren();this.container.classList.remove("workflow-canvas");
     }
   }
-  scope.CollectorWorkflow={create:(container,options)=>new Canvas(container,options),model,elkGraph,roundedPath,measureText,wrapText,nodeMetrics,edgeMetrics,types:TYPES};
+  scope.CollectorWorkflow={create:(container,options)=>new Canvas(container,options),model,elkGraph,cinematicLayout,roundedPath,measureText,wrapText,nodeMetrics,edgeMetrics,types:TYPES};
 })(typeof window!=="undefined"?window:globalThis);

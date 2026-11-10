@@ -58,6 +58,20 @@ If the diagram engine fails, captured components and exact reported routes remai
 full-text list. **Retry diagram** reloads only the bundled local assets as needed and retries layout;
 it does not reload the interview or make a model request. SVG export resumes after successful layout.
 
+## Cinematic map
+
+Choose **Cinematic** in Interview or Review to see the whole process at once. Each of the eleven supported component types has a reusable dimensional symbol. Select any component to inspect it and its incoming and outgoing connections. Select a connector or its label to inspect the reported direction, condition and evidence. The selector above the map can locate any component or connection, including on a small screen. Use **Fit map** to return to the overview or **Expand cinematic map** for more space.
+
+The browser uses the standard workflow's step IDs, types, labels and connections. A completed interview capture or draft edit refreshes the visualization and retains the selection while its component or connection exists. Layout, selection, zoom and directional animation run locally and add no AI request. The normal interview and extraction still use their configured providers. **Flow motion** illustrates the directions work can travel. It can be paused, and the map honors the device's reduced-motion preference.
+
+## Component library
+
+Open **Component library** in the session menu or above a cinematic map. Search by name or filter by family, then select a tile to see its enlarged artwork, purpose and identifying features. The same reusable drawings appear on the map and in the step inspector. The palette uses GPFS copper, taupe, Bermuda Grey and Feldspar against light neutral surfaces.
+
+The 91 business designs cover operations such as waterfall calculations, investment discounts, cash application, beneficiary verification, migration, billing and preparation of an audit response. Eleven structural symbols describe the routing and record types. An explicitly captured document, data store or subprocess can carry an operational symbol on its corresponding base. Decisions, parallel gateways, waits, starts and ends retain their structural identity.
+
+In a reviewed draft, select an eligible step and choose **Change design**. **Use this design** saves a presentation choice. **Use automatic design** restores local matching. **Save copy** retains those choices alongside the draft in the interview file. Replacing the draft starts a fresh set of choices. The working capture, interview evidence and provider requests stay independent of presentation preferences.
+
 ## Evidence, editing and bounds
 
 Every generated component and connection needs participant evidence or scoped documentary citations. Documentary evidence remains distinct from participant confirmation. Incomplete decision

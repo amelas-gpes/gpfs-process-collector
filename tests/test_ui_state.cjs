@@ -77,7 +77,7 @@ const exportBindings=appSource.split("\n").filter(line=>/\$\("(?:export-working-
 const titleBinding=appSource.match(/\$\("process-name"\)\.addEventListener\("input",\(\)=>\{[\s\S]*?\n    \}\);/)?.[0]||"";
 const liveBindings=appSource.split("\n").filter(line=>/\$\("(?:stop-live|mute-live)"\)\.addEventListener/.test(line)).join("\n");
 const source=appSource
- .replace("  init();","  window.__sidebarTests={memoUI,selectMemoSection,memoTabKey,initMemoTabs,openDocumentAssets,updateAssetCount,placeConversationDock,setTranscriptFind,setTranscriptExport,initTranscriptTools,updateConversationControls,exerciseControls:updateControls,appendDocumentMessage,realRequest:request,createIntake:()=>documentIntake=createDocumentIntake(),setIntake:value=>{documentIntake=value;}};\n  init();")
+ .replace("  init();","  window.__sidebarTests={selectWorkflowMode,syncWorkflowVisibility,exportSession,generateDraft,memoUI,selectMemoSection,memoTabKey,initMemoTabs,openDocumentAssets,updateAssetCount,placeConversationDock,setTranscriptFind,setTranscriptExport,initTranscriptTools,updateConversationControls,exerciseControls:updateControls,appendDocumentMessage,realRequest:request,createIntake:()=>documentIntake=createDocumentIntake(),setIntake:value=>{documentIntake=value;}};\n  init();")
  .replace(/  init\(\);\s*\}\)\(\);\s*$/,"  updateControls=()=>{updatePresence();}; window.__downloads=[]; download=(...args)=>window.__downloads.push(args); "+exportBindings+titleBinding+liveBindings+" window.__uiTests={normalizeDocumentEvidence,normalizeFindings,boundedVoiceDocuments,sourceCaption,scrollToElement,dismissInlineError,dismissNotice,placeMemo,resolveDocumentPurpose,skipQuestion,getPendingDocumentReason:()=>pendingDocumentReason,readingUI,refreshReadingSearch,moveReadingSearch,returnToSource,renderCoverage,state,renderTranscript,showFoundationTopic,initFoundationDialog,closeFoundationTopic,jumpToTurn,jumpToReview,tab,initReviewTabs,selectReviewSection,reviewTabKey,renderMap,renderWorkingMap,workflowCanvases,showWorkflowStep,renderWorkflowLegend,retryWorkflowLayout,ensureWorkflowAssets,renderSteps,updateWorkflowNavigation,updateCanvasControls,zoomMap,fitMapToWidth,conversationUI,selectConversationView,conversationTabKey,receiveLiveCaption,scheduleWorkflow,refreshWorkflow,clearState,sendAnswer,retryQuestion,setMemoSheet,setInterviewSettings,notice,applyInterview,markdown,memoMarkdown,normalizeDraft,ensureConversation,applyProcessTitle,documentContext,onDocumentEvent,snapshot,sessionObject,importSession,presenceState,updatePresence,startLiveConversation,setPresenceFake:value=>{gpfsPresence=value;},setDocumentController:value=>{documentController=value;},renderReport:typeof renderReport==='function'?renderReport:null,setRequest:fn=>{request=fn;}};\n})();");
 context.TextEncoder=TextEncoder;vm.createContext(context);vm.runInContext(source,context,{filename:"app.js"});
 const t=context.window.__uiTests;if(!t)throw Error("UI test seam was not installed");Object.assign(t,context.window.__sidebarTests);t.initFoundationDialog();t.initReviewTabs();
@@ -1343,6 +1343,133 @@ if(process.argv.includes("--usability-only")){
   t.conversationUI.live={active:true,connected:true};t.conversationUI.status="processing";t.updatePresence();assert.equal(document.getElementById("session-status").textContent,"Checking the recorded topics and process…");
   t.conversationUI.live=null;t.conversationUI.status="idle";finish({question:"Which handoff needs more detail?",coverage_verified:true});await reviewing;
   t.state.busy=true;t.state.busyMessage="";t.exerciseControls();assert.equal(document.getElementById("thinking-text").textContent,"Thinking of the next question…");t.updatePresence();assert.equal(document.getElementById("presence-status").textContent,"Thinking…");t.state.busy=false;passes++;
+ }
+ {
+  checkpoint();t.clearState();t.conversationUI.live=null;
+  for(const [prefix,parent] of [["map",review],["workflow",interview]]){
+   mount(prefix+"-diagram","div",parent);
+   mount(prefix+"-walkthrough","div",parent).hidden=true;
+   for(const mode of ["diagram","walkthrough"])mount(prefix+"-mode-"+mode,"button",parent);
+  }
+  const players=[];
+  context.window.CollectorWalkthrough={create(root,actions){
+   const player={
+    root,actions,visible:false,destroyed:false,
+    update(data,{live}){this.title=data?.steps[0]?.title;this.live=live;},
+    setVisible(value){this.visible=value;},
+    destroy(){this.destroyed=true;}
+   };
+   players.push(player);return player;
+  }};
+  let cinematicRequests=0;
+  t.setRequest(()=>{cinematicRequests++;throw Error("Viewing a captured map must stay local");});
+  t.state.example=false;t.state.config={api_configured:true,agent_team:{enabled:true}};
+  t.state.turns=[{id:"t002",role:"user",text:"I send the invoice to Treasury."}];
+  t.conversationUI.applied=t.conversationUI.revision;
+  t.renderTranscript();
+  t.selectReviewSection("review-map");
+  t.state.draft=graph("Draft",[{id:"S1",title:"Draft intake"}]);
+  t.conversationUI.workflow=graph("Working",[{id:"S1",title:"Working intake"}]);
+  t.tab("review");t.selectWorkflowMode("process-map","walkthrough");
+  const draft=players[0];
+  assert.equal(draft.visible,true);assert.equal(draft.live,false);assert.equal(draft.title,"Draft intake");
+  assert.equal(document.getElementById("map-diagram").hidden,true);
+  assert.equal(document.getElementById("export-map").hidden,true);
+  const sourceRow=draft.actions.renderEvidence(["t002"]);
+  draft.root.append(sourceRow);sourceRow.querySelector("button").dispatch("click");
+  assert.equal(t.conversationUI.view,"transcript");
+  const updatedRow=draft.actions.renderEvidence(["t002"]);
+  draft.root.replaceChildren(updatedRow);t.returnToSource();
+  assert.equal(document.activeElement,updatedRow.querySelector("button"),"Return to the selected connector's evidence");
+  t.selectReviewSection("review-procedure");assert.equal(draft.visible,false);
+  t.state.draft.steps[0].title="Edited draft intake";
+  t.selectReviewSection("review-map");assert.equal(draft.title,"Edited draft intake");
+  draft.actions.onDetails("S1");assert.equal(document.getElementById("workflow-step-title").textContent,"Edited draft intake");stepDialog.close();
+  t.tab("interview");t.selectConversationView("workflow");assert.equal(draft.visible,false);
+  assert.equal(document.getElementById("workflow-walkthrough").hidden,true);
+  t.selectWorkflowMode("live-workflow","walkthrough");const working=players[1];
+  assert.equal(working.visible,true);assert.equal(working.live,true);assert.equal(working.title,"Working intake");
+  const staticCanvases=fakeWorkflow();
+  t.conversationUI.workflow=graph("Working",[{id:"S1",title:"Updated working intake"}]);
+  t.renderWorkingMap();assert.equal(working.title,"Updated working intake");
+  assert.equal(staticCanvases.length,0,"A captured update lays out only the cinematic map while it is selected");
+  assert.equal(document.getElementById("export-working-map").disabled,true);
+  document.hidden=true;t.syncWorkflowVisibility();assert.equal(working.visible,false);
+  t.conversationUI.workflow=graph("Working",[{id:"S1",title:"New evidence while hidden"}]);
+  t.renderWorkingMap();assert.equal(working.title,"Updated working intake");
+  document.hidden=false;t.syncWorkflowVisibility();assert.equal(working.visible,true);
+  assert.equal(working.title,"New evidence while hidden");
+  t.selectConversationView("transcript");assert.equal(working.visible,false);
+  t.selectConversationView("workflow");assert.equal(working.visible,true);
+  working.actions.onExit();assert.equal(working.visible,false);
+  assert.equal(document.activeElement.id,"workflow-mode-diagram");
+  assert.equal(staticCanvases[0].requests[0].graph,t.conversationUI.workflow);
+  assert.equal(document.getElementById("export-working-map").disabled,true,"Static export waits for the latest layout");
+  staticCanvases[0].requests[0].resolve(true);await nextMicrotask();
+  assert.equal(document.getElementById("export-working-map").disabled,false);
+  assert.equal(cinematicRequests,0);
+  assert.equal(t.conversationUI.flowTimer,null,"Viewing existing evidence schedules no model request");
+  finishCanvases();
+  t.clearState();assert.ok(players.every(player=>player.destroyed));
+  assert.equal(document.getElementById("map-mode-diagram").getAttribute("aria-pressed"),"true");
+  assert.equal(document.getElementById("export-map").hidden,false);
+  delete context.window.CollectorWalkthrough;passes++;
+ }
+ {
+  // Explicit component choices travel only in a local Save copy; use the real catalog and editor.
+  checkpoint();t.setDocumentController(null);
+  vm.runInContext(fs.readFileSync(path.join(__dirname,"..","web","workflow-components.js"),"utf8"),context);
+  const players={};
+  context.window.CollectorWalkthrough={create(root,actions){
+   const player={actions,setVisible(){},destroy(){},update(data){this.graph=data;}};
+   players[root.id]=player;return player;
+  }};
+  const types=["activity","document","data_store","subprocess","decision","start","end","wait","parallel_split","parallel_join","merge"];
+  const input={title:"Example process",steps:types.map((type,i)=>({id:"M"+i,type,title:"Handle item "+i,evidence_turns:["t002"]})),connections:[]};
+  const base={schema_version:1,context:{process_name:"Example process"},turns:[{id:"t002",role:"user",text:"Fictional account"}],draft:input,workflow:input,coverage:[],synthetic_example:true};
+  const open=async saved=>{const data=JSON.stringify(saved);await t.importSession({size:data.length,text:async()=>data});};
+  const reviewPlayer=()=>{t.tab("review");t.selectReviewSection("review-map");t.selectWorkflowMode("process-map","walkthrough");return players["map-walkthrough"];};
+  const control=label=>walk(document.getElementById("procedure-steps")).find(node=>node.getAttribute("aria-label")===label);
+  const save=()=>{t.exportSession();return JSON.parse(context.window.__downloads.at(-1)[0]);};
+  let modelCalls=0;
+  t.setRequest(()=>{modelCalls++;throw Error("Unexpected request");});
+  await open(base);let player=reviewPlayer();
+  const source=JSON.stringify([t.state.draft,t.conversationUI.workflow,t.snapshot()]);
+  for(const design of context.window.CollectorComponents.all)assert.equal(player.actions.onSetDesign("M0",design.id),true);
+  for(const step of input.steps.slice(0,4))assert.equal(player.actions.onSetDesign(step.id,"invoice"),true);
+  for(const step of input.steps.slice(4))assert.equal(player.actions.onSetDesign(step.id,"invoice"),false);
+  for(const invalid of ["unrecognized",[],{},7,"x".repeat(200)])assert.equal(player.actions.onSetDesign("M0",invalid),false);
+  assert.equal(player.actions.onSetDesign("missing","invoice"),false);
+  assert.equal(JSON.stringify([t.state.draft,t.conversationUI.workflow,t.snapshot()]),source);
+  assert.equal(t.state.dirty,true);assert.equal(t.state.draftEdited,false);
+  assert.equal(t.sessionObject().presentation,undefined,"Knowledge submission receives no local design preferences");
+  const saved=save();assert.equal(saved.presentation.component_designs.M0,"invoice");
+  assert.deepEqual(saved.draft,JSON.parse(JSON.stringify(t.state.draft)));
+  assert.equal(player.actions.onSetDesign("M0",null),true);assert.equal(player.graph.component_designs.M0,undefined);
+  assert.equal(player.actions.onSetDesign("M0",null),true,"Choosing Automatic again closes the picker without creating another edit");
+  const oldActions=player.actions;
+  await open({...saved,presentation:{component_designs:{...saved.presentation.component_designs,M1:23,M4:"invoice",missing:"invoice",M2:"obsolete"}}});
+  player=reviewPlayer();assert.deepEqual(Object.entries(player.graph.component_designs),[["M0","invoice"],["M3","invoice"]]);
+  assert.equal(oldActions.onSetDesign("M0","waterfall"),false,"An action from a previous interview cannot change the new draft");
+  t.tab("interview");t.selectConversationView("workflow");t.selectWorkflowMode("live-workflow","walkthrough");
+  const live=players["workflow-walkthrough"];assert.equal(live.actions.onSetDesign,undefined);assert.equal(live.graph.component_designs,undefined);
+  player=reviewPlayer();t.selectReviewSection("review-procedure");
+  const type=control("Type of step M0");type.value="document";type.dispatch("change");assert.equal(save().presentation.component_designs.M0,"invoice");
+  type.value="decision";type.dispatch("change");type.value="activity";type.dispatch("change");
+  assert.equal(save().presentation.component_designs.M0,undefined,"Changing to a structural type removes the override permanently");
+  const remove=control("Remove step M3");context.confirm=()=>false;remove.dispatch("click");
+  assert.equal(save().presentation.component_designs.M3,"invoice");
+  context.confirm=()=>true;remove.dispatch("click");
+  assert.equal(save().presentation,undefined,"A removed ID cannot pass its previous choice to a future step");
+  await open(saved);player=reviewPlayer();assert.equal(player.graph.component_designs.M0,"invoice");
+  context.confirm=()=>false;await t.generateDraft();assert.equal(save().presentation.component_designs.M0,"invoice");
+  assert.equal(modelCalls,0);
+  context.confirm=()=>true;
+  t.setRequest(async(url,payload)=>{modelCalls++;assert.equal(url,"/api/draft");assert.equal(payload.presentation,undefined);assert.equal(payload.component_designs,undefined);return {draft:input};});
+  await t.generateDraft();assert.equal(modelCalls,1);assert.equal(save().presentation,undefined,"A regenerated draft may reuse step IDs for different work");
+  await open(base);player=reviewPlayer();assert.equal(player.graph.component_designs,undefined,"Old saved sessions automatically use the catalog");
+  player.actions.onSetDesign("M1","invoice");t.clearState();assert.equal(save().presentation,undefined);
+  delete context.window.CollectorWalkthrough;passes++;
  }
  checkpoint();console.log(JSON.stringify({tests_passed:passes,provider_calls:providerCalls,network_calls:0,real_browser:false}));
 })().catch(error=>{console.error(error);process.exitCode=1;});

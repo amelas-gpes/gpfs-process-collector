@@ -7,7 +7,8 @@ const path = require("node:path");
 const vm = require("node:vm");
 const ELK = require("../web/vendor/elk.bundled.js");
 const cases = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures/workflow-scenarios.json"), "utf8")).scenarios;
-const window = { ELK };
+// The browser runs ELK and graph construction in one realm. Normalize objects crossing Node's VM boundary.
+const window = { ELK: class extends ELK { layout(input) { return super.layout(clean(input)); } } };
 vm.runInNewContext(fs.readFileSync(path.join(__dirname, "../web/workflow-graph.js"), "utf8"), { window, console });
 const api = window.CollectorWorkflow;
 const clean = value => JSON.parse(JSON.stringify(value));
@@ -89,6 +90,24 @@ function auditLayout(layout, input, direction) {
   return { direction, width: layout.width, height: layout.height, nodes: nodes.length, edges: edges.length, labels: labels.length, issues };
 }
 
+async function auditCinematic(input) {
+  const scene = await api.cinematicLayout(input);
+  const originalKeys = input.connections.map(edge => JSON.stringify([edge.from, edge.to, edge.label || ""]));
+  assert.deepEqual(Array.from(scene.edges, item => item.key).sort(), originalKeys.sort(), "Every reported route needs its own selection target.");
+  for (const node of scene.nodes) {
+    assert.equal(compact(node.titleLines.join("")), compact(node.step.title || node.id));
+    assert(node.titleLines.every(line => api.measureText(line, 15, 600) <= node.width - 12));
+  }
+  const edges = scene.edges.map(({edge, paths, labels}) => {
+    assert.equal(compact(labels.flatMap(label => label.lines).join("")), compact(edge.label));
+    return {id:edge.id, labels, sections:paths.map(({d, points}) => {
+      assert(d.startsWith("M ") && points.length >= 2);
+      return {startPoint:points[0], bendPoints:points.slice(1, -1), endPoint:points.at(-1)};
+    })};
+  });
+  return auditLayout({width:scene.width, height:scene.height, children:scene.nodes, edges}, input, "cinematic");
+}
+
 async function main() {
   const engine = new ELK(), results = [], components = new Set(), started = Date.now();
   let textBlocks = 0, textLines = 0;
@@ -128,6 +147,9 @@ async function main() {
         }
         results.push(result);
       }
+      const cinematic = await auditCinematic(input);
+      cinematic.scenario = fixture.id;
+      results.push(cinematic);
       assert.equal(JSON.stringify(input), before, `${fixture.id}: layout must not mutate source facts.`);
     }
     assert.deepEqual([...components].sort(), ["activity", "data_store", "decision", "document", "end", "merge", "parallel_join", "parallel_split", "start", "subprocess", "wait"]);

@@ -25,7 +25,7 @@ from urllib.parse import unquote, urlsplit
 from urllib.request import Request, urlopen
 import webbrowser
 
-VERSION = "0.26.1"
+VERSION = "0.29.0"
 APP_DIR = Path(__file__).resolve().parent
 WEB_DIR = APP_DIR / "web"
 DIAGNOSTIC_MAX_BYTES = 1024 * 1024
@@ -2723,6 +2723,14 @@ class Handler(BaseHTTPRequestHandler):
                  "/theme.js": ("theme.js", "text/javascript; charset=utf-8"),
                  "/app.js": ("app.js", "text/javascript; charset=utf-8"),
                  "/workflow-graph.js": ("workflow-graph.js", "text/javascript; charset=utf-8"),
+                 "/workflow-components.js": ("workflow-components.js", "text/javascript; charset=utf-8"),
+                 "/workflow-component-art.js": ("workflow-component-art.js", "text/javascript; charset=utf-8"),
+                 "/component-library.js": ("component-library.js", "text/javascript; charset=utf-8"),
+                 "/component-library.css": ("component-library.css", "text/css; charset=utf-8"),
+                 "/workflow-stage.js": ("workflow-stage.js", "text/javascript; charset=utf-8"),
+                 "/workflow-stage.css": ("workflow-stage.css", "text/css; charset=utf-8"),
+                 "/workflow-walkthrough.js": ("workflow-walkthrough.js", "text/javascript; charset=utf-8"),
+                 "/workflow-walkthrough.css": ("workflow-walkthrough.css", "text/css; charset=utf-8"),
                  "/vendor/elk.bundled.js": ("vendor/elk.bundled.js", "text/javascript; charset=utf-8"),
                  "/live-voice.js": ("live-voice.js", "text/javascript; charset=utf-8"),
                  "/controlled-voice.js": ("controlled-voice.js", "text/javascript; charset=utf-8"),

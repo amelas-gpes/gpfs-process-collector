@@ -36,9 +36,10 @@ condition is silently shortened with an ellipsis. Concise titles are encouraged 
 full operating detail remains in the step dialog and evidence references. Unestablished owner/system
 fields remain explicit in details without filling every shape with repeated placeholder text.
 
-The layered layout routes orthogonal connections around nodes, with separate decision branches,
-reported return loops, independent fragments and all-branch dependencies preserved. Rendering cannot
-add, delete or reverse a process connection. Both horizontal and vertical orientations are available.
+Diagram places steps according to their reported connections. The order in which steps were listed
+breaks ties between available steps. Rework and self-loops use separate return ports so the main
+handoff remains visible. Both horizontal and vertical orientations are available. If a routed arrow
+misses the port at either end, the text fallback shows the reported connections.
 New canvases on narrow screens start vertically unless an orientation was explicitly supplied.
 
 Large maps open at a readable starting point. Use **Fit** for the whole map, **Step** to locate an
@@ -62,6 +63,11 @@ it does not reload the interview or make a model request. SVG export resumes aft
 
 Choose **Cinematic** in Interview or Review to see the whole process at once. Each of the eleven supported component types has a reusable dimensional symbol. Select any component to inspect it and its incoming and outgoing connections. Select a connector or its label to inspect the reported direction, condition and evidence. The selector above the map can locate any component or connection, including on a small screen. Use **Fit map** to return to the overview or **Expand cinematic map** for more space.
 
+Selecting a connection frames the source, destination and route together. A long, uninterrupted
+chain can continue on the next row in the opposite direction, with a short arrow at the row end.
+Decisions, joins, loops and separate groups use layered routing. Both views identify groups with
+no recorded connection and keep them separate.
+
 The browser uses the standard workflow's step IDs, types, labels and connections. A completed interview capture or draft edit refreshes the visualization and retains the selection while its component or connection exists. Layout, selection, zoom and directional animation run locally and add no AI request. The normal interview and extraction still use their configured providers. **Flow motion** illustrates the directions work can travel. It can be paused, and the map honors the device's reduced-motion preference.
 
 ## Component library
@@ -80,6 +86,12 @@ make the symbols look complete. Working updates retain stable IDs and apply scop
 described in [Workflow updates](WORKFLOW_UPDATES.md). Existing activity/decision interviews remain
 compatible; all eleven types are preserved through saving, reopening, draft editing and export.
 
+Under **Review → Steps → Connections between steps**, choose **From step** and **To step**
+before adding a route. A step can return to itself. Different conditions can lead to the same
+destination. Changing a route asks the reviewer whether the original sources still support it.
+If an older saved graph repeats the same endpoints and condition, the maps show one arrow with
+the combined citations. The underlying saved records remain available to review individually.
+
 The supported map limit remains 80 components and 150 connections. A very large graph necessarily
 needs pan/zoom or path navigation; fitting it all into a phone screen cannot preserve reading size.
 Subprocesses are collapsed representations, not interactive nested diagrams. Actor labels identify
@@ -97,3 +109,16 @@ topology, node/label collisions, connector routing, order and text geometry. Bro
 actual app and measured SVG glyph bounds at multiple viewport sizes. Synthetic provider checks
 separately assess whether extraction preserves the narrative's meaning. See
 [build verification](BUILD_VERIFICATION.md) for observed results and limitations.
+
+In the bundled invoice example, total horizontal Diagram connector length fell from 10,444 to
+7,674 layout units, and vertical length from 8,843 to 5,838. Selecting each of the 14 routes in
+Cinematic kept both endpoint tiles visible for all 14 at 1024×768 and 390×844. Previously that
+held for eight routes at the larger size and none at the smaller size. Loops, bypasses and branches
+can still span several steps when the reported handoff requires it.
+
+Two fictional provider replays checked route meaning as well as geometry. In crate intake, the
+review retained all six reported transitions: a broken seal led to return and closure, and dispatch
+followed acceptance only. In permit review, either rejection led to closure. Both approvals were
+required for release, and the unknown order between the safety and finance reviews stayed open.
+The source check verifies that the cited words are present. A reviewer still has to judge whether
+those words establish the claimed business relationship.

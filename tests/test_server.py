@@ -103,6 +103,26 @@ def process_variation(evidence=None):
     }
 
 
+def fixture_route_support(edges, turns):
+    """Synthetic auditor passages for fixtures that exercise an accepted route."""
+    sources = {turn["id"]: turn["text"] for turn in turns if turn["role"] == "user"}
+    return [{**{key: edge[key] for key in ("from", "to", "label")},
+             "passages": [{"source_id": ref, "quote": sources[ref]} for ref in edge["evidence_turns"] if ref in sources]}
+            for edge in edges]
+
+
+def fixture_workflow_audit(candidate, turns, inherited=()):
+    routes = {server.route_key(edge): edge for edge in [*inherited, *candidate["upsert_connections"]]}
+    return {**{key: copy.deepcopy(candidate[key]) for key in ("title", "open_questions", "summary", "focus", "parking_lot")},
+            "discard_step_upserts": [], "discard_connection_upserts": [], "discard_step_removals": [],
+            "discard_connection_removals": [], "remove_connections": [], "upsert_steps": [], "upsert_connections": [], "memo_findings": [],
+            "route_support": fixture_route_support(routes.values(), turns)}
+
+
+def fixture_draft_audit(draft, turns):
+    return {**copy.deepcopy(draft), "route_support": fixture_route_support(draft["connections"], turns)}
+
+
 def process_draft():
     return {
         "title": "Invoice approval",
@@ -414,7 +434,7 @@ class GraphRoutingContractTests(unittest.TestCase):
         ]
         candidate['open_questions'] = ['Who authorizes restarting blocked work, and where does it rejoin?']
         client = server.OpenAIClient({'OPENAI_API_KEY': 'sk-synthetic-not-a-credential'})
-        client.structured = Mock(side_effect=[copy.deepcopy(candidate), copy.deepcopy(candidate)])
+        client.structured = Mock(side_effect=[copy.deepcopy(candidate), fixture_draft_audit(candidate, payload["turns"])])
         result = client.draft(payload)['draft']
         self.assertEqual(result['connections'], candidate['connections'])
         self.assertFalse(any(edge['from'] == 'blocked' for edge in result['connections']))
@@ -422,7 +442,9 @@ class GraphRoutingContractTests(unittest.TestCase):
         for call in client.structured.call_args_list:
             self.assertIn(server.GRAPH_ROUTING_POLICY, call.args[0])
             self.assertIn(server.FULL_CIRCLE_POLICY, call.args[0])
-            self.assertEqual(call.args[2], server.DRAFT_SCHEMA)
+        self.assertEqual(client.structured.call_args_list[0].args[2], server.DRAFT_SCHEMA)
+        self.assertEqual(client.structured.call_args_list[1].args[2],
+                         server.route_audit_schema(server.DRAFT_AUDIT_SCHEMA, candidate['connections']))
         self.assertIn(server.GRAPH_ROUTING_POLICY, server.WORKFLOW_INSTRUCTIONS)
 
 
@@ -889,8 +911,10 @@ class HTTPBoundaryTests(unittest.TestCase):
         elif name == "process_specialist_review":
             result = {"summary": "The partial test account still needs review.", "evidence_turns": [],
                       "findings": [], "next_question": "", "no_material_blockers": False}
+        elif name == "process_draft_audit":
+            result = fixture_draft_audit(self.mock_draft, json.loads(body["input"][0]["content"])["turns"])
         else:
-            result = self.mock_draft if name in ("process_draft", "process_draft_audit") else self.mock_interview
+            result = self.mock_draft if name == "process_draft" else self.mock_interview
         return {"status": "completed", "output": [{"content": [{"type": "output_text", "text": json.dumps(result)}]}]}
 
     def request(self, path, payload=None, headers=None, method=None, csrf=True):

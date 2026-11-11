@@ -922,10 +922,14 @@ dialog.excerpt-dialog { inset: 0; width: min(660px, calc(100vw - 32px)); margin:
 .evidence-link:hover { background: var(--accent-soft-2); }
 .needs-evidence { color: var(--amber); font-weight: 600; }
 .connections-editor { margin-top: 26px; padding-top: 16px; border-top: 1px solid var(--line); }
-.connection-row { display: grid; grid-template-columns: 1fr 1fr 1.4fr auto; align-items: end; gap: 10px; margin: 14px 0; }
-.connection-row label { margin: 0; color: var(--muted); font-size: 12.5px; }
-.connection-row input, .connection-row select { margin-top: 6px; padding: 8px 10px; font-size: 14px; }
-.connection-row .remove-button { margin-bottom: 4px; }
+.connection-row { display: grid; grid-template-columns: minmax(0,1fr) auto auto; align-items: center; gap: 4px 12px; margin: 0; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.connection-description { display: grid; gap: 2px; overflow-wrap: anywhere; }
+.connection-description span { color: var(--muted); font-size: 14px; }
+.connection-dialog { width: min(480px,calc(100vw - 24px)); max-height: calc(100dvh - 24px); overflow: auto; padding: 22px; border: 1px solid var(--line); border-radius: var(--r-xl); background: var(--surface); box-shadow: var(--shadow-lg); }
+.connection-dialog h2 { margin: 0 0 14px; }
+.connection-dialog #connection-source-choice { display: flex; align-items: baseline; gap: 8px; }
+.connection-dialog-actions { display: flex; justify-content: end; gap: 10px; margin-top: 20px; }
+#connection-error { margin: 12px 0 0; color: var(--danger); }
 .connection-evidence { grid-column: 1/-1; margin-top: 0; margin-bottom: 8px; }
 .detail-item { margin-top: 16px; padding: 20px; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface); }
 .detail-item-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
@@ -1124,7 +1128,6 @@ dialog.excerpt-dialog { inset: 0; width: min(660px, calc(100vw - 32px)); margin:
   .io-grid, .notes-columns, .detail-two-columns { grid-template-columns: 1fr; }
   .step-properties { grid-template-columns: 1fr 1fr; }
   .step-properties > :last-child { grid-column: 1/-1; }
-  .connection-row { grid-template-columns: 1fr 1fr; }
   .connection-row .connection-evidence { grid-column: 1/-1; }
   .memo-status { max-width: 110px; white-space: normal; text-align: center; }
   .example-banner { padding: 3px 12px; }

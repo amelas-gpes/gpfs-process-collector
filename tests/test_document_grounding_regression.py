@@ -23,7 +23,7 @@ from urllib.request import Request, urlopen
 APP = Path(__file__).resolve().parents[1]
 if str(Path(__file__).parent) not in sys.path:
     sys.path.insert(0, str(Path(__file__).parent))
-from test_server import server, interview_payload, interview_result, process_draft
+from test_server import server, interview_payload, interview_result, process_draft, fixture_draft_audit, fixture_workflow_audit
 from test_live import SDP, workflow_update_result
 
 def long_path(path):
@@ -104,12 +104,11 @@ class GroundingProvider(server.OpenAIClient):
         elif name == "working_process_map":
             result = workflow_update_result()
         elif name == "working_process_map_audit":
-            candidate = json.loads(body["input"][0]["content"])["candidate_update"]
-            result = {field: copy.deepcopy(candidate[field])
-                      for field in ("title", "open_questions", "summary", "focus", "parking_lot")}
-            result.update(discard_step_upserts=[], discard_connection_upserts=[], discard_step_removals=[],
-                          discard_connection_removals=[], upsert_steps=[], upsert_connections=[], memo_findings=[])
-        elif name in ("process_draft", "process_draft_audit"):
+            supplied = json.loads(body["input"][0]["content"])
+            result = fixture_workflow_audit(supplied["candidate_update"], supplied["turns"])
+        elif name == "process_draft_audit":
+            result = fixture_draft_audit(process_draft(), json.loads(body["input"][0]["content"])["turns"])
+        elif name == "process_draft":
             result = process_draft()
         else:
             result = interview_result()

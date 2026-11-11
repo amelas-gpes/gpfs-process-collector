@@ -94,37 +94,99 @@
     connections.forEach(edge=>{incoming.get(edge.to).push(edge);outgoing.get(edge.from).push(edge);});
     return {title:string(graph.title),steps,connections,incoming,outgoing};
   }
+  // Walk actual connections from their entry points. An edge back to an active
+  // ancestor closes a cycle; it remains a real edge and gets its own return port.
+  // The order supplied by the interviewer only breaks ties between ready steps.
+  function routingOrder(data) {
+    const visited=new Set(),active=new Set(),returns=new Set(),returnNodes=new Set();
+    function visit(id) {
+      if(visited.has(id))return;
+      visited.add(id);active.add(id);
+      for(const edge of data.outgoing.get(id)) {
+        if(active.has(edge.to)) {
+          returns.add(edge.id);returnNodes.add(edge.from);returnNodes.add(edge.to);
+        }else visit(edge.to);
+      }
+      active.delete(id);
+    }
+    for(const step of data.steps)if(!data.incoming.get(step.id).length)visit(step.id);
+    for(const step of data.steps)if(step.type==="start")visit(step.id);
+    for(const step of data.steps)visit(step.id);
+
+    const waiting=new Map(data.steps.map(step=>[step.id,data.incoming.get(step.id).filter(edge=>!returns.has(edge.id)).length]));
+    const ordered=[];
+    while(waiting.size) {
+      const step=data.steps.find(candidate=>waiting.get(candidate.id)===0);
+      ordered.push(step);waiting.delete(step.id);
+      for(const edge of data.outgoing.get(step.id)) {
+        if(!returns.has(edge.id))waiting.set(edge.to,waiting.get(edge.to)-1);
+      }
+    }
+    return {ordered,returns,returnNodes};
+  }
+  function initialStep(data) {
+    const connected=data.steps.filter(step=>data.outgoing.get(step.id).length);
+    const entries=connected.filter(step=>!data.incoming.get(step.id).length);
+    return entries.find(step=>step.type==="start")||entries[0]||connected.find(step=>step.type==="start")||connected[0]||data.steps[0];
+  }
   function elkGraph(data,direction="RIGHT",cinematic=false) {
     const vertical=direction==="DOWN";
+    const {ordered,returns,returnNodes}=routingOrder(data);
     return {id:"workflow",layoutOptions:{
       "elk.algorithm":"layered","elk.direction":vertical?"DOWN":"RIGHT","elk.edgeRouting":"ORTHOGONAL",
-      "elk.padding":"[top=40,left=40,bottom=40,right=40]","elk.spacing.nodeNode":"52",
-      "elk.layered.spacing.nodeNodeBetweenLayers":"64","elk.spacing.edgeNode":"32",
-      "elk.layered.spacing.edgeNodeBetweenLayers":"28","elk.spacing.edgeEdge":"24",
-      "elk.layered.spacing.edgeEdgeBetweenLayers":"20","elk.layered.considerModelOrder.strategy":"NODES_AND_EDGES",
+      "elk.padding":"[top=24,left=24,bottom=24,right=24]","elk.spacing.nodeNode":"28",
+      "elk.layered.spacing.nodeNodeBetweenLayers":"36","elk.spacing.edgeNode":"18",
+      "elk.layered.spacing.edgeNodeBetweenLayers":"14","elk.spacing.edgeEdge":"12",
+      "elk.layered.spacing.edgeEdgeBetweenLayers":"12","elk.layered.considerModelOrder.strategy":"NODES_AND_EDGES",
       "elk.layered.nodePlacement.strategy":"NETWORK_SIMPLEX","elk.layered.cycleBreaking.strategy":"MODEL_ORDER",
       "elk.layered.crossingMinimization.strategy":"LAYER_SWEEP","elk.separateConnectedComponents":"true",
       ...(cinematic ? {
         "elk.padding":"[top=18,left=18,bottom=18,right=18]",
         "elk.spacing.nodeNode":"22","elk.layered.spacing.nodeNodeBetweenLayers":"22",
         "elk.spacing.edgeNode":"14","elk.layered.spacing.edgeNodeBetweenLayers":"14",
-        "elk.spacing.edgeEdge":"12","elk.layered.spacing.edgeEdgeBetweenLayers":"12",
-        "elk.layered.wrapping.strategy":"MULTI_EDGE","elk.aspectRatio":"1.9"
+        "elk.spacing.edgeEdge":"12","elk.layered.spacing.edgeEdgeBetweenLayers":"12"
       } : {})
-    },children:data.steps.map(step=>{
+    },children:ordered.map(step=>{
       const {width,height}=cinematic ? cinematicNodeMetrics(step) : nodeMetrics(step);
-      return {id:step.id,width,height,layoutOptions:{"elk.portConstraints":"FIXED_POS"},ports:[
+      const ports=[
         {id:`${step.id}::in`,x:vertical?width/2:0,y:vertical?0:height/2,width:0,height:0,layoutOptions:{"elk.port.side":vertical?"NORTH":"WEST"}},
         // ELK normalizes side ports to the box border; the wave's midpoint is inset.
         {id:`${step.id}::out`,x:vertical?width/2:width,y:vertical?height:height/2,width:0,height:0,layoutOptions:{"elk.port.side":vertical?"SOUTH":"EAST","elk.port.borderOffset":vertical&&!cinematic&&step.type==="document"?"-14":"0"}}
-      ]};
+      ];
+      if(!cinematic&&returnNodes.has(step.id))ports.push({
+        id:`${step.id}::return`,x:vertical?width:width/2,y:vertical?height/2:height,width:0,height:0,
+        layoutOptions:{"elk.port.side":vertical?"EAST":"SOUTH","elk.port.borderOffset":!vertical&&step.type==="document"?"-14":"0"}
+      });
+      return {id:step.id,width,height,layoutOptions:{"elk.portConstraints":"FIXED_POS"},ports};
     }),edges:data.connections.map(edge=>{
       const size=edge.label && (cinematic ? cinematicEdgeMetrics(edge.label) : edgeMetrics(edge.label));
-      return {id:edge.id,sources:[`${edge.from}::out`],targets:[`${edge.to}::in`],
+      const returning=!cinematic&&returns.has(edge.id);
+      const sourcePort=returning&&edge.from!==edge.to?"return":"out";
+      return {id:edge.id,sources:[`${edge.from}::${sourcePort}`],targets:[`${edge.to}::${returning?"return":"in"}`],
         labels:size?[{id:`${edge.id}-label`,text:string(edge.label),width:size.width,height:size.height}]:[]};
     })};
   }
   function points(section) {return [section.startPoint,...(section.bendPoints||[]),section.endPoint].filter(Boolean);}
+  function validateLayeredRoutes(layout,data) {
+    const nodes=new Map((layout?.children||[]).map(node=>[node.id,node]));
+    const routes=new Map((layout?.edges||[]).map(edge=>[edge.id,edge]));
+    if(!Number.isFinite(layout?.width)||!Number.isFinite(layout?.height)||
+      layout.children?.length!==data.steps.length||nodes.size!==data.steps.length||
+      layout.edges?.length!==data.connections.length||routes.size!==data.connections.length||
+      !data.steps.every(step=>nodes.has(step.id)))throw new Error("The complete workflow layout could not be calculated.");
+    function onPort(stepId,portId,point) {
+      const node=nodes.get(stepId),port=node.ports?.find(item=>item.id===portId);
+      return point&&port&&Math.hypot(point.x-node.x-port.x,point.y-node.y-port.y)<.1;
+    }
+    for(const edge of data.connections) {
+      const route=routes.get(edge.id),sections=route?.sections;
+      if(!sections?.length||!sections.every(section=>section.startPoint&&section.endPoint))
+        throw new Error("The complete workflow layout could not be calculated.");
+      if(!onPort(edge.from,route.sources?.[0],sections[0].startPoint)||
+         !onPort(edge.to,route.targets?.[0],sections.at(-1).endPoint))
+        throw new Error("A workflow connection could not be attached to its reported steps.");
+    }
+  }
   function roundedPath(vertices,radius=7) {
     if(!vertices.length)return "";
     let d=`M ${vertices[0].x} ${vertices[0].y}`;
@@ -139,26 +201,74 @@
     return d;
   }
   let cinematicEngine;
-  async function cinematicLayout(graph) {
+  // Only a single, acyclic path can change row direction without separating a choice
+  // from its alternatives or turning a normal handoff into a long return connector.
+  function cinematicChain(data,aspect) {
+    if(data.steps.length<8 || data.connections.length!==data.steps.length-1)return null;
+    if(data.steps.some(step=>data.incoming.get(step.id).length>1||data.outgoing.get(step.id).length>1))return null;
+    const starts=data.steps.filter(step=>!data.incoming.get(step.id).length);
+    if(starts.length!==1)return null;
+    const byId=new Map(data.steps.map(step=>[step.id,step])),nodes=[],edges=[];
+    let step=starts[0];
+    while(step){
+      nodes.push({id:step.id,step,...cinematicNodeMetrics(step)});
+      const edge=data.outgoing.get(step.id)[0];
+      if(!edge)break;
+      edges.push({edge,key:JSON.stringify([edge.from,edge.to,edge.label||""]),
+        labels:edge.label?[cinematicEdgeMetrics(edge.label)]:[]});
+      step=byId.get(edge.to);
+    }
+    // A disjoint cycle can satisfy the degree and edge-count checks above.
+    if(nodes.length!==data.steps.length)return null;
+    const width=nodes[0].width, pad=18, gap=22;
+    const avgHeight=nodes.reduce((sum,node)=>sum+node.height,0)/nodes.length;
+    const avgLabel=edges.reduce((sum,item)=>sum+(item.labels[0]?.width||0),0)/edges.length;
+    const columns=clamp(Math.round(Math.sqrt(nodes.length*aspect*(avgHeight+gap)/(width+avgLabel+gap))),2,nodes.length);
+    const rows=Math.ceil(nodes.length/columns);
+    const rowHeights=Array(rows).fill(0),rowGaps=Array(rows-1).fill(gap),columnGaps=Array(columns-1).fill(gap);
+    const column=i=>Math.floor(i/columns)%2 ? columns-1-i%columns : i%columns;
+    for(let i=0;i<nodes.length;i++){
+      const row=Math.floor(i/columns);
+      rowHeights[row]=Math.max(rowHeights[row],nodes[i].height);
+      const label=edges[i]?.labels[0];
+      if(!label)continue;
+      if(column(i)===column(i+1))rowGaps[row]=Math.max(rowGaps[row],label.height+gap);
+      else{
+        const index=Math.min(column(i),column(i+1));
+        columnGaps[index]=Math.max(columnGaps[index],label.width+gap);
+        rowHeights[row]=Math.max(rowHeights[row],2*(label.height+6));
+      }
+    }
+    const xs=[pad],ys=[pad];
+    for(let i=1;i<columns;i++)xs.push(xs[i-1]+width+columnGaps[i-1]);
+    for(let i=1;i<rows;i++)ys.push(ys[i-1]+rowHeights[i-1]+rowGaps[i-1]);
+    nodes.forEach((node,i)=>{
+      const row=Math.floor(i/columns);
+      node.x=xs[column(i)];node.y=ys[row]+(rowHeights[row]-node.height)/2;
+    });
+    edges.forEach((item,i)=>{
+      const a=nodes[i],b=nodes[i+1],vertical=a.x===b.x,forward=b.x>a.x;
+      const start=vertical?{x:a.x+width/2,y:a.y+a.height}:{x:a.x+(forward?width:0),y:a.y+a.height/2};
+      const end=vertical?{x:b.x+width/2,y:b.y}:{x:b.x+(forward?0:width),y:b.y+b.height/2};
+      const points=[start,end];
+      item.paths=[{points,d:roundedPath(points)}];
+      const label=item.labels[0];
+      if(label){
+        label.x=vertical ? start.x+(column(i)===0?6:-label.width-6) : (start.x+end.x-label.width)/2;
+        label.y=vertical ? (start.y+end.y-label.height)/2 : start.y-label.height-4;
+      }
+    });
+    return {width:xs.at(-1)+width+pad,height:ys.at(-1)+rowHeights.at(-1)+pad,nodes,edges};
+  }
+  async function cinematicLayout(graph,aspect=1.9) {
     const data=model(graph);
     if(!data.steps.length)return {width:0,height:0,nodes:[],edges:[]};
+    const chain=cinematicChain(data,Number.isFinite(aspect)?clamp(aspect,.6,2.4):1.9);
+    if(chain)return chain;
     if(!scope.ELK)throw new Error("The local workflow layout engine could not load.");
     cinematicEngine ||= new scope.ELK();
-    const prepare=()=>elkGraph(data,"RIGHT",true);
-    const complete=layout=>Number.isFinite(layout?.width)&&Number.isFinite(layout?.height)&&
-      layout.children?.length===data.steps.length && layout.edges?.length===data.connections.length &&
-      layout.edges.every(edge=>edge.sections?.length && edge.sections.every(section=>section.startPoint&&section.endPoint));
-    let layout;
-    try { layout=await cinematicEngine.layout(prepare()); }
-    catch { /* Some combinations of joins and loops cannot be folded by ELK. */ }
-    if(!complete(layout)) {
-      // The wrapping pass can return a graph with a missing routed section.
-      // Use the ordinary layered routing pass so every captured connection is selectable.
-      const input=prepare();
-      input.layoutOptions["elk.layered.wrapping.strategy"]="OFF";
-      layout=await cinematicEngine.layout(input);
-      if(!complete(layout))throw new Error("The complete workflow layout could not be calculated.");
-    }
+    const layout=await cinematicEngine.layout(elkGraph(data,"RIGHT",true));
+    validateLayeredRoutes(layout,data);
     const steps=new Map(data.steps.map(step=>[step.id,step]));
     const connections=new Map(data.connections.map(edge=>[edge.id,edge]));
     const nodes=layout.children.map(({id,x,y,width,height})=>{
@@ -224,7 +334,7 @@
       let positions;
       try{
         positions=await this.engine.layout(elkGraph(data,this.direction));
-        if(!Number.isFinite(positions.width)||!Number.isFinite(positions.height))throw new Error("The workflow layout could not be calculated.");
+        validateLayeredRoutes(positions,data);
       }catch(error){
         if(this.dead||revision!==this.version)return false;
         this.pending=false;this.layoutError=true;this.notify();throw error;
@@ -254,7 +364,7 @@
       const {width,height}=this.size();if(!width||!height){this.fitMode=true;return;}
       const overviewScale=Math.min((width-48)/this.layout.width,(height-48)/this.layout.height);
       if(overviewScale>=.6){this.fit();return;}
-      const start=this.graph.steps.find(step=>!this.graph.incoming.get(step.id).length)||this.graph.steps[0],anchor=this.layout.children.find(node=>node.id===start.id);
+      const start=initialStep(this.graph),anchor=this.layout.children.find(node=>node.id===start.id);
       const scale=clamp(Math.min(.8,(width-40)/anchor.width,(height-56)/anchor.height),.05,.8);
       // Larger flows start on a complete readable first step, including on a phone.
       this.camera={x:width<500||this.direction==="DOWN"?anchor.x+anchor.width/2-width/scale/2:anchor.x-28/scale,y:anchor.y-28/scale,scale};this.fitMode=false;this.fitted=true;this.paintView();
@@ -294,7 +404,7 @@
     }
     followPath(id=this.selected){
       if(!this.graph?.steps.length||!this.layout||this.pending||this.layoutError)return false;
-      id=id||this.graph.steps.find(step=>!this.graph.incoming.get(step.id).length)?.id||this.graph.steps[0].id;
+      id=id||initialStep(this.graph).id;
       if(!this.graph.steps.some(step=>step.id===id))return false;
       this.following=true;this.selected=id;this.pathTrail=[id];this.drawSelection();this.focusStep(id,{readable:true,keyboard:false});this.announcePath();return true;
     }

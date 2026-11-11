@@ -8,7 +8,8 @@ import urllib.error
 import urllib.request
 from unittest.mock import Mock, patch
 
-from test_server import server, interview_payload, process_draft, memo_findings, interview_result
+from test_server import (server, interview_payload, process_draft, memo_findings, interview_result,
+                         fixture_workflow_audit, fixture_draft_audit)
 from test_interview_coverage import fixture as coverage_fixture
 
 KEY = 'sk-test-private-live-sentinel'
@@ -103,16 +104,19 @@ class LiveContractTests(unittest.TestCase):
             with self.subTest(response=response), self.assertRaises(server.APIError):
                 self.client.live_session(live_payload())
 
-    def test_workflow_uses_one_structured_update_and_returns_a_complete_capture(self):
-        self.client.structured = Mock(return_value=workflow_update_result())
+    def test_workflow_audits_new_transcript_routes_and_returns_a_complete_capture(self):
+        candidate = workflow_update_result()
+        self.client.structured = Mock(side_effect=[candidate, fixture_workflow_audit(candidate, interview_payload()['turns'])])
         payload = interview_payload()
         payload['workflow'] = {'steps': [{'id': 'old-step'}]}
         result = self.client.workflow(payload)
         self.assertEqual(set(result['workflow']), {'title', 'steps', 'connections', 'open_questions'})
         self.assertEqual(set(result), {'workflow', 'memo_findings', 'coverage', 'summary', 'focus', 'parking_lot', 'ready_for_draft'})
         self.assertEqual(len(result['memo_findings']), 16)
-        self.client.structured.assert_called_once()
-        args = self.client.structured.call_args.args
+        self.assertEqual([call.args[3] for call in self.client.structured.call_args_list],
+                         ['working_process_map', 'working_process_map_audit'])
+        self.assertEqual(result['workflow']['connections'], candidate['upsert_connections'])
+        args = self.client.structured.call_args_list[0].args
         self.assertEqual(args[3], 'working_process_map')
         self.assertNotIn('workflow', args[1])
         self.assertIn('previous_capture', args[1])
@@ -157,7 +161,7 @@ class LiveContractTests(unittest.TestCase):
             dimension.update(status='not_applicable', detail=absent)
         payload = interview_payload()
         payload['turns'].extend(source_turns)
-        self.client.structured = Mock(side_effect=[capture, assessment])
+        self.client.structured = Mock(side_effect=[capture, fixture_workflow_audit(capture, payload['turns']), assessment])
         result = self.client.workflow(payload)
         self.assertEqual([item['key'] for item in result['memo_findings']], list(server.COVERAGE))
         self.assertEqual([item['key'] for item in result['coverage']], list(server.COVERAGE))
@@ -170,7 +174,7 @@ class LiveContractTests(unittest.TestCase):
         self.assertNotIn('closure', result)
         self.assertNotIn('question', result)
         self.assertEqual([call.args[3] for call in self.client.structured.call_args_list],
-                         ['working_process_map', 'process_coverage_assessment'])
+                         ['working_process_map', 'working_process_map_audit', 'process_coverage_assessment'])
         self.assertFalse(result['coverage_assessment']['all_topics_covered'])
 
     def test_workflow_snapshot_uses_the_same_all_eleven_readiness_gate(self):
@@ -179,7 +183,8 @@ class LiveContractTests(unittest.TestCase):
         payload = interview_payload()
         payload['turns'].extend(source_turns)
         self.client.structured = Mock(side_effect=lambda *args, **kwargs: copy.deepcopy(
-            assessment if args[3] == 'process_coverage_assessment' else capture))
+            {'process_coverage_assessment': assessment, 'working_process_map': capture,
+             'working_process_map_audit': fixture_workflow_audit(capture, payload['turns'])}[args[3]]))
         self.assertFalse(self.client.workflow(payload)['ready_for_draft'])
         capture['memo_findings'] = findings
         result = self.client.workflow(payload)
@@ -194,9 +199,9 @@ class LiveContractTests(unittest.TestCase):
         payload['context']['meeting_minutes'] = 'legacy value is ignored'
         payload['context']['background'] = 'The reported process deadline is each Friday at 5pm.'
         payload['session'] = {'elapsed_minutes': 10**30, 'planned_minutes': 1}
-        cases = [('workflow', [workflow_update_result()]),
+        cases = [('workflow', [workflow_update_result(), fixture_workflow_audit(workflow_update_result(), payload['turns'])]),
                  ('interview', [interview_result(), {'question': 'What happens after the buyer resolves the mismatch?'}]),
-                 ('draft', [process_draft(), process_draft()])]
+                 ('draft', [process_draft(), fixture_draft_audit(process_draft(), payload['turns'])])]
         for method, results in cases:
             self.client.structured = Mock(side_effect=results)
             getattr(self.client, method)(payload)
@@ -236,7 +241,7 @@ class LiveContractTests(unittest.TestCase):
                                     'source_quote': 'manager approval is a separate process', 'evidence_turns': ['u3']}]
         revised['memo_findings'][5].update(answer='Only invoice logging is in scope.', evidence_turns=['u3'])
         payload = interview_payload()
-        self.client.structured = Mock(side_effect=[first, revised])
+        self.client.structured = Mock(side_effect=[first, fixture_workflow_audit(first, payload['turns']), revised])
         old = self.client.workflow(payload)
         payload['previous_capture'] = {key: copy.deepcopy(old[key])
                                        for key in ('workflow', 'memo_findings', 'summary', 'focus', 'parking_lot')}
@@ -246,7 +251,7 @@ class LiveContractTests(unittest.TestCase):
         self.assertEqual(len(new['workflow']['steps']), 1)
         self.assertEqual(new['memo_findings'][5]['evidence_turns'], ['u3'])
         self.assertEqual(new['memo_findings'][5]['answer'], 'Only invoice logging is in scope.')
-        self.assertEqual(self.client.structured.call_count, 2)
+        self.assertEqual(self.client.structured.call_count, 3)
 
     def test_live_access_denied_has_actionable_error_without_key(self):
         error = urllib.error.HTTPError('https://api.openai.com/v1/live/sessions', 403, 'Forbidden', {}, io.BytesIO(b'{}'))

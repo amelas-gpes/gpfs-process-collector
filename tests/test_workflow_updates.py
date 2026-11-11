@@ -5,7 +5,7 @@ import json
 import unittest
 from unittest.mock import Mock, patch
 
-from test_server import server, interview_result
+from test_server import server, interview_result, fixture_workflow_audit, fixture_route_support
 
 
 def step(step_id, title, sources=None):
@@ -64,7 +64,7 @@ def removal(step_id, source='u4', quote='Remove the update step'):
 def audit(**overrides):
     candidate = update()
     result = {key: candidate[key] for key in ('title', 'summary', 'focus', 'open_questions', 'parking_lot')}
-    result.update(discard_step_upserts=[], discard_connection_upserts=[], discard_step_removals=[],
+    result.update(route_support=[], remove_connections=[], discard_step_upserts=[], discard_connection_upserts=[], discard_step_removals=[],
                   discard_connection_removals=[], upsert_steps=[], upsert_connections=[], memo_findings=[])
     result.update(overrides)
     return result
@@ -73,8 +73,73 @@ def audit(**overrides):
 class WorkflowUpdateTests(unittest.TestCase):
     def client(self, result):
         client = server.OpenAIClient({'OPENAI_API_KEY': 'sk-synthetic-workflow-regression'})
-        client.structured = Mock(return_value=result)
+        client.structured = Mock(side_effect=lambda instructions, data, schema, name, *args, **kwargs:
+                                 fixture_workflow_audit(result, data['turns'], data['proposed_routes_to_verify'])
+                                 if name == 'working_process_map_audit' else result)
         return client
+
+    def test_valid_source_ids_do_not_publish_a_new_handoff_without_its_reviewed_passage(self):
+        original = payload()
+        new_step = step('S5', 'Discuss the budget')
+        proposed = edge('S4', 'S5', 'Ready')
+        original['turns'].append({'id':'u4', 'role':'user', 'text':'I discuss the budget in another meeting.'})
+        new_step['evidence_turns'] = ['u4']
+        candidate = update(upsert_steps=[new_step], upsert_connections=[proposed])
+        for passages in ([], [{'source_id':'u1', 'quote':'I then discuss the budget.'}],
+                         [{'source_id':'a1', 'quote':original['turns'][1]['text']}],
+                         [{'source_id':'u4', 'quote':'another meeting'}]):
+            with self.subTest(passages=passages):
+                reviewed = audit(route_support=[{'from':'S4', 'to':'S5', 'label':'Ready', 'passages':passages}])
+                client = self.client(None)
+                client.structured.side_effect = [candidate, reviewed]
+                result = client.workflow(original)['workflow']
+                self.assertEqual(result['connections'], original['previous_capture']['workflow']['connections'])
+                self.assertIn('S5', [item['id'] for item in result['steps']])
+                self.assertTrue(any('Discuss the budget' in q and 'handoff or prerequisite' in q for q in result['open_questions']))
+
+    def test_revised_evidence_without_support_leaves_the_accepted_route_intact(self):
+        original = payload()
+        original['turns'].append({'id':'u4','role':'user','text':'The board is archived weekly.'})
+        changed = edge('S1', 'S2', sources=['u4'])
+        client = self.client(None)
+        client.structured.side_effect = [update(upsert_connections=[changed]), audit(route_support=[
+            {'from':'S1','to':'S2','label':'Next','passages':[]}])]
+        result = client.workflow(original)['workflow']
+        self.assertEqual(result['connections'], original['previous_capture']['workflow']['connections'])
+        self.assertTrue(any('handoff or prerequisite' in q for q in result['open_questions']))
+
+    def test_audit_that_skips_all_correct_as_proposed_routes_cannot_publish_an_empty_map(self):
+        original = payload()
+        before = copy.deepcopy(original)
+        edge1 = edge('S4','S5','On completion')
+        candidate = update(upsert_steps=[step('S5','Archive idea')], upsert_connections=[edge1])
+        client = self.client(None)
+        client.structured.side_effect = [candidate, audit()]
+        with self.assertRaisesRegex(server.APIError, 'routing review omitted its decision'):
+            client.workflow(original)
+        _, sent, schema = client.structured.call_args.args[:3]
+        self.assertEqual(sent['proposed_routes_to_verify'], [edge1])
+        self.assertEqual(schema['properties']['route_support']['minItems'], 1)
+        self.assertEqual(original, before)
+
+    def test_repurposing_a_step_id_cannot_silently_move_its_previous_links(self):
+        original = payload()
+        before = copy.deepcopy(original['previous_capture'])
+        correction = 'Replace board preparation with checking the printer. It does not lead to prioritizing ideas.'
+        original['turns'].append({'id':'u4','role':'user','text':correction})
+        change = update(upsert_steps=[step('S1','Check the printer',['u4'])])
+        client = self.client(None)
+        unresolved = {'from':'S1','to':'S2','label':'Next','passages':[]}
+        client.structured.side_effect = [change, audit(route_support=[unresolved])]
+        with self.assertRaisesRegex(server.APIError, 'handoff S1 to S2 unverified'):
+            client.workflow(original)
+        self.assertEqual(original['previous_capture'], before)
+        self.assertEqual(client.structured.call_args.args[1]['proposed_routes_to_verify'], before['workflow']['connections'][:1])
+        withdrawal = {**edge('S1', 'S2', sources=['u4']), 'reason':'Participant corrected the route.', 'source_quote':correction}
+        client.structured.side_effect = [change, audit(remove_connections=[withdrawal], route_support=[unresolved])]
+        result = client.workflow(original)['workflow']
+        self.assertEqual(result['steps'][0]['title'], 'Check the printer')
+        self.assertEqual(result['connections'], before['workflow']['connections'][1:])
 
     def test_document_workflow_receives_exception_and_completion_audit_contract(self):
         original = payload()
@@ -165,7 +230,8 @@ class WorkflowUpdateTests(unittest.TestCase):
         previous = payload()['previous_capture']
         candidate = update(upsert_steps=[step('S5', 'Regional step')],
                            upsert_connections=[edge('S4', 'S5'), edge('S5', 'S1')])
-        corrected = server.apply_workflow_audit(candidate, audit(discard_step_upserts=['S5']), previous)
+        corrected = server.apply_workflow_audit(candidate, audit(discard_step_upserts=['S5']), previous,
+                                                context={}, turns=payload()['turns'], documents=[])
         self.assertEqual(corrected['upsert_steps'], [])
         self.assertEqual(corrected['upsert_connections'], [])
         self.assertEqual(len(candidate['upsert_steps']), 1, 'Audit merging never mutates the generation result')
@@ -174,17 +240,21 @@ class WorkflowUpdateTests(unittest.TestCase):
     def test_audit_can_cancel_a_proposed_removal_but_cannot_remove_an_unproposed_baseline_step(self):
         previous = payload()['previous_capture']
         candidate = update(remove_steps=[removal('S2')])
-        corrected = server.apply_workflow_audit(candidate, audit(discard_step_removals=['S2']), previous)
+        corrected = server.apply_workflow_audit(candidate, audit(discard_step_removals=['S2']), previous,
+                                                context={}, turns=payload()['turns'], documents=[])
         self.assertEqual(corrected['remove_steps'], [])
         with self.assertRaisesRegex(ValueError, 'not proposed'):
-            server.apply_workflow_audit(update(), audit(discard_step_upserts=['S2']), previous)
+            server.apply_workflow_audit(update(), audit(discard_step_upserts=['S2']), previous,
+                                        context={}, turns=payload()['turns'], documents=[])
 
     def test_audit_replaces_corrections_without_repeating_unchanged_candidate_steps(self):
         previous = payload()['previous_capture']
         candidate = update(upsert_steps=[step('S1', 'Corrected start'), step('S5', 'Close records')],
                            upsert_connections=[edge('S4', 'S5')])
         corrected_step = step('S5', 'Obtain required completeness signoff')
-        corrected = server.apply_workflow_audit(candidate, audit(upsert_steps=[corrected_step]), previous)
+        reviewed = audit(upsert_steps=[corrected_step], route_support=fixture_route_support(
+            [*candidate['upsert_connections'], previous['workflow']['connections'][0]], payload()['turns']))
+        corrected = server.apply_workflow_audit(candidate, reviewed, previous, context={}, turns=payload()['turns'], documents=[])
         self.assertEqual(corrected['upsert_steps'], [candidate['upsert_steps'][0], corrected_step])
         self.assertEqual(corrected['upsert_connections'], candidate['upsert_connections'])
 

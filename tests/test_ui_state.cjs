@@ -77,7 +77,7 @@ const exportBindings=appSource.split("\n").filter(line=>/\$\("(?:export-working-
 const titleBinding=appSource.match(/\$\("process-name"\)\.addEventListener\("input",\(\)=>\{[\s\S]*?\n    \}\);/)?.[0]||"";
 const liveBindings=appSource.split("\n").filter(line=>/\$\("(?:stop-live|mute-live)"\)\.addEventListener/.test(line)).join("\n");
 const source=appSource
- .replace("  init();","  window.__sidebarTests={selectWorkflowMode,syncWorkflowVisibility,exportSession,generateDraft,memoUI,selectMemoSection,memoTabKey,initMemoTabs,openDocumentAssets,updateAssetCount,placeConversationDock,setTranscriptFind,setTranscriptExport,initTranscriptTools,updateConversationControls,exerciseControls:updateControls,appendDocumentMessage,realRequest:request,createIntake:()=>documentIntake=createDocumentIntake(),setIntake:value=>{documentIntake=value;}};\n  init();")
+ .replace("  init();","  window.__sidebarTests={mapProjection,workflowGapSummary,openConnectionEditor,selectWorkflowMode,syncWorkflowVisibility,exportSession,generateDraft,memoUI,selectMemoSection,memoTabKey,initMemoTabs,openDocumentAssets,updateAssetCount,placeConversationDock,setTranscriptFind,setTranscriptExport,initTranscriptTools,updateConversationControls,exerciseControls:updateControls,appendDocumentMessage,realRequest:request,createIntake:()=>documentIntake=createDocumentIntake(),setIntake:value=>{documentIntake=value;}};\n  init();")
  .replace(/  init\(\);\s*\}\)\(\);\s*$/,"  updateControls=()=>{updatePresence();}; window.__downloads=[]; download=(...args)=>window.__downloads.push(args); "+exportBindings+titleBinding+liveBindings+" window.__uiTests={normalizeDocumentEvidence,normalizeFindings,boundedVoiceDocuments,sourceCaption,scrollToElement,dismissInlineError,dismissNotice,placeMemo,resolveDocumentPurpose,skipQuestion,getPendingDocumentReason:()=>pendingDocumentReason,readingUI,refreshReadingSearch,moveReadingSearch,returnToSource,renderCoverage,state,renderTranscript,showFoundationTopic,initFoundationDialog,closeFoundationTopic,jumpToTurn,jumpToReview,tab,initReviewTabs,selectReviewSection,reviewTabKey,renderMap,renderWorkingMap,workflowCanvases,showWorkflowStep,renderWorkflowLegend,retryWorkflowLayout,ensureWorkflowAssets,renderSteps,updateWorkflowNavigation,updateCanvasControls,zoomMap,fitMapToWidth,conversationUI,selectConversationView,conversationTabKey,receiveLiveCaption,scheduleWorkflow,refreshWorkflow,clearState,sendAnswer,retryQuestion,setMemoSheet,setInterviewSettings,notice,applyInterview,markdown,memoMarkdown,normalizeDraft,ensureConversation,applyProcessTitle,documentContext,onDocumentEvent,snapshot,sessionObject,importSession,presenceState,updatePresence,startLiveConversation,setPresenceFake:value=>{gpfsPresence=value;},setDocumentController:value=>{documentController=value;},renderReport:typeof renderReport==='function'?renderReport:null,setRequest:fn=>{request=fn;}};\n})();");
 context.TextEncoder=TextEncoder;vm.createContext(context);vm.runInContext(source,context,{filename:"app.js"});
 const t=context.window.__uiTests;if(!t)throw Error("UI test seam was not installed");Object.assign(t,context.window.__sidebarTests);t.initFoundationDialog();t.initReviewTabs();
@@ -1476,6 +1476,51 @@ if(process.argv.includes("--usability-only")){
   await open(base);player=reviewPlayer();assert.equal(player.graph.component_designs,undefined,"Old saved sessions automatically use the catalog");
   player.actions.onSetDesign("M1","invoice");t.clearState();assert.equal(save().presentation,undefined);
   delete context.window.CollectorWalkthrough;passes++;
+ }
+ {
+  // A connection belongs to the chosen endpoints and condition, not to the order of steps.
+  const steps=["A","B","C","D"].map(id=>({id,title:"Step "+id,type:"activity",evidence_turns:[]}));
+  const graph={steps,connections:[
+   {from:"A",to:"B",label:"Released",evidence_turns:["t002"]},
+   {from:"A",to:"B",label:"Released",evidence_turns:["t004","t002"]},
+   {from:"A",to:"B",label:"Exempt",evidence_turns:[]},
+   {from:"B",to:"A",label:"Return",evidence_turns:[]},
+   {from:"C",to:"D",label:"Separate work",evidence_turns:[]}
+  ]};
+  const original=JSON.stringify(graph), projected=t.mapProjection(graph);
+  assert.equal(projected.connections.length,4);
+  assert.deepEqual(Array.from(projected.connections[0].evidence_turns),["t002","t004"]);
+  assert.equal(JSON.stringify(graph),original,"Map projection must preserve the saved records");
+  assert.match(t.workflowGapSummary(graph),/2 separate groups/);
+  assert.equal(t.workflowGapSummary({...graph,connections:[...graph.connections,{from:"B",to:"C"}]}),"");
+  passes++;
+
+  const editor=mount("connection-editor","dialog"),form=mount("connection-form","form",editor);
+  const newFrom=mount("connection-from","select",form),newTo=mount("connection-to","select",form),
+    label=mount("connection-condition","input",form),choice=mount("connection-source-choice","label",form);
+  mount("connection-editor-title","h2",form);mount("save-connection","button",form);
+  mount("source-choice-label","span",choice);
+  const keep=mount("connection-keep-sources","input",choice),error=mount("connection-error","p",form);
+  const submit=()=>form.onsubmit({preventDefault(){}});
+  t.state.draft={title:"Manual routes",steps,connections:graph.connections.slice(2)};
+  const baseline=JSON.stringify(t.state.draft);
+  t.openConnectionEditor();
+  assert.equal(newFrom.value,"");assert.equal(newTo.value,"");
+  assert.equal(JSON.stringify(t.state.draft),baseline);editor.close();
+  t.openConnectionEditor();newFrom.value="A";newTo.value="B";label.value="Exempt";submit();
+  assert.equal(editor.open,true);assert.equal(error.hidden,false);assert.equal(JSON.stringify(t.state.draft),baseline);
+  newFrom.value="C";newTo.value="C";label.value="Still pending";submit();
+  assert.equal(editor.open,false);assert.equal(t.state.draft.connections.at(-1).to,"C");passes++;
+
+  const cited=t.state.draft.connections[0];cited.evidence_turns=["t002"];
+  t.openConnectionEditor(cited);newFrom.value="D";form.oninput({target:newFrom});editor.close();
+  assert.deepEqual(Array.from(cited.evidence_turns),["t002"]);assert.equal(cited.from,"A");
+  t.openConnectionEditor(cited);newFrom.value="D";form.oninput({target:newFrom});submit();
+  assert.equal(t.state.draft.connections[0].from,"D");
+  assert.deepEqual(Array.from(t.state.draft.connections[0].evidence_turns),[]);
+  const previous=t.state.draft.connections.at(-1);previous.evidence_turns=["t002"];
+  t.openConnectionEditor(previous);label.value="Pending approval";form.oninput({target:label});keep.checked=true;submit();
+  assert.deepEqual(Array.from(t.state.draft.connections.at(-1).evidence_turns),["t002"]);passes++;
  }
  checkpoint();console.log(JSON.stringify({tests_passed:passes,provider_calls:providerCalls,network_calls:0,real_browser:false}));
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -971,13 +971,15 @@ class Coordinator:
         proposed = run.run_role("lead_interviewer", initial_workflow)
         update, capture = proposed["update"], proposed["capture"]
         def audited_workflow():
+            proposals = api.proposed_routes_to_verify(update, previous)
             audit = self.client.structured(api.WORKFLOW_AUDIT_INSTRUCTIONS,
                 {"context": context, "turns": turns, "previous_capture": previous,
-                 "supporting_documents": supporting, "candidate_update": update},
-                api.WORKFLOW_AUDIT_SCHEMA, "team_working_map_source_audit", 24000 if evidence else 12000,
+                 "supporting_documents": supporting, "candidate_update": update,
+                 "proposed_routes_to_verify": proposals},
+                api.route_audit_schema(api.WORKFLOW_AUDIT_SCHEMA, proposals), "team_working_map_source_audit", 24000 if evidence else 12000,
                 reasoning_effort="medium", request_timeout=240 if evidence else 120,
                 model_override=self.client.agent_models["document_analyst"] if evidence else lead_model)
-            audited = api.apply_workflow_audit(update, audit, previous)
+            audited = api.apply_workflow_audit(update, audit, previous, context=context, turns=turns, documents=evidence)
             return api.apply_workflow_update(audited, previous, turns, evidence)
         # Transcript-only maps need the same source check as documentary maps.
         # This stays in the bounded background worker, never the question path.

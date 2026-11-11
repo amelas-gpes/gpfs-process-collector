@@ -251,6 +251,7 @@
               </div>
               <button type="button" class="text-button small" id="map-retry-layout" data-icon="refresh" hidden>Retry layout</button>
             </div>
+            <p id="map-gaps" class="workflow-gaps" role="status" hidden></p>
             <div id="map-diagram" class="workflow-diagram">
               <div class="map-container" id="process-map" tabindex="0" aria-label="Draft process map"></div>
               <div class="map-footer">
@@ -267,6 +268,18 @@
       </div>
     </section>
   </main>
+  <dialog id="connection-editor" class="connection-dialog" aria-labelledby="connection-editor-title">
+    <form id="connection-form">
+      <h2 id="connection-editor-title">Add connection</h2>
+      <label for="connection-from">From step</label><select id="connection-from" required></select>
+      <label for="connection-to">To step</label><select id="connection-to" required></select>
+      <label for="connection-condition">Condition <small>Optional</small></label>
+      <input id="connection-condition" maxlength="300" placeholder="When does this route apply?">
+      <label id="connection-source-choice" hidden><input id="connection-keep-sources" type="checkbox"><span></span></label>
+      <p id="connection-error" role="status" hidden></p>
+      <div class="connection-dialog-actions"><button type="button" class="button secondary" id="cancel-connection">Cancel</button><button type="submit" class="button primary" id="save-connection">Add connection</button></div>
+    </form>
+  </dialog>
 <dialog id="knowledge-submit" class="knowledge-dialog" aria-labelledby="knowledge-submit-title"></dialog>
 <dialog id="knowledge-admin" class="knowledge-dialog knowledge-admin" aria-labelledby="knowledge-admin-title"></dialog>
 <dialog id="interview-settings" class="interview-settings" aria-labelledby="settings-title">

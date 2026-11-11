@@ -304,12 +304,17 @@
     return g;
   }
 
-  function routeBounds(route) {
-    if (route.labels.length) return route.labels[0];
-    const points = route.paths.flatMap(section => section.points);
-    if (!points.length) return null;
-    const xs = points.map(p=>p.x), ys = points.map(p=>p.y);
-    return {x:Math.min(...xs),y:Math.min(...ys),width:Math.max(...xs)-Math.min(...xs),height:Math.max(...ys)-Math.min(...ys)};
+  function routeBounds(route,nodes) {
+    const points=route.paths.flatMap(section=>section.points);
+    // A condition can sit well away from either endpoint, especially on a rework
+    // route. Frame the condition, the whole line and both station titles together.
+    for(const box of [nodes.get(route.edge.from),nodes.get(route.edge.to),...route.labels]){
+      if(box)points.push({x:box.x,y:box.y},{x:box.x+box.width,y:box.y+box.height});
+    }
+    if(!points.length)return null;
+    const xs=points.map(p=>p.x),ys=points.map(p=>p.y);
+    const x=Math.min(...xs),y=Math.min(...ys);
+    return {x,y,width:Math.max(...xs)-x,height:Math.max(...ys)-y};
   }
 
   function create(host, options = {}) {
@@ -383,6 +388,8 @@
     function select(value={}, {focus=false}={}) {
       current = value || {};
       const step = nodes.get(current.stepId), route = routes.get(current.edgeKey);
+      if(step||route)world.setAttribute("data-inspecting","true");
+      else world.removeAttribute("data-inspecting");
       const related = new Set();
       for (const [key,el] of routeElements) {
         const edge=routes.get(key).edge;
@@ -392,7 +399,7 @@
       }
       if(route){related.add(route.edge.from);related.add(route.edge.to);}
       for (const [key,el] of nodeElements) mark(el,step?.id===key?"selected":related.has(key)?"related":"");
-      if (focus) focusBox(step || (route && routeBounds(route)));
+      if (focus) focusBox(step || (route && routeBounds(route,nodes)));
     }
     function readTarget(target) {
       const node=target?.closest?.("[data-step-id]");
@@ -422,7 +429,8 @@
       svg.setAttribute("aria-busy",String(hasSteps));
       let next;
       try {
-        next=hasSteps ? await scope.CollectorWorkflow.cinematicLayout(graph) : null;
+        const view=size();
+        next=hasSteps ? await scope.CollectorWorkflow.cinematicLayout(graph,view.height&&view.width?view.width/view.height:undefined) : null;
       } catch(error) {
         if(dead || version!==revision)return false;
         layout=null; nodes.clear(); routes.clear(); nodeElements.clear(); routeElements.clear(); world.replaceChildren();
@@ -523,7 +531,7 @@
       if(!layout || fitted)return;
       const target=readTarget(event.target), view=size();
       const node=nodes.get(target?.stepId), route=routes.get(target?.edgeKey);
-      const box=node || (route && routeBounds(route));
+      const box=node || (route && routeBounds(route,nodes));
       if(!box)return;
       const x=box.x+box.width/2,y=box.y+box.height/2;
       if(Math.abs(x-camera.x)*camera.scale>view.width*.48 || Math.abs(y-camera.y)*camera.scale>view.height*.46){

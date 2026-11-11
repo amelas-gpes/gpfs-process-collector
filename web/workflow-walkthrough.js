@@ -64,7 +64,7 @@
     shell.append(header,navigation,message,workspace,announcement); root.replaceChildren(shell,theater);
     const stage = scope.CollectorWorkflowStage.create(scene,{
       onSelectStep: id => select(id ? {stepId:id} : {}),
-      onSelectEdge: key => select(key ? {edgeKey:key} : {}),
+      onSelectEdge: key => select(key ? {edgeKey:key} : {},Boolean(key)),
       onViewChange: view => { zoomLabel.textContent = Math.round(view.scale * 100) + "%"; }
     });
     picker.addEventListener("change",() => {
@@ -167,8 +167,10 @@
           inspector.append(more);
         }
         inspector.append(control("Step details and sources","details",() => onDetails(step.id),true));
-        routeList("Incoming connections",graph.connections.filter(e => e.to === step.id),true);
-        routeList(step.type === "parallel_split" ? "Parallel branches" : "Outgoing connections",graph.connections.filter(e => e.from === step.id),false);
+        const incoming=graph.connections.filter(e=>e.to===step.id),outgoing=graph.connections.filter(e=>e.from===step.id);
+        routeList("Incoming connections",incoming,true);
+        routeList(step.type === "parallel_split" ? "Parallel branches" : "Outgoing connections",outgoing,false);
+        if(!incoming.length&&!outgoing.length)inspector.append(el("p","ww-description","No connections have been recorded for this step."));
       } else {
         for (const [label,id] of [["From",edge.from],["To",edge.to]]) {
           inspector.append(el("h5","ww-label",label),link(steps.get(id)?.title || id,{stepId:id}));

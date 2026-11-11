@@ -23,6 +23,18 @@ The configured interview model produces targeted changes with medium reasoning e
 
 Omission never deletes a prior step, route or memo topic. Removing a step removes its incident
 routes, without guessing a new connection between its neighbors. Unsupported links remain questions.
+
+When a new or changed route is reviewed, the reviewer supplies the source passages supporting its
+direction and condition. The app checks those passages against the cited participant answers,
+document excerpts or supplied background. An explicitly unsupported proposed link becomes an
+open question. If the reviewer omits a required decision, the update fails and the last accepted
+map stays in place. Correcting an existing step's title or type also triggers review of its incident
+routes before the new version is accepted. Draft generation uses the same source checks in its
+existing audit. Direct transcript-only working-map requests can now make an additional audit call.
+
+A required dependency can be known even when the handoff mechanism or timing is unknown.
+For example, if release requires two sign-offs, the map can show both dependencies under the joint
+release condition and leave the order of the two reviews open.
 The final merged graph and memo are validated before either is applied. Invalid responses and
 responses whose source text was rewritten or removed retain the previous capture and retry action.
 Version 0.13.2 accepts completed checkpoints while later answers or append-only captions continue,

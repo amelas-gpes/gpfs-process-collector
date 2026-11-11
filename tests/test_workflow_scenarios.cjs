@@ -77,6 +77,18 @@ function auditLayout(layout, input, direction) {
   for (const edge of edges) {
     const original = input.connections[Number(edge.id.replace("edge-", ""))];
     if (!edge.sections?.length) add("unrouted-edge", edge.id);
+    if (direction !== "cinematic" && edge.sections?.length) {
+      for (const [stepId, portId, point] of [
+        [original.from, edge.sources[0], edge.sections[0].startPoint],
+        [original.to, edge.targets[0], edge.sections.at(-1).endPoint]
+      ]) {
+        const node = nodes.find(item => item.id === stepId);
+        const port = node?.ports.find(item => item.id === portId);
+        if (!port || !point || Math.hypot(node.x + port.x - point.x, node.y + port.y - point.y) > EPS) {
+          add("detached-connector", `${edge.id}/${stepId}`);
+        }
+      }
+    }
     for (const section of edge.sections || []) {
       const vertices = points(section);
       for (let i = 1; i < vertices.length; i++) {

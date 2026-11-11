@@ -1259,16 +1259,32 @@
   }
   function workflowGapSummary(graph) {
     if(!graph || !Array.isArray(graph.steps) || graph.steps.length<2)return "";
-    const connected=new Set();
-    for(const edge of graph.connections||[]) if(edge.from!==edge.to){connected.add(edge.from);connected.add(edge.to);}
-    const isolated=graph.steps.filter(step=>!connected.has(step.id));
-    if(!isolated.length)return "";
-    return `Connections need clarification: ${isolated.map(step=>`${step.title||"Untitled step"} (${step.id})`).join(", ")}. Confirm how these steps fit, if at all.`;
+    const neighbors=new Map(graph.steps.map(step=>[step.id,[]]));
+    for(const {from,to} of graph.connections||[]){
+      if(!neighbors.has(from)||!neighbors.has(to))continue;
+      neighbors.get(from).push(to);neighbors.get(to).push(from);
+    }
+    const visited=new Set();
+    let groups=0;
+    for(const step of graph.steps){
+      if(visited.has(step.id))continue;
+      groups++;
+      const pending=[step.id];
+      while(pending.length){
+        const id=pending.pop();
+        if(visited.has(id))continue;
+        visited.add(id);pending.push(...neighbors.get(id));
+      }
+    }
+    if(groups===1)return "";
+    if(groups===graph.steps.length)return "No route between these steps has been recorded.";
+    const isolated=graph.steps.filter(step=>neighbors.get(step.id).every(id=>id===step.id));
+    const named=isolated.map(step=>`${step.title||"Untitled step"} (${step.id})`).join(", ");
+    return `This map has ${groups} separate groups of steps. No route between the groups has been recorded.`+
+      (named?` Steps without a handoff to another step: ${named}.`:"");
   }
   function renderWorkingMap() {
     if($("workflow-panel"))$("workflow-panel").dataset.hasSteps=String(Boolean(conversationUI.workflow?.steps?.length));
-    const gap=$("workflow-gaps"),message=workflowGapSummary(conversationUI.workflow);
-    if(gap){gap.textContent=message;gap.hidden=!message;}
     renderMap($("live-workflow"),conversationUI.workflow);
   }
   async function request(path, data, options = {}) {
@@ -2472,6 +2488,7 @@
       title.maxLength = 500;
       title.setAttribute("aria-label", `Title for step ${step.id}`);
       title.addEventListener("input", () => { step.title = title.value; draftChanged(true); });
+      title.addEventListener("change",renderConnections);
       const remove = el("button", "remove-button", "Remove");
       remove.setAttribute("aria-label", `Remove step ${step.id}`);
       remove.addEventListener("click", () => {
@@ -2521,14 +2538,16 @@
   function renderConnections() {
     const root = $("connection-rows");
     root.replaceChildren();
-    const choices = state.draft.steps.map(s => [s.id, `${s.id} · ${s.title.slice(0, 38)}`]);
+    const names=new Map(state.draft.steps.map(step=>[step.id,step.title||step.id]));
     state.draft.connections.forEach((connection, index) => {
       const row = el("div", "connection-row");
-      row.append(
-        formControl("From", "select", connection.from, v => {connection.from = v; draftChanged(true);}, {choices, aria: `Connection ${index + 1} from step`}),
-        formControl("To", "select", connection.to, v => {connection.to = v; draftChanged(true);}, {choices, aria: `Connection ${index + 1} to step`}),
-        formControl("Label", "input", connection.label, v => {connection.label = v; draftChanged(true);}, {max:300, aria: `Connection ${index + 1} label`})
-      );
+      const description=el("div","connection-description");
+      description.append(el("strong","",`${names.get(connection.from)} → ${names.get(connection.to)}`));
+      if(connection.label)description.append(el("span","",connection.label));
+      const edit=el("button","text-button","Edit");
+      edit.setAttribute("aria-label",`Edit connection ${index+1}`);
+      edit.addEventListener("click",()=>openConnectionEditor(connection));
+      row.append(description,edit);
       const remove = el("button", "remove-button", "×");
       remove.setAttribute("aria-label", `Remove connection ${index + 1}`);
       remove.addEventListener("click", () => {state.draft.connections.splice(index, 1); draftChanged(); renderConnections(); renderMap();focusAfterEditorRemoval("connection-rows",index,"add-connection");});
@@ -2539,6 +2558,52 @@
       root.append(row);
     });
     if (!state.draft.connections.length) root.append(el("p", "muted", "No connections yet. Connect steps to show the flow."));
+  }
+  function openConnectionEditor(existing=null) {
+    const draft=state.draft;
+    if(!draft?.steps.length){notice("Add a step before creating a connection.");return;}
+    if(!existing && draft.connections.length>=150){notice("This workflow already has 150 connections.");return;}
+    const dialog=$("connection-editor"),form=$("connection-form"),from=$("connection-from"),to=$("connection-to"),condition=$("connection-condition");
+    const sourceChoice=$("connection-source-choice"),keepSources=$("connection-keep-sources"),error=$("connection-error");
+    const save=$("save-connection"),sources=existing?.evidence_turns||[];
+    for(const select of [from,to]) {
+      const placeholder=el("option","","Choose a step");placeholder.value="";placeholder.disabled=true;
+      select.replaceChildren(placeholder,...draft.steps.map(step=>{
+        const option=el("option","",`${step.id} · ${step.title||"Untitled step"}`);option.value=step.id;return option;
+      }));
+    }
+    from.value=existing?.from||"";to.value=existing?.to||"";condition.value=existing?.label||"";
+    $("connection-editor-title").textContent=existing?"Edit connection":"Add connection";
+    save.textContent=existing?"Save connection":"Add connection";
+    sourceChoice.querySelector("span").textContent="These sources still support this route: "+sources.map(sourceCaption).join(", ");
+    keepSources.checked=false;
+    const unchanged=()=>existing && from.value===existing.from && to.value===existing.to && condition.value.trim()===existing.label.trim();
+    const update=()=>{
+      error.hidden=true;
+      sourceChoice.hidden=!sources.length || unchanged();
+      save.disabled=!from.value || !to.value;
+    };
+    form.oninput=event=>{
+      if(event.target!==keepSources)keepSources.checked=false;
+      update();
+    };
+    form.onsubmit=event=>{
+      event.preventDefault();
+      if(draft!==state.draft || (existing && !draft.connections.includes(existing))){dialog.close();return;}
+      if(!from.value || !to.value)return;
+      if(unchanged()){dialog.close();return;}
+      const label=condition.value.trim();
+      if(draft.connections.some(edge=>edge!==existing && edge.from===from.value && edge.to===to.value && edge.label.trim()===label)) {
+        error.textContent="This route and condition already exist.";error.hidden=false;return;
+      }
+      const edge={from:from.value,to:to.value,label,evidence_turns:keepSources.checked?[...sources]:[]};
+      if(existing)draft.connections[draft.connections.indexOf(existing)]=edge;else draft.connections.push(edge);
+      dialog.close();
+      draftChanged(true);renderConnections();
+      const index=draft.connections.indexOf(edge);
+      $("connection-rows").querySelectorAll(".text-button")[index]?.focus();
+    };
+    update();dialog.showModal();from.focus();
   }
   function evidenceRow(ids = [], beforeJump = null) {
     const evidence = el("div","evidence-row");
@@ -2630,7 +2695,23 @@
     if (!state.draft.variations.length) root.append(el("p","map-help","UNKNOWN / TBD — no variations were established. An empty list does not confirm that there are none."));
   }
   const workflowPrefix=id=>id==="live-workflow"?"workflow":"map";
-  const workflowGraph=id=>id==="live-workflow"?conversationUI.workflow:state.draft;
+  // An older draft can cite the same named route more than once. Both views should
+  // show one selectable arrow with all its sources, without rewriting the saved draft.
+  function mapProjection(graph) {
+    if(!graph?.connections?.length)return graph;
+    const groups=new Map();
+    for(const edge of graph.connections) {
+      const key=JSON.stringify([edge.from,edge.to,edge.label||""]);
+      if(!groups.has(key))groups.set(key,[]);
+      groups.get(key).push(edge);
+    }
+    if(groups.size===graph.connections.length)return graph;
+    const connections=Array.from(groups.values(),group=>group.length===1?group[0]:{
+      ...group[0],evidence_turns:[...new Set(group.flatMap(edge=>edge.evidence_turns||[]))]
+    });
+    return {...graph,connections};
+  }
+  const workflowGraph=id=>mapProjection(id==="live-workflow"?conversationUI.workflow:state.draft);
   function validDesign(step,design){
     return typeof design==="string"&&design.length<=64&&window.CollectorComponents?.forDisplay?.(step,design)?.id===design;
   }
@@ -2683,7 +2764,7 @@
             draftComponentDesigns.set(stepId,design);
           }
           state.dirty=true;updateSaveHint();
-          view.player.update(cinematicGraph(id,state.draft),{live:false});
+          view.player.update(cinematicGraph(id,workflowGraph(id)),{live:false});
           return true;
         }}:{}),
         renderEvidence(refs){
@@ -2749,7 +2830,7 @@
       evidenceRow(step.evidence_turns||[],leaveForTranscript),
       fields("step-responsibility",[["Owner / role",step.actor],["System / tool",step.system]]),
       fields("step-flow-fields",[["Input",step.input],["Output",step.output],["Complete when",step.completion_criteria],["Handoff",step.handoff]]));
-    const graph=containerId==="live-workflow"?conversationUI.workflow:state.draft;
+    const graph=workflowGraph(containerId);
     const routes=(graph?.connections||[]).filter(edge=>edge.from===step.id);
     if(routes.length){
       const section=el("section","workflow-step-routes");
@@ -2863,7 +2944,7 @@
       renderMap($(id),id==="live-workflow"?conversationUI.workflow:state.draft);
     }catch{
       if(state.generation!==generation)return;
-      renderWorkflowFallback($(id),id==="live-workflow"?conversationUI.workflow:state.draft);
+      renderWorkflowFallback($(id),workflowGraph(id));
     }finally{if(retry&&state.generation===generation)retry.disabled=false;}
   }
   function renderWorkflowFallback(root,graph){
@@ -2896,7 +2977,10 @@
     root.append(list);
   }
   function renderMap(target = null, graph = state.draft) {
+    graph=mapProjection(graph);
     const root=target||$("process-map");renderWorkflowLegend(root.id,graph);
+    const gap=$(root.id==="live-workflow"?"workflow-gaps":"map-gaps");
+    if(gap){const message=workflowGapSummary(graph);gap.textContent=message;gap.hidden=!message;}
     const walkthrough=workflowPlayers.get(root.id);
     if(walkthrough?.visible)walkthrough.player.update(cinematicGraph(root.id,graph),{live:root.id==="live-workflow"});
     if(workflowDetailSource?.containerId===root.id&&$("workflow-step-dialog")?.open){
@@ -3452,11 +3536,8 @@
       draftChanged(); renderSteps(); renderConnections(); renderMap();
       $("procedure-steps").lastElementChild.querySelector("input").focus();
     });
-    $("add-connection").addEventListener("click",() => {
-      if (!state.draft || state.draft.steps.length < 2 || state.draft.connections.length >= 150) {notice("Add at least two steps before you connect them."); return;}
-      state.draft.connections.push({from:state.draft.steps[0].id,to:state.draft.steps[1].id,label:"",evidence_turns:[]});
-      draftChanged(); renderConnections(); renderMap();
-    });
+    $("add-connection").addEventListener("click",()=>openConnectionEditor());
+    $("cancel-connection").addEventListener("click",()=>$("connection-editor").close());
     $("add-lifecycle").addEventListener("click",()=>{
       if(!state.draft||state.draft.lifecycle_items.length>=100)return;
       state.draft.lifecycle_items.push({item:"New work item — validate with owner",stages:["UNKNOWN / TBD"],locations:["UNKNOWN / TBD"],handoffs:["UNKNOWN / TBD"],evidence_turns:[]});

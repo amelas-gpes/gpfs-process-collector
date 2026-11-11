@@ -6,6 +6,69 @@ const path = require("node:path");
 const vm = require("node:vm");
 const invoice = require("../Examples/Synthetic-reviewed-session.json").workflow;
 
+test("only a reported single chain folds into adjacent stations, including the return rows", async () => {
+  const ELK = require("../web/vendor/elk.bundled.js");
+  const window = {ELK:class extends ELK { layout(input) { return super.layout(JSON.parse(JSON.stringify(input))); } }};
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname,"../web/workflow-graph.js"),"utf8"),{window,console});
+  const layout = window.CollectorWorkflow.cinematicLayout;
+  const steps=Array.from({length:22},(_,i)=>({id:"S"+i,title:i===9?"Reconcile all the unusually long statements and verify the detail before moving on":"Checkpoint "+i}));
+  const connections=steps.slice(1).map((step,i)=>({from:steps[i].id,to:step.id,label:i===5?"Only once the reporting period has closed and the approved records are available":"Documented handoff"}));
+  const graph={steps:[...steps].reverse(),connections:[...connections].reverse()};
+  const original=JSON.stringify(graph);
+  for(const aspect of [.65,1.9]){
+    const result=await layout(graph,aspect);
+    const nodes=new Map(result.nodes.map(node=>[node.id,node]));
+    const directions=new Set();
+    const labels=result.edges.flatMap(edge=>edge.labels.map(label=>({...label,key:edge.key})));
+    const overlap=(a,b)=>a.x<b.x+b.width&&a.x+a.width>b.x&&a.y<b.y+b.height&&a.y+a.height>b.y;
+    for(const item of result.edges){
+      const a=nodes.get(item.edge.from),b=nodes.get(item.edge.to);
+      assert.equal(item.key,edgeKey(item.edge));
+      const p=item.paths[0].points;
+      assert.equal(p.length,2,"A direct handoff never circles around the row");
+      const [s,t]=p;
+      if(s.y===t.y){
+        const right=s.x<t.x;directions.add(right?"right":"left");
+        assert.equal(s.x,right?a.x+a.width:a.x);assert.equal(t.x,right?b.x:b.x+b.width);
+        assert.equal(s.y,a.y+a.height/2);assert.equal(t.y,b.y+b.height/2);
+      }else{
+        directions.add("down");assert.equal(s.x,t.x);
+        assert.equal(s.y,a.y+a.height);assert.equal(t.y,b.y);
+      }
+      const label=item.labels[0];
+      assert.equal(label.lines.join("").replace(/\s/g,""),item.edge.label.replace(/\s/g,""));
+      const segment={x:Math.min(s.x,t.x),y:Math.min(s.y,t.y),width:Math.abs(t.x-s.x),height:Math.abs(t.y-s.y)};
+      for(const box of nodes.values()){
+        assert(!overlap(label,box),"Room is reserved for every route label");
+        assert(!overlap(segment,box),"A connector cannot pass through a station");
+      }
+      for(const other of labels.filter(other=>other.key!==item.key)){
+        assert(!overlap(label,other)&&!overlap(segment,other),"Every condition stays with its own connection");
+      }
+    }
+    assert.equal(directions.size,3,"The chain turns at the row ends and remains continuous");
+  }
+  const short=await layout({steps:steps.slice(0,5),connections:connections.slice(0,4)});
+  assert(short.edges.every(edge=>edge.paths[0].points.length===2),"Short chains run straight through");
+  const disjoint={steps:steps.slice(0,8),connections:[...connections.slice(0,4),...connections.slice(5,7),{from:"S7",to:"S5",label:"Retry"}]};
+  const separate=await layout(disjoint);
+  assert.deepEqual(Array.from(separate.edges,item=>item.key).sort(),disjoint.connections.map(edgeKey).sort(),"A separate cycle never becomes part of the main sequence");
+  assert.equal(JSON.stringify(graph),original);
+});
+
+test("a connector that stops short of the reported station is never presented as complete", async () => {
+  const ELK=require("../web/vendor/elk.bundled.js");
+  const window={ELK:class extends ELK {
+    async layout(input) {
+      const result=await super.layout(JSON.parse(JSON.stringify(input)));
+      result.edges[0].sections[0].endPoint.x-=24;
+      return result;
+    }
+  }};
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname,"../web/workflow-graph.js"),"utf8"),{window,console});
+  await assert.rejects(window.CollectorWorkflow.cinematicLayout(invoice),/attached to its reported steps/);
+});
+
 // Exercise the actual UI controller with local evidence and a controllable stage.
 class Element extends EventTarget {
   constructor(tag, document) {

@@ -42,6 +42,20 @@ def complex_map():
 
 
 class WorkflowComponentTests(unittest.TestCase):
+    def test_separate_connected_fragments_are_visible_in_live_and_draft_routing_questions(self):
+        nodes = [component(n, n, 'activity') for n in ('A', 'B', 'C', 'D')]
+        links = [edge('A', 'B'), edge('C', 'D')]
+        workflow = {'title':'Reported routes', 'steps':nodes, 'connections':links, 'open_questions':[]}
+        draft = process_draft()
+        draft.update(workflow, lifecycle_items=[], memo_summary=[{'key':k, 'status':'unknown','answer':'UNKNOWN',
+                                                                'evidence_turns':[]} for k in server.COVERAGE])
+        for validator, value in ((server.validate_workflow, workflow), (server.validate_draft, draft)):
+            result = validator(copy.deepcopy(value), TURNS)
+            self.assertEqual(result['connections'], links)
+            self.assertEqual(len(result['open_questions']), 1)
+            self.assertIn('separate', result['open_questions'][0])
+            self.assertEqual(validator(result, TURNS)['open_questions'], result['open_questions'])
+
     def test_all_component_types_preserve_topology_in_working_and_draft_maps(self):
         workflow = complex_map()
         before = copy.deepcopy(workflow)

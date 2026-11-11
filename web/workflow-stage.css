@@ -54,6 +54,9 @@
 @keyframes ws-map-flow { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
 .ws-edge:is(:hover,:focus-visible,[data-emphasis="selected"]) .ws-road { stroke:#924a25; stroke-width: 3.8; }
 .ws-edge[data-emphasis="related"] .ws-road { stroke: #536a86; stroke-width: 3.1; }
+.ws-world[data-inspecting] .ws-edge:not([data-emphasis]):not(:hover):not(:focus-visible) { opacity:.27; }
+.ws-world[data-inspecting] .ws-node:not([data-emphasis]):not(:hover):not(:focus-visible) { opacity:.53; }
+.ws-world[data-inspecting] .ws-edge:not([data-emphasis]) .ws-signal { visibility:hidden; }
 .ws-edge:is(:hover,:focus-visible,[data-emphasis="selected"]) .ws-route-label rect { fill:#fbecd9; stroke:#995226; stroke-width:1.8; }
 .ws-edge:is(:hover,:focus-visible,[data-emphasis="selected"]) .ws-route-label text { fill:#342e28; }
 .ws-instruments { position:absolute; width:0; height:0; overflow:hidden; pointer-events:none; }

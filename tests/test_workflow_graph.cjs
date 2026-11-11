@@ -47,11 +47,33 @@ let passed=0;
  assert(byId('A').x<byId('B').x&&byId('B').x<byId('C').x&&byId('C').x<byId('E').x,'Normal route must read from left to right');
  assert.equal(byId('C').x,byId('D').x,'Decision outcomes occupy parallel branches');assert.notEqual(byId('C').y,byId('D').y,'Branches must not stack into one checkpoint path');passed++;
  for(const a of layout.children)for(const b of layout.children)if(a.id!==b.id)assert(a.x+a.width<=b.x||b.x+b.width<=a.x||a.y+a.height<=b.y||b.y+b.height<=a.y,'Node boxes must not overlap');passed++;
- const back=layout.edges.find(e=>e.id==='edge-3');assert.deepEqual([...back.sources],['D::out']);assert.deepEqual([...back.targets],['B::in']);assert(back.sections[0].bendPoints.length>=2,'A correction loop needs a routed return edge');passed++;
+ const back=layout.edges.find(e=>e.id==='edge-3');
+ assert.deepEqual([...back.sources],['D::return']);assert.deepEqual([...back.targets],['B::return']);
+ assert(back.sections[0].bendPoints.length>=2,'A correction loop needs a routed return edge');passed++;
+ // A late-added predecessor or recovered draft can arrive in arbitrary step-array order.
+ const shuffled={...input,steps:[...input.steps].reverse()};
+ for(const direction of ['RIGHT','DOWN']){
+   const result=await elk.layout(api.elkGraph(api.model(shuffled),direction));
+   const axis=direction==='RIGHT'?'x':'y',position=id=>result.children.find(node=>node.id===id)[axis];
+   for(const [from,to] of [['A','B'],['B','D'],['B','C'],['C','E']]){
+     assert(position(from)<position(to),`The captured ${from} → ${to} handoff must read forward even when saved steps are reversed.`);
+   }
+   assert(position('D')>position('B'),'The reported correction goes back to its earlier decision.');
+ }
+ assert.deepEqual(shuffled.steps.map(step=>step.id),[...input.steps].reverse().map(step=>step.id));passed++;
  for(const edge of layout.edges)for(const section of edge.sections){const points=[section.startPoint,...(section.bendPoints||[]),section.endPoint];for(let i=1;i<points.length;i++)assert(points[i].x===points[i-1].x||points[i].y===points[i-1].y,'Routing must be orthogonal');}
  assert.equal(layout.edges.reduce((n,e)=>n+e.labels.length,0),input.connections.filter(e=>e.label).length);passed++;
- const isolated=graph();isolated.steps.push({id:'X',title:'Separate reported step',type:'activity'});const disconnected=await elk.layout(api.elkGraph(api.model(isolated)));assert.equal(disconnected.children.length,6);assert.equal(disconnected.edges.length,5,'No invented edge may connect an unreported handoff');passed++;
+ const isolated=graph();isolated.steps.unshift({id:'X',title:'Separate reported step',type:'activity'});const disconnected=await elk.layout(api.elkGraph(api.model(isolated)));assert.equal(disconnected.children.length,6);assert.equal(disconnected.edges.length,5,'No invented edge may connect an unreported handoff');
+ const isolatedView=api.create(env.container);await isolatedView.update(isolated);isolatedView.followPath();
+ assert.equal(isolatedView.getPathNavigation().current.id,'A','Opening a reported path starts on the connected entry, even if an isolated note was recorded first.');isolatedView.destroy();passed++;
  const self={title:'Retry',steps:[{id:'R',title:'Retry task',type:'activity'}],connections:[{from:'R',to:'R',label:'Try again'}]};const selfLayout=await elk.layout(api.elkGraph(api.model(self)));assert.equal(selfLayout.edges.length,1);assert(selfLayout.edges[0].sections[0].bendPoints.length>0);passed++;
+ const detached=nativeTree(layout);
+ // A correct edge ID and label cannot make an arrow pointing at a different card valid.
+ detached.edges[0].sections[0].endPoint.x+=100;
+ class DetachedLayout {async layout(){return detached;}}
+ const badEnv=environment(DetachedLayout),badCanvas=badEnv.api.create(badEnv.container);
+ await assert.rejects(badCanvas.update(input),/attached to its reported steps/);
+ assert.equal(badCanvas.exportSVG(),null);badCanvas.destroy();passed++;
  const again=await elk.layout(api.elkGraph(api.model(input)));const geometry=value=>JSON.stringify({width:value.width,height:value.height,nodes:value.children.map(({id,x,y,width,height})=>({id,x,y,width,height})),edges:value.edges.map(({id,sections,labels})=>({id,sections,labels}))});assert.equal(geometry(again),geometry(layout),'Same evidence must yield stable deterministic geometry');passed++;
  assert.throws(()=>api.model({...input,steps:[input.steps[0],input.steps[0]]}),/unique/);assert.throws(()=>api.model({...input,connections:[{from:'A',to:'absent'}]}),/missing step/);passed++;
  const canvas=api.create(env.container,{onSelectStep:step=>{env.selected=step;}});await canvas.update(input);assert.equal(canvas.world.querySelectorAll('[data-step-id]').length,5);assert.equal(canvas.world.querySelectorAll('[data-edge-id]').length,5);assert(canvas.getScale()>=.8,'Initial readable view should not shrink long diagrams to tiny text');passed++;

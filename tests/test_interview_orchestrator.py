@@ -85,7 +85,7 @@ class SyntheticTeamProvider(server.OpenAIClient):
         elif name == "team_working_map_source_audit":
             candidate = json.loads(body["input"][0]["content"])["candidate_update"]
             result = {key: candidate[key] for key in ("title", "open_questions", "summary", "focus", "parking_lot")}
-            result.update(discard_step_upserts=[], discard_connection_upserts=[], discard_step_removals=[],
+            result.update(route_support=[], remove_connections=[], discard_step_upserts=[], discard_connection_upserts=[], discard_step_removals=[],
                           discard_connection_removals=[], upsert_steps=[], upsert_connections=[], memo_findings=[])
         else:
             raise AssertionError("Unexpected offline schema: " + name)
@@ -570,6 +570,26 @@ class CoordinatorBoundaryTests(unittest.TestCase):
         self.assertFalse(result["completion"]["complete"])
         self.assertFalse(result["coverage_assessment"]["review_available"])
         self.assertEqual(next(row["status"] for row in result["agent_team"]["agents"] if row["role"] == "coverage_reviewer"), "error")
+
+    def test_team_audit_keeps_both_tasks_but_withholds_a_link_without_routing_evidence(self):
+        client = SyntheticTeamProvider()
+        client.turns.append({"id":"u_weekly","role":"user","text":"On Fridays we also reconcile the budget."})
+
+        def propose_shortcut(update):
+            reconcile = copy.deepcopy(update["upsert_steps"][0])
+            reconcile.update(id="budget", title="Reconcile the budget", evidence_turns=["u_weekly"])
+            update["upsert_steps"].append(reconcile)
+            update["upsert_connections"].append({"from":"s1", "to":"budget", "label":"Next",
+                                                "evidence_turns":["u_lifecycle","u_weekly"]})
+
+        client.result_changes["team_working_process_map"] = propose_shortcut
+        client.result_changes["team_working_map_source_audit"] = lambda result: result["route_support"].append(
+            {"from":"s1","to":"budget","label":"Next","passages":[]})
+        graph = client.coordinator.workflow(client.payload())["workflow"]
+        self.assertEqual([step["id"] for step in graph["steps"]], ["s1", "budget"])
+        self.assertEqual(graph["connections"], [])
+        self.assertTrue(any("Reconcile the budget" in question and "handoff or prerequisite" in question
+                            for question in graph["open_questions"]))
 
     def test_invalid_workflow_graph_is_reported_inside_lead_role(self):
         client = SyntheticTeamProvider()

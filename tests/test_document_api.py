@@ -14,7 +14,7 @@ from urllib.parse import quote
 from urllib.request import Request, urlopen
 from unittest.mock import Mock
 
-from test_server import server, interview_payload, interview_result
+from test_server import server, interview_payload, interview_result, fixture_workflow_audit
 from test_live import workflow_update_result
 
 KEY = 'sk-synthetic-document-api-sentinel-never-a-real-credential'
@@ -47,6 +47,9 @@ class FakeProvider(server.OpenAIClient):
         elif name == 'working_process_map':
             value = workflow_update_result()
             value['title'] = 'Invoice intake'
+        elif name == 'working_process_map_audit':
+            supplied = json.loads(body['input'][0]['content'])
+            value = fixture_workflow_audit(supplied['candidate_update'], supplied['turns'])
         else:
             value = interview_result()
             value['memo_findings'] = [{'key': key, 'status': 'unknown', 'answer': 'UNKNOWN', 'evidence_turns': []} for key in server.COVERAGE]

@@ -31,7 +31,8 @@
     volume:"Normal counts, peaks, exceptions and attributed effort by step."
   };
   let foundationTopic = null, foundationReturnFocus = null, foundationRestoreFocus = true;
-  const readingUI = {transcript:{query:"",matches:[],index:-1},report:{query:"",matches:[],index:-1}};
+  const readingUI = {transcript:{query:"",matches:[],index:-1,matchEnds:[]},report:{query:"",matches:[],index:-1}};
+  const transcriptRows = [];
   let sourceOrigin=null;
   let memoRestoreFocus=true, settingsRestoreFocus=true, noticeTimer=null, noticeKind="general";
   const MEMO_SECTIONS = ["notes","summary","assets"];
@@ -53,6 +54,7 @@
     play: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m5 3 7 5-7 5Z"/></svg>'
   };
   const workflowCanvases=new Map();
+  const deferredDiagrams=new Map();
   const workflowPlayers=new Map();
   let draftComponentDesigns=new Map();
   const WORKFLOW_TYPES = {
@@ -416,8 +418,9 @@
   }
   function renderAnalysisThrough(){
     const node=$('analysis-through');if(!node)return;
+    if(!state.config?.concurrent_interview?.enabled){node.hidden=true;return;}
     const basis=participantCoverageBasis(),count=basis.length;
-    node.hidden=!state.config?.concurrent_interview?.enabled||!count;
+    node.hidden=!count;
     if(node.hidden)return;
     const current=analysisCheckpoint&&analysisCheckpoint.basis===JSON.stringify(basis)&&analysisCheckpoint.documents===activeDocumentSignature();
     node.textContent=current?`Notes include all ${count} saved answers`:
@@ -540,27 +543,56 @@
       foundationReturnFocus = null; foundationTopic = null; foundationRestoreFocus = true;
     });
   }
+  function turnCaption(turn, position) {
+    return `${turn.role==="user"?"Answer":"Question"} ${position}`;
+  }
+  function createTranscriptRow(turn, caption, playDisabled) {
+    const item=el("article", `turn ${turn.role}${turn.document_event?" turn-update":""}`);
+    item.id=`turn-${turn.id}`;
+    const content=el("div","turn-content"), meta=el("div","turn-meta"), paragraph=el("p","turn-text",turn.text);
+    const row={id:turn.id,role:turn.role,fileUpdate:Boolean(turn.document_event),text:turn.text,caption,item,paragraph,play:null};
+    meta.append(el("span","turn-name",turn.document_event?"File update":turn.role==="assistant"?"Interviewer":"You"));
+    if(!turn.document_event)meta.append(el("span","turn-id",caption));
+    if(turn.role==="assistant"&&!turn.document_event){
+      const play=el("button","play-turn","Listen");play.type="button";play.disabled=playDisabled;
+      play.setAttribute("aria-label",`Listen to ${caption} using the selected voice`);
+      play.addEventListener("click",()=>speak(row.text));meta.append(play);row.play=play;
+    }
+    content.append(meta,paragraph);item.append(content);
+    return row;
+  }
   function renderTranscript() {
     const root = $("transcript"), current = $("current-question"), scroll=$("conversation-scroll"), scrollTop=scroll.scrollTop;
     const latest = state.turns.findLast(turn => turn.role === "assistant"&&!turn.document_event);
     const newQuestion=latest&&current.dataset.turnId!==latest.id;
-    root.replaceChildren();
-    state.turns.forEach(turn => {
-      const item = el("article", `turn ${turn.role}${turn.document_event?" turn-update":""}`); item.id = `turn-${turn.id}`;
-      const content = el("div", "turn-content"), meta = el("div", "turn-meta");
-      meta.append(el("span", "turn-name", turn.document_event ? "File update" : turn.role === "assistant" ? "Interviewer" : "You"));
-      if(!turn.document_event)meta.append(el("span", "turn-id", sourceCaption(turn.id)));
-      content.append(meta, el("p", "turn-text", turn.text));
-      if (turn.role === "assistant" && !turn.document_event) {
-        const play = el("button", "play-turn", "Listen"); play.type="button";
-        play.disabled = !canSpeakChoice() || Boolean(conversationUI.live?.active);
-        play.setAttribute("aria-label", `Listen to ${sourceCaption(turn.id)} using the selected voice`);
-        play.addEventListener("click", () => speak(turn.text)); meta.append(play);
+    const playDisabled=!canSpeakChoice() || Boolean(conversationUI.live?.active);
+    const positions={assistant:0,user:0};
+    let firstChanged=Math.min(state.turns.length,transcriptRows.length);
+    state.turns.forEach((turn,index)=>{
+      if(!turn.document_event)positions[turn.role]++;
+      let row=transcriptRows[index];
+      // Imported turn IDs can overlap document citation IDs, which have their own labels.
+      const caption=turn.document_event?"":turn.id.startsWith("doc_")?sourceCaption(turn.id):turnCaption(turn,positions[turn.role]);
+      if(row&&(row.id!==turn.id||row.role!==turn.role||row.fileUpdate!==Boolean(turn.document_event)||row.caption!==caption)){
+        for(const removed of transcriptRows.splice(index))removed.item.remove();
+        row=null;
       }
-      item.append(content); root.append(item);
+      if(!row){
+        row=createTranscriptRow(turn,caption,playDisabled);
+        root.append(row.item);transcriptRows.push(row);
+        firstChanged=Math.min(firstChanged,index);
+      }else{
+        if(row.text!==turn.text){
+          row.paragraph.textContent=turn.text;row.text=turn.text;
+          firstChanged=Math.min(firstChanged,index);
+        }
+        if(row.play&&row.play.disabled!==playDisabled)row.play.disabled=playDisabled;
+      }
     });
-    current.replaceChildren();
-    if (latest) current.append(el("p", "turn-text", latest.text));
+    for(const removed of transcriptRows.splice(state.turns.length))removed.item.remove();
+    if(!latest)current.replaceChildren();
+    else if(!current.firstElementChild)current.append(el("p","turn-text",latest.text));
+    else if(current.firstElementChild.textContent!==latest.text)current.firstElementChild.textContent=latest.text;
     current.dataset.turnId=latest?.id||"";
     if(newQuestion&&conversationUI.view==="voice"&&$("voice-panel"))$("voice-panel").scrollTop=0;
     current.hidden = !latest;
@@ -569,30 +601,60 @@
     $("history-count").textContent = state.turns.length ? `${state.turns.length} ${state.turns.length===1?"message":"messages"}` : "";
     if ($("transcript-count")) $("transcript-count").textContent=state.turns.length||"";
     if ($("transcript-empty")) $("transcript-empty").hidden=state.turns.length>0;
-    scroll.scrollTop=scrollTop;
-    refreshReadingSearch("transcript",false);
+    refreshReadingSearch("transcript",false,firstChanged);
     renderCoverage(); updateControls();
+    scroll.scrollTop=scrollTop;
     if(conversationUI.view==="transcript")requestAnimationFrame(updateConversationScroll);
   }
-  function refreshReadingSearch(kind,move=true) {
+  function highlightSearchMatches(part,pattern,matches,previousParts) {
+    const original=part.textContent,fragments=[];
+    let start=0;
+    for(const match of original.matchAll(pattern)){
+      if(match.index>start)fragments.push(document.createTextNode(original.slice(start,match.index)));
+      const mark=el("mark","search-match",match[0]);
+      fragments.push(mark);matches.push(mark);start=match.index+match[0].length;
+      if(matches.length===500)break;
+    }
+    if(!fragments.length)return;
+    if(start<original.length)fragments.push(document.createTextNode(original.slice(start)));
+    part.replaceChildren(...fragments);
+    previousParts.delete(part);
+  }
+  function refreshReadingSearch(kind,move=true,changedFrom=0) {
     const ui=readingUI[kind],root=$(kind==="transcript"?"transcript":"report-content");if(!root)return;
-    const input=$(kind+"-search"),query=(input?input.value:ui.query||"").trim().slice(0,180);ui.query=query;
-    const previous=ui.index;ui.matches=[];
-    const selector=kind==="transcript"?".turn-text":"p,dd,li,h1,h2,h3,h4";
-    root.querySelectorAll(selector).forEach(part=>{
-      if(part.querySelector("button"))return;
-      const original=part.textContent;part.textContent="";
-      // Match against original text: Unicode lowercasing may expand a character
-      // and shift later offsets (for example, a dotted capital I).
-      const pattern=query?new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"giu"):null;let start=0;
-      for(const match of pattern?original.matchAll(pattern):[]){if(ui.matches.length>=500)break;const index=match.index,end=index+match[0].length;part.append(el("span","",original.slice(start,index)));const mark=el("mark","search-match",original.slice(index,end));part.append(mark);ui.matches.push(mark);start=end;}
-      part.append(el("span","",original.slice(start)));
-    });
-    ui.index=ui.matches.length?Math.max(0,Math.min(previous,ui.matches.length-1)):-1;
+    const input=$(kind+"-search"),query=(input?input.value:ui.query||"").trim().slice(0,180);
+    // A partial caption can only change matches from its own row onward.
+    const first=kind==="transcript"&&query&&query===ui.query?Math.min(changedFrom,ui.matchEnds.length):0;
+    const removed=ui.matches.splice(first?ui.matchEnds[first-1]:0);
+    const previousParts=new Set(removed.map(mark=>mark.parentElement));
+    ui.query=query;
+    if(kind==="transcript")ui.matchEnds.length=first;
+    if(query){
+      // Unicode case conversion may expand a character. Match the original text.
+      const pattern=new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"giu");
+      if(kind==="transcript"){
+        for(let i=first;i<transcriptRows.length;i++){
+          if(ui.matches.length<500)highlightSearchMatches(transcriptRows[i].paragraph,pattern,ui.matches,previousParts);
+          ui.matchEnds.push(ui.matches.length);
+        }
+      }else{
+        for(const part of root.querySelectorAll("p,dd,li,h1,h2,h3,h4")){
+          if(ui.matches.length===500)break;
+          if(!part.querySelector("button"))highlightSearchMatches(part,pattern,ui.matches,previousParts);
+        }
+      }
+    }
+    for(const part of previousParts){
+      if(part&&root.contains(part))part.textContent=part.textContent;
+    }
+    ui.index=ui.matches.length?Math.max(0,Math.min(ui.index,ui.matches.length-1)):-1;
     updateSearchPosition(kind,move);
   }
   function updateSearchPosition(kind,move=true) {
-    const ui=readingUI[kind];ui.matches.forEach((mark,i)=>mark.classList.toggle("current-match",i===ui.index));
+    const ui=readingUI[kind],current=ui.matches[ui.index];
+    if(ui.current!==current){
+      ui.current?.classList.remove("current-match");current?.classList.add("current-match");ui.current=current;
+    }
     const count=$(kind+"-search-count");if(count)count.textContent=ui.query?(ui.matches.length?`${ui.index+1} / ${ui.matches.length}${ui.matches.length===500?"+":""}`:"No matches"):"";
     for(const direction of ["previous","next"])if($(kind+"-search-"+direction))$(kind+"-search-"+direction).disabled=!ui.matches.length;
     if(kind==="transcript"&&$("transcript-match-navigation"))$("transcript-match-navigation").hidden=ui.matches.length<2;
@@ -1285,7 +1347,7 @@
   }
   function renderWorkingMap() {
     if($("workflow-panel"))$("workflow-panel").dataset.hasSteps=String(Boolean(conversationUI.workflow?.steps?.length));
-    renderMap($("live-workflow"),conversationUI.workflow);
+    scheduleMap($("live-workflow"),conversationUI.workflow);
   }
   async function request(path, data, options = {}) {
     if(path==='/api/interview'&&!options.concurrentBypass&&!liveFrontActive()&&state.config?.concurrent_interview?.enabled&&
@@ -2225,7 +2287,7 @@
     state.draftEdited = true;
     state.dirty = true;
     updateSaveHint();
-    if (map) renderMap();
+    if (map) scheduleMap();
   }
   function bindDraftFields() {
     const fields = {"draft-title": "title", "draft-overview": "overview", "draft-trigger": "trigger", "draft-inputs": "inputs", "draft-outputs": "outputs", "draft-open-questions": "open_questions", "draft-validation-notes": "validation_notes", "draft-exceptions": "exceptions", "draft-controls": "controls"};
@@ -2337,7 +2399,7 @@
     Object.entries(fields).forEach(([id, key]) => { $(id).value = Array.isArray(draft[key]) ? draft[key].join("\n") : draft[key]; });
     renderSteps();
     renderConnections();
-    renderMap();
+    scheduleMap();
     renderMemo();
     renderLifecycle();
     renderVariations();
@@ -2444,7 +2506,7 @@
     if (!turn) return "Missing answer";
     if (turn.document_event) return "File update";
     const position = state.turns.filter(item => item.role === turn.role&&!item.document_event).findIndex(item => item.id === id) + 1;
-    return `${turn.role === "user" ? "Answer" : "Question"} ${position}`;
+    return turnCaption(turn,position);
   }
   function showDocumentEvidence(source, origin=document.activeElement) {
     if(!documentEvidenceDialog){
@@ -2496,7 +2558,7 @@
         draftComponentDesigns.delete(step.id);
         state.draft.steps.splice(index, 1);
         state.draft.connections = state.draft.connections.filter(c => c.from !== step.id && c.to !== step.id);
-        draftChanged(); renderSteps(); renderConnections(); renderMap();focusAfterEditorRemoval("procedure-steps",index,"add-step");
+        draftChanged(); renderSteps(); renderConnections(); scheduleMap();focusAfterEditorRemoval("procedure-steps",index,"add-step");
       });
       header.append(el("span", "step-id", step.id), title, remove);
       const props = el("div", "step-properties");
@@ -2550,7 +2612,7 @@
       row.append(description,edit);
       const remove = el("button", "remove-button", "×");
       remove.setAttribute("aria-label", `Remove connection ${index + 1}`);
-      remove.addEventListener("click", () => {state.draft.connections.splice(index, 1); draftChanged(); renderConnections(); renderMap();focusAfterEditorRemoval("connection-rows",index,"add-connection");});
+      remove.addEventListener("click", () => {state.draft.connections.splice(index, 1); draftChanged(); renderConnections(); scheduleMap();focusAfterEditorRemoval("connection-rows",index,"add-connection");});
       row.append(remove);
       const evidence=evidenceRow(connection.evidence_turns||[]);
       evidence.classList.add("connection-evidence");
@@ -2729,16 +2791,34 @@
       {...graph,component_designs:Object.fromEntries(draftComponentDesigns)}:graph;
   }
 
+  function mapInWorkspace(id) {
+    return id==="live-workflow" ? !$("interview-view").hidden&&conversationUI.view==="workflow" :
+      !$("review-view").hidden&&reviewUI.section==="review-map";
+  }
+  function scheduleMap(target=null,graph=state.draft) {
+    const root=target||$("process-map");
+    const detailOpen=workflowDetailSource?.containerId===root.id&&$("workflow-step-dialog")?.open;
+    if(graph?.steps?.length&&!detailOpen&&(document.hidden||!mapInWorkspace(root.id))){
+      deferredDiagrams.set(root.id,graph);
+      $(root.id==="live-workflow"?"export-working-map":"export-map").disabled=true;
+      return;
+    }
+    deferredDiagrams.delete(root.id);
+    return renderMap(root,graph);
+  }
   function syncWorkflowVisibility(pageVisible=true) {
     for(const [id,view] of workflowPlayers){
       const live=id==="live-workflow";
-      const inWorkspace=live?!$("interview-view").hidden&&conversationUI.view==="workflow":
-        !$("review-view").hidden&&reviewUI.section==="review-map";
-      const visible=Boolean(pageVisible&&view.selected&&inWorkspace&&!document.hidden);
+      const visible=Boolean(pageVisible&&view.selected&&mapInWorkspace(id)&&!document.hidden);
       if(visible===view.visible)continue;
       view.visible=visible;
-      if(visible)view.player.update(cinematicGraph(id,workflowGraph(id)),{live});
+      if(visible&&!deferredDiagrams.has(id))view.player.update(cinematicGraph(id,workflowGraph(id)),{live});
       view.player.setVisible(visible);
+    }
+    if(pageVisible&&!document.hidden){
+      for(const [id,graph] of deferredDiagrams){
+        if(mapInWorkspace(id))scheduleMap($(id),graph);
+      }
     }
   }
   function selectWorkflowMode(id,mode,focus=false) {
@@ -2936,6 +3016,7 @@
     })().finally(()=>{workflowAssetsLoading=null;});
     return workflowAssetsLoading;
   }
+  window.CollectorWorkflowAssets={loadEngine:()=>ensureWorkflowAssets().then(()=>window.ELK)};
   async function retryWorkflowLayout(id){
     const generation=state.generation,retry=$(id==="live-workflow"?"retry-workflow":"map-retry-layout");
     if(retry)retry.disabled=true;
@@ -3005,7 +3086,7 @@
     try{
       root.classList.remove("workflow-fallback");
       if(!canvas){canvas=window.CollectorWorkflow.create(root,{onSelectStep:step=>showWorkflowStep(step,root.id),onViewChange:info=>updateCanvasControls(root.id,info)});workflowCanvases.set(root.id,canvas);}
-      const current=()=>state.generation===generation&&workflowCanvases.get(root.id)===canvas&&!workflowPlayers.get(root.id)?.diagramDirty;
+      const current=()=>state.generation===generation&&workflowCanvases.get(root.id)===canvas&&!deferredDiagrams.has(root.id)&&!workflowPlayers.get(root.id)?.diagramDirty;
       const pending=canvas.update(graph);
       return pending.then(applied=>{
         if(!applied||!current())return;
@@ -3155,6 +3236,7 @@
     return (!state.dirty&&!knowledgeUI?.hasPending) || confirm("Open a different interview? Anything you haven’t saved will be cleared. "+(knowledgeUI?.hasPending?"A process submission is awaiting confirmation; replacing this session loses its retry information and does not cancel a server save. Recover its status first if needed.":"Save a copy first if you want to keep it."));
   }
   function clearState(context = null) {
+    deferredDiagrams.clear();
     draftComponentDesigns.clear();
     concurrentInterview?.reset();
     conversationUI.live?.discardPendingAudio?.();topicDiscussion=[];analysisCheckpoint=null;
@@ -3191,7 +3273,7 @@
     state.completion=null;
     sourceOrigin=null;if($("source-return"))$("source-return").hidden=true;
     if($("settings-source-return"))$("settings-source-return").hidden=true;
-    for(const kind of ["transcript","report"]){Object.assign(readingUI[kind],{query:"",matches:[],index:-1});if($(kind+"-search"))$(kind+"-search").value="";}
+    for(const kind of ["transcript","report"]){Object.assign(readingUI[kind],{query:"",matches:[],index:-1,current:null});if($(kind+"-search"))$(kind+"-search").value="";}
     setTranscriptFind(false,false);setTranscriptExport(false,false);
     for(const id of ["interview-error","review-error"])if($(id))$(id).hidden=true;
     state.version++;
@@ -3533,7 +3615,7 @@
       let n = state.draft.steps.length + 1;
       while (state.draft.steps.some(s => s.id === `S${n}`)) n++;
       state.draft.steps.push({id:`S${n}`,title:"New step — validate with owner",type:"activity",actor:"UNKNOWN / TBD",system:"UNKNOWN / TBD",description:"",input:"UNKNOWN / TBD",output:"UNKNOWN / TBD",completion_criteria:"UNKNOWN / TBD",handoff:"UNKNOWN / TBD",evidence_turns:[]});
-      draftChanged(); renderSteps(); renderConnections(); renderMap();
+      draftChanged(); renderSteps(); renderConnections(); scheduleMap();
       $("procedure-steps").lastElementChild.querySelector("input").focus();
     });
     $("add-connection").addEventListener("click",()=>openConnectionEditor());

@@ -83,12 +83,13 @@ class ConcurrentInterview:
 
     @staticmethod
     def _participant_basis(payload):
-        turns = copy.deepcopy(payload.get("turns", []))
+        turns = payload.get("turns", [])
         # A newly spoken question adds no participant evidence. Its addition must
         # not make the result for the answer that prompted it immediately stale.
-        while turns and turns[-1].get("role") == "assistant":
-            turns.pop()
-        return [payload.get("context", {}), turns, payload.get("document_scope", ""),
+        end = len(turns)
+        while end and turns[end - 1].get("role") == "assistant":
+            end -= 1
+        return [payload.get("context", {}), turns[:end], payload.get("document_scope", ""),
                 payload.get("document_revision", "")]
 
     @classmethod

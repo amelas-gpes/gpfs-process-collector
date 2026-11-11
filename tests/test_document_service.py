@@ -238,15 +238,23 @@ class DocumentServiceTests(unittest.TestCase):
         foreign = self.store.add(other_scope, 'foreign.csv', b'field,value\nprivate,other interview\n', {})
         self.store.extract(other_scope, foreign['id'])
         foreign_source = self.store.chunks(other_scope, foreign['id'])['chunks'][0]
-        support = service.supporting_context(self.scope, 'common', source_ids=[previous['id'], foreign_source['id'], 'fabricated'])
+        second = chunks[0]
+        requested = [previous['id'], foreign_source['id'], second['id'], previous['id'], record['id'] + '_missing']
+        with patch.object(self.store, '_db', wraps=self.store._db) as connections:
+            support = service.supporting_context(self.scope, 'common', source_ids=requested)
+        self.assertEqual(connections.call_count, 1)
         document = support['documents'][0]
-        self.assertEqual(document['excerpts'][0], previous)
+        self.assertEqual(document['excerpts'][:2], [previous, second])
+        self.assertEqual(sum(chunk['id'] == previous['id'] for chunk in document['excerpts']), 1)
         self.assertFalse(document['context_coverage']['complete_text'])
         self.assertEqual(document['context_coverage']['selection'], 'selected excerpts')
         self.assertLess(document['context_coverage']['included_chunks'], document['context_coverage']['total_chunks'])
         self.assertLessEqual(support['context_budget']['characters'], service_module.MAX_SUPPORT_CHARS)
         self.assertNotIn(foreign_source['id'], json.dumps(support))
-        self.store.archive(self.scope, record['id'])
+        with self.store.interview_reader(self.scope) as reader:
+            self.store.archive(self.scope, record['id'])
+            self.assertEqual(reader.prior_sources(requested), [previous, second])
+            self.assertTrue(reader.search('common', [record['id']], 1))
         removed = service.supporting_context(self.scope, 'common', source_ids=[previous['id'], foreign_source['id']])
         self.assertEqual(removed['documents'], [])
         self.assertEqual(removed['source_versions'], [])

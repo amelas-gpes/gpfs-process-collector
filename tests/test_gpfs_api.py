@@ -1,5 +1,6 @@
 """Local brand asset delivery and origin boundaries; no external service calls."""
 
+import gzip
 from pathlib import Path
 import re
 import tempfile
@@ -7,7 +8,7 @@ import threading
 import unittest
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 import xml.etree.ElementTree as ET
 
 from test_server import server
@@ -51,6 +52,40 @@ class GPFSAssetHTTPTests(unittest.TestCase):
                 self.assertEqual(headers["Cross-Origin-Resource-Policy"], "same-origin")
                 self.assertEqual(body, (server.WEB_DIR / path.lstrip("/")).read_bytes())
         self.client.request.assert_not_called()
+
+    def test_static_assets_compress_and_revalidate_without_caching_private_responses(self):
+        status, headers, body = self.fetch("/style.css", {"Accept-Encoding": "br, gzip"})
+        source = (server.WEB_DIR / "style.css").read_bytes()
+        self.assertEqual(status, 200)
+        self.assertEqual(headers["Content-Encoding"], "gzip")
+        self.assertEqual(headers["Vary"], "Accept-Encoding")
+        self.assertEqual(headers["Cache-Control"], "private, no-cache")
+        self.assertLess(len(body), len(source))
+        self.assertEqual(gzip.decompress(body), source)
+        etag = headers["ETag"]
+        status, headers, body = self.fetch("/style.css", {"If-None-Match": '"older", ' + etag.removeprefix("W/")})
+        self.assertEqual((status, body), (304, b""))
+        self.assertEqual(headers["ETag"], etag)
+        self.assertIsNone(headers["Content-Length"])
+        status, headers, body = self.fetch("/style.css", {"Accept-Encoding": "*;q=1, gzip;q=0"})
+        self.assertEqual((status, body), (200, source))
+        self.assertIsNone(headers["Content-Encoding"])
+        status, headers, body = self.fetch("/api/config", {"Accept-Encoding": "gzip", "If-None-Match": "*"})
+        self.assertEqual((status, headers["Cache-Control"]), (200, "no-store"))
+        self.assertIsNone(headers["ETag"])
+        self.assertIsNone(headers["Content-Encoding"])
+
+    def test_editing_an_asset_invalidates_existing_representations(self):
+        with tempfile.TemporaryDirectory() as folder, patch.object(server, "WEB_DIR", Path(folder)):
+            asset = Path(folder) / "app.js"
+            asset.write_bytes(b"first version " * 200)
+            _, headers, _ = self.fetch("/app.js", {"Accept-Encoding": "gzip"})
+            previous = headers["ETag"]
+            updated = b"updated version " * 200
+            asset.write_bytes(updated)
+            status, headers, body = self.fetch("/app.js", {"If-None-Match": previous, "Accept-Encoding": "gzip"})
+            self.assertEqual((status, gzip.decompress(body)), (200, updated))
+            self.assertNotEqual(headers["ETag"], previous)
 
     def test_symbol_only_svg_preserves_source_paths_and_verified_brand_palette(self):
         status, _, body = self.fetch("/assets/gpfs-symbol.svg")

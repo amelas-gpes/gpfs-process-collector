@@ -97,15 +97,15 @@ class HTTPDiagnosticTests(unittest.TestCase):
                 return getattr(self.original, name)
 
         class AbortOneResponse(server.Handler):
-            def _headers(self, status, mime, size):
+            def _headers(self, status, mime, size, **options):
                 statuses.append(status)
-                return super()._headers(status, mime, size)
+                return super()._headers(status, mime, size, **options)
 
-            def _write_response(self, raw, mime, status=200):
+            def _write_response(self, raw, mime, status=200, **options):
                 if self.path == "/api/workflow" and not self.server.aborted_once:
                     self.server.aborted_once = True
                     self.wfile = AbortedWriter(self.wfile)
-                return super()._write_response(raw, mime, status)
+                return super()._write_response(raw, mime, status, **options)
 
         self.httpd = server.InterviewServer(("127.0.0.1", 0), AbortOneResponse, client=self.client,
                                             documents_root=Path(self.temporary.name) / "documents")

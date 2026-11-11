@@ -13,7 +13,7 @@
     parallel_split:{label:"Parallel split",fill:"#eff4fc",stroke:"#8398b8"},parallel_join:{label:"Join all",fill:"#eff4fc",stroke:"#8398b8"},merge:{label:"Merge alternatives",fill:"#f5f3fa",stroke:"#a395b5"},
     wait:{label:"Wait / event",fill:"#fbf3eb",stroke:"#c49c77"},subprocess:{label:"Subprocess",fill:"#f6f3fa",stroke:"#a395b5"},
     document:{label:"Document",fill:"#f1f7f8",stroke:"#85a8ae"},data_store:{label:"Data store",fill:"#f1f7f8",stroke:"#85a8ae"}};
-  let measureContext;
+  let measureContext,graphemeSegmenter;
   const measurements=new Map();
   function measureText(value,size=14,weight=400){
     const text=string(value),key=`${size}|${weight}|${text}`;
@@ -27,12 +27,12 @@
   }
   function wrapText(value,width,size=14,weight=400){
     const lines=[];let line="";
-    const segments=typeof Intl!=="undefined"&&Intl.Segmenter?new Intl.Segmenter(undefined,{granularity:"grapheme"}):null;
     for(const paragraph of string(value).split(/\r?\n/)){
       for(const word of paragraph.split(/\s+/u).filter(Boolean)){
         if(line&&measureText(`${line} ${word}`,size,weight)>width){lines.push(line);line="";}
         if(measureText(word,size,weight)>width){
-          for(const item of segments?segments.segment(word):Array.from(word)){
+          if(graphemeSegmenter===undefined)graphemeSegmenter=typeof Intl!=="undefined"&&Intl.Segmenter?new Intl.Segmenter(undefined,{granularity:"grapheme"}):null;
+          for(const item of graphemeSegmenter?graphemeSegmenter.segment(word):Array.from(word)){
             const ch=typeof item==="string"?item:item.segment;
             if(line&&measureText(line+ch,size,weight)>width){lines.push(line);line="";}line+=ch;
           }
@@ -60,6 +60,8 @@
     return {type,width,height,contentWidth,contentHeight,blocks,diamond};
   }
   function edgeMetrics(value){const width=clamp(measureText(value,11,500)+24,44,200),lines=wrapText(value,width-24,11,500);return {width,height:lines.length*15+14,lines};}
+  const stepTooltip=step=>`${step.id}: ${step.title}\n${step.description||""}\nOwner: ${step.actor||"Not established"}\nSystem: ${step.system||"Not established"}`;
+  const edgeTooltip=edge=>`${edge.from} → ${edge.to}${edge.label?": "+edge.label:""}. Sources: ${(edge.evidence_turns||[]).join(", ")||"No source references in this view; open details to review evidence"}`;
   function cinematicNodeMetrics(step) {
     const width=150;
     const titleLines=wrapText(step.title||step.id,width-12,15,600);
@@ -201,6 +203,10 @@
     return d;
   }
   let cinematicEngine;
+  function loadEngine() {
+    if(!scope.CollectorWorkflowAssets?.loadEngine)throw new Error("The local workflow layout engine could not load.");
+    return scope.CollectorWorkflowAssets.loadEngine();
+  }
   // Only a single, acyclic path can change row direction without separating a choice
   // from its alternatives or turning a normal handoff into a long return connector.
   function cinematicChain(data,aspect) {
@@ -258,15 +264,18 @@
         label.y=vertical ? (start.y+end.y-label.height)/2 : start.y-label.height-4;
       }
     });
-    return {width:xs.at(-1)+width+pad,height:ys.at(-1)+rowHeights.at(-1)+pad,nodes,edges};
+    return {width:xs.at(-1)+width+pad,height:ys.at(-1)+rowHeights.at(-1)+pad,nodes,edges,usesAspect:true};
   }
-  async function cinematicLayout(graph,aspect=1.9) {
+  async function cinematicLayout(graph,aspect=1.9,isCurrent=()=>true) {
     const data=model(graph);
     if(!data.steps.length)return {width:0,height:0,nodes:[],edges:[]};
     const chain=cinematicChain(data,Number.isFinite(aspect)?clamp(aspect,.6,2.4):1.9);
     if(chain)return chain;
-    if(!scope.ELK)throw new Error("The local workflow layout engine could not load.");
-    cinematicEngine ||= new scope.ELK();
+    if(!cinematicEngine){
+      const Engine=scope.ELK||await loadEngine();
+      if(!isCurrent())return null;
+      cinematicEngine ||= new Engine();
+    }
     const layout=await cinematicEngine.layout(elkGraph(data,"RIGHT",true));
     validateLayeredRoutes(layout,data);
     const steps=new Map(data.steps.map(step=>[step.id,step]));
@@ -293,8 +302,6 @@
       this.uid=`workflow-${++serial}`;this.version=0;this.dead=false;this.graph=null;this.requestedGraph=null;this.layout=null;this.fitted=false;this.fitMode=true;this.pending=false;this.layoutError=false;this.lastSize=null;
       this.camera={x:0,y:0,scale:1};this.direction=options.direction==="DOWN"||(!options.direction&&container.clientWidth>0&&container.clientWidth<640)?"DOWN":"RIGHT";this.selected=null;this.following=false;this.pathTrail=[];this.listeners=[];this.pointers=new Map();this.pointerMoved=false;
       this.autoDirectionPending=!options.direction&&!container.clientWidth;
-      if(!scope.ELK)throw new Error("The local workflow layout engine could not load.");
-      this.engine=new scope.ELK();
       container.replaceChildren();container.classList.add("workflow-canvas");
       styles(container,{position:"relative",overflow:"hidden",touchAction:"none"});
       this.svg=svgNode(this.doc,"svg",{xmlns:NS,width:"100%",height:"100%",tabindex:"0",role:"group","aria-label":"Workflow canvas. Drag to pan, use plus or minus to zoom, press 0 for the overview, and Tab to explore steps. Press F to follow a path and Escape to leave it."});
@@ -327,23 +334,60 @@
       // Otherwise a late layout can present old evidence as the current graph.
       const revision=++this.version;
       if(this.autoDirectionPending&&this.size().width){this.direction=this.size().width<640?"DOWN":"RIGHT";this.autoDirectionPending=false;}
-      let data;
-      try{data=model(graph);}catch(error){this.requestedGraph=null;this.pending=false;this.layoutError=true;this.notify();throw error;}
-      this.requestedGraph=data;this.pending=Boolean(data.steps.length);this.layoutError=false;this.notify();
-      if(!data.steps.length){this.graph=data;this.layout=null;this.selected=null;this.following=false;this.pathTrail=[];this.fitted=false;this.fitMode=true;this.world.replaceChildren();this.miniWorld.replaceChildren();this.mini.hidden=true;this.hint.textContent="Describe a step to start building the workflow.";this.notify();return true;}
-      let positions;
+      let data,renderKey,layoutKey;
       try{
-        positions=await this.engine.layout(elkGraph(data,this.direction));
+        renderKey=JSON.stringify({direction:this.direction,title:string(graph?.title),steps:graph?.steps,connections:graph?.connections});
+        if(this.layout&&this.renderKey===renderKey){
+          if(this.pending||this.layoutError){
+            this.requestedGraph=JSON.parse(renderKey);
+            this.pending=false;this.layoutError=false;this.notify();
+          }
+          if(!this.fitted)this.initialView();
+          return true;
+        }
+        // The interview editor can mutate its draft while the engine is running.
+        this.requestedGraph=JSON.parse(renderKey);
+        data=model(this.requestedGraph);
+        layoutKey=JSON.stringify([this.direction,data.steps.map(s=>[s.id,s.type,s.title,s.actor,s.system]),data.connections.map(e=>[e.from,e.to,e.label])]);
+      }catch(error){this.requestedGraph=null;this.pending=false;this.layoutError=true;this.notify();throw error;}
+      if(this.layout&&this.layoutKey===layoutKey){
+        // All geometry and displayed labels match. Refresh the evidence behind the existing controls.
+        this.graph=data;this.renderKey=renderKey;this.pending=false;this.layoutError=false;
+        this.title.textContent=`Workflow: ${data.title||"Current process"}`;
+        const updateTooltip=(element,value)=>{if(element.textContent!==value)element.textContent=value;};
+        data.steps.forEach((step,index)=>updateTooltip(this.stepTitles[index],stepTooltip(step)));
+        data.connections.forEach(edge=>updateTooltip(this.edgeTitles.get(edge.id),edgeTooltip(edge)));
+        if(!this.fitted)this.initialView();
+        this.notify();return true;
+      }
+      this.pending=Boolean(data.steps.length);this.layoutError=false;this.notify();
+      if(!data.steps.length){this.graph=data;this.layout=null;this.stepTitles=[];this.edgeTitles=null;this.selected=null;this.following=false;this.pathTrail=[];this.fitted=false;this.fitMode=true;this.world.replaceChildren();this.miniWorld.replaceChildren();this.mini.hidden=true;this.hint.textContent="Describe a step to start building the workflow.";this.notify();return true;}
+      let positions,job;
+      try{
+        if(!this.engine){
+          const Engine=scope.ELK||await loadEngine();
+          if(this.dead||revision!==this.version)return false;
+          this.engine ||= new Engine();
+        }
+        job=this.layoutJob;
+        if(!job||job.key!==layoutKey){
+          job={key:layoutKey,result:this.engine.layout(elkGraph(data,this.direction))};
+          this.layoutJob=job;
+        }
+        positions=await job.result;
+        if(this.dead||revision!==this.version)return false;
         validateLayeredRoutes(positions,data);
       }catch(error){
         if(this.dead||revision!==this.version)return false;
         this.pending=false;this.layoutError=true;this.notify();throw error;
+      }finally{
+        if(job&&this.layoutJob===job)this.layoutJob=null;
       }
-      if(this.dead||revision!==this.version)return false;
       this.pending=false;this.layoutError=false;
       const previousGraph=this.graph,previousLayout=this.layout,previousSelected=this.selected;
       const focusedStep=this.doc.activeElement?.getAttribute?.("data-step-id");
-      this.graph=data;this.layout=positions;this.selected=data.steps.some(step=>step.id===this.selected)?this.selected:null;
+      this.graph=data;this.layout=positions;
+      this.selected=data.steps.some(step=>step.id===this.selected)?this.selected:null;
       // A correction may remove or reroute a path. Never retain an invalid trail.
       this.pathTrail=this.pathTrail.filter(id=>data.steps.some(step=>step.id===id));
       if(this.following&&!this.selected){this.following=false;this.pathTrail=[];}
@@ -357,6 +401,7 @@
       this.draw();
       if(focusedStep)[...this.world.querySelectorAll("[data-step-id]")].find(node=>node.getAttribute("data-step-id")===focusedStep)?.focus({preventScroll:true});
       if(!this.fitted)this.initialView();else if(this.fitMode)this.fit();else this.paintView();
+      this.layoutKey=layoutKey;this.renderKey=renderKey;
       this.notify();
       return true;
     }
@@ -501,9 +546,13 @@
       this.description.textContent=`${data.steps.length} reported steps and ${data.connections.length} reported connections. ${data.steps.map(step=>`${step.id}: ${step.title}, ${step.actor||"owner not established"}`).join(". ")}`;
       const defs=svgNode(doc,"defs"),arrow=svgNode(doc,"marker",{id:`${this.uid}-arrow`,viewBox:"0 0 10 10",refX:9,refY:5,markerWidth:7,markerHeight:7,orient:"auto-start-reverse"});arrow.append(svgNode(doc,"path",{class:"wf-arrow",d:"M 1 1 L 9 5 L 1 9 z",fill:"#718197"}));defs.append(arrow);this.world.append(defs);
       const edges=svgNode(doc,"g",{class:"workflow-edges"}),edgeLabels=svgNode(doc,"g");this.world.append(edges);
+      const byEdgeId=new Map(data.connections.map(edge=>[edge.id,edge]));
+      const stepIndex=new Map(data.steps.map((step,index)=>[step.id,index]));
+      this.edgeTitles=new Map();this.stepTitles=[];
       layout.edges.forEach(edge=>{
-        const original=data.connections.find(item=>item.id===edge.id);if(!original)return;
-        const group=svgNode(doc,"g",{"data-edge-id":edge.id});group.append(svgNode(doc,"title",{},`${original.from} → ${original.to}${original.label?": "+original.label:""}. Sources: ${(original.evidence_turns||[]).join(", ")||"No source references in this view; open details to review evidence"}`));
+        const original=byEdgeId.get(edge.id);if(!original)return;
+        const group=svgNode(doc,"g",{"data-edge-id":edge.id}),tooltip=svgNode(doc,"title",{},edgeTooltip(original));
+        group.append(tooltip);this.edgeTitles.set(edge.id,tooltip);
         (edge.sections||[]).forEach(section=>{const p=points(section);group.append(svgNode(doc,"path",{class:"wf-edge",d:roundedPath(p),fill:"none",stroke:"#718197","stroke-width":1.6,"stroke-linejoin":"round","marker-end":`url(#${this.uid}-arrow)`}));this.miniWorld.append(svgNode(doc,"path",{class:"wf-mini-edge",d:roundedPath(p,0),fill:"none",stroke:"#a4b0be","stroke-width":3}));});edges.append(group);
         const labelGroup=svgNode(doc,"g",{"data-edge-label-for":edge.id});
         (edge.labels||[]).forEach(label=>{
@@ -513,9 +562,9 @@
       });
       this.world.append(edgeLabels);
       layout.children.forEach(position=>{
-        const step=data.steps.find(item=>item.id===position.id),{x,y,width:w,height:h}=position,metrics=nodeMetrics(step),type=metrics.type,theme=TYPES[type],color=colorFor(step.actor);
+        const index=stepIndex.get(position.id),step=data.steps[index],{x,y,width:w,height:h}=position,metrics=nodeMetrics(step),type=metrics.type,theme=TYPES[type],color=colorFor(step.actor);
         const group=svgNode(doc,"g",{"data-step-id":step.id,"data-step-type":type,"data-node-box":`${x} ${y} ${w} ${h}`,tabindex:"0",role:"button","aria-label":`${step.id}: ${step.title}. ${theme.label}. ${step.actor||"Owner not established"}. Show details.`,"aria-pressed":"false",style:`--actor-color: ${color}`});styles(group,{cursor:"pointer",outline:"none"});
-        group.append(svgNode(doc,"title",{},`${step.id}: ${step.title}\n${step.description||""}\nOwner: ${step.actor||"Not established"}\nSystem: ${step.system||"Not established"}`));
+        const tooltip=svgNode(doc,"title",{},stepTooltip(step));group.append(tooltip);this.stepTitles[index]=tooltip;
         const shape=nodeShape(doc,type,x,y,w,h);shape.classList.add("workflow-node-shape");if(type==="decision")shape.classList.add("is-decision");shape.setAttribute("data-base-stroke",theme.stroke);group.append(shape);
         if(type==="subprocess")group.append(svgNode(doc,"path",{d:`M ${x+13} ${y+1} V ${y+h-1} M ${x+w-13} ${y+1} V ${y+h-1}`,stroke:theme.stroke,fill:"none","stroke-width":1}));
         if(type==="data_store")group.append(svgNode(doc,"path",{d:`M ${x} ${y+12} C ${x} ${y+28} ${x+w} ${y+28} ${x+w} ${y+12}`,stroke:theme.stroke,fill:"none","stroke-width":1}));
@@ -524,10 +573,10 @@
           const center=x+block.x+block.width/2,text=svgNode(doc,"text",{class:`wf-${block.role}`,x:center,y:y+block.y+block.size,"text-anchor":"middle","font-family":FONT,"font-size":block.size,"font-weight":block.weight,fill:block.role==="title"?"#26354a":block.role==="actor"?color:block.role==="kind"?"#53657b":"#646b75","data-text-box":`${x+block.x} ${y+block.y} ${block.width} ${block.height}`});
           block.lines.forEach((line,i)=>text.append(svgNode(doc,"tspan",{x:center,dy:i?block.lineHeight:0},line)));group.append(text);
         }
-        group.addEventListener("click",event=>{if(!this.pointerMoved||event.detail===0)this.select(step);});
+        group.addEventListener("click",event=>{if(!this.pointerMoved||event.detail===0)this.select(this.graph.steps[index]);});
         group.addEventListener("keydown",event=>{
-          if(event.key==="Enter"||event.key===" "){event.preventDefault();this.select(step);}
-          const index=data.steps.findIndex(item=>item.id===step.id),direction=event.key==="ArrowRight"||event.key==="ArrowDown"?1:event.key==="ArrowLeft"||event.key==="ArrowUp"?-1:0;
+          if(event.key==="Enter"||event.key===" "){event.preventDefault();this.select(this.graph.steps[index]);}
+          const direction=event.key==="ArrowRight"||event.key==="ArrowDown"?1:event.key==="ArrowLeft"||event.key==="ArrowUp"?-1:0;
           if(direction){event.preventDefault();const target=data.steps[(index+direction+data.steps.length)%data.steps.length];this.focusStep(target.id);}
         });
         group.addEventListener("focus",()=>{group.setAttribute("opacity",1);shape.setAttribute("stroke","#dc6e2c");shape.setAttribute("stroke-width",2.5);});
@@ -556,7 +605,7 @@
       return new scope.XMLSerializer().serializeToString(svg);
     }
     destroy(){
-      this.dead=true;this.pending=false;this.version++;this.observer?.disconnect();try{this.engine.terminateWorker?.();}catch{/* ELK's in-process browser worker has no terminate method. */}this.listeners.forEach(([target,name,fn,options])=>target.removeEventListener(name,fn,options));this.listeners=[];this.container.replaceChildren();this.container.classList.remove("workflow-canvas");
+      this.dead=true;this.pending=false;this.version++;this.observer?.disconnect();try{this.engine?.terminateWorker?.();}catch{/* ELK's in-process browser worker has no terminate method. */}this.listeners.forEach(([target,name,fn,options])=>target.removeEventListener(name,fn,options));this.listeners=[];this.container.replaceChildren();this.container.classList.remove("workflow-canvas");
     }
   }
   scope.CollectorWorkflow={create:(container,options)=>new Canvas(container,options),model,elkGraph,cinematicLayout,roundedPath,measureText,wrapText,nodeMetrics,edgeMetrics,types:TYPES};

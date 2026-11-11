@@ -186,6 +186,42 @@ assert.equal(new Set(walk(document.body).filter(node=>node.id.startsWith("turn-"
  t.state.turns=originalTurns;search.value="";t.renderTranscript();passes++;
 }
 {
+ const original=t.state.turns,search=document.getElementById("transcript-search"),ui=t.readingUI.transcript;
+ const question={id:"q1",role:"assistant",text:"Where is the invoice?"};
+ const answer={id:"a1",role:"user",text:"invoice ".repeat(499)+"<&>\n"};
+ const receipt={id:"file",role:"assistant",document_event:true,text:"File received"};
+ const final={id:"q2",role:"assistant",text:"Another invoice?"};
+ t.state.turns=[question,answer,receipt,final];t.renderTranscript();
+ const first=document.getElementById("turn-q1"),play=first.querySelector("button"),latest=current.firstElementChild;
+ search.value="invoice";t.refreshReadingSearch("transcript",false);const firstMatch=ui.matches[0];
+ assert.equal(ui.matches.length,500);assert.equal(document.getElementById("turn-q2").querySelector("mark"),null);
+ play.focus();t.state.turns[1]={...answer,text:"invoice <&>\n"};t.renderTranscript();
+ assert.equal(ui.matches[0],firstMatch);assert.equal(document.activeElement,play);assert.equal(first.isConnected,true);
+ assert.equal(current.firstElementChild,latest);assert.equal(ui.matches.length,3);assert.equal(ui.matches[2].closest("article").id,"turn-q2");
+ t.state.turns=[question,receipt,final];t.renderTranscript();
+ assert.equal(ui.matches.length,2);assert.equal(firstMatch,ui.matches[0]);assert.equal(document.getElementById("turn-a1"),null);
+ assert.equal(document.getElementById("turn-q2").querySelector(".turn-id").textContent,"Question 2");
+ t.state.turns=[{...final,role:"user"},question,answer];t.renderTranscript();
+ assert.equal(document.getElementById("turn-q2").querySelector(".turn-id").textContent,"Answer 1");
+ assert.equal(document.getElementById("turn-q1").querySelector(".turn-id").textContent,"Question 1");
+ assert.equal(document.getElementById("turn-a1").querySelector(".turn-id").textContent,"Answer 2");
+ assert.equal(ui.matches.length,500);search.value="";t.refreshReadingSearch("transcript",false);
+ assert.equal(document.getElementById("turn-a1").querySelector(".turn-text").textContent,answer.text);
+ assert.equal(document.getElementById("transcript").querySelectorAll("mark").length,0);
+ t.state.turns=original;t.renderTranscript();passes++;
+}
+{
+ const report=document.getElementById("report-content"),search=document.getElementById("report-search");
+ const text=mount("report-test-text","p",report),evidence=mount("report-test-source","p",report),link=mount("report-test-link","button",evidence);
+ text.textContent="Invoice <123>\ninvoICE";link.textContent="Invoice source";
+ search.value="invoice";t.refreshReadingSearch("report",false);
+ assert.equal(t.readingUI.report.matches.length,2);assert.equal(evidence.firstElementChild,link);
+ t.moveReadingSearch("report",1);assert.equal(t.readingUI.report.matches[1].classList.contains("current-match"),true);
+ search.value="";t.refreshReadingSearch("report",false);
+ assert.equal(text.textContent,"Invoice <123>\ninvoICE");assert.equal(text.querySelector("mark"),null);
+ assert.equal(evidence.firstElementChild,link);text.remove();evidence.remove();passes++;
+}
+{
  t.state.started=true;t.selectConversationView("transcript");t.tab("review");t.tab("interview",true);
  assert.equal(document.activeElement.id,"conversation-tab-transcript");assert.equal(document.activeElement.tabIndex,0,"Returning to Interview keeps the selected tab in the keyboard entry order");
  if(!document.getElementById("workflow-expand"))mount("workflow-expand","button",interview);
@@ -901,7 +937,20 @@ if(process.argv.includes("--usability-only")){
  }
  // Renderer failure recovery only retries the bundled files and never resubmits an interview.
  {
+  checkpoint();t.clearState();const made=fakeWorkflow();
+  t.conversationUI.workflow=graph("Earlier capture");t.renderWorkingMap();
+  t.conversationUI.workflow=graph("Latest capture");t.renderWorkingMap();
+  assert.equal(made.length,0,"Capturing evidence in Voice must not lay out hidden diagrams");
+  t.tab("interview");t.selectConversationView("workflow");
+  assert.equal(made.length,1);assert.equal(made[0].requests.length,1);
+  assert.equal(made[0].requests[0].graph.title,"Latest capture");
+  t.selectConversationView("voice");t.conversationUI.workflow=graph("Discarded capture");t.renderWorkingMap();
+  t.clearState();t.selectConversationView("workflow");assert.equal(made.length,1,"A cleared interview must discard deferred captures");
+  finishCanvases();passes++;
+ }
+ {
   checkpoint();t.clearState();t.state.context={process_name:"Preserved interview"};t.state.turns=[{id:"t002",role:"user",text:"Keep this evidence."}];t.state.summary="Keep this summary.";document.getElementById("answer-text").value="Keep my unsent answer.";
+  t.tab("interview");t.selectConversationView("workflow");
   t.conversationUI.workflow=graph("Preserved graph");const before=JSON.stringify(t.state),live=document.getElementById("live-workflow");
   context.window.CollectorWorkflow={create:root=>{root.append(document.createElementNS("http://www.w3.org/2000/svg","svg"));throw new Error("ELK missing");}};
   assert.doesNotThrow(()=>t.renderWorkingMap(),"Synchronous renderer construction failure must remain inside the workflow view");assert.equal(live.querySelector("svg"),null);assert.match(live.textContent,/captured components and reported routes/);assert.equal(document.getElementById("export-working-map").disabled,true);assert.equal(JSON.stringify(t.state),before);assert.equal(document.getElementById("answer-text").value,"Keep my unsent answer.");delete context.window.CollectorWorkflow;passes++;

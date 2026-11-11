@@ -240,9 +240,8 @@
     path(marker, "M0 0 10 5 0 10 2.5 5Z", {fill:"context-stroke"});
   }
 
-  function drawStep(layer, node, designId) {
+  function drawStep(layer, node, variant) {
     const {step, width, height} = node, type = Object.hasOwn(names, step.type) ? step.type : "activity";
-    const variant = scope.CollectorComponents?.forDisplay(step,designId) || null;
     const typeLabel = scope.CollectorWorkflow?.types?.[type]?.label || names[type];
     const caption=[step.id,step.title,typeLabel,variant?.label,step.actor].filter(Boolean);
     const g = add(layer, "g", {class:"ws-node", "data-step-id":node.id, "data-step-type":type, tabindex:0,
@@ -329,6 +328,7 @@
     const pointers = new Map(), listeners = [];
     const motionQuery = win.matchMedia?.("(prefers-reduced-motion: reduce)");
     let visible = true, moving = true, dead = false, version = 0, layout = null;
+    let geometryKey,appearanceKey,layoutAspect;
     let nodes = new Map(), routes = new Map(), nodeElements = new Map(), routeElements = new Map();
     let current = {}, fitted = true, moved = false, origin, camera = {x:0,y:0,scale:1};
 
@@ -426,11 +426,24 @@
       const revision=++version;
       if(dead)return false;
       const hasSteps=Boolean(graph?.steps?.length);
-      svg.setAttribute("aria-busy",String(hasSteps));
-      let next;
+      let next,nextGeometry,nextAppearance,aspect,variants;
       try {
-        const view=size();
-        next=hasSteps ? await scope.CollectorWorkflow.cinematicLayout(graph,view.height&&view.width?view.width/view.height:undefined) : null;
+        if(hasSteps){
+          const view=size();
+          aspect=view.height&&view.width?view.width/view.height:undefined;
+          variants=new Map(graph.steps.map(step=>[step.id,scope.CollectorComponents?.forDisplay(step,graph.component_designs?.[step.id])]));
+          // The inspector owns the full evidence. Only these values affect the drawn stations and routes.
+          nextGeometry=JSON.stringify([graph.steps.map(s=>[s.id,s.title,s.type]),graph.connections.map(e=>[e.from,e.to,e.label])]);
+          nextAppearance=JSON.stringify(graph.steps.map(s=>[s.actor,variants.get(s.id)?.id]));
+          if(layout&&geometryKey===nextGeometry&&(!layout.usesAspect||layoutAspect===aspect)){
+            if(appearanceKey===nextAppearance){svg.setAttribute("aria-busy","false");return true;}
+            const steps=new Map(graph.steps.map(step=>[step.id,step]));
+            next={...layout,nodes:layout.nodes.map(node=>({...node,step:steps.get(node.id)}))};
+          }else{
+            svg.setAttribute("aria-busy","true");
+            next=await scope.CollectorWorkflow.cinematicLayout(graph,aspect,()=>!dead&&version===revision);
+          }
+        }
       } catch(error) {
         if(dead || version!==revision)return false;
         layout=null; nodes.clear(); routes.clear(); nodeElements.clear(); routeElements.clear(); world.replaceChildren();
@@ -441,6 +454,7 @@
       const focused=svg.contains(doc.activeElement) ? readTarget(doc.activeElement) : null;
       const anchor=nodes.get(current.stepId);
       layout=next;
+      geometryKey=nextGeometry;appearanceKey=nextAppearance;layoutAspect=aspect;
       nodes=new Map((layout?.nodes||[]).map(n=>[n.id,n]));
       routes=new Map((layout?.edges||[]).map(e=>[e.key,e]));
       nodeElements=new Map(); routeElements=new Map();
@@ -449,7 +463,7 @@
       if(!layout){current={}; fitted=true;return true;}
       const edgeLayer=add(world,"g",{class:"ws-routes"}), parts=add(world,"g",{class:"ws-components"});
       layout.edges.forEach((edge,index)=>routeElements.set(edge.key, drawRoute(edgeLayer,edge,index,id,nodes.get(edge.edge.from)?.step.type==="decision")));
-      for (const node of layout.nodes) nodeElements.set(node.id,drawStep(parts,node,graph.component_designs?.[node.id]));
+      for (const node of layout.nodes) nodeElements.set(node.id,drawStep(parts,node,variants.get(node.id)));
       if(!nodes.has(current.stepId) && !routes.has(current.edgeKey))current={};
       select(current);
       const replacement=nodes.get(current.stepId);

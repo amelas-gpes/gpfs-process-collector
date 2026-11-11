@@ -181,6 +181,70 @@ class _Chunks:
             self.items.append({'id': chunk_id, 'label': label, 'text': part, 'location': location})
 
 
+def _chunk(row, record):
+    location = json.loads(row['location'])
+    return {'id': row['id'], 'source_id': row['id'], 'document_id': row['document_id'],
+            'name': record['name'], 'label': row['label'], 'text': row['text'],
+            'location': location, **location}
+
+
+class _DocumentReader:
+    """Read chunks using one authorized scope and its matching file records."""
+    def __init__(self, db, digest, records):
+        self.db, self.digest, self.records = db, digest, records
+
+    def prior_sources(self, source_ids):
+        if not isinstance(source_ids, (list, tuple, set)) or len(source_ids) > 500:
+            raise DocumentError('Choose at most 500 prior document source IDs.')
+        prefixes = tuple(identity + '_' for identity in self.records)
+        requested = dict.fromkeys(source_id for source_id in source_ids if isinstance(source_id, str)
+                                  and len(source_id) <= 200 and source_id.startswith(prefixes))
+        if not requested:
+            return []
+        placeholders = ','.join('?' for _ in requested)
+        rows = self.db.execute(f'SELECT * FROM chunks WHERE scope=? AND id IN ({placeholders})',
+                               (self.digest, *requested))
+        found = {row['id']: _chunk(row, self.records[row['document_id']]) for row in rows
+                 if row['document_id'] in self.records and row['id'].startswith(row['document_id'] + '_')}
+        # The caller's citation order decides which excerpts survive the context budget.
+        return [found[source_id] for source_id in requested if source_id in found]
+
+    def chunk_rows(self, document_id, offset, limit):
+        record = self.records[document_id]
+        rows = self.db.execute('SELECT * FROM chunks WHERE scope=? AND document_id=? ORDER BY rowid LIMIT ? OFFSET ?',
+                               (self.digest, document_id, limit, offset))
+        return [_chunk(row, record) for row in rows]
+
+    def chunks(self, document_id, offset=0, limit=100):
+        total = self.db.execute('SELECT count(*) FROM chunks WHERE scope=? AND document_id=?',
+                                (self.digest, document_id)).fetchone()[0]
+        chunks = self.chunk_rows(document_id, offset, limit)
+        end = offset + len(chunks)
+        return {'chunks': chunks, 'total': total, 'offset': offset, 'next_offset': end if end < total else None}
+
+    def search(self, query, ids, limit):
+        if ids is not None:
+            if not isinstance(ids, list) or len(ids) > MAX_FILES_PER_SCOPE or any(not isinstance(item, str) for item in ids):
+                raise DocumentError('Choose at most 20 document IDs to search.')
+            if any(identity not in self.records for identity in ids):
+                raise PermissionError('Document is not available in this interview.')
+        records = {key: record for key, record in self.records.items() if not record['archived']
+                   and record['status'] in ('ready', 'partial') and (ids is None or key in ids)}
+        if not records:
+            return []
+        parameters = [self.digest, *records]
+        where = 'scope=? AND document_id IN (' + ','.join('?' for _ in records) + ')'
+        tokens = re.findall(r'\w+', query, re.UNICODE)[:40]
+        if tokens:
+            expression = ' OR '.join('"' + token[:100] + '"' for token in tokens)
+            sql = 'SELECT *,bm25(chunks) AS rank FROM chunks WHERE chunks MATCH ? AND ' + where + ' ORDER BY rank LIMIT ?'
+            parameters = [expression, *parameters, limit]
+        else:
+            sql = 'SELECT * FROM chunks WHERE ' + where + ' ORDER BY rowid LIMIT ?'
+            parameters.append(limit)
+        return [_chunk(row, records[row['document_id']]) for row in self.db.execute(sql, parameters)]
+
+
 class DocumentStore:
     @staticmethod
     def extraction_current(record):
@@ -324,11 +388,23 @@ class DocumentStore:
             db.execute('INSERT INTO documents VALUES (?,?,?)', (document_id, digest, json.dumps(record)))
         return record
 
+    def _records(self, db, digest):
+        rows = db.execute('SELECT record FROM documents WHERE scope=? ORDER BY rowid', (digest,))
+        return [self._read_record(json.loads(row[0])) for row in rows]
+
     def list(self, scope, include_archived=False):
         with self._db() as db:
-            digest = self._authorize(db, scope)
-            records = [self._read_record(json.loads(row[0])) for row in db.execute('SELECT record FROM documents WHERE scope=? ORDER BY rowid', (digest,))]
+            records = self._records(db, self._authorize(db, scope))
         return records if include_archived else [record for record in records if not record['archived']]
+
+    @contextmanager
+    def interview_reader(self, scope):
+        """Bind file states, citations, search and excerpts to the same read snapshot."""
+        with self._db() as db:
+            db.execute('BEGIN')
+            digest = self._authorize(db, scope)
+            records = {record['id']: record for record in self._records(db, digest)}
+            yield _DocumentReader(db, digest, records)
 
     def get(self, scope, document_id):
         with self._db() as db:
@@ -366,24 +442,14 @@ class DocumentStore:
     def pending(self, scope):
         return [record for record in self.list(scope) if record['status'] in ('pending', 'indexing')]
 
-    @staticmethod
-    def _chunk(row, record):
-        location = json.loads(row['location'])
-        return {'id': row['id'], 'source_id': row['id'], 'document_id': row['document_id'],
-                'name': record['name'], 'label': row['label'], 'text': row['text'],
-                'location': location, **location}
-
     def chunks(self, scope, document_id, offset=0, limit=100):
         if (not isinstance(offset, int) or isinstance(offset, bool) or offset < 0
                 or not isinstance(limit, int) or isinstance(limit, bool) or not 1 <= limit <= 500):
             raise DocumentError('Chunk pagination requires a nonnegative offset and limit between 1 and 500.')
         with self._db() as db:
+            db.execute('BEGIN')
             digest, record = self._record(db, scope, document_id)
-            total = db.execute('SELECT count(*) FROM chunks WHERE scope=? AND document_id=?', (digest, document_id)).fetchone()[0]
-            rows = db.execute('SELECT * FROM chunks WHERE scope=? AND document_id=? ORDER BY rowid LIMIT ? OFFSET ?',
-                              (digest, document_id, limit, offset)).fetchall()
-            return {'chunks': [self._chunk(row, record) for row in rows], 'total': total, 'offset': offset,
-                    'next_offset': offset + len(rows) if offset + len(rows) < total else None}
+            return _DocumentReader(db, digest, {document_id: record}).chunks(document_id, offset, limit)
 
     def source(self, scope, document_id, source_id):
         with self._db() as db:
@@ -392,7 +458,7 @@ class DocumentStore:
                              (digest, document_id, source_id)).fetchone()
             if not row:
                 raise PermissionError('Document source is not available in this interview.')
-            return self._chunk(row, record)
+            return _chunk(row, record)
 
     def record_extracted_text(self, scope, document_id, source_id, text):
         if not isinstance(text, str) or not text.strip() or len(text) > 100000:
@@ -499,31 +565,8 @@ class DocumentStore:
     def search(self, scope, query, ids=None, limit=12):
         if not isinstance(query, str) or len(query) > 2000 or not isinstance(limit, int) or isinstance(limit, bool) or not 1 <= limit <= 100:
             raise DocumentError('Search requires text and a limit between 1 and 100.')
-        with self._db() as db:
-            digest = self._authorize(db, scope)
-            records = {record['id']: record for record in self.list(scope) if record['status'] in ('ready', 'partial')}
-            if ids is not None:
-                if not isinstance(ids, list) or len(ids) > MAX_FILES_PER_SCOPE or any(not isinstance(item, str) for item in ids):
-                    raise DocumentError('Choose at most 20 document IDs to search.')
-                for document_id in ids:
-                    self._record(db, scope, document_id)
-                records = {key: value for key, value in records.items() if key in ids}
-            if not records:
-                return []
-            parameters = [digest, *records]
-            where = 'scope=? AND document_id IN (' + ','.join('?' for _ in records) + ')'
-            tokens = re.findall(r'\w+', query, re.UNICODE)[:40]
-            if tokens:
-                expression = ' OR '.join('"' + token[:100] + '"' for token in tokens)
-                sql = 'SELECT *,bm25(chunks) AS rank FROM chunks WHERE chunks MATCH ? AND ' + where + ' ORDER BY rank LIMIT ?'
-                parameters = [expression, *parameters, limit]
-            else:
-                sql = 'SELECT * FROM chunks WHERE ' + where + ' ORDER BY rowid LIMIT ?'
-                parameters.append(limit)
-            result = []
-            for row in db.execute(sql, parameters):
-                result.append(self._chunk(row, records[row['document_id']]))
-            return result
+        with self.interview_reader(scope) as reader:
+            return reader.search(query, ids, limit)
 
     def page_input(self, scope, document_id, page_number):
         """Internal-only native PDF page input; page_number is one-based."""
@@ -688,16 +731,17 @@ def _row_chunks(record, chunks, sheet_index, sheet_name, rows):
     buffer, start, end, high_col, count, cells, formulas, uncached = [], None, None, 0, 0, 0, 0, 0
     columns, header_sample, header_truncated = 0, '', False
     serial = 0
+    buffer_chars = 0
 
     def flush():
-        nonlocal buffer, start, end, high_col, serial
+        nonlocal buffer, buffer_chars, start, end, high_col, serial
         if buffer:
             serial += 1
             area = f'A{start}:{get_column_letter(max(1, high_col))}{end}'
             chunks.add(f's{sheet_index}_r{start}_{end}_b{serial}', f'{record["name"]} · {sheet_name}!{area}',
                        '\n'.join(buffer), {'sheet': sheet_name, 'sheet_index': sheet_index, 'range': area,
                                             'row_start': start, 'row_end': end})
-            buffer, start, end, high_col = [], None, None, 0
+            buffer, buffer_chars, start, end, high_col = [], 0, None, None, 0
 
     for row_number, row in rows:
         if row_number > MAX_ROWS:
@@ -723,10 +767,11 @@ def _row_chunks(record, chunks, sheet_index, sheet_name, rows):
         columns = max(columns, max(item[0] for item in row))
         if not header_sample:
             header_sample, header_truncated = line[:180], len(line) > 180
-        if buffer and (len('\n'.join(buffer)) + len(line) > MAX_CHUNK_CHARS or row_number - start >= 200):
+        if buffer and (buffer_chars + len(line) > MAX_CHUNK_CHARS or row_number - start >= 200):
             flush()
         start = row_number if start is None else start
         end, high_col = row_number, max(high_col, max(item[0] for item in row))
+        buffer_chars += len(line) + (1 if buffer else 0)
         buffer.append(line)
         if len(line) > MAX_CHUNK_CHARS:
             flush()

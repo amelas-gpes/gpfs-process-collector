@@ -69,6 +69,26 @@ test("a connector that stops short of the reported station is never presented as
   await assert.rejects(window.CollectorWorkflow.cinematicLayout(invoice),/attached to its reported steps/);
 });
 
+test("folded chains and abandoned cinematic views avoid starting the layered engine", async () => {
+  let resolveEngine,loads=0;
+  const window={CollectorWorkflowAssets:{loadEngine(){
+    loads++;
+    return new Promise(resolve=>{resolveEngine=resolve;});
+  }}};
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname,"../web/workflow-graph.js"),"utf8"),{window,console});
+  const layout=window.CollectorWorkflow.cinematicLayout;
+  const steps=Array.from({length:8},(_,i)=>({id:String(i),title:"Step "+i}));
+  const chain=await layout({steps,connections:steps.slice(1).map((step,i)=>({from:steps[i].id,to:step.id}))});
+  assert.equal(chain.usesAspect,true);
+  assert.equal(loads,0);
+  let current=true;
+  const pending=layout(invoice,1.9,()=>current);
+  current=false;
+  resolveEngine(class {constructor(){throw new Error("Abandoned cinematic view started an engine");}});
+  assert.equal(await pending,null);
+  assert.equal(loads,1);
+});
+
 // Exercise the actual UI controller with local evidence and a controllable stage.
 class Element extends EventTarget {
   constructor(tag, document) {

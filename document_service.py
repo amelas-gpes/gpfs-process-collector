@@ -482,7 +482,11 @@ class DocumentService:
         not discard the evidence for an existing draft. Larger files explicitly
         report incomplete coverage; source text is never silently truncated.
         """
-        all_records = {record['id']: record for record in self.store.list(scope, include_archived=True)}
+        with self.store.interview_reader(scope) as reader:
+            return self._supporting_context(reader, query, source_ids)
+
+    def _supporting_context(self, reader, query, source_ids):
+        all_records = reader.records
         active = {identity: record for identity, record in all_records.items()
                   if not record['archived'] and (record.get('analysis') or {}).get('disposition') != 'parked'}
         records = {identity: record for identity, record in active.items()
@@ -501,22 +505,9 @@ class DocumentService:
             return ' '.join(chosen)
 
         query = normalized(query)
-        if not isinstance(source_ids, (list, tuple, set)) or len(source_ids) > 500:
-            raise DocumentError('Choose at most 500 prior document source IDs.')
         preferred, retained_candidates = {}, {}
-        for source_id in source_ids:
-            if not isinstance(source_id, str) or len(source_id) > 200:
-                continue
-            identity = next((identity for identity in all_records if source_id.startswith(identity + '_')), None)
-            if identity is None:
-                continue
-            try:
-                # This narrowly scoped lookup preserves the exact provenance of
-                # an existing capture even after the user parks/removes its file.
-                # It never retrieves additional sections of an inactive file.
-                chunk = self.store.source(scope, identity, source_id)
-            except PermissionError:
-                continue
+        for chunk in reader.prior_sources(source_ids):
+            identity, source_id = chunk['document_id'], chunk['id']
             if identity in records:
                 preferred.setdefault(identity, {})[source_id] = chunk
             else:
@@ -526,7 +517,7 @@ class DocumentService:
                                                    'extraction_version': record.get('extraction_version'),
                                                    'extraction_needs_reindex': bool(record.get('extraction_needs_reindex')),
                                                    'disposition': (record.get('analysis') or {}).get('disposition', 'awaiting_review')}
-        chunks = self.store.search(scope, query, ids=list(records), limit=12) if records else []
+        chunks = reader.search(query, ids=list(records), limit=12) if records else []
         candidates = {}
         for chunk in chunks:
             candidates.setdefault(chunk['document_id'], []).append(chunk)
@@ -534,7 +525,7 @@ class DocumentService:
             if identity not in candidates:
                 fallback = ' '.join((record.get('analysis') or {}).get('queries', [])[:3])
                 if fallback.strip():
-                    hits = self.store.search(scope, normalized(fallback), ids=[identity], limit=3)
+                    hits = reader.search(normalized(fallback), ids=[identity], limit=3)
                     if hits:
                         candidates[identity] = hits
         # Awaiting a relevance assessment must not hide an uploaded SOP from the
@@ -543,7 +534,7 @@ class DocumentService:
         identities = list(dict.fromkeys([*preferred, *candidates, *reversed(records)]))[:MAX_SUPPORT_DOCUMENTS]
         totals = {}
         for identity in identities:
-            page = self.store.chunks(scope, identity, limit=MAX_SUPPORT_CHUNKS)
+            page = reader.chunks(identity, limit=MAX_SUPPORT_CHUNKS)
             totals[identity] = page['total']
             ordered = page['chunks']
             is_small = page['next_offset'] is None and sum(len(chunk['text']) for chunk in ordered) <= MAX_SUPPORT_CHARS
@@ -554,7 +545,10 @@ class DocumentService:
                 # file, including its end even when the query has no matches.
                 sampled = []
                 for offset in dict.fromkeys([0, page['total'] // 2, max(0, page['total'] - 1)]):
-                    sampled.extend(self.store.chunks(scope, identity, offset=offset, limit=1)['chunks'])
+                    if offset < len(ordered):
+                        sampled.append(ordered[offset])
+                    else:
+                        sampled.extend(reader.chunk_rows(identity, offset, 1))
                 candidates[identity] = list({chunk['id']: chunk for chunk in
                                              [*candidates.get(identity, []), *sampled, *ordered]}.values())
         grouped, characters, count = {identity: [] for identity in identities}, 0, 0

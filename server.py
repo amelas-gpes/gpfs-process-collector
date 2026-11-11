@@ -5,6 +5,7 @@ import argparse
 import base64
 import copy
 import errno
+import gzip
 import importlib.util
 import json
 import hashlib
@@ -2690,6 +2691,8 @@ class InterviewServer(ThreadingHTTPServer):
         self.browser_connect_sources = validated_browser_connect_sources(self.client.browser_connect_sources())
         super().__init__(address, handler)
         self.csrf_token = secrets.token_urlsafe(32)
+        self._assets = {}
+        self._assets_lock = threading.Lock()
         self.diagnostics_path = (Path(documents_root).parent if documents_root else APP_DIR / "work") / "server-lifecycle.jsonl"
         if isinstance(self.client, OpenAIClient):
             self.client.diagnostic_callback = self.record_event
@@ -2727,6 +2730,23 @@ class InterviewServer(ThreadingHTTPServer):
         request, address = super().get_request()
         request.settimeout(self.header_timeout)
         return request, address
+
+    def static_asset(self, path):
+        # One current pair of representations per allowlisted asset. Recheck the
+        # file on each request so an open checkout can be edited while serving it.
+        stat = path.stat()
+        stamp = (stat.st_mtime_ns, stat.st_ctime_ns, stat.st_size, stat.st_ino)
+        with self._assets_lock:
+            cached = self._assets.get(path)
+            if cached and cached[0] == stamp:
+                return cached[1]
+        raw = path.read_bytes()
+        packed = gzip.compress(raw, compresslevel=4, mtime=0) if len(raw) >= 1024 else b""
+        etag = 'W/"' + hashlib.sha256(raw).hexdigest() + '"'
+        asset = (etag, raw, packed if len(packed) < len(raw) else b"")
+        with self._assets_lock:
+            self._assets[path] = (stamp, asset)
+        return asset
 
     def record_event(self, event, **fields):
         record_diagnostic(self.diagnostics_path, event, port=self.server_port, **fields)
@@ -2822,11 +2842,14 @@ class Handler(BaseHTTPRequestHandler):
         # Never log request bodies, model content, credentials, or interview details.
         pass
 
-    def _headers(self, status, mime, size):
+    def _headers(self, status, mime, size, *, cache_control="no-store", extra_headers=()):
         self.send_response(status)
         self.send_header("Content-Type", mime)
-        self.send_header("Content-Length", str(size))
-        self.send_header("Cache-Control", "no-store")
+        if status != 304:
+            self.send_header("Content-Length", str(size))
+        self.send_header("Cache-Control", cache_control)
+        for name, value in extra_headers:
+            self.send_header(name, value)
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Referrer-Policy", "no-referrer")
         self.send_header("X-Frame-Options", "DENY")
@@ -2836,9 +2859,9 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src " + connect_sources + "; media-src 'self' blob:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'")
         self.end_headers()
 
-    def _write_response(self, raw, mime, status=200):
+    def _write_response(self, raw, mime, status=200, **options):
         try:
-            self._headers(status, mime, len(raw))
+            self._headers(status, mime, len(raw), **options)
             self.wfile.write(raw)
         except (ConnectionError, TimeoutError) as error:
             # A browser may cancel while a model request finishes. Do not try
@@ -2943,10 +2966,28 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"error": "Not found."}, 404)
         name, mime = files[path]
         try:
-            raw = (WEB_DIR / name).read_bytes()
+            etag, raw, packed = self.server.static_asset(WEB_DIR / name)
         except OSError:
             return self._json({"error": "Application files are unavailable."}, 503)
-        self._write_response(raw, mime)
+        headers = [("Vary", "Accept-Encoding"), ("ETag", etag)]
+        options = {"cache_control": "private, no-cache", "extra_headers": headers}
+        validators = [tag.strip().removeprefix("W/") for tag in self.headers.get("If-None-Match", "").split(",")]
+        if "*" in validators or etag.removeprefix("W/") in validators:
+            return self._write_response(b"", mime, 304, **options)
+        if packed and self._accepts_gzip():
+            headers.append(("Content-Encoding", "gzip"))
+            raw = packed
+        return self._write_response(raw, mime, **options)
+
+    def _accepts_gzip(self):
+        weights = {}
+        for entry in self.headers.get("Accept-Encoding", "").lower().split(","):
+            coding, _, parameters = entry.partition(";")
+            coding = coding.strip()
+            if coding in ("gzip", "*"):
+                match = re.fullmatch(r"\s*q\s*=\s*(0(?:\.\d{0,3})?|1(?:\.0{0,3})?)\s*", parameters)
+                weights[coding] = float(match[1]) if match else (0 if parameters else 1)
+        return weights.get("gzip", weights.get("*", 0)) > 0
 
     def do_POST(self):
         if not self._same_origin() or not secrets.compare_digest(self.headers.get("X-CSRF-Token", ""), self.server.csrf_token):

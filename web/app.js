@@ -351,7 +351,6 @@
     const root = $("coverage-list"), focusedTopic=document.activeElement?.dataset?.foundationTopic;
     root.replaceChildren();
     let completed = 0;
-    let partial = 0;
     let documented = 0;
     let provisional = 0;
     let discussedCount=0;
@@ -367,7 +366,6 @@
       if(awaitingReview)provisional++;
       if(advisory?.complete)prechecked++;
       if (status === "covered") completed++;
-      if (status === "partial") partial++;
       if(documentOnlyFinding(finding))documented++;
       const node = el("button", `coverage-item ${status}`);
       node.type = "button";
@@ -384,9 +382,12 @@
       root.append(node);
     });
     $("coverage-count").textContent = `${completed} / ${TOPICS.length}`;
-    $("coverage-progress").style.width = `${(completed + partial * .5) / TOPICS.length * 100}%`;
+    $("coverage-progress").style.width = `${completed / TOPICS.length * 100}%`;
     if($("coverage-mobile-count")) $("coverage-mobile-count").textContent=`${completed}/${TOPICS.length}`;
-    if($("coverage-summary")) $("coverage-summary").textContent=provisional?`${provisional} captured · awaiting review${prechecked?` · ${prechecked} pre-checked`:advisoryCheck?" · checking…":""}`:documented?`${documented} documented · ${completed} confirmed`:completed === TOPICS.length ? "All topics covered" : "Topics fully captured";
+    if($("coverage-summary")) {
+      $("coverage-summary").hidden = !provisional && !documented;
+      $("coverage-summary").textContent=provisional?`${provisional} captured · awaiting review${prechecked?` · ${prechecked} pre-checked`:advisoryCheck?" · checking…":""}`:documented?`${documented} documented · ${completed} confirmed`:completed === TOPICS.length ? "All topics covered" : "Topics fully captured";
+    }
     if($('discussion-progress')){
       $('discussion-progress').hidden=!discussedCount&&!state.started;
       $('discussion-progress').textContent=`${discussedCount} of ${TOPICS.length} topics discussed`;
@@ -642,6 +643,9 @@
     if(!dock||!target||dock.parentElement===target)return;
     const restore=dock.contains(focused);
     target.append(dock);
+    // Keep the welcome screen's tab order aligned with its primary actions.
+    const example = $("welcome-example");
+    if (target.id === "voice-panel" && example) target.append(example);
     if(restore)focused.focus({preventScroll:true});
   }
   function selectConversationView(view, focus=false) {
@@ -2187,20 +2191,41 @@
     if(!root)return;
     root.replaceChildren();if(!d)return;
     root.append(el("h1","report-title",d.title||processDisplayName()||"Business process"));
-    root.append(el("p","report-status","Draft of current practice · Needs owner review"));
+    root.append(el("span","report-status","Draft of current practice · Needs owner review"));
     if(state.example)root.append(el("p","report-warning","Example — everything here is fictional."));
     if(state.draftVersion!==state.version)root.append(el("p","report-warning","The interview has changed since this draft. Update the draft before approval."));
+    if(d.overview)root.append(el("p","report-overview",d.overview));
     const list=(parent,values,empty="Not established in this interview.")=>{const ul=el("ul");(values?.length?values:[empty]).forEach(value=>ul.append(el("li","",value)));parent.append(ul);};
     const fields=(parent,pairs)=>{const dl=el("dl","report-fields");pairs.forEach(([label,value])=>{dl.append(el("dt","",label),el("dd","",value||"UNKNOWN / TBD"));});parent.append(dl);};
-    const contents=$("report-contents");contents?.replaceChildren(el("option","","Jump to section…"));
-    const section=(title)=>{const part=el("section","report-section");part.id=`report-section-${root.querySelectorAll(".report-section").length+1}`;part.tabIndex=-1;part.append(el("h2","",title));root.append(part);if(contents){const option=el("option","",title);option.value=part.id;contents.append(option);}return part;};
-    let part=section("Classification and connected work");
-    part.append(el("p","report-evidence-note","Reported classifications and connections require review; they do not establish an approved standard or verified handoff."));
-    for(const tag of d.taxonomy||[]){part.append(el("p","",`${tag.facet.replaceAll("_"," ")}: ${tag.value.replaceAll("_"," ")}${tag.note?" · "+tag.note:""}`),evidenceRow(tag.evidence_turns));}
-    for(const link of d.connections_out||[]){part.append(el("p","",`${link.relationship_type.replaceAll("_"," ")}: ${link.counterpart}${link.condition?" · "+link.condition:""}`),evidenceRow(link.evidence_turns));}
-    part=section("1. Business context");
+    const contents=$("report-contents"),sectionLinks=$("report-section-links");
+    const placeholder=el("option","","Contents");
+    placeholder.value="";
+    contents?.replaceChildren(placeholder);
+    sectionLinks?.replaceChildren();
+    let sectionCount=0;
+    const section=title=>{
+      const part=el("section","report-section");
+      part.id=`report-section-${++sectionCount}`;
+      part.tabIndex=-1;
+      part.append(el("h2","",title));
+      root.append(part);
+      const option=el("option","",title);
+      option.value=part.id;
+      contents?.append(option);
+      const item=el("li"),link=el("a","",title);
+      link.setAttribute("href",`#${part.id}`);
+      link.addEventListener("click",event=>{
+        event.preventDefault();
+        scrollToElement(part,"start");
+        part.focus({preventScroll:true});
+      });
+      item.append(link);
+      sectionLinks?.append(item);
+      return part;
+    };
+    let part=section("1. Business context");
     fields(part,[["Process",processDisplayName()],["Process owner / role",state.context?.process_owner],["Interview objective",state.context?.objective],["Supplied context and material",state.context?.background]]);
-    part=section("2. Overview and boundaries");part.append(el("p","",d.overview));fields(part,[["Trigger / starting condition",d.trigger]]);part.append(el("h3","","Inputs"));list(part,d.inputs);part.append(el("h3","","Outputs"));list(part,d.outputs);
+    part=section("2. Process boundaries");fields(part,[["Trigger / starting condition",d.trigger]]);part.append(el("h3","","Inputs"));list(part,d.inputs);part.append(el("h3","","Outputs"));list(part,d.outputs);
     part=section("3. Memo foundation");
     (d.memo_summary||[]).forEach(f=>{const item=el("section","report-finding");item.append(el("h3","",MEMO_HEADINGS[f.key]||f.key),el("span","report-finding-status",provisionalFinding(f)?"Captured · awaiting review":f.status.replaceAll("_"," ")),el("p","",f.answer),evidenceRow(f.evidence_turns));part.append(item);});
     part=section("4. Detailed business process");
@@ -2233,6 +2258,24 @@
         if(analysis.sources?.length){part.append(el("h4","","Document sources"));list(part,analysis.sources.map(source=>`${source.label||file.name} (${source.source_id})`));}
       }
     }
+    part=section("Classification and connected work");
+    part.append(el("p","report-evidence-note","Reported classifications and connections require review; they do not establish an approved standard or verified handoff."));
+    const facetLabels={
+      entity_type:"Type of entity",applicability:"Applies to",functional_area:"Business area",
+      process_level:"Level of work",client_applicability:"Client scope",rule_source:"Source of the rule",
+      system:"System",control_type:"Type of control",variant_class:"Type of variation"
+    };
+    const termNames={gpfs:"GPFS",gp:"GP",lpa:"LPA",spv:"SPV",hr:"HR",it:"IT",manco:"ManCo",sharepoint:"SharePoint",allvue:"Allvue"};
+    const readableTerm=term=>term.split("_").map(word=>Object.hasOwn(termNames,word)?termNames[word]:word)
+      .join(" ").replace(/^./,first=>first.toUpperCase());
+    for(const tag of d.taxonomy||[]){
+      const record=el("div","report-classification");
+      const label=Object.hasOwn(facetLabels,tag.facet)?facetLabels[tag.facet]:readableTerm(tag.facet);
+      record.append(el("h3","",label),el("p","",readableTerm(tag.value)));
+      if(tag.note)record.append(el("p","report-evidence-note",tag.note));
+      record.append(evidenceRow(tag.evidence_turns));part.append(record);
+    }
+    for(const link of d.connections_out||[]){part.append(el("p","",`${link.relationship_type.replaceAll("_"," ")}: ${link.counterpart}${link.condition?" · "+link.condition:""}`),evidenceRow(link.evidence_turns));}
     refreshReadingSearch("report",false);
   }
   function renderDraft() {
@@ -3338,6 +3381,8 @@
     bindDraftFields();
   }
   async function init() {
+    const exampleArt = $("welcome-example-art");
+    if (exampleArt) window.CollectorWorkflowStage?.createComponentPreview(exampleArt, {type:"data_store",variant:"invoice"});
     if(window.CollectorAgentTeam&&$("agent-team"))agentTeamUI=window.CollectorAgentTeam.create($("agent-team"));
     documentIntake=createDocumentIntake();
     if(window.GPFSPresence)gpfsPresence=window.GPFSPresence.create($("gpfs-presence"));

@@ -79,9 +79,12 @@ class GPFSAssetHTTPTests(unittest.TestCase):
         self.assertEqual(status, 200)
         html = body.decode()
         self.assertIn('src="/assets/gpfs-symbol.svg"', html)
-        # The header carries the official gpfs.com lockup; the live voice presence stays symbol-only.
+        # Compact headers use the official symbol beside the app name.
         self.assertEqual(html.count("gpfs-logo.svg"), 1, "Only the header uses the full lettering lockup")
-        self.assertRegex(html, r'<a class="brand"[^>]*><img class="brand-logo" src="/assets/gpfs-logo\.svg"')
+        brand = re.search(r'<a class="brand"[^>]*>(.*?)</a>', html, re.S).group(1)
+        self.assertIn('srcset="/assets/gpfs-symbol.svg"', brand)
+        self.assertIn('<img class="brand-logo" src="/assets/gpfs-logo.svg"', brand)
+        self.assertIn("Process Collector", brand)
         presence = re.search(r'<div class="gpfs-presence"[^>]*>(.*?)</div>', html)
         self.assertIsNotNone(presence)
         self.assertNotIn("gpfs-logo.svg", presence.group(1))

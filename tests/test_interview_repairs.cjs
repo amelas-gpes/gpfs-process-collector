@@ -14,6 +14,7 @@ await check('discussed topics are counted separately from fully captured topics'
  h.t.state.memo_findings=[{key:'variations',status:'partial',answer:'Spare route.',evidence_turns:['u1']}];
  h.t.rememberDiscussion({topic_discussion:[{key:'variations',discussed:true,evidence_turns:['u1']}]},h.t.snapshot());h.t.renderCoverage();
  assert.equal(h.node('discussion-progress').textContent,'1 of 16 topics discussed');assert.equal(h.node('coverage-count').textContent,'0 / 16');
+ assert.equal(h.node('coverage-progress').style.width,'0%','A discussed topic does not fill the fully captured meter');
  assert.equal(h.node('coverage-summary').textContent,'Topics fully captured');assert.match(h.node('analysis-through').textContent,/all 1 saved answers/);
 });
 await check('progress states exactly how far the notes have caught up',async()=>{

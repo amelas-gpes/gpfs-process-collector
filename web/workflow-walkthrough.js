@@ -56,7 +56,7 @@
     tools.append(zoomOut,zoomLabel,zoomIn,fit,motion,library,expand); header.append(identity,tools);
     const navigation = el("div","ww-navigation"), picker = el("select","ww-picker");
     picker.setAttribute("aria-label","Find a component or connection");
-    navigation.append(picker,el("p","ww-hint","Select a component or connection to inspect it."));
+    navigation.append(picker);
     const workspace = el("div","ww-workspace"), scene = el("div","ww-scene"), inspector = el("section","ww-inspector");
     inspector.hidden = true; inspector.setAttribute("aria-label","Selection details"); workspace.append(scene,inspector);
     const message = el("div","ww-message"), announcement = el("span","ww-sr");
@@ -82,7 +82,8 @@
     function leaveTheater() {
       root.insertBefore(shell,theater); expand.title = "Expand cinematic map";
       expand.setAttribute("aria-label",expand.title); expand.replaceChildren(glyph("expand"));
-      if (visible) expand.focus({preventScroll:true});
+      expand.hidden = !steps.size;
+      if (visible && !expand.hidden) expand.focus({preventScroll:true});
     }
     function syncMotion() {
       const active = motionEnabled && !media.matches;
@@ -132,16 +133,17 @@
       title.tabIndex = -1; inspector.append(top,title);
       if (step) {
         if (scope.CollectorWorkflowStage.createComponentPreview && scope.CollectorComponents) {
-          const variant = scope.CollectorComponents.forDisplay(step,graph.component_designs?.[step.id]);
+          const appliedDesign = graph.component_designs?.[step.id];
+          const variant = scope.CollectorComponents.forDisplay(step,appliedDesign);
           const art = el("div","ww-art-study");
           art.setAttribute("aria-hidden","true");
           scope.CollectorWorkflowStage.createComponentPreview(art,{type:step.type,variant});
           const editable = onSetDesign && ["activity","document","data_store","subprocess"].includes(step.type || "activity");
           const design = el("button","ww-design-link",(variant?.label || typeLabel(step)) + (editable ? " · Change design" : ""));
           design.type = "button";
-          design.title = "View this design in the component library";
+          design.title = editable ? "Choose a design for this step" : "View this design in the component library";
           design.addEventListener("click",()=>scope.CollectorComponentLibrary.open({
-            variant,type:step.type,opener:design,returnFocus:picker,stepTitle:step.title,
+            variant,appliedDesign,type:step.type,opener:design,returnFocus:picker,stepTitle:step.title,
             onApply:editable ? id=>onSetDesign(step.id,id) : undefined
           }));
           inspector.append(art,design);
@@ -209,8 +211,10 @@
       const empty = !graph.steps.length;
       processName.textContent = graph.title || "Process map";
       counts.textContent = count(graph.steps.length,"component") + " · " + count(graph.connections.length,"connection");
-      syncMotion(); for (const item of [fit,zoomOut,zoomIn]) item.disabled = empty;
-      navigation.hidden = workspace.hidden = empty;
+      syncMotion();
+      for (const item of [counts,zoomOut,zoomLabel,zoomIn,fit,library,navigation,workspace]) item.hidden = empty;
+      motion.hidden = !graph.connections.length;
+      expand.hidden = empty && !theater.open;
       rebuildPicker(); select(selected); void draw();
       if (empty) message.textContent = live ? "The map will appear when the interview captures its first step." : "This draft has no captured steps yet.";
     }

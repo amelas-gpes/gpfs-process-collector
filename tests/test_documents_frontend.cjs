@@ -190,7 +190,7 @@ function response(document){return{ok:true,json:async()=>({document})};}
 
  {
   const h=setup();assert.equal(h.jsonCalls.length,0);assert.equal(h.uploads.length,0);assert.equal(h.api.strip.hidden,true);assert.equal(h.api.input.multiple,true);assert.equal(h.api.input.accept,".pdf,.png,.xlsx,.xlsm,.csv");
-  h.api.attach();assert.equal(h.api.input.clicks,1);assert.match(h.api.dialog.textContent,/Files are saved on this computer; relevant content is sent to OpenAI/);h.api.dispose();passes++;
+  h.api.attach();assert.equal(h.api.input.clicks,1);assert.match(h.api.dialog.textContent,/Files are saved on this computer\. Relevant content is sent to OpenAI/);h.api.dispose();passes++;
  }
  {
   const h=setup();const file={name:"Client notes & café.pdf",size:1024};await h.api.addFiles([file]);
@@ -283,7 +283,12 @@ function response(document){return{ok:true,json:async()=>({document})};}
   const h=setup();h.api.setDocuments([doc({analysis:{phase:"quick",disposition:"relevant",version:1,question:"Who checks this handoff?",questions:[]}})],false);
   assert.ok(h.api.body.textContent.includes("Who checks this handoff?"));h.findText("button","Discuss").click();assert.equal(h.events.at(-1).question.text,"Who checks this handoff?");
   h.api.setDocuments([doc({analysis:{phase:"quick",disposition:"needs_reason",version:2,question:"What would you like me to look for in this file?",questions:[]}})],false);
-  const card=h.api.body.querySelector(".documents-card"),question=card.querySelector(".documents-purpose-question"),form=card.querySelector("form");assert.ok(question);assert.ok(card.children.indexOf(question)<card.children.indexOf(form),"The purpose question belongs immediately before its input rather than being omitted by an empty questions list");assert.ok(h.findText("button","Save for later"));h.api.dispose();passes++;
+  const field=h.api.body.querySelector(".documents-purpose-field"),input=field.querySelector("input"),submit=h.findText("button","Review now");
+  assert.equal(field.textContent,"What would you like me to look for in this file?");
+  assert.equal(submit.disabled,true);input.value="   ";input.dispatch("input");assert.equal(submit.disabled,true);
+  input.value="Check the thresholds";input.dispatch("input");assert.equal(submit.disabled,false);
+  h.api.render();assert.equal(h.findText("button","Review now").disabled,false,"Polling keeps the drafted purpose actionable");
+  assert.ok(h.findText("button","Save for later"));h.api.dispose();passes++;
  }
  {
   const h=setup();h.api.setDocuments([doc({analysis:null})],false);assert.match(h.api.strip.textContent,/Checking relevance/);assert.doesNotMatch(h.api.strip.textContent,/Ready to review/);

@@ -24,7 +24,7 @@
     let disposed=false, runId=null, revision=null, eventSequence=-1, signature="", statusSignature="";
     const retired=new Set(), cards=new Map();
     const make=(tag,className,text)=>{const node=doc.createElement(tag);if(className)node.className=className;if(text!==undefined)node.textContent=text;return node;};
-    const shell=make("details","agent-team-shell");shell.open=true;
+    const shell=make("details","agent-team-shell");
     const summary=make("summary","agent-team-summary");
     const heading=make("span","agent-team-heading","Interview team");heading.id=id;
     const aggregate=make("span","agent-team-aggregate","Standing by");
@@ -38,7 +38,7 @@
       const trigger=make("summary","agent-card-summary");
       const line=make("span","agent-card-heading"),name=make("span","agent-card-name",config.name),badge=make("span","agent-card-badge",BADGES.idle);
       line.append(name,badge);
-      const activity=make("span","agent-card-activity","Ready when needed");trigger.append(line,activity);details.append(trigger);
+      const activity=make("span","agent-card-activity");trigger.append(line,activity);details.append(trigger);
       const body=make("div","agent-card-body"),description=make("p","agent-card-description",config.description),detail=make("p","agent-card-detail");
       const caveat=make("p","agent-card-caveat","A finished check can still leave open topics or questions.");
       body.append(description,detail,caveat);details.append(body);item.append(details);grid.append(item);
@@ -85,8 +85,9 @@
         card.details.dataset.status=status;
         card.badge.textContent=BADGES[status];
         const suppliedLabel=safeText(row.label,180);
-        const label=suppliedLabel&&suppliedLabel!==config.name?suppliedLabel:status==="running"?config.running:status==="completed"?config.completed:status==="pending"||status==="queued"?"Waiting for its turn":status==="blocked"?"Waiting for the next step":status==="error"?"Review did not finish":"Ready when needed";
+        const label=suppliedLabel&&suppliedLabel!==config.name?suppliedLabel:status==="running"?config.running:status==="completed"?config.completed:status==="error"?"Review did not finish":"";
         card.activity.textContent=label;
+        card.activity.hidden=!label;
         card.detail.textContent=REASONS[row.reason_code]||safeText(row.detail,600);
         card.detail.hidden=!card.detail.textContent;
         card.caveat.hidden=status!=="completed"||role==="lead_interviewer";

@@ -92,12 +92,14 @@ async function check(name,run){try{await run();results.push({name,passed:true});
  });
  await check("review errors retain previous capture until explicit retry succeeds",async()=>{
   const h=setup();h.intake.begin({batchId:"first"});h.intake.observe(state([file("broken",{analysis:{phase:"error",version:1,error:"Review timed out"}})]));h.intake.settle("first");await tick();
-  assert.equal(h.intake.phase,"error");assert.equal(h.calls.baseline.length,0);h.intake.retry();await tick();assert.equal(h.calls.baseline.length,0,"Retry cannot relabel a failed document as reviewed");
+  assert.equal(h.intake.phase,"error");assert.equal(h.intake.retryAvailable,false,"File review must be retried from Assets");assert.equal(h.calls.baseline.length,0);h.intake.retry();await tick();assert.equal(h.calls.baseline.length,0,"Retry cannot relabel a failed document as reviewed");
   h.intake.observe(state([file("broken",{analysis:{phase:"quick",version:2,intent_version:1}})]));assert.equal(h.intake.phase,"reviewing");h.intake.observe(state([file("broken",{analysis:{phase:"complete",version:3,intent_version:1}})]));await tick();assert.equal(h.calls.complete.length,1);assert.equal(h.calls.begin.length,1);
  });
  await check("connection and upload errors gate completion and recover",async()=>{
   const h=setup();h.intake.begin({batchId:"first"});h.intake.observe(state([file()],{connectionError:"Status unavailable"}));h.intake.settle("first");await tick();assert.equal(h.intake.phase,"error");assert.equal(h.calls.baseline.length,0);
+  assert.equal(h.intake.retryAvailable,true);
   h.intake.observe(state([file()],{uploadErrors:[{name:"Missing.pdf",message:"Upload failed"}]}));await tick();assert.equal(h.intake.phase,"error");assert.equal(h.calls.question.length,0);
+  assert.equal(h.intake.retryAvailable,false);
   h.intake.observe(state([file()]));await tick();assert.equal(h.calls.complete.length,1);assert.equal(h.calls.begin.length,1);
  });
  await check("older active failed files block intake until parked or removed",async()=>{
@@ -159,7 +161,7 @@ async function check(name,run){try{await run();results.push({name,passed:true});
    h.intake.observe(copy(snapshot));await tick();
    const metadata=copy(snapshot);metadata.documents[0].analysis.version++;h.intake.observe(metadata);await tick();
    assert.equal(h.calls.baseline.length,calls,"Polling, recovery and metadata must not repeat paid baseline work");assert.equal(h.calls.complete.length,0);assert.equal(h.intake.phase,"error");
-   assert.equal(h.intake.error,"OpenAI request timed out");assert.equal(h.calls.begin.length,1);
+   assert.equal(h.intake.error,"OpenAI request timed out");assert.equal(h.intake.retryAvailable,true);assert.equal(h.calls.begin.length,1);
    h.intake.retry();await tick();assert.equal(h.calls.baseline.length,calls+1);assert.equal(h.calls.complete.length,1);assert.equal(h.calls.begin.length,1);assert.equal(h.intake.phase,"ready");
   }
  });

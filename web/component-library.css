@@ -32,7 +32,8 @@
 .cl-description { color:var(--cl-ink); margin:0 0 20px; font:400 17px/1.48 var(--font-serif); }
 .cl-copy h4 { padding-top:14px; border-top:1px solid var(--cl-line); }
 .cl-design-notes,.cl-empty { color:var(--cl-muted); font:14px/1.48 var(--font-sans,"Source Sans 3","Segoe UI",sans-serif); margin:0; }
-.cl-actions { display:flex; flex-wrap:wrap; gap:6px; margin-top:16px; }
+.cl-actions { display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; margin-top:16px; }
+.cl-current { color:var(--cl-muted); font:600 13px var(--font); }
 .cl-actions button { padding:8px 11px; border:1px solid #8b7d66; border-radius:4px; background:#fff; color:#303033; font:600 13px var(--font); cursor:pointer; }
 .cl-actions button:first-child { background:#303033; border-color:#303033; color:#fff; }
 .cl-empty { grid-column:1/-1; padding:20px 3px; }

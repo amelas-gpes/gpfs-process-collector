@@ -52,27 +52,33 @@
       const active=new Set(array(session.documents.documents).filter(file=>!file.archived&&file.analysis?.disposition!=="parked"&&["ready","partial"].includes(file.status)).map(file=>file.id));
       return array(session.document_evidence).some(source=>active.has(source.document_id)&&typeof source.id==="string"&&source.id.startsWith(source.document_id+"_")&&!source.retained_only&&!source.archived);
     }
+    function submitHeading(label){
+      const head=node("div","knowledge-head"),title=node("div","",label);
+      title.id="knowledge-submit-title";title.tabIndex=-1;
+      head.append(title,button("Close",()=>close(submit),"text-button"));submit.replaceChildren(head);
+      return title;
+    }
     function openSubmit(){
       const formEpoch=sessionEpoch;
       const current=options.session();
       if(current.synthetic_example===true){
-        submit.replaceChildren();const head=node("div","knowledge-head");head.append(node("div","","Fictional example"),button("Close",()=>close(submit),"text-button"));head.firstElementChild.id="knowledge-submit-title";submit.append(head);
+        submitHeading("Fictional example");
         text("p","knowledge-muted","This fictional process can be viewed in Admin’s separate example graph. It is not submitted to company knowledge or sent for AI analysis.",submit);
-        if(!adminButton.hidden)submit.append(button("Open example in Admin",()=>{close(submit);openAdmin();}));
+        if(!adminButton.hidden&&adminMode==="Local owner development mode")submit.append(button("Open example in Admin",()=>{close(submit);openAdmin();}));
         else text("p","knowledge-muted","An authorized local administrator can view the example graph.",submit);
         submit.showModal();return;
       }
       if(!pendingAttempt&&!hasSubmissionEvidence(current)){options.notice("Add an interview answer or capture a process from an attached file before submitting.",true);return;}
-      submit.replaceChildren();const head=node("div","knowledge-head");head.append(node("div","", "Submit process"),button("Close",()=>close(submit),"text-button"));head.firstElementChild.id="knowledge-submit-title";submit.append(head);
-      text("p","knowledge-muted","Save this interview as a submitted process for local review. For cross-process matching, selected transcript statements and bounded excerpts from referenced documents may be sent to the configured AI provider and may incur charges. AI connections require administrator review. Your unsent answer is not included; you can continue editing the interview.",submit);
+      submitHeading("Submit process");
+      text("p","knowledge-muted","This saves the interview locally, excluding your unsent answer. Matching related processes may send selected transcript statements and bounded excerpts from referenced documents to the configured AI provider and may incur charges. An administrator reviews suggested connections.",submit);
       if(!array(current.turns).some(turn=>turn.role==="user"&&!turn.document_event))text("p","knowledge-status","This capture comes from reference documents. Submitting it does not record participant confirmation or process-owner approval.",submit);
-      let previousReceipt=null;if(lastReceipt)previousReceipt=showReceipt(submit,lastReceipt);else if(processId)text("p","knowledge-muted","A process ID was restored, but no valid status access was saved. Your process remains saved.",submit);
+      if(lastReceipt)showReceipt(submit,lastReceipt);else if(processId)text("p","knowledge-muted","A process ID was restored, but no valid status access was saved. Your process remains saved.",submit);
       if(current.draft_stale)text("p","knowledge-status","Your draft predates newer interview answers. The submitted process will include that stale draft and the full current interview; reconcile it before relying on its details.",submit);
-      const form=node("form","knowledge-form");const participant=field(form,"Participant describing the work","participant","Optional name (not verified)"),team=field(form,"Team","team","Optional"),department=field(form,"Department","department","Optional"),scope=field(form,"Business scope","scope","Client, fund, jurisdiction or other scope");
-      text("p","knowledge-muted","Names entered here are participant-provided, not authenticated identities. Unknown details may be left blank.",form);
+      const form=node("form","knowledge-form");const participant=field(form,"Participant describing the work","participant",""),team=field(form,"Team","team",""),department=field(form,"Department","department",""),scope=field(form,"Business scope","scope","Client, fund or jurisdiction");
+      text("p","knowledge-muted","All fields are optional. Participant names are self-reported.",form);
       let newProcess=null;if(processId&&!pendingAttempt){const choice=node("label","knowledge-choice");newProcess=node("input");newProcess.type="checkbox";choice.append(newProcess,node("span","","Submit as a new process instead of a revision"));form.append(choice);text("p","knowledge-muted","Revisions require the verified owner or an authorized administrator.",form);}
       const status=text("p","knowledge-status","",form);status.setAttribute("role","status");status.hidden=true;const send=node("button","button primary","Submit process");send.type="submit";form.append(send);
-      const view={form,status,send,fields:{participant,team,department,scope},newProcess,previousReceipt,epoch:formEpoch};submissionView=view;
+      const view={status,send,fields:{participant,team,department,scope},newProcess,epoch:formEpoch};submissionView=view;
       const frozen=attempt=>{for(const [key,input] of Object.entries(view.fields)){input.value=value(attempt.payload[key]);input.disabled=true;}if(newProcess)newProcess.disabled=true;send.textContent=activeAttempt===attempt?"Saving submission…":"Recover previous submission";send.disabled=activeAttempt===attempt;error(status,activeAttempt===attempt?"Saving the captured submission. You can close this window while it finishes.":"The previous submission may already be saved. Recover retries that exact captured snapshot. Later interview edits remain available for an explicit new revision after recovery.");};
       if(pendingAttempt)frozen(pendingAttempt);
       form.addEventListener("submit",async event=>{event.preventDefault();if(send.disabled||formEpoch!==sessionEpoch)return;if(activeAttempt){frozen(activeAttempt);return;}
@@ -97,7 +103,11 @@
           processId=receipt.process_id;lastReceipt=receipt;pendingAttempt=null;activeAttempt=null;
           try{options.onSubmitted?.(receipt);}catch(e){options.notice("The process is saved, but the interview could not update its save indicator. Save an interview copy before closing.",true);}
           const target=submissionView;
-          if(target?.epoch===sessionEpoch){if(target.previousReceipt){target.previousReceipt.replaceChildren();target.previousReceipt.hidden=true;}target.form.replaceChildren();text("h3","","Process submitted",target.form);text("p","knowledge-muted","The captured snapshot is saved locally. Later interview edits remain available; submit a new revision when you’re ready.",target.form);showReceipt(target.form,receipt);target.form.append(button("Done",()=>close(submit)));}
+          if(target?.epoch===sessionEpoch){
+            const title=submitHeading("Process submitted");
+            text("p","knowledge-muted","Your interview is saved locally. You can submit later edits as a new revision.",submit);
+            showReceipt(submit,receipt);if(submit.open)title.focus();
+          }
         }catch(e){if(attempt.epoch===sessionEpoch&&pendingAttempt===attempt){activeAttempt=null;const target=submissionView;if(target?.epoch===sessionEpoch){for(const [key,input] of Object.entries(target.fields)){input.value=value(attempt.payload[key]);input.disabled=true;}target.send.textContent="Recover previous submission";target.send.disabled=false;error(target.status,`${e.message||"Could not confirm the submission."} It may already be saved. Recover retries the same captured snapshot; later edits will not be silently included.`);}}}
         finally{if(activeAttempt===attempt)activeAttempt=null;}
       });submit.append(form);if(!submit.open)submit.showModal();if(!participant.disabled)participant.focus();else send.focus();
@@ -111,7 +121,9 @@
     function addInfo(parent,title,content){const block=node("section","knowledge-block");text("h3","",title,block);if(content===undefined||content===null||content===""||(Array.isArray(content)&&!content.length))text("p","knowledge-muted","Not established",block);else block.append(node("pre","knowledge-evidence",show(content)));parent.append(block);return block;}
     function pageInfo(result){const page=result?.page;if(!Array.isArray(result?.items)||!page||!Number.isSafeInteger(page.offset)||page.offset<0||!Number.isSafeInteger(page.limit)||page.limit<1||page.limit>50||!Number.isSafeInteger(page.total)||page.total<0||result.items.length>page.limit)throw Error("The administrative page could not be verified.");return page;}
     function pager(parent,result,onPage,name="records"){
-      const page=pageInfo(result),bar=node("nav","knowledge-pagination");bar.setAttribute("aria-label",name+" pages");
+      const page=pageInfo(result);
+      if(!page.offset&&!page.has_more)return;
+      const bar=node("nav","knowledge-pagination");bar.setAttribute("aria-label",name+" pages");
       const previous=button("Previous",()=>onPage(Math.max(0,page.offset-page.limit)),"knowledge-tab");previous.disabled=page.offset===0;previous.setAttribute("aria-label","Previous "+name+" page");
       const next=button("Next",()=>onPage(page.offset+page.limit),"knowledge-tab");next.disabled=!page.has_more;next.setAttribute("aria-label","Next "+name+" page");
       const count=text("span","knowledge-muted",page.total?(page.offset+1)+"–"+Math.min(page.total,page.offset+result.items.length)+" of "+page.total:"0 records",bar);count.setAttribute("role","status");bar.append(previous,next);parent.append(bar);
@@ -150,7 +162,14 @@
       const applyActions=node("div","knowledge-filter-actions");applyActions.append(button("Apply filters",apply,"button secondary small"),node("span","knowledge-muted","Filters apply across all saved records."));controls.append(applyActions);admin.append(controls);
       const out=node("div","knowledge-results");out.setAttribute("aria-busy",String(loading));admin.append(out);return out;
     }
-    function card(parent,title,description,onSelect){const c=node("article","knowledge-card");text("h3","",title,c);if(description)text("p","knowledge-muted",description,c);if(onSelect)c.append(button("View details",onSelect,"text-button"));parent.append(c);return c;}
+    function card(parent,title,description,onSelect){
+      const card=node("article","knowledge-card"),heading=node("h3");
+      if(onSelect)heading.append(button(title,onSelect,"knowledge-record-link"));
+      else heading.textContent=title;
+      card.append(heading);
+      if(description)text("p","knowledge-muted",description,card);
+      parent.append(card);return card;
+    }
     async function historyPanel(parent,title,kind,id,renderItem,empty="None recorded."){
       const block=node("section","knowledge-block knowledge-paged-region"),heading=text("h3","",title,block),body=node("div");heading.tabIndex=-1;block.append(body);parent.append(block);
       let sequence=0;
@@ -301,14 +320,22 @@
       }void read(processPickerOffset);
     }
     function renderGraph(root,data){
-      text("h2","knowledge-detail-title","Company process graph",root).tabIndex=-1;const intro=node("div","knowledge-graph-intro");text("span","knowledge-muted","Reported steps and confirmed links.",intro);intro.append(button("Connection review →",()=>navigate("connections"),"text-button"));root.append(intro);
+      text("h2","knowledge-detail-title","Company process graph",root).tabIndex=-1;
+      text("p","knowledge-muted","Reported steps and confirmed links.",root);
       const choices=node("div","knowledge-actions knowledge-graph-levels");for(const [level,title] of [["overview","Process overview"],["steps","Process steps"],["all","All entities"]]){const b=button(title,()=>{graphLevel=level;focusAfterLoad="heading";return load();},"knowledge-tab");b.setAttribute("aria-pressed",String(graphLevel===level));choices.append(b);}root.append(choices);
-      const scope=node("div","knowledge-filter-bar");text("span","knowledge-muted",graphProcess?graphProcessName:"All matching processes",scope);scope.append(button(processPickerOpen?"Close process choices":"Choose process",()=>{processPickerOpen=!processPickerOpen;render();focusControl("process-toggle");},"knowledge-tab"));scope.children[1].dataset.focusKey="process-toggle";if(graphProcess)scope.append(button("Show all processes",()=>{graphProcess=null;graphProcessName="";return load({focus:"heading"});},"text-button"));root.append(scope);
+      const display=array(data.entities),rawConnections=array(data.edges).length+array(data.proposals).length;
+      const mustNarrow=data.too_large||display.length>80||rawConnections>150;
+      const scope=node("div","knowledge-filter-bar");text("span","knowledge-muted",graphProcess?graphProcessName:"All matching processes",scope);
+      if(!mustNarrow){
+        const toggle=button(processPickerOpen?"Close process choices":"Choose process",()=>{processPickerOpen=!processPickerOpen;render();focusControl("process-toggle");},"knowledge-tab");
+        toggle.dataset.focusKey="process-toggle";toggle.setAttribute("aria-expanded",String(processPickerOpen));scope.append(toggle);
+      }
+      if(graphProcess)scope.append(button("Show all processes",()=>{graphProcess=null;graphProcessName="";return load({focus:"heading"});},"text-button"));root.append(scope);
       if(data.too_large){text("p","knowledge-status",data.message||"This complete view exceeds 80 entities or 150 connections. Choose a process or refine filters.",root);if(data.counts)text("p","knowledge-muted",data.counts.nodes+" entities · "+data.counts.connections+" connections. No partial graph is displayed.",root);}
-      if(processPickerOpen||data.too_large)processPicker(root);
-      if(data.too_large)return;
-      const display=array(data.entities),valid=links(data),rawConnections=array(data.edges).length+array(data.proposals).length,ids=new Set(display.map(e=>e.id));
-      if(display.length>80||rawConnections>150){text("p","knowledge-status","This complete view exceeds the graph limit. Choose a process or refine filters.",root);if(!processPickerOpen)processPicker(root);return;}
+      else if(mustNarrow)text("p","knowledge-status","This view exceeds the graph limit. Choose a process or refine filters.",root);
+      if(processPickerOpen||mustNarrow)processPicker(root);
+      if(mustNarrow)return;
+      const valid=links(data),ids=new Set(display.map(e=>e.id));
       if(valid.length!==rawConnections||valid.some(e=>!ids.has(e.source)||!ids.has(e.target))){retryState(root,"The graph contains an unresolved endpoint. Refresh or refine filters.",()=>load());return;}
       if(!display.length){text("p","knowledge-muted","No graph entities match these filters.",root);return;}
       const canvas=node("div","knowledge-canvas");canvas.setAttribute("aria-label","Reported and confirmed knowledge graph");root.append(canvas);const controls=node("div","knowledge-actions");root.append(controls);
@@ -329,10 +356,10 @@
       const items=array(snapshot.items);
       if(section==="overview"){
         text("h2","knowledge-detail-title","A view of reported work",root).tabIndex=-1;const stats=node("div","knowledge-stats"),counts=snapshot.counts||{};
-        for(const [key,label] of [["submissions","Submissions"],["awaiting_review","Awaiting review"],["confirmed_connections","Confirmed connections"],["processing_failures","Processing failures"]]){const s=node("div","knowledge-stat");s.append(node("strong","",counts[key]||0),node("span","",label));stats.append(s);}root.append(stats);text("p","knowledge-muted","Coverage reflects submitted accounts, not operational measurements. Missing and conflicting information remains open for review.",root);if(snapshot.analysis_limitations)text("p","knowledge-muted",snapshot.analysis_limitations,root);return;
+        for(const [key,label] of [["submissions","Submissions"],["awaiting_review","Awaiting review"],["confirmed_connections","Confirmed connections"],["processing_failures","Processing failures"]]){const s=node("div","knowledge-stat");s.append(node("strong","",counts[key]||0),node("span","",label));stats.append(s);}root.append(stats);if(snapshot.analysis_limitations)text("p","knowledge-muted",snapshot.analysis_limitations,root);return;
       }
       const titles={submissions:"Employee submissions & revisions",connections:"Connection review",entities:"Reported entities",groups:"Reviewed canonical groups",jobs:"Background processing"};text("h2","knowledge-detail-title",titles[section]||"Saved records",root).tabIndex=-1;
-      if(section==="entities"){entityControls(root);if(groupDraft.open)groupCreate(root);text("p","knowledge-muted","Each entity retains its submission and revision. Open a record for its full evidence.",root);}
+      if(section==="entities"){entityControls(root);if(groupDraft.open)groupCreate(root);}
       if(section==="groups")text("p","knowledge-muted","Reviewed groups and aliases retain the separate source records and a complete history.",root);
       if(section==="jobs")text("p","knowledge-muted","Saved submissions remain available if processing is pending or fails.",root);
       for(const item of items){
@@ -363,6 +390,11 @@
       if(adminButton.hidden)return;adminGeneration++;const nextExample=isExample();if(nextExample!==adminExample){filters={state:"all",team:"",system:"",scope:"",freshness:"all"};filtersOpen=false;section="overview";graphLevel=nextExample?"steps":"overview";for(const key of Object.keys(offsets))delete offsets[key];graphProcess=null;graphProcessName="";processPickerOpen=false;processPickerOffset=0;entityQuery="";entityType="";includeEarlier=false;groupSelection.clear();groupDraft={open:false,label:"",reason:""};}
       adminExample=nextExample;restoreSettingsOnClose=true;selected=null;snapshot=null;close($("interview-settings"));if(!admin.open)admin.showModal();startAdminResize();void load({focus:"heading"});
     }
+    $("session-menu-toggle").addEventListener("click",()=>{
+      const session=options.session();
+      menu.hidden=!pendingAttempt&&!session.synthetic_example&&!hasSubmissionEvidence(session);
+      menu.textContent=session.synthetic_example?"About this example":pendingAttempt?"Submission status":"Submit process";
+    });
     menu.addEventListener("click",()=>{$("session-menu").hidden=true;$("session-menu-toggle").setAttribute("aria-expanded","false");openSubmit();});review.addEventListener("click",openSubmit);adminButton.addEventListener("click",openAdmin);
     admin.addEventListener("close",()=>{if(admin.open)return;stopAdminResize();epoch++;adminGeneration++;if(graph){graph.destroy();graph=null;}snapshot=null;selected=null;groupSelection.clear();groupDraft={open:false,label:"",reason:""};const settings=$("interview-settings");if(restoreSettingsOnClose){if(!settings.open)settings.showModal();adminButton.focus({preventScroll:true});}restoreSettingsOnClose=true;});
     return {get processId(){return processId;},get hasPending(){return Boolean(pendingAttempt);},configure,reset,restore,exportReceipt,openSubmit,activateExample};

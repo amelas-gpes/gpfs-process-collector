@@ -275,11 +275,16 @@
     $("skip-question").disabled = !state.started || working || recording || !ready || atLimit;
     const finalReviewReady=state.config?.concurrent_interview?.enabled||!state.config?.agent_team?.enabled||state.completion?.ready_for_final_check===true;
     $("final-check").disabled = !state.started || working || recording || !ready || atLimit || !finalReviewReady || !state.turns.some(t => t.role === "user");
+    $("final-check").hidden = state.closure.confirmed && !state.coverageNeedsReview;
     $("final-check").title=finalReviewReady?"Confirm whether anything is missing":"Required topics still need clarification before the final check";
     $("composer-hint").textContent = atLimit ? "Interview limit reached. Create a draft or save this session." : "Ctrl / ⌘ + Enter to send";
     if($("retry-question"))$("retry-question").disabled=working||recording||Boolean(conversationUI.live?.active);
-    const canDraft = ready && (state.turns.some(t => t.role === "user")||hasDocumentEvidence()) && !working && !recording;
-    $("generate-draft").disabled = !canDraft;
+    const hasDraftSource = state.turns.some(t => t.role === "user") || hasDocumentEvidence();
+    if ($("memo-footer")) $("memo-footer").hidden = !state.started && !hasDraftSource && !state.draft;
+    const canDraft = ready && hasDraftSource && !working && !recording &&
+      !intakeActive() && !conversationUI.live?.active && conversationUI.status !== "closing";
+    $("generate-draft").textContent = state.draft ? "Open draft" : "Create draft";
+    $("generate-draft").disabled = state.draft ? working || recording : !canDraft;
     $("regenerate-draft").disabled = !canDraft;
     $("export-markdown").disabled = !state.draft;
     for(const id of ["export-transcript","export-transcript-menu"])if($(id))$(id).disabled=!state.turns.length;
@@ -301,6 +306,17 @@
     $("preview-voice").disabled = !voiceReady || working || recording;
     $("welcome").hidden = state.turns.length > 0 || working;
     $("review-empty").hidden = Boolean(state.draft);
+    if ($("review-heading")) $("review-heading").hidden = !state.draft;
+    if ($("submit-process-review")) $("submit-process-review").hidden = state.example;
+    if ($("review-create-draft")) {
+      const offerDraft = ready && hasDraftSource;
+      $("review-create-draft").hidden = !offerDraft;
+      $("review-create-draft").disabled = !canDraft;
+      $("empty-start").hidden = offerDraft;
+      $("review-next-step").textContent = offerDraft
+        ? (state.busy && state.busyMessage ? state.busyMessage : "You can keep adding to the interview after you create a draft.")
+        : hasDraftSource ? "Draft creation is currently unavailable." : "Describe your process or add a file to start a draft.";
+    }
     $("draft-content").hidden = !state.draft;
     $("draft-content").classList.toggle("draft-content-loading", state.busy);
     $("draft-content").inert = state.busy;
@@ -371,7 +387,10 @@
     $("coverage-progress").style.width = `${(completed + partial * .5) / TOPICS.length * 100}%`;
     if($("coverage-mobile-count")) $("coverage-mobile-count").textContent=`${completed}/${TOPICS.length}`;
     if($("coverage-summary")) $("coverage-summary").textContent=provisional?`${provisional} captured · awaiting review${prechecked?` · ${prechecked} pre-checked`:advisoryCheck?" · checking…":""}`:documented?`${documented} documented · ${completed} confirmed`:completed === TOPICS.length ? "All topics covered" : "Topics fully captured";
-    if($('discussion-progress'))$('discussion-progress').textContent=`${discussedCount} of ${TOPICS.length} topics discussed`;
+    if($('discussion-progress')){
+      $('discussion-progress').hidden=!discussedCount&&!state.started;
+      $('discussion-progress').textContent=`${discussedCount} of ${TOPICS.length} topics discussed`;
+    }
     renderAnalysisThrough();
     renderMemoContext();
     if(focusedTopic&&!$("foundation-dialog")?.open)document.querySelector(`[data-foundation-topic="${focusedTopic}"]`)?.focus({preventScroll:true});
@@ -386,7 +405,7 @@
     if($("memo-next")) $("memo-next").textContent=remaining.length ? remaining.slice(0,3).join(" · ")+(remaining.length>3?` + ${remaining.length-3} more`:"") : !coverageVerified()?"Captured answers are awaiting the completion review.":"Everything’s covered. Wrap up, or create a draft.";
     const next=$("memo-next-action");if(next){next.hidden=!remaining.length;next.textContent=remaining.length?`Next: ${remaining[0]}`:"";next.onclick=()=>{const topic=TOPICS.find(([,label])=>label===remaining[0]);if(topic){setMemoSheet(false,false);showFoundationTopic(topic[0],document.querySelector(`[data-foundation-topic="${topic[0]}"]`));}};}
     $("working-summary").hidden=false;
-    $("summary-text").textContent=state.summary||"Your process summary will take shape as you talk or add reference material.";
+    $("summary-text").textContent=state.summary||"Your summary will appear here as you describe the work.";
     $("summary-text").classList.toggle("memo-empty",!state.summary);
     $("parking-panel").hidden=false;
     $("parking-count").textContent=state.parking_lot.length ? `(${state.parking_lot.length})` : "";
@@ -536,13 +555,10 @@
     if(newQuestion&&conversationUI.view==="voice"&&$("voice-panel"))$("voice-panel").scrollTop=0;
     current.hidden = !latest;
     $("conversation-history").hidden = false;
-    $("history-count").textContent = state.turns.length ? `${state.turns.length} ${state.turns.length===1?"message":"messages"}` : "Ready to begin";
+    if ($("transcript-heading")) $("transcript-heading").hidden = !state.turns.length;
+    $("history-count").textContent = state.turns.length ? `${state.turns.length} ${state.turns.length===1?"message":"messages"}` : "";
     if ($("transcript-count")) $("transcript-count").textContent=state.turns.length||"";
     if ($("transcript-empty")) $("transcript-empty").hidden=state.turns.length>0;
-    $("working-summary").hidden = !state.summary; $("summary-text").textContent = state.summary;
-    $("parking-panel").hidden = !state.parking_lot.length;
-    $("parking-count").textContent = state.parking_lot.length ? `(${state.parking_lot.length})` : "";
-    $("parking-list").replaceChildren(...state.parking_lot.map(item => el("li","",item)));
     scroll.scrollTop=scrollTop;
     refreshReadingSearch("transcript",false);
     renderCoverage(); updateControls();
@@ -769,16 +785,18 @@
     const phase=documentIntake.phase,active=documentIntake.active;
     panel.hidden=!active;panel.dataset.phase=phase;
     if(!active)return;
-    const copy={uploading:["Thanks for sharing","Give me a moment to digest the files. I’ll update the process before asking a follow-up."],
-      reviewing:["Reading your files","I’m reviewing the available content and checking what it establishes. No need to answer anything yet."],
-      baseline:["Updating the process","The file review is finished. I’m updating and checking the notes and workflow together. Detailed files can take a few minutes; your previous capture stays available."],
-      question:["Preparing one follow-up","The new process baseline is ready. I’m checking for the next useful question."],
+    const copy={uploading:["Uploading files",""],
+      reviewing:["Reading your files",""],
+      baseline:["Updating notes and workflow","Larger files can take a few minutes. Your previous work is still available."],
+      question:["Preparing a follow-up","Your notes and workflow are ready."],
       error:["File review needs attention",documentIntake.error]};
     const [title,detail]=copy[phase]||copy.reviewing;
-    $("document-intake-title").textContent=title;$("document-intake-detail").textContent=detail+(intakeWasLive?" Voice is paused and the microphone is off.":"");
+    $("document-intake-title").textContent=title;
+    const description=[detail,intakeWasLive?"Your microphone is off.":""].filter(Boolean).join(" ");
+    $("document-intake-detail").textContent=description;$("document-intake-detail").hidden=!description;
     const stages=["uploading","reviewing","baseline","question"],index=stages.indexOf(phase);
     ["upload","review","baseline","question"].forEach((name,i)=>{const step=$("intake-step-"+name);step?.classList.toggle("complete",i<index);if(step){if(i===index)step.setAttribute("aria-current","step");else step.removeAttribute("aria-current");}});
-    $("document-intake-retry").hidden=phase!=="error";$("document-intake-continue").hidden=phase!=="error";
+    $("document-intake-retry").hidden=phase!=="error"||documentIntake.retryAvailable===false;$("document-intake-continue").hidden=phase!=="error";
     $("current-question").hidden=true;$("thinking").hidden=true;
   }
   function captureForFollowup() {
@@ -910,7 +928,7 @@
             return voice&&window.CollectorSpeechPreparation?new window.CollectorSpeechPreparation(
               (id,signal)=>takeVoiceSession({id},signal),voice.id,{signal}):null;
           },
-          onTurnTiming:record=>{voiceTimingRecords.push({...record,answer_number:state.turns.filter(t=>t.role==="user"&&!t.document_event).length});if(voiceTimingRecords.length>100)voiceTimingRecords.shift();if($("export-voice-timing"))$("export-voice-timing").disabled=false;},
+          onTurnTiming:record=>{voiceTimingRecords.push({...record,answer_number:state.turns.filter(t=>t.role==="user"&&!t.document_event).length});if(voiceTimingRecords.length>100)voiceTimingRecords.shift();if($("export-voice-timing"))$("export-voice-timing").hidden=false;},
           onStatus:status=>{conversationUI.status=status;updateControls();if(status==="listening")scheduleWorkflow();},
           onError:message=>{if(pendingCompletionReview){$("retry-question").hidden=false;$("retry-question").textContent="Retry completion review";}notice(message,true,conversationUI.live?.hasPendingAudio?'transcription':'voice');},
           onNotice:message=>notice(message),
@@ -1209,6 +1227,7 @@
     return `Connections need clarification: ${isolated.map(step=>`${step.title||"Untitled step"} (${step.id})`).join(", ")}. Confirm how these steps fit, if at all.`;
   }
   function renderWorkingMap() {
+    if($("workflow-panel"))$("workflow-panel").dataset.hasSteps=String(Boolean(conversationUI.workflow?.steps?.length));
     const gap=$("workflow-gaps"),message=workflowGapSummary(conversationUI.workflow);
     if(gap){gap.textContent=message;gap.hidden=!message;}
     renderMap($("live-workflow"),conversationUI.workflow);
@@ -2650,6 +2669,7 @@
   }
   function updateCanvasControls(id,info) {
     const prefix=id==="live-workflow"?"workflow":"map";
+    if(id==="live-workflow"&&$("workflow-diagram-tools"))$("workflow-diagram-tools").hidden=!info.hasGraph;
     if($(prefix+"-zoom-label"))$(prefix+"-zoom-label").textContent=info.hasGraph?`${Math.round(info.scale*100)}%`:"—";
     for(const suffix of ["zoom-out","zoom-in","fit"])if($(prefix+"-"+suffix))$(prefix+"-"+suffix).disabled=!info.hasGraph;
     if($(prefix+"-direction")){$(prefix+"-direction").disabled=!info.hasGraph;$(prefix+"-direction").textContent=info.direction==="DOWN"?"Vertical":"Horizontal";$(prefix+"-direction").setAttribute("aria-label",info.direction==="DOWN"?"Vertical layout. Switch to horizontal layout":"Horizontal layout. Switch to vertical layout");$(prefix+"-direction").title=$(prefix+"-direction").getAttribute("aria-label");}
@@ -2930,11 +2950,11 @@
     clearTimeout(conversationUI.flowTimer);conversationUI.flowAbort?.abort();
     Object.assign(conversationUI,{workflow:null,revision:0,applied:-1,flowBusy:false,flowTimer:null,flowAbort:null,flowErrorNotified:false,typing:false,status:"idle",readyAnnounced:false,captions:new Map(),pendingParticipantCaptions:new Set(),coverageCheckpoint:null,liveCoverageKey:null});
     selectConversationView("voice");renderWorkingMap();
-    if($("workflow-status"))$("workflow-status").textContent="Updates as you talk.";
+    if($("workflow-status"))$("workflow-status").textContent="";
     for(const id of ["retry-workflow","map-retry-layout"])if($(id)){$(id).hidden=true;$(id).disabled=false;delete $(id).dataset.layoutRetry;delete $(id).dataset.coverageRecheck;}if($("retry-workflow"))$("retry-workflow").textContent="Try again";
     if ($("foundation-dialog")?.open) closeFoundationTopic(false);
     setMemoSheet(false,false);selectMemoSection("notes");setInterviewSettings(false,false);
-    if($("coverage-update-status"))$("coverage-update-status").textContent="Updates as you talk";
+    if($("coverage-update-status"))$("coverage-update-status").textContent="";
     if($("jump-latest"))$("jump-latest").hidden=true;
     stopSpeaking();
     finishRecording(true);
@@ -3167,7 +3187,7 @@
     state.dirty = false;
     renderTranscript(); renderDraft(); scrollConversation();
     knowledgeUI?.activateExample();
-    notice("Here’s a finished example. Look around — nothing in it is real.");
+    $("live-status").textContent="Fictional example loaded.";
   }
   function initEvents() {
     $("document-intake-assets").addEventListener("click",()=>openDocumentAssets());
@@ -3261,9 +3281,9 @@
     $("speak-questions").addEventListener("change",() => {if (!$("speak-questions").checked) stopSpeaking();});
     $("skip-question").addEventListener("click",skipQuestion);
     $("final-check").addEventListener("click",finalCheck);
-    $("generate-draft").addEventListener("click",generateDraft);
+    $("generate-draft").addEventListener("click",() => state.draft ? tab("review",true) : generateDraft());
     $("regenerate-draft").addEventListener("click",generateDraft);
-    $("back-to-interview").addEventListener("click",() => tab("interview",true));
+    $("review-create-draft").addEventListener("click",generateDraft);
     $("empty-start").addEventListener("click",() => tab("interview",true));
     $("dismiss-notice").addEventListener("click",dismissNotice);
     $("session-menu-toggle").addEventListener("click",() => {const open = $("session-menu").hidden; $("session-menu").hidden = !open; $("session-menu-toggle").setAttribute("aria-expanded",String(open));});

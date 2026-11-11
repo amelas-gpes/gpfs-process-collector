@@ -4,6 +4,7 @@
 (() => {
   const MAX_FILE = 64 * 1024 * 1024, MAX_FILES = 20;
   const EXTENSIONS = new Set(["pdf","png","xlsx","xlsm","csv"]);
+  const FILE_NOTICE = "Files are saved on this computer. Relevant content is sent to OpenAI. Confirm file details in the interview.";
   const copy = value => JSON.parse(JSON.stringify(value));
   const abortError = () => new DOMException("Cancelled", "AbortError");
   const message = error => String(error?.message || "The file request could not be completed.").slice(0,600);
@@ -110,29 +111,26 @@
       this.dialog=this.doc.getElementById("documents-dialog");
       if(!this.dialog){this.dialog=this.node("dialog");this.dialog.id="documents-dialog";this.doc.body.append(this.dialog);}
       this.dialog.classList.add("documents-dialog");this.dialog.setAttribute("aria-labelledby","documents-title");
-      const header=this.node("div","documents-heading"),head=this.node("div"),eyebrow=this.node("p","documents-eyebrow","REFERENCE MATERIAL");
-      const title=this.node("h2","","Files for this conversation");title.id="documents-title";head.append(eyebrow,title);
-      const close=this.button("×","documents-close",()=>this.close());close.setAttribute("aria-label","Close files");header.append(head,close);
+      const header=this.node("div","documents-heading"),title=this.node("h2","","Files for this conversation");title.id="documents-title";
+      const close=this.button("×","documents-close",()=>this.close());close.setAttribute("aria-label","Close files");header.append(title,close);
       this.dialog.addEventListener("close",()=>{if(this.restoreFocus)this.returnFocus?.focus?.({preventScroll:true});});
       this.body=this.node("div","documents-body");this.body.setAttribute("aria-live","off");
       this.liveStatus=this.node("p","documents-live-status");this.liveStatus.setAttribute("role","status");this.liveStatus.setAttribute("aria-live","polite");this.liveStatus.setAttribute("aria-atomic","true");
       const footer=this.node("div","documents-footer"),add=this.button("Add files","documents-add",()=>this.attach());
-      footer.append(add,this.node("p","","Files are saved on this computer; relevant content is sent to OpenAI."));
+      footer.append(add,this.node("p","",FILE_NOTICE));
       this.dialog.replaceChildren(header,this.liveStatus,this.body,footer);
     }
     buildAssets() {
       this.assets.classList.add("document-assets");
-      const header=this.node("div","documents-assets-heading"),title=this.node("h3","","Uploaded assets");title.id="documents-title";
-      const help=this.node("p","documents-assets-help","Drop files anywhere in the interview.");
+      const header=this.node("div","documents-assets-heading");
       this.attachButton=this.button("Add files","documents-add",()=>this.attach());
       this.input=this.node("input");this.input.type="file";this.input.accept=".pdf,.png,.xlsx,.xlsm,.csv";this.input.multiple=true;this.input.hidden=true;
       this.input.addEventListener("change",()=>{const files=Array.from(this.input.files||[]);this.input.value="";this.addFiles(files);});
       const formats=this.node("p","documents-assets-formats","PDF, PNG, XLSX, XLSM or CSV · Up to 64 MiB each");
-      const headingRow=this.node("div","documents-assets-heading-row");headingRow.append(title,this.attachButton);
-      header.append(headingRow,help,this.input,formats);
+      header.append(this.attachButton,this.input,formats);
       this.liveStatus=this.node("p","documents-live-status");this.liveStatus.setAttribute("role","status");this.liveStatus.setAttribute("aria-live","polite");this.liveStatus.setAttribute("aria-atomic","true");
       this.body=this.node("div","documents-body");this.body.setAttribute("aria-live","off");this.body.setAttribute("aria-label","Uploaded files");
-      const footer=this.node("p","documents-assets-privacy","Files are saved on this computer; relevant content is sent to OpenAI.");
+      const footer=this.node("p","documents-assets-privacy",FILE_NOTICE);
       this.assets.replaceChildren(header,this.liveStatus,this.body,footer);
     }
     attach() {if(!this.allowed())return;this.input.click();}
@@ -312,13 +310,16 @@
       this.body.replaceChildren();
       if(this.connectionError){const error=this.node("div","documents-warning");error.append(this.node("p","",`Saved file details are retained. ${this.connectionError}`),this.button("Try again","documents-text-button",()=>this.refresh()));this.body.append(error);}
       this.uploadErrors.forEach((error,index)=>{const item=this.node("div","documents-warning");item.append(this.node("strong","",error.name),this.node("p","",error.message));if(error.file){const retry=this.button("Retry upload","documents-text-button",()=>{if(!this.allowed())return;this.uploadErrors.splice(index,1);this.addFiles([error.file]);});retry.disabled=!this.allowed();item.append(retry);}item.append(this.button("Dismiss issue","documents-text-button",()=>{this.uploadErrors.splice(index,1);this.render();this.changed();}));this.body.append(item);});
-      if(!total&&!this.uploadErrors.length)this.body.append(this.node("p","documents-empty","Add a procedure, spreadsheet, screenshot or reference document. We’ll look for what matters to this conversation."));
+      if(!total&&!this.uploadErrors.length)this.body.append(this.node("p","documents-empty","Drop reference files anywhere in the interview."));
       for(const upload of this.uploads)this.body.append(this.node("p","documents-upload",`${upload.name} · ${upload.status}…`));
       for(const document of this.documents)this.renderDocument(document,drafts);
       this.sourceHeading=null;if(this.source)this.renderSource();this.body.scrollTop=scrollTop;
       if(sourceFocus&&this.sourceHeading?.dataset.documentSourceHeading===sourceFocus&&this.visible(this.sourceHeading))this.sourceHeading.focus?.({preventScroll:true});
       if(cardFocus)this.focusDocumentFallback(cardFocus);
-      if(toggleFocus)[...this.body.querySelectorAll(".documents-detail-toggle")].find(button=>button.dataset.documentToggle===toggleFocus)?.focus?.({preventScroll:true});
+      if(toggleFocus){
+        const toggle=[...this.body.querySelectorAll(".documents-detail-toggle")].find(button=>button.dataset.documentToggle===toggleFocus);
+        if(toggle)toggle.focus?.({preventScroll:true});else this.focusDocumentFallback(toggleFocus);
+      }
       if(controlFocus){const control=[...this.body.querySelectorAll(".document-control")].find(button=>button.dataset.documentControl===controlFocus);if(control&&!control.disabled&&this.visible(control))control.focus?.({preventScroll:true});else this.focusDocumentFallback(JSON.parse(controlFocus)[0]);}
       if(purposeFocus){const input=[...this.body.querySelectorAll("[data-document-purpose]")].find(node=>node.dataset.documentPurpose===purposeFocus);if(input){input.focus?.({preventScroll:true});if(selection&&input.setSelectionRange)input.setSelectionRange(...selection);}else this.focusDocumentFallback(purposeFocus);}
     }
@@ -331,8 +332,6 @@
       const analysis=document.analysis||{};
       const stage=this.node("div","documents-stage");stage.dataset.state=this.reviewError(document)||this.actionErrors.has(document.id)?"error":analysis.disposition==="parked"?"later":["pending","indexing"].includes(document.status)||["quick","deep"].includes(analysis.phase)?"working":"ready";
       stage.append(this.node("strong","documents-stage-label",this.status(document)));const detail=this.stageDetail(document);if(detail)stage.append(this.node("span","documents-stage-detail",detail));card.append(stage);
-      if(analysis.disposition==="parked")card.append(this.node("p","documents-review-mode","Saved for later. Come back to it whenever it’s useful."));
-      else if(analysis.disposition==="relevant"&&["quick","deep"].includes(analysis.phase))card.append(this.node("p","documents-review-mode","Reviewing before the next question."));
       const failed=this.actionErrors.get(document.id);if(failed){const error=this.node("div","documents-warning");error.setAttribute("role","status");const retry=this.control(this.button("Retry action","documents-text-button",()=>this.action(document,failed.action,failed.purpose)),document,"retry-action",failed.action);retry.disabled=this.actions.has(document.id+":"+failed.action);error.append(this.node("p","",failed.message),retry);card.append(error);}
       if(document.error)card.append(this.node("p","documents-warning",typeof document.error==="string"?document.error:"Some content could not be read."));
       if(analysis.error)card.append(this.node("p","documents-warning",typeof analysis.error==="string"?analysis.error:analysis.error.message||"Review could not be completed. Try reviewing this file again."));
@@ -358,9 +357,12 @@
       if(document.inventory)this.renderInventory(content,document.inventory);
       const primary=typeof analysis.question==="string"?analysis.question.trim():"";
       if(analysis.disposition==="needs_reason"){
-        if(primary)content.append(this.node("p","documents-purpose-question",primary));
-        const form=this.node("form","documents-purpose"),input=this.node("input"),field=this.node("label","documents-purpose-field");input.type="text";input.maxLength=1000;input.placeholder="e.g. Check the approval thresholds";input.setAttribute("aria-label",`What should I look for in ${document.name||"this file"}?`);input.dataset.documentPurpose=document.id;input.value=drafts.get(document.id)||"";field.append(this.node("span","","What should I look for?"),input);
+        const form=this.node("form","documents-purpose"),input=this.node("input"),field=this.node("label","documents-purpose-field");
+        input.type="text";input.required=true;input.maxLength=1000;input.placeholder="e.g. Check the approval thresholds";input.dataset.documentPurpose=document.id;input.value=drafts.get(document.id)||"";
+        field.append(this.node("span","",primary||"What should I look for?"),input);
         const submit=this.control(this.node("button","documents-add","Review now"),document,"review-now");submit.type="submit";
+        const updateSubmit=()=>{submit.disabled=!input.value.trim()||this.documentBusy(document.id);};
+        input.addEventListener("input",updateSubmit);updateSubmit();
         form.append(field,submit,this.control(this.button("Save for later","documents-text-button",()=>this.action(document,"park")),document,"park"));
         form.addEventListener("submit",event=>{event.preventDefault();const purpose=input.value.trim();if(purpose)this.action(document,"purpose",purpose);});content.append(form);
       }
@@ -372,7 +374,8 @@
       if(questions.length){const section=this.node("div","documents-questions");section.append(this.node("h4","",analysis.disposition==="parked"?"Questions for later":"Questions to explore"));
         for(const question of questions){if(!question?.text)continue;const identity=JSON.stringify([question.id||"",question.text]),row=this.node("div","documents-question");row.append(this.node("p","",question.text),this.control(this.button("Discuss","documents-text-button",()=>this.discuss(document,question)),document,"discuss",identity));this.renderSources(row,document,question.sources||[],identity);section.append(row);}content.append(section);
       }
-      this.renderSources(content,document,analysis.sources||[]);content.append(this.node("p","documents-evidence-note","Reference only · Confirm details in the interview."));
+      this.renderSources(content,document,analysis.sources||[]);
+      if(this.assets&&!content.children.length){card.querySelector(".documents-detail-toggle").remove();content.remove();}
       if(this.documentBusy(document.id))card.querySelectorAll?.("button").forEach(button=>{if(!button.classList.contains("documents-source")&&!button.classList.contains("documents-detail-toggle"))button.disabled=true;});
       this.body.append(card);
     }

@@ -49,7 +49,7 @@
     grid.setAttribute("role","group"); grid.setAttribute("aria-label","Components");
     detail.setAttribute("aria-label","Component design");
     body.append(grid,detail); dialog.append(header,bar,body); document.body.append(dialog);
-    let opener, fallbackFocus, selected, observer, applyDesign, stepType;
+    let opener, fallbackFocus, selected, observer, applyDesign, appliedDesign, stepType;
     function preview(host, record) {
       scope.CollectorWorkflowStage.createComponentPreview(host,{type:applyDesign ? stepType : record.type,variant:record.variant});
       host.setAttribute("aria-hidden","true");
@@ -67,7 +67,11 @@
       if (record.detail) copy.append(node("h4","cl-eyebrow","Design detail"),node("p","cl-design-notes",record.detail));
       if (applyDesign) {
         const actions = node("div","cl-actions");
-        for (const [label,id] of [["Use this design",record.key],["Use automatic design",null]]) {
+        const choices = [];
+        if (record.key !== appliedDesign) choices.push(["Use this design",record.key]);
+        if (appliedDesign) choices.push(["Use automatic design",null]);
+        if (record.key === appliedDesign) actions.append(node("span","cl-current","Current design"));
+        for (const [label,id] of choices) {
           const action = node("button","",label); action.type = "button";
           action.addEventListener("click",()=>{
             if (applyDesign(id) !== false) { dialog.close(); return; }
@@ -115,9 +119,9 @@
       const target = opener?.isConnected ? opener : fallbackFocus;
       target?.focus({preventScroll:true}); applyDesign = null;
     });
-    return function open({variant,type,opener:trigger,returnFocus,onApply,stepTitle}={}) {
+    return function open({variant,type,opener:trigger,returnFocus,onApply,appliedDesign:currentDesign,stepTitle}={}) {
       opener = trigger || document.activeElement;
-      fallbackFocus = returnFocus; applyDesign = onApply; stepType = type || "activity";
+      fallbackFocus = returnFocus; applyDesign = onApply; appliedDesign = currentDesign; stepType = type || "activity";
       title.textContent = onApply ? "Choose a design for " + (stepTitle || "this step") : "Component library";
       for (const option of family.options) option.hidden = Boolean(onApply && option.value==="Workflow symbols");
       selected = variant?.id || (type ? "type/"+type : items[0]?.key);

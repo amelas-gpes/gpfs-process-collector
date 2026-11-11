@@ -6,7 +6,7 @@
   class DocumentIntake {
     constructor(hooks) {this.hooks=hooks;this.sequence=0;this.snapshot={documents:[],uploading:0,mutating:0,uploadErrors:[]};this.reset();}
     get active() {return !["idle","ready"].includes(this.phase);}
-    reset() {this.run?.abort();this.cycle?.abort();this.sequence++;this.run=null;this.cycle=null;this.phase="idle";this.error="";this.batches=new Set();this.names=new Set();this.ids=new Set();this.signature="";this.intentSignature="";this.failedIntent=null;this.hooks.onStatus?.(this);}
+    reset() {this.run?.abort();this.cycle?.abort();this.sequence++;this.run=null;this.cycle=null;this.phase="idle";this.error="";this.retryAvailable=false;this.batches=new Set();this.names=new Set();this.ids=new Set();this.signature="";this.intentSignature="";this.failedIntent=null;this.hooks.onStatus?.(this);}
     begin({batchId,names=[],documentId}={}) {
       if(!this.active){
         this.cycle=new AbortController();this.names=new Set();this.ids=new Set();this.batches=new Set();
@@ -44,17 +44,17 @@
       if(this.active)this.pump();
     }
     invalidate() {this.sequence++;this.run?.abort();this.run=null;}
-    setPhase(phase,error="") {this.phase=phase;this.error=error;this.hooks.onStatus?.(this);}
+    setPhase(phase,error="",retryAvailable=false) {this.phase=phase;this.error=error;this.retryAvailable=retryAvailable;this.hooks.onStatus?.(this);}
     retry() {if(!this.active)return;this.failedIntent=null;this.invalidate();this.error="";if(this.pauseFailed)this.pause(true);this.pump();}
     async pump() {
       if(!this.active||this.run||this.failedIntent===this.intentSignature)return;
       const state=this.snapshot;
       if(this.batches.size||state.uploading||state.mutating){this.setPhase("uploading");return;}
-      if(state.connectionError){this.setPhase("error","The file status could not be checked. Your previous capture is safe. Check Assets and try again.");return;}
+      if(state.connectionError){this.setPhase("error","Couldn’t check file status. Your interview is still available in this tab.",true);return;}
       const relevant=state.documents.filter(file=>!file.archived&&file.analysis?.disposition!=="parked");
       const newErrors=(state.uploadErrors||[]).filter(error=>!this.oldErrors.has(JSON.stringify(error)));
       const failed=relevant.filter(file=>file.status==="error"||file.analysis?.phase==="error"||file.analysis?.error);
-      if(newErrors.length||failed.length){this.setPhase("error","A file could not be fully reviewed. Open Assets to retry, remove it, or save it for later. Your previous capture is safe.");return;}
+      if(newErrors.length||failed.length){this.setPhase("error","Check the file issue in Assets. Your interview is still available in this tab.");return;}
       // phase complete is terminal even when extraction/review coverage is partial.
       // review_complete=false describes coverage, not a still-running job.
       const waiting=relevant.filter(file=>!["error"].includes(file.status)&&file.analysis?.phase!=="error"&&file.analysis?.phase!=="complete");
@@ -70,7 +70,7 @@
         this.setPhase("question");
         const result=await this.hooks.askFollowup({signal:run.signal,baseline,documents:available});if(!valid())return;
         this.hooks.onComplete(result,available);if(valid())this.setPhase("ready");
-      }catch(error){if(valid()){this.failedIntent=this.intentSignature;this.setPhase("error",error?.message||"The file review could not be completed. Your previous capture is safe. Try again.");}}
+      }catch(error){if(valid()){this.failedIntent=this.intentSignature;this.setPhase("error",error?.message||"Couldn’t complete the file review. Your interview is still available in this tab.",true);}}
       finally {if(this.run===run)this.run=null;}
     }
   }

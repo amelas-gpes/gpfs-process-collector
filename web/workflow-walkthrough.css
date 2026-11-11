@@ -30,7 +30,6 @@
 .ww-control:disabled { opacity:.45; cursor:default; }
 .ww-shell :is(button,select,summary):focus-visible { outline:2px solid var(--ww-accent); outline-offset:2px; }
 .ww-navigation { display:flex; gap:8px 15px; align-items:center; flex-wrap:wrap; padding:7px 15px; border-bottom:1px solid var(--ww-line); background:#f7f7f7; }
-.ww-hint { margin:0; color:#646466; font-size:12px; }
 .ww-picker { width:min(300px,100%); min-width:0; min-height:33px; border:1px solid #bab5af; padding:4px 7px; border-radius:5px; font:500 13px var(--font,"Source Sans 3","Segoe UI",sans-serif); color:#303033; background:#fff; }
 .ww-workspace { display:grid; grid-template-columns:minmax(0,1fr); background:#e2ded9; }
 .ww-scene { min-width:0; width:100%; height:clamp(330px,56dvh,640px); align-self:start; }
@@ -80,7 +79,6 @@
   .ww-tools { justify-content:flex-start; }
   .ww-navigation { padding:6px 9px; }
   .ww-picker { flex:1; }
-  .ww-hint { display:none; }
   .ww-control { min-height:40px; }
   .ww-scene { height:clamp(320px,51dvh,530px); }
 }

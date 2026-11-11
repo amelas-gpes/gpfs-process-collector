@@ -39,15 +39,17 @@
     <nav class="tab-nav" aria-label="Workspace"><button class="nav-tab active" data-tab="interview" aria-current="page">Interview</button><button class="nav-tab" data-tab="review">Review <span id="draft-dot" hidden></span></button></nav>
     <div class="header-actions"><span id="save-hint" class="save-hint" role="status" hidden>Unsaved changes</span><button class="icon-button" id="session-menu-toggle" aria-label="More options" title="More options" aria-expanded="false" aria-controls="session-menu" data-icon="more"></button></div>
     <div class="session-menu" id="session-menu" role="group" aria-label="Session and settings" hidden>
-      <button type="button" id="open-component-library" data-icon="workflow">Component library</button>
       <button type="button" id="export-session" aria-label="Save a copy of this interview" title="Save a copy of this interview to your computer" data-icon="download">Save copy</button>
+      <button type="button" id="import-session" data-icon="folder">Open saved interview…</button>
       <button type="button" id="export-transcript-menu" data-icon="file" disabled>Export transcript</button>
       <button type="button" id="submit-process-menu" data-icon="send">Submit process</button>
+      <p>Save a copy to keep this interview after you close the tab.</p>
+      <hr>
       <button type="button" id="open-interview-settings" aria-haspopup="dialog" aria-controls="interview-settings" title="Appearance, voice, interview context and data settings" data-icon="sliders">Settings</button>
-      <button type="button" id="import-session" data-icon="folder">Open saved interview…</button>
+      <button type="button" id="open-component-library" data-icon="workflow">Component library</button>
       <button type="button" id="load-example" data-icon="sparkle">See an example</button>
+      <hr>
       <button type="button" id="reset-session" class="danger-text" data-icon="trash">Start over</button>
-      <p>Interviews aren’t saved automatically. Save a copy before you close this tab.</p>
     </div><input type="file" id="session-file" accept="application/json,.json" hidden>
   </header>  <div class="notice" id="global-notice" role="status" hidden><span id="notice-text"></span><button id="dismiss-notice" aria-label="Dismiss notification"></button></div>
   <div class="example-banner" id="example-banner" hidden><span><strong>Example</strong><span class="example-explanation"> · Everything here is fictional</span></span><button class="text-button" id="leave-example" data-icon-end="arrow-right">Start your own</button></div>
@@ -116,22 +118,37 @@
               </div>
             </div>
             <div id="workflow-panel" class="conversation-view" role="tabpanel" aria-labelledby="conversation-tab-workflow" tabindex="0" hidden>
-              <div class="workflow-mode-bar workflow-canvas-tools">
+              <div class="workflow-mode-bar">
                 <div id="workflow-mode" class="workflow-mode-switch" role="group" aria-label="Workflow presentation">
                   <button type="button" id="workflow-mode-diagram" data-mode="diagram" aria-pressed="true" aria-controls="workflow-diagram" data-icon="workflow">Diagram</button>
                   <button type="button" id="workflow-mode-walkthrough" data-mode="walkthrough" aria-pressed="false" aria-controls="workflow-walkthrough" data-icon="play">Cinematic</button>
                 </div>
-                <button class="text-button small" id="workflow-expand" data-icon="expand" aria-pressed="false" aria-label="Expand workflow workspace">Expand</button>
-                <div class="workflow-update"><p class="workflow-status" id="workflow-status" role="status"></p><button class="text-button small" id="retry-workflow" type="button" data-icon="refresh" hidden>Try again</button></div>
+                <button type="button" class="text-button small" title="Expand workflow workspace" id="workflow-expand" data-icon="expand" aria-pressed="false" aria-label="Expand workflow workspace">Expand</button>
+                <div id="workflow-diagram-tools" class="map-tools" hidden>
+                  <button type="button" class="map-tools-toggle" id="workflow-tools-toggle" data-icon="sliders" popovertarget="workflow-tools">Map tools</button>
+                  <div popover="auto" class="map-tool-panel" id="workflow-tools" role="group" aria-label="Map tools">
+                    <div class="map-zoom-row">
+                      <span>Zoom</span>
+                      <button type="button" id="workflow-zoom-out" aria-label="Zoom out" data-icon="minus" disabled></button>
+                      <output id="workflow-zoom-label" aria-label="Map zoom">100%</output>
+                      <button type="button" id="workflow-zoom-in" aria-label="Zoom in" data-icon="plus" disabled></button>
+                    </div>
+                    <button type="button" id="workflow-fit" data-icon="fit" disabled>Fit entire map</button>
+                    <button type="button" id="workflow-direction" data-icon="swap" disabled>Switch layout</button>
+                    <button type="button" id="export-working-map" data-icon="download" disabled>Download map (SVG)</button>
+                    <details id="workflow-legend" class="workflow-legend" hidden><summary>Diagram key</summary><ul id="workflow-legend-items"></ul></details>
+                  </div>
+                </div>
               </div>
               <p id="workflow-gaps" class="workflow-gaps" role="status" hidden></p>
               <div id="workflow-diagram" class="workflow-diagram">
-                <div id="workflow-diagram-tools" class="workflow-canvas-tools" hidden><div class="canvas-actions" role="group" aria-label="Workflow view"><button id="workflow-zoom-out" aria-label="Zoom workflow out" data-icon="minus" disabled></button><output id="workflow-zoom-label" aria-label="Workflow zoom">100%</output><button id="workflow-zoom-in" aria-label="Zoom workflow in" data-icon="plus" disabled></button><button id="workflow-fit" title="Show the complete workflow" data-icon="fit" disabled>Fit</button><button id="workflow-direction" data-icon="swap" disabled aria-label="Switch workflow to top-to-bottom layout" title="Horizontal layout. Switch to vertical">Horizontal</button><button id="export-working-map" data-icon="download" disabled aria-label="Download workflow" title="Download the workflow as an image (SVG)">Download</button></div></div>
-                <div class="workflow-navigation" id="workflow-navigation" hidden><label for="workflow-step-select">Step</label><select id="workflow-step-select" aria-label="Find a workflow step"></select><button id="workflow-follow" type="button" data-icon="route" aria-pressed="false">Follow path</button><select id="workflow-path-previous" aria-label="Previous step on path" hidden></select><select id="workflow-path-next" aria-label="Next step on path" hidden></select><output id="workflow-path-status" role="status"></output></div>
                 <div id="live-workflow" class="live-workflow" tabindex="0" aria-label="Workflow"><p class="view-empty">Steps appear here as you describe them.</p></div>
-                <details id="workflow-legend" class="workflow-legend" hidden><summary>Diagram key</summary><ul id="workflow-legend-items"></ul></details>
+                <div class="map-footer">
+                  <div class="workflow-navigation" id="workflow-navigation" hidden><label for="workflow-step-select">Step</label><select id="workflow-step-select" aria-label="Find a workflow step"></select><button id="workflow-follow" type="button" data-icon="route" aria-pressed="false">Follow path</button><select id="workflow-path-previous" aria-label="Previous step on path" hidden></select><select id="workflow-path-next" aria-label="Next step on path" hidden></select><output id="workflow-path-status" role="status"></output></div>
+                </div>
               </div>
               <div id="workflow-walkthrough" class="workflow-walkthrough" hidden></div>
+              <div class="workflow-update"><p class="workflow-status" id="workflow-status" role="status"></p><button class="text-button small" id="retry-workflow" type="button" data-icon="refresh" hidden>Try again</button></div>
             </div>
           </div>
           <div id="conversation-dock-host"><div id="conversation-dock" class="conversation-dock"><div class="thinking" id="thinking" hidden><span class="pulse-dot"></span><span id="thinking-text">Thinking…</span><button type="button" class="text-button" id="pause-completion-review" hidden>Pause review</button></div>
@@ -211,18 +228,34 @@
             <div id="report-content"></div>
           </article>
           <article id="review-memo" class="review-card review-panel" role="tabpanel" aria-labelledby="review-tab-memo" tabindex="0" hidden><div class="card-heading"><h2>Interview notes</h2><button class="button ghost small" id="export-memo" data-icon="download">Download notes</button></div><div id="memo-summary" class="memo-summary"></div></article>
-          <article id="review-map" class="review-card review-panel" role="tabpanel" aria-labelledby="review-tab-map" tabindex="0" hidden><div class="card-heading"><h2>Process map</h2><button class="button ghost small" id="export-map" data-icon="download">Download map</button></div>
+          <article id="review-map" class="review-card review-panel" role="tabpanel" aria-labelledby="review-tab-map" tabindex="0" hidden><div class="card-heading"><h2>Process map</h2></div>
             <div class="workflow-mode-bar">
               <div id="map-mode" class="workflow-mode-switch" role="group" aria-label="Workflow presentation">
                 <button type="button" id="map-mode-diagram" data-mode="diagram" aria-pressed="true" aria-controls="map-diagram" data-icon="workflow">Diagram</button>
                 <button type="button" id="map-mode-walkthrough" data-mode="walkthrough" aria-pressed="false" aria-controls="map-walkthrough" data-icon="play">Cinematic</button>
               </div>
+              <div id="map-diagram-tools" class="map-tools">
+                <button type="button" class="map-tools-toggle" id="map-tools-toggle" data-icon="sliders" popovertarget="map-tools">Map tools</button>
+                <div popover="auto" class="map-tool-panel" id="map-tools" role="group" aria-label="Map tools">
+                  <div class="map-zoom-row">
+                    <span>Zoom</span>
+                    <button type="button" id="map-zoom-out" aria-label="Zoom out" data-icon="minus" disabled></button>
+                    <output id="map-zoom-label" aria-label="Map zoom">100%</output>
+                    <button type="button" id="map-zoom-in" aria-label="Zoom in" data-icon="plus" disabled></button>
+                  </div>
+                  <button type="button" id="map-fit" data-icon="fit" disabled>Fit entire map</button>
+                  <button type="button" id="map-direction" data-icon="swap" disabled>Switch layout</button>
+                  <button type="button" id="export-map" data-icon="download" disabled>Download map (SVG)</button>
+                  <details id="map-legend" class="workflow-legend" hidden><summary>Diagram key</summary><ul id="map-legend-items"></ul></details>
+                </div>
+              </div>
+              <button type="button" class="text-button small" id="map-retry-layout" data-icon="refresh" hidden>Retry layout</button>
             </div>
             <div id="map-diagram" class="workflow-diagram">
-              <div class="map-workbench-toolbar"><span class="map-workbench-label">Select a step to see its details.</span><div class="map-zoom-controls" role="group" aria-label="Map view"><button type="button" id="map-zoom-out" aria-label="Zoom out" data-icon="minus"></button><output id="map-zoom-label" aria-label="Map zoom" aria-live="polite">100%</output><button type="button" id="map-zoom-in" aria-label="Zoom in" data-icon="plus"></button><button type="button" class="text-button" id="map-retry-layout" data-icon="refresh" hidden>Retry layout</button><button type="button" id="map-fit" title="Show the complete workflow" data-icon="fit">Fit</button><button type="button" id="map-direction" data-icon="swap" aria-label="Switch workflow to vertical layout" title="Change layout direction" disabled>Layout</button></div></div>
-              <div class="workflow-navigation" id="map-navigation" hidden><label for="map-step-select">Step</label><select id="map-step-select" aria-label="Find a review map step"></select><button id="map-follow" type="button" data-icon="route" aria-pressed="false">Follow path</button><select id="map-path-previous" aria-label="Previous review map step on path" hidden></select><select id="map-path-next" aria-label="Next review map step on path" hidden></select><output id="map-path-status" role="status"></output></div>
               <div class="map-container" id="process-map" tabindex="0" aria-label="Draft process map"></div>
-              <details id="map-legend" class="workflow-legend" hidden><summary>Diagram key</summary><ul id="map-legend-items"></ul></details>
+              <div class="map-footer">
+                <div class="workflow-navigation" id="map-navigation" hidden><label for="map-step-select">Step</label><select id="map-step-select" aria-label="Find a review map step"></select><button id="map-follow" type="button" data-icon="route" aria-pressed="false">Follow path</button><select id="map-path-previous" aria-label="Previous review map step on path" hidden></select><select id="map-path-next" aria-label="Next review map step on path" hidden></select><output id="map-path-status" role="status"></output></div>
+              </div>
             </div>
             <div id="map-walkthrough" class="workflow-walkthrough" hidden></div>
           </article>
@@ -237,31 +270,67 @@
 <dialog id="knowledge-submit" class="knowledge-dialog" aria-labelledby="knowledge-submit-title"></dialog>
 <dialog id="knowledge-admin" class="knowledge-dialog knowledge-admin" aria-labelledby="knowledge-admin-title"></dialog>
 <dialog id="interview-settings" class="interview-settings" aria-labelledby="settings-title">
-            <button class="text-button" type="button" id="settings-source-return" data-icon="arrow-left" hidden>Back to what you were reviewing</button><div class="settings-heading"><h3 id="settings-title">Settings</h3><button type="button" class="text-button" id="close-interview-settings">Done</button></div>
-            <label for="theme-select">Appearance</label>
-            <select id="theme-select">
-              <option value="system">Use system setting</option>
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-            </select>
-            <button type="button" id="open-knowledge-admin" class="button secondary small" data-icon="db" hidden>Company knowledge (admin)</button>
-            <div id="voice-options" class="voice-options"><span id="voice-summary-label" hidden>Voice settings</span><div class="voice-options-content"><div class="voice-choice-row"><label for="voice-select">Voice</label><select id="voice-select" aria-describedby="voice-description"></select></div><p id="voice-description" class="voice-description"></p><div class="voice-settings"><label class="check-label"><input type="checkbox" id="speak-questions"> Read questions aloud when typing</label><label class="check-label"><input type="checkbox" id="stop-on-silence" checked> Stop recording when I pause</label></div><p id="voice-availability" hidden></p></div></div><button type="button" class="button secondary small" id="preview-voice" data-icon="play">Preview voice</button><button type="button" class="text-button small" id="export-voice-timing" hidden>Save voice timings</button><span id="voice-status" role="status" hidden></span><button class="text-button small" id="stop-speaking" data-icon="x" hidden>Stop voice</button>
-            <p id="data-notice"></p>
-                      <div id="context-details">
-              <label for="process-owner">Process owner</label><input id="process-owner" maxlength="180" placeholder="Name or role (optional)">
-              <label for="objective">Goal for this interview</label><textarea id="objective" rows="2" maxlength="500" required>Understand the current process, responsibilities, handoffs, and exceptions.</textarea>
-              <label for="background">Anything to know first? <small>Optional</small></label><textarea id="background" rows="3" maxlength="8000"></textarea>
-            </div>
+  <header class="settings-heading"><h2 id="settings-title">Settings</h2><button type="button" class="button primary small" id="close-interview-settings">Done</button></header>
+  <div class="settings-body">
+    <button class="text-button" type="button" id="settings-source-return" data-icon="arrow-left" hidden>Back to what you were reviewing</button>
+    <details class="settings-group" name="settings-section" open>
+      <summary><span data-icon="sliders">Appearance and voice</span></summary>
+      <div class="settings-fields">
+        <div class="settings-choice"><label for="theme-select">Appearance</label><select id="theme-select">
+          <option value="system">System default</option><option value="light">Light</option><option value="dark">Dark</option>
+        </select></div>
+        <div id="voice-options" class="voice-options">
+          <span id="voice-summary-label" hidden>Voice settings</span>
+          <div class="settings-choice"><label for="voice-select">Interviewer voice</label><select id="voice-select" aria-describedby="voice-description"></select></div>
+          <div class="settings-voice-preview">
+            <p id="voice-description" class="voice-description"></p>
+            <button type="button" class="text-button small" id="preview-voice" data-icon="play">Preview voice</button>
+            <button class="text-button small" id="stop-speaking" data-icon="x" hidden>Stop voice</button>
+            <span id="voice-status" role="status" hidden></span>
+          </div>
+          <p id="voice-availability" hidden></p>
+          <div class="voice-settings">
+            <label class="check-label"><input type="checkbox" id="speak-questions"> Read questions aloud when typing</label>
+            <label class="check-label"><input type="checkbox" id="stop-on-silence" checked> Stop recording when I pause</label>
+          </div>
+          <button type="button" class="text-button small" id="export-voice-timing" hidden>Save voice timings</button>
+        </div>
+      </div>
+    </details>
+    <details id="context-details" class="settings-group" name="settings-section">
+      <summary><span data-icon="memo">Interview context</span></summary>
+      <div class="settings-fields">
+        <label for="process-owner">Process owner <small>Optional</small></label><input id="process-owner" maxlength="180" placeholder="Name or role">
+        <label for="objective">Goal for this interview</label><textarea id="objective" rows="2" maxlength="500" required>Understand the current process, responsibilities, handoffs, and exceptions.</textarea>
+        <label for="background">Background <small>Optional</small></label><textarea id="background" rows="3" maxlength="8000"></textarea>
+      </div>
+    </details>
+    <details class="settings-group" name="settings-section">
+      <summary><span data-icon="shield">Data handling</span></summary>
+      <p id="data-notice" class="settings-fields"></p>
+    </details>
+    <button type="button" id="open-knowledge-admin" class="text-button" data-icon="db" hidden>Company knowledge (admin)</button>
+  </div>
 </dialog>
   <dialog id="memo-sheet" class="memo-sheet" aria-labelledby="memo-workspace-title"><button id="close-memo" class="dialog-close" aria-label="Close workspace"></button><div id="memo-sheet-body"></div></dialog>
-  <dialog id="workflow-step-dialog" class="workflow-step-dialog" aria-labelledby="workflow-step-title"><div class="topic-dialog-top"><span id="workflow-step-kind" class="section-eyebrow"></span><button type="button" id="close-workflow-step" class="dialog-close" aria-label="Close step details"></button></div><h2 id="workflow-step-title"></h2><div id="workflow-step-content"></div></dialog>
-  <dialog id="foundation-dialog" class="foundation-dialog" aria-labelledby="foundation-topic-title">
-    <div class="topic-dialog-top"><span class="section-eyebrow">NOTES</span><button type="button" id="close-foundation-topic" class="dialog-close" aria-label="Close topic"></button></div>
-    <span id="foundation-topic-status" class="topic-dialog-status"></span>
-    <h2 id="foundation-topic-title">Topic</h2>
-    <p id="foundation-topic-answer" class="topic-dialog-answer"></p>
-    <p id="foundation-topic-hint" class="topic-dialog-hint"></p>
-    <div id="foundation-topic-sources" class="topic-dialog-sources"></div>
+  <dialog id="workflow-step-dialog" class="detail-panel workflow-step-dialog" aria-labelledby="workflow-step-title">
+    <header class="detail-header">
+      <span id="workflow-step-preview" class="step-art" aria-hidden="true" hidden></span>
+      <div class="detail-heading"><span id="workflow-step-kind" class="detail-kind"></span><h2 id="workflow-step-title" tabindex="-1"></h2></div>
+      <button type="button" id="close-workflow-step" class="dialog-close" aria-label="Close step details" autofocus></button>
+    </header>
+    <div id="workflow-step-content" class="detail-body"></div>
+  </dialog>
+  <dialog id="foundation-dialog" class="detail-panel foundation-dialog" aria-labelledby="foundation-topic-title">
+    <header class="detail-header">
+      <div class="detail-heading"><h2 id="foundation-topic-title">Topic</h2><span id="foundation-topic-status" class="topic-dialog-status"></span></div>
+      <button type="button" id="close-foundation-topic" class="dialog-close" aria-label="Close topic" autofocus></button>
+    </header>
+    <div class="detail-body">
+      <p id="foundation-topic-answer" class="topic-dialog-answer"></p>
+      <div id="foundation-topic-sources" class="topic-dialog-sources"></div>
+      <p id="foundation-topic-hint" class="topic-dialog-hint"></p>
+    </div>
   </dialog>
 
   <div class="sr-only" id="live-status" role="status" aria-live="polite"></div>

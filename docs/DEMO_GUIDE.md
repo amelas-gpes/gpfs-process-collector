@@ -6,9 +6,9 @@ Use fictional information. Before replacing an open interview, choose **More opt
 
 1. **Welcome → Invoice approval.** Open the example workflow and point out **Example · Everything here is fictional**. The example is also available under **More options → See an example**.
 2. **Interview → Transcript.** Read an answer and follow-up; use **Find**. Open a topic in **Workspace → Notes** to show its answer, topic guidance and sources. On a narrow screen, open **Workspace** first.
-3. **Workflow → a step → a source.** Select a diagram step, read its details, then open a cited source. **Back to what you were reviewing** restores the previous view. Show **Fit**, the step selector and **Follow path** to explain a handoff or branch.
+3. **Workflow → a step → a source.** Select a diagram step, follow its reported next step, and open a cited answer. **Back to step** returns to that citation. Use the step selector or **Follow path** to explore a handoff. **Map tools** contains zoom, **Fit entire map**, orientation, and the diagram key.
 4. **Review.** Open the example with **Open draft**. Explore **Report**, **Notes**, **Workflow**, **Steps**, **Items**, **Variations** and **Open questions**. Edit the example under **Steps**; point out **Needs owner review**. In a real interview, **Create draft** becomes available in Workspace and Review after an answer or file provides source material. **Update draft** replaces manual edits after confirmation.
-5. **Save and export.** **Save copy** downloads the restorable interview. **Transcript → Export** offers Markdown or JSON. In Review, use **Download report** for Markdown, **Download notes** for the memo, or **Download map** for the workflow SVG.
+5. **Save and export.** **Save copy** downloads the restorable interview. **Transcript → Export** offers Markdown or JSON. In Review, use **Download report** for Markdown, **Download notes** for the memo, or **Workflow → Map tools → Download map (SVG)**.
 6. **Optional live segment.** Choose **Start your own → Type instead** for a fictional exchange. Use **Start talking** after the device checks below. Stop when useful; do not invent details to reach completion.
 
 ## Explain what the team and topic states mean

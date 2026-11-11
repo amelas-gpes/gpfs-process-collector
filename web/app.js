@@ -461,7 +461,7 @@
   function setWorkflowExpanded(expanded) {
     $("interview-view").classList.toggle("workflow-expanded",expanded);
     const button=$("workflow-expand");
-    if(button){button.setAttribute("aria-pressed",String(expanded));button.textContent=expanded?"Collapse":"Expand";button.setAttribute("aria-label",expanded?"Restore interview workspace":"Expand workflow workspace");}
+    if(button){button.setAttribute("aria-pressed",String(expanded));button.textContent=expanded?"Collapse":"Expand";button.title=expanded?"Restore interview workspace":"Expand workflow workspace";button.setAttribute("aria-label",button.title);}
     requestAnimationFrame(()=>workflowCanvases.get("live-workflow")?.refresh());
   }
   function openDocumentAssets() {
@@ -508,11 +508,20 @@
     foundationTopic = key; foundationReturnFocus = trigger?.closest?.("dialog")&&!trigger.closest("dialog").open ? $("open-memo") : trigger; foundationRestoreFocus = true;
     $("foundation-topic-title").textContent = MEMO_HEADINGS[key];
     const advisory=provisionalFinding(finding)?advisoryFor(finding):null;
+    const statusBadge=$("foundation-topic-status");
+    statusBadge.dataset.status=provisionalFinding(finding)||documentOnlyFinding(finding)?"pending":finding?.status||"unknown";
     $("foundation-topic-status").textContent = provisionalFinding(finding)?(advisory?(advisory.complete?"Captured · pre-checked, completion review pending":"Captured · advisory check noted a gap"):"Captured · awaiting review"):documentOnlyFinding(finding)?"Documented · needs confirmation":labels[finding?.status] || labels.unknown;
     $("foundation-topic-answer").textContent = finding?.answer?.trim() ? finding.answer : "Not covered yet.";
     $("foundation-topic-hint").textContent = advisory&&!advisory.complete&&advisory.gaps.length?`Advisory check: ${advisory.gaps.join(" ")}${advisory.next_question?` Suggested question: ${advisory.next_question}`:""}`:documentOnlyFinding(finding)?"Captured from the attached file. Follow up on stated gaps or differences in current practice; the file itself is not process-owner approval.":finding?.status==="partial" ? `Still open: ${TOPIC_GUIDES[key]}` : finding?.answer?.trim() ? "From the interview — not independently verified." : TOPIC_GUIDES[key];
-    $("foundation-topic-sources").replaceChildren(evidenceRow(finding?.evidence_turns || [], () => closeFoundationTopic(false)));
-    if (!dialog.open) dialog.showModal();
+    const sources=$("foundation-topic-sources");
+    const focusedTurn=sources.contains(document.activeElement)?document.activeElement?.dataset?.sourceTurn:null;
+    sources.hidden=!finding?.answer?.trim()&&!finding?.evidence_turns?.length;
+    sources.replaceChildren(evidenceRow(finding?.evidence_turns || [], () => closeFoundationTopic(false)));
+    if (!dialog.open) {
+      dialog.showModal();
+      const body=dialog.querySelector(".detail-body");
+      if(body)body.scrollTop=0;
+    } else if(focusedTurn)matchingCitations(sources,focusedTurn)[0]?.focus({preventScroll:true});
     document.querySelectorAll("[data-foundation-topic]").forEach(button => button.classList.toggle("selected",button.dataset.foundationTopic === key));
   }
   function closeFoundationTopic(restoreFocus = true) {
@@ -614,12 +623,36 @@
       else if(!$("transcript-find").hidden&&$("transcript-find").contains(event.target)){event.preventDefault();setTranscriptFind(false);}
     });
   }
-  function rememberSourceOrigin(focus=document.activeElement){sourceOrigin={generation:state.generation,review:!$("review-view").hidden,section:reviewUI.section,view:conversationUI.view,scroll:$("conversation-scroll").scrollTop,reviewScroll:$("review-view").scrollTop,topic:foundationTopic,memoOpen:Boolean($("memo-sheet")?.open),focus,turn:focus?.dataset?.sourceTurn,step:workflowDetailSource&&$("workflow-step-dialog")?.open?{...workflowDetailSource,opener:workflowDetailReturn}:null};}
+  function matchingCitations(panel,turn) {
+    return [...(panel?.querySelectorAll(".evidence-link")||[])].filter(link=>link.dataset.sourceTurn===turn);
+  }
+  function rememberSourceOrigin(focus=document.activeElement) {
+    const turn=focus?.dataset?.sourceTurn;
+    sourceOrigin={
+      generation:state.generation,review:!$("review-view").hidden,section:reviewUI.section,view:conversationUI.view,
+      scroll:$("conversation-scroll").scrollTop,reviewScroll:$("review-view").scrollTop,
+      topic:foundationTopic,memoOpen:Boolean($("memo-sheet")?.open),focus,turn,
+      citationIndex:matchingCitations(focus?.closest?.("dialog"),turn).indexOf(focus),
+      step:workflowDetailSource&&$("workflow-step-dialog")?.open?{...workflowDetailSource,opener:workflowDetailReturn}:null
+    };
+  }
+  function sourceReturnLabel(origin) {
+    if (!origin) return "Back";
+    if (origin.topic) return "Back to note";
+    if (origin.step) return `Back to step ${origin.step.stepId}`;
+    if (origin.cinematicId) return "Back to cinematic map";
+    const destination=origin.review ? $("review-tab-"+origin.section.slice(7))?.textContent : origin.view;
+    return destination?"Back to "+destination.toLowerCase():"Back";
+  }
   function returnToSource(){
     const origin=sourceOrigin;sourceOrigin=null;if($("source-return"))$("source-return").hidden=true;if($("settings-source-return"))$("settings-source-return").hidden=true;if(!origin||origin.generation!==state.generation)return;
     setInterviewSettings(false,false);
     if(origin.review){tab("review");selectReviewSection(origin.section);$("review-view").scrollTop=origin.reviewScroll;}else{tab("interview");selectConversationView(origin.view);$("conversation-scroll").scrollTop=origin.scroll;}
-    if(origin.topic){if(origin.memoOpen)setMemoSheet(true);showFoundationTopic(origin.topic,document.querySelector(`[data-foundation-topic="${origin.topic}"]`));}
+    if(origin.topic){
+      if(origin.memoOpen)setMemoSheet(true);
+      showFoundationTopic(origin.topic,document.querySelector(`[data-foundation-topic="${origin.topic}"]`));
+      matchingCitations($("foundation-dialog"),origin.turn)[origin.citationIndex]?.focus();
+    }
     else if(origin.step){
       const {containerId,stepId,opener}=origin.step,step=workflowGraph(containerId)?.steps.find(item=>item.id===stepId);
       if(step){
@@ -628,6 +661,7 @@
           focus?.focus({preventScroll:true});
         }else workflowCanvases.get(containerId)?.focusStep?.(step.id);
         showWorkflowStep(step,containerId);
+        matchingCitations($("workflow-step-dialog"),origin.turn)[origin.citationIndex]?.focus();
       }
     }
     else if(origin.cinematicId){
@@ -653,7 +687,7 @@
     if(view!=="transcript")setTranscriptExport(false,false);
     const dockFocus=!focus&&$("conversation-dock")?.contains(document.activeElement)?document.activeElement:null;
     conversationUI.view=view;
-    if(view!=="workflow"){$("interview-view").classList.remove("workflow-expanded");if($("workflow-expand")){$("workflow-expand").setAttribute("aria-pressed","false");$("workflow-expand").textContent="Expand";$("workflow-expand").setAttribute("aria-label","Expand workflow workspace");}}
+    if(view!=="workflow" && $("interview-view").classList.contains("workflow-expanded"))setWorkflowExpanded(false);
     document.querySelectorAll("[data-conversation-view]").forEach(button=>{
       const active=button.dataset.conversationView===view;
       button.setAttribute("aria-selected",String(active)); button.tabIndex=active?0:-1;
@@ -683,12 +717,13 @@
     const status=presenceState(),labels={idle:"Ready when you are",connecting:"Connecting…",listening:"Listening",speaking:"Speaking",processing:preparingReviewedVoice()?"Preparing voice…":pendingCompletionReview?.promise?COMPLETION_REVIEW_LABEL:"Thinking…",muted:"Mic muted",closing:"Saving the transcript…",ended:"Voice off"};
     gpfsPresence?.setState(status==="closing"?"ended":status);
     gpfsPresence?.setVisible(conversationUI.view==="voice"&&!$("interview-view")?.hidden&&!document.hidden);
+    const statusText=status==="speaking"&&conversationUI.muted?"Speaking · mic muted":labels[status]||labels.idle;
     const label=$("presence-status");
-    if(label){label.textContent=labels[status]||labels.idle;label.hidden=status==="idle"&&!state.started;}
+    if(label){label.textContent=statusText;label.hidden=status==="idle"&&!state.started;}
     const session=$("session-presence");
-    if(session){session.hidden=!conversationUI.live?.active&&status!=="closing";session.dataset.active=String(Boolean(conversationUI.live?.active));}
+    if(session){session.hidden=conversationUI.view==="voice"||(!conversationUI.live?.active&&status!=="closing");session.dataset.active=String(Boolean(conversationUI.live?.active));}
     const sessionLabel=$("session-status");
-    if(sessionLabel)sessionLabel.textContent=status==="speaking"&&conversationUI.muted?"Speaking · mic muted":labels[status]||"";
+    if(sessionLabel)sessionLabel.textContent=statusText;
   }
   function conversationTabKey(event) {
     const views=["voice","transcript","workflow"], index=views.indexOf(event.currentTarget.dataset.conversationView);
@@ -726,7 +761,7 @@
   }
   function ensureConversation() {
     if(state.started)return true;
-    if(!$("objective").value.trim()) {setInterviewSettings(true);$("objective").reportValidity();$("objective").focus();return false;}
+    if(!$("objective").value.trim()) {revealContext();$("objective").reportValidity();$("objective").focus();return false;}
     state.context=readContext();state.started=true;state.example=false;state.dirty=true;updateControls();return true;
   }
   function documentContext() {
@@ -2321,7 +2356,10 @@
       scrollToElement(context);
       context.tabIndex = -1;
       context.focus({preventScroll:true});
-      if($("settings-source-return"))$("settings-source-return").hidden=false;
+      if($("settings-source-return")){
+        $("settings-source-return").textContent=sourceReturnLabel(sourceOrigin);
+        $("settings-source-return").hidden=false;
+      }
       notice("This step comes from the interview setup, not an answer. Confirm it with the process owner.");
       return;
     }
@@ -2335,6 +2373,7 @@
     turn.classList.add("highlight");
     turn.tabIndex = -1;
     turn.focus({preventScroll: true});
+    if($("back-to-source"))$("back-to-source").textContent=sourceReturnLabel(sourceOrigin);
     if($("source-return"))$("source-return").hidden=!sourceOrigin;
   }
   function jumpToReview(id) {
@@ -2391,19 +2430,30 @@
     const position = state.turns.filter(item => item.role === turn.role&&!item.document_event).findIndex(item => item.id === id) + 1;
     return `${turn.role === "user" ? "Answer" : "Question"} ${position}`;
   }
-  function showDocumentEvidence(source) {
+  function showDocumentEvidence(source, origin=document.activeElement) {
     if(!documentEvidenceDialog){
-      documentEvidenceDialog=el("dialog","documents-dialog");documentEvidenceDialog.id="document-evidence-dialog";
+      documentEvidenceDialog=el("dialog","detail-panel excerpt-dialog");documentEvidenceDialog.id="document-evidence-dialog";
       documentEvidenceDialog.setAttribute("aria-labelledby","document-evidence-title");document.body.append(documentEvidenceDialog);
     }
-    const origin=document.activeElement;
-    const heading=el("div","documents-heading"),title=el("h2","",sourceCaption(source.id));title.id="document-evidence-title";
-    const close=el("button","documents-text-button","Close");close.type="button";close.addEventListener("click",()=>documentEvidenceDialog.close());
-    heading.append(title,close);
-    const body=el("div","documents-body");
-    body.append(el("p","muted",source.retained_only?"Saved citation from a removed or parked file. It supports the existing capture; it is not new interview evidence.":"Documented information. This excerpt does not by itself confirm current practice or process-owner approval."),el("pre","documents-source-text",source.text));
+    const parentPanel=origin?.closest?.("dialog");
+    const citationIndex=matchingCitations(parentPanel,source.id).indexOf(origin);
+    const generation=state.generation;
+    const heading=el("header","detail-header"),titles=el("div","detail-heading"),title=el("h2","",sourceCaption(source.id));
+    title.id="document-evidence-title";
+    titles.append(el("span","detail-kind","Document source"),title);
+    const close=el("button","dialog-close");
+    close.type="button";close.setAttribute("aria-label","Close document source");close.addEventListener("click",()=>documentEvidenceDialog.close());
+    heading.append(titles,close);
+    const body=el("div","detail-body"),note=source.retained_only
+      ?"Saved citation from a removed or parked file. It supports the existing capture; it is not new interview evidence."
+      :"Confirm current practice and approval with the process owner.";
+    body.append(el("p","excerpt-note",note),el("pre","excerpt-text",source.text));
     documentEvidenceDialog.replaceChildren(heading,body);
-    documentEvidenceDialog.onclose=()=>{if(origin?.isConnected)origin.focus({preventScroll:true});};
+    documentEvidenceDialog.onclose=()=>{
+      if(generation!==state.generation || parentPanel?.open===false)return;
+      const trigger=origin?.isConnected?origin:matchingCitations(parentPanel,source.id)[citationIndex];
+      trigger?.focus({preventScroll:true});
+    };
     if(!documentEvidenceDialog.open)documentEvidenceDialog.showModal();close.focus({preventScroll:true});
   }
   function focusAfterEditorRemoval(containerId,index,addId) {
@@ -2499,7 +2549,11 @@
       source.title = `Source: ${id}`;
       source.dataset.sourceTurn=id;
       source.setAttribute("aria-label",`Read ${sourceCaption(id)}`);
-      source.addEventListener("click",() => {rememberSourceOrigin(source);beforeJump?.();jumpToTurn(id,false);});
+      source.addEventListener("click",() => {
+        const excerpt=state.documentEvidence.find(item=>item.id===id);
+        if(excerpt){showDocumentEvidence(excerpt,source);return;}
+        rememberSourceOrigin(source);beforeJump?.();jumpToTurn(id,false);
+      });
       evidence.append(source);
     });
     return evidence;
@@ -2662,31 +2716,67 @@
   }
   function showWorkflowStep(step, containerId, refresh=false) {
     const dialog=$("workflow-step-dialog"),body=$("workflow-step-content");if(!dialog)return;
+    const sameStep=dialog.open && workflowDetailSource?.containerId===containerId && workflowDetailSource.stepId===step.id;
+    const readingPosition=sameStep?body.scrollTop:0;
+    const focusedTurn=sameStep?document.activeElement?.dataset?.sourceTurn:null;
+    const citationIndex=focusedTurn?matchingCitations(body,focusedTurn).indexOf(document.activeElement):-1;
     if(!refresh)workflowDetailReturn=document.activeElement;
     workflowDetailSource={containerId,stepId:step.id};
     $("workflow-step-title").textContent=step.title||step.id;
     $("workflow-step-kind").textContent=`${step.id} · ${workflowTypeLabel(step.type)}`;
-    body.replaceChildren(el("p","",step.description||"Detail has not been established yet."));
-    const dl=el("dl","report-fields");
-    for(const [label,value] of [["Owner / role",step.actor],["System / tool",step.system],["Input",step.input],["Output",step.output],["Completion",step.completion_criteria],["Handoff",step.handoff]])dl.append(el("dt","",label),el("dd","",value||"Not established"));
-    body.append(dl,evidenceRow(step.evidence_turns||[],()=>{workflowDetailReturn=null;dialog.close();}));
+    const artwork=$("workflow-step-preview");
+    if(artwork && window.CollectorWorkflowStage?.createComponentPreview) {
+      const design=containerId==="process-map"?draftComponentDesigns.get(step.id):null;
+      const variant=window.CollectorComponents?.forDisplay(step,design);
+      const signature=JSON.stringify([step.type,variant?.id]);
+      if(artwork.dataset.design!==signature) {
+        window.CollectorWorkflowStage.createComponentPreview(artwork,{type:step.type,variant});
+        artwork.dataset.design=signature;
+      }
+      artwork.hidden=false;
+    }
+    const leaveForTranscript=()=>{workflowDetailReturn=null;dialog.close();};
+    const fields=(className,entries)=>{
+      const list=el("dl",className);
+      for(const [label,value] of entries) {
+        const pair=el("div","");
+        pair.append(el("dt","",label),el("dd","",value||"Not established"));
+        list.append(pair);
+      }
+      return list;
+    };
+    body.replaceChildren(el("p","step-description",step.description||"Detail has not been established yet."),
+      evidenceRow(step.evidence_turns||[],leaveForTranscript),
+      fields("step-responsibility",[["Owner / role",step.actor],["System / tool",step.system]]),
+      fields("step-flow-fields",[["Input",step.input],["Output",step.output],["Complete when",step.completion_criteria],["Handoff",step.handoff]]));
     const graph=containerId==="live-workflow"?conversationUI.workflow:state.draft;
     const routes=(graph?.connections||[]).filter(edge=>edge.from===step.id);
     if(routes.length){
       const section=el("section","workflow-step-routes");
       section.append(el("h3","",step.type==="parallel_split"?"Branches running in parallel":"Reported next steps"));
-      if(step.type==="parallel_split")section.append(el("p","muted","Each branch runs. Selecting one here only changes the part of the diagram you are reading."));
+      if(step.type==="parallel_split")section.append(el("p","muted","Each branch runs in parallel."));
       const list=el("ul","");
       for(const edge of routes){
         const target=graph.steps.find(item=>item.id===edge.to);if(!target)continue;
-        const item=el("li",""),button=el("button","workflow-route-link",`${edge.label||(step.type==="decision"?"Condition not recorded":"Continue")} → ${target.title||target.id}`);
-        button.type="button";button.addEventListener("click",()=>{workflowCanvases.get(containerId)?.focusStep?.(target.id,{readable:true,keyboard:false,select:true});showWorkflowStep(target,containerId,true);$("workflow-step-title").tabIndex=-1;$("workflow-step-title").focus({preventScroll:true});});
-        item.append(button,evidenceRow(edge.evidence_turns||[],()=>{workflowDetailReturn=null;dialog.close();}));list.append(item);
+        const item=el("li",""),button=el("button","workflow-route-link");
+        button.type="button";
+        button.dataset.iconEnd="arrow-right";
+        const destination=el("span","route-destination");
+        const condition=edge.label||(step.type==="decision"?"Condition not recorded":"");
+        if(condition)destination.append(el("span","route-condition",condition),el("span","sr-only"," → "));
+        destination.append(el("span","route-title",target.title||target.id));
+        button.append(destination);
+        button.addEventListener("click",()=>{
+          workflowCanvases.get(containerId)?.focusStep?.(target.id,{readable:true,keyboard:false,select:true});
+          showWorkflowStep(target,containerId,true);
+          $("workflow-step-title").focus({preventScroll:true});
+        });
+        item.append(button,evidenceRow(edge.evidence_turns||[],leaveForTranscript));list.append(item);
       }
       section.append(list);body.append(section);
     }
     const inWalkthrough=workflowPlayers.get(containerId)?.selected;
-    const follow=el("button","button secondary small",inWalkthrough?"Follow in diagram":"Follow this path");
+    const follow=el("button","button secondary small",inWalkthrough?"Follow in diagram":"Follow path on map");
     follow.type="button";follow.addEventListener("click",async()=>{
       workflowDetailReturn=null;dialog.close();
       if(inWalkthrough){
@@ -2695,8 +2785,11 @@
         if(generation!==state.generation||workflowPlayers.get(containerId)?.selected)return;
       }
       workflowCanvases.get(containerId)?.followPath(step.id);
-    });body.append(follow);
+    });
+    if(inWalkthrough || (workflowCanvases.get(containerId)?.followPath && !$(workflowPrefix(containerId)+"-navigation")?.hidden))body.append(follow);
     if(!dialog.open)dialog.showModal();
+    body.scrollTop=readingPosition;
+    if(citationIndex>=0)matchingCitations(body,focusedTurn)[citationIndex]?.focus({preventScroll:true});
   }
   function renderWorkflowLegend(id,graph){
     const prefix=id==="live-workflow"?"workflow":"map",legend=$(prefix+"-legend"),items=$(prefix+"-legend-items");
@@ -2712,10 +2805,18 @@
   }
   function updateCanvasControls(id,info) {
     const prefix=id==="live-workflow"?"workflow":"map";
-    if(id==="live-workflow"&&$("workflow-diagram-tools"))$("workflow-diagram-tools").hidden=!info.hasGraph;
+    const tools=$(prefix+"-diagram-tools");
+    if(tools){
+      if(!info.hasGraph)$(prefix+"-tools")?.hidePopover?.();
+      tools.hidden=!info.hasGraph;
+    }
     if($(prefix+"-zoom-label"))$(prefix+"-zoom-label").textContent=info.hasGraph?`${Math.round(info.scale*100)}%`:"—";
     for(const suffix of ["zoom-out","zoom-in","fit"])if($(prefix+"-"+suffix))$(prefix+"-"+suffix).disabled=!info.hasGraph;
-    if($(prefix+"-direction")){$(prefix+"-direction").disabled=!info.hasGraph;$(prefix+"-direction").textContent=info.direction==="DOWN"?"Vertical":"Horizontal";$(prefix+"-direction").setAttribute("aria-label",info.direction==="DOWN"?"Vertical layout. Switch to horizontal layout":"Horizontal layout. Switch to vertical layout");$(prefix+"-direction").title=$(prefix+"-direction").getAttribute("aria-label");}
+    const direction=$(prefix+"-direction");
+    if(direction){
+      direction.disabled=!info.hasGraph;
+      direction.textContent=info.direction==="DOWN"?"Switch to horizontal layout":"Switch to vertical layout";
+    }
     updateWorkflowNavigation(id,info);
     const exportButton=$(id==="live-workflow"?"export-working-map":"export-map");
     if(exportButton)exportButton.disabled=Boolean(workflowPlayers.get(id)?.diagramDirty)||!info.hasGraph||Boolean(info.updating)||info.exportReady===false;
@@ -2726,7 +2827,7 @@
     const bar=$(prefix+"-navigation"),select=$(prefix+"-step-select"),canvas=workflowCanvases.get(id),steps=canvas?.getSteps?.()||(id==="live-workflow"?conversationUI.workflow:state.draft)?.steps||[],path=info.path||canvas?.getPathNavigation?.();
     bar.hidden=!info.hasGraph;if(bar.hidden)return;
     const selected=path?.current?.id||select.value;
-    const stepSignature=JSON.stringify(steps.map(step=>[step.id,step.type,step.title]));if(select.dataset.signature!==stepSignature){select.replaceChildren(...steps.map(step=>{const option=el("option","",`${step.id} · ${workflowTypeLabel(step.type)} · ${step.title}`);option.value=step.id;return option;}));select.dataset.signature=stepSignature;}
+    const stepSignature=JSON.stringify(steps.map(step=>[step.id,step.type,step.title]));if(select.dataset.signature!==stepSignature){select.replaceChildren(...steps.map(step=>{const option=el("option","",`${step.title || "Untitled step"} · ${step.id} · ${workflowTypeLabel(step.type)}`);option.value=step.id;return option;}));select.dataset.signature=stepSignature;}
     if(steps.some(step=>step.id===selected))select.value=selected;
     $(prefix+"-follow").setAttribute("aria-pressed",String(Boolean(path?.following)));$(prefix+"-follow").textContent=path?.following?"Show all":"Follow path";
     for(const [direction,label] of [["previous","← Previous"],["next","Next →"]]){const control=$(prefix+"-path-"+direction),choices=path?.[direction]||[];control.hidden=!path?.following;control.disabled=!choices.length;const signature=JSON.stringify([path?.current?.id,choices]);if(control.dataset.signature!==signature){const placeholder=el("option","",choices.length?label:(direction==="next"?"End of reported path":"Start of reported path"));placeholder.value="";control.replaceChildren(placeholder,...choices.map(choice=>{const option=el("option","",`${choice.label||"Continue"} · ${choice.id}`);option.value=choice.id;return option;}));control.value="";control.dataset.signature=signature;}}

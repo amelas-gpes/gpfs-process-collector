@@ -940,7 +940,13 @@ if(process.argv.includes("--usability-only")){
   await t.refreshWorkflow();assert.equal(t.conversationUI.workflow.steps.length,1);assert.equal(t.state.context.process_name,"");assert.equal(t.state.derivedProcessTitle,"US payment execution");
   assert.equal(t.state.memo_findings.find(f=>f.key==="name").status,"partial","Documented detail must not become participant-confirmed coverage");
   assert.match(t.sourceCaption(sourceId),/Payment SOP.pdf.*Page 1/);assert.equal(t.snapshot().document_source_ids[0],sourceId);
-  t.jumpToTurn(sourceId);assert.equal(document.getElementById("document-evidence-dialog").open,true);assert.match(document.getElementById("document-evidence-dialog").textContent,/client releases the wire/);document.getElementById("document-evidence-dialog").close();
+  t.showFoundationTopic("name",document.querySelector('[data-foundation-topic="name"]'));
+  const citation=document.getElementById("foundation-topic-sources").querySelector(".evidence-link");
+  citation.dispatch("click");
+  const excerptDialog=document.getElementById("document-evidence-dialog");
+  assert.equal(excerptDialog.open,true);assert.match(excerptDialog.textContent,/client releases the wire/);
+  assert.equal(dialog.open,true,"Reading a document citation preserves its note underneath");
+  excerptDialog.close();t.closeFoundationTopic();
   const saved=t.sessionObject();assert.equal(saved.document_evidence[0].text,evidence.text);
   assert.equal(t.normalizeDraft(saved.workflow,[],saved.document_evidence).steps[0].evidence_turns[0],sourceId);
   assert.throws(()=>t.normalizeDraft(saved.workflow,[],[]),/unavailable/);

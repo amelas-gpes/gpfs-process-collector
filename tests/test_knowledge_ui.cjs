@@ -224,6 +224,40 @@ let passes=0;
   await openAdmin(f.controller);await click('Graph');await click('Process steps');await graphSelect({id:'N2'});await settle();
   const evidence=find(admin(),e=>e.className==='knowledge-block knowledge-source-evidence');assert(evidence);assert(findText(evidence,'Document-supported'));assert(findText(evidence,'Procedure.pdf · page 7'));assert(findText(evidence,'Read exact document excerpt'));assert(findText(evidence,excerpt),'The exact persisted excerpt remains readable without another source request');assert(findText(evidence,'Open answer t004'),'Participant navigation remains distinct');assert.doesNotMatch(evidence.textContent,/Answer doc_procedure/);assert.match(evidence.textContent,/Document source doc_missing_p1 is unavailable/);assert(!find(evidence,e=>e.tagName==='IMG'),'Document text is rendered literally');assert.equal(s.calls.filter(call=>call.path.endsWith('/document-source')).length,0);passes++;
  }
+ {
+  const s=service(),f=fresh(s.request);await openAdmin(f.controller);
+  await click('Reviewed groups');await openFirstRecord();await aria('Next members and source evidence page');
+  await click('Group member 25');await click('Show affected connections');await aria('Next affected connections page');
+  await click('Source 25 → Target 25');await click('← Back');
+  assert.match(admin().textContent,/Potential downstream of Group member 25/);
+  assert.match(admin().textContent,/26–50 of 58/,'Return to the same page of the parent record');
+  await click('← Back');assert.match(admin().textContent,/Immediate upstream and downstream relationships/);
+  await click('← Back');assert.match(admin().textContent,/Group member 25/);
+  assert.match(admin().textContent,/26–50 of 61/);await click('← Back');assert.match(admin().textContent,/Reviewed canonical groups/);
+  passes++;
+ }
+ {
+  const s=service(),f=fresh(s.request);await openAdmin(f.controller);
+  await click('Connections');await openFirstRecord();
+  const form=()=>find(admin(),e=>e.tagName==='FORM');
+  const reason=()=>find(form(),e=>e.tagName==='TEXTAREA'),side=()=>find(form(),e=>e.tagName==='SELECT');
+  reason().value='Check the receiving team’s cited answer.';await reason().dispatch('input');
+  side().value='receiver';await side().dispatch('change');await click('Open answer t004');await click('← Back to detail');
+  assert.equal(reason().value,'Check the receiving team’s cited answer.');assert.equal(side().value,'receiver');
+  await click('Filters');assert.equal(reason().value,'Check the receiving team’s cited answer.');
+  assert.equal(s.calls.filter(c=>c.path.endsWith('/review')).length,0);
+  let release,reviewVersion=proposal.review_version;
+  s.data.intercept=(path,payload)=>{
+    if(path.endsWith('/review'))return new Promise(resolve=>{release=resolve;});
+    if(path.endsWith('/detail')&&payload.kind==='proposal')return {kind:'proposal',item:{...structuredClone(proposal),review_version:reviewVersion}};
+  };
+  const pending=findText(form(),'Confirm').dispatch('click');await settle();await click('Filters');
+  assert.equal(findText(form(),'Confirm').disabled,true,'Rerendering during a save must keep review actions disabled');
+  await click('Confirm',form());assert.equal(s.calls.filter(c=>c.path.endsWith('/review')).length,1);
+  release({ok:true});await pending;await settle();assert.equal(reason().value,'');assert.equal(side().value,'');
+  reason().value='Old revision';await reason().dispatch('input');reviewVersion++;await click('Refresh');
+  assert.equal(reason().value,'','A rationale must not carry into a revised connection');passes++;
+ }
  assert(!fs.readFileSync('web/knowledge-ui.js','utf8').includes('/admin/snapshot'));
  console.log(JSON.stringify({tests_passed:passes,provider_calls:0,network_calls:0,real_browser:false}));
 })().catch(e=>{console.error(e);process.exitCode=1;});

@@ -67,6 +67,25 @@ let passed=0;
  const isolatedView=api.create(env.container);await isolatedView.update(isolated);isolatedView.followPath();
  assert.equal(isolatedView.getPathNavigation().current.id,'A','Opening a reported path starts on the connected entry, even if an isolated note was recorded first.');isolatedView.destroy();passed++;
  const self={title:'Retry',steps:[{id:'R',title:'Retry task',type:'activity'}],connections:[{from:'R',to:'R',label:'Try again'}]};const selfLayout=await elk.layout(api.elkGraph(api.model(self)));assert.equal(selfLayout.edges.length,1);assert(selfLayout.edges[0].sections[0].bendPoints.length>0);passed++;
+ // File order differs from screen order. Arrow navigation follows the visible map.
+ for(const [direction,forward,back] of [['RIGHT','ArrowRight','ArrowLeft'],['DOWN','ArrowDown','ArrowUp']]){
+   const ui=environment(),view=ui.api.create(ui.container,{direction});await view.update(shuffled);
+   const node=id=>view.world.querySelectorAll('[data-step-id]').find(el=>el.getAttribute('data-step-id')===id);
+   const focused=()=>ui.document.activeElement?.getAttribute('data-step-id');
+   node('A').focus();node('A').emit('keydown',{key:forward});assert.equal(focused(),'B');
+   node('B').emit('keydown',{key:back});assert.equal(focused(),'A');
+   node('A').emit('keydown',{key:back});assert.equal(focused(),'A','The outermost node must not wrap across the canvas');
+   view.destroy();
+ }passed++;
+ const turnEnv=environment(),turnView=turnEnv.api.create(turnEnv.container,{direction:'RIGHT'});await turnView.update(input);
+ turnView.followPath('A');turnView.navigatePath('B');turnView.navigatePath('D');
+ const trail=nativeTree(turnView.getPathNavigation().trail),beforeScale=turnView.getScale();
+ await turnView.setDirection('DOWN');
+ const d=turnView.layout.children.find(node=>node.id==='D'),turned=turnView.camera;
+ assert.equal(turned.scale,beforeScale);assert.deepEqual(nativeTree(turnView.getPathNavigation().trail),trail);
+ assert(Math.abs((d.x+d.width/2-turned.x)*turned.scale-450)<1&&Math.abs((d.y+d.height/2-turned.y)*turned.scale-250)<1,'The followed branch stays at the center after changing orientation');
+ turnView.fit();await turnView.setDirection('RIGHT');assert(turnView.fitMode,'Fit all survives rotation');
+ turnView.destroy();passed++;
  const detached=nativeTree(layout);
  // A correct edge ID and label cannot make an arrow pointing at a different card valid.
  detached.edges[0].sections[0].endPoint.x+=100;

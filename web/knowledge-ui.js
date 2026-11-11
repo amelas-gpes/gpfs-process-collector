@@ -112,7 +112,6 @@
         finally{if(activeAttempt===attempt)activeAttempt=null;}
       });submit.append(form);if(!submit.open)submit.showModal();if(!participant.disabled)participant.focus();else send.focus();
     }
-    const descriptor=item=>item?{kind:item.kind,id:item.id,revision:item.revision,turn_id:item.turn_id,returnTo:item.returnTo}:null;
     const sourceSubmission=(sid,revision)=>array(snapshot?.submissions).find(s=>s.submission_id===sid&&s.revision===revision);
     const entity=id=>array(snapshot?.entities).find(item=>item.id===id);
     const label=id=>entity(id)?.label||id||"Unknown";
@@ -131,7 +130,10 @@
     function listFilters(){return {...filters,...(section==="entities"?{query:entityQuery,type:entityType,latest_only:!includeEarlier}:{})};}
     function focusControl(key){const target=[...(admin.querySelectorAll?.("[data-focus-key]")||[])].find(el=>el.dataset.focusKey===key);target?.focus?.({preventScroll:true});}
     function navigate(next){section=next;selected=null;focusAfterLoad="heading";return load();}
-    function openDetail(kind,id,revision,extra={}){selected={kind,id,revision,...extra};focusAfterLoad="heading";return load();}
+    function openDetail(kind,id,revision,turnId){
+      selected={kind,id,revision,turn_id:turnId,returnTo:selected,pages:{}};
+      focusAfterLoad="heading";return load();
+    }
     function retryState(parent,message,retry){const block=node("section","knowledge-load-state");text("p","knowledge-status",message,block).setAttribute("role","status");block.append(button("Try again",retry));parent.append(block);}
     function scrollActiveTab(){
       if(!admin.open)return;const tabs=admin.querySelector?.(".knowledge-tabs"),current=tabs?.querySelector?.('[aria-current="page"]');
@@ -172,9 +174,12 @@
     }
     async function historyPanel(parent,title,kind,id,renderItem,empty="None recorded."){
       const block=node("section","knowledge-block knowledge-paged-region"),heading=text("h3","",title,block),body=node("div");heading.tabIndex=-1;block.append(body);parent.append(block);
-      let sequence=0;
-      async function read(offset=0,focus=false){const sequenceId=++sequence,context=adminContext();body.replaceChildren(node("p","knowledge-muted","Loading "+title.toLowerCase()+"…"));
-        try{const result=await adminRequest("/api/knowledge/admin/history",{kind,id,offset,limit:PAGE_SIZE});if(sequenceId!==sequence||!sameAdmin(context))return;pageInfo(result);body.replaceChildren();if(result.analysis_limitations)text("p","knowledge-muted",result.analysis_limitations,body);if(!result.items.length)text("p","knowledge-muted",empty,body);for(const item of result.items)renderItem(body,item);pager(body,result,next=>read(next,true),title.toLowerCase());if(focus)heading.focus({preventScroll:true});}
+      const pages=selected.pages;let sequence=0;
+      async function read(offset=pages[kind]||0,focus=false){const sequenceId=++sequence,context=adminContext();body.replaceChildren(node("p","knowledge-muted","Loading "+title.toLowerCase()+"…"));
+        try{const result=await adminRequest("/api/knowledge/admin/history",{kind,id,offset,limit:PAGE_SIZE});if(sequenceId!==sequence||!sameAdmin(context))return;
+          const page=pageInfo(result),lastOffset=Math.max(0,Math.floor((page.total-1)/page.limit)*page.limit);
+          if(offset>lastOffset)return read(lastOffset,focus);
+          pages[kind]=page.offset;body.replaceChildren();if(result.analysis_limitations)text("p","knowledge-muted",result.analysis_limitations,body);if(!result.items.length)text("p","knowledge-muted",empty,body);for(const item of result.items)renderItem(body,item);pager(body,result,next=>read(next,true),title.toLowerCase());if(focus)heading.focus({preventScroll:true});}
         catch(e){if(sequenceId!==sequence||!sameAdmin(context))return;body.replaceChildren();retryState(body,e.message||"This page is unavailable.",()=>read(offset,true));}
       }return read();
     }
@@ -184,7 +189,7 @@
       const block=node("section","knowledge-block");text("h3","","Supporting evidence",block);if(!array(items).length)text("p","knowledge-muted","No evidence supplied.",block);
       for(const item of array(items)){const article=node("article","knowledge-evidence-item"),isDocument=item.type==="document_supported";text("h4","",isDocument?"Document-supported":item.type==="simulated_document_account"?"Document-derived simulation — not an employee statement":item.type==="employee_reported"?"Employee-reported statement":"Evidence type not established",article);
         text("p","knowledge-muted",submissionLabel(item.submission_id,item.revision)+" · revision "+item.revision+" · "+(isDocument?(item.label||item.source_id||"document source"):("transcript "+(item.turn_id||"location unknown"))),article);text("blockquote","knowledge-quote",item.quote||"No quotation supplied.",article);
-        if(!isDocument&&item.turn_id){const open=button("Open answer "+item.turn_id,()=>openDetail("interview",item.submission_id,item.revision,{turn_id:item.turn_id,returnTo:descriptor(selected)}),"text-button");open.dataset.sourceKey=item.submission_id+":"+item.revision+":"+item.turn_id;article.append(open);}
+        if(!isDocument&&item.turn_id){const open=button("Open answer "+item.turn_id,()=>openDetail("interview",item.submission_id,item.revision,item.turn_id),"text-button");open.dataset.sourceKey=item.submission_id+":"+item.revision+":"+item.turn_id;article.append(open);}
         if(isDocument){if(item.origin==="ai_visual_transcription"||item.verified===false)text("p","knowledge-status","AI visual transcription is unverified; inspect the original document before relying on it.",article);
           const output=node("pre","knowledge-evidence"),open=button("Read exact document source",async()=>{const context=adminContext();open.disabled=true;output.textContent="Loading source…";try{const result=await adminRequest("/api/knowledge/admin/document-source",{submission_id:item.submission_id,revision:item.revision,document_id:item.document_id,source_id:item.source_id});if(sameAdmin(context))output.textContent=show(result.source?.text||result.source||"Source unavailable.");}catch(e){if(sameAdmin(context))output.textContent=e.message||"Source unavailable.";}finally{if(sameAdmin(context))open.disabled=false;}},"text-button");article.append(open,output);}
         block.append(article);
@@ -208,7 +213,7 @@
           const excerpt=node("details","knowledge-document-excerpt");excerpt.append(node("summary","","Read exact document excerpt"),node("pre","knowledge-evidence",source.text||"The document excerpt is unavailable in this revision."));item.append(excerpt);block.append(item);continue;
         }
         text("blockquote","knowledge-quote",turn?.text||(id.startsWith("doc_")?"Document source ":"Answer ")+id+" is unavailable in this revision.",block);
-        if(turn){const open=button("Open answer "+id,()=>openDetail("interview",sid,revision,{turn_id:id,returnTo:descriptor(selected)}),"text-button");open.dataset.sourceKey=sid+":"+revision+":"+id;block.append(open);}
+        if(turn){const open=button("Open answer "+id,()=>openDetail("interview",sid,revision,id),"text-button");open.dataset.sourceKey=sid+":"+revision+":"+id;block.append(open);}
       }parent.append(block);
     }
     function stepDetails(parent,step,sid,revision){const section=node("section","knowledge-block knowledge-step");text("h3","",`${step.id?step.id+" · ":""}${step.title||"Process step"}`,section);if(step.description)text("p","",step.description,section);facts(section,[["Owner / role",step.actor],["System / tool",step.system],["Input",step.input],["Output",step.output],["Completion",step.completion_criteria],["Next handoff",step.handoff],["Data origin",step.data_origin],["Entry mode",step.entry_mode],["Rule source",step.rule_source_ref],["Entity scope",array(step.entity_scope).join(", ")],["Parent process",step.parent_process],["Control type",array(step.control_type).join(", ")]]);sourceEvidence(section,sid,revision,step.evidence_turns);parent.append(section);}
@@ -227,17 +232,38 @@
     }
     function reviewHistory(parent,item){const block=node("article","knowledge-history-entry");facts(block,[["Action",tidy(item.action)],["Reviewer",item.reviewer],["Recorded",item.created_at||item.reviewed_at],["Reason",item.reason],["Revision",item.review_version||item.revision]]);if(item.side)facts(block,[["Side statement",item.side]]);if(item.value!==undefined)addInfo(block,"Recorded value",item.value);parent.append(block);}
     function proposalReview(parent,item){
-      if(!["proposed","awaiting_clarification","confirmed","disputed"].includes(item.status))return;
+      const view=selected;
+      if(!["proposed","awaiting_clarification","confirmed","disputed"].includes(item.status)){delete view.reviewDraft;return;}
+      if(!view.reviewDraft||view.reviewDraft.revision!==item.review_version){
+        view.reviewDraft={revision:item.review_version,reason:"",side:"",pending:false,message:""};
+      }
+      const draft=view.reviewDraft,formContext=adminContext();
       const form=node("form","knowledge-review"),labelEl=node("label","knowledge-field"),reason=node("textarea");labelEl.append(node("span","","Reason for this decision"),reason);reason.maxLength=2000;reason.required=true;form.append(labelEl);
+      reason.value=draft.reason;reason.addEventListener("input",()=>{draft.reason=reason.value;});
       const sideWrap=node("label","knowledge-field"),side=node("select");sideWrap.append(node("span","","Side statement recorded by administrator (optional)"),side);
-      for(const [v,l] of [["","Administrator review only"],["sender","Sending-side statement"],["receiver","Receiving-side statement"]]){const opt=node("option","",l);opt.value=v;side.append(opt);}side.value="";form.append(sideWrap);
+      for(const [v,l] of [["","Administrator review only"],["sender","Sending-side statement"],["receiver","Receiving-side statement"]]){const opt=node("option","",l);opt.value=v;side.append(opt);}side.value=draft.side;side.addEventListener("change",()=>{draft.side=side.value;});form.append(sideWrap);
       text("p","knowledge-muted","Record who supplied any side statement and what they confirmed in the reason. This does not verify the identity or claim that both sides confirmed.",form);
-      const status=text("p","knowledge-status","",form);status.setAttribute("role","status");status.hidden=true;const actions=node("div","knowledge-actions");let sending=false;
+      const status=text("p","knowledge-status","",form);status.setAttribute("role","status");const actions=node("div","knowledge-actions");
+      function syncForm(){
+        reason.disabled=side.disabled=draft.pending;
+        for(const control of actions.children)control.disabled=draft.pending;
+        error(status,draft.message);
+      }
       for(const [action,title] of [["confirm","Confirm"],["clarify","Request clarification"],["dispute","Dispute"],["reject","Reject"]])actions.append(button(title,async()=>{
-        if(sending)return;if(!reason.value.trim()){reason.focus();error(status,"Enter a reason before recording a decision.");return;}sending=true;for(const x of actions.children)x.disabled=true;const operation=adminContext();
-        try{await adminRequest("/api/knowledge/admin/review",{proposal_id:item.id,action,reason:reason.value.trim(),expected_revision:item.review_version,...(side.value?{side:side.value}:{})});if(sameAdmin(operation))await load({focus:"heading"});}
-        catch(e){if(sameAdmin(operation)){error(status,e.message||"Could not record the decision. Refresh to review the latest version.");sending=false;for(const x of actions.children)x.disabled=false;}}
-      }));form.append(actions);parent.append(form);
+        if(draft.pending||!sameAdmin(formContext)||view.reviewDraft!==draft)return;
+        if(!reason.value.trim()){reason.focus();error(status,"Enter a reason before recording a decision.");return;}
+        Object.assign(draft,{reason:reason.value,side:side.value,pending:true,message:""});syncForm();
+        try{
+          await adminRequest("/api/knowledge/admin/review",{proposal_id:item.id,action,reason:draft.reason.trim(),expected_revision:draft.revision,...(draft.side?{side:draft.side}:{})});
+          if(view.reviewDraft!==draft)return;
+          delete view.reviewDraft;view.pages={};
+          if(admin.open&&selected===view)await load({focus:"heading"});
+        }catch(e){
+          draft.pending=false;draft.message=e.message||"Could not record the decision. Refresh to review the latest version.";
+          if(sameAdmin(formContext))syncForm();
+          else if(admin.open&&selected===view&&view.reviewDraft===draft&&!loading&&!loadError)render();
+        }
+      }));syncForm();form.append(actions);parent.append(form);
     }
     function entityChooser(parent,group,onChoose){
       const region=node("section","knowledge-picker"),heading=text("h4","knowledge-picker-heading","Eligible entities",region),controls=node("div","knowledge-picker-search"),query=field(controls,"Find an entity","member_query","Search all eligible records"),body=node("div");controls.append(button("Search",()=>read(0),"knowledge-tab"));region.append(controls,body);parent.append(region);heading.tabIndex=-1;let sequence=0;
@@ -263,7 +289,7 @@
       }
       action.addEventListener("change",()=>update());update();
       form.addEventListener("submit",async event=>{event.preventDefault();if(sending)return;const v=(action.value==="revalidate"?"reviewed":action.value==="add_alias"?alias.value:selectedValue).trim();if(!v||!reason.value.trim()){error(status,"Choose a value and give a review reason.");return;}sending=true;send.disabled=true;const operation=adminContext();
-        try{await adminRequest("/api/knowledge/admin/canonical-update",{canonical_id:group.id,action:action.value,value:v,reason:reason.value.trim(),expected_revision:group.review_version});if(sameAdmin(operation))await load({focus:"heading"});}
+        try{await adminRequest("/api/knowledge/admin/canonical-update",{canonical_id:group.id,action:action.value,value:v,reason:reason.value.trim(),expected_revision:group.review_version});if(sameAdmin(operation)){selected.pages={};await load({focus:"heading"});}}
         catch(e){if(sameAdmin(operation)){sending=false;send.disabled=false;error(status,e.message||"Could not record the change. Refresh to review the latest version.");}}
       });parent.append(form);
       void historyPanel(parent,"Members and source evidence","group_members",group.id,(out,item)=>{const c=card(out,item.label,tidy(item.type)+" · revision "+item.revision+(item.latest===false?" · earlier revision":""),()=>openDetail("entity",item.id));c.append(button("Remove member",()=>choose(item.id,item.label,"remove_member"),"text-button"));});
@@ -271,7 +297,7 @@
       void historyPanel(parent,"Group review history","group",group.id,reviewHistory);technical(parent,group);
     }
     function details(parent,item,kind){
-      const current=descriptor(selected);parent.append(button(kind==="interview"?"← Back to detail":"← Back",()=>{selected=kind==="interview"?current.returnTo:null;focusAfterLoad=kind==="interview"?{sourceKey:current.id+":"+current.revision+":"+current.turn_id}:"heading";return load();},"text-button"));
+      const current=selected;parent.append(button(kind==="interview"?"← Back to detail":"← Back",()=>{selected=current.returnTo;focusAfterLoad=kind==="interview"?{sourceKey:current.id+":"+current.revision+":"+current.turn_id}:"heading";return load();},"text-button"));
       const title=kind==="proposal"?submissionLabel(item.source_submission_id,item.source_revision)+" → "+submissionLabel(item.destination_submission_id,item.destination_revision):kind==="downstream"?"Potential downstream of "+item.label:item.context?.process_name||item.label||submissionLabel(item.submission_id,item.revision)||"Details";
       const heading=text("h2","knowledge-detail-title",title,parent);heading.tabIndex=-1;
       if(kind==="interview"){transcript(parent,item,current.turn_id);return;}
@@ -375,7 +401,7 @@
       if(!items.length)text("p","knowledge-muted","No records match these filters.",root);pager(root,snapshot,next=>{offsets[section]=next;return load({focus:"heading"});},section);
     }
     async function load(settings={}){
-      const token=++epoch;loading=true;loadError="";snapshot=null;if(settings.focus)focusAfterLoad=settings.focus;render();const context=adminContext(),choice=descriptor(selected),currentSection=section;
+      const token=++epoch;loading=true;loadError="";snapshot=null;if(settings.focus)focusAfterLoad=settings.focus;render();const context=adminContext(),choice=selected,currentSection=section;
       const active=()=>token===epoch&&admin.open&&context.session===sessionEpoch&&context.generation===adminGeneration&&context.example===adminExample;
       try{
         if(adminExample)await ensureExample();if(!active())return;let result;

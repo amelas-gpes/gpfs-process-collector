@@ -384,7 +384,7 @@
         if(job&&this.layoutJob===job)this.layoutJob=null;
       }
       this.pending=false;this.layoutError=false;
-      const previousGraph=this.graph,previousLayout=this.layout,previousSelected=this.selected;
+      const previousLayout=this.layout;
       const focusedStep=this.doc.activeElement?.getAttribute?.("data-step-id");
       this.graph=data;this.layout=positions;
       this.selected=data.steps.some(step=>step.id===this.selected)?this.selected:null;
@@ -394,8 +394,17 @@
       else if(this.following&&this.pathTrail.some((id,i)=>i&&!data.connections.some(edge=>edge.from===this.pathTrail[i-1]&&edge.to===id)))this.pathTrail=[this.selected];
       // Keep the same evidence-backed step under the camera when an upstream correction shifts layout.
       if(this.fitted&&!this.fitMode&&previousLayout){
-        const anchorId=previousSelected||previousGraph?.steps.find(step=>data.steps.some(next=>next.id===step.id))?.id;
-        const before=previousLayout.children.find(node=>node.id===anchorId),after=positions.children.find(node=>node.id===anchorId);
+        const {width,height}=this.size();
+        const cx=this.camera.x+width/(2*this.camera.scale),cy=this.camera.y+height/(2*this.camera.scale);
+        let before=previousLayout.children.find(node=>node.id===this.selected);
+        if(!before){
+          let nearest=Infinity;
+          for(const node of previousLayout.children){
+            const distance=Math.hypot(node.x+node.width/2-cx,node.y+node.height/2-cy);
+            if(data.incoming.has(node.id)&&distance<nearest){before=node;nearest=distance;}
+          }
+        }
+        const after=before&&positions.children.find(node=>node.id===before.id);
         if(before&&after){this.camera.x+=after.x+after.width/2-before.x-before.width/2;this.camera.y+=after.y+after.height/2-before.y-before.height/2;}
       }
       this.draw();
@@ -470,7 +479,7 @@
       this.autoDirectionPending=false;
       if(this.layoutError&&!this.requestedGraph)return Promise.reject(new Error("The current workflow is invalid and cannot be laid out."));
       if(this.direction===direction)return Promise.resolve(false);
-      this.direction=direction;this.fitted=false;this.fitMode=false;
+      this.direction=direction;
       const current=this.requestedGraph||this.graph;
       return current?this.update({title:current.title,steps:current.steps,connections:current.connections}):Promise.resolve(false);
     }
@@ -539,6 +548,28 @@
       this.world.querySelectorAll?.("[data-edge-label-for]").forEach(node=>{node.setAttribute("opacity",this.following&&!activeEdges.has(node.getAttribute("data-edge-label-for"))?.22:1);});
       this.hint.textContent=this.following?"Following the path · Select a branch to inspect":"Drag to move around · Select a step for details";
     }
+    focusNeighbor(position,key){
+      const horizontal=key==="ArrowLeft"||key==="ArrowRight";
+      const sign=key==="ArrowLeft"||key==="ArrowUp"?-1:1;
+      const x=position.x+position.width/2,y=position.y+position.height/2;
+      const linked=new Set([
+        ...this.graph.incoming.get(position.id).map(edge=>edge.from),
+        ...this.graph.outgoing.get(position.id).map(edge=>edge.to)
+      ]);
+      let best=null,bestLinked=false,bestDistance=Infinity;
+      for(const node of this.layout.children){
+        const dx=node.x+node.width/2-x,dy=node.y+node.height/2-y;
+        const ahead=sign*(horizontal?dx:dy),across=Math.abs(horizontal?dy:dx);
+        // Search the quadrant facing this arrow. A node on the next parallel
+        // branch remains reachable even when the two steps have no direct link.
+        if(ahead<=0||across>ahead)continue;
+        const connected=linked.has(node.id),distance=Math.hypot(ahead,across)+across;
+        if((connected&&!bestLinked)||(connected===bestLinked&&distance<bestDistance)){
+          best=node;bestLinked=connected;bestDistance=distance;
+        }
+      }
+      if(best)this.focusStep(best.id);
+    }
     draw(){
       const doc=this.doc,layout=this.layout,data=this.graph;this.world.replaceChildren();this.miniWorld.replaceChildren();this.mini.hidden=false;
       this.hint.textContent="Drag to move around · Select a step for details";
@@ -576,8 +607,9 @@
         group.addEventListener("click",event=>{if(!this.pointerMoved||event.detail===0)this.select(this.graph.steps[index]);});
         group.addEventListener("keydown",event=>{
           if(event.key==="Enter"||event.key===" "){event.preventDefault();this.select(this.graph.steps[index]);}
-          const direction=event.key==="ArrowRight"||event.key==="ArrowDown"?1:event.key==="ArrowLeft"||event.key==="ArrowUp"?-1:0;
-          if(direction){event.preventDefault();const target=data.steps[(index+direction+data.steps.length)%data.steps.length];this.focusStep(target.id);}
+          if(["ArrowRight","ArrowLeft","ArrowDown","ArrowUp"].includes(event.key)){
+            event.preventDefault();this.focusNeighbor(position,event.key);
+          }
         });
         group.addEventListener("focus",()=>{group.setAttribute("opacity",1);shape.setAttribute("stroke","#dc6e2c");shape.setAttribute("stroke-width",2.5);});
         group.addEventListener("blur",()=>this.drawSelection());

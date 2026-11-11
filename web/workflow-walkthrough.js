@@ -44,6 +44,7 @@
     shell.setAttribute("aria-label","Cinematic process map"); theater.setAttribute("aria-label","Expanded cinematic map");
     const header = el("header","ww-head"), identity = el("div","ww-identity"), heading = el("div");
     const processName = el("h3","ww-process-name"), counts = el("p","ww-counts");
+    processName.tabIndex = -1;
     heading.append(processName,counts); identity.append(glyph("map"),heading);
     const tools = el("div","ww-tools"), zoomLabel = el("span","ww-zoom","100%");
     zoomLabel.setAttribute("aria-label","Map zoom");
@@ -108,8 +109,9 @@
       group("Components",graph.steps.map(step => [step.id + " · " + (step.title || typeLabel(step)),{stepId:step.id}]));
       group("Connections",graph.connections.map(edge => [edge.from + " → " + edge.to + (edge.label ? " · " + edge.label : ""),{edgeKey:edgeKey(edge)}]));
     }
-    function link(label, selection) {
+    function link(label, selection, endpoint) {
       const button = el("button","ww-link",label); button.type = "button";
+      button.dataset.focusKey = JSON.stringify([endpoint,selection.stepId || selection.edgeKey]);
       button.addEventListener("click",() => { select(selection,true); inspector.querySelector("h4")?.focus({preventScroll:true}); });
       return button;
     }
@@ -118,7 +120,7 @@
       const list = el("ul","ww-routes"); inspector.append(el("h5","ww-label",heading),list);
       for (const edge of connections) {
         const id = incoming ? edge.from : edge.to, row = el("li");
-        row.append(link((edge.label ? edge.label + " · " : "") + (steps.get(id)?.title || id),{edgeKey:edgeKey(edge)}));
+        row.append(link((edge.label ? edge.label + " · " : "") + (steps.get(id)?.title || id),{edgeKey:edgeKey(edge)},incoming?"to":"from"));
         list.append(row);
       }
     }
@@ -173,7 +175,7 @@
         if(!incoming.length&&!outgoing.length)inspector.append(el("p","ww-description","No connections have been recorded for this step."));
       } else {
         for (const [label,id] of [["From",edge.from],["To",edge.to]]) {
-          inspector.append(el("h5","ww-label",label),link(steps.get(id)?.title || id,{stepId:id}));
+          inspector.append(el("h5","ww-label",label),link(steps.get(id)?.title || id,{stepId:id},label));
         }
         if (renderEvidence) inspector.append(renderEvidence(edge.evidence_turns || []));
       }
@@ -184,7 +186,23 @@
       picker.value = String(options.findIndex(opt => opt.stepId === selected.stepId && opt.edgeKey === selected.edgeKey));
       paintInspector(); stage.select(selected,{focus});
       const title = steps.get(selected.stepId)?.title || edges.get(selected.edgeKey)?.label;
-      announcement.textContent = title ? "Selected " + title : "Whole process";
+      const status = title ? "Selected " + title : "Whole process";
+      if(announcement.textContent!==status)announcement.textContent=status;
+    }
+    function refreshSelection() {
+      const top=inspector.scrollTop,open=inspector.querySelector(".ww-operating")?.open;
+      const controlKey=node=>JSON.stringify([node.tagName,node.className,node.dataset.focusKey||node.dataset.sourceTurn||node.getAttribute("aria-label")]);
+      const active=root.ownerDocument.activeElement;
+      const focused=active&&inspector.contains(active)?controlKey(active):null;
+      select(selected);
+      const details=inspector.querySelector(".ww-operating");
+      if(details&&open)details.open=true;
+      if(focused){
+        const replacement=Array.from(inspector.querySelectorAll("h4,button,summary")).find(node=>controlKey(node)===focused);
+        const fallback=inspector.hidden?(steps.size?picker:processName):inspector.querySelector("h4");
+        (replacement||fallback)?.focus({preventScroll:true});
+      }
+      if(!inspector.hidden)inspector.scrollTop=top;
     }
     async function draw() {
       const revision = ++generation;
@@ -217,7 +235,7 @@
       for (const item of [counts,zoomOut,zoomLabel,zoomIn,fit,library,navigation,workspace]) item.hidden = empty;
       motion.hidden = !graph.connections.length;
       expand.hidden = empty && !theater.open;
-      rebuildPicker(); select(selected); void draw();
+      rebuildPicker(); refreshSelection(); void draw();
       if (empty) message.textContent = live ? "The map will appear when the interview captures its first step." : "This draft has no captured steps yet.";
     }
     function setVisible(value) {

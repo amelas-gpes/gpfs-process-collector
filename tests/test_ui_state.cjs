@@ -558,6 +558,12 @@ if(process.argv.includes("--usability-only")){
   scroll.scrollTop=650;
   t.receiveLiveCaption({id:"scroll-reader",role:"user",text:"The invoice arrives by post.",final:false});
   assert.equal(scroll.scrollTop,scroll.scrollHeight,"Captions should follow automatically when the reader is already at the bottom");passes++;
+  scroll.scrollTop=120;
+  t.applyInterview({question:"Which team receives it?",preserve_capture:true});
+  assert.equal(scroll.scrollTop,120,"A delayed interviewer reply must respect a reader who scrolled back");
+  scroll.scrollTop=650;
+  t.applyInterview({question:"What happens on receipt?",coverage:[],memo_findings:[]});
+  assert.equal(scroll.scrollTop,scroll.scrollHeight,"A reader at the latest answer should see the new question");passes++;
  }
  const memoResult=(title,answer="A paper invoice arrives by post.")=>({workflow:graph(title),memo_findings:[{key:"trigger",status:"captured",answer,evidence_turns:["t002"]}],coverage:[{key:"trigger",status:"covered"}],summary:"Paper invoices are received by post.",focus:"Who opens incoming post",parking_lot:["Digital invoice intake is separate."]});
  const memoSnapshot=()=>JSON.stringify({findings:t.state.memo_findings,coverage:t.state.coverage,summary:t.state.summary,focus:t.state.focus,parking:t.state.parking_lot});
@@ -1028,6 +1034,14 @@ if(process.argv.includes("--usability-only")){
   t.state.draft=normalized;t.renderSteps();
   const choices=document.getElementById("procedure-steps").children[0].querySelector("select").children;
   assert.deepEqual(Array.from(choices,option=>option.value),types,"The editable procedure must offer the same components as capture and rendering");passes++;
+  const canvases=fakeWorkflow();
+  t.tab("review");t.selectReviewSection("review-procedure");
+  const instructions=document.getElementById("procedure-steps").children[0].querySelector(".step-description");
+  instructions.value="Use the updated instructions";instructions.dispatch("input");
+  t.selectReviewSection("review-map");
+  assert.equal(canvases.at(-1).requests.at(-1).graph.steps[0].description,instructions.value,
+    "Procedure details must reach the diagram even when the step geometry stays the same");
+  finishCanvases();passes++;
  }
  {
   const live=t.normalizeDraft({title:"Parallel work",steps:[{id:"split",type:"parallel_split",title:"Start the two checks",evidence_turns:["t002"]},{id:"check",type:"subprocess",title:"Run customer check",evidence_turns:["t002"]},{id:"archive",type:"document",title:"Save the signed record",evidence_turns:["t002"]}],connections:[{from:"split",to:"check",label:"Customer verification",evidence_turns:["t002"]},{from:"split",to:"archive",label:"Signed record",evidence_turns:["t002"]}]});
@@ -1240,7 +1254,14 @@ if(process.argv.includes("--usability-only")){
   const findings=completeFindings(),turns=[{id:"t002",role:"user",text:"Reported process facts."}];findings[7].status="not_applicable";findings[7].answer="The participant explicitly reported that variations do not apply.";
   const saved={schema_version:1,context:{process_name:"Saved process",objective:"Review the process"},turns,coverage:memoKeys.map(key=>({key,status:"covered"})),memo_findings:findings,summary:"Preserve the reported account.",closure:{asked:true,confirmed:true},draft:{title:"Saved report",steps:[],connections:[],memo_summary:findings}};
   const raw=JSON.stringify(saved);let calls=0;t.setRequest(async()=>{calls++;throw Error("Import cannot request a provider");});
+  const unsent="  Check the exception first.\nThen confirm receipt. ";
+  const pending=JSON.stringify({...saved,unsent_answer:unsent});
+  await t.importSession({size:pending.length,text:async()=>pending});
+  assert.equal(t.conversationUI.view,"transcript");assert.equal(interview.hidden,false);
+  assert.equal(document.getElementById("answer-text").value,unsent);
+  assert.equal(t.state.turns.length,turns.length,"Reopening a reply cannot submit it");passes++;
   await t.importSession({size:raw.length,text:async()=>raw});
+  assert.equal(review.hidden,false,"A saved draft without a pending reply still opens in Review");
   assert.equal(calls,0);assert.equal(workflowTimers().length,0,"Opening a file must not schedule automatic provider analysis");assert.equal(JSON.stringify(saved),raw,"The supplied source remains unchanged");assert.equal(t.state.closure.confirmed,false);assert.equal(t.state.coverageNeedsReview,true);
   assert.equal(t.state.memo_findings.every(item=>item.status==="partial"),true);assert.equal(t.state.draft.memo_summary.every(item=>item.status==="partial"),true);assert.equal(t.state.coverage.every(item=>item.status!=="covered"),true);assert.equal(document.getElementById("coverage-count").textContent,"0 / 16");
   assert.deepEqual(JSON.parse(JSON.stringify(t.state.memo_findings.map(({key,answer,evidence_turns})=>({key,answer,evidence_turns})))),findings.map(({key,answer,evidence_turns})=>({key,answer,evidence_turns})));assert.notEqual(t.state.draftVersion,t.state.version);

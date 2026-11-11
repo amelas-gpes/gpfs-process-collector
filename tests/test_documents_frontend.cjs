@@ -52,6 +52,42 @@ function response(document){return{ok:true,json:async()=>({document})};}
 (async()=>{
  let passes=0;
  {
+  const file=doc({analysis:{phase:"quick",disposition:"needs_reason",question:"What should I check?",sources:[]}});let offline=false;
+  const h=setup({inline:true,request:async()=>{if(offline)throw Error("File status unavailable");return {documents:[file]};}});
+  h.api.scope="local-scope";h.api.setDocuments([file],false);
+  const field=()=>h.api.body.querySelector("[data-document-purpose]");
+  const input=field();input.value="approval thresholds";input.focus();input.setSelectionRange(3,9);
+  await h.api.refresh();
+  assert.ok(field()===input,"A no-change status poll must preserve the live native editing control");
+  assert.equal(h.document.activeElement,input);assert.equal(input.selectionStart,3);assert.equal(input.selectionEnd,9);
+  offline=true;await h.api.refresh();assert.match(h.api.body.textContent,/File status unavailable/);
+  const warning=h.api.body.querySelector(".documents-warning");await h.api.refresh();
+  assert.ok(h.api.body.querySelector(".documents-warning")===warning,"An unchanged outage must preserve the reading position on the warning");
+  offline=false;await h.api.refresh();assert.equal(h.api.body.querySelector(".documents-warning"),null);
+  file.analysis={phase:"complete",disposition:"relevant",summary:"Approvals are documented."};
+  await h.api.refresh();assert.match(h.api.body.textContent,/Approvals are documented/);assert.equal(field(),null);
+  h.api.dispose();passes++;
+ }
+ {
+  let fail=true;
+  const h=setup({inline:true,request:async()=>{if(fail)throw Error("Interrupted source read");return{source:{label:"Page 1",text:"Approval threshold"}};}});
+  h.api.scope="local-scope";
+  const citation={source_id:"p1",label:"Page 1"},questions=["First question?","Second question?"].map((text,index)=>({id:"q"+index,text,sources:[citation]}));
+  const file=doc({analysis:{phase:"complete",summary:"Approvals",sources:[citation],questions}});
+  h.api.setDocuments([file],false);h.api.open(file.id);
+  const trigger=h.api.body.querySelectorAll(".documents-source")[1],key=trigger.dataset.documentControl;
+  trigger.focus();trigger.click();await tick();
+  fail=false;h.findText("button","Retry source").click();await tick();
+  const added={id:"new",text:"Another question?",sources:[citation]};
+  h.api.setDocuments([{...file,analysis:{...file.analysis,questions:[added,...questions]}}],false);
+  h.findText("button","Close source").click();
+  assert.equal(h.document.activeElement.dataset.documentControl,key,"Closing a retried excerpt returns to the exact citing question after reordering");
+  assert.equal(h.document.activeElement.scrolled,true,"The original question must be brought back into view");
+  h.document.activeElement.click();await tick();h.api.setDocuments([{...file,analysis:{...file.analysis,questions:[questions[0]]}}],false);
+  h.findText("button","Close source").click();assert.equal(h.document.activeElement.dataset.documentId,file.id,"A removed question returns to its file card");
+  h.api.dispose();passes++;
+ }
+ {
   const h=setup({inline:true});h.api.setDocuments([doc({coverage:{indexed_units:3,total_units:3},analysis:{phase:"complete",disposition:"relevant",summary:"Some sections have not yet been reviewed.",summary_basis:"initial_review",summary_basis_note:"This overview was written from the initial selection; current coverage is separate.",summary_at_review_version:1,reviewed_chunks:3,total_chunks:3,version:4,limitations:["Current detail still needs participant confirmation."]}})],false);h.api.open("doc_1");
   assert.equal(h.api.body.querySelector(".documents-overview").querySelector("h4").textContent,"Initial overview");assert.match(h.api.body.querySelector(".documents-overview").textContent,/initial selection/);assert.match(h.api.body.querySelector(".documents-stage-detail").textContent,/3 of 3 sections reviewed/);assert.match(h.api.body.querySelector(".documents-summary").textContent,/not yet been reviewed/);assert.match(h.api.body.querySelector(".documents-limitations").textContent,/participant confirmation/);h.api.dispose();passes++;
  }

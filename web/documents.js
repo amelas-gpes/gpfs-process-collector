@@ -25,10 +25,10 @@
     button(text,className,fn) {const button=this.node("button",className,text);button.type="button";button.addEventListener("click",fn);return button;}
     control(button,document,action,identity="") {button.classList.add("document-control");button.dataset.documentControl=JSON.stringify([document.id,action,identity]);return button;}
     visible(node) {for(let current=node;current;current=current.parentElement)if(current.hidden||(current.tagName==="DIALOG"&&!current.open))return false;return true;}
-    focusDocumentFallback(id) {
+    focusDocumentFallback(id,scroll=false) {
       const card=this.body.querySelector?.(`[data-document-id="${this.safeId(id)}"]`)||this.body.querySelector?.(".documents-card");
       const target=card||(this.assets?this.attachButton:this.dialog?.querySelector?.(".documents-close"))||this.attachButton;
-      if(target&&!target.disabled&&this.visible(target)){if(card)card.tabIndex=-1;target.focus?.({preventScroll:true});}
+      if(target&&!target.disabled&&this.visible(target)){if(card)card.tabIndex=-1;target.focus?.({preventScroll:true});if(scroll)target.scrollIntoView?.({block:"nearest"});}
     }
     emit(event) {this.options.onEvent?.(event);}
     lifecycle() {
@@ -212,9 +212,11 @@
     upsert(document) {const index=this.documents.findIndex(item=>item.id===document.id);if(index<0)this.documents.push(copy(document));else this.documents[index]=copy(document);this.connectionError="";this.render();this.changed();}
     setDocuments(documents,emit=true) {
       if(!Array.isArray(documents))throw new Error("The local file list was incomplete.");
-      const next=documents.filter(item=>item&&typeof item.id==="string").map(copy);
-      const changed=JSON.stringify(next)!==JSON.stringify(this.documents);this.documents=next;this.connectionError="";this.lastError="";
-      for(const document of next){
+      const next=documents.filter(item=>item&&typeof item.id==="string");
+      const changed=JSON.stringify(next)!==JSON.stringify(this.documents),recovered=Boolean(this.connectionError);
+      if(changed)this.documents=copy(next);
+      this.connectionError="";this.lastError="";
+      for(const document of this.documents){
         const version=document.analysis?.version;
         const available=!document.archived&&["ready","partial"].includes(document.status)&&Number(document.chunk_count)>0;
         if((version!==undefined&&version!==null)||available){
@@ -223,7 +225,9 @@
         const key=`${version??"indexed"}:${available?document.chunk_count:0}:${document.analysis?.intent_version||0}`;
         if(this.seen.get(document.id)!==key){this.seen.set(document.id,key);if(emit)this.emit({type:"analysis",document:copy(document),analysis:copy(document.analysis||{})});}
       }}
-      this.render();this.changed(emit);if(changed&&emit)this.options.onDirty?.();
+      // Replacing unchanged native controls or excerpts interrupts composing and selecting text.
+      if(changed||recovered)this.render();
+      this.changed(emit);if(changed&&emit)this.options.onDirty?.();
     }
     pending() {return this.uploads.length||this.documents.some(item=>["pending","indexing"].includes(item.status)||["quick","deep"].includes(item.analysis?.phase));}
     schedule(delay) {
@@ -241,7 +245,14 @@
           const result=await this.options.requestJSON("/api/documents/status",{scope,...this.context()},{signal:this.controller.signal,timeout:30000});
           if(!this.current(generation)||scope!==this.scope||revision!==this.revision)return;
           this.setDocuments(result.documents,emit);
-        }catch(error){if(this.current(generation)&&scope===this.scope&&revision===this.revision&&error.name!=="AbortError"){this.connectionError=message(error);this.reportError(error,false,emit);this.render();this.changed(emit);}}
+        }catch(error){
+          if(this.current(generation)&&scope===this.scope&&revision===this.revision&&error.name!=="AbortError"){
+            const detail=message(error),changed=this.connectionError!==detail;
+            this.connectionError=detail;this.reportError(error,false,emit);
+            if(changed)this.render();
+            this.changed(emit);
+          }
+        }
         finally{if(this.current(generation))this.schedule();}
       })();this.polling=task;
       try{return await task;}finally{if(this.polling===task)this.polling=null;}
@@ -392,18 +403,21 @@
     renderSources(parent,document,sources,groupKey="file") {
       const valid=Array.isArray(sources)?sources.filter(source=>source&&typeof source.source_id==="string"):[];if(!valid.length)return;
       const group=this.node("div","documents-sources");
-      for(const source of valid.slice(0,30)){const button=this.control(this.button(source.label||`${document.name} · Source`,"documents-source",()=>this.openSource(document,source)),document,"source",JSON.stringify([groupKey,source.source_id]));button.setAttribute("aria-label",`Read source: ${document.name} · ${source.label||source.source_id}`);button.dataset.documentSource=`${document.id}:${source.source_id}`;group.append(button);}parent.append(group);
+      for(const source of valid.slice(0,30)){
+        const button=this.control(this.button(source.label||`${document.name} · Source`,"documents-source",()=>this.openSource(document,source,button.dataset.documentControl)),document,"source",JSON.stringify([groupKey,source.source_id]));
+        button.setAttribute("aria-label",`Read source: ${document.name} · ${source.label||source.source_id}`);button.dataset.documentSource=`${document.id}:${source.source_id}`;group.append(button);
+      }
+      parent.append(group);
     }
-    async openSource(document,source) {
+    async openSource(document,source,originControl) {
       const generation=this.generation,scope=this.scope;if(this.disposed||this.suspended||!scope)return;
       if(this.assets)this.expandedAssets.set(document.id,true);
-      this.sourceReturnKey=`${document.id}:${source.source_id}`;
-      const selected=this.source={documentId:document.id,sourceId:source.source_id,label:this.sourceTitle(document,source.label||source.source_id),text:"Loading source…",loading:true};this.render();if(this.assets)this.focusSource();
+      const selected=this.source={documentId:document.id,sourceId:source.source_id,originControl,label:this.sourceTitle(document,source.label||source.source_id),text:"Loading source…",loading:true};this.render();if(this.assets)this.focusSource();
       try{
         const result=await this.options.requestJSON("/api/documents/source",{scope,id:document.id,source_id:source.source_id},{signal:this.controller.signal,timeout:30000});
         if(!this.current(generation)||this.source!==selected||!this.documents.some(item=>item.id===document.id))return;
-        this.source={documentId:document.id,sourceId:source.source_id,label:this.sourceTitle(document,result.source?.label||source.label||source.source_id),text:label(result.source?.text)||"This source has no readable text."};this.render();if(!this.assets||this.doc.activeElement===this.sourceHeading)this.focusSource();
-      }catch(error){if(this.current(generation)&&this.source===selected&&error.name!=="AbortError"){this.source={documentId:document.id,sourceId:source.source_id,label:this.sourceTitle(document,source.label||source.source_id),text:message(error),error:true};this.render();if(!this.assets||this.doc.activeElement===this.sourceHeading)this.focusSource();}}
+        this.source={...selected,loading:false,label:this.sourceTitle(document,result.source?.label||source.label||source.source_id),text:label(result.source?.text)||"This source has no readable text."};this.render();if(!this.assets||this.doc.activeElement===this.sourceHeading)this.focusSource();
+      }catch(error){if(this.current(generation)&&this.source===selected&&error.name!=="AbortError"){this.source={...selected,loading:false,text:message(error),error:true};this.render();if(!this.assets||this.doc.activeElement===this.sourceHeading)this.focusSource();}}
     }
     sourceTitle(document,reference) {const name=document.name||"File",text=label(reference);return text.includes(name)?text:`${name}${text?" · "+text:""}`;}
     focusSource() {
@@ -412,10 +426,18 @@
     }
     renderSource() {
       const source=this.node("section","documents-source-preview"),heading=this.sourceHeading=this.node("h3","",this.source.label);heading.tabIndex=-1;heading.dataset.documentSourceHeading=`${this.source.documentId}:${this.source.sourceId}`;
-      source.append(heading,this.button("Close source","documents-text-button",()=>{const key=this.sourceReturnKey;this.source=null;this.sourceHeading=null;this.render();[...this.body.querySelectorAll(".documents-source")].find(button=>button.dataset.documentSource===key)?.focus?.({preventScroll:true});}));
+      source.append(heading,this.button("Close source","documents-text-button",()=>this.closeSource()));
       const content=this.node("pre","documents-source-text",this.source.text);source.append(content);
       const fileDetails=this.assets&&this.body.querySelector?.(`[data-document-id="${this.safeId(this.source.documentId)}"]`)?.querySelector(".documents-detail-content");(fileDetails||this.body).append(source);
-      if(this.source.error){const selected=this.source,document=this.documents.find(item=>item.id===selected.documentId);if(document)source.append(this.button("Retry source","documents-text-button",()=>this.openSource(document,{source_id:selected.sourceId,label:selected.label})));}
+      if(this.source.error){const selected=this.source,document=this.documents.find(item=>item.id===selected.documentId);if(document)source.append(this.button("Retry source","documents-text-button",()=>this.openSource(document,{source_id:selected.sourceId,label:selected.label},selected.originControl)));}
+    }
+    closeSource() {
+      const {documentId,sourceId,originControl}=this.source;
+      this.source=null;this.render();
+      const origin=[...this.body.querySelectorAll(".documents-source")].find(button=>originControl?
+        button.dataset.documentControl===originControl:button.dataset.documentSource===`${documentId}:${sourceId}`);
+      if(origin&&this.visible(origin)){origin.focus({preventScroll:true});origin.scrollIntoView?.({block:"nearest"});}
+      else this.focusDocumentFallback(documentId,true);
     }
     size(bytes) {const value=Number(bytes)||0;return value>=1024*1024?`${(value/1024/1024).toFixed(1)} MiB`:value>=1024?`${Math.round(value/1024)} KiB`:`${value} bytes`;}
     exportState() {return {scope:this.scope,documents:copy(this.documents)};}
@@ -440,7 +462,7 @@
     }
     reset() {
       this.clearDrop();
-      this.cancel();this.generation++;this.revision++;this.suspended=false;this.controller=new AbortController();this.scope=null;this.documents=[];this.uploads=[];this.uploadErrors=[];this.seen=new Map();this.sessionPromise=null;this.polling=null;this.mutating=0;this.actions.clear();this.actionErrors.clear();this.expandedAssets.clear();this.source=null;this.sourceHeading=null;this.sourceReturnKey=null;this.connectionError="";this.lastError="";this.close(false);this.render();this.changed(false);
+      this.cancel();this.generation++;this.revision++;this.suspended=false;this.controller=new AbortController();this.scope=null;this.documents=[];this.uploads=[];this.uploadErrors=[];this.seen=new Map();this.sessionPromise=null;this.polling=null;this.mutating=0;this.actions.clear();this.actionErrors.clear();this.expandedAssets.clear();this.source=null;this.sourceHeading=null;this.connectionError="";this.lastError="";this.close(false);this.render();this.changed(false);
     }
     dispose() {if(this.disposed)return;this.reset();this.disposed=true;this.cancel();window.removeEventListener?.("pagehide",this.pagehide);window.removeEventListener?.("pageshow",this.pageshow);for(const [target,name,fn] of this.dropListeners||[])target.removeEventListener?.(name,fn);this.dropListeners=[];this.dropOverlay?.remove();this.dropTarget?.classList.remove("document-drop-zone");this.assets?.replaceChildren();this.controls?.replaceChildren();if(this.strip){this.strip.replaceChildren();this.strip.hidden=true;}}
   }

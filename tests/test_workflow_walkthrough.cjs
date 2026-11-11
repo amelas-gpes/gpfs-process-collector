@@ -137,6 +137,8 @@ class Element extends EventTarget {
     this.children.splice(this.children.indexOf(next), 0, item);
   }
   nodes() { return [this, ...this.children.flatMap(child => child.nodes())]; }
+  contains(element) { return this.nodes().includes(element); }
+  querySelectorAll(selector) { return this.nodes().slice(1).filter(node => selector.split(",").includes(node.tagName)); }
   querySelector(selector) {
     return this.nodes().slice(1).find(node => selector.startsWith(".")
       ? node.className.split(/\s+/).includes(selector.slice(1)) : node.tagName === selector) || null;
@@ -252,6 +254,34 @@ test("in-place live corrections preserve surviving selection and clear a removed
   assert(h.inspector().hidden);
   assert.deepEqual(h.selected.at(-1), {});
   assert.equal(h.requestCount(), 0);
+});
+
+test("live updates preserve the reader's place in the selected inspector", async () => {
+  const h=setup(),data=structuredClone(invoice);
+  h.ui.update(data,{live:true});h.ui.setVisible(true);await flush();
+  h.callbacks().onSelectStep("S4");
+  const panel=h.inspector(),doc=panel.ownerDocument;
+  const outgoing=data.connections.find(edge=>edge.from==="S4");
+  const next=data.steps.find(step=>step.id===outgoing.to);
+  const routeButton=()=>h.button(outgoing.label+" · "+next.title,panel);
+  panel.querySelector("details").open=true;routeButton().focus();panel.scrollTop=102;
+  next.title="Corrected downstream handoff";
+  data.steps.find(step=>step.id==="S4").description="Current evidence for the checkpoint.";
+  h.ui.update(data,{live:true});await flush();
+  assert(panel.querySelector("details").open);
+  assert(doc.activeElement===routeButton(),"A corrected route title must keep focus on the same captured connection");
+  assert.equal(panel.scrollTop,102);
+  assert(panel.textContent.includes("Current evidence for the checkpoint."));
+  data.connections=data.connections.filter(edge=>edge!==outgoing);
+  h.ui.update(data,{live:true});await flush();
+  assert(doc.activeElement===panel.querySelector("h4"),"A removed route returns focus to the selected step heading");
+  const picker=h.root.querySelector(".ww-picker");picker.focus();
+  data.steps.find(step=>step.id==="S4").description="Another reported detail.";
+  h.ui.update(data,{live:true});await flush();assert(doc.activeElement===picker);
+  panel.querySelector("summary").focus();
+  data.steps=data.steps.filter(step=>step.id!=="S4");data.connections=data.connections.filter(edge=>edge.from!=="S4"&&edge.to!=="S4");
+  h.ui.update(data,{live:true});await flush();
+  assert(panel.hidden);assert(doc.activeElement===picker);h.ui.destroy();
 });
 
 test("only the current layout can display an error, and its fallback supports selection and retry", async () => {

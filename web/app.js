@@ -561,8 +561,10 @@
     content.append(meta,paragraph);item.append(content);
     return row;
   }
-  function renderTranscript() {
+  function renderTranscript(followIncoming=false) {
     const root = $("transcript"), current = $("current-question"), scroll=$("conversation-scroll"), scrollTop=scroll.scrollTop;
+    const follow=followIncoming&&conversationUI.view==="transcript"&&!$("interview-view").hidden&&
+      scroll.scrollHeight-scroll.clientHeight-scrollTop<80&&!readingUI.transcript.query;
     const latest = state.turns.findLast(turn => turn.role === "assistant"&&!turn.document_event);
     const newQuestion=latest&&current.dataset.turnId!==latest.id;
     const playDisabled=!canSpeakChoice() || Boolean(conversationUI.live?.active);
@@ -603,7 +605,7 @@
     if ($("transcript-empty")) $("transcript-empty").hidden=state.turns.length>0;
     refreshReadingSearch("transcript",false,firstChanged);
     renderCoverage(); updateControls();
-    scroll.scrollTop=scrollTop;
+    scroll.scrollTop=follow ? scroll.scrollHeight : scrollTop;
     if(conversationUI.view==="transcript")requestAnimationFrame(updateConversationScroll);
   }
   function highlightSearchMatches(part,pattern,matches,previousParts) {
@@ -835,12 +837,10 @@
     if(state.turns.length>=400||state.turns.reduce((size,turn)=>size+turn.text.length,0)+message.length>400000){
       notice("The file is ready in Files. Save this interview before starting a continuation.");return;
     }
-    const pane=$("conversation-scroll"),follow=pane.scrollHeight-pane.clientHeight-pane.scrollTop<80;
     if(isQuestion)pendingDocumentReason=null;
     const turn={id:nextTurnId(),role:"assistant",text:text(message,3000),document_event:!isQuestion,document_id:document.id};
     state.turns.push(turn);
-    state.version++;state.dirty=true;renderTranscript();
-    if(follow&&conversationUI.view==="transcript")scrollConversation();
+    state.version++;state.dirty=true;renderTranscript(true);
     return turn;
   }
   function bindDocumentReason(document,questionId,analysis=document.analysis||{}) {
@@ -948,7 +948,7 @@
         state.turns.push({id:nextTurnId(),role:"assistant",text:result.question});state.version++;state.dirty=true;
         // A generated process question is not implicit permission to reclassify
         // a file. Purpose changes remain an explicit action in Assets.
-        renderTranscript();scrollConversation();
+        renderTranscript(true);
         if((intakeWasLive||$("speak-questions").checked)&&canSpeakChoice())speak(result.question,true);
       },
       onEmpty:()=>{stopSpeaking();appendDocumentMessage("The files are saved in Assets. There is no new process evidence to add; your existing notes and workflow are unchanged.",{id:"doc_intake"});}
@@ -1012,7 +1012,7 @@
           onAnswer:answer=>{
             if(answer.length>6000||state.turns.length>=399)throw new Error("This answer is too long; continue by typing.");
             state.turns.push({id:nextTurnId(),role:"user",text:answer});state.version++;state.dirty=true;
-            conversationUI.revision++;suppressWorkflowReadiness();renderTranscript();scrollConversation();
+            conversationUI.revision++;suppressWorkflowReadiness();renderTranscript(true);
             // Map scheduling runs alongside the lead; reader preparation already began.
             scheduleWorkflow();
           },
@@ -1062,7 +1062,6 @@
     // While the interviewer is reading an application-authorized line, that
     // line is already the assistant's turn; its spoken caption is not added again.
     if(caption.role==="assistant"&&liveAuthorized&&Date.now()<liveAuthorized.until&&!conversationUI.captions.has(key))return;
-    const scroll=$("conversation-scroll"), follow=scroll.scrollHeight-scroll.clientHeight-scroll.scrollTop<80;
     if(caption.role==="user"){if(caption.final)conversationUI.pendingParticipantCaptions.delete(key);else conversationUI.pendingParticipantCaptions.add(key);}
     let ids=conversationUI.captions.get(key)||[];
     const unchanged=ids.length && ids.map(id=>state.turns.find(t=>t.id===id)?.text||"").join("")===caption.text;
@@ -1077,8 +1076,7 @@
       if(!turn){turn={id:nextTurnId(),role:caption.role,text:chunk};ids[i]=turn.id;state.turns.push(turn);}else turn.text=chunk;
     });
     conversationUI.captions.set(key,ids);state.version++;state.dirty=true;
-    renderTranscript();
-    if(conversationUI.view==="transcript"){if(follow)scrollConversation();else if($("jump-latest"))$("jump-latest").hidden=false;}
+    renderTranscript(true);
     if(caption.role==="user"){
       // No notes update is sent for caption fragments: a speech model fed a
       // stream of silent context mid-answer drifts into voicing the
@@ -1130,7 +1128,7 @@
     // asks GPT-Live to read it; the spoken caption of that reading is not added.
     state.turns.push({id:nextTurnId(),role:"assistant",text});state.version++;state.dirty=true;
     liveAuthorized={text,until:Date.now()+20000};
-    renderTranscript();scrollConversation();
+    renderTranscript(true);
     void Promise.resolve(conversationUI.live?.say?.(text)).catch(()=>{});
   }
   async function applyLiveCapture(result,captured=liveResponseSources.get(result)) {
@@ -1884,7 +1882,7 @@
     state.completion=result.completion||null;
     if(result.preserve_capture){
       state.turns.push({id:nextTurnId(),role:"assistant",text:question});state.version++;state.dirty=true;
-      state.closure={asked:false,confirmed:false};rememberCompletionReview(result);renderTranscript();scrollConversation();
+      state.closure={asked:false,confirmed:false};rememberCompletionReview(result);renderTranscript(true);
       if($("speak-questions").checked&&!conversationUI.live?.active&&result.speech_authorization?.kind!=="review_pending")speak(question,true);
       return;
     }
@@ -1908,8 +1906,7 @@
     state.dirty = true;
     rememberCompletionReview(result);
     if($("interview-error")?.dataset.errorKind==="capture")$("interview-error").hidden=true;
-    renderTranscript();
-    scrollConversation();
+    renderTranscript(true);
     announceReadiness();
     if ($("speak-questions").checked && !conversationUI.live?.active&&result.speech_authorization?.kind!=="review_pending") speak(result.question, true);
     if(result.speech_authorization?.kind==="question")scheduleAdvisoryCoverage();
@@ -1987,7 +1984,13 @@
       const reason=typeof error?.message==="string"&&error.message.trim()?" "+error.message.trim():"";
       notice((pendingCompletionReview?"Your answers are saved. The completion review did not finish; choose Try again to resume it.":"Your answer is saved, but the next question didn’t load. Add more detail, or choose Try again.")+reason, true);
     } finally {
-      if (generation === state.generation&&pauseSequence===reviewPauseSequence) {setBusy(false);scheduleWorkflow();$("answer-text").focus();}
+      if (generation === state.generation&&pauseSequence===reviewPauseSequence) {
+        setBusy(false);scheduleWorkflow();
+        const focus=document.activeElement,composer=$("composer-area");
+        if(!$("interview-view").hidden&&composer&&!composer.hidden&&(!focus||focus===document.body||composer.contains(focus))){
+          $("answer-text").focus({preventScroll:true});
+        }
+      }
     }
   }
   async function retryQuestion() {
@@ -2295,7 +2298,7 @@
       $(id).addEventListener("input", () => {
         if (!state.draft) return;
         state.draft[key] = Array.isArray(state.draft[key]) ? lines($(id).value) : $(id).value;
-        draftChanged();
+        draftChanged(key==="title");
       });
     });
   }
@@ -2576,7 +2579,7 @@
       description.rows = 3;
       description.maxLength = 12000;
       description.setAttribute("aria-label", `Instructions for step ${step.id}`);
-      description.addEventListener("input", () => { step.description = description.value; draftChanged(); });
+      description.addEventListener("input", () => { step.description = description.value; draftChanged(true); });
       const evidence = el("div", "evidence-row");
       evidence.append(el("span", "", "Sources:"));
       if (!step.evidence_turns.length) evidence.append(el("span", "needs-evidence", "Needs confirming · no source answer"));
@@ -2590,7 +2593,7 @@
       const extra = el("details","step-extra");
       extra.append(el("summary","","Inputs, outputs and handoff"));
       const extras = el("div","detail-two-columns");
-      [["input","Input"],["output","Output"],["completion_criteria","Completion criteria"],["handoff","Next handoff"],["data_origin","Data origin"],["rule_source_ref","Rule source ID"],["parent_process","Parent process"]].forEach(([key,label]) => extras.append(formControl(label,"textarea",step[key],v => {step[key]=v;draftChanged();},{max:6000,aria:`${label} for step ${step.id}`})));
+      [["input","Input"],["output","Output"],["completion_criteria","Completion criteria"],["handoff","Next handoff"],["data_origin","Data origin"],["rule_source_ref","Rule source ID"],["parent_process","Parent process"]].forEach(([key,label]) => extras.append(formControl(label,"textarea",step[key],v => {step[key]=v;draftChanged(true);},{max:6000,aria:`${label} for step ${step.id}`})));
       extra.append(extras);
       article.append(header,props,description,extra,evidence);
       root.append(article);
@@ -3331,6 +3334,7 @@
     if (!canReplaceSession()) return;
     if (file.size > 16 * 1024 * 1024) { notice("That file is too large. Choose a saved interview smaller than 16 MB.", true); return; }
     let generation=state.generation;
+    let resumeReply=false;
     state.importing=true;setBusy(true,"Opening the saved interview…");documentController?.render();
     try {
       const saved = JSON.parse(await file.text());
@@ -3390,9 +3394,21 @@
       if(state.example)knowledgeUI?.activateExample();
       offerCoverageRecheck("Saved answers are preserved. Recheck coverage before treating topics as complete.");
       notice("Interview opened. Saved coverage and completion are provisional. Continue the interview, or choose Recheck coverage in Workflow.");
-      if (draft) tab("review");
+      resumeReply=Boolean(unsent.trim());
+      if(resumeReply){
+        tab("interview");selectConversationView("transcript");scrollConversation();
+      }else if(draft)tab("review");
     } catch (error) { if(generation===state.generation)notice(`Couldn’t open that interview. ${error.message}`, true); }
-    finally {if(generation===state.generation){state.importing=false;setBusy(false);documentController?.render();}}
+    finally {
+      if(generation===state.generation){
+        state.importing=false;setBusy(false);documentController?.render();
+        const reply=$("answer-text");
+        if(resumeReply&&!reply.disabled){
+          reply.focus({preventScroll:true});
+          reply.setSelectionRange?.(reply.value.length,reply.value.length);
+        }
+      }
+    }
   }
   function loadExample() {
     if (!canReplaceSession()) return;

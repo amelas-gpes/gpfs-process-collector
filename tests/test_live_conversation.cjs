@@ -6,7 +6,8 @@ const shared={require,__dirname,console,Buffer,Blob,DataView,Uint8Array,Float32A
 const exported=(source,tail)=>{const module={exports:{}};vm.runInNewContext(source+tail,{...shared,module});return module.exports;};
 const voice=exported(fs.readFileSync(path.join(__dirname,"test_live_voice.cjs"),"utf8").split("(async()=>{")[0],"\nmodule.exports={setup};");
 let source=fs.readFileSync(path.join(__dirname,"test_agent_experience.cjs"),"utf8").split("let passed=0;")[0];
-source=source.replace("setTeam:value=>","runLiveCapture,applyLiveCapture,liveSnapshot,syncLiveCoverage,refreshWorkflow,getCapturedThrough:()=>liveCapturedThrough,setTeam:value=>");
+source=source.replace("selectConversationView=view=>","const actualSchedule=scheduleWorkflow; selectConversationView=view=>");
+source=source.replace("setTeam:value=>","runLiveCapture,applyLiveCapture,liveSnapshot,syncLiveCoverage,refreshWorkflow,receiveLiveCaption,settleStoppedVoice,sessionObject,transcriptObject,enableMapUpdates:()=>{scheduleWorkflow=actualSchedule;},getCapturedThrough:()=>liveCapturedThrough,setTeam:value=>");
 const app=exported(source,"\nmodule.exports={setup,approved,response,flush};");
 const captureCalls=h=>h.calls.filter(c=>c.url==="/api/agent-team/interview");
 function fixture(){
@@ -17,6 +18,18 @@ function fixture(){
  h.t.state.turns=[{id:"u1",role:"user",text:"We"}];h.t.conversationUI.revision=1;h.t.state.summary="Last accepted notes";
  return h;
 }
+async function connected(){
+ const h=fixture(),v=voice.setup();h.t.conversationUI.live=v.api;
+ v.api.options.onTranscript=c=>h.t.receiveLiveCaption(c);
+ v.api.options.onStatus=status=>{h.t.conversationUI.status=status;if(status==="idle")h.settled=h.t.settleStoppedVoice();};
+ await v.api.start({turns:h.t.state.turns});
+ return {h,v};
+}
+function input(v,role,text,id){
+ v.event({type:`session.${role==="user"?"input":"output"}_transcript.delta`,event_id:id,delta:text});
+ return v.api.operation.captions[role];
+}
+async function settleVoice(v){const stopping=v.api.stop();v.event({type:"session.closed"});await stopping;}
 let passed=0;
 async function check(name,fn){await fn();passed++;console.log("PASS "+name);}
 (async()=>{
@@ -111,6 +124,120 @@ async function check(name,fn){await fn();passed++;console.log("PASS "+name);}
   h.t.conversationUI.live.assistantSpeaking=false;h.t.syncLiveCoverage();assert.equal(h.notes.length,1);
   h.t.state.turns[0].text="A later correction.";h.t.conversationUI.revision++;h.t.conversationUI.liveCoverageKey=null;h.notes.length=0;
   h.t.syncLiveCoverage();assert.equal(h.notes.length,0,"A lagging checkpoint sends no old advice");
+ });
+ await check("an approved pause closes local input immediately, even when its spoken line fails",async()=>{
+   const {h,v}=await connected();h.route(()=>app.response(app.approved()));
+   const result={...app.approved("We can pause here.","pause"),preserve_capture:true};
+   const run=h.t.applyLiveCapture(result,h.t.liveSnapshot());await app.flush();
+   assert.equal(v.tracks[0].enabled,false);assert.equal(v.tracks[0].stopped,true);assert.equal(v.api.setMuted(false),false);const send=v.channels[0].sent.find(e=>e.type==="session.instructions.append");
+   v.event({type:"error",error:{client_event_id:send.event_id}});await run;
+   assert.equal(v.api.active,false);assert.equal(v.tracks[0].stopped,true);assert.equal(h.t.state.turns.at(-1).delivery,"text");
+   await settleVoice(v);await h.settled;
+ });
+ await check("a finalized stop bypasses provider decisions, drains captions and settles the prior process answer",async()=>{
+   const {h,v}=await connected();h.t.state.config.agent_team.stop_intent_patterns=["^(?:please )?stop(?: the interview)?$"];
+   const payloads=[];h.route((url,options)=>{if(url==="/api/agent-team/interview")payloads.push(JSON.parse(options.body));return app.response({...app.approved(),summary:"The processor checks the invoice."});});
+   const prior=input(v,"user","Stop the payment if the invoice fails.","prior");v.api.caption(v.api.operation,prior,true);
+   assert.equal(v.api.active,true);input(v,"assistant","What happens next?","question");
+   const stop=input(v,"user","Please stop the interview.","stop");assert.equal(v.tracks[0].enabled,true);
+   v.api.caption(v.api.operation,stop,true);
+   assert.equal(v.tracks[0].stopped,true);assert.equal(v.tracks[0].enabled,false);
+   v.event({type:"session.closed"});await h.settled;
+   assert.equal(payloads.length,1);assert.equal(payloads[0].turns.at(-1).role,"assistant");
+   assert(payloads[0].turns.some(t=>t.text===prior.text));assert(!payloads[0].turns.some(t=>t.text===stop.text));
+   assert(h.t.state.turns.some(t=>t.text===stop.text));assert.equal(h.t.state.summary,"The processor checks the invoice.");
+ });
+ await check("map and notes exclude a finalized stop in a rolling caption and retain everything before it",async()=>{
+   for(const prefix of ["","The clerk logs the crate. Finance signs the handoff. "]){
+     const {h,v}=await connected();h.t.state.turns=[];h.t.state.config.api_configured=true;h.t.state.config.agent_team.stop_intent_patterns=["^please stop the interview$"];h.t.enableMapUpdates();
+     const bodies=[];h.route((url,options)=>{if(url==="/api/agent-team/workflow"||url==="/api/agent-team/interview")bodies.push({url,turns:JSON.parse(options.body).turns});return app.response(url==="/api/agent-team/workflow"?{workflow:{title:"Crate workflow",steps:[],connections:[]},memo_findings:[]}:app.approved());});
+     if(prefix)input(v,"user",prefix,"substance");
+     const command=input(v,"user","Please stop the interview.","stop");
+     assert(![...h.timers.values()].some(timer=>timer.ms===1000),"partial speech does not schedule a provider map");
+     v.api.caption(v.api.operation,command,true);v.event({type:"session.closed"});await h.settled;
+     if([...h.timers.values()].some(timer=>timer.ms===1000))await h.timer(1000);
+     assert.equal(bodies.length,prefix?2:0);
+     for(const {turns} of bodies){assert.equal(turns.length,1);assert.equal(turns[0].text,prefix.trim());assert.equal(turns[0].id,h.t.state.turns[0].id);}
+     assert.equal(h.t.state.turns[0].text,prefix+"Please stop the interview.");
+   }
+ });
+ await check("Stop drains a new answer and settles a pending lead response once without reopening voice",async()=>{
+   for(const alreadySent of [false,true]){
+     const {h,v}=await connected();let resolve;h.route(url=>url==="/api/agent-team/interview"?new Promise(r=>resolve=r):app.response({}));
+     const c=input(v,"user","The final handoff goes to Legal.","legal");
+     if(alreadySent){v.api.caption(v.api.operation,c,true);void h.t.runLiveCapture();await app.flush();}
+     await settleVoice(v);await app.flush();assert.equal(captureCalls(h).length,1);
+     resolve(app.response({...app.approved(),summary:"Legal receives the handoff."}));await h.settled;
+     assert.equal(h.t.state.summary,"Legal receives the handoff.");assert.equal(captureCalls(h).length,1);
+     assert.equal(v.api.active,false);assert.equal(h.t.conversationUI.coverageCheckpoint.through,h.t.state.turns.at(-1).id);
+   }
+ });
+ await check("an unconfirmed acknowledgment stays visible as text, unrelated captions are preserved, and review waits",async()=>{
+   const {h,v}=await connected();const ack="Let me check that I have everything before we finish.";
+   const r={...app.approved(ack,"review_pending"),review_ticket:"ticket"};const run=h.t.applyLiveCapture(r,h.t.liveSnapshot());await app.flush();
+   const send=v.channels[0].sent.find(e=>e.type==="session.instructions.append");
+   input(v,"assistant","Who signs the exception?","unrelated");
+   assert(h.t.state.turns.some(turn=>turn.text==="Who signs the exception?"));
+   assert(!h.t.state.turns.some(turn=>turn.text===ack));assert(!h.calls.some(c=>c.url==="/api/agent-team/review"));
+   v.event({type:"error",error:{client_event_id:send.event_id}});await run;
+   assert.equal(h.t.state.turns.at(-1).text,ack);assert.equal(h.t.state.turns.at(-1).delivery,"text");
+   assert.equal(h.node("retry-question").hidden,false);assert(!h.calls.some(c=>c.url==="/api/agent-team/review"));
+   h.route(()=>app.response(app.approved()));await settleVoice(v);await h.settled;
+ });
+ await check("only a matching final caption plus delivery receipt releases the next review",async()=>{
+   const {h,v}=await connected();const ack="Let me check that I have everything before we finish.";
+   const final="Before we finish, is there anything else we haven’t captured?";
+   const review=[];h.route((url,options)=>{if(url==="/api/agent-team/review"){review.push(JSON.parse(options.body));return app.response({...app.approved(final,"final_check"),coverage_verified:true});}return app.response(app.approved());});
+   const run=h.t.applyLiveCapture({...app.approved(ack,"review_pending"),review_ticket:"ticket"},h.t.liveSnapshot());await app.flush();
+   const send=v.channels[0].sent.find(e=>e.type==="session.instructions.append");v.event({type:"session.instructions.appended",client_event_id:send.event_id});
+   const c=input(v,"assistant",ack.toLowerCase().replace(".","!"),"ack");await app.flush();assert.equal(review.length,0);
+   v.api.caption(v.api.operation,c,true);await app.flush();
+   const finalSend=v.channels[0].sent.filter(e=>e.type==="session.instructions.append").at(-1);
+   v.event({type:"session.instructions.appended",client_event_id:finalSend.event_id});
+   const check=input(v,"assistant",final.toUpperCase().replace("’","").replace("?","."),"final");v.api.caption(v.api.operation,check,true);await run;
+   assert.equal(h.t.state.turns.filter(t=>t.text===final).length,1);assert.equal(h.t.state.turns.at(-1).text,final);assert.equal(h.t.state.closure.asked,true);
+   assert.equal(review.length,1);assert.equal(review[0].turns.at(-1).text,ack);assert.equal(h.t.state.turns.filter(t=>t.text===ack).length,1);
+   await settleVoice(v);await h.settled;
+ });
+ await check("new speech revokes the closing timer, completion and both export confirmations",async()=>{
+   const {h,v}=await connected();const closing="Thank you for confirming the account.";
+   const run=h.t.applyLiveCapture({...app.approved(closing,"complete"),coverage_verified:true},h.t.liveSnapshot());await app.flush();
+   const send=v.channels[0].sent.find(e=>e.type==="session.instructions.append");v.event({type:"session.instructions.appended",client_event_id:send.event_id});
+   const c=input(v,"assistant",closing,"close");v.api.operation.sound.playbackActive=true;v.api.caption(v.api.operation,c,true);await run;
+   assert.equal(h.t.state.closure.confirmed,true);assert([...h.timers.values()].some(t=>t.ms===200));
+   input(v,"user","Wait, the backup approval is different.","correction");assert.equal(h.t.state.closure.confirmed,false);
+   assert.equal(h.t.sessionObject().closure.confirmed,false);assert.equal(h.t.transcriptObject().memo.closure.confirmed,false);
+   assert(![...h.timers.values()].some(t=>t.ms===200));assert.equal(v.api.active,true);
+   h.route(()=>app.response(app.approved()));await settleVoice(v);await h.settled;
+ });
+ await check("a stuck playback meter cannot leave an idle, confirmed session recording",async()=>{
+   const {h,v}=await connected();let wall=10000;h.context.Date=class extends Date{static now(){return wall;}};
+   const closing="Thank you for confirming the account.";
+   const run=h.t.applyLiveCapture({...app.approved(closing,"complete"),coverage_verified:true},h.t.liveSnapshot());await app.flush();
+   const send=v.channels[0].sent.find(e=>e.type==="session.instructions.append");v.event({type:"session.instructions.appended",client_event_id:send.event_id});
+   const c=input(v,"assistant",closing,"closing");v.api.operation.sound.playbackActive=true;v.api.caption(v.api.operation,c,true);await run;
+   wall+=21000;await h.timer(200);assert.equal(v.api.active,false);assert.equal(v.tracks[0].stopped,true);
+   h.route(()=>app.response(app.approved()));await settleVoice(v);await h.settled;
+ });
+ await check("a malformed completion cannot mutate a live capture or request speech",async()=>{
+   const {h,v}=await connected(),r={...app.approved("We are done.","complete"),coverage_verified:true};r.speech_authorization.approved=false;
+   await assert.rejects(h.t.applyLiveCapture(r,h.t.liveSnapshot()),/Unapproved speech/);
+   assert.equal(h.t.state.closure.confirmed,false);assert(!v.channels[0].sent.some(e=>e.type==="session.instructions.append"));assert.equal(h.t.state.summary,"Last accepted notes");
+   h.route(()=>app.response(app.approved()));await settleVoice(v);await h.settled;
+ });
+ await check("incremental file question and purpose answer finalize exactly once",async()=>{
+   const {h,v}=await connected();const file={id:"doc_example",name:"Work.csv",analysis:{disposition:"needs_reason",intent_version:1,purpose_attempted:false}};
+   h.t.setDocuments({exportState:()=>({scope:"local-synthetic",documents:[file]}),refresh(){}});
+   h.route(()=>app.response(app.approved()));
+   const q=input(v,"assistant","Why did you share Work.csv?","q");v.api.caption(v.api.operation,q,true);
+   const answer=input(v,"user","It lists the approvals.","a");v.api.caption(v.api.operation,answer,true);v.api.caption(v.api.operation,answer,true);
+   await app.flush();const calls=h.calls.filter(c=>c.url==="/api/documents/action");assert.equal(calls.length,1);assert.equal(JSON.parse(calls[0].options.body).purpose,"It lists the approvals.");
+   await settleVoice(v);await h.settled;assert.equal(h.calls.filter(c=>c.url==="/api/documents/action").length,1);
+ });
+ await check("the live session receives the selected supported AI voice",async()=>{
+   const h=fixture();h.t.conversationUI.live=null;h.t.state.voiceChoice="ai:cedar";h.t.state.config.speech.voices.push({id:"cedar",label:"Cedar"});
+   let value;h.window.CollectorLiveVoice=class{async start(payload){value=payload.voice;}};
+   await h.t.startLiveConversation();assert.equal(value,"cedar");
  });
  console.log(JSON.stringify({checks_passed:passed,provider_calls:0,network_calls:0}));
 })().catch(e=>{console.error(e);process.exitCode=1;});

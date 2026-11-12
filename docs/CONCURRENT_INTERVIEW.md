@@ -1,4 +1,4 @@
-# Concurrent interview — 0.23.0
+# Concurrent interview
 
 Routine typed and voice answers now have an independent next-question path. The
 foreground model returns only a short question or a request to enter final review.
@@ -9,12 +9,11 @@ audio with concurrent analysis, not full-duplex streaming or spoken barge-in.
 
 ## Work that happens alongside the conversation
 
-`ConcurrentInterview` owns opaque, in-memory conversation capabilities. Every
-accepted turn queues a full source snapshot for background capture through the
+`ConcurrentInterview` owns opaque, in-memory conversation capabilities. Each substantive answer queues a full source snapshot for background capture through the
 existing authoritative Coordinator. Each session keeps at most the current work
 and one latest pending snapshot. Pending intermediate versions coalesce. Notes
 and workflow are separate background products; only matching current revisions
-can be published. Global worker limits keep this separate from the foreground
+can be published. An append-only answer with compatible sources starts from the last accepted fact ledger and map. Edits to earlier testimony or changes of scope require a fresh baseline. Global worker limits keep this separate from the foreground
 HTTP slots needed for transcription, questions and voice credentials.
 
 The fast interviewer reads the conversation and chooses one neutral next
@@ -22,6 +21,12 @@ question. It does not wait for notes or workflow. Background capture may propose
 a question internally, but that question is never added to the transcript or
 played. Background coverage is provisional and cannot set readiness or completion.
 The Notes panel reports working, caught-up, synchronization and failure states.
+
+## Stop, retry and mode changes
+
+A stop returns a partial pause. The transcript keeps the participant’s original words. If the same turn supplied a process fact before the stop, capture receives that prefix under the original turn ID. Otherwise only already-pending substantive notes and map work may finish. The browser retains the accepted memo while polling for that checkpoint.
+
+The browser gives each logical turn or wrap-up a stable operation ID. Retrying a lost reply reuses that ID, including before the server returns the first session token. An intentional new action gets its own ID. Starting a new interview cancels the old session’s work and review authority. Switching between typing and live voice in the same interview preserves a valid pending review against the same evidence.
 
 ## Source and completion boundaries
 
@@ -54,10 +59,10 @@ Original documents and saved interviews keep their existing local storage rules.
 Provider calls already in flight can finish after cancellation; their obsolete
 results are withheld. Background processing adds provider work and cost, and long
 transcripts remain in the fast model input for conversational accuracy. No constant
-latency or cost reduction is promised. The 2.2-second speech-end threshold and
+latency or cost reduction is promised. The 1.8-second reviewed-voice silence threshold and
 buffered natural voice playback remain unchanged.
 
-## Validation
+## Historical validation (0.23.0)
 
 Focused suites cover nonblocking questions, latest-snapshot coalescing, stale
 publication, source mutation, media capacity, typed and voice routing, delayed

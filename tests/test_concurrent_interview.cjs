@@ -6,7 +6,7 @@ const flush=async()=>{for(let i=0;i<30;i++)await Promise.resolve();};
 function setup(route){
  let generation=1,serial=0;const timers=new Map(),calls=[],applied=[],statuses=[];
  const snapshot={context:{process_name:"Fictional process"},turns:[{id:"u1",role:"user",text:"The clerk receives a request."}],document_revision:"doc1"};
- const window={},context={window,AbortController,DOMException,JSON,Error,TypeError,Set};vm.createContext(context);vm.runInContext(source,context);
+ const window={},context={window,crypto:require("node:crypto").webcrypto,AbortController,DOMException,JSON,Error,TypeError,Set};vm.createContext(context);vm.runInContext(source,context);
  const controller=new window.CollectorConcurrentInterview({request:async(url,data,options)=>{calls.push({url,data,options});return route(url,data,options);},getSnapshot:()=>snapshot,getGeneration:()=>generation,applyCapture:(capture,meta)=>applied.push({capture,meta}),onStatus:status=>statuses.push(status),setTimeout:fn=>{const id=++serial;timers.set(id,fn);return id;},clearTimeout:id=>timers.delete(id)});
  const tick=async()=>{const pending=[...timers.values()];timers.clear();pending.forEach(fn=>fn());await flush();};
  return{controller,snapshot,calls,applied,statuses,timers,tick,nextGeneration:()=>generation++};
@@ -65,6 +65,43 @@ await test("failed workflow publishes notes without falsely reporting caught up"
 });
 await test("abort supplied by voice cancels pending turn",async()=>{
  const turn=deferred(),h=setup(()=>turn.promise),abort=new AbortController(),pending=h.controller.turn(h.snapshot,{signal:abort.signal});abort.abort();assert.equal(h.calls[0].options.signal.aborted,true);turn.resolve(question);await assert.rejects(pending,error=>error.name==="AbortError");assert.equal(h.timers.size,0);
+});
+
+await test("lost first reply reuses identifiers and a later intentional action is fresh",async()=>{
+ let lost=true;
+ const h=setup(async url=>{if(lost){lost=false;throw Error("Lost response");}return question;});
+ await assert.rejects(h.controller.turn(h.snapshot),/Lost response/);
+ await h.controller.turn(h.snapshot);
+ assert.equal(h.calls[0].data.conversation_start_id,h.calls[1].data.conversation_start_id);
+ assert.match(h.calls[0].data.conversation_start_id,/^[a-f0-9]{64}$/);
+ assert.equal(h.calls[0].data.operation_id,h.calls[1].data.operation_id);
+ await h.controller.turn({...h.snapshot,action:"skip"});
+ assert.notEqual(h.calls[1].data.operation_id,h.calls[2].data.operation_id);
+});
+await test("pause does not poll or apply an empty notes capture",async()=>{
+ const h=setup(async()=>({...question,speech_authorization:{kind:"pause"}}));
+ await h.controller.turn(h.snapshot);await h.tick();
+ assert.equal(h.calls.length,1);assert.equal(h.applied.length,0);assert.equal(h.timers.size,0);
+});
+await test("reset cancels the server session while the first reply is still pending",async()=>{
+ const result=deferred(),h=setup(url=>url.endsWith("/cancel")?Promise.resolve({cancelled:true}):result.promise);
+ const request=h.controller.turn(h.snapshot);const start=h.calls[0].data.conversation_start_id;
+ h.controller.reset();assert.equal(h.calls[1].url,"/api/conversation/cancel");assert.equal(h.calls[1].data.conversation_token,start);
+ result.resolve(question);await assert.rejects(request,error=>error.name==="AbortError");
+ assert.equal(h.controller.token,null);assert.equal(h.timers.size,0);
+});
+await test("pausing can finish the preceding answer without applying the control reply",async()=>{
+ const pause={...question,speech_authorization:{kind:"pause"},analysis:{state:"paused",settling:true}};
+ const h=setup(async url=>url.endsWith("/turn")?pause:{state:"ready",workflow_state:"ready",revision:"r2",
+   conversation_token:"session-one",capture:{summary:"Last substantive answer"}});
+ await h.controller.turn(h.snapshot);await h.tick();
+ assert.equal(h.calls.length,2);assert.equal(h.applied.length,1);
+ assert.equal(h.applied[0].capture.summary,"Last substantive answer");assert.equal(h.timers.size,0);
+});
+await test("switching mode releases workers while retaining the issued review",async()=>{
+ const h=setup(async url=>url.endsWith("/cancel")?{cancelled:true}:question);
+ await h.controller.turn(h.snapshot);h.controller.reset({handoff:true});
+ assert.deepEqual(JSON.parse(JSON.stringify(h.calls.at(-1).data)),{conversation_token:"session-one",handoff:true});
 });
 console.log(JSON.stringify({tests_passed:passed,provider_calls:0,network_calls:0}));
 })().catch(error=>{console.error(error);process.exitCode=1;});

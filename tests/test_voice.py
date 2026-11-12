@@ -74,7 +74,7 @@ class VoiceSessionTests(unittest.TestCase):
         self.assertEqual(speech["provider"], "openai")
         self.assertEqual(speech["transport"], "openai-realtime-websocket")
         self.assertEqual(json.loads(raw)["provider"], {"id": "openai", "label": "OpenAI"})
-        self.assertIn("recorded answer audio", json.loads(raw)["data_notice"])
+        self.assertIn("streams microphone audio", json.loads(raw)["data_notice"])
         self.assertIn("browser memory", json.loads(raw)["data_notice"])
         self.assertEqual({voice["id"] for voice in speech["voices"]},
                          {"marin", "cedar", "alloy", "ash", "ballad", "coral",
@@ -82,6 +82,16 @@ class VoiceSessionTests(unittest.TestCase):
         self.assertNotIn(PROJECT_SENTINEL.encode(), raw)
         self.assertNotIn(EPHEMERAL_SENTINEL.encode(), raw)
         self.client.request.assert_not_called()
+
+    def test_microphone_notice_matches_the_configured_transport(self):
+        for mode, expected, other in (
+            ("live", "until you mute or stop", "waits for a pause"),
+            ("reviewed", "waits for a pause", "streams microphone audio"),
+        ):
+            with self.subTest(mode=mode):
+                config = server.OpenAIClient({"VOICE_MODE": mode}).public_config()
+                self.assertIn(expected, config["data_notice"])
+                self.assertNotIn(other, config["data_notice"])
 
     def test_config_disables_natural_voices_without_a_project_key(self):
         with patch.object(self.client, "key", ""):

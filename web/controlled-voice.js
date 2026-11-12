@@ -259,17 +259,22 @@
       if(!this.current(op)||signal.aborted||op.muted)return;
       await this.playReviewed(op,result,basis,signal);
     }
-    async playReviewed(op,result,basis,signal){
-      if(!this.current(op)||signal.aborted||op.muted)return;
+    static authorization(result){
       const authorization=result?.speech_authorization;
       if(typeof result?.question!=="string"||!result.question.trim()||result.question.length>6000||authorization?.approved!==true||!KINDS.has(authorization.kind)||authorization.text!==result.question||typeof authorization.revision!=="string"||!/^[A-Za-z0-9_.:-]{1,128}$/.test(authorization.revision)){
         const error=new Error("Unapproved speech");error.voiceMessage="The response did not pass the speech check, so it was not spoken. Your answers are saved; continue by typing or reconnect.";throw error;
       }
-      if((authorization.kind==="final_check"&&result.completion?.ready_for_final_check!==true)||
+      if((["final_check","complete"].includes(authorization.kind)&&result.coverage_verified!==true)||
+         (authorization.kind==="final_check"&&result.completion?.ready_for_final_check!==true)||
          (authorization.kind==="complete"&&(result.completion?.complete!==true||authorization.completion_allowed!==true))){
         const error=new Error("Inconsistent completion authorization");error.voiceMessage="The response did not pass the completion check, so it was not spoken. Your answers are saved; continue by typing or reconnect.";throw error;
       }
       if(authorization.kind==="review_pending"&&((result.question!==REVIEW_ACK&&!(result.review_purpose==="partial"&&result.question===PARTIAL_REVIEW_ACK))||typeof result.review_ticket!=="string"||!result.review_ticket||result.review_ticket.length>4096||result.coverage_verified===true||result.completion?.complete===true||result.completion?.ready_for_final_check===true))throw new Error("Invalid review acknowledgement");
+      return authorization;
+    }
+    async playReviewed(op,result,basis,signal){
+      if(!this.current(op)||signal.aborted||op.muted)return;
+      const authorization=CollectorControlledVoice.authorization(result);
       if(sourceSignature(this.options.getSnapshot())!==basis){const error=new Error("Stale response");error.voiceMessage="The conversation changed while the response was being reviewed. That earlier response was not spoken. Continue by typing or reconnect.";throw error;}
       this.options.onResult(result);
       const appliedBasis=sourceSignature(this.options.getSnapshot());
@@ -326,6 +331,7 @@
     }
     async dispose(){global.removeEventListener?.("pagehide",this.hide);this.discardPendingAudio();return this.stop({immediate:true});}
   }
+  global.CollectorSpeechAuthorization=CollectorControlledVoice.authorization;
   global.CollectorControlledVoice=CollectorControlledVoice;
   global.CollectorSpeechPreparation=CollectorSpeechPreparation;
 })(window);

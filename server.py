@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import base64
 import copy
+from contextvars import copy_context
 import errno
 import gzip
 import importlib.util
@@ -26,7 +27,7 @@ from urllib.parse import unquote, urlsplit
 from urllib.request import Request, urlopen
 import webbrowser
 
-VERSION = "0.29.0"
+VERSION = "0.29.1"
 APP_DIR = Path(__file__).resolve().parent
 WEB_DIR = APP_DIR / "web"
 DIAGNOSTIC_MAX_BYTES = 1024 * 1024
@@ -37,7 +38,8 @@ def record_diagnostic(path, event, **fields):
     """Bounded local operational metadata only; never record payloads or errors' text."""
     permitted = {"port", "parent_pid", "build_id", "reason", "duration_ms", "turn_count",
                  "step_count", "status", "error_type", "request_id", "outcome",
-                 "stage", "error_category", "timeout_seconds"}
+                 "stage", "error_category", "timeout_seconds", "input_tokens",
+                 "output_tokens", "requested_output_token_ceiling", "role"}
     record = {"event": event, "time_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
               "pid": os.getpid(), "version": VERSION}
     for key in permitted & fields.keys():
@@ -1132,19 +1134,70 @@ WRAP_UP_LANGUAGE = re.compile(
     r"your account is captured|you can (?:create|update) (?:or update )?the draft)\b", re.IGNORECASE)
 
 
+_COMPLETION_SPEECH = re.compile(
+    r"\bare we (?:all )?(?:done|finished)(?: (?:here|now))?\s*\?|"
+    r"\b(?:this|the|our|your) (?:interview|conversation|account|capture|documentation) "
+    r"(?:is|looks|seems|has been) (?:complete|completed|finished|done|ready)\b|"
+    r"\b(?:we(?:['’]re| are)|you(?:['’]re| are)) (?:all set|done|finished)\b|"
+    r"\b(?:no (?:further|more) questions|that(?:['’]s| is) all (?:I|we) need)\b|"
+    r"\b(?:all|every) (?:(?:sixteen|16|eleven|11|required) )?(?:topics|sections) (?:are|have been) (?:covered|captured|complete)\b|"
+    r"\b(?:anything|something|what) (?:else |important |more )*(?:[^?!.]{0,160})"
+    r"(?:haven['’]t|have not|not yet|not) (?:asked|captured|covered|discussed|mentioned)\b|"
+    r"\b(?:anything|something|what) (?:else )?(?:[^?!.]{0,80})(?:we|I) (?:missed|have missed)\b|"
+    r"\b(?:have|did) (?:we|I) miss(?:ed)? (?:anything|any (?:part|section|topic|detail))\b|"
+    r"\b(?:does|would) (?:this|that|the account|the capture) (?:cover|capture|include) everything\b|"
+    r"\b(?:any other|anything else|something else) (?:important )?(?:detail |information |point )?"
+    r"(?:you (?:want|would like) to )?(?:add|share|mention)\b|"
+    r"\bbefore (?:we|I) (?:conclude|finish|stop|pause|wrap up)"
+    r"(?:\s*[?!.]|\s*$| (?:here|now|the interview|this interview|the conversation)\b)|"
+    r"\bare we (?:finished|done) with (?:the |this |our )?(?:process review|interview|conversation|capture)\b|"
+    r"\b(?:(?:shall|can|may|could|should) we|(?:do you want|would you like|are you ready) to) "
+    r"(?:now )?(?:end|finish|stop|pause|wrap up|conclude)"
+    r"(?: (?:the |this |our )?(?:interview|conversation|session)\b| (?:now|here)\b|(?=\s*[?!.]|$))",
+    re.I)
+
+
+def ordinary_question_allowed(text, max_length=1600):
+    return (isinstance(text, str) and 0 < len(text) <= max_length and text.count("?") == 1
+            and text.rstrip().endswith("?") and not WRAP_UP_LANGUAGE.search(text)
+            and not _COMPLETION_SPEECH.search(text))
+
+
+def fallback_interview_question(capture=None):
+    if capture:
+        question = next_uncovered_question(capture)
+        if ordinary_question_allowed(question):
+            return question
+    return "What happens next in the work you just described?"
+
+
+# Shared with the live browser so a clear spoken request can mute the mic
+# immediately, before a background capture or provider round trip finishes.
+_STOP_REQUEST = (r"(?:(?:i (?:need|want|would like) to|let['’]s|(?:can|could|would) (?:we|you))\s+)?"
+                 r"(?:please\s+)?(?:stop|pause|end|finish)")
+_STOP_SUBJECT = r"(?:(?:this|the|our) (?:interview|conversation|session|recording)|recording|talking)"
+_STOP_WHEN = r"(?:now|here|for now|for today|for a (?:minute|moment))"
+STOP_INTENT_PATTERNS = (
+    rf"^{_STOP_REQUEST}(?:\s+{_STOP_SUBJECT})?(?:\s+{_STOP_WHEN})?$",
+    rf"^{_STOP_REQUEST}\s+(?:{_STOP_SUBJECT}(?:\s+{_STOP_WHEN})?|{_STOP_WHEN})"
+    r"\s*,?\s+(?:because|since|as|and|so)\s+.+$",
+    r"^(?:i['’]m|i am) done (?:for (?:now|today)|with (?:this|(?:this|the) interview))$",
+)
+
+
+def stop_request_prefix(text):
+    """Return prior testimony, an empty string for control only, or None to keep interviewing."""
+    for sentence in re.finditer(r"[^.?!]+", text):
+        normalized = re.sub(r",?\s+please$", "", sentence.group().strip().lower())
+        if any(re.fullmatch(pattern, normalized) for pattern in STOP_INTENT_PATTERNS):
+            return text[:sentence.start()].strip()
+    return None
+
+
 def participant_requested_stop(turns):
-    users = [t for t in turns if t["role"] == "user" and not t.get("document_event")]
-    if not users:
-        return False
-    # Only direct conversational requests; process instructions such as 'we stop
-    # the merge on an error', quoted text, and local 'no' are not stop requests.
-    request = (r"(?:(?:please\s+)?(?:stop|pause)|"
-               r"(?:i (?:need|want|would like) to|let['’]s|can we|could we) (?:stop|pause|end|finish))")
-    target = r"(?:\s+(?:(?:this|the) (?:interview|conversation|session)|talking|now|here|for now|for today))?"
-    reason = r"(?:\s+(?:because|since|as|and|so)\b.*|[.!?,;].*)?\s*$"
-    return bool(re.match(r"^\s*" + request + target + reason, users[-1]["text"], re.I) or
-                re.match(r"^\s*(?:i['’]m|i am) done (?:for (?:now|today)|with (?:this|the interview))\b",
-                         users[-1]["text"], re.I))
+    latest = next((turn for turn in reversed(turns)
+                   if turn["role"] == "user" and not turn.get("document_event")), None)
+    return bool(latest) and stop_request_prefix(latest["text"]) is not None
 
 
 def next_uncovered_question(result):
@@ -1950,6 +2003,11 @@ class OpenAIClient:
 
     def public_config(self):
         """Public capabilities only; configuration is not a live health check."""
+        microphone_notice = (
+            "Live voice streams microphone audio to OpenAI until you mute or stop. "
+            if self.voice_mode == "live" else
+            "Reviewed voice records your answer, waits for a pause, then sends the recording to OpenAI for transcription. "
+        )
         return {
             "api_configured": bool(self.key),
             "provider": {"id": "openai", "label": "OpenAI"},
@@ -1958,7 +2016,8 @@ class OpenAIClient:
                        "speech": SPEECH_MODEL},
             "agent_team": {"enabled": True, "models": self.agent_models,
                            "voice_mode": "live_front" if self.voice_mode == "live" else "reviewed_turns",
-                           "one_interviewer_voice": True, "review_mode": "on_completion"},
+                           "one_interviewer_voice": True, "review_mode": "on_completion",
+                           "stop_intent_patterns": list(STOP_INTENT_PATTERNS)},
             "speech": {"enabled": bool(self.key), "model": SPEECH_MODEL,
                        "default_voice": "marin", "voices": AI_VOICES,
                        "provider": "openai", "transport": "openai-realtime-websocket"},
@@ -1967,9 +2026,8 @@ class OpenAIClient:
                      "voice": "marin", "provider": "openai",
                      "transport": "gpt-live-webrtc" if self.voice_mode == "live" else "reviewed-turns"},
             "data_notice": (
-                "Submitted interview text and recorded answer audio are sent to OpenAI. "
-                "Voice sends recorded answers for transcription. The interviewer responds, with additional checks "
-                "before an interview can be marked complete. "
+                microphone_notice
+                + "The interview team receives the submitted transcript to update your notes and review the account. "
                 "Natural AI playback also sends question text to OpenAI. Generated playback audio "
                 "is held in browser memory rather than saved automatically. Installed computer "
                 "voices play locally. Uploaded originals, extracted text and their review context are "
@@ -2052,6 +2110,15 @@ class OpenAIClient:
         started = time.monotonic()
         metrics = {"request_id": uuid.uuid4().hex, "stage": stage, "timeout_seconds": timeout,
                    "outcome": "error", "status": 502}
+        role_binding = agent_team.CURRENT_ROLE.get()
+        output_limit = body.get("max_output_tokens") if isinstance(body, dict) else None
+        if type(output_limit) is int and output_limit > 0:
+            metrics["requested_output_token_ceiling"] = output_limit
+        if role_binding:
+            run, role = role_binding
+            metrics["role"] = role
+            run.start_provider_request(role, metrics.get("requested_output_token_ceiling", 0))
+        usage = {}
         try:
             try:
                 with urlopen(request, timeout=timeout) as response:
@@ -2129,12 +2196,19 @@ class OpenAIClient:
                 metrics.update(error_category="invalid_response")
                 raise APIError("OpenAI returned an unreadable response. Please try again.") from None
             metrics.update(outcome="success", status=200)
+            raw_usage = result.get("usage") if isinstance(result, dict) else None
+            if isinstance(raw_usage, dict):
+                usage = {key: raw_usage[key] for key in ("input_tokens", "output_tokens")
+                         if type(raw_usage.get(key)) is int and raw_usage[key] >= 0}
+                metrics.update(usage)
             return result
         finally:
+            duration = int((time.monotonic() - started) * 1000)
+            if role_binding:
+                run.finish_provider_request(role, duration, usage)
             if self.diagnostic_callback is not None:
                 try:
-                    self.diagnostic_callback("provider_request_finished", **metrics,
-                                             duration_ms=int((time.monotonic() - started) * 1000))
+                    self.diagnostic_callback("provider_request_finished", **metrics, duration_ms=duration)
                 except Exception:
                     # Logging cannot turn a valid response into a failed request.
                     pass
@@ -2394,7 +2468,8 @@ class OpenAIClient:
                            **({"assess_topics": list(group)} if scoped else {}),
                            "supporting_documents": supporting}
                 result = self.structured(instructions, payload, schema, "process_coverage_assessment",
-                                         8000 if scoped else 14000, reasoning_effort="medium", request_timeout=120, **model)
+                                         interview_coverage.COVERAGE_GROUP_MAX_OUTPUT_TOKENS if scoped else 14000,
+                                         reasoning_effort="medium", request_timeout=120, **model)
                 if scoped:
                     # Strict output cannot return another group's topics; offline
                     # fixtures may. Keep only the topics this group was asked for.
@@ -2409,7 +2484,8 @@ class OpenAIClient:
                 parts = [assess_group(groups[0])]
             else:
                 with ThreadPoolExecutor(max_workers=len(groups), thread_name_prefix="coverage-review") as pool:
-                    parts = list(pool.map(assess_group, groups))
+                    futures = [pool.submit(copy_context().run, assess_group, group) for group in groups]
+                    parts = [future.result() for future in futures]
             assessment = interview_coverage.merge_group_assessments(parts) if scoped else parts[0][1]
             if requested:
                 return interview_coverage.apply_assessment(
@@ -2676,7 +2752,10 @@ class InterviewServer(ThreadingHTTPServer):
     # timeouts and admission limits prevent idle sockets from growing threads.
     daemon_threads = False
     allow_reuse_address = True
-    max_connections = 16
+    # Loading the interview, transcript and review in separate browser contexts can
+    # open six asset connections per context. Keep media/API work separately bounded.
+    max_connections = 32
+    request_queue_size = 32
     header_timeout = 15
     body_timeout = 30
     upload_timeout = 60
@@ -3007,7 +3086,7 @@ class Handler(BaseHTTPRequestHandler):
         if path not in ("/api/interview", "/api/draft", "/api/transcribe", "/api/voice-session", "/api/live-session", "/api/workflow",
                         "/api/agent-team/interview", "/api/agent-team/workflow", "/api/agent-team/review",
                         "/api/agent-team/coverage", "/api/agent-team/status", "/api/agent-team/cancel"):
-            if path not in ('/api/conversation/turn', '/api/conversation/status', '/api/conversation/sync'):
+            if path not in ('/api/conversation/turn', '/api/conversation/status', '/api/conversation/sync', '/api/conversation/cancel'):
                 return self._json({"error": "Not found."}, 404)
         try:
             if self.headers.get("Transfer-Encoding"):
@@ -3062,6 +3141,11 @@ class Handler(BaseHTTPRequestHandler):
                             selection = self.server.conversation.retrieval_basis(payload)
                             if selection:
                                 query, source_ids = selection['query'], selection['source_ids']
+                            else:
+                                prior_ids = self.server.conversation.prior_source_ids(payload)
+                                source_ids = list(dict.fromkeys([*prior_ids, *source_ids]))
+                                if len(source_ids) > 500:
+                                    raise ValueError("This capture references too many document excerpts.")
                         payload["_supporting_documents"] = self.server.documents.supporting_context(
                             scope, query, source_ids=source_ids)
                         document_snapshot = (scope, query, source_ids, context,
@@ -3072,6 +3156,8 @@ class Handler(BaseHTTPRequestHandler):
                     return self._json({'error': 'Concurrent interviewing is unavailable for this provider.'}, 409)
                 # Polling and waiting for background analysis must not occupy a
                 # foreground slot needed by transcription or speech credentials.
+                if path.endswith('/cancel'):
+                    return self._json(self.server.conversation.cancel(payload))
                 if path.endswith('/status'):
                     return self._json(self.server.conversation.status(payload))
                 if path.endswith('/sync'):

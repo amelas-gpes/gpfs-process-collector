@@ -16,26 +16,6 @@ REVIEW_ACKNOWLEDGEMENT = "Let me check that I have everything before we finish."
 PARTIAL_REVIEW_ACKNOWLEDGEMENT = "Let me check what we have and keep the unanswered parts open."
 MAX_REVIEW_TICKETS = 128
 _PROVISIONAL_QUESTION = re.compile(r'\s*\{\s*"question"\s*:\s*"((?:[^"\\]|\\.)*)"')
-_COMPLETION_SPEECH = re.compile(
-    r"\b(?:this|the|our|your) (?:interview|conversation|account|capture|documentation) "
-    r"(?:is|looks|seems|has been) (?:complete|completed|finished|done|ready)\b|"
-    r"\b(?:we(?:['’]re| are)|you(?:['’]re| are)) (?:all set|done|finished)\b|"
-    r"\b(?:no (?:further|more) questions|that(?:['’]s| is) all (?:I|we) need)\b|"
-    r"\b(?:all|every) (?:(?:sixteen|16|eleven|11|required) )?(?:topics|sections) (?:are|have been) (?:covered|captured|complete)\b|"
-    r"\b(?:anything|something|what) (?:else |important |more )*(?:[^?!.]{0,160})"
-    r"(?:haven['’]t|have not|not yet|not) (?:asked|captured|covered|discussed|mentioned)\b|"
-    r"\b(?:anything|something|what) (?:else )?(?:[^?!.]{0,80})(?:we|I) (?:missed|have missed)\b|"
-    r"\b(?:have|did) (?:we|I) miss(?:ed)? (?:anything|any (?:part|section|topic|detail))\b|"
-    r"\b(?:does|would) (?:this|that|the account|the capture) (?:cover|capture|include) everything\b|"
-    r"\b(?:any other|anything else|something else) (?:important )?(?:detail |information |point )?"
-    r"(?:you (?:want|would like) to )?(?:add|share|mention)\b|"
-    r"\bbefore (?:we|I) (?:conclude|finish|stop|pause|wrap up)"
-    r"(?:\s*[?!.]|\s*$| (?:here|now|the interview|this interview|the conversation)\b)|"
-    r"\bare we (?:finished|done) with (?:the |this |our )?(?:process review|interview|conversation|capture)\b|"
-    r"\b(?:(?:shall|can|may|could|should) we|(?:do you want|would you like|are you ready) to) "
-    r"(?:now )?(?:end|finish|stop|pause|wrap up|conclude)"
-    r"(?: (?:the |this |our )?(?:interview|conversation|session)\b| (?:now|here)\b|(?=\s*[?!.]|$))",
-    re.I)
 FAST_CAPTURE_POLICY = """
 Streaming transcript checkpoints are incremental text, not proof that a person
 finished an answer. Capture what the words establish; do not label a short last
@@ -208,9 +188,13 @@ class Coordinator:
         return box["findings"], assessment
 
     def _process(self, run, capture, context, turns, supporting):
+        # Review the account against original sources. Review tickets, execution
+        # metadata and speech authorizations belong only to the local coordinator.
+        candidate = {key: capture[key] for key in
+                     ("summary", "memo_findings", "taxonomy", "connections_out", "parking_lot") if key in capture}
         return run.run_role("process_reviewer", lambda: self.client.structured(
             agent_team.PROCESS_REVIEW_INSTRUCTIONS,
-            {"context": context, "turns": turns, "candidate_capture": capture,
+            {"context": context, "turns": turns, "candidate_capture": candidate,
              "supporting_documents": supporting}, agent_team.PROCESS_REVIEW_SCHEMA,
             "process_specialist_review", 8000, reasoning_effort="medium", request_timeout=90,
             model_override=self.client.agent_models["process_reviewer"]))
@@ -333,6 +317,32 @@ class Coordinator:
             return value
         data = json.dumps([context, canonical(supporting)], sort_keys=True, separators=(",", ":"), ensure_ascii=False)
         return hashlib.sha256(data.encode()).hexdigest()
+
+    def awaiting_managed_reply(self, payload):
+        """Recognize an issued transition across voice/typing sessions; grants no clearance.
+
+        Caption phrasing and corrections can differ after a mode change. Route a
+        continuation of the same participant account through the manager, which
+        still checks the exact transcript, question, evidence and confirmation.
+        """
+        capability = payload.get("capture_token")
+        if not isinstance(capability, str):
+            return None
+        context, turns = self.api.validate_payload(payload)
+        with self._lock:
+            state = self._captures.get(capability)
+            if (not state or not state["valid"] or time.monotonic() - state["at"] >= 1800
+                    or context != state["context"]):
+                return None
+            kind = state["capture"].get("speech_authorization", {}).get("kind")
+            if kind not in ("review_pending", "final_check", "complete", "pause"):
+                return None
+            status = state["run"].public_status()
+            if status["stale"] or status["cancelled"]:
+                return None
+            original = [turn for turn in state["turns"] if turn["role"] == "user"]
+            current = [turn for turn in turns if turn["role"] == "user"]
+            return state["token"] if current[:len(original)] == original else None
 
     def retrieval_basis(self, payload):
         """Freeze retrieval selection for non-evidentiary UI/confirmation turns.
@@ -616,21 +626,20 @@ class Coordinator:
         return context
 
     def _usable_question(self, value):
-        return (isinstance(value, str) and 0 < len(value) <= 1600 and value.count("?") == 1
-                and value.rstrip().endswith("?") and not self.api.WRAP_UP_LANGUAGE.search(value)
-                and not _COMPLETION_SPEECH.search(value))
+        return self.api.ordinary_question_allowed(value)
 
     def _authorize(self, capture, run, question, kind):
-        if kind == "question":
-            if not self._usable_question(question):
-                question = self.api.next_uncovered_question(capture)
-            if not self._usable_question(question):
-                question = "What can you clarify about the remaining open part of this process?"
+        if kind == "question" and not self._usable_question(question):
+            question = self.api.fallback_interview_question(capture)
         capture["question"] = question
         capture["speech_authorization"] = {"approved": True, "kind": kind, "text": question,
             "revision": run.ledger.revision, "completion_allowed": capture["completion"]["complete"]}
 
-    def interview(self, payload):
+    def background_interview(self, payload, fact_token=None):
+        """Continue an evidence ledger without inheriting the foreground completion authority."""
+        return self.interview(payload, fact_token=fact_token)
+
+    def interview(self, payload, *, fact_token=None):
         api = self.api
         context, turns = api.validate_payload(payload)
         supporting = payload.get("_supporting_documents", {})
@@ -638,7 +647,8 @@ class Coordinator:
         action = payload.get("action", "answer")
         if action not in ("start", "answer", "skip", "close", "document_followup"):
             raise ValueError("Unsupported interview action.")
-        fact_state = self._fact_base(payload, context, turns, evidence, supporting)
+        fact_payload = {**payload, "capture_token": fact_token} if fact_token else payload
+        fact_state = self._fact_base(fact_payload, context, turns, evidence, supporting)
         selected_document_versions, active_document_versions = capture_facts.document_versions(supporting, evidence)
         fact_state = capture_facts.reconcile_document_versions(fact_state, active_document_versions)
         prior, extension = self._prior_capture(payload, context, turns, supporting)

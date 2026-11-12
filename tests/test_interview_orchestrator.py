@@ -1,12 +1,13 @@
 """Real coordinator and loopback API contracts with schema-routed offline models."""
 import copy
+import io
 from concurrent.futures import ThreadPoolExecutor
 import json
 from pathlib import Path
 import tempfile
 import threading
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
@@ -201,6 +202,96 @@ class CoordinatorBoundaryTests(unittest.TestCase):
         self.assertTrue(confirmed["completion"]["complete"])
         self.assertTrue(confirmed["closure"]["confirmed"])
         self.assertEqual(confirmed["speech_authorization"]["kind"], "complete")
+
+    def test_unsubstantiated_process_clearance_cannot_unlock_final_question(self):
+        for summary, citations in (("", ["u_lifecycle"]), ("The reported route is clear.", []),
+                                   ("UNKNOWN", ["u_lifecycle"]), ("No material blockers.", ["u_lifecycle"])):
+            with self.subTest(summary=summary, citations=citations):
+                client = SyntheticTeamProvider()
+                client.process.update(summary=summary, evidence_turns=citations)
+                _, result = reviewed_capture(client)
+                self.assertFalse(result["completion"]["ready_for_final_check"])
+                self.assertTrue(result["review_retry_required"])
+                self.assertFalse(result["process_review"]["review_available"])
+
+    def test_context_only_clearance_needs_reported_background_beyond_the_intake_labels(self):
+        for background, allowed in (("", False), ("UNKNOWN", False), ("Invoice approval", False),
+                                     ("Describe approval", False), ("The clerk logs each invoice before treasury pays it.", True)):
+            with self.subTest(background=background):
+                client = SyntheticTeamProvider()
+                payload = client.payload()
+                payload["context"].update(process_name="Invoice approval", objective="Describe approval",
+                                          background=background)
+                client.process.update(summary="The clerk logs invoices before sending them for payment.",
+                                      evidence_turns=["context"])
+                review_payload, _ = prepared_review(client, payload)
+                result = client.coordinator.review(review_payload)
+                self.assertEqual(result["completion"]["ready_for_final_check"], allowed)
+
+    def test_grouped_review_counts_actual_transport_requests_and_reported_usage(self):
+        client = SyntheticTeamProvider()
+        client.request = server.OpenAIClient.request.__get__(client)
+        client.diagnostic_callback = Mock()
+
+        def simulated_transport(request, timeout):
+            body = json.loads(request.data)
+            result = client.reply("responses", body)
+            # A missing usage record is unknown, even for a successful request.
+            if body["text"]["format"]["name"] != "process_specialist_review":
+                result["usage"] = {"input_tokens": 11, "output_tokens": 7, "private": "PRIVATE_USAGE_DETAIL"}
+            if body.get("stream"):
+                event = json.dumps({"type": "response.completed", "response": result})
+                return io.BytesIO(("data: " + event + "\n\n").encode())
+            return io.BytesIO(json.dumps(result).encode())
+
+        with patch.object(server, "urlopen", side_effect=simulated_transport) as transport:
+            _, reviewed = reviewed_capture(client)
+        budget = reviewed["agent_team"]["budget"]
+        coverage = next(row for row in reviewed["agent_team"]["agents"] if row["role"] == "coverage_reviewer")
+        grouped = len(server.interview_coverage.COVERAGE_REVIEW_GROUPS)
+        self.assertEqual(budget["role_invocations"], 3)
+        self.assertEqual(budget["provider_requests"], transport.call_count)
+        self.assertEqual(budget["provider_requests"], grouped + 2)
+        self.assertEqual(coverage["provider_requests"], grouped)
+        self.assertEqual(coverage["requested_output_token_ceiling"],
+                         grouped * server.interview_coverage.COVERAGE_GROUP_MAX_OUTPUT_TOKENS)
+        self.assertEqual(budget["usage_reported_requests"], grouped + 1)
+        self.assertEqual(budget["reported_input_tokens"], (grouped + 1) * 11)
+        self.assertEqual(budget["reported_output_tokens"], (grouped + 1) * 7)
+        metadata = [call.kwargs for call in client.diagnostic_callback.call_args_list]
+        self.assertEqual(sum(row["duration_ms"] for row in metadata), budget["provider_duration_ms"])
+        self.assertEqual(sum(row["requested_output_token_ceiling"] for row in metadata),
+                         budget["requested_output_token_ceiling"])
+        self.assertNotIn("PRIVATE_USAGE_DETAIL", json.dumps(metadata))
+        self.assertTrue(all("role" in row and "input" not in row for row in metadata))
+
+    def test_process_reviewer_receives_only_account_fields_and_sources(self):
+        client = SyntheticTeamProvider()
+        payload, pending = prepared_review(client)
+        reviewed = client.coordinator.review(payload)
+        self.assertTrue(reviewed["completion"]["ready_for_final_check"])
+        body = next(call.args[1] for call in client.request.call_args_list
+                    if call.args[1]["text"]["format"]["name"] == "process_specialist_review")
+        packet = json.loads(body["input"][0]["content"])
+        self.assertEqual(set(packet), {"context", "turns", "supporting_documents", "candidate_capture"})
+        self.assertEqual(set(packet["candidate_capture"]), {"summary", "memo_findings", "taxonomy",
+                                                           "connections_out", "parking_lot"})
+        self.assertEqual(packet["candidate_capture"]["memo_findings"], pending["memo_findings"])
+
+    def test_mode_handoff_routes_issued_reviews_without_promoting_an_unrelated_reply(self):
+        client = SyntheticTeamProvider()
+        payload, reviewed = reviewed_capture(client)
+        ordinary_reply = reply_payload(payload, reviewed, "No, nothing else.")
+        self.assertEqual(client.coordinator.awaiting_managed_reply(ordinary_reply), reviewed["agent_run_id"])
+        aside = copy.deepcopy(ordinary_reply)
+        aside["turns"].insert(-1, {"id": "aside", "role": "assistant", "text": "Should we change the owner?"})
+        self.assertEqual(client.coordinator.awaiting_managed_reply(aside), reviewed["agent_run_id"])
+        self.assertIsNone(client.coordinator.awaiting_managed_reply({**aside, "capture_token": "not-issued"}))
+        self.assertIsNone(client.coordinator.awaiting_managed_reply({**aside, "context": {"process_name":"Different work"}}))
+        refreshed = client.coordinator.interview(aside)
+        self.assertFalse(refreshed["completion"]["complete"])
+        self.assertNotEqual(refreshed["speech_authorization"]["kind"], "complete")
+        self.assertIsNone(client.coordinator.awaiting_managed_reply(ordinary_reply))
 
     def test_forged_final_check_and_confirmation_do_not_replace_issued_capability(self):
         client = SyntheticTeamProvider()

@@ -84,6 +84,10 @@
   const PARTIAL_REVIEW_ACK="Let me check what we have and keep the unanswered parts open.";
   const COMPLETION_REVIEW_LABEL="Checking the recorded topics and process…";
   const coverageVerified=()=>!state.config?.agent_team?.enabled||state.coverageVerified===true;
+  function currentClosure() {
+    return {asked:state.closure.asked===true,
+      confirmed:state.closure.confirmed===true&&!state.captureProvenance&&!state.coverageNeedsReview&&coverageVerified()};
+  }
   const provisionalFinding=finding=>!coverageVerified()&&["captured","not_applicable"].includes(finding?.status);
   const findingStatusLabel=finding=>provisionalFinding(finding)?"Captured · awaiting review":finding?.status==="not_applicable"?"Not applicable":finding?.status==="captured"?"Covered":finding?.status==="partial"?"In progress":"Unknown";
   // Suggested titles live outside source context. Manual context edits still
@@ -93,19 +97,21 @@
   const documentQuestionsHandled=new Set(),interviewRequests=new Set();
   // Live front, managed back: GPT-Live speaks; the lead captures each spoken
   // answer in the background and the application still owns completion.
-  let liveCapture=null,liveCaptureQueued=false,liveCaptureTimer=null,liveCapturedThrough=null,liveAuthorized=null,liveCompleteTimer=null;
+  let liveCapture=null,liveCaptureQueued=false,liveCaptureTimer=null,liveCapturedThrough=null,liveDelivery=null,liveCompleteTimer=null;
+  let liveSessionSequence=0,liveStartBasis="",settlingLiveNotes=null,liveStopTurn=null,workflowSource=null;
   const liveResponseSources=new WeakMap();
   const liveFrontActive=()=>Boolean(conversationUI.live?.active&&state.config?.agent_team?.voice_mode==="live_front");
   const liveAnswerPending=()=>Boolean(conversationUI.pendingParticipantCaptions.size||conversationUI.live?.participantSpeaking);
   function liveSourceMatches(captured){
-    return captured&&captured.generation===state.generation&&captured.live===conversationUI.live&&
+    return captured&&captured.generation===state.generation&&captured.liveSession===liveSessionSequence&&captured.live===conversationUI.live&&
       captured.document_revision===activeDocumentSignature()&&
       JSON.stringify(captured.context)===JSON.stringify(state.context)&&
       JSON.stringify(participantCoverageBasis(captured.turns))===JSON.stringify(participantCoverageBasis())&&!liveAnswerPending();
   }
-  function liveSnapshot(){return {...snapshot(),generation:state.generation,live:conversationUI.live,revision:conversationUI.revision};}
+  function liveSnapshot(){return {...snapshot(),generation:state.generation,live:conversationUI.live,liveSession:liveSessionSequence,revision:conversationUI.revision};}
   function resetLiveFront(){
-    liveCapture?.controller.abort();liveCapture=null;liveCaptureQueued=false;liveCapturedThrough=null;liveAuthorized=null;
+    liveSessionSequence++;liveStartBasis=JSON.stringify(participantCoverageBasis());settlingLiveNotes=null;
+    liveCapture?.controller.abort();liveCapture=null;liveCaptureQueued=false;liveCapturedThrough=null;liveDelivery?.abort();liveDelivery=null;
     clearTimeout(liveCaptureTimer);liveCaptureTimer=null;clearTimeout(liveCompleteTimer);liveCompleteTimer=null;state.liveSuggestedQuestion="";
   }
   // Background advisory check of provisional topics; never a completion permit.
@@ -277,7 +283,7 @@
     $("skip-question").disabled = !state.started || working || recording || !ready || atLimit;
     const finalReviewReady=state.config?.concurrent_interview?.enabled||!state.config?.agent_team?.enabled||state.completion?.ready_for_final_check===true;
     $("final-check").disabled = !state.started || working || recording || !ready || atLimit || !finalReviewReady || !state.turns.some(t => t.role === "user");
-    $("final-check").hidden = state.closure.confirmed && !state.coverageNeedsReview;
+    $("final-check").hidden = currentClosure().confirmed;
     $("final-check").title=finalReviewReady?"Confirm whether anything is missing":"Required topics still need clarification before the final check";
     $("composer-hint").textContent = atLimit ? "Interview limit reached. Create a draft or save this session." : "Ctrl / ⌘ + Enter to send";
     if($("retry-question"))$("retry-question").disabled=working||recording||Boolean(conversationUI.live?.active);
@@ -323,7 +329,7 @@
     $("draft-content").classList.toggle("draft-content-loading", state.busy);
     $("draft-content").inert = state.busy;
     $("closure-status").hidden = !state.coverageNeedsReview && !state.closure.asked && !state.closure.confirmed;
-    $("closure-status").textContent = state.coverageNeedsReview ? "Coverage and completion need a new check." : state.closure.confirmed ? "You confirmed nothing is missing." : state.closure.asked ? "Waiting for your final confirmation." : "";
+    $("closure-status").textContent = state.coverageNeedsReview ? "Coverage and completion need a new check." : currentClosure().confirmed ? "You confirmed nothing is missing." : state.closure.asked ? "Waiting for your final confirmation." : "";
     updateConversationControls();
     updateDocumentIntakeUI();
     updateSaveHint();
@@ -419,7 +425,7 @@
   function renderAnalysisThrough(){
     const node=$('analysis-through');if(!node)return;
     if(!state.config?.concurrent_interview?.enabled){node.hidden=true;return;}
-    const basis=participantCoverageBasis(),count=basis.length;
+    const basis=participantCoverageBasis(processEvidence({turns:state.turns}).turns),count=basis.length;
     node.hidden=!count;
     if(node.hidden)return;
     const current=analysisCheckpoint&&analysisCheckpoint.basis===JSON.stringify(basis)&&analysisCheckpoint.documents===activeDocumentSignature();
@@ -551,7 +557,7 @@
     item.id=`turn-${turn.id}`;
     const content=el("div","turn-content"), meta=el("div","turn-meta"), paragraph=el("p","turn-text",turn.text);
     const row={id:turn.id,role:turn.role,fileUpdate:Boolean(turn.document_event),text:turn.text,caption,item,paragraph,play:null};
-    meta.append(el("span","turn-name",turn.document_event?"File update":turn.role==="assistant"?"Interviewer":"You"));
+    meta.append(el("span","turn-name",turn.document_event?"File update":turn.delivery==="text"?"Interviewer · shown as text":turn.role==="assistant"?"Interviewer":"You"));
     if(!turn.document_event)meta.append(el("span","turn-id",caption));
     if(turn.role==="assistant"&&!turn.document_event){
       const play=el("button","play-turn","Listen");play.type="button";play.disabled=playDisabled;
@@ -805,7 +811,7 @@
     $("start-live").disabled=!state.config?.live?.enabled||state.busy||Boolean(state.recording)||state.requestingMic||state.transcribing;
     $("stop-live").hidden=!active&&!closing; $("stop-live").disabled=closing;
     $("stop-live").textContent=closing?"Saving…":"Stop talking";
-    $("mute-live").hidden=!conversationUI.live?.connected;
+    $("mute-live").hidden=!conversationUI.live?.connected||Boolean(conversationUI.live?.inputClosed);
     $("mute-live").textContent=conversationUI.muted?"Unmute mic":"Mute mic";
     $("mute-live").setAttribute("aria-pressed",String(conversationUI.muted));
     $("type-instead").hidden=transcript||active||closing;
@@ -1003,7 +1009,7 @@
     if(intakeActive()||state.busy||state.recording||state.transcribing||state.requestingMic||conversationUI.live?.active)return;
     if(!ensureConversation())return;
     stopSpeaking(); voiceEnded=false; conversationUI.typing=false; conversationUI.muted=false;
-    if(state.config?.agent_team?.voice_mode==="live_front")concurrentInterview?.reset();
+    if(state.config?.agent_team?.voice_mode==="live_front")concurrentInterview?.reset({handoff:true});
     if(!conversationUI.live) {
       if(state.config?.agent_team?.enabled&&state.config.agent_team.voice_mode!=="live_front"){
         if(!window.CollectorControlledVoice){notice("Voice couldn’t start. Refresh the page, or type instead.",true);return;}
@@ -1040,7 +1046,7 @@
       // GPT-Live is the spoken front; the managed team runs on its captions.
       if(!window.CollectorLiveVoice){notice("Voice couldn’t start. Refresh the page, or type instead.",true);return;}
       conversationUI.live=new window.CollectorLiveVoice({request,
-        onStatus:status=>{conversationUI.status=status;updateControls();},
+        onStatus:status=>{conversationUI.status=status;updateControls();if(status==="idle")void settleStoppedVoice();},
         onTranscript:receiveLiveCaption,
         onError:message=>notice(message,true),
         onAudioFrame:frame=>{gpfsPresence?.setAudio(frame);if(conversationUI.liveCoverageDeferred&&!frame.inputActive&&!frame.playbackActive&&!frame.outputActive)syncLiveCoverage();}
@@ -1051,51 +1057,79 @@
     selectConversationView(conversationUI.view);
     const live=conversationUI.live,generation=state.generation;
     conversationUI.liveCoverageKey=null;
-    await live.start({context:clone(state.context),turns:clone(state.turns.filter(turn=>!turn.document_event)),document_scope:documentController?.exportState().scope});
+    const selected=selectedNaturalVoice();
+    await live.start({...(selected?{voice:selected.id}:{}),context:clone(state.context),turns:clone(state.turns.filter(turn=>!turn.document_event)),document_scope:documentController?.exportState().scope});
     if(generation===state.generation&&conversationUI.live===live)syncLiveCoverage();
     // The new session is seeded once with the finalized document scope on the
     // server. Re-appending every file would duplicate that context in fragments.
   }
+  function voiceStopPrefix(text) {
+    if(typeof text!=="string"||text.length>6000)return null;
+    const patterns=state.config?.agent_team?.stop_intent_patterns||[];
+    for(const match of text.matchAll(/[^.?!]+/g)){
+      const sentence=match[0].trim().toLowerCase().replace(/,?\s+please$/,"");
+      if(patterns.some(pattern=>new RegExp(pattern,"u").test(sentence)))return text.slice(0,match.index).trim();
+    }
+    return null;
+  }
+  function processEvidence(captured) {
+    const index=captured.turns.findLastIndex(turn=>turn.role==="user"&&!turn.document_event);
+    const turn=captured.turns[index];
+    if(!liveStopTurn||turn?.id!==liveStopTurn.id||turn.text!==liveStopTurn.text)return captured;
+    const turns=captured.turns.slice(0,index);
+    if(liveStopTurn.prefix)turns.push({...turn,text:liveStopTurn.prefix});
+    return {...captured,turns};
+  }
+  const lastFinalCaption=new Map();
   function receiveLiveCaption(caption) {
     if(!caption.text||!["user","assistant"].includes(caption.role))return;
     const key=`${caption.role}:${caption.id}`;
-    // While the interviewer is reading an application-authorized line, that
-    // line is already the assistant's turn; its spoken caption is not added again.
-    if(caption.role==="assistant"&&liveAuthorized&&Date.now()<liveAuthorized.until&&!conversationUI.captions.has(key))return;
     if(caption.role==="user"){if(caption.final)conversationUI.pendingParticipantCaptions.delete(key);else conversationUI.pendingParticipantCaptions.add(key);}
     let ids=conversationUI.captions.get(key)||[];
     const unchanged=ids.length && ids.map(id=>state.turns.find(t=>t.id===id)?.text||"").join("")===caption.text;
-    if(unchanged){if(caption.role==="user"&&caption.final){if(conversationUI.liveCoverageDeferred)syncLiveCoverage();if(conversationUI.applied!==conversationUI.revision)scheduleWorkflow();scheduleLiveCapture();}return;}
-    const chunks=caption.text.match(/[\s\S]{1,6000}/g)||[];
-    const other=state.turns.filter(t=>!ids.includes(t.id));
-    if(other.length+chunks.length>400||other.reduce((n,t)=>n+t.text.length,0)+caption.text.length>400000){
-      conversationUI.live?.stop();notice("This interview is full. Save a copy, then start a new one to continue.",true);return;
+    if(!unchanged){
+      const chunks=caption.text.match(/[\s\S]{1,6000}/g)||[];
+      const other=state.turns.filter(t=>!ids.includes(t.id));
+      if(other.length+chunks.length>400||other.reduce((n,t)=>n+t.text.length,0)+caption.text.length>400000){
+        conversationUI.live?.stop();notice("This interview is full. Save a copy, then start a new one to continue.",true);return;
+      }
+      chunks.forEach((chunk,i)=>{
+        let turn=state.turns.find(t=>t.id===ids[i]);
+        if(!turn){turn={id:nextTurnId(),role:caption.role,text:chunk};ids[i]=turn.id;state.turns.push(turn);}else turn.text=chunk;
+      });
+      conversationUI.captions.set(key,ids);state.version++;state.dirty=true;
+      renderTranscript(true);
+      if(caption.role==="user"){
+        // No notes update is sent for caption fragments: a speech model fed a
+        // stream of silent context mid-answer drifts into voicing the
+        // participant's side. The next completed capture sends one short update.
+        conversationUI.revision++;
+        suppressWorkflowReadiness();
+        if(!liveFrontActive())scheduleWorkflow();
+      }
     }
-    chunks.forEach((chunk,i)=>{
-      let turn=state.turns.find(t=>t.id===ids[i]);
-      if(!turn){turn={id:nextTurnId(),role:caption.role,text:chunk};ids[i]=turn.id;state.turns.push(turn);}else turn.text=chunk;
-    });
-    conversationUI.captions.set(key,ids);state.version++;state.dirty=true;
-    renderTranscript(true);
-    if(caption.role==="user"){
-      // No notes update is sent for caption fragments: a speech model fed a
-      // stream of silent context mid-answer drifts into voicing the
-      // participant's side. The next completed capture sends one short update.
-      conversationUI.revision++;
-      suppressWorkflowReadiness();
-      scheduleWorkflow();
-    }
-    if(caption.final&&caption.role==="assistant"){
+    if(!caption.final||lastFinalCaption.get(key)===caption.text)return;
+    lastFinalCaption.set(key,caption.text);
+    if(caption.role==="assistant"&&state.turns.findLast(turn=>turn.role==="assistant"&&!turn.document_event)?.id===ids.at(-1)){
       pendingDocumentReason=null;
-      if(/[?？]/.test(caption.text)&&/file|document|upload/i.test(caption.text)&&/why|reason|look for|relat|help|notice|share|purpose/i.test(caption.text)){
+      if(/[?？]/.test(caption.text)&&/why|reason|look for|relat|help|notice|share|purpose/i.test(caption.text)){
         const candidates=(documentController?.exportState().documents||[]).filter(document=>document.analysis?.disposition==="needs_reason"&&!document.analysis?.purpose_attempted);
         const named=candidates.filter(document=>document.name&&caption.text.toLowerCase().includes(document.name.toLowerCase()));
-        const candidate=named.length===1?named[0]:candidates.length===1?candidates[0]:null;
+        const candidate=named.length===1?named[0]:candidates.length===1&&/file|document|upload/i.test(caption.text)?candidates[0]:null;
         if(candidate)bindDocumentReason(candidate,ids.at(-1));
       }
     }
-    if(caption.final&&caption.role==="user"&&pendingDocumentReason)resolveDocumentPurpose(caption.text);
-    if(caption.final&&caption.role==="user"){if(conversationUI.liveCoverageDeferred)syncLiveCoverage();scheduleLiveCapture();}
+    if(caption.role==="user"){
+      const prefix=voiceStopPrefix(caption.text);
+      const answer=prefix===null?caption.text:prefix;
+      if(answer&&pendingDocumentReason&&state.turns.findIndex(turn=>turn.id===ids[0])>state.turns.findIndex(turn=>turn.id===pendingDocumentReason.questionId))void resolveDocumentPurpose(answer);
+      if(prefix!==null)liveStopTurn={id:ids.at(-1),text:caption.text,prefix};
+      if(prefix!==null&&liveFrontActive()){
+        conversationUI.muted=true;voiceEnded=true;conversationUI.live.setMuted(true);scheduleWorkflow();
+        void conversationUI.live.stop();return;
+      }
+      if(conversationUI.liveCoverageDeferred)syncLiveCoverage();scheduleWorkflow();scheduleLiveCapture();
+    }
   }
   function scheduleLiveCapture() {
     if(!liveFrontActive()||state.example||intakeActive())return;
@@ -1103,38 +1137,89 @@
     clearTimeout(liveCaptureTimer);
     liveCaptureTimer=setTimeout(()=>{liveCaptureTimer=null;void runLiveCapture();},400);
   }
-  async function runLiveCapture() {
-    if(!liveFrontActive()||liveCapture||state.example||intakeActive())return;
+  async function settleStoppedVoice() {
+    const session=liveSessionSequence,generation=state.generation;
+    await Promise.resolve(); // Let the transport finish flushing its last captions.
+    if(session!==liveSessionSequence||generation!==state.generation||liveFrontActive()||intakeActive()||state.importing||state.example||
+       JSON.stringify(participantCoverageBasis())===liveStartBasis)return;
+    if(settlingLiveNotes?.session===session)return settlingLiveNotes.promise;
+    const settling={session};settlingLiveNotes=settling;
+    const expected=liveSnapshot();
+    settling.promise=(async()=>{
+      await liveCapture?.finished;
+      if(liveSourceMatches(expected)&&!liveFrontActive()&&!intakeActive()&&!state.importing)await runLiveCapture(true);
+    })();
+    try{await settling.promise;}finally{if(settlingLiveNotes===settling)settlingLiveNotes=null;}
+  }
+  async function runLiveCapture(afterStop=false) {
+    if((!liveFrontActive()&&!afterStop)||liveCapture||state.example||intakeActive())return;
     if(liveAnswerPending()){liveCaptureQueued=true;return;}
-    const captured=liveSnapshot(),latest=captured.turns.findLast(turn=>turn.role==="user"&&!turn.document_event);
-    if(!latest||liveCapturedThrough===`${latest.id}:${latest.text}`)return;
-    const through=`${latest.id}:${latest.text}`;
+    const source=liveSnapshot();
+    const captured=afterStop?processEvidence(source):source;
+    const latest=captured.turns.findLast(turn=>turn.role==="user"&&!turn.document_event);
+    if(!latest)return;
+    const through=JSON.stringify([captured.context,captured.document_revision,participantCoverageBasis(captured.turns)]);
+    if(through===liveCapturedThrough)return;
     const generation=state.generation,controller=new AbortController(),check={controller,generation};
+    let finish;check.finished=new Promise(resolve=>{finish=resolve;});
     liveCapture=check;liveCaptureQueued=false;
     try{
-      const {live:_,generation:__,revision:___,...payload}=captured;
-      const result=await request("/api/interview",{...payload,action:"answer"},{signal:controller.signal});
-      if(liveCapture!==check||generation!==state.generation||!liveFrontActive())return;
-      if(!liveSourceMatches(captured)){liveCaptureQueued=true;return;}
-      if(await applyLiveCapture(result,captured))liveCapturedThrough=through;
+      const {live,liveSession,generation:sourceGeneration,revision,...payload}=captured;
+      const result=await request("/api/interview",{...payload,action:"answer"},{signal:controller.signal,concurrentBypass:true});
+      if(liveCapture!==check||generation!==state.generation)return;
+      if(!liveSourceMatches(source)){liveCaptureQueued=true;return;}
+      if(await applyLiveCapture(result,captured,{notesOnly:!liveFrontActive(),source})&&liveCapture===check&&!result.preserve_capture)liveCapturedThrough=through;
     }catch(error){
-      if(generation===state.generation&&error.name!=="AbortError")notice("The notes could not be updated from the last answer. Voice continues; the next answer refreshes them. "+(error?.message||""),true);
+      if(generation===state.generation&&error.name!=="AbortError"){
+        if(!liveFrontActive()){
+          const retry=$("retry-question");retry.hidden=false;retry.dataset.liveNotes="true";retry.textContent="Retry notes";
+          notice("The final answer is in the transcript. Choose Retry notes to update the memo. "+(error?.message||""),true);
+        }else notice("The notes could not be updated from the last answer. Voice continues; the next answer refreshes them. "+(error?.message||""),true);
+      }
     }finally{
       if(liveCapture===check){liveCapture=null;if(liveCaptureQueued&&!liveAnswerPending())scheduleLiveCapture();}
+      finish();
     }
   }
-  function authorizeLiveUtterance(text) {
-    // The application records the exact line as the interviewer's turn and
-    // asks GPT-Live to read it; the spoken caption of that reading is not added.
-    state.turns.push({id:nextTurnId(),role:"assistant",text});state.version++;state.dirty=true;
-    liveAuthorized={text,until:Date.now()+20000};
-    renderTranscript(true);
-    void Promise.resolve(conversationUI.live?.say?.(text)).catch(()=>{});
+  async function deliverLiveLine(question,captured) {
+    const live=conversationUI.live,controller=new AbortController();liveDelivery?.abort();liveDelivery=controller;
+    try{
+      const receipt=await Promise.resolve().then(()=>live.say(question,{signal:controller.signal,waitForCaption:true})).catch(()=>null);
+      if(controller.signal.aborted||!liveFrontActive()||!liveSourceMatches(captured))return "cancelled";
+      if(receipt?.status==="captioned")return "captioned";
+      // Preserve exactly what was observed. Display the intended line separately
+      // only when no matching caption reached this interview.
+      const observed=state.turns.slice(captured.turns.length).some(turn=>turn.role==="assistant"&&turn.text===question);
+      if(!observed){
+        if(state.turns.length>=400||state.turns.reduce((sum,turn)=>sum+turn.text.length,question.length)>400000){
+          notice("The interview is full. Save a copy before continuing. The pending interviewer line was not added.",true);
+          voiceEnded=true;void live.stop();return "cancelled";
+        }
+        state.turns.push({id:nextTurnId(),role:"assistant",text:question,delivery:"text"});
+        state.version++;state.dirty=true;renderTranscript(true);
+      }
+      selectConversationView("transcript");
+      notice("Voice delivery could not be confirmed. Read the interviewer’s message in the transcript.",true);
+      return "text";
+    }finally{if(liveDelivery===controller)liveDelivery=null;}
   }
-  async function applyLiveCapture(result,captured=liveResponseSources.get(result)) {
-    if(intakeActive()||!liveFrontActive()||!liveSourceMatches(captured))return false;
-    const kind=result?.speech_authorization?.kind;
-    if(typeof result.question!=="string"||!result.question.trim())throw new Error("The interviewer returned an incomplete capture.");
+  function endAfterLiveLine(captured) {
+    const deadline=Date.now()+20000;
+    function finish(){
+      liveCompleteTimer=null;
+      if(!liveFrontActive()||!state.closure.confirmed||!liveSourceMatches(captured))return;
+      if(!conversationUI.live.assistantSpeaking){voiceEnded=true;void conversationUI.live.stop();return;}
+      if(Date.now()<deadline){liveCompleteTimer=setTimeout(finish,200);return;}
+      voiceEnded=true;void conversationUI.live.stop();
+    }
+    finish();
+  }
+  async function applyLiveCapture(result,captured=liveResponseSources.get(result),{notesOnly=false,source=captured}={}) {
+    if(intakeActive()||(!liveFrontActive()&&!notesOnly)||!liveSourceMatches(source))return false;
+    const {kind}=window.CollectorSpeechAuthorization(result);
+    if(kind==="pause"&&!notesOnly){
+      conversationUI.muted=true;conversationUI.live.closeInput();updateControls();
+    }
     let memo=null;
     if(!result.preserve_capture){
       const documentEvidence=mergeDocumentEvidence(result.document_evidence);
@@ -1146,35 +1231,45 @@
         recap_due:["scope_boundary","walkthrough"].includes(result.recap_due)?result.recap_due:"none"};
     }
     if(typeof result.capture_token==="string"&&result.capture_token&&result.capture_token.length<=4096)state.captureToken=result.capture_token;
-    state.coverageVerified=result.coverage_verified===true;state.completion=result.completion||null;
+    if(!notesOnly){state.coverageVerified=result.coverage_verified===true;state.completion=result.completion||null;}
     if(memo){
-      Object.assign(state,memo);
+      Object.assign(state,memo);rememberDiscussion(result,captured);
       rememberCoverageCheckpoint(captured.turns,captured.revision,captured.document_revision,result.coverage_assessment);
     }
     // The spoken interviewer alone chooses ordinary follow-ups. Background
     // analysis records facts and coverage; its proposed wording is never fed back.
     state.liveSuggestedQuestion="";
     state.version++;state.dirty=true;renderTranscript();announceReadiness();
+    if(notesOnly)return true;
     if(kind==="question"){syncLiveCoverage();scheduleAdvisoryCoverage();return true;}
+    const delivery=await deliverLiveLine(result.question,captured);
+    if(delivery==="cancelled")return true;
+    rememberCompletionReview(result);
     if(kind==="review_pending"){
-      authorizeLiveUtterance(text(result.question,6000));
-      rememberCompletionReview(result);
-      if(pendingCompletionReview?.ticket===result.review_ticket)pendingCompletionReview.acknowledged=true;
+      const pending=pendingCompletionReview;
+      // The server issued this ticket for this snapshot. Live may have added
+      // other assistant captions in the meantime; its original evidence remains exact.
+      pending.live=true;pending.basis=pendingReviewBasis(pending);
+      const acknowledgement=state.turns.slice(captured.turns.length).findLast(turn=>turn.role==="assistant"&&turn.text===result.question);
+      pending.snapshot={...snapshot(),turns:clone(acknowledgement?[...captured.turns,acknowledgement]:captured.turns)};
+      if(delivery==="text"){
+        $("retry-question").hidden=false;$("retry-question").textContent="Continue completion review";
+        voiceEnded=true;void conversationUI.live.stop();return true;
+      }
+      pending.acknowledged=true;
       const reviewSource=liveSnapshot();
       try{const reviewed=await requestCompletionReview();if(liveFrontActive())await applyLiveCapture(reviewed,reviewSource);}
-      catch(error){if(error.name!=="AbortError")notice("The completion review did not finish. Voice continues; keep talking, or stop talking and choose Try again.",true);}
+      catch(error){if(error.name!=="AbortError")notice("The completion review did not finish. Your answers are retained. Stop talking and choose Try again to resume it.",true);}
       return true;
     }
-    if(["final_check","pause","complete"].includes(kind)){
-      state.closure={asked:kind!=="pause",confirmed:kind==="complete"&&coverageVerified()&&result.completion?.complete===true};
-      authorizeLiveUtterance(text(result.question,6000));
-      rememberCompletionReview(result);
-      if(kind==="complete"){clearTimeout(liveCompleteTimer);liveCompleteTimer=setTimeout(()=>{liveCompleteTimer=null;if(liveFrontActive()){voiceEnded=true;void conversationUI.live.stop();}},9000);}
-    }
+    state.closure={asked:kind==="final_check"||kind==="complete",confirmed:kind==="complete"&&!state.captureProvenance};
+    updateControls();
+    if(kind==="pause"){voiceEnded=true;void conversationUI.live.stop();}
+    if(kind==="complete")endAfterLiveLine(captured);
     return true;
   }
   function scheduleWorkflow() {
-    if(intakeActive()||state.importing)return;
+    if(intakeActive()||state.importing||liveFrontActive()&&liveAnswerPending())return;
     if(state.config?.concurrent_interview?.enabled&&concurrentInterview?.token&&!liveFrontActive())return;
     // Built-in and saved fictional examples already contain their diagram.
     // Browsing them must not replace it with paid, newly generated work.
@@ -1190,9 +1285,10 @@
     conversationUI.flowTimer=setTimeout(()=>{conversationUI.flowTimer=null;return refreshWorkflow();},1000);
   }
   function suppressWorkflowReadiness() {
-    state.completion=null;
+    clearTimeout(liveCompleteTimer);liveCompleteTimer=null;liveDelivery?.abort();
+    state.closure={asked:false,confirmed:false};state.completion=null;
     state.coverageVerified=false;invalidateCompletionReview();cancelAdvisoryCoverage();
-    if($("retry-question"))delete $("retry-question").dataset.resumeReview;
+    if($("retry-question")){delete $("retry-question").dataset.resumeReview;delete $("retry-question").dataset.liveNotes;}
     if(noticeKind==="ready"){clearTimeout(noticeTimer);$("global-notice").hidden=true;}
     conversationUI.readyAnnounced=false;
   }
@@ -1262,7 +1358,12 @@
     if(state.importing)return;
     if(conversationUI.flowBusy||(conversationUI.applied===conversationUI.revision&&!state.coverageNeedsReview))return;
     if(!state.turns.some(t=>t.role==="user")&&!hasDocumentEvidence())return;
-    const revision=conversationUI.revision,generation=state.generation, captured=snapshot();
+    if(liveFrontActive()&&liveAnswerPending()&&!options.documentIntake)return false;
+    const revision=conversationUI.revision,generation=state.generation,original=snapshot(),captured=processEvidence(original);
+    const sourceKey=JSON.stringify([captured.context,captured.document_revision,participantCoverageBasis(captured.turns)]);
+    if(captured!==original&&!options.documentIntake&&(workflowSource===sourceKey||!captured.turns.some(t=>t.role==="user")&&!hasDocumentEvidence())){
+      conversationUI.applied=revision;return;
+    }
     conversationUI.flowBusy=true;conversationUI.flowAbort=new AbortController();
     const flowAbort=conversationUI.flowAbort,abort=()=>flowAbort.abort();
     options.signal?.addEventListener("abort",abort,{once:true});if(options.signal?.aborted)abort();
@@ -1290,7 +1391,7 @@
         memo_findings:normalizeFindings(result.memo_findings,captured.turns,documentEvidence),coverage:normalizeCoverage(result.coverage),
         summary:text(result.summary,6000),focus:text(result.focus,500),parking_lot:strings(result.parking_lot,50)
       };
-      conversationUI.workflow=workflow;state.documentEvidence=documentEvidence;
+      conversationUI.workflow=workflow;workflowSource=sourceKey;state.documentEvidence=documentEvidence;
       applyProcessTitle(workflow.title);
       if(memo){Object.assign(state,memo);state.completion=result.completion||null;state.coverageVerified=result.coverage_verified===true;if(typeof result.capture_token==="string")state.captureToken=result.capture_token;rememberCoverageCheckpoint(captured.turns,revision,captured.document_revision,result.coverage_assessment);}
       // A diagram-only result cannot revoke a newer capture's completion review.
@@ -1529,6 +1630,7 @@
     const natural = selectedNaturalVoice();
     if ($("voice-summary-label")) $("voice-summary-label").textContent = canSpeakChoice() ? `Voice · ${voiceLabel()}` : "Voice settings";
     $("voice-description").textContent = natural ? "AI-generated speech." : state.voice ? "Computer voice · plays on this device." : "Choose a voice to hear questions.";
+    if(state.voice&&state.config?.agent_team?.voice_mode==="live_front")$("voice-description").textContent="Computer voice for reading questions aloud. Live interviews use Marin.";
     $("voice-availability").hidden = canSpeakChoice();
     $("voice-availability").textContent = canSpeakChoice() ? "" : natural ? "The natural AI voice is unavailable. You can choose an installed computer voice or read the questions." : "No selected voice is available. Choose another voice or read the questions.";
     updateControls();
@@ -1782,7 +1884,7 @@
     return concurrentInterview;
   }
   function applyBackgroundCapture(result,captured){
-    if(intakeActive()||!workflowEvidenceStillValid(captured))return;
+    if(intakeActive()||result.preserve_capture||!workflowEvidenceStillValid(captured))return;
     const evidence=mergeDocumentEvidence([...(result.document_evidence||[]),...(result.workflow_capture?.document_evidence||[])]);
     const findings=normalizeFindings(result.memo_findings||[],captured.turns,evidence);
     const graph=result.workflow_capture?.workflow;
@@ -1813,9 +1915,10 @@
       invalidateCompletionReview();$("retry-question").textContent="Try again";
     }
   }
+  const pendingReviewBasis=pending=>pending?.live?JSON.stringify([state.context,participantCoverageBasis(),activeDocumentSignature()]):reviewSource();
   async function requestCompletionReview(options={}){
     const pending=pendingCompletionReview;
-    if(!pending||pending.generation!==state.generation||pending.basis!==reviewSource())throw new DOMException("The conversation changed before review","AbortError");
+    if(!pending||pending.generation!==state.generation||pending.basis!==pendingReviewBasis(pending))throw new DOMException("The conversation changed before review","AbortError");
     if(!pending.acknowledged)throw new Error("The review acknowledgement has not finished.");
     if(pending.promise)return pending.promise;
     pending.controller=new AbortController();const controller=pending.controller,abort=()=>controller.abort();
@@ -1827,7 +1930,7 @@
       const captured=pending.retryRequired?snapshot():clone(pending.snapshot);
       const result=await request("/api/agent-team/review",{...captured,...(state.captureToken?{capture_token:state.captureToken}:{}),review_ticket:pending.ticket,...(pending.retryRequired?{retry_review:true}:{})},
         {signal:controller.signal,teamRunId:pending.runId});
-      if(controller.signal.aborted||pendingCompletionReview!==pending||pending.generation!==state.generation||pending.basis!==reviewSource())throw new DOMException("The conversation changed during review","AbortError");
+      if(controller.signal.aborted||pendingCompletionReview!==pending||pending.generation!==state.generation||pending.basis!==pendingReviewBasis(pending))throw new DOMException("The conversation changed during review","AbortError");
       if(result.speech_authorization?.kind==="review_pending")throw new Error("The completion review did not return a decision.");
       return result;
     })();
@@ -1852,7 +1955,7 @@
     // Typed users see the acknowledgement immediately. If they opted into
     // spoken questions, wait for its real playback end before starting review.
     if($("speak-questions").checked)await speakReviewed(result.question);
-    if(pendingCompletionReview!==pending||pending.basis!==reviewSource())throw new DOMException("The conversation changed before review","AbortError");
+    if(pendingCompletionReview!==pending||pending.basis!==pendingReviewBasis(pending))throw new DOMException("The conversation changed before review","AbortError");
     pending.acknowledged=true;
     applyInterview(await requestCompletionReview());
   }
@@ -1995,9 +2098,12 @@
   }
   async function retryQuestion() {
     if(intakeActive()||state.busy||conversationUI.live?.active)return;
+    if($("retry-question").dataset.liveNotes){
+      delete $("retry-question").dataset.liveNotes;$("retry-question").hidden=true;await runLiveCapture(true);return;
+    }
     const generation=state.generation,pauseSequence=reviewPauseSequence;setBusy(true);
     try{
-      if(pendingCompletionReview&&pendingCompletionReview.basis===reviewSource()){
+      if(pendingCompletionReview&&pendingCompletionReview.basis===pendingReviewBasis(pendingCompletionReview)){
         // The acknowledgement is already visible. Retry the same review ticket
         // without generating or playing it again.
         pendingCompletionReview.acknowledged=true;
@@ -3108,7 +3214,7 @@
   function sessionObject({includePresentation=false}={}) {
     const provenance=state.captureProvenance===null?null:savedCaptureProvenance(state.captureProvenance);
     const presentation=includePresentation&&draftComponentDesigns.size?{presentation:{component_designs:Object.fromEntries(draftComponentDesigns)}}:{};
-    return {...presentation,taxonomy:state.taxonomy,connections_out:state.connections_out,document_evidence:state.documentEvidence,workflow:conversationUI.workflow,schema_version:1,saved_at:new Date().toISOString(),context:state.context||readContext(),process_name_manual:state.processNameManual,derived_process_title:state.derivedProcessTitle,documents:documentController?.exportState()||null,document_questions_handled:[...documentQuestionsHandled],turns:state.turns,coverage:state.coverage,summary:state.summary,memo_findings:state.memo_findings,focus:state.focus,parking_lot:state.parking_lot,closure:provenance?{...state.closure,confirmed:false}:state.closure,...(provenance?{capture_provenance:provenance}:{}),draft:state.draft,draft_stale:Boolean(state.draft&&state.draftVersion!==state.version),draft_edited:state.draftEdited,synthetic_example:state.example,unsent_answer:$("answer-text").value,voice_choice:state.voiceChoice,knowledge_process_id:knowledgeUI?.processId||null,knowledge_status:knowledgeUI?.exportReceipt()||null};
+    return {...presentation,taxonomy:state.taxonomy,connections_out:state.connections_out,document_evidence:state.documentEvidence,workflow:conversationUI.workflow,schema_version:1,saved_at:new Date().toISOString(),context:state.context||readContext(),process_name_manual:state.processNameManual,derived_process_title:state.derivedProcessTitle,documents:documentController?.exportState()||null,document_questions_handled:[...documentQuestionsHandled],turns:state.turns,coverage:state.coverage,summary:state.summary,memo_findings:state.memo_findings,focus:state.focus,parking_lot:state.parking_lot,closure:currentClosure(),...(provenance?{capture_provenance:provenance}:{}),draft:state.draft,draft_stale:Boolean(state.draft&&state.draftVersion!==state.version),draft_edited:state.draftEdited,synthetic_example:state.example,unsent_answer:$("answer-text").value,voice_choice:state.voiceChoice,knowledge_process_id:knowledgeUI?.processId||null,knowledge_status:knowledgeUI?.exportReceipt()||null};
   }
   function exportSession() {
     download(JSON.stringify(sessionObject({includePresentation:true}),null,2), `${safeFilename(processDisplayName() || readContext().process_name)}-session.json`, "application/json");
@@ -3123,7 +3229,7 @@
     const context=state.context||readContext();
     const turns=state.turns.map((turn,index)=>({sequence:index+1,id:turn.id,role:turn.role,
       speaker:turn.document_event?"File context update":turn.role==="user"?"Process participant":"AI interviewer",
-      kind:turn.document_event?"document_context":"interview_message",text:turn.text,
+      kind:turn.document_event?"document_context":"interview_message",text:turn.text,...(turn.delivery==="text"?{delivery:"text"}:{}),
       ...(typeof turn.document_id==="string"?{document_id:turn.document_id}:{})}));
     const topics=TOPICS.map(([key,label])=>{
       const finding=state.memo_findings.find(item=>item.key===key);
@@ -3134,14 +3240,14 @@
       app_version:typeof state.config?.version==="string"?state.config.version:"unknown",
       process:{name:processDisplayName(context)||"Untitled process",owner_role:context.process_owner||"",objective:context.objective||"",background:context.background||""},
       synthetic_example:state.example===true,
-      capture:{in_progress:Boolean(state.busy||state.recording||state.transcribing||conversationUI.live?.active||conversationUI.status==="closing"||conversationUI.flowBusy),
+      capture:{in_progress:Boolean(state.busy||state.recording||state.transcribing||conversationUI.live?.active||conversationUI.status==="closing"||conversationUI.flowBusy||liveCapture||settlingLiveNotes),
         scope_note:"Snapshot of all stored transcript text in order. Live captions may be provisional. Unsent text, recordings and supporting documents are not included. Export time is not an interview or turn timestamp.",
         memo_note:"Latest recorded memo assessment, not a per-turn history or independent verification. It may lag the newest answers. Captured status and participant confirmation must still be checked against the transcript."},
       counts:{messages:turns.length,interviewer_messages:turns.filter(t=>t.role==="assistant"&&t.kind==="interview_message").length,
         participant_messages:turns.filter(t=>t.role==="user"&&t.kind==="interview_message").length,file_updates:turns.filter(t=>t.kind==="document_context").length},
       turns,document_references:state.documentEvidence.filter(source=>topics.some(topic=>topic.evidence_turn_ids.includes(source.id)))
         .map(source=>({id:source.id,name:source.name,label:source.label,kind:"document_excerpt",text_included:false})),
-      memo:{all_topics_captured:memoComplete(),coverage_verified:coverageVerified(),all_topics_covered:memoComplete()&&coverageVerified(),closure:{asked:state.closure.asked===true,confirmed:state.closure.confirmed===true&&coverageVerified()},topics},
+      memo:{all_topics_captured:memoComplete(),coverage_verified:coverageVerified(),all_topics_covered:memoComplete()&&coverageVerified(),closure:currentClosure(),topics},
       interview_notes:{working_summary:state.summary,current_focus:state.focus,parked_topics:[...state.parking_lot],
         draft_open_questions:[...(state.draft?.open_questions||[])],draft_questions_may_be_stale:Boolean(state.draft&&state.draftVersion!==state.version)},
       review_guide:[
@@ -3167,7 +3273,7 @@
       "## Complete chronological transcript",`${data.counts.messages} messages · ${data.counts.interviewer_messages} AI interviewer · ${data.counts.participant_messages} participant · ${data.counts.file_updates} file updates`,
       "Turn text is preserved in fenced blocks. File updates are context, not participant evidence; assistant messages can include questions and acknowledgements."];
     for(const turn of data.turns){parts.push(`### ${String(turn.sequence).padStart(3,"0")} · ${turn.speaker} · ${md(turn.id)}`,
-      `Role: ${turn.role} · Kind: ${turn.kind}${turn.document_id?` · File reference: ${md(turn.document_id)}`:""}`,block(turn.text));}
+      `Role: ${turn.role} · Kind: ${turn.kind}${turn.delivery==="text"?" · Shown as text":""}${turn.document_id?` · File reference: ${md(turn.document_id)}`:""}`,block(turn.text));}
     parts.push("## Latest memo snapshot",`All sixteen topics marked captured or explicitly not applicable: ${data.memo.all_topics_captured?"yes":"no"}.`,
       `Completion coverage review: ${data.memo.coverage_verified?"reviewed":"pending; captured entries are provisional"}.`,
       `Participant completeness check: ${data.memo.closure.confirmed?"confirmed":data.memo.closure.asked?"asked; confirmation pending":"not yet requested"}.`,
@@ -3190,7 +3296,7 @@
     const md = escapeMarkdown;
     const list = (values, empty="Not established in this interview.") => values.length ? values.map(v => `- ${md(v)}`).join("\n") : `- ${md(empty)}`;
     const sources = ids => ids.length ? ids.map(id=>md(state.documentEvidence.some(source=>source.id===id)?`${sourceCaption(id)} (${id})`:id)).join(", ") : "No cited source — UNKNOWN / TBD";
-    const parts = [`# ${md(d.title || processDisplayName() || "Process procedure")}`, "**DRAFT — process owner review required**", state.example ? "**Synthetic example — fictional process data.**" : "", state.draftVersion !== state.version ? "**The interview has changed since this draft was created. Reconcile the new answers before approval.**" : "",`Final completeness check: ${state.closure.confirmed?"participant confirmed":state.closure.asked?"asked; participant confirmation pending":"not yet requested"}.`,"## Contents","- [Business context](#business-context)\n- [Overview](#overview)\n- [Memo foundation](#memo-foundation)\n- [Procedure](#procedure)\n- [Process connections](#process-connections)\n- [Item lifecycles](#item-lifecycles)\n- [Variations and boundaries](#variations-and-boundaries)\n- [Exceptions](#exceptions)\n- [Controls](#controls)\n- [Open questions](#open-questions)\n- [Validation notes](#validation-notes)\n- [Parked topics](#parked-topics)\n- [Interview evidence](#interview-evidence)","## Business context",`- Process: ${md(processDisplayName()||d.title)}`,`- Process owner / role: ${md(state.context?.process_owner||"UNKNOWN / TBD")}`,"### Interview objective",md(state.context?.objective||"Not specified."),"### Supplied context and material",md(state.context?.background||"No additional context supplied."),"## Overview",md(d.overview),"## Memo foundation"];
+    const parts = [`# ${md(d.title || processDisplayName() || "Process procedure")}`, "**DRAFT — process owner review required**", state.example ? "**Synthetic example — fictional process data.**" : "", state.draftVersion !== state.version ? "**The interview has changed since this draft was created. Reconcile the new answers before approval.**" : "",`Final completeness check: ${currentClosure().confirmed?"participant confirmed":state.closure.asked?"asked; participant confirmation pending":"not yet requested"}.`,"## Contents","- [Business context](#business-context)\n- [Overview](#overview)\n- [Memo foundation](#memo-foundation)\n- [Procedure](#procedure)\n- [Process connections](#process-connections)\n- [Item lifecycles](#item-lifecycles)\n- [Variations and boundaries](#variations-and-boundaries)\n- [Exceptions](#exceptions)\n- [Controls](#controls)\n- [Open questions](#open-questions)\n- [Validation notes](#validation-notes)\n- [Parked topics](#parked-topics)\n- [Interview evidence](#interview-evidence)","## Business context",`- Process: ${md(processDisplayName()||d.title)}`,`- Process owner / role: ${md(state.context?.process_owner||"UNKNOWN / TBD")}`,"### Interview objective",md(state.context?.objective||"Not specified."),"### Supplied context and material",md(state.context?.background||"No additional context supplied."),"## Overview",md(d.overview),"## Memo foundation"];
     parts.push("## Classification");
     (d.taxonomy||[]).forEach(tag=>parts.push(`- ${md(tag.facet)}: ${md(tag.value)} · ${md(tag.note)} (Sources: ${sources(tag.evidence_turns)})`));
     parts.push("## Connected processes");
@@ -3224,7 +3330,7 @@
   }
   function memoMarkdown() {
     const d=state.draft,md=escapeMarkdown;
-    const parts=[`# ${md(processDisplayName()||d.title)} — process capture memo`,"**CURRENT-PRACTICE DRAFT — process owner review required**",state.example?"**Synthetic example — fictional process data.**":"",`Account confirmation: ${state.closure.confirmed?"participant confirmed":state.closure.asked?"requested; pending":"not yet requested"}. Process owner approval: pending.`,"Sources distinguish participant answers, supplied context and cited document excerpts; they are not independent verification. UNKNOWN / TBD and unreviewed material remain visible gaps."];
+    const parts=[`# ${md(processDisplayName()||d.title)} — process capture memo`,"**CURRENT-PRACTICE DRAFT — process owner review required**",state.example?"**Synthetic example — fictional process data.**":"",`Account confirmation: ${currentClosure().confirmed?"participant confirmed":state.closure.asked?"requested; pending":"not yet requested"}. Process owner approval: pending.`,"Sources distinguish participant answers, supplied context and cited document excerpts; they are not independent verification. UNKNOWN / TBD and unreviewed material remain visible gaps."];
     d.memo_summary.forEach((finding,index)=>parts.push(`## ${index+1}. ${md(MEMO_HEADINGS[finding.key]||finding.key)}`,`Status: ${md(provisionalFinding(finding)?"Captured · awaiting review":finding.status.replaceAll("_"," "))}`,md(finding.answer),`Source: ${finding.evidence_turns.length?finding.evidence_turns.map(md).join(", "):"UNKNOWN / TBD"}`));
     if(d.taxonomy?.length){parts.push("## Classification");d.taxonomy.forEach(tag=>parts.push(`- ${md(tag.facet)}: ${md(tag.value)} · ${md(tag.note)} (Sources: ${tag.evidence_turns.map(md).join(", ")})`));}
     if(d.connections_out?.length){parts.push("## Connected processes");d.connections_out.forEach(link=>parts.push(`- ${md(link.relationship_type)}: ${md(link.counterpart)} · ${md(link.condition)} (Sources: ${link.evidence_turns.map(md).join(", ")})`));}
@@ -3239,6 +3345,7 @@
     return (!state.dirty&&!knowledgeUI?.hasPending) || confirm("Open a different interview? Anything you haven’t saved will be cleared. "+(knowledgeUI?.hasPending?"A process submission is awaiting confirmation; replacing this session loses its retry information and does not cancel a server save. Recover its status first if needed.":"Save a copy first if you want to keep it."));
   }
   function clearState(context = null) {
+    liveStopTurn=null;workflowSource=null;lastFinalCaption.clear();
     deferredDiagrams.clear();
     draftComponentDesigns.clear();
     concurrentInterview?.reset();
@@ -3353,7 +3460,7 @@
       const turns = saved.turns.map((turn,i) => {
         if (!turn || !["user","assistant"].includes(turn.role) || typeof turn.text !== "string" || typeof turn.id !== "string" || turn.id === "context" || !/^[a-zA-Z0-9_-]{1,40}$/.test(turn.id) || ids.has(turn.id)) throw new Error(`The session has an invalid, reserved, or duplicate turn ID at position ${i+1}.`);
         if (turn.text.length > 6000) throw new Error(`Turn ${turn.id} exceeds the 6,000-character limit.`);
-        ids.add(turn.id); return {id:turn.id,role:turn.role,text:turn.text,...(turn.document_event===true?{document_event:true}:{}),...(typeof turn.document_id==="string"&&/^doc_[a-zA-Z0-9_]+$/.test(turn.document_id)?{document_id:turn.document_id}:{})};
+        ids.add(turn.id); return {id:turn.id,role:turn.role,text:turn.text,...(turn.role==="assistant"&&turn.delivery==="text"?{delivery:"text"}:{}),...(turn.document_event===true?{document_event:true}:{}),...(typeof turn.document_id==="string"&&/^doc_[a-zA-Z0-9_]+$/.test(turn.document_id)?{document_id:turn.document_id}:{})};
       });
       if (turns.reduce((n,t) => n+t.text.length,0) > 400000) throw new Error("This interview is too long to open.");
       const documentEvidence=normalizeDocumentEvidence(saved.document_evidence);
@@ -3551,7 +3658,7 @@
     $("jump-latest").addEventListener("click",()=>{scrollConversation();$("jump-latest").hidden=true;});
     $("conversation-scroll").addEventListener("scroll",updateConversationScroll);
     $("start-live").addEventListener("click",startLiveConversation);
-    $("stop-live").addEventListener("click",async()=>{voiceEnded=true;liveAuthorized=null;clearTimeout(liveCompleteTimer);liveCompleteTimer=null;const wasConnected=conversationUI.live?.connected;const result=await conversationUI.live?.stop();updatePresence();if(wasConnected&&!result?.finalized)notice("Voice stopped early. The last few lines of the transcript may be missing.");});
+    $("stop-live").addEventListener("click",async()=>{voiceEnded=true;liveDelivery?.abort();clearTimeout(liveCompleteTimer);liveCompleteTimer=null;const wasConnected=conversationUI.live?.connected;const result=await conversationUI.live?.stop();updatePresence();if(wasConnected&&!result?.finalized)notice("Voice stopped early. The last few lines of the transcript may be missing.");});
     $("mute-live").addEventListener("click",()=>{conversationUI.muted=!conversationUI.muted;conversationUI.live?.setMuted(conversationUI.muted);updateControls();});
     $("type-instead").addEventListener("click",async()=>{
       if(intakeActive())return;

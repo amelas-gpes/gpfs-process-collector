@@ -79,7 +79,7 @@ const liveBindings=appSource.split("\n").filter(line=>/\$\("(?:stop-live|mute-li
 const source=appSource
  .replace("  init();","  window.__sidebarTests={mapProjection,workflowGapSummary,openConnectionEditor,selectWorkflowMode,syncWorkflowVisibility,exportSession,generateDraft,memoUI,selectMemoSection,memoTabKey,initMemoTabs,openDocumentAssets,updateAssetCount,placeConversationDock,setTranscriptFind,setTranscriptExport,initTranscriptTools,updateConversationControls,exerciseControls:updateControls,appendDocumentMessage,realRequest:request,createIntake:()=>documentIntake=createDocumentIntake(),setIntake:value=>{documentIntake=value;}};\n  init();")
  .replace(/  init\(\);\s*\}\)\(\);\s*$/,"  updateControls=()=>{updatePresence();}; window.__downloads=[]; download=(...args)=>window.__downloads.push(args); "+exportBindings+titleBinding+liveBindings+" window.__uiTests={normalizeDocumentEvidence,normalizeFindings,boundedVoiceDocuments,sourceCaption,scrollToElement,dismissInlineError,dismissNotice,placeMemo,resolveDocumentPurpose,skipQuestion,getPendingDocumentReason:()=>pendingDocumentReason,readingUI,refreshReadingSearch,moveReadingSearch,returnToSource,renderCoverage,state,renderTranscript,showFoundationTopic,initFoundationDialog,closeFoundationTopic,jumpToTurn,jumpToReview,tab,initReviewTabs,selectReviewSection,reviewTabKey,renderMap,renderWorkingMap,workflowCanvases,showWorkflowStep,renderWorkflowLegend,retryWorkflowLayout,ensureWorkflowAssets,renderSteps,updateWorkflowNavigation,updateCanvasControls,zoomMap,fitMapToWidth,conversationUI,selectConversationView,conversationTabKey,receiveLiveCaption,scheduleWorkflow,refreshWorkflow,clearState,sendAnswer,retryQuestion,setMemoSheet,setInterviewSettings,notice,applyInterview,markdown,memoMarkdown,normalizeDraft,ensureConversation,applyProcessTitle,documentContext,onDocumentEvent,snapshot,sessionObject,importSession,presenceState,updatePresence,startLiveConversation,setPresenceFake:value=>{gpfsPresence=value;},setDocumentController:value=>{documentController=value;},renderReport:typeof renderReport==='function'?renderReport:null,setRequest:fn=>{request=fn;}};\n})();");
-context.TextEncoder=TextEncoder;vm.createContext(context);vm.runInContext(source,context,{filename:"app.js"});
+context.TextEncoder=TextEncoder;vm.createContext(context);vm.runInContext(fs.readFileSync(path.join(__dirname,"../web/controlled-voice.js"),"utf8"),context);vm.runInContext(source,context,{filename:"app.js"});
 const t=context.window.__uiTests;if(!t)throw Error("UI test seam was not installed");Object.assign(t,context.window.__sidebarTests);t.initFoundationDialog();t.initReviewTabs();
 let passes=0;
 const turns=[{id:"t001",role:"assistant",text:"What starts the work?"},{id:"t002",role:"user",text:"An email.\n<reported text, not markup>"},{id:"t003",role:"assistant",text:"What happens next?"}];
@@ -1369,7 +1369,7 @@ if(process.argv.includes("--usability-only")){
   context.window.CollectorLiveVoice=class{
    constructor(options){callbacks=options;this.active=false;this.connected=false;}
    async start(){this.active=true;this.connected=true;callbacks.onStatus("listening");return true;}
-   say(text){said.push(text);return Promise.resolve({status:"acknowledged"});}
+   say(text){said.push(text);const id="spoken-"+said.length;callbacks.onTranscript({id,role:"assistant",text,final:true});return Promise.resolve({status:"captioned",captionId:id});}
    appendContext(text,meta){appended.push({text,meta});return Promise.resolve({status:"acknowledged"});}
    async stop(){stops.push(1);this.active=false;this.connected=false;callbacks.onStatus("idle");return{finalized:true};}
   };
@@ -1402,12 +1402,12 @@ if(process.argv.includes("--usability-only")){
   assert.equal(t.state.turns.slice(-2).map(turn=>turn.text).join("|"),[ack,finalCheck].join("|"),"Authorized lines are the assistant's turns");
   assert.equal(calls.filter(call=>call.url==="/api/agent-team/review").length,1);assert.equal(t.state.coverageVerified,true);assert.equal(t.state.closure.asked,true);
   const before=t.state.turns.length;callbacks.onTranscript({id:"c5",role:"assistant",text:"Before we finish, is there anything else we missed?",final:true});
-  assert.equal(t.state.turns.length,before,"The caption of GPT-Live reading the authorized line is not added again");
+  assert.equal(t.state.turns.length,before+1,"A different spoken caption is retained");
   answer=url=>url==="/api/interview"?reply("Thank you. All eleven sections are captured and you have confirmed the account.","complete",{coverage_verified:true,no_new_run:true}):{};
   callbacks.onTranscript({id:"c6",role:"user",text:"No, nothing else to add.",final:true});
   await runCaptureTimer();
   assert.equal(t.state.closure.confirmed,true);assert.equal(said.length,3);
-  const ending=[...timers.entries()].find(([,timer])=>timer.delay===9000);assert.ok(ending,"The session ends after the completion line is spoken");timers.delete(ending[0]);ending[1].fn();await settle();assert.equal(stops.length,1);
+  await settle();assert.equal(stops.length,1,"The confirmed closing caption ends the session after playback settles");
   t.clearState();t.conversationUI.live=null;delete context.window.CollectorLiveVoice;passes++;
  }
  {

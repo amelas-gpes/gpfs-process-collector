@@ -1,15 +1,18 @@
-# Managed interview team
+# Interview paths and agent responsibilities
 
-The application uses three core roles to capture and review a process account, with a fourth role for supplied documents. Only the lead interviewer addresses the participant. Application code controls completion and speech release; a model's proposed closing sentence cannot authorize either.
-
-This describes the local implementation on 3 November 2026. It is not a claim of production deployment, process-owner approval, or verified physical microphone and speaker behavior.
+| Entry point | Conversation | Background work |
+| --- | --- | --- |
+| Start talking, `VOICE_MODE=live` (default) | GPT-Live uses WebRTC for microphone audio, ordinary questions and speech. It can delegate complex reasoning to the lead model. | Final participant captions feed the coordinator. The team maintains facts, scope and workflow. The application controls review and completion. |
+| Start talking, `VOICE_MODE=reviewed` | Each recorded answer is transcribed, then the foreground interviewer chooses a question. A reader plays approved text. | The concurrent service carries compatible facts and map steps forward. |
+| Type instead | The concurrent service asks the next question using the written answer. | Uses the same facts, map and final review as reviewed voice. |
+| Wrap up | The application checks the current evidence and requests explicit confirmation where eligible. | The process and coverage reviewers inspect the same evidence independently. |
 
 ## Roles and execution
 
 | Role | Current default model | Responsibility | Authority limit |
 | --- | --- | --- | --- |
 | Lead interviewer | `gpt-6-luna`; configured process model for reconciliation and maps; document model for baseline rebuilds | Maintain the capture and ask one grounded question during information gathering. Also prepares working process-map updates on demand. | Cannot declare the interview complete by itself. |
-| Coverage reviewer | `gpt-6-luna` | Independently assess all eleven topics and every required dimension against participant evidence. | Can reject an overclaim; cannot manufacture missing facts. |
+| Coverage reviewer | `gpt-6-luna` | Independently assess all sixteen topics and every required dimension against participant evidence. | Can reject an overclaim; cannot manufacture missing facts. |
 | Process reviewer | `gpt-6.1-terra` | Compare proposed actors, actions, connections, outputs and exception routes with their cited sources. Identify material contradictions or gaps. | Cannot rewrite source evidence or mark topics complete. |
 | Document analyst | `gpt-6.1-terra` | Review authorized excerpts or visual sources on demand; audit document-supported map changes. | Documentary content is not confirmation of current practice. No arbitrary file access or file-management tools. |
 
@@ -17,7 +20,7 @@ This describes the local implementation on 3 November 2026. It is not a claim of
 
 Task-local settings or environment variables can override the four defaults with `AGENT_INTERVIEW_MODEL`, `AGENT_COVERAGE_MODEL`, `AGENT_PROCESS_MODEL` and `AGENT_DOCUMENT_MODEL`. The existing credential is reused; a separate key is not required for each role. Public configuration reports model identifiers, not the credential.
 
-An ordinary interview turn uses one lead call. Server-owned capture state supplies known explanations, prior gaps and conversation focus. Important current ambiguities, corrections and second volunteered issues take priority; otherwise the lead moves to an untouched topic. Its proposed full topics remain provisional until reviewed. The application blocks closing language while required coverage is unresolved. The lead's response is streamed and its question is the first field, so the typed interface can show the question as a preview while the fact transaction finishes; nothing is committed to the transcript or spoken until the whole response validates and passes the same boundary. The working-map request starts alongside the lead call rather than after it, and a prior completion review reaches the lead as its open gaps and reviewer questions rather than the full assessment text.
+In live voice, GPT-Live asks ordinary questions while the managed interviewer maintains the capture. Typed and reviewed turns ask for one short foreground question and separately queue the full capture. New testimony, corrections, open gaps and volunteered issues guide question selection. Captured topics remain provisional until reviewed.
 
 The lead returns changes to a private fact ledger rather than rewriting the entire memo on every answer. Application-assigned fact IDs preserve unmentioned details. Additions and explicit replacements or removals carry source references and a reason; a revision-bound schema separates edits to known details from resolving a gap. Public topic explanations are assembled from the retained facts. The ledger and its capabilities are not included in saved sessions or exports. A reopened session rebuilds from its full authorized evidence in one lead request.
 
@@ -27,26 +30,26 @@ A substantial new document baseline or long-history rebuild uses the configured 
 
 The HTTP layer pins private fact citations through the current scoped document store. Selecting another excerpt from an unchanged file cannot silently erase an earlier cited fact. A source budget that cannot retain the required evidence produces an explicit recoverable error; a changed or removed source invalidates its old authority. The handler rechecks the same source selection before releasing a delayed response, map or draft.
 
-When all eleven candidate sections appear complete and document work is ready, the application returns one fixed acknowledgment: “Let me check that I have everything before we finish.” The browser displays it, or finishes playing it in voice, before requesting `/api/agent-team/review`. The process reviewer and the coverage reviewer examine independent copies of the same evidence concurrently. The coverage review itself runs as three concurrent topic groups (9, 12 and 11 dimensions); each sees the whole transcript and every candidate finding but assesses only its own topics, and the merged result passes the unchanged whole-account validation. Code selects their grounded follow-up or the fixed final omissions check; there is no additional lead call simply to phrase that transition. The specialists' observations are fallible interpretations, not new source evidence.
+When the account is ready for review and document work is settled, the application issues an acknowledgement. The process reviewer and coverage reviewer inspect independent copies of the same evidence. Coverage runs one request for each group in [the coverage registry](../interview_coverage.py), then validates the merged assessment. The current registry has four groups and sixteen topics. The application selects a grounded follow-up or a final omissions check from the review.
 
 | Transition | Provider calls |
 | --- | ---: |
-| Empty opening | 0 |
-| Ordinary information gathering | 1 lead (streamed) |
+| Empty typed/reviewed opening with no documents | 0 |
+| Ordinary typed/reviewed answer | 1 foreground question, background capture and separate map work |
 | Advisory pre-check of newly captured topics | 1 coverage call in the background, display-only |
-| Completion review after acknowledgment | 1 process reviewer + 3 concurrent coverage groups |
+| Completion review after acknowledgment | 1 process reviewer + 1 request for each of the 4 coverage groups |
 | Unchanged explicit final confirmation | 0 |
-| Working-map update | 1 lead, plus a document audit when document evidence is present |
+| Working-map update | 1 generation and 1 source audit |
 
 After an ordinary turn that marks topics captured, the browser asks `/api/agent-team/coverage` to pre-check only those topics with one coverage call limited to them. The result is display-only: a topic shows “Captured · pre-checked” or “Captured · gap noted” (with the noted gap and a suggested question in its detail), bound to the exact captured answer, and it never counts toward official coverage or the completion permit. The completion review still re-assesses every topic against the actual run.
 
-Document intake has its own bounded analyst run for each requested review batch or phase. Ordinary map refreshes start alongside each lead turn, whichever view is open, so the diagram and the notes update together; the map still waits for document intake and for a completion review. These are transition budgets, not a fixed price or total call limit for a conversation. The manager prevents duplicate execution and does not run an open-ended agent discussion.
+Document intake starts a bounded analyst run for each requested review batch or phase. The working map has its own generation and source audit. Both accept results only while their evidence is current.
 
-On-demand working maps use the configured process model in the lead role, with the document audit when file evidence is present. Standalone drafts use `DRAFT_MODEL`, defaulting to the configured process model, for generation, evidence audit and any required coverage assessment. Those explicit artifact requests are separate from the ordinary conversation budget. Their bounded stage timeouts are not latency targets. Browsing the prepared fictional example makes no model request.
+Working maps use the configured process model. Standalone drafts use `DRAFT_MODEL`, defaulting to the configured process model, for generation, evidence audit and any required coverage assessment. Browsing the prepared fictional example makes no model request.
 
 An empty start with no participant account or active documents uses a deterministic opening and no provider requests. Reviewers remain on standby: the interface does not claim that work is queued or reviewed before evidence exists.
 
-Role contracts reserve conservative output budgets; provider callbacks also set output and timeout limits. The public budget describes call counts and reserved maximum output, not actual usage or a billing meter. The run registry is ephemeral and bounded. Cancellation discards a run's results; it does not guarantee that an already accepted provider request stops being billed.
+Role invocations and individual provider requests are counted separately. One coverage invocation issues multiple provider requests. Output ceilings describe maximum output, while returned usage describes measured tokens. Cancellation prevents obsolete work from publishing. A request already accepted by the provider can still finish.
 
 ## Evidence and official coverage
 
@@ -66,7 +69,12 @@ The explanation test in [`interview_coverage.py`](../interview_coverage.py) is t
 | Variations | Applicable differences, changed work, reasons, effort, charging and constraints on removal. |
 | Pain points | Manual work or friction and its practical effect, preserving attributed estimates. |
 | Risk | Concrete failures and their consequences, rather than merely naming the person responsible. |
-| Materials | Existing references, availability and location where supplied, and whether they were actually reviewed. |
+| Materials | Existing references, availability, location and whether they were reviewed. |
+| Scope | Applicable clients, entities, jurisdictions, exclusions and boundaries. |
+| Rules | Rules, sources, applicability and exceptions that change the work. |
+| Connections | Dependencies, related processes and upstream/downstream handoffs. |
+| Data and systems | Systems, data movement, ownership and reconciliation. |
+| Volume and effort | Workload, frequency, effort and material differences. |
 
 Each supported or non-applicable dimension needs substantive detail and participant evidence references. “Unknown,” “not asked,” “skipped” and “unavailable” are unresolved states, not reasons to mark a topic non-applicable. Non-applicability requires an explicit basis. The materials section may explain the reported inventory, location, availability and honest unreviewed state without requiring an upload. A mentioned document is never represented as read.
 
@@ -74,11 +82,11 @@ Managed completion review can explicitly repair a compressed candidate summary w
 
 Question selection should follow the most useful remaining gap, preserve volunteered second issues, and avoid repeating facts or precise details the participant cannot provide. A local “No” answers its local question; it does not close the whole interview. Unavailable details remain visible gaps while the interviewer explores answerable and untouched sections. An explicit request to stop preserves a partial account without another probe or a completion claim.
 
-The process reviewer checks the candidate map as well as the transcript. In particular, a correct actor elsewhere in the account does not excuse an unsupported actor on one step. Corrections apply within their stated scope. A written procedure must not become an actual control without participant confirmation, and an unreported hypothetical exception must not become a compulsory blocker.
+The process reviewer checks the candidate account against the participant transcript and authorized sources, including the basis for actors, handoffs and exceptions. The separate workflow source audit checks the graph itself. A positive process clearance requires an explanation and citations.
 
 ## Completion belongs to the application
 
-`completion_permit` requires successful, fresh results bound to the actual run, all eleven topics complete under the dimension validator, and no material process-review blocker. Pending document review also prevents a final check. A completed role means its work returned a usable result; it does not mean the account passed.
+`completion_permit` requires successful, fresh results bound to the actual run, all sixteen topics complete under the dimension validator, and no material process-review blocker. Pending document review also prevents a final check. A completed role means its work returned a usable result; it does not mean the account passed.
 
 Only after those requirements are satisfied can the application ask its global final omissions check. Full completion additionally requires an explicit participant response to that actual check. “Yes” to whether anything remains means there is more to add. A local “No,” an answer with a new correction, a stale result or a replacement clean assessment cannot satisfy confirmation. New information is reviewed again. Process findings also conservatively reopen the published lifecycle status so the visible topics do not imply universal coverage while a material route remains unclear.
 
@@ -110,17 +118,11 @@ Cards disclose their responsibilities and bounded status details. Completed revi
 
 During ordinary turns, reviewers remain on standby. Candidate topics say “Captured · awaiting review” and do not increase the official covered count. Actual completion-review waits say “Checking the recorded topics and process…” in both typed and voice status. Reused results are identified as prior work rather than a new provider invocation.
 
-## Live front, managed back (0.24.0)
+## Live voice (`VOICE_MODE=live`)
 
-With `VOICE_MODE=live` (the default), GPT-Live (`gpt-live-1`, WebRTC) carries the spoken conversation: it listens, asks one question at a time and can be interrupted, with the lead's own model as its delegated reasoning backend. The managed team keeps working on the transcript behind it:
+GPT-Live listens and speaks over WebRTC. It chooses ordinary follow-ups from the conversation. Background capture tracks the participant’s account and sends compact coverage progress when the participant has paused. Specialist question suggestions do not script the next spoken question.
 
-1. Each final participant caption schedules one background lead call (`/api/agent-team/interview`, 400 ms debounce, one in flight; a newer answer queues one follow-up). Its fact transaction updates the notes, the coverage checkpoint and the advisory pre-check; its question is **not** spoken or added to the transcript. The ledger tolerates GPT-Live's own caption as the assistant turn after a capture.
-   A participant caption is only what the microphone heard (0.24.1): the transport strips the transcriber's stream markers and drops a fragment whose session-timeline window held no measured microphone energy. Over silence the input transcriber invents fragments ("a young woman", "a person is"); before this filter each one became a transcript turn, a lead capture and a notes update.
-2. After a completed capture (and on connection), one short silent note reaches GPT-Live as a single `session.thinking.append`, written in the interviewer's own voice ("Private interviewer note, never spoken: I am the interviewer and only the participant answers. Notes are current. Still open: … When they finish, I ask: …"): the open topics and the lead's suggested question (or the reviewer's next question when the lead has none). It is held while a participant caption is still in progress and sent when they pause. Its instructions prefer that suggestion when still unanswered, forbid any self-initiated wrap-up, and state that it speaks only as the interviewer. Caption fragments send nothing. The 0.24.0 update carried all eleven findings as JSON in about fourteen chunks and was repeated for every caption fragment; fed that stream, the live model drifted into voicing the participant's side of the conversation, which a participant heard as the voice repeating everything they said; even a four-chunk update landing mid-answer made it finish the participant's sentence.
-3. When the lead reaches completion readiness, the application records the fixed acknowledgement as the assistant's turn, has GPT-Live say exactly that line through `session.instructions.append` (the channel the provider documents for verbatim wording; commentary may be paraphrased), suppresses the caption of that reading, and runs the parallel completion review. The review's final omissions check or follow-up question is issued the same way. The participant's spoken reply to the recorded final check is confirmed by the unchanged zero-call path, and the session ends after the completion line.
-4. The working map starts alongside each capture, as in typed mode.
-
-GPT-Live's words are not authority: completion still requires the application's permit, and an interviewer line it improvises is ordinary transcript text. What is given up relative to reviewed turns is the pre-audio content gate on ordinary questions and the exact-transcript verification of playback. `VOICE_MODE=reviewed` restores the reviewed-turn voice below.
+The application authorizes review and closing lines against the current evidence. A command receipt alone does not establish that the participant heard the words. A matching caption or an explicit on-screen fallback identifies how the authorized line was presented. A correction invalidates any outstanding closure. Stopping releases the microphone and allows the final caption and notes to settle.
 
 ## Reviewed voice (`VOICE_MODE=reviewed`)
 
@@ -128,7 +130,7 @@ The reviewed team voice uses this sequence:
 
 1. Browser microphone capture produces a recorded answer segment.
 2. `/api/transcribe` returns text, which is added to the participant transcript.
-3. The managed interview endpoint performs one capture call; at completion readiness, its acknowledgment precedes the separate specialist review.
+3. The concurrent interviewer selects a question and queues evidence capture. Wrap-up synchronizes the current evidence before specialist review.
 4. The browser verifies `speech_authorization`, matching approved text, completion flags and the unchanged source snapshot.
 5. The selected reader plays that approved response; listening resumes after playback finishes.
 
@@ -142,7 +144,7 @@ The HTTP `/api/live-session` route creates a GPT-Live session only in live mode;
 
 Both `/api/interview` and `/api/agent-team/interview` route through the authoritative coordinator for the application's OpenAI client and its subclasses. Older text clients therefore receive the same completion gate. Isolated test adapters can still be injected at the server boundary; no browser parameter selects or weakens that adapter.
 
-## Model choice, cost and validation
+## Historical model evaluation and validation
 
 The API identifier is `gpt-6.1-terra`. Both it and `gpt-6-luna` support Responses, Structured Outputs, text output and image input; they do not themselves provide audio output. Standard short-context list prices verified on 3 November 2026 are below, per million tokens. Cache reads/writes, longer contexts, regional options, audio and tools can have different charges. [Luna model](https://developers.openai.com/api/docs/models/gpt-6-luna), [Terra model](https://developers.openai.com/api/docs/models/gpt-6.1-terra), [API pricing](https://developers.openai.com/api/docs/pricing).
 

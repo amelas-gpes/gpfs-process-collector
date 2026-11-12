@@ -229,6 +229,7 @@ ASSESSMENT_SCHEMA = _object({"topics": {"type": "array", "items": TOPIC_SCHEMA}}
 # The completion review runs these groups concurrently; each sees the whole
 # transcript and all candidate findings but assesses only its own topics. The
 # Four groups keep scope, rules, controls/data and operating effort review bounded.
+COVERAGE_GROUP_MAX_OUTPUT_TOKENS = 8000
 COVERAGE_REVIEW_GROUPS = (
     ("name", "purpose", "trigger", "completion", "scope"),
     ("accountable", "lifecycle", "rules", "connections"),

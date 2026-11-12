@@ -1,5 +1,9 @@
 # AI Process Collector
 
+**Current voice and interview behavior (0.29.1).** Live voice streams microphone audio while the interview team updates facts and workflow from captions. Reviewed voice records a single answer at a time. Both share the same evidence and completion rules. See the [interview paths and role responsibilities](docs/AGENT_TEAM.md).
+
+## Version history
+
 Version **0.29.0** adds a GPFS-branded component library with 91 business operations and 11 workflow symbols. Open **More options → Component library** to inspect the designs, or select a step in **Workflow → Cinematic** to see its captured operating details and sources. Both views use the same captured graph. The browser selects, draws and animates the artwork locally. Reviewers can choose a design for an editable step and keep it with **Save copy**. [Workflow diagrams and component library](docs/WORKFLOW_DIAGRAMS.md)
 
 Version **0.26.1** refined the conversation while retaining the sixteen-topic evidence and completion requirements. The interviewer follows the participant's walkthrough, learns scope in context, parks unknowns and asks practical follow-ups. Listening cues no longer split a participant answer; delayed notes cannot replace newer speech or script the next spoken question. See [conversation repair and QA/UAT evidence](docs/CONVERSATION_REPAIR_QA_2026-11-05.md).
@@ -48,13 +52,15 @@ The fifteen usability improvements and reliability audit fixes remain included: 
 
 The interface uses the shape-only GPFS logo in both the header and audio-responsive conversation presence, with the company lettering removed. Its five symbol elements gather inward while listening and open outward while speaking, with confined surface light and stable identification. Separate microphone and actual playback meters drive the response; captions never imply speech. Reduced-motion mode keeps clear, static state changes, and hidden views pause visual rendering. [GPFS asset provenance and motion design](docs/GPFS_ASSET.md) document the original vector and behavior.
 
+## Using the app
+
 The app starts with the conversation: select **Start voice** and begin talking, with no process name to fill in first. The app suggests a title from participant answers as the working process takes shape. You can edit that title at any time; a manual title takes precedence and is preserved when saving and reopening the interview. PDF, PNG, XLSX, XLSM and CSV reference files can be added before or during the conversation. A detailed **Report**, complete Markdown exports and an interactive workflow canvas remain available.
 
-Switch directly between **Voice**, **Transcript** and **Workflow** while the same voice session continues. The GPFS symbol responds to separate measured microphone and playback audio; microphone controls remain available across the three views. The transcript, workflow and eleven-topic live memo stay inside their own areas, with a memo sheet on smaller screens. Default voice uses GPT-Live directly, with managed capture in the background; the optional reviewed-turn mode uses transcription, the managed interviewer and approved text playback.
+Switch directly between **Voice**, **Transcript** and **Workflow** while the same voice session continues. The GPFS symbol responds to separate measured microphone and playback audio; microphone controls remain available across the three views. The transcript, workflow and sixteen-topic live memo stay inside their own areas, with a memo sheet on smaller screens. Default voice uses GPT-Live directly, with managed capture in the background; the optional reviewed-turn mode uses transcription, the managed interviewer and approved text playback.
 
 The interview now includes transcript search, exact-source return navigation, a labeled Save action, and actionable memo gaps. Workflow and Review maps offer step selection and **Follow path** with explicit reported branch choices. Reports have a sticky contents menu and search. Admin presents readable business-process records, source excerpts, and compact applied filters; file panels show clear review stages and persistent retry controls. These improvements retain the same conversation and do not create provider requests when navigating, searching, or retrying a local diagram layout.
 
-Participant answers update the working memo. Ordinary map updates run when Workflow is visible; document intake retains its explicit review flow. Corrections can add, remove or change reported steps and revise findings. **Readiness requires all eleven topics to pass the current coverage and process reviews.** Provisional, partial, missing or unknown topics cannot trigger it, even if the model suggests otherwise. New substantive evidence invalidates earlier readiness. Captured coverage remains the participant's account, separate from completeness confirmation, process-owner approval and verification of real operations.
+Participant answers update the working memo. The working map is updated in the background. File intake has a separate review step. Corrections can add, remove or change reported steps and revise findings. **Readiness requires all sixteen topics to pass the current coverage and process reviews.** Provisional, partial, missing or unknown topics cannot trigger it, even if the model suggests otherwise. New substantive evidence invalidates earlier readiness. Captured coverage remains the participant's account, separate from completeness confirmation, process-owner approval and verification of real operations.
 
 Notifications dismiss after three seconds; a new notification starts a fresh three-second interval. The interview has no duration setting, clock, target or time-based stopping rule. Legacy timing fields in saved interviews are ignored, and timing metadata is omitted from current provider requests, saved sessions and exports. Reported business deadlines and processing times remain ordinary process facts to capture.
 
@@ -96,7 +102,7 @@ No runtime, package, browser, model, font or voice is automatically installed or
 
 Configure `OPENAI_API_KEY` through your secure local environment, or an untracked `.env.local` in this repository. `.env.example` lists the recognized settings with an empty key value. The server never sends the key to the browser.
 
-Voice sends recorded answers through the local server for transcription, then the team reviews the next response. For AI playback, the server requests a short-lived Realtime client token with a 60-second lifetime. The browser uses that token only to read the approved text, buffering and checking the returned transcript before playback. The project API key stays on the server. The legacy direct-live session endpoint is disabled.
+Set `VOICE_MODE=live` (default) for a GPT-Live WebRTC conversation, or `VOICE_MODE=reviewed` to transcribe each recorded answer and play its approved response. In reviewed mode the natural AI reader uses a short-lived credential and checks the returned transcript before playback. The project API key stays on the server.
 
 In PowerShell, point to an **existing** Python executable and launch:
 
@@ -119,14 +125,14 @@ Team models use `AGENT_INTERVIEW_MODEL`, `AGENT_COVERAGE_MODEL`, `AGENT_PROCESS_
 
 ## Interview and review
 
-1. Select **Start talking**. No process name is required; the title will follow what you describe, and you can edit it. Allow microphone access when your browser asks. Recorded answers go to OpenAI for transcription after a pause. Capture pauses during review and playback; wait for Listening before answering. The GPFS symbol follows actual microphone and playback levels, with visible listening, speaking and muted states.
-2. Speak naturally and interrupt when needed. **Mute mic** stops microphone transmission immediately; **End voice** releases the microphone, then waits briefly for final captions.
+1. Select **Start talking**. No process name is required; the title will follow what you describe, and you can edit it. Allow microphone access when your browser asks. In live mode, OpenAI receives a microphone stream until you mute or stop. In reviewed mode, a pause sends the recorded answer for transcription. Wait for Listening before answering in reviewed mode. The GPFS symbol follows actual microphone and playback levels, with visible listening, speaking and muted states.
+2. Speak naturally and interrupt when needed. **Mute mic** stops microphone transmission immediately; **Stop talking** releases the microphone, then waits briefly for final captions.
 3. Switch to **Transcript** to see the conversation or **Workflow** to see the evolving map. Switching views keeps the same voice connection, transcript, unsent text and capture state; it does not make an API request or restart the interview. Each view scrolls within the workspace. The map and memo refresh together after participant answers or a short pause in captions. Later corrections can revise or remove earlier steps and findings; reported sources are validated, but the model can still misinterpret them.
-4. Follow **Your memo** beside the conversation, or select **Memo** to open it as a sheet on smaller screens. All eleven topics remain represented, with captured, partial and unknown states; select a topic to inspect its evidence. Select **Type instead** for a typed interview. Optional recording and question playback remain available. Settings contains background, process-owner, objective and playback choices; these are not required to talk. There is no interview clock or duration control.
+4. Follow **Your memo** beside the conversation, or select **Memo** to open it as a sheet on smaller screens. All sixteen topics remain represented, with captured, partial and unknown states; select a topic to inspect its evidence. Select **Type instead** for a typed interview. Optional recording and question playback remain available. Settings contains background, process-owner, objective and playback choices; these are not required to talk. There is no interview clock or duration control.
 5. After ending voice, choose **Wrap up** for a final completeness check or **Review draft** for the detailed Report, editable memo, procedure and supporting details. Participant confirmation is separate from owner approval. Updates to the working map never replace edits in Review.
 6. Save the interview JSON before closing. Transcript, working map, review draft, title preference and document references are saved together. The full conversation is not automatically persisted. Uploaded files and their review/index data have separate local persistence, described below.
 
-Current voice uses recorded turns, the managed interviewer and verified question playback; the direct GPT-Live endpoint is disabled. Conversation length is not governed by a time target or cutoff. Provider failures retain the transcript and give actionable feedback. Review navigation requires ending voice first so microphone controls remain visible.
+Conversation length is not governed by a time target or cutoff. Provider failures retain the transcript and give actionable feedback. Review navigation requires ending voice first so microphone controls remain visible.
 
 The built-in **Explore an example** and `Examples/Synthetic-reviewed-session.json` demonstrate a fictional, fully described process. Open the file through **More → Open interview**; loading either example does not itself call the API. The examples are illustrative, not verified company procedures.
 
@@ -154,7 +160,7 @@ Save the interview JSON to retain the links back to these files. Reopening it on
 
 ## Memo requirements
 
-- [Memo requirements and acceptance criteria](docs/MEMO_REQUIREMENTS.md): all eleven topics, memo-wide rules, six variation fields, boundary tests, user-added requirements and acceptance scenarios.
+- [Memo requirements and acceptance criteria](docs/MEMO_REQUIREMENTS.md): the original memo requirements, memo-wide rules, six variation fields, boundary tests, user-added requirements and acceptance scenarios.
 - [Standing interview foundation](FOUNDATION.md): included in every interview and draft request.
 - [Validation evidence and limits](VALIDATION.md): observed tests, live synthetic checks and unresolved limitations.
 

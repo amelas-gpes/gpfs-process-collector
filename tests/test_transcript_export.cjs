@@ -59,6 +59,15 @@ check("available before a draft and without a configured provider",() => {
   assert.equal(providerCalls,0);
 });
 
+check("a line displayed after interrupted voice delivery is identified in both exports",() => {
+  const {app}=harness();
+  app.state.turns.push({id:"t003",role:"assistant",text:"Which team checks the register?",delivery:"text"});
+  const data=app.transcriptObject(),markdown=app.transcriptMarkdown(data);
+  assert.equal(data.turns[2].delivery,"text");
+  assert(markdown.includes("Shown as text"));
+  assert.equal(textBlocks(markdown).filter(value=>value==="Which team checks the register?").length,1);
+});
+
 check("chronology, attribution and file questions are preserved",() => {
   const {app} = harness();
   app.state.turns.push({id:"file_received",role:"assistant",text:"Received routing.csv.",document_event:true,document_id:"doc_routing"},

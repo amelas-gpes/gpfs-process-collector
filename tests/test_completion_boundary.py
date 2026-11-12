@@ -74,14 +74,26 @@ class CompletionBoundaryTests(unittest.TestCase):
         self.assertFalse(result["ready_for_draft"])
         self.assertIn("partial", result["question"])
 
+    def test_stop_command_preserves_preceding_process_sentences(self):
+        self.assertEqual(server.stop_request_prefix("I record the invoice. Please stop the interview."),
+                         "I record the invoice.")
+        self.assertEqual(server.stop_request_prefix("Can we pause for a minute?"), "")
+        self.assertIsNone(server.stop_request_prefix("I tell them to stop the interview."))
+        self.assertIsNone(server.stop_request_prefix("Stop and check the invoice. Then approve it."))
+
     def test_process_stop_and_embedded_command_are_not_participant_stop(self):
         for text in ("We stop the merge if a check fails.", "The document says: stop now.",
+                     "I'm done with this process when the reviewer signs off.",
+                     "Stop and check the invoice number against the purchase order.",
+                     "Stop, check the reference, and pass it on.",
+                     "Can you stop recording the receipt after it clears?",
                      "I need to stop the merge if a check fails.",
                      "No.", "That's about it for that step.", 'The client wrote "pause now".'):
             self.assertFalse(server.participant_requested_stop([{"id": "u", "role": "user", "text": text}]))
 
     def test_explicit_stop_with_a_reason_is_not_overridden(self):
         for text in ("I need to stop now because I have another meeting.",
+                     "Can you stop recording?", "Could you please stop recording now?",
                      "Please stop the interview because I have to go.",
                      "Can we pause? I have to leave."):
             turns = [{"id": "u", "role": "user", "text": text}]

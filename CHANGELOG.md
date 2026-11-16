@@ -7,6 +7,12 @@ identify the code that is running: Settings > Data handling, saved interviews an
 exports also carry the build (a desktop release's commit, or `dev+` and a source hash for a
 working tree). See [docs/DESKTOP.md](docs/DESKTOP.md#which-build-is-running).
 
+## 0.31.0 · November 16, 2026
+
+- Rebuilt Settings as a wider workspace with persistent section navigation, a direct header entry, a setting finder and a Ctrl/Command + comma shortcut. The last selected section stays available when reopening Settings.
+- Added custom appearance choices, a searchable voice picker with keyboard controls, clearer playback switches, separate interview context, readable recovery and privacy summaries, usage cards, a dedicated logs view and Help & about.
+- Kept existing preferences, recovery behavior, interview locks and source-return navigation. Every Settings section is directly visible on mobile. Version and build information are now under Help & about.
+
 ## 0.30.2 · November 16, 2026
 
 - Removed the developer content logging banner from the interview screen. Logging information lives in Settings.

@@ -4,7 +4,7 @@ Event files live in the active workspace’s `work/raw-trace` directory. The ser
 
 ## View logs in Settings
 
-Open **More options → Settings → Application logs**. The viewer loads up to 100 recent entries across saved sessions; choose **Current session** to limit it to this server run. Use **Refresh** to read new entries and **Search loaded entries** to filter the loaded window. Expand an entry for its timestamp, event, correlation identifiers and recorded details. Logging status, storage interruptions and shortened previews are shown here. Reading logs does not change the files or switch logging modes.
+Open **Settings → Application logs** from the app header. The viewer loads up to 100 recent entries across saved sessions; choose **Current session** to limit it to this server run. Use **Refresh** to read new entries and **Search loaded entries** to filter the loaded window. Expand an entry for its timestamp, event, correlation identifiers and recorded details. Logging status, storage interruptions and shortened previews are shown here. Reading logs does not change the files or switch logging modes.
 
 The reader scans at most eight recent files and 8 MiB per request, limits its response to 1 MiB, and shortens individual previews above 32 KiB. Full records remain in the JSONL files. An unfinished final line is skipped until it is complete. Requests require the app's same-origin and current request-token checks. Logs and private settings stay outside Git.
 

@@ -61,7 +61,7 @@ async function main() {
     assert(!raw.includes(token) && !raw.includes("unsent-canary-748129"));
     await page.locator("#session-menu-toggle").click();
     await page.locator("#open-interview-settings").click();
-    await page.locator("#logs-details > summary").click();
+    await page.locator("#settings-tab-logs").click();
     await page.waitForFunction(() => document.getElementById("logs-entries").childElementCount > 0 && !document.getElementById("logs-refresh").disabled);
     assert.match(await page.locator("#logs-status").innerText(), /Interview content and activity/);
     await page.locator("#logs-search").fill("browser.turn.created");
@@ -73,7 +73,7 @@ async function main() {
     assert.equal(await page.locator(".log-entry").count(), 0);
     assert.match(await page.locator("#logs-entries").innerText(), /No loaded entries match/);
     await page.locator("#logs-search").fill("");
-    await page.locator("#logs-scope").selectOption("current");
+    await page.locator('[data-log-scope="current"]').click();
     await page.waitForFunction(() => !document.getElementById("logs-refresh").disabled);
     await page.locator("#logs-refresh").click();
     await page.waitForFunction(() => !document.getElementById("logs-refresh").disabled);

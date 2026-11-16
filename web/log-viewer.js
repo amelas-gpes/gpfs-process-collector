@@ -26,6 +26,7 @@
       time.textContent = Number.isNaN(date.getTime()) ? "Time unavailable" : date.toLocaleString();
       const type = document.createElement("strong");
       type.textContent = row.type;
+      summary.setAttribute("aria-label", `${row.type} · ${time.textContent}`);
       summary.append(time, type);
       const content = document.createElement("pre");
       content.tabIndex = 0;
@@ -37,6 +38,7 @@
 
   async function refresh() {
     const generation = ++request;
+    const hadFocus = document.activeElement === $("logs-refresh");
     $("logs-refresh").disabled = true;
     $("logs-status").textContent = "Loading saved logs…";
     entries = [];
@@ -66,10 +68,16 @@
       if (generation !== request) return;
       $("logs-status").textContent = "The local logs could not be loaded. Choose Refresh to try again.";
     } finally {
-      if (generation === request) $("logs-refresh").disabled = false;
+      if (generation === request) {
+        $("logs-refresh").disabled = false;
+        if(hadFocus && $("interview-settings").open && !section.hidden &&
+          (document.activeElement === document.body || document.activeElement === $("interview-settings"))) $("logs-refresh").focus({preventScroll:true});
+      }
     }
   }
-  section.addEventListener("toggle", () => { if (section.open) void refresh(); });
+  $("interview-settings").addEventListener("settings:section", event => {
+    if(event.detail.id === "logs-details" && $("interview-settings").open) void refresh();
+  });
   $("logs-refresh").addEventListener("click", refresh);
   $("logs-scope").addEventListener("change", refresh);
   $("logs-search").addEventListener("input", render);

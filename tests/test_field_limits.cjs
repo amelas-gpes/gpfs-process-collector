@@ -145,7 +145,7 @@ async function open(options={}){
     page.$(button).click();await page.settle();
     assert.equal(page.app.state.started,false,button+" does not start an interview whose context would be refused");
     assert.equal(t.posts.length,0);assert.equal(page.app.conversationUI.live,null,"The microphone is not opened");
-    assert.equal(page.$("interview-settings").open,true,"Settings opens");assert.equal(page.$("context-details").open,true);
+    assert.equal(page.$("interview-settings").open,true,"Settings opens");assert.equal(page.$("context-details").hidden,false);
     assert.equal(note.shown,true,"with the reason beside the field");
     assert.equal(page.document.activeElement,field);
     assert.equal(page.$("notice-text").textContent,note.textContent);

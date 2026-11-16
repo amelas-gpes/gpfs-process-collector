@@ -52,7 +52,7 @@ of this check.
 
 The window runs a downloaded build and `launcher.py` runs the working tree, and both report the
 same release number (`VERSION` in `server.py`) until it is next raised. To tell them apart,
-open **Settings > Data handling** in the page. The last line reads, for example,
+open **Settings > Help & about** in the page. The last line reads, for example,
 `Version 0.30.0 · build 4f2a9c1d7e03`:
 
 - In the desktop window the build is the first 12 characters of the commit you approved, the

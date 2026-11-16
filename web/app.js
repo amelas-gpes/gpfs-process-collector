@@ -715,14 +715,15 @@
     }
   }
   function revealAncestors(target) {
+    const panel=target?.closest?.("[data-settings-panel]");
+    if(panel)showSettingsPanel(panel.id);
     for (let node = target; node; node = node.parentElement) {
       if (node.tagName === "DETAILS") node.open = true;
     }
   }
   function revealContext() {
-    if($("context-details"))$("context-details").hidden=false;
     setInterviewSettings(true);
-    if ($("context-details")) $("context-details").open = true;
+    showSettingsPanel("context-details");
     revealAncestors($("context-form"));
   }
   // Save copy bookkeeping. Every `state.dirty = true` counts as a change, so a
@@ -1053,6 +1054,7 @@
     const reviewed=Boolean(state.config?.agent_team?.enabled&&state.config.agent_team.voice_mode!=="live_front");
     if($("review-voice-transcript-option"))$("review-voice-transcript-option").hidden=!reviewed;
     if($("review-voice-audio-notice"))$("review-voice-audio-notice").hidden=!reviewed;
+    if($("voice-mode-note"))$("voice-mode-note").hidden=reviewed;
     $("speak-questions").disabled = !voiceReady;
     $("speak-questions").title = voiceReady ? `Selected voice: ${voiceLabel()}` : "Choose an available voice. Questions remain readable on screen.";
     $("voice-select").disabled = recording || state.requestingMic;
@@ -1486,8 +1488,14 @@
     settingsRestoreFocus=restoreFocus;
     const dialog=$("interview-settings"); if(!dialog)return;
     if(open)closeMenu();
-    if(open&&!dialog.open){dialog.showModal();rawTrace("settings.dialog_opened",{open:dialog.open});}
+    if(open&&!dialog.open){dialog.showModal();window.CollectorSettings?.opened();rawTrace("settings.dialog_opened",{open:dialog.open});}
     if(!open&&dialog.open)dialog.close();
+  }
+  function showSettingsPanel(id) {
+    if(window.CollectorSettings){window.CollectorSettings.show(id);return;}
+    // Keep source navigation usable even if the optional presentation module fails to load.
+    for(const panel of $("interview-settings").querySelectorAll("[data-settings-panel]"))panel.hidden=panel.id!==id;
+    if($(id))$(id).hidden=false;
   }
   let settingsOpener=null;
   function settingsClosed() {
@@ -3001,8 +3009,8 @@
   function showUsage(usage){
     const panel=$("usage-details"),line=$("usage-summary");
     if(!panel||!line)return;
-    panel.hidden=!usage;
-    if(!usage)return;
+    window.CollectorSettings?.setUsage(usage);
+    if(!usage){line.textContent="Usage is not available from this connection.";return;}
     const tokens=value=>Number(value).toLocaleString("en-US");
     const amount=(used,cap)=> (used===null||used===undefined?"Usage unavailable":tokens(used)+" tokens used")+
       (Number(cap)>0?" (limit "+tokens(cap)+")":"");
@@ -3011,12 +3019,17 @@
   }
   async function checkUsage(){
     const button=$("usage-check"),generation=state.generation; if(!button||button.disabled)return;
+    const hadFocus=document.activeElement===button;
     button.disabled=true;
     try{
       const current=await request("/api/usage/check",{});
       if(generation===state.generation){state.config.usage=current.usage||current;showUsage(state.config.usage);}
     }catch(error){if(generation===state.generation)notice(error.message||"Could not check AI usage.",true);}
-    finally{button.disabled=false;}
+    finally{
+      button.disabled=false;
+      if(hadFocus&&$("interview-settings").open&&!$("usage-details").hidden&&
+        (document.activeElement===document.body||document.activeElement===$("interview-settings")))button.focus({preventScroll:true});
+    }
   }
   function reportServerSource(config){
     if(config?.source_changed===true)notice("The app files have changed since this local server started. Save a copy of your interview, then restart the app to use the update.",false,"server-source",true);
@@ -6503,7 +6516,13 @@
     $("update-notes")?.addEventListener("click",updateLiveNotes);
     $("pause-completion-review").addEventListener("click",pauseCompletionReview);
     document.querySelectorAll("[data-conversation-view]").forEach(button=>{button.addEventListener("click",()=>selectConversationView(button.dataset.conversationView));button.addEventListener("keydown",conversationTabKey);});
-    $("open-interview-settings").addEventListener("click",()=>setInterviewSettings(true));
+    $("open-interview-settings").addEventListener("click",event=>{settingsOpener=event.currentTarget;setInterviewSettings(true);});
+    $("open-settings")?.addEventListener("click",event=>{settingsOpener=event.currentTarget;setInterviewSettings(true);});
+    document.addEventListener("keydown",event=>{
+      if((event.ctrlKey||event.metaKey)&&event.key===","&&!event.altKey&&!event.shiftKey){
+        event.preventDefault();if(!$("interview-settings").open){settingsOpener=$("open-settings");setInterviewSettings(true);}
+      }
+    });
     $("open-context").addEventListener("click",event=>{
       settingsOpener=event.currentTarget;
       revealContext();

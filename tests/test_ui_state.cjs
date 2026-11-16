@@ -120,7 +120,7 @@ assert.equal(new Set(walk(document.body).filter(node=>node.id.startsWith("turn-"
  t.closeFoundationTopic();assert.equal(document.activeElement,button);passes++;
 }
 {
- setup.open=false;contextDetails.open=false;t.jumpToTurn("context");assert.equal(setup.tagName,"SECTION");assert.equal(contextDetails.open,true);assert.equal(settings.open,true);t.setInterviewSettings(false,false);
+ setup.open=false;contextDetails.open=false;t.jumpToTurn("context");assert.equal(setup.tagName,"SECTION");assert.equal(contextDetails.hidden,false);assert.equal(settings.open,true);t.setInterviewSettings(false,false);
  lifecycle.open=false;t.jumpToReview("review-lifecycles");assert.equal(lifecycle.hidden,false);assert.equal(document.activeElement,lifecycle);assert.equal(providerCalls,0);passes++;
 }
 {

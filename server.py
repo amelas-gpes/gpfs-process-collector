@@ -42,7 +42,7 @@ class NoProviderRedirect(HTTPRedirectHandler):
 
 
 urlopen = build_opener(NoProviderRedirect()).open
-VERSION = "0.30.2"
+VERSION = "0.31.0"
 APP_DIR = Path(__file__).resolve().parent
 WEB_DIR = APP_DIR / "web"
 DIAGNOSTIC_MAX_BYTES = 1024 * 1024
@@ -5634,6 +5634,8 @@ STATIC_FILES = {"/": ("index.html", "text/html; charset=utf-8"),
                  "/theme.js": ("theme.js", "text/javascript; charset=utf-8"),
                  "/raw-trace.js": ("raw-trace.js", "text/javascript; charset=utf-8"),
                  "/log-viewer.js": ("log-viewer.js", "text/javascript; charset=utf-8"),
+                 "/settings-ui.js": ("settings-ui.js", "text/javascript; charset=utf-8"),
+                 "/settings.css": ("settings.css", "text/css; charset=utf-8"),
                  "/app.js": ("app.js", "text/javascript; charset=utf-8"),
                  "/workflow-exports.js": ("workflow-exports.js", "text/javascript; charset=utf-8"),
                  "/workflow-graph.js": ("workflow-graph.js", "text/javascript; charset=utf-8"),

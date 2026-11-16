@@ -35,7 +35,7 @@ async function check(name,fn){
   assert.equal(link.getAttribute("aria-haspopup"),"dialog");
   assert.equal(link.getAttribute("aria-controls"),"interview-settings");
   link.focus();openContext(page);
-  assert.equal(page.$("interview-settings").open,true);assert.equal(page.$("context-details").open,true,"Interview context is unfolded");
+  assert.equal(page.$("interview-settings").open,true);assert.equal(page.$("context-details").hidden,false,"Interview context is selected");
   assert.equal(page.document.activeElement,page.$("process-owner"),"The first field has focus");
   for(const id of ["process-owner","objective","background"])assert.equal(page.$(id).disabled,false,id+" can be filled in");
   assert.match(lockNote(page),/Goal and background lock when the interview starts/);

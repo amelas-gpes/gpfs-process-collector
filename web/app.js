@@ -2241,7 +2241,7 @@
       const file=event.document,removed=["remove","purge","discard_failed"].includes(event.action);
       const retained=removed||event.action==="park"||file?.analysis?.disposition==="parked";
       if(retained&&conversationUI.live?.active){
-        void conversationUI.live.appendContext(`The participant withdrew ${file.name||"a reference file"}. Do not use its contents.`,
+        void conversationUI.live.appendContext(withdrawnFileNote(file.name||"a reference file"),
           {id:`withdrawn_${file.id}_${Date.now()}`,kind:"document_withdrawn",plain:true});
         notice("File withdrawn from the notes. Stop talking and continue again to clear the earlier file context from the voice session.",false,"files",true);
       }
@@ -2785,6 +2785,21 @@
     if(recheck?.dataset.coverageRecheck){delete recheck.dataset.coverageRecheck;recheck.textContent="Try again";recheck.hidden=!recheck.dataset.layoutRetry;}
     if(state.coverageNeedsReview)offerCoverageRecheck("Coverage review incomplete — retry to confirm sections");
   }
+  function withdrawnFileNote(name) {
+    return `The participant withdrew ${name}. Do not use its contents.`;
+  }
+  function liveCoverageNote(answerCount, openTopics) {
+    const status = openTopics ? `Still open: ${openTopics}.` : "Nothing is open; the application will say when to close.";
+    return `Private capture status; silent, no speech requested. Notes cover the current ${answerCount} participant answers. ${status} These are provisional coverage labels, not questions or a topic order. Follow the conversation; do not react to this update.`;
+  }
+  function browserVoicePrompts() {
+    return [
+      ...(window.CollectorLiveVoice?.promptTemplates?.() || []),
+      {id:"live-open-topics", label:"Update open topics", when:"Background capture sends a brief status update after the speaker pauses.", text:liveCoverageNote("{answer count}", "{open topics}")},
+      {id:"live-no-open-topics", label:"Report no open topics", when:"The latest capture lists no open topics. The app still controls the final check.", text:liveCoverageNote("{answer count}", "")},
+      {id:"live-file-withdrawn", label:"Withdraw a reference file", when:"A file is removed or parked during a live interview.", text:withdrawnFileNote("{file name}")}
+    ];
+  }
   function syncLiveCoverage() {
     const live=conversationUI.live;
     if(!live?.active||typeof live.appendContext!=="function")return;
@@ -2807,7 +2822,7 @@
       return !finding||!["captured","not_applicable"].includes(finding.status)||review?.complete===false||(review?.gaps||[]).length>0;
     });
     const listed=[...open];
-    const note=()=>`Private capture status; silent, no speech requested. Notes cover the current ${basis.length} participant answers. ${open.length?`Still open: ${listed.join(", ")}${listed.length<open.length?` (+${open.length-listed.length})`:""}.`:"Nothing is open; the application will say when to close."} These are provisional coverage labels, not questions or a topic order. Follow the conversation; do not react to this update.`;
+    const note=()=>liveCoverageNote(basis.length, listed.join(", ") + (listed.length<open.length?` (+${open.length-listed.length})`:""));
     const bytes=value=>new TextEncoder().encode(value).length;
     while(bytes(note())>470&&listed.length>3)listed.pop();
     const content=note();
@@ -6719,6 +6734,7 @@
       const config = await response.json();
       if (typeof config.csrf_token !== "string") throw new Error("The interviewer isn’t available right now. Try again in a moment.");
       state.config = config;
+      window.CollectorAgentSettings?.configure(config, renewRequestToken, browserVoicePrompts);
       configureTrace(config);
       showBuildIdentity();
       knowledgeUI?.configure(config);
@@ -6735,6 +6751,7 @@
       else if (storage.length) notice(storage.join(" "),true);
       reportServerSource(config);showUsage(config.usage);if(!state.started)voicePreferences(true);
     } catch(error) {
+      window.CollectorAgentSettings?.configure(null, renewRequestToken, browserVoicePrompts);
       const message="The app could not read its local configuration. Choose Check configuration to try again.";
       if($("configuration-status"))$("configuration-status").hidden=false;
       if($("configuration-message"))$("configuration-message").textContent=message;

@@ -117,6 +117,16 @@
 .settings-segmented { display: inline-flex; gap: 3px; padding: 4px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); }
 .settings-segmented button { min-height: 34px; padding: 7px 12px; border: 0; border-radius: 6px; color: var(--muted); background: transparent; font: 600 12px/1.4 var(--font); }
 .settings-segmented button[aria-pressed="true"] { color: var(--ink); background: var(--surface); box-shadow: var(--shadow-sm); }
+.agent-views { margin-bottom: 23px; }
+#agents-status:empty, #agent-copy-status:empty { margin: 0; }
+.agent-prompt-picker { margin: 0 0 20px; }
+.interview-settings .agent-prompt-picker label { display: block; margin: 0 0 6px; font: 600 14px/1.4 var(--font); }
+.interview-settings .agent-prompt-picker select { display: block; width: 100%; min-height: 42px; margin: 0; color: var(--ink); }
+.interview-settings .agent-prompt-picker p { margin: 7px 0 0; font-size: 13px; }
+.agent-prompt-source { min-width: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.agent-prompt-source header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 15px; border-bottom: 1px solid var(--line); }
+.agent-prompt-source .settings-action { min-height: 36px; padding: 6px 12px; }
+.agent-prompt-source pre { max-height: 49vh; margin: 0; padding: 16px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; user-select: text; color: var(--ink); font: 400 13px/1.7 Consolas, "Courier New", monospace; }
 .log-toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
 .interview-settings .settings-log-count { margin: 22px 0 10px; font-size: 12px; }
 .log-entries { max-height: none; overflow: visible; }

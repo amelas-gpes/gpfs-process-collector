@@ -9,6 +9,7 @@
   <title>AI Process Collector</title>
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/settings.css">
+  <link rel="stylesheet" href="/agent-flow.css">
   <link rel="stylesheet" href="/documents.css">
   <link rel="stylesheet" href="/knowledge-ui.css">
   <link rel="stylesheet" href="/gpfs-presence.css">
@@ -19,6 +20,8 @@
   <link rel="icon" href="/assets/gpfs-symbol.svg" type="image/svg+xml">
   <script src="/raw-trace.js" defer></script>
   <script src="/settings-ui.js" defer></script>
+  <script src="/agent-flow.js" defer></script>
+  <script src="/agent-settings.js" defer></script>
   <script src="/log-viewer.js" defer></script>
   <script src="/workflow-exports.js" defer></script>
   <script src="/workflow-graph.js" defer></script>
@@ -321,12 +324,14 @@
         <button type="button" id="settings-tab-context" role="tab" aria-selected="false" aria-controls="context-details" tabindex="-1" data-settings-target="context-details"><span data-icon="memo" aria-hidden="true"></span><span>Interview context<small>People, goal &amp; background</small></span></button>
         <button type="button" id="settings-tab-data" role="tab" aria-selected="false" aria-controls="data-details" tabindex="-1" data-settings-target="data-details"><span data-icon="shield" aria-hidden="true"></span><span>Data &amp; recovery<small>Privacy &amp; local copies</small></span></button>
         <button type="button" id="settings-tab-usage" role="tab" aria-selected="false" aria-controls="usage-details" tabindex="-1" data-settings-target="usage-details"><span data-icon="sparkle" aria-hidden="true"></span><span>AI usage<small>Activity &amp; token limits</small></span></button>
+        <button type="button" id="settings-tab-agents" role="tab" aria-selected="false" aria-controls="agents-details" tabindex="-1" data-settings-target="agents-details" hidden><span data-icon="workflow" aria-hidden="true"></span><span>Agents<small>Workflow &amp; prompts</small></span></button>
         <button type="button" id="settings-tab-logs" role="tab" aria-selected="false" aria-controls="logs-details" tabindex="-1" data-settings-target="logs-details"><span data-icon="file" aria-hidden="true"></span><span>Application logs<small>Search saved activity</small></span></button>
         <button type="button" id="settings-tab-help" role="tab" aria-selected="false" aria-controls="help-guide" tabindex="-1" data-settings-target="help-guide"><span data-icon="workflow" aria-hidden="true"></span><span>Help &amp; about<small>A quick guide to the app</small></span></button>
       </div>
       <p class="settings-nav-note">Quick access, anytime.<br>Ctrl / ⌘ + ,</p>
     </nav>
     <div class="settings-body" id="settings-body">
+      <p id="agents-access-notice" class="settings-footnote" role="status" hidden></p>
       <button class="settings-return" type="button" id="settings-source-return" data-icon="arrow-left" hidden>Back to what you were reviewing</button>
       <section id="settings-search-results" class="settings-results" aria-label="Matching settings" hidden><p id="settings-search-count" role="status" aria-live="polite"></p><div id="settings-search-matches"></div></section>
       <section id="preferences-details" class="settings-panel" data-settings-panel role="tabpanel" aria-labelledby="settings-tab-preferences" tabindex="0">
@@ -388,6 +393,33 @@
         <select id="logs-scope" class="settings-source-control" aria-label="Log sessions" tabindex="-1" aria-hidden="true"><option value="all">Recent sessions</option><option value="current">Current session</option></select>
         <label class="sr-only" for="logs-search">Search loaded entries</label><input id="logs-search" type="search" placeholder="Search events, wording or session…" autocomplete="off">
         <p id="logs-status" class="settings-footnote" role="status" aria-live="polite"></p><p id="logs-count" class="settings-log-count"></p><div id="logs-entries" class="log-entries" aria-label="Saved log entries"></div><p class="settings-footnote">Entries may include interview wording and AI exchanges. Recovery copies are managed separately under Data &amp; recovery.</p>
+      </section>
+      <section id="agents-details" class="settings-panel" data-settings-panel role="tabpanel" aria-labelledby="settings-tab-agents" tabindex="0" hidden>
+        <header class="settings-section-heading"><h3>Agents</h3><p>Follow the work through the app and inspect the instructions each agent receives.</p></header>
+        <p id="agents-status" class="settings-footnote" role="status" aria-live="polite"></p>
+        <button type="button" id="agents-retry" class="settings-action" hidden>Try again</button>
+        <div id="agents-content" hidden>
+          <div class="settings-segmented agent-views" role="group" aria-label="Agent views">
+            <button type="button" id="agents-overview-button" aria-controls="agents-overview" aria-pressed="true">Overview</button>
+            <button type="button" id="agents-library-button" aria-controls="agents-library" aria-pressed="false">Prompt library</button>
+          </div>
+          <div id="agents-overview"></div>
+          <div id="agents-library" hidden>
+            <div class="agent-prompt-picker"><label for="agent-select">Agent</label><select id="agent-select"></select>
+              <p id="agent-description"></p>
+            </div>
+            <div id="agent-prompt-details">
+              <div class="agent-prompt-picker"><label for="agent-prompt-select">Prompt</label><select id="agent-prompt-select"></select>
+                <p id="agent-prompt-when"></p>
+              </div>
+              <section class="agent-prompt-source" aria-labelledby="agent-prompt-heading">
+                <header><h4 id="agent-prompt-heading">Prompt text</h4><button type="button" class="settings-action" id="agent-copy-prompt">Copy prompt</button></header>
+                <pre id="agent-prompt-text" role="region" tabindex="0" aria-labelledby="agent-prompt-heading"></pre>
+              </section>
+              <p id="agent-copy-status" class="settings-footnote" role="status" aria-live="polite"></p>
+            </div>
+          </div>
+        </div>
       </section>
       <section id="help-guide" class="settings-panel" data-settings-panel role="tabpanel" aria-labelledby="settings-tab-help" tabindex="0" hidden>
         <header class="settings-section-heading"><span class="settings-eyebrow">FROM CONVERSATION TO CLARITY</span><h3>How this works</h3><p>A useful process document starts with your account of how the work gets done.</p></header>

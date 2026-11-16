@@ -15,7 +15,7 @@ async function main() {
   openSettings(page);
   assert(page.$("interview-settings").open, "Settings opens from the unified header menu");
   assert.equal(page.$("preferences-details").hidden,false);
-  const tabs = page.document.querySelectorAll("[data-settings-target]");
+  const tabs = page.document.querySelectorAll("[data-settings-target]").filter(tab => !tab.hidden);
   assert.equal(tabs.length,6);
   for (const tab of tabs) {
     tab.click();

@@ -7,6 +7,11 @@ identify the code that is running: Settings > Data handling, saved interviews an
 exports also carry the build (a desktop release's commit, or `dev+` and a source hash for a
 working tree). See [docs/DESKTOP.md](docs/DESKTOP.md#which-build-is-running).
 
+## 0.32.0 · November 16, 2026
+
+- Added **Settings → Agents** for administrators to follow an interview through the app, inspect the instructions used at each stage and copy a prompt.
+- The workflow links directly to the prompts for all ten agent roles. The read-only library explains when each template runs and shows placeholders for interview-specific information.
+
 ## 0.31.1 · November 16, 2026
 
 - Combined the separate Settings and overflow controls into a single labeled **Menu**. Settings is first, with the existing save, open, transcript, submit, library, example and start-over actions grouped below it.

@@ -27,6 +27,7 @@
     ["Recovery copy", "Keep unfinished work on this computer", "data-details", "recovery-enabled", "recovery save copy unsaved restore autosave backup crash restart"],
     ["Data handling", "What stays here and what goes to the AI service", "data-details", "data-notice", "privacy data handling retention files service policies"],
     ["AI usage", "Daily and interview token counts and workspace limits", "usage-details", "usage-check", "AI usage tokens daily limits quota count"],
+    ["Agents", "See the app workflow and read or copy agent prompts", "agents-details", "agents-details", "AI agent prompt library instructions workflow administrator"],
     ["Application logs", "Search recent or current-session activity", "logs-details", "logs-search", "application activity logs logging history events trace"],
     ["How this works", "A short guide to the interview and review", "help-guide", "help-guide", "help guide how works interview review workflow"],
     ["App version", "Version and build of this app", "help-guide", "build-identity", "version about build update release"],
@@ -39,7 +40,7 @@
     if (restore) $("voice-picker-toggle").focus();
   }
   function show(id, focusId) {
-    if (!panels.some(panel => panel.id === id)) return;
+    if (!tabs.some(tab => tab.dataset.settingsTarget === id && !tab.hidden)) return;
     active = id;
     finder.value = "";
     $("settings-search-results").hidden = true;
@@ -62,7 +63,7 @@
   }
   function available(entry) {
     const target = $(entry[3]);
-    if (!target) return false;
+    if (!target || !tabs.some(tab => tab.dataset.settingsTarget === entry[2] && !tab.hidden)) return false;
     // A hidden tabpanel is a navigation state, not an unavailable control.
     for (let node = target; node && node !== dialog; node = node.parentElement)
       if (node.hidden && !node.hasAttribute("data-settings-panel")) return false;
@@ -148,9 +149,10 @@
     tab.addEventListener("keydown", event => {
       if (!["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
       event.preventDefault();
-      const i = tabs.indexOf(tab), direction = ["ArrowDown", "ArrowRight"].includes(event.key) ? 1 : -1;
+      const visibleTabs = tabs.filter(item => !item.hidden);
+      const i = visibleTabs.indexOf(tab), direction = ["ArrowDown", "ArrowRight"].includes(event.key) ? 1 : -1;
       const step = direction * (narrow.matches && ["ArrowDown", "ArrowUp"].includes(event.key) ? 3 : 1);
-      const next = tabs[event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (i + step + tabs.length) % tabs.length];
+      const next = visibleTabs[event.key === "Home" ? 0 : event.key === "End" ? visibleTabs.length - 1 : (i + step + visibleTabs.length) % visibleTabs.length];
       next.focus(); show(next.dataset.settingsTarget);
     });
   }

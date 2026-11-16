@@ -102,8 +102,37 @@ class KnowledgeAPITests(unittest.TestCase):
              ({'KNOWLEDGE_LOCAL_OWNER':'true','COLLECTOR_DEPLOYMENT_MODE':'local'}, True)):
             httpd = self.serve(settings)
             self.assertEqual(self.request(httpd, '/api/config')[1]['revisions_available'], allowed)
+            self.assertEqual(self.request(httpd, '/api/config')[1]['agent_prompts_available'], allowed)
             status, _ = self.request(httpd, '/api/knowledge/submit', {'process_id': 'owned-process'})
             self.assertEqual(status, 202 if allowed else 403)
+
+    def test_prompt_catalog_checks_role_again_on_read_and_has_no_write_route(self):
+        path = '/api/admin/agent-prompts'
+        roles = {'knowledge.admin', 'knowledge.submit'}
+        httpd = self.serve(authorizer=lambda handler, capability: 'verified-person' if capability in roles else None)
+        httpd.client.transcription_keywords = ['private-spelling-hint-fixture']
+        headers = {'X-CSRF-Token': httpd.csrf_token}
+        self.assertTrue(self.request(httpd, '/api/config')[1]['agent_prompts_available'])
+        self.assertEqual(self.request(httpd, path)[1]['code'], 'request_token_rejected')
+        self.assertEqual(self.request(httpd, path, headers={**headers, 'Origin': 'https://example.com'})[0], 403)
+        with patch.object(httpd.client, 'request', side_effect=AssertionError('unexpected provider call')):
+            status, catalog = self.request(httpd, path, headers=headers)
+        self.assertEqual(status, 200)
+        self.assertEqual(self.request(httpd, path, {'prompt': 'replacement'})[0], 404)
+        agents = {agent['id']: agent for agent in catalog['agents']}
+        self.assertTrue(set(server.agent_team.ROLE_CONTRACTS) <= agents.keys())
+        self.assertEqual(agents['process_reviewer']['prompts'][0]['text'], server.agent_team.PROCESS_REVIEW_INSTRUCTIONS)
+        self.assertNotIn(httpd.csrf_token, json.dumps(catalog))
+        self.assertNotIn('verified-person', json.dumps(catalog))
+        self.assertNotIn('private-spelling-hint-fixture', json.dumps(catalog))
+        roles.remove('knowledge.admin')
+        status, denied = self.request(httpd, path + '?role=admin', headers={**headers, 'X-Role': 'admin'})
+        self.assertEqual((status, denied['code']), (403, 'admin_required'))
+        self.assertNotIn('agents', denied)
+        config = self.request(httpd, '/api/config')[1]
+        self.assertTrue(config['revisions_available'])
+        self.assertFalse(config['agent_prompts_available'])
+        self.assertNotIn(server.agent_team.PROCESS_REVIEW_INSTRUCTIONS.splitlines()[0], json.dumps(config))
 
     def test_removed_admin_routes_are_unavailable_even_to_local_and_trusted_owners(self):
         for httpd in (self.serve(), self.serve({'COLLECTOR_DEPLOYMENT_MODE': 'local', 'KNOWLEDGE_LOCAL_OWNER': 'true'}),

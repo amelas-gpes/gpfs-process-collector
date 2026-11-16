@@ -2,7 +2,7 @@
 
 Capture how a process works through a typed or spoken interview. Review the evidence-linked memo, map and procedure, then save a copy or file a revision in local company knowledge.
 
-**Version 0.31.1** brings Settings and interview actions together under one **Menu** in the header. Open **Menu → Settings**, or use Ctrl/Command + comma, for six clear sections and a setting finder. [Release notes](CHANGELOG.md) · [Desktop update guide](docs/DESKTOP.md)
+**Version 0.32.0** adds **Menu → Settings → Agents** for administrators. Follow an interview through the workflow diagram, select an agent to see when its prompts run, and copy the full text of a prompt. Ctrl/Command + comma opens Settings directly. [Settings guide](docs/SETTINGS_EXPERIENCE.md#agent-prompts) · [Release notes](CHANGELOG.md) · [Desktop update guide](docs/DESKTOP.md)
 
 [Run locally](#run-locally) · [Windows desktop app](#desktop-app-windows) · [Data handling and deletion](docs/DATA_HANDLING.md) · [Provider usage](docs/PROVIDER_USAGE.md)
 

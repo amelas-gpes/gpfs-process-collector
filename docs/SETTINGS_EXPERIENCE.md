@@ -1,4 +1,4 @@
-# Settings experience · 0.31.1
+# Settings experience
 
 The previous Settings dialog put six exclusive accordion sections in a 560px column behind More options. Data handling combined the recovery control with a long disclosure. Logs shared the narrow column and nested scrolling. The redesign gives each task a visible destination and preserves the existing preference and storage behavior.
 
@@ -12,16 +12,25 @@ The app header has one labeled **Menu** for Settings and interview actions. Sett
 | Interview context | Participant, process owner, interview goal and background. Existing locks after starting remain in effect. |
 | Data & recovery | Existing optional recovery copy, concise local/service summaries and expandable complete disclosures. |
 | AI usage | Reported daily/interview counts, configured token limits, progress meters and refresh. Unknown usage is explicit. |
+| Agents | Administrators can follow the interview workflow, open the prompts for any agent and copy the full text of a selected prompt. |
 | Application logs | Recent/current app session selection, search, refresh and expandable saved records. The existing bounded reader and request protection are unchanged. |
 | Help & about | Three-step guide, saving guidance, release version and build identity. |
 
 The setting finder searches a static index of control names and descriptions. It never indexes interview content or private values. Selecting a result opens its section, reveals a needed disclosure, and focuses the control or its section when disabled. Unavailable reviewed-voice and recovery controls are omitted from results.
 
+### Agent prompts
+
+Open **Menu → Settings → Agents**. The overview follows an answer from interview input through capture, review and final confirmation. Select an agent in the diagram to see its role and instructions. Expand **Other paths** for voice, drafts and filed processes, or choose **Prompt library** to browse every role directly.
+
+Select a prompt to see when the app uses it. **Copy prompt** copies the full template, including line breaks. Braced placeholders stand for information the app supplies at runtime, such as the current process or an approved spoken line. Opening this section reads the built-in instructions locally and makes no model request.
+
+The server grants access to a trusted identity with `knowledge.admin` or the explicitly configured single-user loopback owner. Other participants do not see Agents in Settings navigation or search. [Local-owner configuration](KNOWLEDGE_GRAPH.md)
+
 ## Interaction details
 
 The native modal provides focus containment and Escape-to-close. Section tabs support arrows, Home and End. The custom voice selector keeps the established voice select as its underlying source, omits disabled choices, supports voice search and roving keyboard focus, and returns focus after selection. Escape first dismisses the picker or clears a setting search; a subsequent Escape closes Settings. Theme and voice preference persistence continue through the existing application handlers.
 
-The layout uses the existing GPFS colors, fonts and icon resources, with dedicated Settings styles and no added dependencies or downloaded assets. On narrow screens, all six destinations remain visible in a two-row navigation grid. Content scrolls independently from navigation; log entries use the main content scroll rather than a second scrolling list. Dark/light themes, visible focus and reduced-motion rules use the app's shared tokens.
+The layout uses the existing GPFS colors, fonts and icon resources. On narrow screens, Settings uses a navigation grid that includes the sections available to the current user. Content scrolls independently from navigation. Dark/light themes, visible focus and reduced-motion rules use the app's shared tokens.
 
 ## Verification scope
 

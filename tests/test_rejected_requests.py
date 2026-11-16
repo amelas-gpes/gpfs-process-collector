@@ -170,7 +170,7 @@ class TokenRejectionWording(Fixture):
         status, _, body, failure = exchange(self.port, self.head("/api/interview", 2, token="outdated"), b"{}")
         self.assertEqual((status, failure), (403, None))
         self.assertEqual(body, {"error": server.TOKEN_REJECTED_MESSAGE, "code": "request_token_rejected"})
-        self.assertIn("More options > Save copy", body["error"])
+        self.assertIn("Menu > Save copy", body["error"])
         self.assertIn("before you reload", body["error"])
         self.assertIn("Nothing was processed", body["error"])
         # The old advice discarded the unsaved interview.

@@ -1,6 +1,7 @@
 "use strict";
 const assert = require("node:assert/strict");
 const {open} = require("./fixtures/app_page.cjs");
+function openSettings(page) { page.$("session-menu-toggle").click(); page.$("open-interview-settings").click(); }
 class UIEvent { constructor(type, options={}) { this.type=type;Object.assign(this,options); } }
 
 async function main() {
@@ -8,8 +9,11 @@ async function main() {
   page.context.Event = page.context.CustomEvent = UIEvent;
   page.context.queueMicrotask = queueMicrotask;
   const settings = page.window.CollectorSettings;
-  page.$("open-settings").click();
-  assert(page.$("interview-settings").open, "Settings opens directly from the header");
+  assert.equal(page.document.getElementById("open-settings"),null,"There is no second header Settings control");
+  assert.equal(page.$("session-menu").querySelector("button").id,"open-interview-settings","Settings is the first menu action");
+  for(const id of ["export-session","import-session","export-transcript-menu","submit-process-menu","open-component-library","load-example","reset-session"])assert(page.$("session-menu").contains(page.$(id)),id+" remains available");
+  openSettings(page);
+  assert(page.$("interview-settings").open, "Settings opens from the unified header menu");
   assert.equal(page.$("preferences-details").hidden,false);
   const tabs = page.document.querySelectorAll("[data-settings-target]");
   assert.equal(tabs.length,6);
@@ -71,8 +75,8 @@ async function main() {
   assert.equal(page.$("logs-scope").value,"current");
   assert.equal(page.document.querySelector('[data-log-scope="all"]').getAttribute("aria-pressed"),"false");
   page.$("close-interview-settings").click();
-  assert.equal(page.document.activeElement,page.$("open-settings"));
-  page.$("open-settings").click();
+  assert.equal(page.document.activeElement,page.$("session-menu-toggle"));
+  openSettings(page);
   assert.equal(page.$("logs-details").hidden,false,"The last section is kept for quick return");
   page.$("close-interview-settings").click();
   page.$("open-context").click();
@@ -82,7 +86,7 @@ async function main() {
   assert.equal(page.requests.filter(row=>/interview|voice-session|conversation/.test(row.url)).length,0,"Browsing Settings never starts an interview or voice session");
   const mobile=await open({narrow:true,modules:["settings-ui.js"]});
   mobile.context.Event=mobile.context.CustomEvent=UIEvent;
-  mobile.$("open-settings").click();
+  openSettings(mobile);
   mobile.$("settings-tab-preferences").focus();
   mobile.$("settings-tab-preferences").dispatchEvent({type:"keydown",key:"ArrowDown"});
   assert.equal(mobile.document.activeElement,mobile.$("settings-tab-usage"),"Down moves to the same column in mobile navigation");

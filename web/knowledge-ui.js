@@ -380,7 +380,7 @@
             text("p","knowledge-muted","Submitted to company knowledge on this computer. To reopen or continue this interview, and to keep the status access below, you still need Save copy.",submit);
             if(options.saveCopy){
               const outcome=node("p","knowledge-muted","");outcome.setAttribute("role","status");outcome.hidden=true;
-              const copy=button("Save copy",async()=>{copy.disabled=true;try{const message=await options.saveCopy();if(typeof message==="string"&&message)error(outcome,message);}catch{error(outcome,"The copy could not be saved. Choose Save copy in More options.");}finally{copy.disabled=false;}});
+              const copy=button("Save copy",async()=>{copy.disabled=true;try{const message=await options.saveCopy();if(typeof message==="string"&&message)error(outcome,message);}catch{error(outcome,"The copy could not be saved. Choose Save copy in Menu.");}finally{copy.disabled=false;}});
               submit.append(copy,outcome);
             }
             text("p","knowledge-muted",revisionsAvailable?"You can submit later edits as a new revision.":"Later edits can be filed as a separate process.",submit);
@@ -417,8 +417,8 @@
             target.send.hidden=Boolean(already);
             if(rejected)applyGate(target);
           }
-          if(!submit.open)options.notice(already?`This interview was already submitted as revision ${e.revision}. Open More options > Submit process to choose how to file it.`:
-            rejected?`The process was not submitted. ${message}`:"The process submission was not confirmed. Open More options > Submission status to retry.",true);
+          if(!submit.open)options.notice(already?`This interview was already submitted as revision ${e.revision}. Open Menu > Submit process to choose how to file it.`:
+            rejected?`The process was not submitted. ${message}`:"The process submission was not confirmed. Open Menu > Submission status to retry.",true);
         }
         finally{if(activeAttempt===attempt)activeAttempt=null;}
       };form.addEventListener("submit",onSubmit);submit.append(form);if(!submit.open)submit.showModal();if(!participant.disabled)participant.focus();else send.focus();

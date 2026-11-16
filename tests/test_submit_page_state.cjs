@@ -121,7 +121,7 @@ await check("a draft that arrives under the open Submit dialog opens Review when
   const h=setup(),reply=deferred(),dialog=h.node("knowledge-submit");
   h.route(url=>url==="/api/draft"?reply.promise:ok({}));
   const running=h.t.generateDraft();await flush();
-  dialog.showModal();                              // Submit process, opened from More options while the draft is being created
+  dialog.showModal();                              // Submit process, opened from Menu while the draft is being created
   reply.resolve(ok(DRAFT()));await running;await flush();
   assert.equal(h.t.draftState().arrivals,1);
   assert.deepEqual(plain(h.tabs),[],"The page must not switch to Review behind the modal dialog");

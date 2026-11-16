@@ -781,7 +781,7 @@
     // The menu is closed most of the time, so its button carries the same mark:
     // it is the only unsaved cue a narrow layout shows without opening the menu.
     const toggle=$("session-menu-toggle");
-    if(toggle){const label=state.dirty?"More options · unsaved changes":"More options";toggle.classList.toggle("has-unsaved",state.dirty);toggle.title=label;toggle.setAttribute("aria-label",label);}
+    if(toggle){const label=state.dirty?"Menu · unsaved changes":"Menu";toggle.classList.toggle("has-unsaved",state.dirty);toggle.title=label;toggle.setAttribute("aria-label",label);}
   }
   // "Saved" is kept for the file Save copy writes. Answers, notes and the map live
   // in this tab only, so a message that reassures after a failure says they are
@@ -2997,7 +2997,7 @@
   // configuration once: a new token from the same build is adopted and the request can be sent
   // again; a different build cannot be trusted with this page; an unchanged token means the 403
   // was about something else (a file workspace, administrator access) and is reported as it is.
-  const PAGE_OUTDATED="The local app was restarted with a different version while this page was open, so this page can no longer send requests. Use More options > Save copy to keep your interview, then reload this page.";
+  const PAGE_OUTDATED="The local app was restarted with a different version while this page was open, so this page can no longer send requests. Use Menu > Save copy to keep your interview, then reload this page.";
   let tokenRenewal=null;
   function usageHeaders(){
     if(!/^[0-9a-f]{32}$/.test(state.usageId||"")){
@@ -3846,7 +3846,7 @@
     event.preventDefault();
     // The process name is the form’s single text input, so
     // Enter in the title arrives here. Once an interview exists that is only a
-    // rename: leave the field and keep the interview. Start over in More options
+    // rename: leave the field and keep the interview. Start over in Menu
     // is the way to replace it, and it checks live voice and pending submissions.
     if (state.started) { $("process-name").blur(); return; }
     if (state.busy || state.recording || state.transcribing || state.requestingMic) return;
@@ -6517,10 +6517,9 @@
     $("pause-completion-review").addEventListener("click",pauseCompletionReview);
     document.querySelectorAll("[data-conversation-view]").forEach(button=>{button.addEventListener("click",()=>selectConversationView(button.dataset.conversationView));button.addEventListener("keydown",conversationTabKey);});
     $("open-interview-settings").addEventListener("click",event=>{settingsOpener=event.currentTarget;setInterviewSettings(true);});
-    $("open-settings")?.addEventListener("click",event=>{settingsOpener=event.currentTarget;setInterviewSettings(true);});
     document.addEventListener("keydown",event=>{
       if((event.ctrlKey||event.metaKey)&&event.key===","&&!event.altKey&&!event.shiftKey){
-        event.preventDefault();if(!$("interview-settings").open){settingsOpener=$("open-settings");setInterviewSettings(true);}
+        event.preventDefault();if(!$("interview-settings").open){settingsOpener=$("session-menu-toggle");setInterviewSettings(true);}
       }
     });
     $("open-context").addEventListener("click",event=>{

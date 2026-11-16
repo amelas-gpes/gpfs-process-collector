@@ -31,7 +31,7 @@ const openMenu=()=>{toggle.focus();toggle.click();assert.equal(menu.hidden,false
 {
  const contents=html.match(/<div class="session-menu"[\s\S]*?<\/div>/)?.[0];assert.ok(contents);
  for(const id of ["export-session","open-interview-settings"]){assert.ok(contents.includes(`id="${id}"`));assert.equal((html.match(new RegExp(`id="${id}"`,"g"))||[]).length,1,"Moved controls must not be duplicated");}
- assert.match(contents,/>Save copy<\/button>/);assert.match(contents,/>Settings<\/button>/);checks++;
+ assert.match(contents,/>Save copy<\/button>/);assert.match(contents,/aria-label="Settings"/);checks++;
 }
 {
  openMenu();nodes.get("open-interview-settings").focus();nodes.get("open-interview-settings").click();

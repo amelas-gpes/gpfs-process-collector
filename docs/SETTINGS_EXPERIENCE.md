@@ -1,10 +1,10 @@
-# Settings experience · 0.31.0
+# Settings experience · 0.31.1
 
 The previous Settings dialog put six exclusive accordion sections in a 560px column behind More options. Data handling combined the recovery control with a long disclosure. Logs shared the narrow column and nested scrolling. The redesign gives each task a visible destination and preserves the existing preference and storage behavior.
 
 ## Access and organization
 
-Settings is available directly in the app header, through More options, and with Ctrl/Command + comma. After opening it, every section takes one selection. Reopening keeps the last section in the current page. Context and cited interview setup open Interview context directly and retain their return-focus behavior.
+The app header has one labeled **Menu** for Settings and interview actions. Settings is first in the dropdown; Ctrl/Command + comma still opens it directly. Save, open, transcript, submit, library, example and start-over actions remain available below it. After opening Settings, every section takes one selection. Reopening keeps the last section in the current page. Context and cited interview setup open Interview context directly and retain their return-focus behavior.
 
 | Section | What it contains |
 | --- | --- |

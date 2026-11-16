@@ -9,9 +9,9 @@ const path = require("node:path");
 const vm = require("node:vm");
 const source = fs.readFileSync(path.join(__dirname, "..", "web", "app.js"), "utf8");
 const REJECTED = "This page's connection to the local app is out of date, usually because the app was restarted. " +
-  "Nothing was processed. Use More options > Save copy to keep your interview before you reload this page.";
+  "Nothing was processed. Use Menu > Save copy to keep your interview before you reload this page.";
 const RELOAD = "The local app was restarted with a different version while this page was open, so this page can no longer " +
-  "send requests. Use More options > Save copy to keep your interview, then reload this page.";
+  "send requests. Use Menu > Save copy to keep your interview, then reload this page.";
 let passed = 0;
 
 function element(id) {

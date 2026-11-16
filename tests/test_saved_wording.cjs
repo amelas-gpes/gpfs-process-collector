@@ -117,12 +117,12 @@ run(async()=>{
   await check("the menu button carries the unsaved mark that a narrow layout otherwise hides",async()=>{
     const h=page(),toggle=h.node("session-menu-toggle"),item=h.node("export-session");
     h.t.state.dirty=true;h.t.updateSaveHint();
-    assert.equal(toggle.classList.contains("has-unsaved"),true);assert.equal(toggle.getAttribute("aria-label"),"More options · unsaved changes");assert.equal(toggle.title,"More options · unsaved changes");
+    assert.equal(toggle.classList.contains("has-unsaved"),true);assert.equal(toggle.getAttribute("aria-label"),"Menu · unsaved changes");assert.equal(toggle.title,"Menu · unsaved changes");
     assert.equal(item.classList.contains("has-unsaved"),true);assert.equal(h.node("save-hint").hidden,false);
     await h.t.exportSession();
     assert.equal(toggle.classList.contains("has-unsaved"),true,"A started download is not proof of a file");
     h.t.state.dirty=false;h.t.updateSaveHint();
-    assert.equal(toggle.classList.contains("has-unsaved"),false);assert.equal(toggle.getAttribute("aria-label"),"More options");assert.equal(h.node("save-hint").hidden,true);
+    assert.equal(toggle.classList.contains("has-unsaved"),false);assert.equal(toggle.getAttribute("aria-label"),"Menu");assert.equal(h.node("save-hint").hidden,true);
     const css=web("style.css"),narrow=css.slice(css.indexOf(".save-hint { max-width: 12ch;"));
     assert.match(narrow.slice(0,600),/#session-menu-toggle\.has-unsaved::after\s*\{[^}]*background:/,"The narrow layout draws the mark beside the compact header text");
   });
@@ -145,7 +145,7 @@ run(async()=>{
   await check("a Save copy that fails from the dialog says where to try again",async()=>{
     const h=dialog({saveCopy:async()=>{throw Error("synthetic");}});h.open();await h.submit();
     await h.button("Save copy").dispatch("click");await settle();
-    assert.match(h.box.textContent,/The copy could not be saved\. Choose Save copy in More options\./);assert.equal(h.button("Save copy").disabled,false);
+    assert.match(h.box.textContent,/The copy could not be saved\. Choose Save copy in Menu\./);assert.equal(h.button("Save copy").disabled,false);
   });
 
   await check("without a Save copy action the dialog still says a copy is needed",async()=>{

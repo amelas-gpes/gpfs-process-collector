@@ -258,7 +258,7 @@ await check("the outcome of a submission is announced on the page when the dialo
   // Not confirmed: said as an error, with where to retry; the menu entry carries that name.
   const unconfirmed=setup(),second=deferred();unconfirmed.open();unconfirmed.respond=()=>second.promise;
   const failing=unconfirmed.submit();await settle();unconfirmed.dialog.close();second.reject(lost());await failing;await settle();
-  assert.deepEqual(unconfirmed.notices,[{message:"The process submission was not confirmed. Open More options > Submission status to retry.",error:true}]);
+  assert.deepEqual(unconfirmed.notices,[{message:"The process submission was not confirmed. Open Menu > Submission status to retry.",error:true}]);
   assert.equal(unconfirmed.controller.hasPending,true);assert.equal((await unconfirmed.menu()).textContent,"Submission status");
   // Refused: the reason is on the page, because the reopened dialog starts afresh.
   const refused=setup(),third=deferred();refused.open();refused.respond=()=>third.promise;
@@ -433,7 +433,7 @@ await check("the question respects the capture gate and a malformed conflict is 
   // Closed while the request was on its way: the page says what to do.
   const closed=setup(),pending=deferred();closed.open();closed.respond=()=>pending.promise;
   const sending=closed.submit();await settle();closed.dialog.close();pending.reject(already(2));await sending;await settle();
-  assert.deepEqual(closed.notices,[{message:"This interview was already submitted as revision 2. Open More options > Submit process to choose how to file it.",error:true}]);
+  assert.deepEqual(closed.notices,[{message:"This interview was already submitted as revision 2. Open Menu > Submit process to choose how to file it.",error:true}]);
 });
 
 await check("saving an uncertain attempt restores its original body and key in a fresh interview",async()=>{

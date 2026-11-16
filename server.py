@@ -42,7 +42,7 @@ class NoProviderRedirect(HTTPRedirectHandler):
 
 
 urlopen = build_opener(NoProviderRedirect()).open
-VERSION = "0.31.0"
+VERSION = "0.31.1"
 APP_DIR = Path(__file__).resolve().parent
 WEB_DIR = APP_DIR / "web"
 DIAGNOSTIC_MAX_BYTES = 1024 * 1024
@@ -1610,7 +1610,7 @@ QUOTA_MESSAGE = "The selected API project has no available API quota. Check that
 RATE_LIMIT_MESSAGE = "The AI service's rate limit was reached. Wait briefly, then try again. Your answer is retained."
 RESPONSE_FAILED_MESSAGE = "The AI service reported a failure while preparing the response. Your session is retained; try again."
 TOKEN_REJECTED_MESSAGE = ("This page's connection to the local app is out of date, usually because the app was restarted. "
-                          "Nothing was processed. Use More options > Save copy to keep your interview before you reload this page.")
+                          "Nothing was processed. Use Menu > Save copy to keep your interview before you reload this page.")
 # Failure codes that may be logged and that choose the wording. Any other code is provider text.
 RESPONSE_FAILURE_CODES = {"rate_limit_exceeded": RATE_LIMIT_MESSAGE, "insufficient_quota": QUOTA_MESSAGE,
                           "credit_balance_exhausted": QUOTA_MESSAGE, "server_error": RESPONSE_FAILED_MESSAGE}

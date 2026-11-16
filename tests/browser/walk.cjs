@@ -53,7 +53,7 @@ async function main() {
     await page.waitForFunction(()=>document.activeElement===document.getElementById("process-owner"));
     await page.keyboard.press("Escape");
     await page.waitForFunction(()=>document.activeElement===document.querySelector("#open-context")&&!document.querySelector("#interview-settings").open);
-    await page.getByRole("button",{name:"More options",exact:true}).click();
+    await page.getByRole("button",{name:"Menu",exact:true}).click();
     await page.locator("#open-interview-settings").click();
     assert.equal(await page.locator("#knowledge-admin, #open-knowledge-admin").count(), 0);
     const guide=page.locator("#help-guide");

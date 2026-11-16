@@ -7,6 +7,11 @@ identify the code that is running: Settings > Data handling, saved interviews an
 exports also carry the build (a desktop release's commit, or `dev+` and a source hash for a
 working tree). See [docs/DESKTOP.md](docs/DESKTOP.md#which-build-is-running).
 
+## 0.31.1 · November 16, 2026
+
+- Combined the separate Settings and overflow controls into a single labeled **Menu**. Settings is first, with the existing save, open, transcript, submit, library, example and start-over actions grouped below it.
+- Kept Ctrl/Command + comma for direct access to Settings, the unsaved-work indicator and keyboard navigation. Closing Settings returns to the unified menu button.
+
 ## 0.31.0 · November 16, 2026
 
 - Rebuilt Settings as a wider workspace with persistent section navigation, a direct header entry, a setting finder and a Ctrl/Command + comma shortcut. The last selected section stays available when reopening Settings.

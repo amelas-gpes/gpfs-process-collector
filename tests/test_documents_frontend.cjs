@@ -451,7 +451,7 @@ function response(document){return{ok:true,json:async()=>({document})};}
   h=setup({extra:{...options,renewToken:async sent=>{renewals.push(sent);return false;}},fetch:async()=>rejected()});
   await h.api.addFiles([{name:"Unchanged token.pdf",size:20}]);assert.equal(h.uploads.length,1);assert.deepEqual(renewals,["old-token"]);h.api.dispose();
   // A build that changed is reported in the renewal's own words.
-  h=setup({extra:{...options,renewToken:async()=>{throw new Error("Use More options > Save copy, then reload this page.");}},fetch:async()=>rejected()});
+  h=setup({extra:{...options,renewToken:async()=>{throw new Error("Use Menu > Save copy, then reload this page.");}},fetch:async()=>rejected()});
   await h.api.addFiles([{name:"Other build.pdf",size:20}]);assert.equal(h.uploads.length,1);assert.match(h.api.body.textContent,/Save copy, then reload this page/);h.api.dispose();passes++;
  }
  {

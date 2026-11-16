@@ -180,7 +180,7 @@ class KeySettingTests(unittest.TestCase):
                 self.assertEqual(leaks(repr(diagnostics.mock_calls)), [])
 
     def test_the_explanation_names_the_setting_and_never_a_value(self):
-        self.assertIn("OPENAI_API_KEY", server.UNUSABLE_KEY_MESSAGE)
+        self.assertIn("local API settings", server.UNUSABLE_KEY_MESSAGE)
         self.assertEqual(leaks(server.UNUSABLE_KEY_MESSAGE), [])
 
     def test_a_missing_key_keeps_its_own_explanation(self):
@@ -194,7 +194,7 @@ class KeySettingTests(unittest.TestCase):
                         client.request("responses", {})
                 network.assert_not_called()
                 self.assertEqual(caught.exception.status, 503)
-                self.assertIn("no OpenAI API key configured", str(caught.exception))
+                self.assertIn("no API key configured", str(caught.exception))
 
 
 class TransportTextTests(unittest.TestCase):

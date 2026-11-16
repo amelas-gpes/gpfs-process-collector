@@ -19,7 +19,7 @@ async function started(page){
  await page.t.sendAnswer({preventDefault(){}});await page.flush();
  assert.equal(page.state.started,true);assert.equal(page.state.turns.filter(turn=>turn.role==="user").length,1);
 }
-const openContext=page=>{page.t.setInterviewSettings(true);page.$("context-details").open=true;};
+const openContext=page=>{assert.equal(page.$("open-context").click(),true,"Context is accessible from the navbar");};
 let passed=0;const failed=[];
 async function check(name,fn){
  try{await fn();passed++;console.log("PASS "+name);}
@@ -27,24 +27,28 @@ async function check(name,fn){
 }
 (async()=>{
  const config={agent_team:{enabled:true}};
- await check("before the interview starts, Add context under the start buttons opens the three fields",async()=>{
+ await check("Context in the navbar opens the three fields and restores keyboard focus when closed",async()=>{
   const page=await open({config,expose:EXPOSE});
-  const link=page.$("add-context");
-  assert.equal(link.visible,true,"The link is on the start screen");assert.equal(link.textContent.trim(),"Add context");
-  assert.ok(page.$("conversation-dock").contains(link),"It sits with the start buttons");
-  assert.equal(link.click(),true);
+  const link=page.$("open-context");
+  assert.equal(link.visible,true);assert.equal(link.textContent.trim(),"Context");
+  assert.ok(link.closest("nav"),"Context is in the navbar");
+  assert.equal(link.getAttribute("aria-haspopup"),"dialog");
+  assert.equal(link.getAttribute("aria-controls"),"interview-settings");
+  link.focus();openContext(page);
   assert.equal(page.$("interview-settings").open,true);assert.equal(page.$("context-details").open,true,"Interview context is unfolded");
   assert.equal(page.document.activeElement,page.$("process-owner"),"The first field has focus");
   for(const id of ["process-owner","objective","background"])assert.equal(page.$(id).disabled,false,id+" can be filled in");
   assert.match(lockNote(page),/Goal and background lock when the interview starts/);
   // What is typed there is what the interview starts with.
   page.$("process-owner").input("Office manager");page.$("background").input("Shared cupboard on the second floor.");
-  page.t.setInterviewSettings(false);await started(page);
+  page.$("close-interview-settings").click();
+  assert.equal(page.document.activeElement,link,"Closing returns focus to Context");
+  await started(page);
   assert.equal(page.state.context.process_owner,"Office manager");assert.equal(page.state.context.background,"Shared cupboard on the second floor.");
  });
  await check("after the start the process owner can still be corrected; goal and background say why they cannot",async()=>{
   const page=await open({config,expose:EXPOSE});await started(page);
-  assert.equal(page.$("add-context").visible,false,"The start-screen link is gone once the interview has started");
+  assert.equal(page.$("open-context").visible,true,"The navbar action remains available during an interview");
   openContext(page);
   assert.equal(page.$("process-owner").disabled,false,"Process owner stays editable");
   assert.equal(page.$("objective").disabled,true);assert.equal(page.$("background").disabled,true);

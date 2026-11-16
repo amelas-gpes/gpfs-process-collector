@@ -42,7 +42,7 @@ class NoProviderRedirect(HTTPRedirectHandler):
 
 
 urlopen = build_opener(NoProviderRedirect()).open
-VERSION = "0.30.0"
+VERSION = "0.30.1"
 APP_DIR = Path(__file__).resolve().parent
 WEB_DIR = APP_DIR / "web"
 DIAGNOSTIC_MAX_BYTES = 1024 * 1024
@@ -1600,14 +1600,14 @@ class APIError(Exception):
         self.transient = transient
 
 
-UNUSABLE_KEY_MESSAGE = ("The OpenAI API key configured for this app contains a space, a line break or a character "
-                        "that a key cannot contain, so it was not used. Re-enter OPENAI_API_KEY, then restart the app.")
+UNUSABLE_KEY_MESSAGE = ("The API key configured for this app contains a space, a line break or a character "
+                        "that a key cannot contain, so it was not used. Re-enter the key in the local API settings, then restart the app.")
 UNREADABLE_REQUEST_MESSAGE = "The request could not be processed as sent. Your browser session is retained."
 UNUSABLE_RESULT_MESSAGE = "The model did not return a usable structured result. Please try again."
 # The same provider condition reads the same whether it arrives as an HTTP status or inside a response.
-QUOTA_MESSAGE = "The selected OpenAI project has no available API quota. Check that project's billing and usage limits."
-RATE_LIMIT_MESSAGE = "OpenAI's rate limit was reached. Wait briefly, then try again. Your answer is retained."
-RESPONSE_FAILED_MESSAGE = "OpenAI reported a failure while preparing the response. Your session is retained; try again."
+QUOTA_MESSAGE = "The selected API project has no available API quota. Check that project's billing and usage limits."
+RATE_LIMIT_MESSAGE = "The AI service's rate limit was reached. Wait briefly, then try again. Your answer is retained."
+RESPONSE_FAILED_MESSAGE = "The AI service reported a failure while preparing the response. Your session is retained; try again."
 TOKEN_REJECTED_MESSAGE = ("This page's connection to the local app is out of date, usually because the app was restarted. "
                           "Nothing was processed. Use More options > Save copy to keep your interview before you reload this page.")
 # Failure codes that may be logged and that choose the wording. Any other code is provider text.
@@ -3852,17 +3852,17 @@ class OpenAIClient:
                      **({"history_limit": {"messages": LIVE_HISTORY_MESSAGES, "bytes": LIVE_HISTORY_BYTES}}
                         if self.voice_mode == "live" else {})},
             "data_notice": (
-                "Submitted interview text and recorded answer audio are sent to OpenAI. "
-                + ("While Live voice is connected, microphone audio streams directly to OpenAI until you mute or stop. "
+                "Submitted interview text and recorded answer audio are sent to the AI service. "
+                + ("While Live voice is connected, microphone audio streams directly to the AI service until you mute or stop. "
                    if self.voice_mode == "live" else "Reviewed voice sends each recorded answer for transcription. ")
                 + "Submit process saves a revision in local company knowledge. Matching can send excerpts of that revision "
-                "and up to eight related saved submissions to OpenAI. The interviewer responds, with additional checks "
+                "and up to eight related saved submissions to the AI service. The interviewer responds, with additional checks "
                 "before an interview can be marked complete. "
-                "Natural AI playback also sends question text to OpenAI. Generated playback audio "
+                "Natural AI playback also sends question text to the AI service. Generated playback audio "
                 "is held in browser memory rather than saved automatically. Installed computer "
                 "voices play locally. Uploaded originals, extracted text and their review context are "
                 "saved privately on this computer. The name and full extracted text of each uploaded file, "
-                "hidden sheets included, and any page or image that needs visual review are sent to OpenAI for "
+                "hidden sheets included, and any page or image that needs visual review are sent to the AI service for "
                 "background review. Large reviews can pause after the initial sample. Unrelated files await "
                 "your choice, and Save for later or Remove stops further review. Selected file text also "
                 "accompanies later interview requests. After a file is saved for later or removed, "
@@ -3872,7 +3872,7 @@ class OpenAIClient:
                 "unless you turn it on: with “Keep a recovery copy on this computer” on, one copy of the unsaved "
                 "interview (transcript, notes, working map, draft, file references and the unsent answer; never "
                 "recordings) is written to this app's private work folder on this computer a few seconds after each "
-                "change. That copy is never sent to OpenAI or anywhere else. It is offered again when the app next "
+                "change. That copy stays on this computer. It is offered again when the app next "
                 "opens, and it is deleted after a confirmed Save copy, when you start over or open another "
                 "interview, when you discard it, when you turn the option off, and after seven days."
             ),
@@ -3985,7 +3985,7 @@ class OpenAIClient:
         if self.key_problem:
             raise APIError(self.key_problem, 503, "configuration")
         if not self.key:
-            raise APIError("The server has no OpenAI API key configured. Restart after completing secure setup.", 503, "configuration")
+            raise APIError("The server has no API key configured. Restart after completing secure setup.", 503, "configuration")
         streaming = on_text is not None and path == "responses" and isinstance(body, dict)
         if streaming:
             body = {**body, "stream": True}
@@ -4054,11 +4054,11 @@ class OpenAIClient:
                         except (ValueError, UnicodeError):
                             check_active()
                             metrics.update(error_category="invalid_response")
-                            raise APIError("OpenAI returned an unreadable response. Please try again.") from None
+                            raise APIError("The AI service returned an unreadable response. Please try again.") from None
                     else:
                         raw = response.read(4 * 1024 * 1024 + 1)
                         if len(raw) > 4 * 1024 * 1024:
-                            raise APIError("OpenAI returned more data than this operation can accept.")
+                            raise APIError("The AI service returned more data than this operation can accept.")
                     check_active()
             except HTTPError as error:
                 code = ""
@@ -4081,30 +4081,30 @@ class OpenAIClient:
                     message = QUOTA_MESSAGE
                 elif 300 <= error.code < 400:
                     category = "redirect"
-                    message = "A network service redirected the OpenAI request. Check the proxy or filtering settings."
+                    message = "A network service redirected the request to the AI service. Check the proxy or filtering settings."
                 elif code in ("context_length_exceeded", "string_above_max_length") or error.code == 413:
                     category = "input_limit"
                     message = "The provider could not accept an input this large. Save a copy and continue with a shorter interview or smaller file."
                 elif code in ("model_not_found", "model_not_available"):
                     category = "model_access"
-                    message = "The configured model is unavailable to this OpenAI project. Check its model access."
+                    message = "The configured model is unavailable to this API project. Check its model access."
                 elif error.code == 400:
                     category = "invalid_configuration"
                     message = "The provider rejected a model parameter or request format. Check the model settings before trying again."
                 elif path == "live/sessions" and error.code == 403:
                     category = "permissions"
-                    message = "This OpenAI project does not have permission to use GPT-Live 1. Check its Live API access; you can continue by typing."
+                    message = "This API project does not have permission to use live voice. Check its Live API access; you can continue by typing."
                 elif error.code in (401, 403):
                     category = "authentication" if error.code == 401 else "permissions"
-                    message = "OpenAI rejected this key or its project permissions. Check the key's access in OpenAI Platform."
+                    message = "The AI service rejected this key or its project permissions. Check the API key’s project permissions."
                 elif error.code == 429:
                     category = "rate_limit"
                     message = RATE_LIMIT_MESSAGE + (f" Retry after {retry_after} seconds." if retry_after else "")
                 elif path == "live/sessions" and error.code == 404:
                     category = "model_access"
-                    message = "GPT-Live 1 is unavailable to this OpenAI project. Check its Live API access; you can continue by typing."
+                    message = "Live voice is unavailable to this API project. Check its Live API access; you can continue by typing."
                 else:
-                    message = f"OpenAI could not complete the request (HTTP {error.code}). Your session is retained; try again."
+                    message = f"The AI service could not complete the request (HTTP {error.code}). Your session is retained; try again."
                 metrics.update(status=error.code, error_category=category, error_type="HTTPError")
                 # A rate limit or a provider-side failure can pass by itself; nothing else here can.
                 transient = category == "rate_limit" or 500 <= error.code < 600
@@ -4124,26 +4124,26 @@ class OpenAIClient:
                         or getattr(cause, "errno", None) in (errno.ETIMEDOUT, 10060)
                         or getattr(cause, "winerror", None) == 10060):
                     category, status = "timeout", 504
-                    message = ("The OpenAI request timed out." + retained
+                    message = ("The request to the AI service timed out." + retained
                                + " Try again; your saved files do not need to be uploaded again.")
                 elif isinstance(cause, (IncompleteRead, ssl.SSLEOFError, ssl.SSLZeroReturnError)):
                     category = "connection"
-                    message = "The connection to OpenAI ended before the response was complete." + retained
+                    message = "The connection to the AI service ended before the response was complete." + retained
                 elif isinstance(cause, (BadStatusLine, LineTooLong)):
                     category = "invalid_response"
-                    message = "OpenAI or a network proxy returned an invalid HTTP response." + retained
+                    message = "The AI service or a network proxy returned an invalid HTTP response." + retained
                 elif isinstance(cause, ssl.SSLError):
                     category = "tls"
-                    message = "Could not establish a secure connection to OpenAI. Check your network or proxy certificate settings." + retained
+                    message = "Could not establish a secure connection to the AI service. Check your network or proxy certificate settings." + retained
                 elif isinstance(cause, socket.gaierror):
                     category = "dns"
-                    message = "Could not resolve OpenAI's network address. Check the network connection and try again." + retained
+                    message = "Could not resolve the AI service’s network address. Check the network connection and try again." + retained
                 elif isinstance(cause, ConnectionError):
                     category = "connection"
-                    message = "The connection to OpenAI was interrupted. Check the network connection and try again." + retained
+                    message = "The connection to the AI service was interrupted. Check the network connection and try again." + retained
                 else:
                     category = "network"
-                    message = "Could not reach OpenAI. Check the network connection and try again; your session is retained."
+                    message = "Could not reach the AI service. Check the network connection and try again; your session is retained."
                 metrics.update(status=status, error_category=category, error_type=type(cause).__name__)
                 raise APIError(message, status, category, category == "timeout") from None
             except (ValueError, UnicodeError, HTTPException) as error:
@@ -4151,15 +4151,15 @@ class OpenAIClient:
                 # rejected header value is printed whole, the key included. Record
                 # the kind of failure only; its text must not leave this function.
                 metrics.update(error_category="protocol", error_type=type(error).__name__)
-                raise APIError("The request to OpenAI could not be sent or read. Your session is retained; try again.") from None
+                raise APIError("The request to the AI service could not be sent or read. Your session is retained; try again.") from None
             try:
                 result = raw if streaming else json.loads(raw)
             except (ValueError, UnicodeError):
                 metrics.update(error_category="invalid_response")
-                raise APIError("OpenAI returned an unreadable response. Please try again.") from None
+                raise APIError("The AI service returned an unreadable response. Please try again.") from None
             if not isinstance(result, dict):
                 metrics.update(error_category="invalid_response")
-                raise APIError("OpenAI returned an unreadable response. Please try again.")
+                raise APIError("The AI service returned an unreadable response. Please try again.")
             metrics.update(outcome="success", status=200)
             if path == "responses":
                 metrics.update(self._usage_metrics(result, body))
@@ -4236,7 +4236,7 @@ class OpenAIClient:
                                "finished. Your session is retained. Trying again unchanged may end the same way.", reason)
             if status == "incomplete" and reason == "content_filter":
                 raise unusable("content_filter",
-                               "OpenAI's content filter stopped the model's response. Your session is retained; "
+                               "The AI service’s content filter stopped the model's response. Your session is retained; "
                                "rephrase the latest answer or the process context, then try again.", reason)
             if status == "failed":
                 listed = isinstance(code, str) and code in RESPONSE_FAILURE_CODES
@@ -4432,7 +4432,7 @@ class OpenAIClient:
         if (not isinstance(answer, str) or len(answer) > 64000 or not answer.startswith("v=0")
                 or "m=audio " not in answer or not isinstance(session_id, str) or not session_id
                 or len(session_id) > 256 or self.key in answer or self.key == session_id):
-            raise APIError("GPT-Live did not return a valid audio connection. Please try connecting again.")
+            raise APIError("The voice service did not return a valid audio connection. Please try connecting again.")
         # Deliberately discard any provider config or credentials in the response.
         return {"sdp": answer, "session_id": session_id, "model": LIVE_MODEL,
                 **({"document_evidence": document_evidence} if supporting else {}),

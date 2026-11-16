@@ -89,7 +89,7 @@ class Causes(unittest.TestCase):
     def test_a_failed_response_is_worded_like_the_same_http_failure(self):
         cases = (("rate_limit_exceeded", server.RATE_LIMIT_MESSAGE),
                  ("insufficient_quota", server.QUOTA_MESSAGE),
-                 ("server_error", "OpenAI reported a failure while preparing the response. "
+                 ("server_error", "The AI service reported a failure while preparing the response. "
                                   "Your session is retained; try again."))
         for code, expected in cases:
             with self.subTest(code=code):
@@ -100,8 +100,8 @@ class Causes(unittest.TestCase):
 
     def test_the_http_branches_keep_the_wording_they_share(self):
         self.assertEqual(server.RATE_LIMIT_MESSAGE,
-                         "OpenAI's rate limit was reached. Wait briefly, then try again. Your answer is retained.")
-        self.assertEqual(server.QUOTA_MESSAGE, "The selected OpenAI project has no available API quota. "
+                         "The AI service's rate limit was reached. Wait briefly, then try again. Your answer is retained.")
+        self.assertEqual(server.QUOTA_MESSAGE, "The selected API project has no available API quota. "
                                                "Check that project's billing and usage limits.")
 
     def test_provider_text_and_unlisted_codes_never_reach_the_message_or_the_log(self):
@@ -176,12 +176,12 @@ class Causes(unittest.TestCase):
                  ({"type": "error", "error": {"code": "insufficient_quota", "message": PRIVATE}}, server.QUOTA_MESSAGE,
                   "insufficient_quota"),
                  ({"type": "error", "code": "server_error", "message": PRIVATE},
-                  "OpenAI reported a failure while preparing the response. Your session is retained; try again.",
+                  "The AI service reported a failure while preparing the response. Your session is retained; try again.",
                   "server_error"),
                  ({"type": "error", "code": PRIVATE, "message": PRIVATE},
-                  "OpenAI reported a failure while preparing the response. Your session is retained; try again.", None),
+                  "The AI service reported a failure while preparing the response. Your session is retained; try again.", None),
                  ({"type": "error"},
-                  "OpenAI reported a failure while preparing the response. Your session is retained; try again.", None))
+                  "The AI service reported a failure while preparing the response. Your session is retained; try again.", None))
         for event, expected, reason in cases:
             with self.subTest(event=repr(event)[:50]):
                 message, cause = self.rejected(stream(delta, event), on_text=lambda text: False)
@@ -194,7 +194,7 @@ class Causes(unittest.TestCase):
         for raw in (io.BytesIO(b"data: not json\n\n"),
                     stream({"type": "response.output_text.delta", "delta": "{"})):
             outcome, calls = self.call(raw, on_text=lambda text: False)
-            self.assertEqual(str(outcome), "OpenAI returned an unreadable response. Please try again.")
+            self.assertEqual(str(outcome), "The AI service returned an unreadable response. Please try again.")
             self.assertEqual([call.args[0] for call in calls], ["provider_request_finished"])
             self.assertEqual((calls[0].kwargs["outcome"], calls[0].kwargs["error_category"]), ("error", "invalid_response"))
 

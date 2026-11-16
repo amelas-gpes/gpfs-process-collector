@@ -37,10 +37,13 @@
   <a class="skip-link" href="#main">Skip to main content</a>
   <header class="app-header">
     <a class="brand" href="/" aria-label="GP Fund Solutions Process Collector, home"><picture><source media="(max-width:760px)" srcset="/assets/gpfs-symbol.svg"><img class="brand-logo" src="/assets/gpfs-logo.svg" alt="GP Fund Solutions" width="102" height="36"></picture><span>Process Collector</span></a>
-    <nav class="tab-nav" aria-label="Workspace"><button class="nav-tab active" data-tab="interview" aria-current="page">Interview</button><button class="nav-tab" data-tab="review">Review <span id="draft-dot" hidden></span></button></nav>
+    <nav class="tab-nav" aria-label="Workspace">
+      <button class="nav-tab active" data-tab="interview" aria-current="page">Interview</button>
+      <button class="nav-tab" data-tab="review">Review <span id="draft-dot" hidden></span></button>
+      <button type="button" class="nav-tab" id="open-context" aria-haspopup="dialog" aria-controls="interview-settings">Context</button>
+    </nav>
     <div class="header-actions"><button type="button" id="save-hint" class="save-hint" title="Download a copy" hidden>Unsaved changes</button><button class="icon-button" id="session-menu-toggle" aria-label="More options" title="More options" aria-expanded="false" aria-controls="session-menu" data-icon="more"></button></div>
     <div class="session-menu" id="session-menu" role="group" aria-label="Session and settings" hidden>
-      <button class="text-button" type="button" id="open-guide">How this works</button>
       <button type="button" id="export-session" aria-label="Save copy of this interview" aria-describedby="save-copy-description" aria-keyshortcuts="Control+S" title="Save a copy of this interview to your computer (Ctrl+S)" data-icon="download">Save copy</button>
       <p id="save-copy-description">Save a copy to keep this interview after you close the tab. Files and submission status can include private access. Use Export transcript to share the conversation.</p>
       <button type="button" id="import-session" data-icon="folder">Open saved interview…</button>
@@ -84,7 +87,7 @@
               <div class="gpfs-presence" id="gpfs-presence" data-state="idle" aria-hidden="true"><img class="gpfs-fallback" src="/assets/gpfs-symbol.svg" alt=""></div>
               <div class="voice-copy"><div id="welcome"><h2>Let’s document your process.</h2></div><p class="presence-status" id="presence-status" role="status">Ready when you are</p><p class="presence-caption" id="presence-caption">Talk through the steps or drop in a file. You’ll get a workflow and a draft to review.</p><div id="current-question" class="current-question active-only" role="region" aria-label="Current question" aria-live="off"></div></div>
               <div class="configuration-status" id="configuration-status" hidden><p id="configuration-message"></p><button id="retry-config" class="text-button" type="button">Check configuration</button></div>
-              <button class="text-button" type="button" id="welcome-guide">How this works</button><button type="button" id="welcome-example" aria-label="Open example workflow: Invoice approval">
+              <button type="button" id="welcome-example" aria-label="Open example workflow: Invoice approval">
                 <span id="welcome-example-art" class="example-art" aria-hidden="true"></span>
                 <span class="example-card-caption"><span class="example-card-copy"><span>Example workflow</span><strong>Invoice approval</strong></span><span class="example-card-arrow" data-icon="arrow-right" aria-hidden="true"></span></span>
               </button>
@@ -168,8 +171,6 @@
           </div>
 
             <div class="dock-row"><div class="dock-secondary"><button type="button" class="text-button small" id="retry-question" data-icon="refresh" hidden>Try again</button><button class="text-button small active-only" id="skip-question" data-icon-end="chevron-right" disabled>Skip question</button></div><div id="live-controls" class="live-controls"><span id="transcript-live-hint" class="transcript-live-hint" hidden>Voice is on. Stop talking to type a reply.</span><button type="button" class="button primary live-start" id="start-live" data-icon="mic"><span>Start talking</span></button><button type="button" class="button secondary" id="mute-live" data-icon="mic" aria-pressed="false" hidden>Mute mic</button><button type="button" class="button stop-live" id="stop-live" data-icon="phone-off" hidden>Stop talking</button><button type="button" class="text-button" id="type-instead" data-icon="keyboard">Type instead</button></div><span class="dock-spacer" aria-hidden="true"></span></div>
-            <p id="data-brief" class="data-brief">Your voice, typed answers and files are sent to OpenAI to run the interview. The conversation is not saved automatically. <button type="button" id="open-data-notice" aria-haspopup="dialog" aria-controls="interview-settings">How your data is handled</button></p>
-            <p id="context-prompt" class="context-prompt"><button type="button" class="text-button small" id="add-context" data-icon="memo">Add context</button><span>Optional: process owner, goal and background.</span></p>
           </div>
           </div>
         </section>
@@ -300,12 +301,6 @@
       <div class="connection-dialog-actions"><button type="button" class="button secondary" id="cancel-connection">Cancel</button><button type="submit" class="button primary" id="save-connection">Add connection</button></div>
     </form>
   </dialog>
-<dialog id="help-guide" class="detail-panel" aria-labelledby="guide-title"><h2 id="guide-title">How this works</h2>
-    <ol><li>Talk or type about a process. Describe what starts the work, who does it and how you know it is complete.</li>
-    <li>Check Notes and Workflow as they update. Select a source to review the original answer or file excerpt. A topic can be unknown, partial, captured or not applicable. Captured topics stay provisional until Wrap up.</li>
-    <li>Choose Wrap up, answer the final question, then create and review the draft. A process owner checks the procedure before approval.</li></ol>
-    <p>Team activity shows which parts of the current request are running. A completed task does not approve the account.</p><p>Save copy downloads your interview. Settings explains what stays on this computer and what goes to the AI service.</p>
-    <button id="close-guide" class="button primary" type="button">Done</button></dialog>
 <dialog id="knowledge-submit" class="knowledge-dialog" aria-labelledby="knowledge-submit-title"></dialog>
 <dialog id="knowledge-admin" class="knowledge-dialog knowledge-admin" aria-labelledby="knowledge-admin-title"></dialog>
 <dialog id="interview-settings" class="interview-settings" aria-labelledby="settings-title">
@@ -358,11 +353,23 @@
       <summary><span data-icon="shield">Data handling</span></summary>
       <div id="recovery-setting" class="settings-fields recovery-setting" hidden>
         <label class="check-label"><input type="checkbox" id="recovery-enabled" aria-describedby="recovery-description recovery-status"> Keep a recovery copy on this computer</label>
-        <p id="recovery-description">Off unless you turn it on. When it is on, one copy of the unsaved interview (transcript, notes, working map, draft and your unsent answer; never recordings) is written to this app’s private work folder a few seconds after each change, so a closed tab, a crash or a restart does not lose it. The copy stays on this computer and is never sent to OpenAI. It is offered when the app next opens, and deleted after a confirmed Save copy, when you start over or open another interview, when you discard it, when you turn this off, and after seven days.</p>
+        <p id="recovery-description">Off unless you turn it on. When it is on, one copy of the unsaved interview (transcript, notes, working map, draft and your unsent answer; never recordings) is written to this app’s private work folder a few seconds after each change, so a closed tab, a crash or a restart does not lose it. The copy stays on this computer. It is offered when the app next opens, and deleted after a confirmed Save copy, when you start over or open another interview, when you discard it, when you turn this off, and after seven days.</p>
         <p id="recovery-status" role="status"></p>
       </div>
       <p id="data-notice" class="settings-fields" tabindex="-1"></p>
       <p id="build-identity" class="settings-fields" hidden></p>
+    </details>
+    <details id="help-guide" class="settings-group" name="settings-section">
+      <summary><span>How this works</span></summary>
+      <div class="settings-fields">
+        <ol>
+          <li>Talk or type about a process. Describe what starts the work, who does it and how you know it is complete.</li>
+          <li>Check Notes and Workflow as they update. Select a source to review the original answer or file excerpt. A topic can be unknown, partial, captured or not applicable. Captured topics stay provisional until Wrap up.</li>
+          <li>Choose Wrap up, answer the final question, then create and review the draft. A process owner checks the procedure before approval.</li>
+        </ol>
+        <p>Team activity shows which parts of the current request are running. A completed task does not approve the account.</p>
+        <p>Save copy downloads your interview. The Data handling section explains what stays on this computer and what goes to the AI service.</p>
+      </div>
     </details>
     <button type="button" id="open-knowledge-admin" class="text-button" data-icon="db" hidden>Company knowledge (admin)</button>
   </div>

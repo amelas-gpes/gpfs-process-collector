@@ -5,7 +5,7 @@
   const MAX_FILE = 64 * 1024 * 1024, MAX_FILES = 20;
   const EXTENSIONS = new Set(["pdf","png","xlsx","xlsm","csv"]);
   // These notices describe what the background review sends (document_service.py): keep them true to it.
-  const FILE_NOTICE = "Files are saved on this computer. OpenAI can receive file names, the full extracted text (including hidden sheets), and pages or images for visual review. Large files pause for your choice before sending more. Files saved for later pause further background review. Remove stops further review and takes the file out of future interview requests. Use Permanently delete in Removed files to erase its local original and index. Excerpts in earlier saves or submissions remain. Confirm file details in the interview.";
+  const FILE_NOTICE = "Files are saved on this computer. The AI service can receive file names, the full extracted text (including hidden sheets), and pages or images for visual review. Large files pause for your choice before sending more. Files saved for later pause further background review. Remove stops further review and takes the file out of future interview requests. Use Permanently delete in Removed files to erase its local original and index. Excerpts in earlier saves or submissions remain. Confirm file details in the interview.";
   const FILE_LIMITS = "PDF, PNG, XLSX, XLSM or CSV · Up to 64 MiB each. Extraction limits: 500 PDF pages, 100 sheets, 2 million populated cells, 40 megapixels per image, and 64 MiB of indexed text in up to 50,000 sections.";
   const PARKED_REVIEW_NOTICE = "Further review is paused while this file is saved for later. A request already sent can finish.";
   // The reviewer's verdict on a file, in the words shown beside its reason.
@@ -431,6 +431,13 @@
       return (checking?` ${checking} saved ${checking===1?"file is":"files are"} being checked again on this computer after an app update.`:"")
         +(attention?` ${attention} saved ${attention===1?"file needs":"files need"} attention in Assets before the interview can be completed.`:"");
     }
+    reviewNotice(message) {
+      // Previous releases persisted service errors in both the warning and reading limits.
+      if(typeof message!=="string"||!message.startsWith("Document review paused: "))return message;
+      return message.replace("in OpenAI Platform","in the service’s project settings")
+        .replace(/OpenAI (API key|project)/g,"$1").replace(/the OpenAI request/g,"the request to the AI service")
+        .replace(/OpenAI/g,"the AI service");
+    }
     reviewError(document) {return document.status==="error"||document.analysis?.phase==="error"||Boolean(document.analysis?.error)||(this.needsReindex(document)&&!this.reindexChecking(document));}
     status(document) {
       if(document.analysis?.disposition==="parked")return "Saved for later";
@@ -475,8 +482,8 @@
       const reviewed=Number(analysis.reviewed_chunks),chunks=Number(analysis.total_chunks);
       if(Number.isFinite(reviewed)&&Number.isFinite(chunks)&&chunks>0)parts.push(`${reviewed} of ${chunks} sections reviewed.`);
       const requests=this.requestsLeft(document);
-      if(requests&&this.reviewRunning(document))parts.push(`About ${requests} more review ${requests===1?"request":"requests"} to OpenAI.`);
-      else if(requests&&analysis.review_stopped&&!this.reviewError(document))parts.push(`Continuing would send about ${requests} more review ${requests===1?"request":"requests"} to OpenAI.`);
+      if(requests&&this.reviewRunning(document))parts.push(`About ${requests} more review ${requests===1?"request":"requests"} to the AI service.`);
+      else if(requests&&analysis.review_stopped&&!this.reviewError(document))parts.push(`Continuing would send about ${requests} more review ${requests===1?"request":"requests"} to the AI service.`);
       if(this.leftOut(document))parts.push("Left out of the latest update.");
       return parts.join(" ");
     }
@@ -614,7 +621,7 @@
       // Pages or images whose reading returned nothing can be asked for again by themselves; the rest of the file is not sent again.
       const unread=Array.isArray(analysis.unreadable_sources)?analysis.unreadable_sources.length:0;
       if(unread&&!this.reviewError(document)&&!this.reviewRunning(document)&&!analysis.review_stopped){
-        card.append(this.node("p","documents-progress documents-unread-pages",`${unread} ${unread===1?"page or image":"pages or images"} returned no reading in the last review and ${unread===1?"is":"are"} listed under Reading limits. Read again sends only ${unread===1?"that one":"those"} to OpenAI.`));
+        card.append(this.node("p","documents-progress documents-unread-pages",`${unread} ${unread===1?"page or image":"pages or images"} returned no reading in the last review and ${unread===1?"is":"are"} listed under Reading limits. Read again sends only ${unread===1?"that one":"those"} to the AI service.`));
         const again=this.control(this.button("Read again","documents-text-button",()=>this.action(document,"reread")),document,"read-again");again.setAttribute("aria-label",`Read the unread pages or images of ${document.name||"this file"} again`);card.append(again);
       }
       // A verdict that set the file aside, or asks for direction, is stated on the card itself, not only under its details.
@@ -622,7 +629,7 @@
       if(relevance&&decided)card.append(relevance);
       const failed=this.actionErrors.get(document.id);if(failed){const error=this.node("div","documents-warning");error.setAttribute("role","status");const retry=this.control(this.button("Retry action","documents-text-button",()=>this.action(document,failed.action,failed.purpose)),document,"retry-action",failed.action);retry.disabled=this.actions.has(document.id+":"+failed.action);error.append(this.node("p","",failed.message),retry);card.append(error);}
       if(document.error)card.append(this.node("p","documents-warning",typeof document.error==="string"?document.error:"Some content could not be read."));
-      if(analysis.error)card.append(this.node("p","documents-warning",typeof analysis.error==="string"?analysis.error:analysis.error.message||"Review could not be completed. Try reviewing this file again."));
+      if(analysis.error)card.append(this.node("p","documents-warning",this.reviewNotice(typeof analysis.error==="string"?analysis.error:analysis.error.message)||"Review could not be completed. Try reviewing this file again."));
       if(analysis.phase==="error"&&!analysis.error)card.append(this.node("p","documents-warning","Review could not be completed. Your saved file is retained."));
       // Said in its own line, whatever error an earlier review left on the file.
       const outdated=this.reindexMessage(document);if(outdated)card.append(this.node("p",`${this.reindexChecking(document)?"documents-progress":"documents-warning"} documents-reindex-status`,outdated));
@@ -646,7 +653,7 @@
         const coverage=typeof document.coverage==="string"?document.coverage:document.coverage.summary||document.coverage.note;if(coverage)content.append(this.node("p","documents-progress",coverage));
       }
       const limitations=[document.coverage?.limitations,analysis.limitations].flatMap(value=>Array.isArray(value)?value:typeof value==="string"?[value]:[]).filter(value=>typeof value==="string"&&value.trim());
-      if(limitations.length){const section=this.node("div","documents-limitations"),list=this.node("ul");section.append(this.node("h4","","Reading limits"));for(const limitation of new Set(limitations))list.append(this.node("li","",limitation));section.append(list);content.append(section);}
+      if(limitations.length){const section=this.node("div","documents-limitations"),list=this.node("ul");section.append(this.node("h4","","Reading limits"));for(const limitation of new Set(limitations))list.append(this.node("li","",this.reviewNotice(limitation)));section.append(list);content.append(section);}
       if(document.inventory)this.renderInventory(content,document.inventory,document.kind);
       const primary=typeof analysis.question==="string"?analysis.question.trim():"";
       if(analysis.disposition==="needs_reason"&&!this.reviewError(document)){

@@ -233,7 +233,8 @@ function response(document){return{ok:true,json:async()=>({document})};}
   const inline=setup({inline:true});
   for(const notice of [h.api.dialog.querySelector(".documents-footer").textContent,inline.api.assets.querySelector(".documents-assets-privacy").textContent]){
    assert.match(notice,/Files are saved on this computer\./);assert.doesNotMatch(notice,/Relevant content/,"The review is not limited to relevant content");
-   assert.match(notice,/OpenAI.*full extracted text.*hidden sheets.*pages or images for visual review/);
+   assert.match(notice,/AI service.*full extracted text.*hidden sheets.*pages or images for visual review/);
+   assert.doesNotMatch(notice,/OpenAI/i);
    assert.match(notice,/Files saved for later pause further background review/);assert.match(notice,/Remove stops further review/);
    assert.match(notice,/takes the file out of future interview requests/);
   }
@@ -298,23 +299,25 @@ function response(document){return{ok:true,json:async()=>({document})};}
   const card=()=>h.api.body.querySelector(".documents-card"),stage=()=>card().querySelector(".documents-stage"),button=text=>h.findText("button",text),note=name=>card().querySelector(name);
   const show=(analysis,overrides={})=>h.api.setDocuments([doc({kind:"csv",name:"Ledger.csv",...overrides,analysis:{disposition:"relevant",summary:"Ledger.",...analysis}})],false);
   show({phase:"deep",version:2,reviewed_chunks:10,total_chunks:40,estimated_requests:9});
-  assert.match(stage().textContent,/10 of 40 sections reviewed\. About 7 more review requests to OpenAI\./);
+  assert.match(stage().textContent,/10 of 40 sections reviewed\. About 7 more review requests to the AI service\./);
   assert.ok(button("Stop review"),"A running review can be stopped without removing the file");assert.equal(h.api.visible(button("Stop review")),true,"Stop review is reachable while the details are collapsed");
   assert.equal(button("Continue review"),undefined);assert.equal(button("Stop review").getAttribute("aria-label"),"Stop the background review of Ledger.csv");
   button("Stop review").click();await tick();assert.deepEqual(calls,[["/api/documents/action","stop"]]);
-  show({phase:"deep",version:3,reviewed_chunks:36,total_chunks:40,estimated_requests:9});assert.match(stage().textContent,/About 1 more review request to OpenAI\./);
+  show({phase:"deep",version:3,reviewed_chunks:36,total_chunks:40,estimated_requests:9});assert.match(stage().textContent,/About 1 more review request to the AI service\./);
   show({phase:"deep",version:4,reviewed_chunks:4,total_chunks:40});assert.doesNotMatch(stage().textContent,/review request/,"Without an estimate nothing is claimed");assert.ok(button("Stop review"));
   show({phase:"quick",version:5},{status:"indexing"});assert.ok(button("Stop review"),"A review that has not started sending can be stopped too");
   // A stopped review says so, says what the file is still used for, and what continuing would send.
   show({phase:"complete",review_stopped:true,review_complete:false,version:6,reviewed_chunks:10,total_chunks:40,estimated_requests:9});
   assert.equal(stage().querySelector(".documents-stage-label").textContent,"Review stopped");assert.equal(stage().dataset.state,"later");
-  assert.match(stage().textContent,/Continuing would send about 7 more review requests to OpenAI\./);assert.equal(button("Stop review"),undefined);
+  assert.match(stage().textContent,/Continuing would send about 7 more review requests to the AI service\./);assert.equal(button("Stop review"),undefined);
   assert.equal(note(".documents-review-stopped").textContent,"The background review of this file is stopped. Its text stays searchable and the interview can still read it.");
   assert.equal(h.api.visible(button("Continue review")),true);assert.equal(h.api.pending(),false,"A stopped review is not polled as if it were running");
   button("Continue review").click();await tick();assert.deepEqual(calls[1],["/api/documents/action","continue"]);
-  show({phase:"error",review_stopped:true,error:"Document review paused: OpenAI's rate limit was reached. Wait briefly, then select Retry review.",version:7});
+  const previousError="Document review paused: OpenAI's rate limit was reached. Wait briefly, then select Retry review.";
+  show({phase:"error",review_stopped:true,error:previousError,limitations:[previousError],version:7});
+  assert.doesNotMatch(card().textContent,/OpenAI/,"Historical review notices use the current display wording");
   assert.equal(button("Stop review"),undefined);assert.equal(button("Continue review"),undefined);assert.ok(button("Retry review"),"A paused review offers Retry review only");
-  assert.ok(card().textContent.includes("Document review paused: OpenAI's rate limit was reached. Wait briefly, then select Retry review."),"The server's reason is shown as worded");
+  assert.ok(card().textContent.includes("Document review paused: the AI service's rate limit was reached. Wait briefly, then select Retry review."),"The server's reason is shown as worded");
   assert.doesNotMatch(card().textContent,/Revisit/,"A paused card names no button that is not on it");
   show({phase:"complete",review_complete:true,version:8,reviewed_chunks:40,total_chunks:40,estimated_requests:9});
   assert.equal(button("Stop review"),undefined);assert.equal(button("Continue review"),undefined);assert.doesNotMatch(stage().textContent,/review request/);
@@ -341,14 +344,14 @@ function response(document){return{ok:true,json:async()=>({document})};}
   show({phase:"complete",version:15});assert.equal(note(".documents-relevance"),null,"A file reviewed before verdicts were shown says nothing");
   // Pages or images that returned no reading can be asked for again by themselves (document-service-1).
   show({phase:"complete",review_complete:false,version:17,unreadable_sources:[{source_id:"doc_1_p4_c1",unit:"page 4",kept:false},{source_id:"doc_1_p6_c1",unit:"page 6",kept:false}]},{kind:"pdf",name:"Scan.pdf"});
-  assert.equal(note(".documents-unread-pages").textContent,"2 pages or images returned no reading in the last review and are listed under Reading limits. Read again sends only those to OpenAI.");
+  assert.equal(note(".documents-unread-pages").textContent,"2 pages or images returned no reading in the last review and are listed under Reading limits. Read again sends only those to the AI service.");
   assert.equal(h.api.visible(button("Read again")),true);assert.equal(button("Read again").getAttribute("aria-label"),"Read the unread pages or images of Scan.pdf again");
   button("Read again").click();await tick();assert.deepEqual(calls.pop(),["/api/documents/action","reread"]);
   show({phase:"complete",version:18,unreadable_sources:[{source_id:"doc_1_image_c1",unit:"the image",kept:false}]},{kind:"png",name:"Photo.png"});
-  assert.match(note(".documents-unread-pages").textContent,/^1 page or image returned no reading in the last review and is listed under Reading limits\. Read again sends only that one to OpenAI\.$/);
+  assert.match(note(".documents-unread-pages").textContent,/^1 page or image returned no reading in the last review and is listed under Reading limits\. Read again sends only that one to the AI service\.$/);
   show({phase:"deep",version:19,readings_only:true,unreadable_sources:[{source_id:"doc_1_p6_c1",unit:"page 6",kept:false}]},{kind:"pdf",name:"Scan.pdf"});
   assert.equal(button("Read again"),undefined,"Nothing is offered while the pages are being read");assert.ok(button("Stop review"));
-  show({phase:"error",error:"Document review paused: the OpenAI request timed out. Select Retry review to try again.",version:20,unreadable_sources:[{source_id:"doc_1_p6_c1",unit:"page 6",kept:false}]},{kind:"pdf",name:"Scan.pdf"});
+  show({phase:"error",error:"Document review paused: the request to the AI service timed out. Select Retry review to try again.",version:20,unreadable_sources:[{source_id:"doc_1_p6_c1",unit:"page 6",kept:false}]},{kind:"pdf",name:"Scan.pdf"});
   assert.equal(button("Read again"),undefined);assert.ok(button("Retry review"));
   show({phase:"complete",version:21,unreadable_sources:[]},{kind:"pdf",name:"Scan.pdf"});assert.equal(note(".documents-unread-pages"),null);assert.equal(button("Read again"),undefined);
   // The notices that say what stops a review name both ways.

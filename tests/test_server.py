@@ -1114,7 +1114,7 @@ class HTTPBoundaryTests(unittest.TestCase):
         self.assertNotIn(self.test_key.encode(), raw)
         self.assertNotIn(b"header", raw.lower())
         self.assertEqual(caught.exception.code, 502)
-        self.assertIn("connection to OpenAI was interrupted", json.loads(raw)["error"])
+        self.assertIn("connection to the AI service was interrupted", json.loads(raw)["error"])
 
     def test_close_action_reviews_open_sections_without_claiming_final_completeness(self):
         payload = interview_payload()

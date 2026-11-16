@@ -7,6 +7,11 @@ identify the code that is running: Settings > Data handling, saved interviews an
 exports also carry the build (a desktop release's commit, or `dev+` and a source hash for a
 working tree). See [docs/DESKTOP.md](docs/DESKTOP.md#which-build-is-running).
 
+## 0.30.1 · November 16, 2026
+
+- Open **Context** from the top navigation to edit interview details. **How this works** is now in **Settings**.
+- Removed the data notice and duplicate links from the welcome screen. Settings still explains data handling, and app messages use provider-neutral wording.
+
 ## 0.30.0 · November 15, 2026
 
 - Start over stops queued interview analysis and pauses file review. A saved interview can resume an unfinished file follow-up. Other tabs sharing the workspace show file changes without interrupting the interview.

@@ -93,7 +93,7 @@ class DraftRequestBudgetTests(unittest.TestCase):
                 took = seconds["process_draft"]
                 if took > kwargs["request_timeout"]:
                     clock.now += kwargs["request_timeout"]
-                    raise server.APIError("The OpenAI request timed out. Your session and previous capture are retained."
+                    raise server.APIError("The request to the AI service timed out. Your session and previous capture are retained."
                                           " Try again; your saved files do not need to be uploaded again.", 504)
                 clock.now += took
                 return copy.deepcopy(draft)

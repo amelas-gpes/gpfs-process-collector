@@ -284,7 +284,7 @@ class LiveContractTests(unittest.TestCase):
         client = server.OpenAIClient({'OPENAI_API_KEY': KEY})
         with patch.object(server, 'urlopen', side_effect=error), self.assertRaises(server.APIError) as caught:
             client.live_session(live_payload())
-        self.assertIn('GPT-Live 1', str(caught.exception))
+        self.assertIn('live voice', str(caught.exception))
         self.assertIn('continue by typing', str(caught.exception))
         self.assertNotIn(KEY, str(caught.exception))
 

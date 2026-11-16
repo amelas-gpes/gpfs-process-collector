@@ -29,12 +29,12 @@ const heard=(text="An analyst reviews the file.")=>()=>response({text});
 
 run(async()=>{
   await check("a transcription that fails once is retried with the same audio and then lands in the reply box",async()=>{
-    const h=page();h.route(answers(failing(503,"OpenAI could not complete the request (HTTP 503). Your session is retained; try again."),heard()));
+    const h=page();h.route(answers(failing(503,"The AI service could not complete the request (HTTP 503). Your session is retained; try again."),heard()));
     h.node("answer-text").value="Typed before dictating.";
     await h.dictate();
     assert.equal(h.transcriptions().length,1);assert.equal(h.node("answer-text").value,"Typed before dictating.");
     const said=h.notices.at(-1);assert.equal(said.error,true);assert.equal(said.kind,"dictation");
-    assert.match(said.message,/^Couldn’t transcribe that\. OpenAI could not complete the request \(HTTP 503\)/);assert.match(said.message,KEPT);
+    assert.match(said.message,/^Couldn’t transcribe that\. The AI service could not complete the request \(HTTP 503\)/);assert.match(said.message,KEPT);
     assert.ok(h.kept(),"The recording is kept");assert.equal(h.kept().blob,h.transcriptions()[0].options.body);assert.ok(h.kept().blob.size>0);
     assert.equal(h.offered(),true,"Retry recording and Discard recording are shown");assert.equal(h.banner().hidden,false);assert.equal(h.banner().dataset.errorKind,"dictation");
     assert.equal(h.t.state.transcribing,false);assert.equal(h.document.activeElement,h.node("answer-text"));
@@ -47,7 +47,7 @@ run(async()=>{
   });
 
   await check("a retry that fails again keeps the recording, and the offer survives any number of attempts",async()=>{
-    const h=page();h.route(answers(failing(502),failing(502),failing(429,"OpenAI's rate limit was reached. Wait briefly, then try again. Your answer is retained."),heard()));
+    const h=page();h.route(answers(failing(502),failing(502),failing(429,"The AI service's rate limit was reached. Wait briefly, then try again. Your answer is retained."),heard()));
     await h.dictate();const blob=h.kept().blob;
     await h.t.retryDictation();assert.equal(h.kept().blob,blob);assert.equal(h.offered(),true);assert.equal(h.banner().hidden,false);
     await h.t.retryDictation();assert.equal(h.kept().blob,blob);assert.match(h.notices.at(-1).message,/Your answer is retained\..*Your recording is kept/,"The server's 'retained' is now true on this path");

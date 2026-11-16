@@ -535,12 +535,7 @@ body:not(.interview-started) .voice-stage > .conversation-dock { margin-bottom: 
 .dock-secondary:not(:has(button:not([hidden]))) { visibility: hidden; }
 .voice-stage .dock-secondary:not(:has(button:not([hidden]))) { display: none; }
 .dock-secondary { display: flex; gap: 4px; color: var(--muted); font-size:var(--text-xs); }
-/* Start screen only: the way to the optional interview context (Settings), before goal and background lock. */
-.context-prompt { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px 8px; margin: 10px 0 0; color: var(--muted); font-size:var(--text-sm); line-height: 1.5; }
 .context-lock-note { margin: 0; }
-.data-brief { max-width: 60ch; margin: 12px auto 0; color: var(--muted); font-size:var(--text-sm); line-height: 1.5; text-align: center; text-wrap: pretty; }
-.data-brief button { display: inline; padding: 0; border: 0; background: transparent; color: var(--ink-2); font: inherit; text-decoration: underline; text-underline-offset: 3px; }
-.data-brief button:hover { color: var(--accent); }
 .thinking { display: flex; justify-content: center; align-items: center; gap: 10px; margin: 0 auto 10px; width: max-content; max-width: 100%; padding: 6px 14px; border-radius: var(--r-pill); background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink-2); font-size:var(--text-sm); }
 .thinking:has(#pause-completion-review:not([hidden])) { flex-wrap: wrap; }
 #pause-completion-review { flex: none; min-height: 44px; }
@@ -1110,7 +1105,6 @@ dialog.excerpt-dialog { inset: 0; width: min(660px, calc(100vw - 32px)); margin:
   .presence-caption { max-width: 36ch; margin-left: 0; text-wrap: pretty; }
   body:not(.interview-started) .voice-stage > .conversation-dock { grid-area: actions; }
   body:not(.interview-started) .voice-stage .dock-row { align-items: flex-start; }
-  body:not(.interview-started) .voice-stage .data-brief { margin-left: 0; text-align: left; }
   #welcome-example { grid-area: sample; align-self: center; display: grid; gap: 0; width: 100%; margin: 0; padding: 0; overflow: hidden; }
   #welcome-example .example-art { width: 100%; height: clamp(170px, 21cqw, 232px); border-radius: 0; background: radial-gradient(ellipse at 50% 42%, var(--surface), var(--warm-soft) 80%); }
   .example-art svg { width: 84%; height: 90%; }
@@ -1270,7 +1264,7 @@ dialog.excerpt-dialog { inset: 0; width: min(660px, calc(100vw - 32px)); margin:
   .conversation-dock:has(#composer-area:not([hidden])) .composer-area { margin: 0; }
   .conversation-dock:has(#composer-area:not([hidden])) .dock-secondary { display: none; }
   .conversation-dock:has(#composer-area:not([hidden])) .thinking { grid-column: 1/-1; margin: 0 auto; }
-  .conversation-dock:has(#composer-area:not([hidden])) :is(.speech-status, .data-brief) { grid-column: 1/-1; margin: 0 auto; }
+  .conversation-dock:has(#composer-area:not([hidden])) .speech-status { grid-column: 1/-1; margin: 0 auto; }
   .conversation-dock:has(#composer-area:not([hidden])) .answer-composer textarea { height: 48px; min-height: 48px; max-height: 72px; }
   .conversation-dock:has(#composer-area:not([hidden])) .live-controls { gap: 8px; }
   .conversation-dock:has(#composer-area:not([hidden])) .live-controls .button { padding: 8px 12px; font-size:var(--text-sm); }

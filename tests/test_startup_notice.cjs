@@ -9,8 +9,8 @@ const vm = require("node:vm");
 const source = fs.readFileSync(path.join(__dirname, "..", "web", "app.js"), "utf8");
 const GENERIC = "The AI service is not configured. Add the API key in local settings, then restart the app. You can still open a saved interview or the fictional example.";
 const FAILED = "The app could not read its local configuration. Choose Check configuration to try again.";
-const PROBLEM = "The OpenAI API key configured for this app contains a space, a line break or a character " +
-  "that a key cannot contain, so it was not used. Re-enter OPENAI_API_KEY, then restart the app.";
+const PROBLEM = "The API key configured for this app contains a space, a line break or a character " +
+  "that a key cannot contain, so it was not used. Re-enter the key in the local API settings, then restart the app.";
 let passed = 0;
 
 function element(id) {

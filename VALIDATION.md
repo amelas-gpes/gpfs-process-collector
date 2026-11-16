@@ -1,5 +1,9 @@
 # Release validation
 
+## Version 0.30.1
+
+Chrome and Edge verified the welcome screen and navigation at 320, 390 and 1280 pixels. Opening **Context** focused the process owner field, and Escape returned focus to the navbar. The **How this works** section in Settings opened and closed from the keyboard. The fictional example and typed interview opened, and voice start handled a simulated microphone denial. These browser checks used local test data and made no external requests.
+
 ## Version 0.30.0
 
 The release review covered 752 findings from the November 12 audit. The backend checks cover source attribution, capture, workflows, file parsing, storage, submitted revisions and desktop update approval. Compatibility tests reopen fictional interviews exported by versions 0.25.1, 0.26.1, 0.29.0 and 0.30.0.

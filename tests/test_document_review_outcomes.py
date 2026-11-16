@@ -101,7 +101,7 @@ class PausedReviewWordingTests(ReviewCase):
         expected = {'quota': 'no available API quota', 'authentication': 'rejected the API key', 'permissions': 'rejected the API key',
                     'rate_limit': 'rate limit was reached', 'model_access': 'model is unavailable', 'timeout': 'timed out',
                     'dns': 'could not be reached', 'tls': 'could not be reached', 'connection': 'could not be reached',
-                    'network': 'could not be reached', 'configuration': 'no usable OpenAI API key'}
+                    'network': 'could not be reached', 'configuration': 'no usable API key'}
         errors = {f'{category}.csv': server.APIError('PRIVATE-ROW 4411 of the ledger', 502, category) for category in expected}
         for name, record in self.paused(errors).items():
             category = name[:-4]

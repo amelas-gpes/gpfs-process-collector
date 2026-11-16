@@ -218,7 +218,7 @@
           ...(document_scope !== undefined ? {document_scope} : {}),...(notes !== undefined ? {notes} : {})},
           {signal:op.controller.signal,timeout:this.options.requestTimeout?.("live_session",55000)||55000});
         if (!current()) return false;
-        if (typeof result?.sdp !== "string" || result.model !== "gpt-live-1") throw new Error("The server did not return a GPT-Live connection. You can continue by typing.");
+        if (typeof result?.sdp !== "string" || result.model !== "gpt-live-1") throw new Error("The server did not establish a live voice connection. You can continue by typing.");
         if(op.greeting)op.greeting.documentContext=Array.isArray(result.document_evidence)&&result.document_evidence.some(source=>!source.retained_only);
         await peer.setRemoteDescription({type:"answer",sdp:result.sdp});
         // HTTP starts GPT-Live; never send session.start or legacy Realtime response.create.

@@ -627,7 +627,7 @@
     $("review-view").hidden = name !== "review";
     document.body?.classList.toggle("review-mode", name === "review");
     if (name === "review") {setMemoSheet(false,false);selectReviewSection(reviewUI.section);}
-    document.querySelectorAll(".nav-tab").forEach(button => {
+    document.querySelectorAll("[data-tab]").forEach(button => {
       const active = button.dataset.tab === name;
       button.classList.toggle("active", active);
       if (active) button.setAttribute("aria-current", "page"); else button.removeAttribute("aria-current");
@@ -972,7 +972,6 @@
       ? "Goal and background are locked once the interview starts; add corrections as an answer. Process owner can still be changed."
       : "Goal and background lock when the interview starts. Process owner can be changed at any time.";
     if (lockNote && lockNote.textContent !== lockText) lockNote.textContent = lockText;
-    if ($("context-prompt")) $("context-prompt").hidden = state.started;
     $("process-name").disabled=state.importing||state.busy||Boolean(conversationUI.live?.active&&["processing","speaking","closing"].includes(conversationUI.status));
     $("answer-text").disabled = working || recording || !ready;
     const replyBox=$("answer-text");
@@ -1033,8 +1032,6 @@
     $("voice-select").disabled = recording || state.requestingMic;
     $("preview-voice").disabled = !voiceReady || working || recording;
     $("welcome").hidden = state.turns.length > 0 || working;
-    // Where speech, text and files go is said under the start buttons until the interview has started.
-    if ($("data-brief")) $("data-brief").hidden = state.started;
     $("review-empty").hidden = Boolean(state.draft);
     if ($("review-heading")) $("review-heading").hidden = !state.draft;
     if ($("submit-process-review")) $("submit-process-review").hidden = state.example;
@@ -1465,18 +1462,10 @@
     if(open&&!dialog.open)dialog.showModal();
     if(!open&&dialog.open)dialog.close();
   }
-  // The line under the start buttons links here: Settings opens on the full data-handling notice,
-  // and closing it returns to that link instead of the More options button.
   let settingsOpener=null;
-  function openDataNotice(event) {
-    setInterviewSettings(true);
-    settingsOpener=event?.currentTarget||null;
-    if($("data-details"))$("data-details").open=true;
-    $("data-notice").focus();
-  }
   function settingsClosed() {
-    if(sourceOrigin && $("settings-source-return")?.hidden===false){returnToSource();return;}
     const opener=settingsOpener?.isConnected&&!settingsOpener.closest("[hidden]")?settingsOpener:$("session-menu-toggle");settingsOpener=null;
+    if(sourceOrigin && $("settings-source-return")?.hidden===false){returnToSource();return;}
     if(settingsRestoreFocus)opener.focus({preventScroll:true});
   }
   function showFoundationTopic(key, trigger) {
@@ -6417,10 +6406,6 @@
     });
     $("retry-config")?.addEventListener("click",()=>{void loadConfiguration();});
     $("save-hint")?.addEventListener("click",exportSession);
-    const help=$("help-guide");let helpOpener=null;
-    for(const id of ["open-guide","welcome-guide"])$(id)?.addEventListener("click",()=>{helpOpener=id==="open-guide"?$("session-menu-toggle"):$(id);closeMenu(false);help?.showModal();});
-    $("close-guide")?.addEventListener("click",()=>help?.close());
-    help?.addEventListener("close",()=>helpOpener?.focus({preventScroll:true}));
     $("retry-workflow").addEventListener("click",()=>{const button=$("retry-workflow");if(button.dataset.mapOnly){void refreshWorkflow({mapOnly:true});return;}if(button.dataset.coverageRecheck&&state.config?.agent_team?.enabled){pendingCompletionReview?retryQuestion():finalCheck();}else button.dataset.layoutRetry&&!button.dataset.coverageRecheck?retryWorkflowLayout("live-workflow"):refreshWorkflow();});
     $("map-retry-layout").addEventListener("click",()=>retryWorkflowLayout("process-map"));
     $("workflow-zoom-out").addEventListener("click",()=>workflowCanvases.get("live-workflow")?.zoom(-.15));
@@ -6442,7 +6427,11 @@
     $("pause-completion-review").addEventListener("click",pauseCompletionReview);
     document.querySelectorAll("[data-conversation-view]").forEach(button=>{button.addEventListener("click",()=>selectConversationView(button.dataset.conversationView));button.addEventListener("keydown",conversationTabKey);});
     $("open-interview-settings").addEventListener("click",()=>setInterviewSettings(true));
-    $("add-context")?.addEventListener("click",()=>{revealContext();$("process-owner").focus({preventScroll:true});});
+    $("open-context").addEventListener("click",event=>{
+      settingsOpener=event.currentTarget;
+      revealContext();
+      $("process-owner").focus();
+    });
     $("open-component-library")?.addEventListener("click",()=>{
       closeMenu(true);
       if(window.CollectorComponentLibrary?.open)window.CollectorComponentLibrary.open({opener:$("session-menu-toggle")});
@@ -6451,10 +6440,9 @@
     $("usage-check")?.addEventListener("click",checkUsage);
     $("close-interview-settings").addEventListener("click",()=>setInterviewSettings(false));
     $("interview-settings").addEventListener("close",settingsClosed);
-    $("open-data-notice").addEventListener("click",openDataNotice);
     initFoundationDialog();
     initReviewTabs();
-    document.querySelectorAll(".nav-tab").forEach(button => button.addEventListener("click", () => tab(button.dataset.tab)));
+    document.querySelectorAll("[data-tab]").forEach(button => button.addEventListener("click", () => tab(button.dataset.tab)));
     $("map-zoom-out")?.addEventListener("click",() => zoomMap(-.25));
     $("map-zoom-in")?.addEventListener("click",() => zoomMap(.25));
     $("map-fit")?.addEventListener("click",()=>{const canvas=workflowCanvases.get("process-map");if(canvas)canvas.fit();else fitMapToWidth();});

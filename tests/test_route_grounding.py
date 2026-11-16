@@ -384,7 +384,7 @@ class RouteRecheckRequestTests(unittest.TestCase):
         self.assertLessEqual(client.structured.call_args.kwargs['request_timeout'], 40)
 
     def test_provider_failure_or_malformed_answer_is_no_second_review(self):
-        for failure in (server.APIError('The OpenAI request timed out.', 504), ValueError('bad'),
+        for failure in (server.APIError('The request to the AI service timed out.', 504), ValueError('bad'),
                         http.client.IncompleteRead(b'{"route_sup'), AttributeError("'list' object has no attribute 'get'"),
                         TypeError("'NoneType' object is not iterable"), KeyError('route_support_recheck'),
                         StopIteration()):
@@ -479,7 +479,7 @@ class WorkingMapRouteTests(unittest.TestCase):
     def test_failed_recheck_publishes_the_map_with_the_route_left_open(self):
         joined = [quote('t012', 'If the appliance is outside the warranty period ... closed as rejected.')]
         for third in ({'route_support': [review(joined)]}, {'route_support': [review([])]},
-                      server.APIError('The OpenAI request timed out.', 504),
+                      server.APIError('The request to the AI service timed out.', 504),
                       http.client.IncompleteRead(b'{"route_sup'), AttributeError("'list' object has no attribute 'get'")):
             with self.subTest(third=type(third).__name__):
                 client = workflow_client(candidate_update(), workflow_audit(joined), third)
@@ -622,7 +622,7 @@ class TeamWorkingMapRouteTests(unittest.TestCase):
         self.assertEqual(client.request.call_args.args[1]['model'], client.agent_models['process_reviewer'])
         lead = next(row for row in result['agent_team']['agents'] if row['role'] == 'lead_interviewer')
         self.assertEqual((lead['status'], lead['calls']), ('completed', 2))
-        for second in (joined, server.APIError('The OpenAI request timed out.', 504)):
+        for second in (joined, server.APIError('The request to the AI service timed out.', 504)):
             with self.subTest(second=type(second).__name__):
                 client = RecheckingTeamProvider(joined, second)
                 graph = client.coordinator.workflow(client.payload())['workflow']

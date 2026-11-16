@@ -506,7 +506,7 @@ class WordingTests(RecoveryCase):
         notice = server.OpenAIClient({}).public_config()["data_notice"]
         self.assertIn("not saved automatically", notice)
         self.assertIn(SETTING_LABEL, notice)
-        self.assertIn("never sent to OpenAI", notice)
+        self.assertIn("That copy stays on this computer", notice)
         self.assertIn("seven days", notice)
         page = (APP / "web" / "index.html").read_text(encoding="utf-8")
         self.assertIn(SETTING_LABEL, page, "The notice names the setting as the page labels it")

@@ -133,7 +133,7 @@ class NoticeWordingTests(unittest.TestCase):
         'the whole text is sent': r'full (?:extracted )?text',
         'hidden sheets are included': r'hidden (?:work)?sheets',
         'pages or images needing visual review are sent': r'visual review',
-        'it goes to OpenAI': r'OpenAI',
+        'it goes to the AI service': r'(?i)AI service|OpenAI',
         'paused reviews are disclosed': r'(?i)pause|stop',
         'save for later is disclosed': r'saved for later|Save for later|parked',
         'Remove stops it': r'(?:Remove\W{0,4}|removal) stops',
@@ -152,6 +152,7 @@ class NoticeWordingTests(unittest.TestCase):
     def test_data_notice_states_what_the_review_sends(self):
         notice = server.OpenAIClient({}).public_config()['data_notice']
         self.check('The data notice', notice)
+        self.assertNotIn('OpenAI', notice)
         self.assertIn('saved privately on this computer', notice)
 
     def test_file_tray_notice_states_what_the_review_sends(self):
@@ -159,6 +160,7 @@ class NoticeWordingTests(unittest.TestCase):
         notice = re.search(r'const FILE_NOTICE = "([^"]+)";', source)
         self.assertIsNotNone(notice, 'The file notice constant was not found')
         self.check('The file tray notice', notice.group(1))
+        self.assertNotIn('OpenAI', notice.group(1))
 
     def test_readme_and_design_note_state_what_the_review_sends(self):
         self.check('README.md', (APP / 'README.md').read_text(encoding='utf-8'))

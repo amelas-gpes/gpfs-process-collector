@@ -100,17 +100,17 @@ RETRY_DELAYS = (2, 8)
 # exception may quote document text, so only its category chooses among them.
 REVIEW_PAUSED = 'Document review paused after an invalid response or service error. Select Retry review to try again.'
 REVIEW_PAUSED_BY_CATEGORY = {
-    'quota': ('Document review paused: the selected OpenAI project has no available API quota. '
+    'quota': ('Document review paused: the selected API project has no available API quota. '
               "Check that project's billing and usage limits, then select Retry review."),
-    'authentication': ('Document review paused: OpenAI rejected the API key or its project permissions. '
-                       "Check the key's access in OpenAI Platform, then select Retry review."),
-    'rate_limit': "Document review paused: OpenAI's rate limit was reached. Wait briefly, then select Retry review.",
-    'model_access': ('Document review paused: the configured review model is unavailable to this OpenAI project. '
+    'authentication': ('Document review paused: the AI service rejected the API key or its project permissions. '
+                       "Check the API key’s project permissions, then select Retry review."),
+    'rate_limit': "Document review paused: the AI service's rate limit was reached. Wait briefly, then select Retry review.",
+    'model_access': ('Document review paused: the configured review model is unavailable to this API project. '
                      'Check its model access, then select Retry review.'),
-    'timeout': 'Document review paused: the OpenAI request timed out. Select Retry review to try again.',
-    'network': ('Document review paused: OpenAI could not be reached. '
+    'timeout': 'Document review paused: the request to the AI service timed out. Select Retry review to try again.',
+    'network': ('Document review paused: the AI service could not be reached. '
                 'Check the network connection, then select Retry review.'),
-    'configuration': ('Document review paused: no usable OpenAI API key is configured for this app. '
+    'configuration': ('Document review paused: no usable API key is configured for this app. '
                       'Complete the key setup and restart the app, then select Retry review.'),
 }
 REVIEW_PAUSED_BY_CATEGORY.update(permissions=REVIEW_PAUSED_BY_CATEGORY['authentication'],

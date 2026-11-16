@@ -1,0 +1,1036 @@
+{
+  "schema_version": 1,
+  "context": {
+    "process_name": "Investor Onboarding",
+    "objective": "Document how this process works, including controls and what remains unresolved."
+  },
+  "turns": [
+    {
+      "id": "t1",
+      "role": "user",
+      "text": "We open an onboarding checklist when a prospective investor subscribes or the client identifies them at a close. We aim for about a week after complete documents arrive. That's an operating target, with no contractual SLA."
+    },
+    {
+      "id": "t2",
+      "role": "assistant",
+      "text": "Talk me through how the onboarding checklist is completed once the documents arrive."
+    },
+    {
+      "id": "t3",
+      "role": "user",
+      "text": "Investor Services logs incoming versions, reviews subscriptions and tax forms, and tracks deficiencies. FA-20 clears AML/KYC, Treasury verifies new wire instructions by callback under FA-17, and the client approves admission in writing. We compare approved data in CRM and accounting, set Include in Portal to YES, and test access before the first notice. The Team Lead handles the internal completion review."
+    },
+    {
+      "id": "t4",
+      "role": "assistant",
+      "text": "What do you compare between the approved investor data in CRM and accounting?"
+    },
+    {
+      "id": "t5",
+      "role": "user",
+      "text": "We compare the legal/static data, contacts, preferences, banking reference, commitment and close/effective date, side-letter indicators and portal flag to the approved source documents. Required field lists, duplicate handling and exact per-platform paths are unconfirmed. At a subsequent close, commitment, close date and side-letter information also go to FA-05 for equalization."
+    },
+    {
+      "id": "t6",
+      "role": "assistant",
+      "text": "How does the Team Lead’s internal completion review determine that onboarding is ready to be considered complete?"
+    },
+    {
+      "id": "t7",
+      "role": "user",
+      "text": "The lead checks the completed package and approval records, including FA-20 clearance, FA-17 callback, client admission, reconciled setup and tested portal access. If applicable FA-05 accepts the handoff and the investor is in the correct FA-01 population from the effective date. We send completion confirmation to the client, record the date and lock the package. The exact form of the lead's approval record and escalation path still need confirmation."
+    },
+    {
+      "id": "t8",
+      "role": "assistant",
+      "text": "What record, if any, shows the Team Lead’s completion approval?"
+    },
+    {
+      "id": "t9",
+      "role": "user",
+      "text": "The write-up lists the signed or approved checklist, review evidence and completion correspondence. It explicitly says the exact required Team Lead approval record and escalation path aren't confirmed. I can't give a particular form name, field or location. I'd leave that item open for the process owner."
+    },
+    {
+      "id": "t10",
+      "role": "assistant",
+      "text": "What can happen if an investor’s onboarding is incomplete or incorrect when the first notice is due?"
+    },
+    {
+      "id": "t11",
+      "role": "user",
+      "text": "Contacts or portal access could be wrong, so the first notice might not reach the investor or could go to the wrong recipient. The investor could also appear too early or be omitted from FA-01. An unverified wire cannot be used and AML and admission are hard gates before accepting capital."
+    },
+    {
+      "id": "t12",
+      "role": "assistant",
+      "text": "Does this onboarding process apply across your funds, or does it vary by client or fund?"
+    }
+  ],
+  "memo_findings": [
+    {
+      "answer": "The process is referred to as “Investor Onboarding.”",
+      "evidence_turns": [
+        "context"
+      ],
+      "key": "name",
+      "status": "captured"
+    },
+    {
+      "answer": "The work supports admission and portal access for an investor before the first notice.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "key": "purpose",
+      "status": "captured"
+    },
+    {
+      "answer": "An onboarding checklist is opened when a prospective investor subscribes or when the client identifies the investor at a close.\nThe team aims to complete onboarding about a week after complete documents arrive; this is an operating target, not a contractual SLA.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "key": "trigger",
+      "status": "partial"
+    },
+    {
+      "answer": "The team tests portal access before the first notice; the Team Lead handles the internal completion review.\nCompletion review covers the completed package and approval records, reconciled setup and tested portal access; where applicable, FA-05 accepts the handoff and the investor is in the correct FA-01 population from the effective date. The team sends completion confirmation to the client, records the date and locks the package.",
+      "evidence_turns": [
+        "t3",
+        "t7"
+      ],
+      "key": "completion",
+      "status": "captured"
+    },
+    {
+      "answer": "The Team Lead handles the internal completion review; Investor Services performs the document logging, review and deficiency tracking.\nThe role accountable for the overall onboarding result has not been established.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "key": "accountable",
+      "status": "partial"
+    },
+    {
+      "answer": "The reported initial action is opening an onboarding checklist upon either a prospective investor's subscription or client identification at a close.\nInvestor Services logs incoming document versions, reviews subscriptions and tax forms, and tracks deficiencies.\nFA-20 clears AML/KYC, Treasury verifies new wire instructions by callback under FA-17, and the client approves admission in writing.\nThe team compares approved investor data in CRM and accounting with approved source documents, sets Include in Portal to YES, and tests access before the first notice.\nAt a subsequent close, commitment, close date and side-letter information also go to FA-05 for equalization.\nThe Team Lead reviews the completed package and approval records, including the applicable FA-05 acceptance and FA-01 population condition. The team sends completion confirmation to the client, records the date and locks the package.",
+      "evidence_turns": [
+        "t1",
+        "t3",
+        "t5",
+        "t7"
+      ],
+      "key": "lifecycle",
+      "status": "partial"
+    },
+    {
+      "answer": "The team compares legal/static data, contacts, preferences, banking reference, commitment, close/effective date, side-letter indicators and portal flag in CRM and accounting to approved source documents.\nFA-20 clears AML/KYC; Treasury verifies new wire instructions by callback under FA-17; the client approves admission in writing. The Team Lead handles the internal completion review.\nRequired field lists and duplicate handling are unconfirmed.\nThe Team Lead checks the completed package and approval records, including FA-20 clearance, the FA-17 callback, client admission, reconciled setup and tested portal access. If applicable, FA-05 accepts the handoff and the investor is in the correct FA-01 population from the effective date.\nThe exact form of the Team Lead's approval record and the escalation path still need confirmation.\nThe participant cannot provide a particular form name, field or location for the Team Lead approval record and would leave the item open for the process owner.",
+      "evidence_turns": [
+        "t3",
+        "t5",
+        "t7",
+        "t9"
+      ],
+      "key": "checks",
+      "status": "partial"
+    },
+    {
+      "answer": "At a subsequent close, commitment, close date and side-letter information also go to FA-05 for equalization.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "key": "variations",
+      "status": "partial"
+    },
+    {
+      "answer": "",
+      "evidence_turns": [],
+      "key": "pain_points",
+      "status": "unknown"
+    },
+    {
+      "answer": "If onboarding is incomplete or incorrect when the first notice is due, contacts or portal access could be wrong, so the notice might not reach the investor or could go to the wrong recipient; the investor could also appear too early or be omitted from FA-01. An unverified wire cannot be used, and AML and admission are hard gates before accepting capital.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "key": "risk",
+      "status": "captured"
+    },
+    {
+      "answer": "An onboarding checklist is used; the participant did not describe its contents or location.\nSubscriptions, tax forms and approved source documents are used in the review and data comparison.\nThe completed package and approval records are used in the Team Lead's completion review; the package is subsequently locked.\nThe participant says the write-up lists a signed or approved checklist, review evidence and completion correspondence. The exact required Team Lead approval record remains unconfirmed.",
+      "evidence_turns": [
+        "t1",
+        "t3",
+        "t5",
+        "t7",
+        "t9"
+      ],
+      "key": "materials",
+      "status": "partial"
+    },
+    {
+      "answer": "The applicable investor/entity scope and whether the process is a general GPFS route or client-specific are not established.",
+      "evidence_turns": [
+        "context",
+        "t1"
+      ],
+      "key": "scope",
+      "status": "partial"
+    },
+    {
+      "answer": "The governing requirements for onboarding and the meaning of complete documents have not been specified.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "key": "rules",
+      "status": "partial"
+    },
+    {
+      "answer": "At a subsequent close, commitment, close date and side-letter information go to FA-05 for equalization. Where applicable, FA-05 accepts the handoff as part of the completion conditions.\nWhere applicable, completion review includes the investor being in the correct FA-01 population from the effective date.",
+      "evidence_turns": [
+        "t5",
+        "t7"
+      ],
+      "key": "connections",
+      "status": "partial"
+    },
+    {
+      "answer": "CRM and accounting contain investor data compared to approved source documents; the team sets Include in Portal to YES and tests access.\nRequired field lists, duplicate handling and exact per-platform paths are unconfirmed.",
+      "evidence_turns": [
+        "t3",
+        "t5"
+      ],
+      "key": "data_systems",
+      "status": "partial"
+    },
+    {
+      "answer": "The operating target is about a week after complete documents arrive; the participant did not specify normal onboarding volume or effort.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "key": "volume",
+      "status": "partial"
+    }
+  ],
+  "coverage": [
+    {
+      "key": "name",
+      "label": "Name & other names",
+      "status": "partial"
+    },
+    {
+      "key": "purpose",
+      "label": "Purpose & result",
+      "status": "partial"
+    },
+    {
+      "key": "trigger",
+      "label": "Start, cadence & deadlines",
+      "status": "partial"
+    },
+    {
+      "key": "completion",
+      "label": "Finished condition",
+      "status": "partial"
+    },
+    {
+      "key": "accountable",
+      "label": "Accountability",
+      "status": "partial"
+    },
+    {
+      "key": "lifecycle",
+      "label": "Items, stages & handoffs",
+      "status": "partial"
+    },
+    {
+      "key": "checks",
+      "label": "Checks, approvals & proof",
+      "status": "partial"
+    },
+    {
+      "key": "variations",
+      "label": "Variations and conditions",
+      "status": "partial"
+    },
+    {
+      "key": "pain_points",
+      "label": "Manual work & pain",
+      "status": "missing"
+    },
+    {
+      "key": "risk",
+      "label": "Consequences of failure",
+      "status": "partial"
+    },
+    {
+      "key": "materials",
+      "label": "Existing materials",
+      "status": "partial"
+    },
+    {
+      "key": "scope",
+      "label": "Scope & entity context",
+      "status": "partial"
+    },
+    {
+      "key": "rules",
+      "label": "Business rules & lineage",
+      "status": "partial"
+    },
+    {
+      "key": "connections",
+      "label": "Connected processes",
+      "status": "partial"
+    },
+    {
+      "key": "data_systems",
+      "label": "Data & systems",
+      "status": "partial"
+    },
+    {
+      "key": "volume",
+      "label": "Volume & effort",
+      "status": "partial"
+    }
+  ],
+  "focus": "Risks if onboarding is incomplete or incorrect",
+  "summary": "The participant identifies notice-delivery, investor-population, wire-verification, AML, and admission risks if onboarding is incomplete or incorrect when the first notice is due.",
+  "parking_lot": [
+    "Required field lists, duplicate handling and exact per-platform paths are unconfirmed.",
+    "Overall accountability remains to be clarified.",
+    "The exact form of the lead's approval record and escalation path need confirmation."
+  ],
+  "taxonomy": [
+    {
+      "evidence_turns": [
+        "context"
+      ],
+      "facet": "functional_area",
+      "note": "Process name supplied as Investor Onboarding; scope and applicability not established.",
+      "value": "onboarding"
+    },
+    {
+      "evidence_turns": [
+        "t3"
+      ],
+      "facet": "functional_area",
+      "note": "Investor Services performs document review and deficiency tracking, as reported.",
+      "value": "investor_services"
+    },
+    {
+      "evidence_turns": [
+        "t3"
+      ],
+      "facet": "control_type",
+      "note": "Client approves admission in writing; blocking sequence is not established.",
+      "value": "client_approval"
+    },
+    {
+      "evidence_turns": [
+        "t3"
+      ],
+      "facet": "system",
+      "note": "CRM and accounting platforms are mentioned without product names.",
+      "value": "other"
+    },
+    {
+      "evidence_turns": [
+        "t3"
+      ],
+      "facet": "system",
+      "note": "Portal inclusion is set and access tested before the first notice.",
+      "value": "client_portal"
+    },
+    {
+      "evidence_turns": [
+        "t3",
+        "t7"
+      ],
+      "facet": "control_type",
+      "note": "Team Lead reviews the completed package and approval records, including applicable handoff and population conditions; approval record form remains unconfirmed.",
+      "value": "gpfs_supervisory"
+    }
+  ],
+  "connections_out": [
+    {
+      "condition": "Admission approval is provided in writing.",
+      "counterpart": "Client",
+      "evidence_turns": [
+        "t3"
+      ],
+      "relationship_type": "requires_approval_from"
+    },
+    {
+      "condition": "At a subsequent close, commitment, close date and side-letter information go to FA-05.",
+      "counterpart": "FA-05 equalization",
+      "evidence_turns": [
+        "t5"
+      ],
+      "relationship_type": "provides_input_to"
+    },
+    {
+      "condition": "FA-20 clearance is included in the completion review.",
+      "counterpart": "FA-20 AML/KYC",
+      "evidence_turns": [
+        "t3",
+        "t7"
+      ],
+      "relationship_type": "consumes"
+    },
+    {
+      "condition": "Treasury verifies new wire instructions by callback; the callback is included in completion review.",
+      "counterpart": "FA-17 Treasury wire verification",
+      "evidence_turns": [
+        "t3",
+        "t7"
+      ],
+      "relationship_type": "consumes"
+    }
+  ],
+  "fact_provenance": [
+    {
+      "topic": "name",
+      "text": "The process is referred to as “Investor Onboarding.”",
+      "evidence_turns": [
+        "context"
+      ],
+      "history_ref": "6c4c176f7a0c2f06",
+      "recorded_at": "2026-11-16T22:15:48.720+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "trigger",
+      "text": "An onboarding checklist is opened when a prospective investor subscribes or when the client identifies the investor at a close.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "4bceea8d0bfb9fe6",
+      "recorded_at": "2026-11-16T22:15:48.720+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "We open an onboarding checklist when a prospective investor subscribes or the client identifies them at a close."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "The team aims to complete onboarding about a week after complete documents arrive; this is an operating target, not a contractual SLA.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "59f599b6b915e35e",
+      "recorded_at": "2026-11-16T22:15:48.720+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "We aim for about a week after complete documents arrive. That's an operating target, with no contractual SLA."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The reported initial action is opening an onboarding checklist upon either a prospective investor's subscription or client identification at a close.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "cc203557e57e9bcf",
+      "recorded_at": "2026-11-16T22:15:48.720+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "We open an onboarding checklist when a prospective investor subscribes or the client identifies them at a close."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "An onboarding checklist is used; the participant did not describe its contents or location.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "8481bfa47a2223f8",
+      "recorded_at": "2026-11-16T22:15:48.720+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "We open an onboarding checklist"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "scope",
+      "text": "The applicable investor/entity scope and whether the process is a general GPFS route or client-specific are not established.",
+      "evidence_turns": [
+        "context",
+        "t1"
+      ],
+      "history_ref": "5f81d9a0881e587d",
+      "recorded_at": "2026-11-16T22:15:48.720+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "or the client identifies them at a close"
+        }
+      ],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "rules",
+      "text": "The governing requirements for onboarding and the meaning of complete documents have not been specified.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "821a0630417d49d6",
+      "recorded_at": "2026-11-16T22:15:48.720+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "after complete documents arrive"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "volume",
+      "text": "The operating target is about a week after complete documents arrive; the participant did not specify normal onboarding volume or effort.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "c2c265078c22b9a7",
+      "recorded_at": "2026-11-16T22:15:48.720+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "We aim for about a week"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "purpose",
+      "text": "The work supports admission and portal access for an investor before the first notice.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "a8c61f2c04bbd8db",
+      "recorded_at": "2026-11-16T22:17:51.678+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "the client approves admission in writing. We compare approved data in CRM and accounting, set Include in Portal to YES, and test access before the first notice."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "Investor Services logs incoming document versions, reviews subscriptions and tax forms, and tracks deficiencies.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "d0d2c7003bada5b8",
+      "recorded_at": "2026-11-16T22:17:51.678+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "Investor Services logs incoming versions, reviews subscriptions and tax forms, and tracks deficiencies."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "FA-20 clears AML/KYC, Treasury verifies new wire instructions by callback under FA-17, and the client approves admission in writing.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "0a0b33422366eeb6",
+      "recorded_at": "2026-11-16T22:17:51.678+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "FA-20 clears AML/KYC, Treasury verifies new wire instructions by callback under FA-17, and the client approves admission in writing."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The team compares approved investor data in CRM and accounting with approved source documents, sets Include in Portal to YES, and tests access before the first notice.",
+      "evidence_turns": [
+        "t3",
+        "t5"
+      ],
+      "history_ref": "a9967685baa24347",
+      "recorded_at": "2026-11-16T22:17:51.678+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "We compare approved data in CRM and accounting, set Include in Portal to YES, and test access before the first notice."
+        },
+        {
+          "source_id": "t5",
+          "quote": "We compare the legal/static data, contacts, preferences, banking reference, commitment and close/effective date, side-letter indicators and portal flag to the approved source documents."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "At a subsequent close, commitment, close date and side-letter information also go to FA-05 for equalization.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "d42d13f48ff4f202",
+      "recorded_at": "2026-11-16T22:17:51.679+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "At a subsequent close, commitment, close date and side-letter information also go to FA-05 for equalization."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The team compares legal/static data, contacts, preferences, banking reference, commitment, close/effective date, side-letter indicators and portal flag in CRM and accounting to approved source documents.",
+      "evidence_turns": [
+        "t3",
+        "t5"
+      ],
+      "history_ref": "f4b443d4870009a4",
+      "recorded_at": "2026-11-16T22:17:51.680+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "We compare approved data in CRM and accounting"
+        },
+        {
+          "source_id": "t5",
+          "quote": "We compare the legal/static data, contacts, preferences, banking reference, commitment and close/effective date, side-letter indicators and portal flag to the approved source documents."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "FA-20 clears AML/KYC; Treasury verifies new wire instructions by callback under FA-17; the client approves admission in writing. The Team Lead handles the internal completion review.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "e1c1671a02b08be9",
+      "recorded_at": "2026-11-16T22:17:51.680+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "FA-20 clears AML/KYC, Treasury verifies new wire instructions by callback under FA-17, and the client approves admission in writing."
+        },
+        {
+          "source_id": "t3",
+          "quote": "The Team Lead handles the internal completion review."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "The team tests portal access before the first notice; the Team Lead handles the internal completion review.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "f7c645a4538e4c45",
+      "recorded_at": "2026-11-16T22:17:51.680+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "test access before the first notice. The Team Lead handles the internal completion review."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "accountable",
+      "text": "The Team Lead handles the internal completion review; Investor Services performs the document logging, review and deficiency tracking.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "4a3b17cd8bae67c4",
+      "recorded_at": "2026-11-16T22:17:51.680+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "Investor Services logs incoming versions, reviews subscriptions and tax forms, and tracks deficiencies."
+        },
+        {
+          "source_id": "t3",
+          "quote": "The Team Lead handles the internal completion review."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "accountable",
+      "text": "The role accountable for the overall onboarding result has not been established.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "377df1ec163c746e",
+      "recorded_at": "2026-11-16T22:17:51.680+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "The Team Lead handles the internal completion review."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "At a subsequent close, commitment, close date and side-letter information also go to FA-05 for equalization.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "1a0798355ee8f5b1",
+      "recorded_at": "2026-11-16T22:17:51.681+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "At a subsequent close, commitment, close date and side-letter information also go to FA-05 for equalization."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "Subscriptions, tax forms and approved source documents are used in the review and data comparison.",
+      "evidence_turns": [
+        "t3",
+        "t5"
+      ],
+      "history_ref": "2252c1358da89a8a",
+      "recorded_at": "2026-11-16T22:17:51.681+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "reviews subscriptions and tax forms"
+        },
+        {
+          "source_id": "t5",
+          "quote": "to the approved source documents"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "CRM and accounting contain investor data compared to approved source documents; the team sets Include in Portal to YES and tests access.",
+      "evidence_turns": [
+        "t3",
+        "t5"
+      ],
+      "history_ref": "cc96650263c7fb54",
+      "recorded_at": "2026-11-16T22:17:51.681+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "We compare approved data in CRM and accounting, set Include in Portal to YES, and test access"
+        },
+        {
+          "source_id": "t5",
+          "quote": "to the approved source documents"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "Required field lists, duplicate handling and exact per-platform paths are unconfirmed.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "1868b0537e20a700",
+      "recorded_at": "2026-11-16T22:17:51.681+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "Required field lists, duplicate handling and exact per-platform paths are unconfirmed."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Required field lists and duplicate handling are unconfirmed.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "192b4184a74fedb5",
+      "recorded_at": "2026-11-16T22:17:51.681+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "Required field lists, duplicate handling and exact per-platform paths are unconfirmed."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The Team Lead checks the completed package and approval records, including FA-20 clearance, the FA-17 callback, client admission, reconciled setup and tested portal access. If applicable, FA-05 accepts the handoff and the investor is in the correct FA-01 population from the effective date.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "ea6512edc3cc1001",
+      "recorded_at": "2026-11-16T22:18:19.829+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "The lead checks the completed package and approval records, including FA-20 clearance, FA-17 callback, client admission, reconciled setup and tested portal access. If applicable FA-05 accepts the handoff and the investor is in the correct FA-01 population from the effective date."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The exact form of the Team Lead's approval record and the escalation path still need confirmation.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "b3afb36dadfaa1eb",
+      "recorded_at": "2026-11-16T22:18:19.829+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "The exact form of the lead's approval record and escalation path still need confirmation."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "Completion review covers the completed package and approval records, reconciled setup and tested portal access; where applicable, FA-05 accepts the handoff and the investor is in the correct FA-01 population from the effective date. The team sends completion confirmation to the client, records the date and locks the package.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "a68580787e193dcb",
+      "recorded_at": "2026-11-16T22:18:19.829+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "The lead checks the completed package and approval records, including FA-20 clearance, FA-17 callback, client admission, reconciled setup and tested portal access. If applicable FA-05 accepts the handoff and the investor is in the correct FA-01 population from the effective date. We send completion confirmation to the client, record the date and lock the package."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The Team Lead reviews the completed package and approval records, including the applicable FA-05 acceptance and FA-01 population condition. The team sends completion confirmation to the client, records the date and locks the package.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "05436319f65fdba3",
+      "recorded_at": "2026-11-16T22:18:19.829+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "The lead checks the completed package and approval records, including FA-20 clearance, FA-17 callback, client admission, reconciled setup and tested portal access. If applicable FA-05 accepts the handoff and the investor is in the correct FA-01 population from the effective date. We send completion confirmation to the client, record the date and lock the package."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The completed package and approval records are used in the Team Lead's completion review; the package is subsequently locked.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "fe13b293b7ccb1ba",
+      "recorded_at": "2026-11-16T22:18:19.834+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "The lead checks the completed package and approval records"
+        },
+        {
+          "source_id": "t7",
+          "quote": "record the date and lock the package."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "At a subsequent close, commitment, close date and side-letter information go to FA-05 for equalization. Where applicable, FA-05 accepts the handoff as part of the completion conditions.",
+      "evidence_turns": [
+        "t5",
+        "t7"
+      ],
+      "history_ref": "3da8b472421c4208",
+      "recorded_at": "2026-11-16T22:18:19.836+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "At a subsequent close, commitment, close date and side-letter information also go to FA-05 for equalization."
+        },
+        {
+          "source_id": "t7",
+          "quote": "If applicable FA-05 accepts the handoff"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "Where applicable, completion review includes the investor being in the correct FA-01 population from the effective date.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "428b815d349ede44",
+      "recorded_at": "2026-11-16T22:18:19.837+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "If applicable FA-05 accepts the handoff and the investor is in the correct FA-01 population from the effective date."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The participant says the write-up lists a signed or approved checklist, review evidence and completion correspondence. The exact required Team Lead approval record remains unconfirmed.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "a9fb90dcc69eedb2",
+      "recorded_at": "2026-11-16T22:19:35.128+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "The write-up lists the signed or approved checklist, review evidence and completion correspondence. It explicitly says the exact required Team Lead approval record and escalation path aren't confirmed."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The participant cannot provide a particular form name, field or location for the Team Lead approval record and would leave the item open for the process owner.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "e51a1317c16b4caf",
+      "recorded_at": "2026-11-16T22:19:35.129+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "I can't give a particular form name, field or location. I'd leave that item open for the process owner."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "risk",
+      "text": "If onboarding is incomplete or incorrect when the first notice is due, contacts or portal access could be wrong, so the notice might not reach the investor or could go to the wrong recipient; the investor could also appear too early or be omitted from FA-01. An unverified wire cannot be used, and AML and admission are hard gates before accepting capital.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "348d25de3d49a875",
+      "recorded_at": "2026-11-16T22:20:27.612+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "Contacts or portal access could be wrong, so the first notice might not reach the investor or could go to the wrong recipient. The investor could also appear too early or be omitted from FA-01. An unverified wire cannot be used and AML and admission are hard gates before accepting capital."
+        }
+      ],
+      "unverified": []
+    }
+  ],
+  "fact_history": [],
+  "capture_provenance": {
+    "method": "document_simulation",
+    "participant_confirmed": false,
+    "process_owner_approved": false,
+    "source_documents": [
+      {
+        "filename": "IP1-export.pdf",
+        "sha256": "d0f89ee7c7cc8ffbcd39c268b47b765888105e588f60199106356ca31df177c1"
+      }
+    ]
+  },
+  "closure": {
+    "asked": false,
+    "confirmed": false
+  }
+}

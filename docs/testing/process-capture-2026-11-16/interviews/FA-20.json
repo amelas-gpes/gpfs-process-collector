@@ -1,0 +1,1880 @@
+{
+  "schema_version": 1,
+  "context": {
+    "process_name": "KYC & Sanctions Screening",
+    "process_owner": "",
+    "objective": "Document how we carry out KYC & Sanctions Screening, the controls and what needs confirmation.",
+    "background": ""
+  },
+  "turns": [
+    {
+      "id": "turn_1",
+      "role": "user",
+      "text": "A new subscription, transfer or ownership change opens a KYC event. Our preparer records the investor's profile in the case checklist. We block capital acceptance, portal access and allocation participation pending documented clearance. We validate identity, trace beneficial ownership, screen in Exiger and route the risk assessment for the required AML decision."
+    },
+    {
+      "id": "turn_2",
+      "role": "assistant",
+      "text": "How do Exiger screening results feed into the risk assessment and documented clearance?"
+    },
+    {
+      "id": "turn_3",
+      "role": "user",
+      "text": "We retain the Exiger searches, date and results. For each potential match the preparer compares identifiers and evidence and documents the reviewer decision. We escalate possible or true matches. PEP exposure, adverse media, jurisdiction and structure inform the approved risk model; we document risk, rationale and reviewer and perform EDD when required. Unresolved cases stay blocked. Only the required reviewer can give documented clearance; our approved scoring scale and authority matrix still need confirmation."
+    },
+    {
+      "id": "turn_4",
+      "role": "assistant",
+      "text": "How is the documented clearance recorded, and what signals that the blocked activities can proceed?"
+    },
+    {
+      "id": "turn_5",
+      "role": "user",
+      "text": "The reviewer signs off in the AML approval record or case file with the approver, date, conditions and next review. Operations communicates clearance or block to FA-07, FA-08, FA-05 and the payment or event teams, and checks that the operational status matches the recorded AML decision. Unresolved screening goes to the Compliance Officer; urgency cannot override it. The exact field, repository and retention period remain unconfirmed."
+    },
+    {
+      "id": "turn_6",
+      "role": "assistant",
+      "text": "Does this KYC route work the same across your funds and clients, or are there meaningful differences?"
+    },
+    {
+      "id": "turn_7",
+      "role": "user",
+      "text": "The initial requirements depend on jurisdiction, investor type and ownership structure. Under FA-18C, European distribution payees blocked by CDD are withheld and followed at 30/60/90 days. That is specific to those payees, not a universal KYC review cadence. Periodic reviews follow the approved annual or risk-based schedule; ownership or name changes and alerts trigger review sooner. The regional thresholds and signed approval matrix remain open."
+    },
+    {
+      "id": "turn_8",
+      "role": "assistant",
+      "text": "How do jurisdiction, investor type, or ownership structure change the initial KYC requirements?"
+    },
+    {
+      "id": "turn_9",
+      "role": "user",
+      "text": "For an entity we trace direct and indirect owners through each intermediary down to individuals who meet the approved BO threshold and identify controlling persons as policy requires. Complex structures, trusts and nominees need the approved policy. The specific thresholds by jurisdiction, document matrix and EDD triggers are not in the approved sources; Compliance needs to confirm them. Please record them as open."
+    },
+    {
+      "id": "turn_10",
+      "role": "assistant",
+      "text": "What happens to the KYC event if the reviewer does not grant clearance?"
+    },
+    {
+      "id": "turn_11",
+      "role": "user",
+      "text": "As described earlier, without clearance the case remains blocked. Unresolved or failed screening goes to the Compliance Officer and the client is notified as applicable. The AML case preserves the rationale and downstream operations retain the block. Urgency does not override it. The rules for conditional approvals and specific notifications still lack owner confirmation."
+    },
+    {
+      "id": "turn_12",
+      "role": "assistant",
+      "text": "What happens to the KYC event after documented clearance—how is it closed, if it is closed?"
+    }
+  ],
+  "memo_findings": [
+    {
+      "answer": "The process is called “KYC & Sanctions Screening.”",
+      "evidence_turns": [
+        "context"
+      ],
+      "key": "name",
+      "status": "captured"
+    },
+    {
+      "answer": "The stated objective is to document how KYC and sanctions screening are carried out, including controls and matters needing confirmation.\nThe work assesses investor identity, ownership and screening risk before documented clearance permits capital acceptance, portal access and allocation participation.",
+      "evidence_turns": [
+        "context",
+        "turn_1",
+        "turn_3"
+      ],
+      "key": "purpose",
+      "status": "captured"
+    },
+    {
+      "answer": "A new subscription, transfer, or ownership change opens a KYC event.\nPeriodic reviews follow the approved annual or risk-based schedule; ownership or name changes and alerts trigger earlier review. The 30/60/90-day follow-up for European distribution payees blocked by CDD is not a universal KYC review cadence.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_7"
+      ],
+      "key": "trigger",
+      "status": "partial"
+    },
+    {
+      "answer": "Who actually releases the blocks, how release occurs, and how and by whom the KYC event is closed remain unspecified.\nOnly the required reviewer can give documented clearance; unresolved cases remain blocked.",
+      "evidence_turns": [
+        "turn_5",
+        "turn_3"
+      ],
+      "key": "completion",
+      "status": "partial"
+    },
+    {
+      "answer": "The role accountable for the overall result, the preparer's identity and the specific role of the required clearance reviewer remain unspecified; the authority matrix needs confirmation.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3"
+      ],
+      "key": "accountable",
+      "status": "partial"
+    },
+    {
+      "answer": "A subscription, transfer or ownership change opens a KYC event; the preparer records the investor profile in the case checklist. The team validates identity, traces beneficial ownership, screens in Exiger and routes the risk assessment for the required AML decision; capital acceptance, portal access and allocation participation are blocked pending documented clearance.\nFor each potential match, the preparer compares identifiers and evidence and documents the reviewer decision. The team escalates possible or true matches, performs EDD when required and keeps unresolved cases blocked.\nThe actual block-release and event-closure steps remain unspecified.\nThe reviewer signs off in the AML approval record or case file, recording the approver, date, conditions and next review. Operations communicates clearance or block to FA-07, FA-08, FA-05 and the payment or event teams and checks that operational status matches the recorded AML decision.\nFor an entity, the team traces direct and indirect owners through each intermediary to individuals meeting the approved beneficial-ownership threshold and identifies controlling persons as policy requires. Complex structures, trusts and nominees require the approved policy.\nUnder FA-18C, European distribution payees blocked by CDD are withheld and followed at 30, 60 and 90 days.\nWithout clearance, the case remains blocked. Unresolved or failed screening goes to the Compliance Officer, the client is notified as applicable, the AML case preserves the rationale, and downstream operations retain the block. Urgency does not override it.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3",
+        "turn_5",
+        "turn_9",
+        "turn_7",
+        "turn_11"
+      ],
+      "key": "lifecycle",
+      "status": "partial"
+    },
+    {
+      "answer": "The team validates identity, traces beneficial ownership and screens in Exiger. For each potential match, the preparer compares identifiers and evidence and documents the reviewer decision; possible or true matches are escalated.\nCapital acceptance, portal access, and allocation participation are blocked pending documented clearance.\nThe specific authorized reviewer, scoring scale, authority matrix and decision criteria remain unconfirmed.\nThe team documents risk, rationale and reviewer and performs EDD when required. Only the required reviewer can give documented clearance; unresolved cases stay blocked.\nOperations checks that operational status matches the recorded AML decision. Unresolved screening goes to the Compliance Officer, and urgency cannot override it.\nThe signed approval matrix and regional thresholds remain open; Compliance needs to confirm jurisdictional beneficial-ownership thresholds, the document matrix and EDD triggers.\nThe rules for conditional approvals and specific notifications still lack owner confirmation.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3",
+        "turn_5",
+        "turn_7",
+        "turn_9",
+        "turn_11"
+      ],
+      "key": "checks",
+      "status": "partial"
+    },
+    {
+      "answer": "Initial requirements depend on jurisdiction, investor type and ownership structure. For entities, ownership tracing goes through intermediaries to qualifying individuals; complex structures, trusts and nominees require the approved policy.\nEuropean distribution payees blocked by CDD are withheld and followed at 30/60/90 days under FA-18C; this is specific to those payees rather than a universal KYC review cadence.\nThe specific jurisdictional and investor-type requirements, regional thresholds and detailed treatment of complex structures, trusts and nominees require confirmation.",
+      "evidence_turns": [
+        "turn_7",
+        "turn_9"
+      ],
+      "key": "variations",
+      "status": "partial"
+    },
+    {
+      "answer": "",
+      "evidence_turns": [],
+      "key": "pain_points",
+      "status": "unknown"
+    },
+    {
+      "answer": "Capital acceptance, portal access, and allocation participation remain blocked pending documented clearance.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "key": "risk",
+      "status": "partial"
+    },
+    {
+      "answer": "A case checklist is used by the preparer to record the investor's profile; its location, custodian, and any other contents are not stated.\nExiger searches, dates and results are retained as screening records; the team also documents risk, rationale and reviewer.\nThe AML approval record or case file holds reviewer sign-off with the approver, date, conditions and next review.\nThe exact sign-off field, repository and retention period remain unconfirmed.\nThe participant identifies an approved policy for ownership tracing in complex structures, trusts and nominees; the policy itself was not supplied for this capture.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3",
+        "turn_5",
+        "turn_9"
+      ],
+      "key": "materials",
+      "status": "partial"
+    },
+    {
+      "answer": "The described scope includes KYC events arising from new subscriptions, transfers and ownership changes, as well as periodic and earlier-triggered reviews.\nThe full range of funds and clients and whether the route represents general GPFS practice remain unconfirmed.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_7"
+      ],
+      "key": "scope",
+      "status": "partial"
+    },
+    {
+      "answer": "PEP exposure, adverse media, jurisdiction and structure inform the approved risk model; the team routes the risk assessment for the required AML decision.\nThe approved scoring scale, specific beneficial-ownership thresholds by jurisdiction, document matrix, EDD triggers and decision rules require confirmation. Compliance needs to confirm the thresholds, document matrix and EDD triggers.\nThe participant reports an approved beneficial-ownership threshold and policy for identifying controlling persons; complex structures, trusts and nominees require the approved policy.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3",
+        "turn_9"
+      ],
+      "key": "rules",
+      "status": "partial"
+    },
+    {
+      "answer": "The specific role of the required reviewer and the risk-assessment handoff method remain unspecified.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3"
+      ],
+      "key": "connections",
+      "status": "partial"
+    },
+    {
+      "answer": "The preparer records the investor profile in a case checklist. The team screens in Exiger and retains searches, dates and results.\nChecklist storage, Exiger inputs, retained-record locations and data transfer or re-keying are unspecified.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3"
+      ],
+      "key": "data_systems",
+      "status": "partial"
+    },
+    {
+      "answer": "",
+      "evidence_turns": [],
+      "key": "volume",
+      "status": "unknown"
+    }
+  ],
+  "coverage": [
+    {
+      "key": "name",
+      "label": "Name & other names",
+      "status": "partial"
+    },
+    {
+      "key": "purpose",
+      "label": "Purpose & result",
+      "status": "partial"
+    },
+    {
+      "key": "trigger",
+      "label": "Start, cadence & deadlines",
+      "status": "partial"
+    },
+    {
+      "key": "completion",
+      "label": "Finished condition",
+      "status": "partial"
+    },
+    {
+      "key": "accountable",
+      "label": "Accountability",
+      "status": "partial"
+    },
+    {
+      "key": "lifecycle",
+      "label": "Items, stages & handoffs",
+      "status": "partial"
+    },
+    {
+      "key": "checks",
+      "label": "Checks, approvals & proof",
+      "status": "partial"
+    },
+    {
+      "key": "variations",
+      "label": "Variations and conditions",
+      "status": "partial"
+    },
+    {
+      "key": "pain_points",
+      "label": "Manual work & pain",
+      "status": "missing"
+    },
+    {
+      "key": "risk",
+      "label": "Consequences of failure",
+      "status": "partial"
+    },
+    {
+      "key": "materials",
+      "label": "Existing materials",
+      "status": "partial"
+    },
+    {
+      "key": "scope",
+      "label": "Scope & entity context",
+      "status": "partial"
+    },
+    {
+      "key": "rules",
+      "label": "Business rules & lineage",
+      "status": "partial"
+    },
+    {
+      "key": "connections",
+      "label": "Connected processes",
+      "status": "partial"
+    },
+    {
+      "key": "data_systems",
+      "label": "Data & systems",
+      "status": "partial"
+    },
+    {
+      "key": "volume",
+      "label": "Volume & effort",
+      "status": "missing"
+    }
+  ],
+  "focus": "Cases without clearance",
+  "summary": "Without clearance, the case remains blocked; unresolved or failed screening goes to the Compliance Officer, with client notification as applicable. Conditional approval and notification rules still need owner confirmation.",
+  "parking_lot": [],
+  "taxonomy": [
+    {
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "facet": "functional_area",
+      "note": "Reported KYC and sanctions screening work; classification is based on the participant's process description, not independent verification.",
+      "value": "compliance_regulatory"
+    },
+    {
+      "evidence_turns": [
+        "context"
+      ],
+      "facet": "process_level",
+      "note": "The intake names an overall KYC & Sanctions Screening process; no finer-level designation was supplied.",
+      "value": "process"
+    },
+    {
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "facet": "system",
+      "note": "Exiger is reported as the screening tool; it is not a named value in the controlled system vocabulary.",
+      "value": "other"
+    },
+    {
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "facet": "control_type",
+      "note": "Participant reports escalation of possible or true screening matches.",
+      "value": "exception_escalation"
+    },
+    {
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "facet": "control_type",
+      "note": "Participant reports preparer comparison of identifiers and evidence for potential matches.",
+      "value": "gpfs_operational"
+    },
+    {
+      "evidence_turns": [
+        "turn_7",
+        "turn_9"
+      ],
+      "facet": "variant_class",
+      "note": "Reported entity ownership structure affects initial requirements; detailed policy and thresholds remain unconfirmed.",
+      "value": "structural"
+    }
+  ],
+  "connections_out": [
+    {
+      "condition": "Documented clearance; the specific role and authority matrix require confirmation.",
+      "counterpart": "Required reviewer",
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "relationship_type": "requires_approval_from"
+    },
+    {
+      "condition": "Operations communicates clearance or block.",
+      "counterpart": "FA-07",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "relationship_type": "hands_off_to"
+    },
+    {
+      "condition": "Operations communicates clearance or block.",
+      "counterpart": "FA-08",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "relationship_type": "hands_off_to"
+    },
+    {
+      "condition": "Operations communicates clearance or block.",
+      "counterpart": "FA-05",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "relationship_type": "hands_off_to"
+    },
+    {
+      "condition": "Operations communicates clearance or block.",
+      "counterpart": "Payment or event teams",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "relationship_type": "hands_off_to"
+    },
+    {
+      "condition": "Unresolved screening is escalated.",
+      "counterpart": "Compliance Officer",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "relationship_type": "hands_off_to"
+    },
+    {
+      "condition": "Unresolved or failed screening is escalated.",
+      "counterpart": "Compliance Officer",
+      "evidence_turns": [
+        "turn_11"
+      ],
+      "relationship_type": "hands_off_to"
+    }
+  ],
+  "fact_provenance": [
+    {
+      "topic": "name",
+      "text": "The process is called “KYC & Sanctions Screening.”",
+      "evidence_turns": [
+        "context"
+      ],
+      "history_ref": "6e97f33a50a437d4",
+      "recorded_at": "2026-11-16T22:16:27.973+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "purpose",
+      "text": "The stated objective is to document how KYC and sanctions screening are carried out, including controls and matters needing confirmation.",
+      "evidence_turns": [
+        "context"
+      ],
+      "history_ref": "a1483367ce4e1942",
+      "recorded_at": "2026-11-16T22:16:27.973+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "context",
+          "quote": "Document how we carry out KYC & Sanctions Screening, the controls and what needs confirmation."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "A new subscription, transfer, or ownership change opens a KYC event.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "26a6410f42078bc8",
+      "recorded_at": "2026-11-16T22:16:27.973+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "A new subscription, transfer or ownership change opens a KYC event."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "Who actually releases the blocks, how release occurs, and how and by whom the KYC event is closed remain unspecified.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "7726fbd7c86f4e4a",
+      "recorded_at": "2026-11-16T22:18:15.204+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "Operations communicates clearance or block to FA-07, FA-08, FA-05 and the payment or event teams, and checks that the operational status matches the recorded AML decision."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "accountable",
+      "text": "The role accountable for the overall result, the preparer's identity and the specific role of the required clearance reviewer remain unspecified; the authority matrix needs confirmation.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3"
+      ],
+      "history_ref": "077ec688388fdd35",
+      "recorded_at": "2026-11-16T22:17:47.532+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "Our preparer records the investor's profile"
+        },
+        {
+          "source_id": "turn_3",
+          "quote": "Only the required reviewer can give documented clearance; our approved scoring scale and authority matrix still need confirmation."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "A subscription, transfer or ownership change opens a KYC event; the preparer records the investor profile in the case checklist. The team validates identity, traces beneficial ownership, screens in Exiger and routes the risk assessment for the required AML decision; capital acceptance, portal access and allocation participation are blocked pending documented clearance.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "aefd8acc2ed719c4",
+      "recorded_at": "2026-11-16T22:17:47.532+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "Our preparer records the investor's profile in the case checklist. We block capital acceptance, portal access and allocation participation pending documented clearance. We validate identity, trace beneficial ownership, screen in Exiger and route the risk assessment for the required AML decision."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The team validates identity, traces beneficial ownership and screens in Exiger. For each potential match, the preparer compares identifiers and evidence and documents the reviewer decision; possible or true matches are escalated.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3"
+      ],
+      "history_ref": "f5f9ed896a127bf8",
+      "recorded_at": "2026-11-16T22:17:47.532+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "We validate identity, trace beneficial ownership, screen in Exiger"
+        },
+        {
+          "source_id": "turn_3",
+          "quote": "For each potential match the preparer compares identifiers and evidence and documents the reviewer decision. We escalate possible or true matches."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Capital acceptance, portal access, and allocation participation are blocked pending documented clearance.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "dd73b625d1642059",
+      "recorded_at": "2026-11-16T22:16:27.974+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "We block capital acceptance, portal access and allocation participation pending documented clearance."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The specific authorized reviewer, scoring scale, authority matrix and decision criteria remain unconfirmed.",
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "history_ref": "f50c0aa8b70f523f",
+      "recorded_at": "2026-11-16T22:22:03.568+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "Only the required reviewer can give documented clearance; our approved scoring scale and authority matrix still need confirmation."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "risk",
+      "text": "Capital acceptance, portal access, and allocation participation remain blocked pending documented clearance.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "c409cf3026fd3b78",
+      "recorded_at": "2026-11-16T22:16:27.974+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "We block capital acceptance, portal access and allocation participation pending documented clearance."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "A case checklist is used by the preparer to record the investor's profile; its location, custodian, and any other contents are not stated.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "f94e22104b7c8e25",
+      "recorded_at": "2026-11-16T22:16:27.974+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "Our preparer records the investor's profile in the case checklist."
+        }
+      ],
+      "unverified": [
+        "Check this against the cited sources: custodian"
+      ]
+    },
+    {
+      "topic": "scope",
+      "text": "The described scope includes KYC events arising from new subscriptions, transfers and ownership changes, as well as periodic and earlier-triggered reviews.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_7"
+      ],
+      "history_ref": "4e5fb2a9652b9b34",
+      "recorded_at": "2026-11-16T22:20:54.373+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "A new subscription, transfer or ownership change opens a KYC event."
+        },
+        {
+          "source_id": "turn_7",
+          "quote": "Periodic reviews follow the approved annual or risk-based schedule; ownership or name changes and alerts trigger review sooner."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "PEP exposure, adverse media, jurisdiction and structure inform the approved risk model; the team routes the risk assessment for the required AML decision.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3"
+      ],
+      "history_ref": "50d958dd10a83499",
+      "recorded_at": "2026-11-16T22:17:47.532+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "route the risk assessment for the required AML decision"
+        },
+        {
+          "source_id": "turn_3",
+          "quote": "PEP exposure, adverse media, jurisdiction and structure inform the approved risk model"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "The specific role of the required reviewer and the risk-assessment handoff method remain unspecified.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3"
+      ],
+      "history_ref": "b92cc8e3afe30e05",
+      "recorded_at": "2026-11-16T22:17:47.532+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "route the risk assessment for the required AML decision"
+        },
+        {
+          "source_id": "turn_3",
+          "quote": "Only the required reviewer can give documented clearance"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "The preparer records the investor profile in a case checklist. The team screens in Exiger and retains searches, dates and results.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3"
+      ],
+      "history_ref": "cd29a5fcce55290a",
+      "recorded_at": "2026-11-16T22:17:47.532+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "Our preparer records the investor's profile in the case checklist"
+        },
+        {
+          "source_id": "turn_3",
+          "quote": "We retain the Exiger searches, date and results."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "Only the required reviewer can give documented clearance; unresolved cases remain blocked.",
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "history_ref": "e94a8fcd0a3dc908",
+      "recorded_at": "2026-11-16T22:17:47.532+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "Unresolved cases stay blocked. Only the required reviewer can give documented clearance"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "For each potential match, the preparer compares identifiers and evidence and documents the reviewer decision. The team escalates possible or true matches, performs EDD when required and keeps unresolved cases blocked.",
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "history_ref": "2ebc3961d1581aa6",
+      "recorded_at": "2026-11-16T22:17:47.532+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "For each potential match the preparer compares identifiers and evidence and documents the reviewer decision. We escalate possible or true matches."
+        },
+        {
+          "source_id": "turn_3",
+          "quote": "perform EDD when required. Unresolved cases stay blocked."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The actual block-release and event-closure steps remain unspecified.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "ef4c65f24e757f90",
+      "recorded_at": "2026-11-16T22:18:15.204+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "Operations communicates clearance or block to FA-07, FA-08, FA-05 and the payment or event teams, and checks that the operational status matches the recorded AML decision."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The team documents risk, rationale and reviewer and performs EDD when required. Only the required reviewer can give documented clearance; unresolved cases stay blocked.",
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "history_ref": "5595b525e9e47336",
+      "recorded_at": "2026-11-16T22:17:47.532+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "we document risk, rationale and reviewer and perform EDD when required. Unresolved cases stay blocked. Only the required reviewer can give documented clearance"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "The approved scoring scale, specific beneficial-ownership thresholds by jurisdiction, document matrix, EDD triggers and decision rules require confirmation. Compliance needs to confirm the thresholds, document matrix and EDD triggers.",
+      "evidence_turns": [
+        "turn_3",
+        "turn_9"
+      ],
+      "history_ref": "db574f97541b1d54",
+      "recorded_at": "2026-11-16T22:20:54.373+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "our approved scoring scale and authority matrix still need confirmation"
+        },
+        {
+          "source_id": "turn_9",
+          "quote": "The specific thresholds by jurisdiction, document matrix and EDD triggers are not in the approved sources; Compliance needs to confirm them."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "Checklist storage, Exiger inputs, retained-record locations and data transfer or re-keying are unspecified.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3"
+      ],
+      "history_ref": "9dd2b896789da875",
+      "recorded_at": "2026-11-16T22:17:47.532+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "We retain the Exiger searches, date and results."
+        }
+      ],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "materials",
+      "text": "Exiger searches, dates and results are retained as screening records; the team also documents risk, rationale and reviewer.",
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "history_ref": "4f3239f73fe5d99d",
+      "recorded_at": "2026-11-16T22:17:47.532+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "We retain the Exiger searches, date and results."
+        },
+        {
+          "source_id": "turn_3",
+          "quote": "we document risk, rationale and reviewer"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "purpose",
+      "text": "The work assesses investor identity, ownership and screening risk before documented clearance permits capital acceptance, portal access and allocation participation.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3"
+      ],
+      "history_ref": "11a2c1c2af8ca89f",
+      "recorded_at": "2026-11-16T22:17:47.532+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "We block capital acceptance, portal access and allocation participation pending documented clearance. We validate identity, trace beneficial ownership, screen in Exiger"
+        },
+        {
+          "source_id": "turn_3",
+          "quote": "we document risk, rationale and reviewer"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The reviewer signs off in the AML approval record or case file, recording the approver, date, conditions and next review. Operations communicates clearance or block to FA-07, FA-08, FA-05 and the payment or event teams and checks that operational status matches the recorded AML decision.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "3d5a67446794c90f",
+      "recorded_at": "2026-11-16T22:18:15.204+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "The reviewer signs off in the AML approval record or case file with the approver, date, conditions and next review. Operations communicates clearance or block to FA-07, FA-08, FA-05 and the payment or event teams, and checks that the operational status matches the recorded AML decision."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Operations checks that operational status matches the recorded AML decision. Unresolved screening goes to the Compliance Officer, and urgency cannot override it.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "a015e2c4dc81c3ef",
+      "recorded_at": "2026-11-16T22:18:15.206+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "checks that the operational status matches the recorded AML decision. Unresolved screening goes to the Compliance Officer; urgency cannot override it."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The AML approval record or case file holds reviewer sign-off with the approver, date, conditions and next review.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "59eae770837df5a5",
+      "recorded_at": "2026-11-16T22:18:15.206+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "The reviewer signs off in the AML approval record or case file with the approver, date, conditions and next review."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The exact sign-off field, repository and retention period remain unconfirmed.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "d5d2ddbbb797ce44",
+      "recorded_at": "2026-11-16T22:18:15.206+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "The exact field, repository and retention period remain unconfirmed."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "scope",
+      "text": "The full range of funds and clients and whether the route represents general GPFS practice remain unconfirmed.",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "history_ref": "18c193b07cd8710d",
+      "recorded_at": "2026-11-16T22:20:54.373+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_7",
+          "quote": "The initial requirements depend on jurisdiction, investor type and ownership structure."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "Periodic reviews follow the approved annual or risk-based schedule; ownership or name changes and alerts trigger earlier review. The 30/60/90-day follow-up for European distribution payees blocked by CDD is not a universal KYC review cadence.",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "history_ref": "443d3178d2d24294",
+      "recorded_at": "2026-11-16T22:20:54.373+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_7",
+          "quote": "That is specific to those payees, not a universal KYC review cadence. Periodic reviews follow the approved annual or risk-based schedule; ownership or name changes and alerts trigger review sooner."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "For an entity, the team traces direct and indirect owners through each intermediary to individuals meeting the approved beneficial-ownership threshold and identifies controlling persons as policy requires. Complex structures, trusts and nominees require the approved policy.",
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "history_ref": "e5089ad8aef19ba1",
+      "recorded_at": "2026-11-16T22:20:54.373+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_9",
+          "quote": "For an entity we trace direct and indirect owners through each intermediary down to individuals who meet the approved BO threshold and identify controlling persons as policy requires. Complex structures, trusts and nominees need the approved policy."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "Under FA-18C, European distribution payees blocked by CDD are withheld and followed at 30, 60 and 90 days.",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "history_ref": "bac1854c839a4192",
+      "recorded_at": "2026-11-16T22:20:54.373+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_7",
+          "quote": "Under FA-18C, European distribution payees blocked by CDD are withheld and followed at 30/60/90 days."
+        }
+      ],
+      "unverified": [
+        "Check this against the cited sources: 18"
+      ]
+    },
+    {
+      "topic": "variations",
+      "text": "Initial requirements depend on jurisdiction, investor type and ownership structure. For entities, ownership tracing goes through intermediaries to qualifying individuals; complex structures, trusts and nominees require the approved policy.",
+      "evidence_turns": [
+        "turn_7",
+        "turn_9"
+      ],
+      "history_ref": "d05229f59235af41",
+      "recorded_at": "2026-11-16T22:20:54.375+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_7",
+          "quote": "The initial requirements depend on jurisdiction, investor type and ownership structure."
+        },
+        {
+          "source_id": "turn_9",
+          "quote": "Complex structures, trusts and nominees need the approved policy."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "European distribution payees blocked by CDD are withheld and followed at 30/60/90 days under FA-18C; this is specific to those payees rather than a universal KYC review cadence.",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "history_ref": "72ceebdd3e67014c",
+      "recorded_at": "2026-11-16T22:20:54.375+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_7",
+          "quote": "Under FA-18C, European distribution payees blocked by CDD are withheld and followed at 30/60/90 days. That is specific to those payees, not a universal KYC review cadence."
+        }
+      ],
+      "unverified": [
+        "Check this against the cited sources: 18"
+      ]
+    },
+    {
+      "topic": "variations",
+      "text": "The specific jurisdictional and investor-type requirements, regional thresholds and detailed treatment of complex structures, trusts and nominees require confirmation.",
+      "evidence_turns": [
+        "turn_7",
+        "turn_9"
+      ],
+      "history_ref": "43de77e1c177b5e2",
+      "recorded_at": "2026-11-16T22:20:54.375+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_7",
+          "quote": "The regional thresholds and signed approval matrix remain open."
+        },
+        {
+          "source_id": "turn_9",
+          "quote": "The specific thresholds by jurisdiction, document matrix and EDD triggers are not in the approved sources; Compliance needs to confirm them."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "The participant reports an approved beneficial-ownership threshold and policy for identifying controlling persons; complex structures, trusts and nominees require the approved policy.",
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "history_ref": "9a733c6719ecb377",
+      "recorded_at": "2026-11-16T22:20:54.375+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_9",
+          "quote": "individuals who meet the approved BO threshold and identify controlling persons as policy requires. Complex structures, trusts and nominees need the approved policy."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The participant identifies an approved policy for ownership tracing in complex structures, trusts and nominees; the policy itself was not supplied for this capture.",
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "history_ref": "c2dbe81f991bcc19",
+      "recorded_at": "2026-11-16T22:20:54.375+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_9",
+          "quote": "Complex structures, trusts and nominees need the approved policy."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The signed approval matrix and regional thresholds remain open; Compliance needs to confirm jurisdictional beneficial-ownership thresholds, the document matrix and EDD triggers.",
+      "evidence_turns": [
+        "turn_7",
+        "turn_9"
+      ],
+      "history_ref": "b38975912da905bc",
+      "recorded_at": "2026-11-16T22:20:54.375+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_7",
+          "quote": "The regional thresholds and signed approval matrix remain open."
+        },
+        {
+          "source_id": "turn_9",
+          "quote": "The specific thresholds by jurisdiction, document matrix and EDD triggers are not in the approved sources; Compliance needs to confirm them."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "Without clearance, the case remains blocked. Unresolved or failed screening goes to the Compliance Officer, the client is notified as applicable, the AML case preserves the rationale, and downstream operations retain the block. Urgency does not override it.",
+      "evidence_turns": [
+        "turn_11"
+      ],
+      "history_ref": "dc0fccd9ed57862c",
+      "recorded_at": "2026-11-16T22:22:03.568+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_11",
+          "quote": "Unresolved or failed screening goes to the Compliance Officer and the client is notified as applicable. The AML case preserves the rationale and downstream operations retain the block. Urgency does not override it."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The rules for conditional approvals and specific notifications still lack owner confirmation.",
+      "evidence_turns": [
+        "turn_11"
+      ],
+      "history_ref": "bc0586662be5a88a",
+      "recorded_at": "2026-11-16T22:22:03.568+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_11",
+          "quote": "The rules for conditional approvals and specific notifications still lack owner confirmation."
+        }
+      ],
+      "unverified": []
+    }
+  ],
+  "fact_history": [
+    {
+      "topic": "completion",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:27.973+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "6eb6ef10a153ae05"
+    },
+    {
+      "topic": "completion",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:17:47.532+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "9a37687c538bdc4a"
+    },
+    {
+      "topic": "accountable",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:27.973+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "d43f0bb3d45b583c"
+    },
+    {
+      "topic": "lifecycle",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:27.973+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "c1d5aa79a2a29679"
+    },
+    {
+      "topic": "checks",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:27.974+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "634fa883d32075da"
+    },
+    {
+      "topic": "checks",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:27.974+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "268ddb1849d7ccf2"
+    },
+    {
+      "topic": "checks",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:17:47.532+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "3182cf74160aacc8"
+    },
+    {
+      "topic": "scope",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:27.975+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "9aa292438b57f215"
+    },
+    {
+      "topic": "rules",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:27.975+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "50c18d72fa2c72f6"
+    },
+    {
+      "topic": "connections",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:27.975+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "19e12bc42eee35db"
+    },
+    {
+      "topic": "data_systems",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:27.975+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "692b153ed0eb7530"
+    },
+    {
+      "topic": "lifecycle",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:17:47.532+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "24f0c6d2fbfb7b27"
+    },
+    {
+      "topic": "rules",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:17:47.532+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "5e661c6c832437a2"
+    }
+  ],
+  "workflow": {
+    "connections": [
+      {
+        "evidence_turns": [
+          "turn_1"
+        ],
+        "from": "S1",
+        "label": "KYC event",
+        "to": "S2"
+      },
+      {
+        "evidence_turns": [
+          "turn_1"
+        ],
+        "from": "S1",
+        "label": "Pending documented clearance",
+        "to": "S3"
+      },
+      {
+        "evidence_turns": [
+          "turn_3"
+        ],
+        "from": "S6",
+        "label": "Potential match",
+        "to": "S7"
+      },
+      {
+        "evidence_turns": [
+          "turn_1"
+        ],
+        "from": "S8",
+        "label": "Route assessment",
+        "to": "S10"
+      },
+      {
+        "evidence_turns": [
+          "turn_5"
+        ],
+        "from": "S10",
+        "label": "Reviewer sign-off",
+        "to": "S11"
+      },
+      {
+        "evidence_turns": [
+          "turn_5"
+        ],
+        "from": "S11",
+        "label": "Communicate recorded decision",
+        "to": "S12"
+      },
+      {
+        "evidence_turns": [
+          "turn_11"
+        ],
+        "from": "S10",
+        "label": "No clearance",
+        "to": "S13"
+      },
+      {
+        "evidence_turns": [
+          "turn_11"
+        ],
+        "from": "S6",
+        "label": "Unresolved or failed screening",
+        "to": "S13"
+      }
+    ],
+    "open_questions": [
+      "Does any incoming route start S13 (Maintain block and escalate), or must all prerequisites finish?",
+      "How does step S4 (Validate identity) connect to the rest of this process, if at all?",
+      "How does step S5 (Trace beneficial ownership) connect to the rest of this process, if at all?",
+      "How does step S9 (Perform required EDD) connect to the rest of this process, if at all?",
+      "How does step S14 (Review existing cases) connect to the rest of this process, if at all?",
+      "Are the routes containing S1 (KYC event opens) and S6 (Screen and retain results) separate, or is there a reported handoff between them?",
+      "Who is accountable for the overall result, and who detects each initiating event? What upstream input is ready when the event opens?",
+      "What are the process boundary, entity and client scope, downstream consumers and observable conditions for completion? Is this the participant's normal route or general GPFS practice, and what supports that scope?",
+      "Who performs identity validation, ownership tracing, screening, risk assessment and EDD? Where are they performed and recorded, and how are handoffs signalled?",
+      "What is the relationship between profile recording and identity validation? Is there a required order among identity validation, ownership tracing and screening? How do screening results feed the risk assessment? When does EDD occur relative to the AML decision, and what happens after it?",
+      "Who receives escalation of possible or true matches, what happens next, and where do cases return or terminate? How is a mismatched operational status corrected?",
+      "What does each reviewer check, what evidence is retained and where, and what conditions permit clearance? Are any controls or segregation system-enforced?",
+      "Compliance needs to confirm jurisdiction-specific beneficial ownership thresholds, the document matrix, EDD triggers, regional thresholds, the approved scoring scale and the signed authority matrix.",
+      "Who interprets applicable policies or conflicting sources, where is that interpretation recorded, and how are model inputs, scoring, overrides and corrections implemented?",
+      "What are the exact approval field, repository and retention period? What are the rules for conditional approvals, specific notifications and any escalation or override authority?",
+      "How do jurisdiction, investor type and ownership structure change initial requirements and effort? Are any differences charged for, and are there constraints on removing them?",
+      "Under the participant-reported FA-18C route, European distribution payees blocked by CDD are withheld and followed at 30, 60 and 90 days. How does this client-specific or regional route connect to the KYC process, and who performs it? It is not a universal review cadence.",
+      "What procedures, policies, templates or examples are available, and have any been reviewed? The approved policy and model were mentioned but no documents were supplied.",
+      "What are the authoritative records, source systems, entry methods and storage locations for material case data and results?",
+      "What manual work, practical friction, failure consequences, volumes, peaks, exception rates and effort estimates are reported?",
+      "What deadlines apply, and how are annual or risk-based reviews performed and completed? Are earlier reviews handled differently?"
+    ],
+    "steps": [
+      {
+        "actor": "UNKNOWN",
+        "completion_criteria": "Event opened",
+        "control_type": [
+          "none_reported"
+        ],
+        "data_origin": "UNKNOWN",
+        "description": "A new subscription, transfer or ownership change opens a KYC event. Initial requirements depend on jurisdiction, investor type and ownership structure.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "turn_1",
+          "turn_7"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S1",
+        "input": "Subscription, transfer or ownership change",
+        "operating_details": [],
+        "output": "KYC event",
+        "parent_process": "UNKNOWN",
+        "rule_source_ref": "UNKNOWN",
+        "system": "UNKNOWN",
+        "title": "KYC event opens",
+        "type": "start"
+      },
+      {
+        "actor": "Preparer",
+        "completion_criteria": "Profile recorded",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "UNKNOWN",
+        "description": "The preparer records the investor's profile in the case checklist.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "turn_1"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S2",
+        "input": "Investor profile",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "turn_1"
+            ],
+            "field": "responsible",
+            "text": "Our preparer records the investor's profile in the case checklist."
+          }
+        ],
+        "output": "Recorded profile",
+        "parent_process": "UNKNOWN",
+        "rule_source_ref": "UNKNOWN",
+        "system": "UNKNOWN",
+        "title": "Record investor profile",
+        "type": "activity"
+      },
+      {
+        "actor": "UNKNOWN",
+        "completion_criteria": "UNKNOWN",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "UNKNOWN",
+        "description": "Capital acceptance, portal access and allocation participation are blocked pending documented clearance.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "turn_1"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S3",
+        "input": "KYC event",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "turn_1"
+            ],
+            "field": "control",
+            "text": "We block capital acceptance, portal access and allocation participation pending documented clearance."
+          }
+        ],
+        "output": "Blocked activities",
+        "parent_process": "UNKNOWN",
+        "rule_source_ref": "UNKNOWN",
+        "system": "UNKNOWN",
+        "title": "Block pending clearance",
+        "type": "activity"
+      },
+      {
+        "actor": "UNKNOWN",
+        "completion_criteria": "UNKNOWN",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "UNKNOWN",
+        "description": "Validate the investor's identity.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "turn_1"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S4",
+        "input": "Investor identity evidence",
+        "operating_details": [],
+        "output": "Identity validation",
+        "parent_process": "UNKNOWN",
+        "rule_source_ref": "UNKNOWN",
+        "system": "UNKNOWN",
+        "title": "Validate identity",
+        "type": "activity"
+      },
+      {
+        "actor": "UNKNOWN",
+        "completion_criteria": "UNKNOWN",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "UNKNOWN",
+        "description": "For an entity, trace direct and indirect owners through intermediaries to individuals meeting the approved beneficial ownership threshold, and identify controlling persons as policy requires. Complex structures, trusts and nominees need the approved policy.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "turn_1",
+          "turn_9"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S5",
+        "input": "Ownership and control information",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "turn_9"
+            ],
+            "field": "control",
+            "text": "For an entity we trace direct and indirect owners through each intermediary down to individuals who meet the approved BO threshold and identify controlling persons as policy requires."
+          }
+        ],
+        "output": "Ownership and control assessment",
+        "parent_process": "UNKNOWN",
+        "rule_source_ref": "Approved policy reported; document and thresholds UNKNOWN",
+        "system": "UNKNOWN",
+        "title": "Trace beneficial ownership",
+        "type": "activity"
+      },
+      {
+        "actor": "UNKNOWN",
+        "completion_criteria": "Searches, dates and results retained",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "UNKNOWN",
+        "description": "Screen in Exiger and retain searches, dates and results.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "turn_1",
+          "turn_3"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S6",
+        "input": "Investor screening information",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "turn_1"
+            ],
+            "field": "system",
+            "text": "We validate identity, trace beneficial ownership, screen in Exiger and route the risk assessment for the required AML decision."
+          },
+          {
+            "evidence_turns": [
+              "turn_3"
+            ],
+            "field": "control",
+            "text": "We retain the Exiger searches, date and results."
+          }
+        ],
+        "output": "Retained screening searches and results",
+        "parent_process": "UNKNOWN",
+        "rule_source_ref": "UNKNOWN",
+        "system": "Exiger",
+        "title": "Screen and retain results",
+        "type": "activity"
+      },
+      {
+        "actor": "Preparer",
+        "completion_criteria": "UNKNOWN",
+        "control_type": [
+          "gpfs_operational",
+          "exception_escalation"
+        ],
+        "data_origin": "Exiger screening results and other evidence",
+        "description": "For each potential match, compare identifiers and evidence and document the reviewer decision. Possible or true matches are escalated.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "turn_3"
+        ],
+        "handoff": "Escalation recipient for possible or true matches is UNKNOWN",
+        "id": "S7",
+        "input": "Potential match and supporting evidence",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "turn_3"
+            ],
+            "field": "responsible",
+            "text": "For each potential match the preparer compares identifiers and evidence and documents the reviewer decision."
+          },
+          {
+            "evidence_turns": [
+              "turn_3"
+            ],
+            "field": "exception",
+            "text": "We escalate possible or true matches."
+          }
+        ],
+        "output": "Documented reviewer decision; escalation where applicable",
+        "parent_process": "UNKNOWN",
+        "rule_source_ref": "UNKNOWN",
+        "system": "UNKNOWN",
+        "title": "Assess potential matches",
+        "type": "activity"
+      },
+      {
+        "actor": "UNKNOWN",
+        "completion_criteria": "Risk, rationale and reviewer documented",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Risk-factor sources UNKNOWN",
+        "description": "PEP exposure, adverse media, jurisdiction and structure inform the approved risk model. Document the risk, rationale and reviewer.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "turn_3"
+        ],
+        "handoff": "Route assessment for the required AML decision",
+        "id": "S8",
+        "input": "Risk factors",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "turn_3"
+            ],
+            "field": "control",
+            "text": "PEP exposure, adverse media, jurisdiction and structure inform the approved risk model; we document risk, rationale and reviewer and perform EDD when required."
+          }
+        ],
+        "output": "Documented risk assessment",
+        "parent_process": "UNKNOWN",
+        "rule_source_ref": "Approved risk model reported; scoring scale needs confirmation",
+        "system": "UNKNOWN",
+        "title": "Assess and document risk",
+        "type": "activity"
+      },
+      {
+        "actor": "UNKNOWN",
+        "completion_criteria": "UNKNOWN",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "UNKNOWN",
+        "description": "Perform enhanced due diligence when required. Its triggers and exact timing relative to the AML decision remain unconfirmed.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "turn_3",
+          "turn_9"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S9",
+        "input": "Case requiring EDD",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "turn_3"
+            ],
+            "field": "control",
+            "text": "PEP exposure, adverse media, jurisdiction and structure inform the approved risk model; we document risk, rationale and reviewer and perform EDD when required."
+          }
+        ],
+        "output": "EDD",
+        "parent_process": "UNKNOWN",
+        "rule_source_ref": "EDD triggers need Compliance confirmation",
+        "system": "UNKNOWN",
+        "title": "Perform required EDD",
+        "type": "activity"
+      },
+      {
+        "actor": "Required reviewer",
+        "completion_criteria": "Decision outcome known",
+        "control_type": [
+          "gpfs_supervisory"
+        ],
+        "data_origin": "Risk assessment",
+        "description": "The required reviewer decides whether to grant documented clearance. The approved scoring scale and authority matrix need confirmation.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "turn_1",
+          "turn_3",
+          "turn_5"
+        ],
+        "handoff": "Decision recorded or case remains blocked, as applicable",
+        "id": "S10",
+        "input": "Risk assessment",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "turn_3"
+            ],
+            "field": "control",
+            "text": "Only the required reviewer can give documented clearance; our approved scoring scale and authority matrix still need confirmation."
+          }
+        ],
+        "output": "AML decision",
+        "parent_process": "UNKNOWN",
+        "rule_source_ref": "Authority matrix and scoring scale unconfirmed",
+        "system": "UNKNOWN",
+        "title": "Is AML clearance granted?",
+        "type": "decision"
+      },
+      {
+        "actor": "Required reviewer",
+        "completion_criteria": "Sign-off recorded",
+        "control_type": [
+          "gpfs_supervisory"
+        ],
+        "data_origin": "Reviewer decision",
+        "description": "The reviewer signs off in the AML approval record or case file with the approver, date, conditions and next review. The exact field, repository and retention period remain unconfirmed.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "turn_5"
+        ],
+        "handoff": "Operations communicates the decision",
+        "id": "S11",
+        "input": "AML decision",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "turn_5"
+            ],
+            "field": "responsible",
+            "text": "The reviewer signs off in the AML approval record or case file with the approver, date, conditions and next review."
+          }
+        ],
+        "output": "Recorded sign-off",
+        "parent_process": "UNKNOWN",
+        "rule_source_ref": "UNKNOWN",
+        "system": "UNKNOWN",
+        "title": "Record reviewer sign-off",
+        "type": "activity"
+      },
+      {
+        "actor": "Operations",
+        "completion_criteria": "UNKNOWN",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "AML approval record or case file",
+        "description": "Communicate clearance or block to FA-07, FA-08, FA-05 and payment or event teams. Check that operational status matches the recorded AML decision.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "turn_5"
+        ],
+        "handoff": "FA-07, FA-08, FA-05 and payment or event teams",
+        "id": "S12",
+        "input": "Recorded AML decision",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "turn_5"
+            ],
+            "field": "responsible",
+            "text": "Operations communicates clearance or block to FA-07, FA-08, FA-05 and the payment or event teams, and checks that the operational status matches the recorded AML decision."
+          },
+          {
+            "evidence_turns": [
+              "turn_5"
+            ],
+            "field": "control",
+            "text": "Operations communicates clearance or block to FA-07, FA-08, FA-05 and the payment or event teams, and checks that the operational status matches the recorded AML decision."
+          }
+        ],
+        "output": "Communicated decision and checked operational status",
+        "parent_process": "UNKNOWN",
+        "rule_source_ref": "UNKNOWN",
+        "system": "UNKNOWN",
+        "title": "Communicate and check status",
+        "type": "activity"
+      },
+      {
+        "actor": "Operations for retaining the block; other performers UNKNOWN",
+        "completion_criteria": "UNKNOWN",
+        "control_type": [
+          "gpfs_operational",
+          "exception_escalation"
+        ],
+        "data_origin": "AML case and screening",
+        "description": "Without clearance, downstream operations retain the block and the AML case preserves the rationale. Unresolved or failed screening goes to the Compliance Officer; the client is notified as applicable, and urgency cannot override the block.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "turn_3",
+          "turn_5",
+          "turn_11"
+        ],
+        "handoff": "Compliance Officer for unresolved or failed screening; subsequent handling UNKNOWN",
+        "id": "S13",
+        "input": "Case without clearance or unresolved or failed screening",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "turn_11"
+            ],
+            "field": "responsible",
+            "text": "The AML case preserves the rationale and downstream operations retain the block."
+          },
+          {
+            "evidence_turns": [
+              "turn_11"
+            ],
+            "field": "exception",
+            "text": "Unresolved or failed screening goes to the Compliance Officer and the client is notified as applicable."
+          },
+          {
+            "evidence_turns": [
+              "turn_11"
+            ],
+            "field": "control",
+            "text": "Urgency does not override it."
+          }
+        ],
+        "output": "Retained block, rationale and applicable escalation or notification",
+        "parent_process": "UNKNOWN",
+        "rule_source_ref": "UNKNOWN",
+        "system": "UNKNOWN",
+        "title": "Maintain block and escalate",
+        "type": "activity"
+      },
+      {
+        "actor": "UNKNOWN",
+        "completion_criteria": "UNKNOWN",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Approved schedule, changes or alerts",
+        "description": "Periodic reviews follow the approved annual or risk-based schedule; ownership or name changes and alerts trigger review sooner.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "turn_7"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S14",
+        "input": "Review schedule, change or alert",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "turn_7"
+            ],
+            "field": "frequency",
+            "text": "Periodic reviews follow the approved annual or risk-based schedule; ownership or name changes and alerts trigger review sooner."
+          }
+        ],
+        "output": "Periodic or earlier review",
+        "parent_process": "UNKNOWN",
+        "rule_source_ref": "Approved annual or risk-based schedule reported; details UNKNOWN",
+        "system": "UNKNOWN",
+        "title": "Review existing cases",
+        "type": "activity"
+      }
+    ],
+    "title": "KYC & Sanctions Screening"
+  },
+  "capture_provenance": {
+    "method": "document_simulation",
+    "participant_confirmed": false,
+    "process_owner_approved": false,
+    "source_documents": [
+      {
+        "filename": "IP1-export.pdf",
+        "sha256": "d0f89ee7c7cc8ffbcd39c268b47b765888105e588f60199106356ca31df177c1"
+      }
+    ]
+  },
+  "closure": {
+    "asked": false,
+    "confirmed": false
+  }
+}

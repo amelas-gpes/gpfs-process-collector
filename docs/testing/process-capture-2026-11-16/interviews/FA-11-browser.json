@@ -1,0 +1,1680 @@
+{
+  "fact_history": [
+    {
+      "history_ref": "c296bfaf05177186",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:30:34.653+00:00",
+      "topic": "checks",
+      "state": "superseded"
+    },
+    {
+      "history_ref": "f42102ff0453382e",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:30:34.653+00:00",
+      "topic": "checks",
+      "state": "superseded"
+    },
+    {
+      "history_ref": "308ad250666c36ae",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:31:13.121+00:00",
+      "topic": "checks",
+      "state": "superseded"
+    },
+    {
+      "history_ref": "74f445cf7af7a428",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:30:34.655+00:00",
+      "topic": "variations",
+      "state": "superseded"
+    },
+    {
+      "history_ref": "afef2303bfbf6563",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:30:34.655+00:00",
+      "topic": "materials",
+      "state": "superseded"
+    },
+    {
+      "history_ref": "7fed73b08eb5f106",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:30:34.656+00:00",
+      "topic": "scope",
+      "state": "superseded"
+    },
+    {
+      "history_ref": "3bcac3aa95e92edf",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:30:34.656+00:00",
+      "topic": "rules",
+      "state": "superseded"
+    },
+    {
+      "history_ref": "66fb44c6db4090dc",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:30:34.656+00:00",
+      "topic": "data_systems",
+      "state": "superseded"
+    },
+    {
+      "history_ref": "aa5da6b397ebbdad",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:30:34.659+00:00",
+      "topic": "volume",
+      "state": "superseded"
+    }
+  ],
+  "turn_metadata": {
+    "t001": {
+      "channel": "interviewer",
+      "at": "2026-11-16T22:29:47.129Z"
+    },
+    "t002": {
+      "channel": "typed",
+      "at": "2026-11-16T22:30:13.212Z"
+    },
+    "t003": {
+      "channel": "interviewer",
+      "at": "2026-11-16T22:30:15.801Z"
+    },
+    "t004": {
+      "channel": "typed",
+      "at": "2026-11-16T22:30:41.669Z"
+    },
+    "t005": {
+      "channel": "interviewer",
+      "at": "2026-11-16T22:30:46.655Z"
+    },
+    "t006": {
+      "channel": "typed",
+      "at": "2026-11-16T22:31:04.505Z"
+    },
+    "t007": {
+      "channel": "interviewer",
+      "at": "2026-11-16T22:31:07.529Z"
+    },
+    "t008": {
+      "channel": "typed",
+      "at": "2026-11-16T22:31:33.887Z"
+    },
+    "t009": {
+      "channel": "interviewer",
+      "at": "2026-11-16T22:31:37.104Z"
+    },
+    "t010": {
+      "channel": "typed",
+      "at": "2026-11-16T22:31:51.270Z"
+    },
+    "t011": {
+      "channel": "interviewer",
+      "at": "2026-11-16T22:31:53.563Z"
+    },
+    "t012": {
+      "channel": "typed",
+      "at": "2026-11-16T22:32:22.435Z"
+    },
+    "t013": {
+      "channel": "interviewer",
+      "at": "2026-11-16T22:32:25.225Z"
+    },
+    "t014": {
+      "channel": "typed",
+      "at": "2026-11-16T22:32:46.139Z"
+    },
+    "t015": {
+      "channel": "interviewer",
+      "at": "2026-11-16T22:32:48.595Z"
+    }
+  },
+  "fact_provenance": [
+    {
+      "history_ref": "3e7567f6d3e3bf8d",
+      "origin": "legacy_aid",
+      "recorded_at": "2026-11-16T22:29:47.102+00:00",
+      "topic": "name",
+      "text": "Financial Close & Reporting Overview",
+      "evidence_turns": [
+        "context"
+      ],
+      "support": [],
+      "unverified": []
+    },
+    {
+      "history_ref": "5f6d82dbb3c2cde6",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:30:34.650+00:00",
+      "topic": "purpose",
+      "text": "This overview routes each workstream to its detailed procedure before that workstream starts.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "This overview routes each workstream to a detailed procedure before it starts."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "d150f9d6523809bd",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:30:34.651+00:00",
+      "topic": "trigger",
+      "text": "The overview work occurs quarterly, when the team confirms quarter-end scope and the engagement’s approved method.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "Quarterly we confirm the quarter-end scope and the engagement’s approved method."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "38e363780f86fc0e",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:30:34.651+00:00",
+      "topic": "trigger",
+      "text": "The exact start date and deadlines are client-specific; the overall calendar owner is unconfirmed.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "The exact start date and deadlines are client-specific and the overall calendar owner is unconfirmed."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "02432615fcfcb788",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:30:34.651+00:00",
+      "topic": "completion",
+      "text": "The overview has no standalone completion gate or separate deliverable.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "It has no standalone completion gate or separate deliverable."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "0717dd5bcbddc992",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:30:34.651+00:00",
+      "topic": "accountable",
+      "text": "The overall calendar owner is unconfirmed; no accountable role for the overview is identified.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "the overall calendar owner is unconfirmed"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "74565a8f3f7eb0a1",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:30:34.653+00:00",
+      "topic": "lifecycle",
+      "text": "Before a workstream starts, the overview confirms quarter-end scope and the engagement’s approved method, then routes that workstream to a detailed procedure. Examples given are FA-13 for workbook setup, FA-16 for cash reconciliation, and FA-12 for statement preparation and final tie-out.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "history_ref": "f2a96b294c1afa01",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:31:13.118+00:00",
+      "topic": "checks",
+      "text": "Quarterly, quarter-end scope and the engagement’s approved method are confirmed using engagement-specific client-approved direction. The direction’s source, effective date, owner or reviewer, and exceptions are to be recorded.",
+      "evidence_turns": [
+        "t002",
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "Quarterly we confirm the quarter-end scope and the engagement’s approved method."
+        },
+        {
+          "source_id": "t004",
+          "quote": "Use engagement-specific client-approved direction. Record its source, effective date, owner or reviewer and any exceptions."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "097b8705b91ad912",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:31:33.497+00:00",
+      "topic": "checks",
+      "text": "Who performs or approves the scope and method confirmation and where the recorded information is retained remain unspecified.",
+      "evidence_turns": [
+        "t002",
+        "t004",
+        "t006"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "Quarterly we confirm the quarter-end scope and the engagement’s approved method."
+        },
+        {
+          "source_id": "t004",
+          "quote": "Record its source, effective date, owner or reviewer and any exceptions."
+        },
+        {
+          "source_id": "t006",
+          "quote": "Check the source of the client-approved direction, its effective date, which quarter and engagement it covers, the recorded owner or reviewer, and any exceptions."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "eb6b8d803aa0ee0c",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:31:13.122+00:00",
+      "topic": "variations",
+      "text": "The exact start date and deadlines vary by client.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "The exact start date and deadlines are client-specific"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "2dedea8f34cd56e3",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:31:13.122+00:00",
+      "topic": "materials",
+      "text": "The overview refers workstreams to detailed procedures: FA-13 for workbook setup, FA-16 for cash reconciliation, and FA-12 for statement preparation and final tie-out.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "FA-13 owns workbook setup, FA-16 covers cash reconciliation, and FA-12 covers statement preparation and final tie-out."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "7afa072abd35500c",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:30:34.656+00:00",
+      "topic": "scope",
+      "text": "The overview concerns quarterly confirmation of quarter-end scope and the engagement’s approved method, and routes workstreams to detailed procedures before they begin.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "history_ref": "66f0b7781e3d3023",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:33:19.967+00:00",
+      "topic": "scope",
+      "text": "The full entity and product scope and whether the approach is common GPFS practice or client-specific beyond timing remain unestablished.",
+      "evidence_turns": [
+        "t002",
+        "t014"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "The exact start date and deadlines are client-specific"
+        }
+      ],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "history_ref": "2364c3449223604a",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:31:13.122+00:00",
+      "topic": "rules",
+      "text": "The overview uses engagement-specific client-approved direction to confirm scope and method. Its source, effective date, owner or reviewer, and exceptions are to be recorded.",
+      "evidence_turns": [
+        "t002",
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "Quarterly we confirm the quarter-end scope and the engagement’s approved method."
+        },
+        {
+          "source_id": "t004",
+          "quote": "Use engagement-specific client-approved direction. Record its source, effective date, owner or reviewer and any exceptions."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "93829a8bef4d61a9",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:30:34.656+00:00",
+      "topic": "connections",
+      "text": "The overview routes workstreams to detailed procedures before they start: FA-13 covers workbook setup, FA-16 cash reconciliation, and FA-12 statement preparation and final tie-out.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "history_ref": "49e2defc951e563e",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:31:13.123+00:00",
+      "topic": "data_systems",
+      "text": "The overview’s recording location and method-implementation systems remain unspecified. The participant cannot confirm a single storage location.",
+      "evidence_turns": [
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t004",
+          "quote": "I cannot confirm a single storage location."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "e0e2960974ca8548",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:33:19.967+00:00",
+      "topic": "volume",
+      "text": "The number of engagements or workstreams and effort for confirming quarter-end scope and method remain unquantified.",
+      "evidence_turns": [
+        "t002",
+        "t014"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "Quarterly we confirm the quarter-end scope and the engagement’s approved method."
+        },
+        {
+          "source_id": "t014",
+          "quote": "The overview does not quantify which part of confirming scope takes the most effort."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "79b318ea95988b07",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:31:13.123+00:00",
+      "topic": "variations",
+      "text": "The basis for client-specific timing differences and their effect on effort are not established.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "The exact start date and deadlines are client-specific"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "ad1b8be03e1a6e19",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:31:13.124+00:00",
+      "topic": "materials",
+      "text": "The detailed procedures’ contents and locations have not been described.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "This overview routes each workstream to a detailed procedure before it starts."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "ab3c1977c64738cd",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:31:13.124+00:00",
+      "topic": "rules",
+      "text": "How the approved direction is interpreted or implemented is not established.",
+      "evidence_turns": [
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t004",
+          "quote": "Use engagement-specific client-approved direction."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "66e34a954c87dde8",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:31:13.124+00:00",
+      "topic": "materials",
+      "text": "The Client Methodology Toolkit workbook is mostly blank and should not be treated as a default.",
+      "evidence_turns": [
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t004",
+          "quote": "The Client Methodology Toolkit workbook is mostly blank. Its location, owner and sign-off are unresolved, so nobody should treat it as a default."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "245a27b6218944e7",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:31:13.125+00:00",
+      "topic": "materials",
+      "text": "The Client Methodology Toolkit workbook’s location, owner and sign-off are unresolved.",
+      "evidence_turns": [
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t004",
+          "quote": "Its location, owner and sign-off are unresolved"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "9510d5af75249356",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:31:13.125+00:00",
+      "topic": "variations",
+      "text": "Q1–Q3 are usually unaudited, while Q4 is usually audited with footnotes, subject to client and engagement requirements.",
+      "evidence_turns": [
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t004",
+          "quote": "Q1–Q3 are usually unaudited and Q4 usually audited with footnotes, subject to client and engagement requirements."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "870835c9dccf50db",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:31:13.126+00:00",
+      "topic": "lifecycle",
+      "text": "The direction used for scope and method confirmation is engagement-specific and client-approved; its source, effective date, owner or reviewer, and exceptions are to be recorded.",
+      "evidence_turns": [
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t004",
+          "quote": "Use engagement-specific client-approved direction. Record its source, effective date, owner or reviewer and any exceptions."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "d2d653655a5b3ca9",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:31:33.505+00:00",
+      "topic": "checks",
+      "text": "To verify the client-approved direction, check its source and effective date, the quarter and engagement it covers, its recorded owner or reviewer, and any exceptions.",
+      "evidence_turns": [
+        "t006"
+      ],
+      "support": [
+        {
+          "source_id": "t006",
+          "quote": "Check the source of the client-approved direction, its effective date, which quarter and engagement it covers, the recorded owner or reviewer, and any exceptions."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "182d3769a3f2add4",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:31:33.506+00:00",
+      "topic": "checks",
+      "text": "An output is never validated against the source that produced it. If independent support is absent, stop and keep the downstream phase open.",
+      "evidence_turns": [
+        "t006"
+      ],
+      "support": [
+        {
+          "source_id": "t006",
+          "quote": "We never validate an output against the source that produced it. If independent support is absent, stop and keep the downstream phase open."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "d1ad22f515d3efa3",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:31:33.506+00:00",
+      "topic": "lifecycle",
+      "text": "If independent support is absent, the work stops and the downstream phase remains open.",
+      "evidence_turns": [
+        "t006"
+      ],
+      "support": [
+        {
+          "source_id": "t006",
+          "quote": "If independent support is absent, stop and keep the downstream phase open."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "f032143af58144eb",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:31:33.506+00:00",
+      "topic": "checks",
+      "text": "The authorized escalation owner when independent support is absent remains an open question.",
+      "evidence_turns": [
+        "t006"
+      ],
+      "support": [
+        {
+          "source_id": "t006",
+          "quote": "The authorized escalation owner is still an open question."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "6c698d595512969c",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:31:33.506+00:00",
+      "topic": "data_systems",
+      "text": "The overview does not establish a standard tool.",
+      "evidence_turns": [
+        "t006"
+      ],
+      "support": [
+        {
+          "source_id": "t006",
+          "quote": "The overview does not establish a standard tool or calendar owner."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "159d60932c844ea4",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:32:00.821+00:00",
+      "topic": "completion",
+      "text": "The close as a whole requires a reconciled workbook, approved financials, retained review evidence, a complete binder and released investor packages. These are outputs of detailed processes, not a separate overview deliverable.",
+      "evidence_turns": [
+        "t002",
+        "t008"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "It has no standalone completion gate or separate deliverable."
+        },
+        {
+          "source_id": "t008",
+          "quote": "The close as a whole requires a reconciled workbook, approved financials, retained review evidence, a complete binder and released investor packages. Those are outputs of the detailed processes."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "83fbb2667871c7fc",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:32:00.821+00:00",
+      "topic": "lifecycle",
+      "text": "When independent support is absent, a dependent statement, binder, approval or investor-reporting phase remains open until the upstream item is resolved.",
+      "evidence_turns": [
+        "t006",
+        "t008"
+      ],
+      "support": [
+        {
+          "source_id": "t006",
+          "quote": "If independent support is absent, stop and keep the downstream phase open."
+        },
+        {
+          "source_id": "t008",
+          "quote": "A dependent statement, binder, approval or investor-reporting phase stays open until the upstream item is resolved."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "2f7dd8e29642b6ae",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:32:00.821+00:00",
+      "topic": "checks",
+      "text": "The overview adds no approval authority. The documented chain is Fund Accountant to Controller to Director to client review; the client approves the completed package.",
+      "evidence_turns": [
+        "t008"
+      ],
+      "support": [
+        {
+          "source_id": "t008",
+          "quote": "The overview adds no approval authority: the documented chain is Fund Accountant to Controller to Director to client review. The client approves the completed package."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "1a3375660d0bff80",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:32:00.821+00:00",
+      "topic": "risk",
+      "text": "Absent independent support, dependent statement, binder, approval or investor-reporting phases remain open until the upstream item is resolved.",
+      "evidence_turns": [
+        "t006",
+        "t008"
+      ],
+      "support": [
+        {
+          "source_id": "t006",
+          "quote": "If independent support is absent, stop and keep the downstream phase open."
+        },
+        {
+          "source_id": "t008",
+          "quote": "A dependent statement, binder, approval or investor-reporting phase stays open until the upstream item is resolved."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "9556659c98fb9eee",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:32:18.717+00:00",
+      "topic": "checks",
+      "text": "GAP-01 tracks the unresolved authority to escalate missing independent support. The participant has no further source for a name or title and says to leave it for owner confirmation; the review chain and detailed SOP responsibilities do not establish that authority.",
+      "evidence_turns": [
+        "t010"
+      ],
+      "support": [
+        {
+          "source_id": "t010",
+          "quote": "GAP-01 tracks that open point. I have no further source for the name or title. Leave it unresolved for owner confirmation."
+        },
+        {
+          "source_id": "t010",
+          "quote": "those responsibilities do not establish escalation authority"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "66ab4ef78eadfcff",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:32:40.562+00:00",
+      "topic": "risk",
+      "text": "An unresolved item prevents completion of the close and can delay client and investor reporting, portal release, downstream auditor and tax-team work, and the next-quarter roll-forward.",
+      "evidence_turns": [
+        "t012"
+      ],
+      "support": [
+        {
+          "source_id": "t012",
+          "quote": "An unresolved item prevents the close being completed. It can delay client and investor reporting, portal release, downstream auditor and tax-team work and the next-quarter roll-forward."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "8f36ce991f47c4a8",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:32:40.562+00:00",
+      "topic": "risk",
+      "text": "Reusing an unconfirmed client answer can carry an error into every downstream phase.",
+      "evidence_turns": [
+        "t012"
+      ],
+      "support": [
+        {
+          "source_id": "t012",
+          "quote": "Reusing an unconfirmed client answer can carry the error into every downstream phase."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "5dbaa1c3c0ee490b",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:32:40.562+00:00",
+      "topic": "risk",
+      "text": "The participant cannot quantify the delay in days; the write-up gives effort examples but no organization-wide deadline.",
+      "evidence_turns": [
+        "t012"
+      ],
+      "support": [
+        {
+          "source_id": "t012",
+          "quote": "The write-up gives examples of effort but no organization-wide deadline, so I cannot give you a delay in days."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "154ca2cbe886d56f",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:33:19.967+00:00",
+      "topic": "scope",
+      "text": "The overview's effort examples include unaudited fund statement agreement checks and GP workbooks; these examples do not establish the full entity scope.",
+      "evidence_turns": [
+        "t014"
+      ],
+      "support": [
+        {
+          "source_id": "t014",
+          "quote": "roughly 10–20 minutes per unaudited fund for the statement agreement check, about twice that for audited statements, and 0.5–3 days for GP workbooks"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "6b3c7b7cf1220022",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:33:19.967+00:00",
+      "topic": "volume",
+      "text": "The overview gives task-specific examples: roughly 10–20 minutes per unaudited fund for the statement agreement check, about twice that for audited statements, and 0.5–3 days for GP workbooks depending on complexity. These are not estimates of scope-confirmation effort.",
+      "evidence_turns": [
+        "t014"
+      ],
+      "support": [
+        {
+          "source_id": "t014",
+          "quote": "The time examples are for different tasks: roughly 10–20 minutes per unaudited fund for the statement agreement check, about twice that for audited statements, and 0.5–3 days for GP workbooks, depending on complexity."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "3097d41b01383e63",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:33:19.969+00:00",
+      "topic": "pain_points",
+      "text": "The overview identifies manual handoffs between the GL, Excel, Word, PDFs, the binder, Box and the investor portal.",
+      "evidence_turns": [
+        "t014"
+      ],
+      "support": [
+        {
+          "source_id": "t014",
+          "quote": "manual handoffs between the GL, Excel, Word, PDFs, the binder, Box and the investor portal"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "cb0e61fac356a2f8",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:33:19.969+00:00",
+      "topic": "risk",
+      "text": "The overview identifies increased version, completeness and release risk from manual handoffs between the named tools and artifacts.",
+      "evidence_turns": [
+        "t014"
+      ],
+      "support": [
+        {
+          "source_id": "t014",
+          "quote": "manual handoffs between the GL, Excel, Word, PDFs, the binder, Box and the investor portal, which increase version, completeness and release risk"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "fb89bb5e3af9fd26",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:33:19.971+00:00",
+      "topic": "data_systems",
+      "text": "The overview identifies manual handoffs between the GL, Excel, Word, PDFs, the binder, Box and the investor portal; it does not specify the handoff sequence.",
+      "evidence_turns": [
+        "t014"
+      ],
+      "support": [
+        {
+          "source_id": "t014",
+          "quote": "manual handoffs between the GL, Excel, Word, PDFs, the binder, Box and the investor portal"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "3c11fd388f9a0bc0",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:33:19.971+00:00",
+      "topic": "materials",
+      "text": "PDFs and a binder are among the artifacts involved in the overview's identified manual handoffs.",
+      "evidence_turns": [
+        "t014"
+      ],
+      "support": [
+        {
+          "source_id": "t014",
+          "quote": "manual handoffs between the GL, Excel, Word, PDFs, the binder, Box and the investor portal"
+        }
+      ],
+      "unverified": []
+    }
+  ],
+  "taxonomy": [
+    {
+      "facet": "functional_area",
+      "value": "financial_reporting",
+      "note": "Overview routes statement preparation and final tie-out; reported by participant.",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "facet": "rule_source",
+      "value": "client_methodology",
+      "note": "Engagement-specific client-approved direction is reported as the basis for scope and method confirmation.",
+      "evidence_turns": [
+        "t004"
+      ]
+    },
+    {
+      "facet": "system",
+      "value": "excel_workbook",
+      "note": "Client Methodology Toolkit workbook is mostly blank and not a default; its owner and location are unresolved.",
+      "evidence_turns": [
+        "t004"
+      ]
+    },
+    {
+      "facet": "control_type",
+      "value": "client_approval",
+      "note": "Participant reports that the client approves the completed package; the overview adds no approval authority.",
+      "evidence_turns": [
+        "t008"
+      ]
+    },
+    {
+      "facet": "control_type",
+      "value": "client_review",
+      "note": "Participant reports client review at the end of the documented Fund Accountant–Controller–Director chain.",
+      "evidence_turns": [
+        "t008"
+      ]
+    },
+    {
+      "facet": "entity_type",
+      "value": "fund",
+      "note": "Reported task-effort example for unaudited funds; not a complete entity scope.",
+      "evidence_turns": [
+        "t014"
+      ]
+    },
+    {
+      "facet": "entity_type",
+      "value": "gp_carry",
+      "note": "GP workbooks are mentioned in an effort example; carry applicability is not established.",
+      "evidence_turns": [
+        "t014"
+      ]
+    },
+    {
+      "facet": "system",
+      "value": "other",
+      "note": "GL, Word and Box are named in manual handoffs; the overview does not establish a standard tool.",
+      "evidence_turns": [
+        "t006",
+        "t014"
+      ]
+    },
+    {
+      "facet": "system",
+      "value": "client_portal",
+      "note": "Investor portal is named as part of manual handoffs.",
+      "evidence_turns": [
+        "t014"
+      ]
+    }
+  ],
+  "connections_out": [
+    {
+      "relationship_type": "hands_off_to",
+      "counterpart": "FA-13 workbook setup",
+      "condition": "Workstream is routed to its detailed procedure before it starts.",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "relationship_type": "hands_off_to",
+      "counterpart": "FA-16 cash reconciliation",
+      "condition": "Workstream is routed to its detailed procedure before it starts.",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "relationship_type": "hands_off_to",
+      "counterpart": "FA-12 statement preparation and final tie-out",
+      "condition": "Workstream is routed to its detailed procedure before it starts.",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "relationship_type": "provides_input_to",
+      "counterpart": "Downstream auditor and tax-team work",
+      "condition": "Unresolved close items can delay this downstream work.",
+      "evidence_turns": [
+        "t012"
+      ]
+    },
+    {
+      "relationship_type": "provides_input_to",
+      "counterpart": "Next-quarter roll-forward",
+      "condition": "Unresolved close items can delay the roll-forward.",
+      "evidence_turns": [
+        "t012"
+      ]
+    }
+  ],
+  "document_evidence": [],
+  "workflow": {
+    "title": "Financial Close & Reporting Overview",
+    "overview": "",
+    "trigger": "",
+    "inputs": [],
+    "outputs": [],
+    "steps": [
+      {
+        "id": "S1",
+        "title": "Confirm scope and approved method",
+        "type": "activity",
+        "actor": "UNKNOWN",
+        "system": "UNKNOWN",
+        "description": "Quarterly, confirm quarter-end scope and the engagement’s approved method using engagement-specific client-approved direction. Check its source, effective date, covered quarter and engagement, recorded owner or reviewer, and exceptions.",
+        "input": "Client-approved direction",
+        "output": "Confirmed scope and method",
+        "completion_criteria": "UNKNOWN",
+        "handoff": "UNKNOWN",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Engagement-specific client-approved direction",
+        "entry_mode": "unknown",
+        "rule_source_ref": "Client-approved direction; specific source varies by engagement",
+        "entity_scope": [],
+        "parent_process": "Financial close and reporting",
+        "evidence_turns": [
+          "t002",
+          "t004",
+          "t006"
+        ],
+        "operating_details": [
+          {
+            "field": "frequency",
+            "text": "Quarterly we confirm the quarter-end scope and the engagement’s approved method.",
+            "evidence_turns": [
+              "t002"
+            ]
+          },
+          {
+            "field": "control",
+            "text": "Check the source of the client-approved direction, its effective date, which quarter and engagement it covers, the recorded owner or reviewer, and any exceptions.",
+            "evidence_turns": [
+              "t006"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S2",
+        "title": "Record direction details",
+        "type": "activity",
+        "actor": "UNKNOWN",
+        "system": "UNKNOWN",
+        "description": "Record the client-approved direction’s source, effective date, owner or reviewer, and exceptions. The recording location is UNKNOWN.",
+        "input": "Engagement-specific client-approved direction",
+        "output": "Recorded direction details",
+        "completion_criteria": "UNKNOWN",
+        "handoff": "UNKNOWN",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Engagement-specific client-approved direction",
+        "entry_mode": "unknown",
+        "rule_source_ref": "UNKNOWN",
+        "entity_scope": [],
+        "parent_process": "Financial close and reporting",
+        "evidence_turns": [
+          "t004"
+        ],
+        "operating_details": []
+      },
+      {
+        "id": "S3",
+        "title": "Route workstreams to procedures",
+        "type": "activity",
+        "actor": "UNKNOWN",
+        "system": "UNKNOWN",
+        "description": "Before each workstream starts, route it to its detailed procedure. Examples are FA-13 for workbook setup, FA-16 for cash reconciliation, and FA-12 for statement preparation and final tie-out.",
+        "input": "Workstream",
+        "output": "Workstream routed to detailed procedure",
+        "completion_criteria": "UNKNOWN",
+        "handoff": "Detailed procedure for the workstream",
+        "control_type": [],
+        "data_origin": "UNKNOWN",
+        "entry_mode": "unknown",
+        "rule_source_ref": "UNKNOWN",
+        "entity_scope": [],
+        "parent_process": "Financial close and reporting",
+        "evidence_turns": [
+          "t002"
+        ],
+        "operating_details": [
+          {
+            "field": "deadline",
+            "text": "This overview routes each workstream to a detailed procedure before it starts.",
+            "evidence_turns": [
+              "t002"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S4",
+        "title": "Hold dependent phase open",
+        "type": "wait",
+        "actor": "UNKNOWN",
+        "system": "UNKNOWN",
+        "description": "An output is never validated against the source that produced it. If independent support is absent, stop and keep the dependent phase open until the upstream item is resolved. Where missing support is identified and the authorized escalation owner are UNKNOWN.",
+        "input": "Absent independent support",
+        "output": "Dependent phase remains open",
+        "completion_criteria": "Upstream item resolved",
+        "handoff": "UNKNOWN after resolution",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "UNKNOWN",
+        "entry_mode": "unknown",
+        "rule_source_ref": "UNKNOWN",
+        "entity_scope": [],
+        "parent_process": "Financial close and reporting",
+        "evidence_turns": [
+          "t006",
+          "t008",
+          "t010"
+        ],
+        "operating_details": [
+          {
+            "field": "control",
+            "text": "We never validate an output against the source that produced it.",
+            "evidence_turns": [
+              "t006"
+            ]
+          },
+          {
+            "field": "exception",
+            "text": "If independent support is absent, stop and keep the downstream phase open.",
+            "evidence_turns": [
+              "t006"
+            ]
+          },
+          {
+            "field": "exception",
+            "text": "A dependent statement, binder, approval or investor-reporting phase stays open until the upstream item is resolved.",
+            "evidence_turns": [
+              "t008"
+            ]
+          }
+        ]
+      }
+    ],
+    "connections": [],
+    "exceptions": [],
+    "controls": [],
+    "open_questions": [
+      "How does step S1 (Confirm scope and approved method) connect to the rest of this process, if at all?",
+      "How does step S2 (Record direction details) connect to the rest of this process, if at all?",
+      "How does step S3 (Route workstreams to procedures) connect to the rest of this process, if at all?",
+      "How does step S4 (Hold dependent phase open) connect to the rest of this process, if at all?",
+      "What initiating event or date starts the quarterly overview, who detects it, and what client-specific deadlines apply?",
+      "Who is accountable for the overview and calendar, and who performs the confirmation, recording and routing?",
+      "What is the order or dependency between confirming the direction, recording its details and routing workstreams?",
+      "At what action is missing independent support identified, and where does the held phase resume after resolution?",
+      "Who is authorized to escalate missing independent support? GAP-01 remains open for owner confirmation.",
+      "Where are direction details and review evidence retained, and which records are authoritative?",
+      "What does each reviewer check, what is held for review or client approval, and how are failures handled?",
+      "What entities and engagements are in scope, and is the overview general GPFS practice or client-specific?",
+      "Who interprets conflicting direction, and how are interpretations and changes recorded?",
+      "Which manual handoffs most often cause version or completeness problems, and what are the volumes and exception frequencies?"
+    ],
+    "validation_notes": [],
+    "memo_summary": [
+      {
+        "key": "name",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "purpose",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "trigger",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "completion",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "accountable",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "lifecycle",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "checks",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "variations",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "pain_points",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "risk",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "materials",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "scope",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "rules",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "connections",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "data_systems",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "volume",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      }
+    ],
+    "variations": [],
+    "lifecycle_items": [],
+    "taxonomy": [],
+    "connections_out": []
+  },
+  "schema_version": 1,
+  "context": {
+    "process_name": "Financial Close & Reporting Overview",
+    "process_owner": "",
+    "objective": "Understand the current process, responsibilities, handoffs, and exceptions.",
+    "background": ""
+  },
+  "turns": [
+    {
+      "id": "t001",
+      "role": "assistant",
+      "text": "What starts this work?"
+    },
+    {
+      "id": "t002",
+      "role": "user",
+      "text": "Quarterly we confirm the quarter-end scope and the engagement’s approved method. The exact start date and deadlines are client-specific and the overall calendar owner is unconfirmed. This overview routes each workstream to a detailed procedure before it starts. It has no standalone completion gate or separate deliverable. For example, FA-13 owns workbook setup, FA-16 covers cash reconciliation, and FA-12 covers statement preparation and final tie-out."
+    },
+    {
+      "id": "t003",
+      "role": "assistant",
+      "text": "What do you use to confirm the engagement’s approved method and quarter-end scope?"
+    },
+    {
+      "id": "t004",
+      "role": "user",
+      "text": "Use engagement-specific client-approved direction. Record its source, effective date, owner or reviewer and any exceptions. Q1–Q3 are usually unaudited and Q4 usually audited with footnotes, subject to client and engagement requirements. The Client Methodology Toolkit workbook is mostly blank. Its location, owner and sign-off are unresolved, so nobody should treat it as a default. I cannot confirm a single storage location."
+    },
+    {
+      "id": "t005",
+      "role": "assistant",
+      "text": "How do you verify that the client-approved direction applies to the quarter and is the approved method?"
+    },
+    {
+      "id": "t006",
+      "role": "user",
+      "text": "Check the source of the client-approved direction, its effective date, which quarter and engagement it covers, the recorded owner or reviewer, and any exceptions. The overview does not establish a standard tool or calendar owner. We never validate an output against the source that produced it. If independent support is absent, stop and keep the downstream phase open. The authorized escalation owner is still an open question."
+    },
+    {
+      "id": "t007",
+      "role": "assistant",
+      "text": "When independent support is absent and the downstream phase stays open, what practical effect does that have on the close or reporting work?"
+    },
+    {
+      "id": "t008",
+      "role": "user",
+      "text": "A dependent statement, binder, approval or investor-reporting phase stays open until the upstream item is resolved. The close as a whole requires a reconciled workbook, approved financials, retained review evidence, a complete binder and released investor packages. Those are outputs of the detailed processes. The overview adds no approval authority: the documented chain is Fund Accountant to Controller to Director to client review. The client approves the completed package."
+    },
+    {
+      "id": "t009",
+      "role": "assistant",
+      "text": "Who is authorized to escalate when independent support is absent?"
+    },
+    {
+      "id": "t010",
+      "role": "user",
+      "text": "The overview does not identify who is authorized to escalate missing independent support. GAP-01 tracks that open point. I have no further source for the name or title. Leave it unresolved for owner confirmation. We can confirm the normal review chain and which detailed SOP receives each workstream, but those responsibilities do not establish escalation authority."
+    },
+    {
+      "id": "t011",
+      "role": "assistant",
+      "text": "What practical consequences can a dependent phase staying open have for clients or the reporting timetable?"
+    },
+    {
+      "id": "t012",
+      "role": "user",
+      "text": "An unresolved item prevents the close being completed. It can delay client and investor reporting, portal release, downstream auditor and tax-team work and the next-quarter roll-forward. Reusing an unconfirmed client answer can carry the error into every downstream phase. The write-up gives examples of effort but no organization-wide deadline, so I cannot give you a delay in days."
+    },
+    {
+      "id": "t013",
+      "role": "assistant",
+      "text": "What part of confirming the quarter-end scope and approved method tends to take the most effort?"
+    },
+    {
+      "id": "t014",
+      "role": "user",
+      "text": "The overview does not quantify which part of confirming scope takes the most effort. It does identify manual handoffs between the GL, Excel, Word, PDFs, the binder, Box and the investor portal, which increase version, completeness and release risk. The time examples are for different tasks: roughly 10–20 minutes per unaudited fund for the statement agreement check, about twice that for audited statements, and 0.5–3 days for GP workbooks, depending on complexity."
+    },
+    {
+      "id": "t015",
+      "role": "assistant",
+      "text": "Which handoff in the GL-to-portal chain most often creates version or completeness risk?"
+    }
+  ],
+  "coverage": [
+    {
+      "key": "name",
+      "label": "Name and scope",
+      "status": "partial"
+    },
+    {
+      "key": "purpose",
+      "label": "Purpose",
+      "status": "partial"
+    },
+    {
+      "key": "trigger",
+      "label": "Starting point",
+      "status": "partial"
+    },
+    {
+      "key": "completion",
+      "label": "End point",
+      "status": "partial"
+    },
+    {
+      "key": "accountable",
+      "label": "Owner",
+      "status": "partial"
+    },
+    {
+      "key": "lifecycle",
+      "label": "Flow of work",
+      "status": "partial"
+    },
+    {
+      "key": "checks",
+      "label": "Checks and controls",
+      "status": "partial"
+    },
+    {
+      "key": "variations",
+      "label": "Variations",
+      "status": "partial"
+    },
+    {
+      "key": "pain_points",
+      "label": "Pain points",
+      "status": "partial"
+    },
+    {
+      "key": "risk",
+      "label": "Risks",
+      "status": "partial"
+    },
+    {
+      "key": "materials",
+      "label": "Documents",
+      "status": "partial"
+    },
+    {
+      "key": "scope",
+      "label": "Scope and entities",
+      "status": "partial"
+    },
+    {
+      "key": "rules",
+      "label": "Rules and sources",
+      "status": "partial"
+    },
+    {
+      "key": "connections",
+      "label": "Connected processes",
+      "status": "partial"
+    },
+    {
+      "key": "data_systems",
+      "label": "Data and systems",
+      "status": "partial"
+    },
+    {
+      "key": "volume",
+      "label": "Volume and effort",
+      "status": "partial"
+    }
+  ],
+  "summary": "The overview identifies manual handoffs that increase version, completeness and release risk. It gives task-level effort examples, but does not quantify scope-confirmation effort.",
+  "memo_findings": [
+    {
+      "key": "name",
+      "status": "captured",
+      "answer": "Financial Close & Reporting Overview",
+      "evidence_turns": [
+        "context"
+      ]
+    },
+    {
+      "key": "purpose",
+      "status": "captured",
+      "answer": "This overview routes each workstream to its detailed procedure before that workstream starts.",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "key": "trigger",
+      "status": "partial",
+      "answer": "The overview work occurs quarterly, when the team confirms quarter-end scope and the engagement’s approved method.\nThe exact start date and deadlines are client-specific; the overall calendar owner is unconfirmed.",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "key": "completion",
+      "status": "captured",
+      "answer": "The overview has no standalone completion gate or separate deliverable.\nThe close as a whole requires a reconciled workbook, approved financials, retained review evidence, a complete binder and released investor packages. These are outputs of detailed processes, not a separate overview deliverable.",
+      "evidence_turns": [
+        "t002",
+        "t008"
+      ]
+    },
+    {
+      "key": "accountable",
+      "status": "partial",
+      "answer": "The overall calendar owner is unconfirmed; no accountable role for the overview is identified.",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "key": "lifecycle",
+      "status": "partial",
+      "answer": "Before a workstream starts, the overview confirms quarter-end scope and the engagement’s approved method, then routes that workstream to a detailed procedure. Examples given are FA-13 for workbook setup, FA-16 for cash reconciliation, and FA-12 for statement preparation and final tie-out.\nThe direction used for scope and method confirmation is engagement-specific and client-approved; its source, effective date, owner or reviewer, and exceptions are to be recorded.\nIf independent support is absent, the work stops and the downstream phase remains open.\nWhen independent support is absent, a dependent statement, binder, approval or investor-reporting phase remains open until the upstream item is resolved.",
+      "evidence_turns": [
+        "t002",
+        "t004",
+        "t006",
+        "t008"
+      ]
+    },
+    {
+      "key": "checks",
+      "status": "partial",
+      "answer": "Quarterly, quarter-end scope and the engagement’s approved method are confirmed using engagement-specific client-approved direction. The direction’s source, effective date, owner or reviewer, and exceptions are to be recorded.\nWho performs or approves the scope and method confirmation and where the recorded information is retained remain unspecified.\nTo verify the client-approved direction, check its source and effective date, the quarter and engagement it covers, its recorded owner or reviewer, and any exceptions.\nAn output is never validated against the source that produced it. If independent support is absent, stop and keep the downstream phase open.\nThe authorized escalation owner when independent support is absent remains an open question.\nThe overview adds no approval authority. The documented chain is Fund Accountant to Controller to Director to client review; the client approves the completed package.\nGAP-01 tracks the unresolved authority to escalate missing independent support. The participant has no further source for a name or title and says to leave it for owner confirmation; the review chain and detailed SOP responsibilities do not establish that authority.",
+      "evidence_turns": [
+        "t002",
+        "t004",
+        "t006",
+        "t008",
+        "t010"
+      ]
+    },
+    {
+      "key": "variations",
+      "status": "partial",
+      "answer": "The exact start date and deadlines vary by client.\nThe basis for client-specific timing differences and their effect on effort are not established.\nQ1–Q3 are usually unaudited, while Q4 is usually audited with footnotes, subject to client and engagement requirements.",
+      "evidence_turns": [
+        "t002",
+        "t004"
+      ]
+    },
+    {
+      "key": "pain_points",
+      "status": "partial",
+      "answer": "The overview identifies manual handoffs between the GL, Excel, Word, PDFs, the binder, Box and the investor portal.",
+      "evidence_turns": [
+        "t014"
+      ]
+    },
+    {
+      "key": "risk",
+      "status": "partial",
+      "answer": "Absent independent support, dependent statement, binder, approval or investor-reporting phases remain open until the upstream item is resolved.\nAn unresolved item prevents completion of the close and can delay client and investor reporting, portal release, downstream auditor and tax-team work, and the next-quarter roll-forward.\nReusing an unconfirmed client answer can carry an error into every downstream phase.\nThe participant cannot quantify the delay in days; the write-up gives effort examples but no organization-wide deadline.\nThe overview identifies increased version, completeness and release risk from manual handoffs between the named tools and artifacts.",
+      "evidence_turns": [
+        "t006",
+        "t008",
+        "t012",
+        "t014"
+      ]
+    },
+    {
+      "key": "materials",
+      "status": "partial",
+      "answer": "The overview refers workstreams to detailed procedures: FA-13 for workbook setup, FA-16 for cash reconciliation, and FA-12 for statement preparation and final tie-out.\nThe detailed procedures’ contents and locations have not been described.\nThe Client Methodology Toolkit workbook is mostly blank and should not be treated as a default.\nThe Client Methodology Toolkit workbook’s location, owner and sign-off are unresolved.\nPDFs and a binder are among the artifacts involved in the overview's identified manual handoffs.",
+      "evidence_turns": [
+        "t002",
+        "t004",
+        "t014"
+      ]
+    },
+    {
+      "key": "scope",
+      "status": "partial",
+      "answer": "The overview concerns quarterly confirmation of quarter-end scope and the engagement’s approved method, and routes workstreams to detailed procedures before they begin.\nThe full entity and product scope and whether the approach is common GPFS practice or client-specific beyond timing remain unestablished.\nThe overview's effort examples include unaudited fund statement agreement checks and GP workbooks; these examples do not establish the full entity scope.",
+      "evidence_turns": [
+        "t002",
+        "t014"
+      ]
+    },
+    {
+      "key": "rules",
+      "status": "partial",
+      "answer": "The overview uses engagement-specific client-approved direction to confirm scope and method. Its source, effective date, owner or reviewer, and exceptions are to be recorded.\nHow the approved direction is interpreted or implemented is not established.",
+      "evidence_turns": [
+        "t002",
+        "t004"
+      ]
+    },
+    {
+      "key": "connections",
+      "status": "partial",
+      "answer": "The overview routes workstreams to detailed procedures before they start: FA-13 covers workbook setup, FA-16 cash reconciliation, and FA-12 statement preparation and final tie-out.",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "key": "data_systems",
+      "status": "partial",
+      "answer": "The overview’s recording location and method-implementation systems remain unspecified. The participant cannot confirm a single storage location.\nThe overview does not establish a standard tool.\nThe overview identifies manual handoffs between the GL, Excel, Word, PDFs, the binder, Box and the investor portal; it does not specify the handoff sequence.",
+      "evidence_turns": [
+        "t004",
+        "t006",
+        "t014"
+      ]
+    },
+    {
+      "key": "volume",
+      "status": "partial",
+      "answer": "The number of engagements or workstreams and effort for confirming quarter-end scope and method remain unquantified.\nThe overview gives task-specific examples: roughly 10–20 minutes per unaudited fund for the statement agreement check, about twice that for audited statements, and 0.5–3 days for GP workbooks depending on complexity. These are not estimates of scope-confirmation effort.",
+      "evidence_turns": [
+        "t002",
+        "t014"
+      ]
+    }
+  ],
+  "focus": "Manual handoffs and effort",
+  "parking_lot": [
+    "What event or date starts the quarterly overview, and what client-specific deadlines apply?",
+    "Who owns the overall calendar and the overview’s result?",
+    "What does the scope/method confirmation check, and what evidence is retained?",
+    "What entities and detailed procedures are in scope, and where are those procedures kept?",
+    "What systems, effort and volume are involved?",
+    "Who is authorized to handle escalation when independent support is absent?"
+  ],
+  "draft": null,
+  "app_version": "0.32.0",
+  "capture_provenance": {
+    "method": "document_simulation",
+    "participant_confirmed": false,
+    "process_owner_approved": false,
+    "source_documents": [
+      {
+        "filename": "IP1-export.pdf",
+        "sha256": "d0f89ee7c7cc8ffbcd39c268b47b765888105e588f60199106356ca31df177c1"
+      }
+    ]
+  },
+  "closure": {
+    "asked": false,
+    "confirmed": false
+  }
+}

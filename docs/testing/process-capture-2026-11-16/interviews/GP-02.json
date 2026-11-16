@@ -1,0 +1,971 @@
+{
+  "fact_history": [
+    {
+      "history_ref": "4568814bb4d2cffd",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:41:44.797+00:00",
+      "topic": "trigger",
+      "state": "superseded"
+    },
+    {
+      "history_ref": "0c4a039cf116df6d",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:41:44.797+00:00",
+      "topic": "accountable",
+      "state": "superseded"
+    },
+    {
+      "history_ref": "a5eb4d6cee5dd1ff",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:41:44.797+00:00",
+      "topic": "checks",
+      "state": "superseded"
+    },
+    {
+      "history_ref": "885c9228a135d60b",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:41:44.797+00:00",
+      "topic": "checks",
+      "state": "superseded"
+    },
+    {
+      "history_ref": "bea4ce6e6b5d5fbb",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:41:44.798+00:00",
+      "topic": "variations",
+      "state": "superseded"
+    },
+    {
+      "history_ref": "9da5a26cc2985844",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:41:44.798+00:00",
+      "topic": "scope",
+      "state": "superseded"
+    },
+    {
+      "history_ref": "fd7b9d65dcdfa3b8",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:41:44.799+00:00",
+      "topic": "connections",
+      "state": "superseded"
+    }
+  ],
+  "turn_metadata": {
+    "t001": {
+      "channel": "interviewer",
+      "at": "2026-11-16T22:41:16.792Z"
+    },
+    "t002": {
+      "channel": "typed",
+      "at": "2026-11-16T22:41:17.042Z"
+    },
+    "t003": {
+      "channel": "interviewer",
+      "at": "2026-11-16T22:41:18.976Z"
+    },
+    "t004": {
+      "channel": "typed",
+      "at": "2026-11-16T22:41:47.926Z"
+    },
+    "t005": {
+      "channel": "interviewer",
+      "at": "2026-11-16T22:41:50.669Z"
+    },
+    "t006": {
+      "channel": "typed",
+      "at": "2026-11-16T22:42:18.667Z"
+    },
+    "t007": {
+      "channel": "interviewer",
+      "at": "2026-11-16T22:42:21.984Z"
+    }
+  },
+  "fact_provenance": [
+    {
+      "history_ref": "4e70a4e0575b5779",
+      "origin": "legacy_aid",
+      "recorded_at": "2026-11-16T22:41:16.744+00:00",
+      "topic": "name",
+      "text": "GP Member Changes: Joiners, Leavers & Commitment True-Ups",
+      "evidence_turns": [
+        "context"
+      ],
+      "support": [],
+      "unverified": []
+    },
+    {
+      "history_ref": "46bfef88fdd98722",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:20.172+00:00",
+      "topic": "trigger",
+      "text": "Who receives or discovers a reported change, the cadence, and any applicable deadline remain unclear. The procedure gives no single reporting channel or contractual deadline.",
+      "evidence_turns": [
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t004",
+          "quote": "The procedure does not give one reporting channel, a contractual deadline"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "fcdf39553cdbace9",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:20.173+00:00",
+      "topic": "accountable",
+      "text": "The preparer opens and documents the change record and performs the stated reconciliations.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "the preparer opens the change record, documents the event and proposed dates, and reconciles the prior commitments, contributions, unfunded balance and carry schedule"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "88b84f7bc251cb32",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:41:44.797+00:00",
+      "topic": "accountable",
+      "text": "The role accountable for the overall result, distinct from the preparer, is not established.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "the preparer opens the change record"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "d9d57899710ef05b",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:41:44.797+00:00",
+      "topic": "lifecycle",
+      "text": "For a GP member joining or leaving, the preparer opens a change record and documents the event and proposed dates. The preparer reconciles prior commitments, contributions, unfunded balance and carry schedule, then compares GP totals to fund records. The client chooses among supported treatments: go-forward treatment leaves prior amounts unchanged; life-to-date treatment requires an approved specification.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "the preparer opens the change record, documents the event and proposed dates, and reconciles the prior commitments, contributions, unfunded balance and carry schedule. We compare GP totals to fund records. The client chooses how to treat the change from supported options. Go-forward treatment leaves prior amounts unchanged. Life-to-date treatment requires an approved specification."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "e0994ae6f658730a",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:40.891+00:00",
+      "topic": "checks",
+      "text": "GP totals are compared to fund records.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "We compare GP totals to fund records."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "ee81a9279d15d55b",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:40.891+00:00",
+      "topic": "checks",
+      "text": "Who performs and reviews the comparisons, and the materiality threshold, remain unconfirmed.",
+      "evidence_turns": [
+        "t002",
+        "t006"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "We compare GP totals to fund records."
+        },
+        {
+          "source_id": "t006",
+          "quote": "The materiality threshold is unconfirmed."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "2f861c079affefbb",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:20.173+00:00",
+      "topic": "variations",
+      "text": "The client chooses from supported treatments. Go-forward treatment leaves prior amounts unchanged; life-to-date treatment requires an approved specification.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "The client chooses how to treat the change from supported options. Go-forward treatment leaves prior amounts unchanged. Life-to-date treatment requires an approved specification."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "fa9c77cf8c80554e",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:41:44.798+00:00",
+      "topic": "materials",
+      "text": "A change record is opened to document the event and proposed dates. A carry schedule is reconciled as part of the work; its format, location and custodian are not stated.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "opens the change record, documents the event and proposed dates"
+        },
+        {
+          "source_id": "t002",
+          "quote": "reconciles the prior commitments, contributions, unfunded balance and carry schedule"
+        }
+      ],
+      "unverified": [
+        "Check this against the cited sources: custodian"
+      ]
+    },
+    {
+      "history_ref": "baf4efd3f5fdec46",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:20.173+00:00",
+      "topic": "scope",
+      "text": "The described work concerns GP member joiners and leavers and compares GP totals with fund records.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "history_ref": "5600c8f600c3dd8a",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:41:44.799+00:00",
+      "topic": "scope",
+      "text": "Whether commitment true-ups and entities or cases beyond GP member joiners and leavers are in scope is not established.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "For a GP member joining or leaving"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "3510f4bec731ef63",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:41:44.799+00:00",
+      "topic": "rules",
+      "text": "The client selects a treatment from supported options. Go-forward treatment leaves prior amounts unchanged; life-to-date treatment requires an approved specification. The rule source for the options and how the specification is approved are not stated.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "The client chooses how to treat the change from supported options. Go-forward treatment leaves prior amounts unchanged. Life-to-date treatment requires an approved specification."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "6aafa548d76a797f",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:41:44.799+00:00",
+      "topic": "rules",
+      "text": "The source of the supported treatment options and the approval authority and contents of the life-to-date specification are not established.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "Life-to-date treatment requires an approved specification."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "507b8ec376c4a551",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:20.174+00:00",
+      "topic": "connections",
+      "text": "GP totals are compared with fund records.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "We compare GP totals to fund records."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "97f56c6ada29af2e",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:41:44.799+00:00",
+      "topic": "data_systems",
+      "text": "The work uses a change record, prior commitments, contributions, unfunded balance, a carry schedule and fund records. The systems, storage locations, input origins and whether data are re-keyed are not stated.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "opens the change record"
+        },
+        {
+          "source_id": "t002",
+          "quote": "reconciles the prior commitments, contributions, unfunded balance and carry schedule"
+        },
+        {
+          "source_id": "t002",
+          "quote": "We compare GP totals to fund records."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "da9ccfe6a94de0ca",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:20.174+00:00",
+      "topic": "trigger",
+      "text": "A record is opened when a joining or leaving member, or an error in the member list, is reported or discovered.",
+      "evidence_turns": [
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t004",
+          "quote": "We open the record when a joining or leaving member, or an error in the member list, is reported or discovered."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "14eb41e9c3afcb96",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:20.175+00:00",
+      "topic": "variations",
+      "text": "The applicability and source of the treatment options and any other client-specific differences remain unclear.",
+      "evidence_turns": [
+        "t002",
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "The client chooses how to treat the change from supported options."
+        },
+        {
+          "source_id": "t004",
+          "quote": "The prior-period Excel schedule can show what was done but cannot authorize the treatment."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "b2532becd6c0accc",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:20.175+00:00",
+      "topic": "connections",
+      "text": "The process or source providing the fund records is not identified.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "We compare GP totals to fund records."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "eb1ec6ad7e29d823",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:20.175+00:00",
+      "topic": "lifecycle",
+      "text": "For a reported or discovered joining, leaving or member-list error, the team enters the discovery date and proposed effective dates, then checks the official governing and separation documents.",
+      "evidence_turns": [
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t004",
+          "quote": "We enter the discovery date and proposed effective dates, then check the official governing and separation documents."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "189b164b80a0824a",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:20.176+00:00",
+      "topic": "checks",
+      "text": "The team checks official governing and separation documents after entering the discovery and proposed effective dates. The procedure does not name a final approver.",
+      "evidence_turns": [
+        "t004"
+      ],
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "history_ref": "d0688cc2ce08d8b4",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:20.176+00:00",
+      "topic": "materials",
+      "text": "Official governing and separation documents are checked; a prior-period Excel schedule can show what was previously done.",
+      "evidence_turns": [
+        "t004"
+      ],
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "history_ref": "51211b65c53b5f54",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:20.176+00:00",
+      "topic": "rules",
+      "text": "The prior-period Excel schedule can show previous practice but cannot authorize the treatment.",
+      "evidence_turns": [
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t004",
+          "quote": "The prior-period Excel schedule can show what was done but cannot authorize the treatment."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "5c7098253c5cef40",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:20.176+00:00",
+      "topic": "scope",
+      "text": "The reported opening conditions also include an error in the member list.",
+      "evidence_turns": [
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t004",
+          "quote": "a joining or leaving member, or an error in the member list, is reported or discovered"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "b71671d2a3adf90f",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:40.891+00:00",
+      "topic": "checks",
+      "text": "Opening balances must match prior approved records. At close, ending partner capital and total GP unfunded must match fund records with no unexplained difference; the rollforward is reconciled to the trial balance, and all outputs are checked against the same approved member list and version.",
+      "evidence_turns": [
+        "t006"
+      ],
+      "support": [
+        {
+          "source_id": "t006",
+          "quote": "Opening balances must match prior approved records. At close, ending partner capital and GP total unfunded must match the fund's records with no unexplained difference. Retain the rollforward, reconcile to the trial balance and check that all outputs use the same approved member list and version."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "45be7ed89c613385",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:40.891+00:00",
+      "topic": "lifecycle",
+      "text": "At close, retain the rollforward, reconcile it to the trial balance and check that all outputs use the same approved member list and version. If there is a difference, stop and investigate or obtain an approved explanation for a client-specific difference.",
+      "evidence_turns": [
+        "t006"
+      ],
+      "support": [
+        {
+          "source_id": "t006",
+          "quote": "Retain the rollforward, reconcile to the trial balance and check that all outputs use the same approved member list and version. If there is a difference, stop and investigate or obtain an approved explanation for a client-specific difference."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "49187937f8ec8a93",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:40.891+00:00",
+      "topic": "checks",
+      "text": "If there is a difference, stop and investigate or obtain an approved explanation for a client-specific difference.",
+      "evidence_turns": [
+        "t006"
+      ],
+      "support": [
+        {
+          "source_id": "t006",
+          "quote": "If there is a difference, stop and investigate or obtain an approved explanation for a client-specific difference."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "6146419c29b342c2",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:40.891+00:00",
+      "topic": "completion",
+      "text": "At close, ending partner capital and total GP unfunded must match the fund's records with no unexplained difference; outputs must use the same approved member list and version.",
+      "evidence_turns": [
+        "t006"
+      ],
+      "support": [
+        {
+          "source_id": "t006",
+          "quote": "At close, ending partner capital and GP total unfunded must match the fund's records with no unexplained difference. Retain the rollforward, reconcile to the trial balance and check that all outputs use the same approved member list and version."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "a9a3d26d1284a3ba",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:40.892+00:00",
+      "topic": "completion",
+      "text": "Whether reconciliation and consistent outputs are sufficient for overall completion, including any delivery or closure, remains unclear.",
+      "evidence_turns": [
+        "t006"
+      ],
+      "support": [
+        {
+          "source_id": "t006",
+          "quote": "At close, ending partner capital and GP total unfunded must match the fund's records with no unexplained difference."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "9a2f4f8d51c4d7ac",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:40.892+00:00",
+      "topic": "materials",
+      "text": "The rollforward is retained and reconciled to the trial balance; the approved member list and version are used to check outputs.",
+      "evidence_turns": [
+        "t006"
+      ],
+      "support": [
+        {
+          "source_id": "t006",
+          "quote": "Retain the rollforward, reconcile to the trial balance and check that all outputs use the same approved member list and version."
+        }
+      ],
+      "unverified": []
+    }
+  ],
+  "taxonomy": [
+    {
+      "facet": "entity_type",
+      "value": "gp_carry",
+      "note": "Reported GP member changes include reconciling a carry schedule; this tag describes the stated scope, not a verified entity classification.",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "facet": "functional_area",
+      "value": "fees_and_carry",
+      "note": "Reported work includes reconciling a carry schedule in GP member changes.",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "facet": "process_level",
+      "value": "process",
+      "note": "The supplied process name describes joiners, leavers and commitment true-ups; the latest account details a change workflow.",
+      "evidence_turns": [
+        "context",
+        "t002"
+      ]
+    },
+    {
+      "facet": "system",
+      "value": "other",
+      "note": "A change record and carry schedule are reported, but no system or storage medium is identified.",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "facet": "system",
+      "value": "excel_workbook",
+      "note": "A prior-period Excel schedule reportedly shows past practice; it cannot authorize treatment.",
+      "evidence_turns": [
+        "t004"
+      ]
+    },
+    {
+      "facet": "rule_source",
+      "value": "lpa_governing_doc",
+      "note": "Official governing documents are reportedly checked; their specific provisions and relationship to treatment options are not established.",
+      "evidence_turns": [
+        "t004"
+      ]
+    },
+    {
+      "facet": "rule_source",
+      "value": "prior_period_practice",
+      "note": "Prior practice is visible in the Excel schedule but is not treatment authority.",
+      "evidence_turns": [
+        "t004"
+      ]
+    },
+    {
+      "facet": "control_type",
+      "value": "gpfs_operational",
+      "note": "Reported checks compare approved opening records, fund records, trial balance and member-list versions; the reviewer is not identified.",
+      "evidence_turns": [
+        "t002",
+        "t006"
+      ]
+    }
+  ],
+  "connections_out": [],
+  "document_evidence": [],
+  "workflow": null,
+  "schema_version": 1,
+  "context": {
+    "process_name": "GP Member Changes: Joiners, Leavers & Commitment True-Ups",
+    "process_owner": "",
+    "objective": "Understand the current process, responsibilities, handoffs, and exceptions.",
+    "background": ""
+  },
+  "turns": [
+    {
+      "id": "t001",
+      "role": "assistant",
+      "text": "What starts this work?"
+    },
+    {
+      "id": "t002",
+      "role": "user",
+      "text": "For a GP member joining or leaving, the preparer opens the change record, documents the event and proposed dates, and reconciles the prior commitments, contributions, unfunded balance and carry schedule. We compare GP totals to fund records. The client chooses how to treat the change from supported options. Go-forward treatment leaves prior amounts unchanged. Life-to-date treatment requires an approved specification."
+    },
+    {
+      "id": "t003",
+      "role": "assistant",
+      "text": "What event causes the preparer to open the change record, and how do they learn about it?"
+    },
+    {
+      "id": "t004",
+      "role": "user",
+      "text": "We open the record when a joining or leaving member, or an error in the member list, is reported or discovered. We enter the discovery date and proposed effective dates, then check the official governing and separation documents. The procedure does not give one reporting channel, a contractual deadline, or a named final approver. The prior-period Excel schedule can show what was done but cannot authorize the treatment."
+    },
+    {
+      "id": "t005",
+      "role": "assistant",
+      "text": "When you compare GP totals to fund records, what are you matching to decide they reconcile?"
+    },
+    {
+      "id": "t006",
+      "role": "user",
+      "text": "Opening balances must match prior approved records. At close, ending partner capital and GP total unfunded must match the fund's records with no unexplained difference. Retain the rollforward, reconcile to the trial balance and check that all outputs use the same approved member list and version. If there is a difference, stop and investigate or obtain an approved explanation for a client-specific difference. The materiality threshold is unconfirmed."
+    },
+    {
+      "id": "t007",
+      "role": "assistant",
+      "text": "When a difference is found, what happens next and how is the approved explanation recorded?"
+    }
+  ],
+  "coverage": [
+    {
+      "key": "name",
+      "label": "Name and scope",
+      "status": "partial"
+    },
+    {
+      "key": "purpose",
+      "label": "Purpose",
+      "status": "missing"
+    },
+    {
+      "key": "trigger",
+      "label": "Starting point",
+      "status": "partial"
+    },
+    {
+      "key": "completion",
+      "label": "End point",
+      "status": "partial"
+    },
+    {
+      "key": "accountable",
+      "label": "Owner",
+      "status": "partial"
+    },
+    {
+      "key": "lifecycle",
+      "label": "Flow of work",
+      "status": "partial"
+    },
+    {
+      "key": "checks",
+      "label": "Checks and controls",
+      "status": "partial"
+    },
+    {
+      "key": "variations",
+      "label": "Variations",
+      "status": "partial"
+    },
+    {
+      "key": "pain_points",
+      "label": "Pain points",
+      "status": "missing"
+    },
+    {
+      "key": "risk",
+      "label": "Risks",
+      "status": "missing"
+    },
+    {
+      "key": "materials",
+      "label": "Documents",
+      "status": "partial"
+    },
+    {
+      "key": "scope",
+      "label": "Scope and entities",
+      "status": "partial"
+    },
+    {
+      "key": "rules",
+      "label": "Rules and sources",
+      "status": "partial"
+    },
+    {
+      "key": "connections",
+      "label": "Connected processes",
+      "status": "partial"
+    },
+    {
+      "key": "data_systems",
+      "label": "Data and systems",
+      "status": "partial"
+    },
+    {
+      "key": "volume",
+      "label": "Volume and effort",
+      "status": "missing"
+    }
+  ],
+  "summary": "Close checks require opening balances to match approved records and ending partner capital and GP unfunded to match fund records without unexplained differences. Differences trigger investigation or an approved client-specific explanation; the materiality threshold is unconfirmed.",
+  "memo_findings": [
+    {
+      "key": "name",
+      "status": "captured",
+      "answer": "GP Member Changes: Joiners, Leavers & Commitment True-Ups",
+      "evidence_turns": [
+        "context"
+      ]
+    },
+    {
+      "key": "purpose",
+      "status": "unknown",
+      "answer": "UNKNOWN / TBD — not established in the interview.",
+      "evidence_turns": []
+    },
+    {
+      "key": "trigger",
+      "status": "partial",
+      "answer": "Who receives or discovers a reported change, the cadence, and any applicable deadline remain unclear. The procedure gives no single reporting channel or contractual deadline.\nA record is opened when a joining or leaving member, or an error in the member list, is reported or discovered.",
+      "evidence_turns": [
+        "t004"
+      ]
+    },
+    {
+      "key": "completion",
+      "status": "partial",
+      "answer": "At close, ending partner capital and total GP unfunded must match the fund's records with no unexplained difference; outputs must use the same approved member list and version.\nWhether reconciliation and consistent outputs are sufficient for overall completion, including any delivery or closure, remains unclear.",
+      "evidence_turns": [
+        "t006"
+      ]
+    },
+    {
+      "key": "accountable",
+      "status": "partial",
+      "answer": "The preparer opens and documents the change record and performs the stated reconciliations.\nThe role accountable for the overall result, distinct from the preparer, is not established.",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "key": "lifecycle",
+      "status": "partial",
+      "answer": "For a GP member joining or leaving, the preparer opens a change record and documents the event and proposed dates. The preparer reconciles prior commitments, contributions, unfunded balance and carry schedule, then compares GP totals to fund records. The client chooses among supported treatments: go-forward treatment leaves prior amounts unchanged; life-to-date treatment requires an approved specification.\nFor a reported or discovered joining, leaving or member-list error, the team enters the discovery date and proposed effective dates, then checks the official governing and separation documents.\nAt close, retain the rollforward, reconcile it to the trial balance and check that all outputs use the same approved member list and version. If there is a difference, stop and investigate or obtain an approved explanation for a client-specific difference.",
+      "evidence_turns": [
+        "t002",
+        "t004",
+        "t006"
+      ]
+    },
+    {
+      "key": "checks",
+      "status": "partial",
+      "answer": "GP totals are compared to fund records.\nWho performs and reviews the comparisons, and the materiality threshold, remain unconfirmed.\nThe team checks official governing and separation documents after entering the discovery and proposed effective dates. The procedure does not name a final approver.\nOpening balances must match prior approved records. At close, ending partner capital and total GP unfunded must match fund records with no unexplained difference; the rollforward is reconciled to the trial balance, and all outputs are checked against the same approved member list and version.\nIf there is a difference, stop and investigate or obtain an approved explanation for a client-specific difference.",
+      "evidence_turns": [
+        "t002",
+        "t006",
+        "t004"
+      ]
+    },
+    {
+      "key": "variations",
+      "status": "partial",
+      "answer": "The client chooses from supported treatments. Go-forward treatment leaves prior amounts unchanged; life-to-date treatment requires an approved specification.\nThe applicability and source of the treatment options and any other client-specific differences remain unclear.",
+      "evidence_turns": [
+        "t002",
+        "t004"
+      ]
+    },
+    {
+      "key": "pain_points",
+      "status": "unknown",
+      "answer": "UNKNOWN / TBD — not established in the interview.",
+      "evidence_turns": []
+    },
+    {
+      "key": "risk",
+      "status": "unknown",
+      "answer": "UNKNOWN / TBD — not established in the interview.",
+      "evidence_turns": []
+    },
+    {
+      "key": "materials",
+      "status": "partial",
+      "answer": "A change record is opened to document the event and proposed dates. A carry schedule is reconciled as part of the work; its format, location and custodian are not stated.\nOfficial governing and separation documents are checked; a prior-period Excel schedule can show what was previously done.\nThe rollforward is retained and reconciled to the trial balance; the approved member list and version are used to check outputs.",
+      "evidence_turns": [
+        "t002",
+        "t004",
+        "t006"
+      ]
+    },
+    {
+      "key": "scope",
+      "status": "partial",
+      "answer": "The described work concerns GP member joiners and leavers and compares GP totals with fund records.\nWhether commitment true-ups and entities or cases beyond GP member joiners and leavers are in scope is not established.\nThe reported opening conditions also include an error in the member list.",
+      "evidence_turns": [
+        "t002",
+        "t004"
+      ]
+    },
+    {
+      "key": "rules",
+      "status": "partial",
+      "answer": "The client selects a treatment from supported options. Go-forward treatment leaves prior amounts unchanged; life-to-date treatment requires an approved specification. The rule source for the options and how the specification is approved are not stated.\nThe source of the supported treatment options and the approval authority and contents of the life-to-date specification are not established.\nThe prior-period Excel schedule can show previous practice but cannot authorize the treatment.",
+      "evidence_turns": [
+        "t002",
+        "t004"
+      ]
+    },
+    {
+      "key": "connections",
+      "status": "partial",
+      "answer": "GP totals are compared with fund records.\nThe process or source providing the fund records is not identified.",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "key": "data_systems",
+      "status": "partial",
+      "answer": "The work uses a change record, prior commitments, contributions, unfunded balance, a carry schedule and fund records. The systems, storage locations, input origins and whether data are re-keyed are not stated.",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "key": "volume",
+      "status": "unknown",
+      "answer": "UNKNOWN / TBD — not established in the interview.",
+      "evidence_turns": []
+    }
+  ],
+  "focus": "Reconciliation and close checks",
+  "parking_lot": [],
+  "draft": null,
+  "app_version": "0.32.0",
+  "capture_provenance": {
+    "method": "document_simulation",
+    "participant_confirmed": false,
+    "process_owner_approved": false,
+    "source_documents": [
+      {
+        "filename": "IP1-export.pdf",
+        "sha256": "d0f89ee7c7cc8ffbcd39c268b47b765888105e588f60199106356ca31df177c1"
+      }
+    ]
+  },
+  "closure": {
+    "asked": false,
+    "confirmed": false
+  }
+}

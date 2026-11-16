@@ -1,0 +1,1143 @@
+{
+  "schema_version": 1,
+  "context": {
+    "process_name": "Financial Statement Creation, Review & Tie-Out",
+    "objective": "Document how this process works, including controls and what remains unresolved."
+  },
+  "turns": [
+    {
+      "id": "t1",
+      "role": "user",
+      "text": "This is our quarterly financial statement preparation and tie-out. We can start when the trial balance, lead sheets, general ledger and FA-13 workbook are available. Q1 to Q3 are usually unaudited and Q4 usually includes audited footnotes."
+    },
+    {
+      "id": "t2",
+      "role": "assistant",
+      "text": "Talk me through how you turn those available files into the quarterly financial statements and tie them out."
+    },
+    {
+      "id": "t3",
+      "role": "user",
+      "text": "The Fund Accountant rolls forward the approved prior package, ties lead sheets exactly to the trial balance, clears the Excel check sheet and updates Word. We mark an internal tie-out PDF, compare blacklines and retain it in the binder. After Controller, Director and client review, only the clean client-approved PDF and workpapers go to Box, and we notify the client."
+    },
+    {
+      "id": "t4",
+      "role": "assistant",
+      "text": "What does the Excel check sheet test before you consider it cleared?"
+    },
+    {
+      "id": "t5",
+      "role": "user",
+      "text": "Every supported lead-sheet account must agree exactly to the TB and every displayed statement amount must trace to a tied source. The preparer checks footing and cross-references and resolves check-sheet mismatches, including hidden rows, stale links or bad mappings. There is no established materiality tolerance. The client deadline and formal internal approver are both unconfirmed."
+    },
+    {
+      "id": "t6",
+      "role": "assistant",
+      "text": "When the Controller or Director finds a discrepancy, what happens before the package is sent back for another review?"
+    },
+    {
+      "id": "t7",
+      "role": "user",
+      "text": "The Controller returns unresolved differences or presentation issues to the Fund Accountant for correction. We resolve them against the source, rerun the affected checks and retain review evidence before finalization. The Director does final internal review; the client gives final external approval. Marked and blackline copies stay internal; the Box upload uses the clean PDF and workpapers."
+    },
+    {
+      "id": "t8",
+      "role": "assistant",
+      "text": "What does the blackline comparison check for, and what would make you resolve a difference?"
+    },
+    {
+      "id": "t9",
+      "role": "user",
+      "text": "Word Compare is run against prior-quarter and prior year-end statements and an approved comparable fund when appropriate. We explain or correct unexpected changes to amounts, presentation, disclosures and formatting. An unapproved comparator can introduce unsupported disclosures. The records do not confirm the approved checklist or the exact Box path across clients."
+    },
+    {
+      "id": "t10",
+      "role": "assistant",
+      "text": "If the client requests changes or does not approve the package, what happens to the statements before they can be finalized?"
+    },
+    {
+      "id": "t11",
+      "role": "user",
+      "text": "The approval remains outstanding. We correct amounts or presentation, repeat the affected checks and reviews, and obtain client approval before releasing the clean PDF. Unresolved differences block finalization and filing in FA-15A. FA-13 supplies the workbook and FA-15A gets the marked internal evidence. There is no universal contractual deadline in the record."
+    },
+    {
+      "id": "t12",
+      "role": "assistant",
+      "text": "What most often causes this package to be delayed or sent back, if anything?"
+    }
+  ],
+  "memo_findings": [
+    {
+      "answer": "The participant calls the work “quarterly financial statement preparation and tie-out.”",
+      "evidence_turns": [
+        "t1"
+      ],
+      "key": "name",
+      "status": "captured"
+    },
+    {
+      "answer": "The work prepares and ties out quarterly financial statements for client review and delivery.",
+      "evidence_turns": [
+        "t1",
+        "t3"
+      ],
+      "key": "purpose",
+      "status": "captured"
+    },
+    {
+      "answer": "The work can start when the trial balance, lead sheets, general ledger and FA-13 workbook are available; the specific initiating event and who detects readiness are not stated.\nThe client deadline is unconfirmed.\nThe participant reports that the record contains no universal contractual deadline.",
+      "evidence_turns": [
+        "t1",
+        "t5",
+        "t11"
+      ],
+      "key": "trigger",
+      "status": "partial"
+    },
+    {
+      "answer": "The reported final actions are placing the clean client-approved PDF and workpapers in Box after the reviews and notifying the client; the internal tie-out PDF is retained in the binder.\nUnresolved differences block finalization and filing in FA-15A; client approval is required before release of the clean PDF.",
+      "evidence_turns": [
+        "t3",
+        "t11"
+      ],
+      "key": "completion",
+      "status": "partial"
+    },
+    {
+      "answer": "The role accountable for the overall result has not been established; the formal internal approver is also unconfirmed.",
+      "evidence_turns": [
+        "t5",
+        "t7"
+      ],
+      "key": "accountable",
+      "status": "partial"
+    },
+    {
+      "answer": "The quarterly preparation and tie-out can start when the trial balance, lead sheets, general ledger and FA-13 workbook are available.\nThe Fund Accountant rolls forward the approved prior package, ties lead sheets exactly to the trial balance, clears the Excel check sheet and updates Word.\nThe team marks an internal tie-out PDF, compares blacklines and retains the PDF in the binder. After Controller, Director and client review, only the clean client-approved PDF and workpapers go to Box, and the team notifies the client.\nThe Controller returns unresolved differences or presentation issues to the Fund Accountant for correction. The team resolves them against the source, reruns affected checks and retains review evidence before finalization.\nThe team runs Word Compare against prior-quarter and prior year-end statements and, when appropriate, an approved comparable fund, explaining or correcting unexpected changes.\nWhen the client requests changes or does not approve, approval remains outstanding. The team corrects amounts or presentation, repeats affected checks and reviews, and obtains client approval before releasing the clean PDF.",
+      "evidence_turns": [
+        "t1",
+        "t3",
+        "t7",
+        "t9",
+        "t11"
+      ],
+      "key": "lifecycle",
+      "status": "partial"
+    },
+    {
+      "answer": "The Fund Accountant ties lead sheets exactly to the trial balance and clears the Excel check sheet; the team compares blacklines. Controller, Director and client review precede placement of the clean client-approved PDF and workpapers in Box.\nThe Director's and client's review criteria remain unclear.\nEvery supported lead-sheet account must agree exactly to the trial balance, and every displayed statement amount must trace to a tied source. The preparer checks footing and cross-references and resolves check-sheet mismatches, including hidden rows, stale links or bad mappings.\nThe Director performs final internal review and the client gives final external approval. Review evidence is retained before finalization; marked and blackline copies remain internal.\nThe formal internal approver is unconfirmed, despite the reported final internal review by the Director.\nWord Compare is run against prior-quarter and prior year-end statements and, when appropriate, an approved comparable fund. The team explains or corrects unexpected changes to amounts, presentation, disclosures and formatting.\nIf client approval is outstanding, the team corrects amounts or presentation and repeats affected checks and reviews before obtaining approval and releasing the clean PDF.",
+      "evidence_turns": [
+        "t3",
+        "t7",
+        "t11",
+        "t5",
+        "t9"
+      ],
+      "key": "checks",
+      "status": "partial"
+    },
+    {
+      "answer": "The participant reports a quarter-based difference: Q1 to Q3 are usually unaudited, while Q4 usually includes audited footnotes.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "key": "variations",
+      "status": "partial"
+    },
+    {
+      "answer": "",
+      "evidence_turns": [],
+      "key": "pain_points",
+      "status": "unknown"
+    },
+    {
+      "answer": "An unapproved comparator can introduce unsupported disclosures.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "key": "risk",
+      "status": "partial"
+    },
+    {
+      "answer": "The trial balance, lead sheets, general ledger and FA-13 workbook are readiness inputs. The Fund Accountant ties the lead sheets exactly to the trial balance.\nThe approved prior package is rolled forward; an Excel check sheet is cleared and Word updated. The internal tie-out PDF is marked and retained in the binder, while the clean client-approved PDF and workpapers go to Box.\nPrior-quarter and prior year-end statements and, where appropriate, an approved comparable fund are used as Word Compare references.\nThe records do not confirm the approved checklist.\nFA-13 supplies the workbook, and FA-15A receives the marked internal evidence.",
+      "evidence_turns": [
+        "t1",
+        "t3",
+        "t9",
+        "t11"
+      ],
+      "key": "materials",
+      "status": "partial"
+    },
+    {
+      "answer": "The work is described as quarterly financial statement preparation and tie-out, with Q1 to Q3 usually unaudited and Q4 usually including audited footnotes. Entity and client applicability are not stated.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "key": "scope",
+      "status": "partial"
+    },
+    {
+      "answer": "The participant reports an exact tie between lead sheets and the trial balance.\nThere is no established materiality tolerance for the reported tie-out.",
+      "evidence_turns": [
+        "t3",
+        "t5"
+      ],
+      "key": "rules",
+      "status": "partial"
+    },
+    {
+      "answer": "FA-13 supplies the workbook used as an input; FA-15A receives marked internal evidence, with filing blocked by unresolved differences.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "key": "connections",
+      "status": "partial"
+    },
+    {
+      "answer": "FA-13 supplies the workbook needed before the work can start.\nThe work uses an Excel check sheet and Word; the clean client-approved PDF and workpapers go to Box after review.\nThe exact Box path across clients is not confirmed by the records.\nThe workbook's storage location, system and detailed role in the work remain unclear.",
+      "evidence_turns": [
+        "t1",
+        "t11",
+        "t3",
+        "t9"
+      ],
+      "key": "data_systems",
+      "status": "partial"
+    },
+    {
+      "answer": "The work is quarterly; the participant distinguishes Q1 to Q3 from Q4 in the usual statement treatment. Counts and effort are not stated.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "key": "volume",
+      "status": "partial"
+    }
+  ],
+  "coverage": [
+    {
+      "key": "name",
+      "label": "Name & other names",
+      "status": "partial"
+    },
+    {
+      "key": "purpose",
+      "label": "Purpose & result",
+      "status": "partial"
+    },
+    {
+      "key": "trigger",
+      "label": "Start, cadence & deadlines",
+      "status": "partial"
+    },
+    {
+      "key": "completion",
+      "label": "Finished condition",
+      "status": "partial"
+    },
+    {
+      "key": "accountable",
+      "label": "Accountability",
+      "status": "partial"
+    },
+    {
+      "key": "lifecycle",
+      "label": "Items, stages & handoffs",
+      "status": "partial"
+    },
+    {
+      "key": "checks",
+      "label": "Checks, approvals & proof",
+      "status": "partial"
+    },
+    {
+      "key": "variations",
+      "label": "Variations and conditions",
+      "status": "partial"
+    },
+    {
+      "key": "pain_points",
+      "label": "Manual work & pain",
+      "status": "missing"
+    },
+    {
+      "key": "risk",
+      "label": "Consequences of failure",
+      "status": "partial"
+    },
+    {
+      "key": "materials",
+      "label": "Existing materials",
+      "status": "partial"
+    },
+    {
+      "key": "scope",
+      "label": "Scope & entity context",
+      "status": "partial"
+    },
+    {
+      "key": "rules",
+      "label": "Business rules & lineage",
+      "status": "partial"
+    },
+    {
+      "key": "connections",
+      "label": "Connected processes",
+      "status": "partial"
+    },
+    {
+      "key": "data_systems",
+      "label": "Data & systems",
+      "status": "partial"
+    },
+    {
+      "key": "volume",
+      "label": "Volume & effort",
+      "status": "partial"
+    }
+  ],
+  "focus": "Client approval, rework and FA-15A filing",
+  "summary": "Client-requested changes leave approval outstanding until corrections and affected checks and reviews are completed. Unresolved differences block finalization and FA-15A filing. FA-13 supplies the workbook; FA-15A receives marked internal evidence.",
+  "parking_lot": [],
+  "taxonomy": [
+    {
+      "evidence_turns": [
+        "t1"
+      ],
+      "facet": "functional_area",
+      "note": "Participant describes quarterly financial statement preparation and tie-out; reported scope only.",
+      "value": "financial_reporting"
+    },
+    {
+      "evidence_turns": [
+        "t1"
+      ],
+      "facet": "process_level",
+      "note": "Reported as the overall quarterly preparation and tie-out work; no finer level specified.",
+      "value": "process"
+    },
+    {
+      "evidence_turns": [
+        "t1"
+      ],
+      "facet": "system",
+      "note": "FA-13 is identified as a workbook needed for readiness; no claim about its platform or where it is used.",
+      "value": "excel_workbook"
+    },
+    {
+      "evidence_turns": [
+        "t3"
+      ],
+      "facet": "control_type",
+      "note": "Fund Accountant's exact lead-sheet-to-trial-balance tie and check-sheet clearance are reported operational checks.",
+      "value": "gpfs_operational"
+    },
+    {
+      "evidence_turns": [
+        "t3"
+      ],
+      "facet": "control_type",
+      "note": "Controller and Director review are reported; their respective review criteria are not yet described.",
+      "value": "gpfs_supervisory"
+    },
+    {
+      "evidence_turns": [
+        "t3"
+      ],
+      "facet": "control_type",
+      "note": "The PDF placed in Box is described as client-approved after client review.",
+      "value": "client_approval"
+    },
+    {
+      "evidence_turns": [
+        "t3"
+      ],
+      "facet": "system",
+      "note": "Word is updated and Box receives the clean client-approved PDF and workpapers, as reported.",
+      "value": "other"
+    }
+  ],
+  "connections_out": [
+    {
+      "condition": "FA-13 supplies the workbook needed for the work.",
+      "counterpart": "FA-13",
+      "evidence_turns": [
+        "t11"
+      ],
+      "relationship_type": "consumes"
+    },
+    {
+      "condition": "Marked internal evidence is filed in FA-15A; unresolved differences block filing.",
+      "counterpart": "FA-15A",
+      "evidence_turns": [
+        "t11"
+      ],
+      "relationship_type": "provides_input_to"
+    }
+  ],
+  "fact_provenance": [
+    {
+      "topic": "name",
+      "text": "The participant calls the work “quarterly financial statement preparation and tie-out.”",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "b48ae9959513438d",
+      "recorded_at": "2026-11-16T22:16:06.079+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "This is our quarterly financial statement preparation and tie-out."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "The work can start when the trial balance, lead sheets, general ledger and FA-13 workbook are available; the specific initiating event and who detects readiness are not stated.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "d45e73083fff000d",
+      "recorded_at": "2026-11-16T22:16:06.079+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "We can start when the trial balance, lead sheets, general ledger and FA-13 workbook are available."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The quarterly preparation and tie-out can start when the trial balance, lead sheets, general ledger and FA-13 workbook are available.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "5b804673a485b082",
+      "recorded_at": "2026-11-16T22:16:36.073+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "We can start when the trial balance, lead sheets, general ledger and FA-13 workbook are available."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "The participant reports a quarter-based difference: Q1 to Q3 are usually unaudited, while Q4 usually includes audited footnotes.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "bcbe8cbdbbcbed8f",
+      "recorded_at": "2026-11-16T22:16:06.080+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "Q1 to Q3 are usually unaudited and Q4 usually includes audited footnotes."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The trial balance, lead sheets, general ledger and FA-13 workbook are readiness inputs. The Fund Accountant ties the lead sheets exactly to the trial balance.",
+      "evidence_turns": [
+        "t1",
+        "t3"
+      ],
+      "history_ref": "bfd62d2d7450ee08",
+      "recorded_at": "2026-11-16T22:16:36.074+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "the trial balance, lead sheets, general ledger and FA-13 workbook are available"
+        },
+        {
+          "source_id": "t3",
+          "quote": "ties lead sheets exactly to the trial balance"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "scope",
+      "text": "The work is described as quarterly financial statement preparation and tie-out, with Q1 to Q3 usually unaudited and Q4 usually including audited footnotes. Entity and client applicability are not stated.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "7b0c936b7ac31cfc",
+      "recorded_at": "2026-11-16T22:16:06.081+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "data_systems",
+      "text": "FA-13 supplies the workbook needed before the work can start.",
+      "evidence_turns": [
+        "t1",
+        "t11"
+      ],
+      "history_ref": "b2ca315c6ea0238d",
+      "recorded_at": "2026-11-16T22:20:55.249+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "We can start when the trial balance, lead sheets, general ledger and FA-13 workbook are available."
+        },
+        {
+          "source_id": "t11",
+          "quote": "FA-13 supplies the workbook"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "volume",
+      "text": "The work is quarterly; the participant distinguishes Q1 to Q3 from Q4 in the usual statement treatment. Counts and effort are not stated.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "81f5b8bd1572c5b0",
+      "recorded_at": "2026-11-16T22:16:06.081+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "purpose",
+      "text": "The work prepares and ties out quarterly financial statements for client review and delivery.",
+      "evidence_turns": [
+        "t1",
+        "t3"
+      ],
+      "history_ref": "8d310d4f7715b58d",
+      "recorded_at": "2026-11-16T22:16:36.074+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "our quarterly financial statement preparation and tie-out"
+        },
+        {
+          "source_id": "t3",
+          "quote": "only the clean client-approved PDF and workpapers go to Box, and we notify the client"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The Fund Accountant rolls forward the approved prior package, ties lead sheets exactly to the trial balance, clears the Excel check sheet and updates Word.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "14e4cc96428ffa16",
+      "recorded_at": "2026-11-16T22:16:36.074+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "The Fund Accountant rolls forward the approved prior package, ties lead sheets exactly to the trial balance, clears the Excel check sheet and updates Word."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The team marks an internal tie-out PDF, compares blacklines and retains the PDF in the binder. After Controller, Director and client review, only the clean client-approved PDF and workpapers go to Box, and the team notifies the client.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "657196cc039112ce",
+      "recorded_at": "2026-11-16T22:16:36.074+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "We mark an internal tie-out PDF, compare blacklines and retain it in the binder. After Controller, Director and client review, only the clean client-approved PDF and workpapers go to Box, and we notify the client."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "The reported final actions are placing the clean client-approved PDF and workpapers in Box after the reviews and notifying the client; the internal tie-out PDF is retained in the binder.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "a4595d00ca94146e",
+      "recorded_at": "2026-11-16T22:16:36.075+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "retain it in the binder. After Controller, Director and client review, only the clean client-approved PDF and workpapers go to Box, and we notify the client."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The Fund Accountant ties lead sheets exactly to the trial balance and clears the Excel check sheet; the team compares blacklines. Controller, Director and client review precede placement of the clean client-approved PDF and workpapers in Box.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "8ccff3f1611fbb9d",
+      "recorded_at": "2026-11-16T22:16:36.075+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "ties lead sheets exactly to the trial balance, clears the Excel check sheet and updates Word. We mark an internal tie-out PDF, compare blacklines and retain it in the binder. After Controller, Director and client review, only the clean client-approved PDF and workpapers go to Box"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The Director's and client's review criteria remain unclear.",
+      "evidence_turns": [
+        "t7",
+        "t11"
+      ],
+      "history_ref": "bfb929548f404c86",
+      "recorded_at": "2026-11-16T22:20:55.249+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "The Director does final internal review; the client gives final external approval."
+        },
+        {
+          "source_id": "t11",
+          "quote": "We correct amounts or presentation, repeat the affected checks and reviews"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The approved prior package is rolled forward; an Excel check sheet is cleared and Word updated. The internal tie-out PDF is marked and retained in the binder, while the clean client-approved PDF and workpapers go to Box.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "c7895ae6d3bdae3f",
+      "recorded_at": "2026-11-16T22:16:36.075+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "rolls forward the approved prior package, ties lead sheets exactly to the trial balance, clears the Excel check sheet and updates Word. We mark an internal tie-out PDF, compare blacklines and retain it in the binder. After Controller, Director and client review, only the clean client-approved PDF and workpapers go to Box"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "The participant reports an exact tie between lead sheets and the trial balance.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "a1ad11332d8db249",
+      "recorded_at": "2026-11-16T22:16:36.075+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "ties lead sheets exactly to the trial balance"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "The work uses an Excel check sheet and Word; the clean client-approved PDF and workpapers go to Box after review.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "fd837bd39d58e152",
+      "recorded_at": "2026-11-16T22:16:36.076+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "checks",
+      "text": "Every supported lead-sheet account must agree exactly to the trial balance, and every displayed statement amount must trace to a tied source. The preparer checks footing and cross-references and resolves check-sheet mismatches, including hidden rows, stale links or bad mappings.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "ca319262d531ff41",
+      "recorded_at": "2026-11-16T22:18:40.592+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "Every supported lead-sheet account must agree exactly to the TB and every displayed statement amount must trace to a tied source. The preparer checks footing and cross-references and resolves check-sheet mismatches, including hidden rows, stale links or bad mappings."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "There is no established materiality tolerance for the reported tie-out.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "6db5789aefb934cb",
+      "recorded_at": "2026-11-16T22:18:40.592+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "There is no established materiality tolerance."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The Controller returns unresolved differences or presentation issues to the Fund Accountant for correction. The team resolves them against the source, reruns affected checks and retains review evidence before finalization.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "54c7959b6470aa3f",
+      "recorded_at": "2026-11-16T22:18:40.592+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "The Controller returns unresolved differences or presentation issues to the Fund Accountant for correction. We resolve them against the source, rerun the affected checks and retain review evidence before finalization."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The Director performs final internal review and the client gives final external approval. Review evidence is retained before finalization; marked and blackline copies remain internal.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "a496837ad15156f2",
+      "recorded_at": "2026-11-16T22:18:40.592+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "retain review evidence before finalization. The Director does final internal review; the client gives final external approval. Marked and blackline copies stay internal"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "The client deadline is unconfirmed.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "236c788128c7a4bf",
+      "recorded_at": "2026-11-16T22:18:40.592+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "The client deadline and formal internal approver are both unconfirmed."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The formal internal approver is unconfirmed, despite the reported final internal review by the Director.",
+      "evidence_turns": [
+        "t5",
+        "t7"
+      ],
+      "history_ref": "9d8758f163a092b6",
+      "recorded_at": "2026-11-16T22:18:40.592+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "formal internal approver are both unconfirmed"
+        },
+        {
+          "source_id": "t7",
+          "quote": "The Director does final internal review"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "accountable",
+      "text": "The role accountable for the overall result has not been established; the formal internal approver is also unconfirmed.",
+      "evidence_turns": [
+        "t5",
+        "t7"
+      ],
+      "history_ref": "be5e63e06baabc4c",
+      "recorded_at": "2026-11-16T22:18:40.592+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "formal internal approver are both unconfirmed"
+        },
+        {
+          "source_id": "t7",
+          "quote": "The Director does final internal review; the client gives final external approval."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Word Compare is run against prior-quarter and prior year-end statements and, when appropriate, an approved comparable fund. The team explains or corrects unexpected changes to amounts, presentation, disclosures and formatting.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "4cb15adeb1707f73",
+      "recorded_at": "2026-11-16T22:19:01.124+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "Word Compare is run against prior-quarter and prior year-end statements and an approved comparable fund when appropriate. We explain or correct unexpected changes to amounts, presentation, disclosures and formatting."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The team runs Word Compare against prior-quarter and prior year-end statements and, when appropriate, an approved comparable fund, explaining or correcting unexpected changes.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "16437e03a3d44ef0",
+      "recorded_at": "2026-11-16T22:19:01.124+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "Word Compare is run against prior-quarter and prior year-end statements and an approved comparable fund when appropriate. We explain or correct unexpected changes"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "risk",
+      "text": "An unapproved comparator can introduce unsupported disclosures.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "2f8f5dc55be29db0",
+      "recorded_at": "2026-11-16T22:19:01.124+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "An unapproved comparator can introduce unsupported disclosures."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "Prior-quarter and prior year-end statements and, where appropriate, an approved comparable fund are used as Word Compare references.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "a8f18f49e3d98091",
+      "recorded_at": "2026-11-16T22:19:01.124+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "Word Compare is run against prior-quarter and prior year-end statements and an approved comparable fund when appropriate."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The records do not confirm the approved checklist.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "36ad19ceff3f429e",
+      "recorded_at": "2026-11-16T22:19:01.124+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "The records do not confirm the approved checklist"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "The exact Box path across clients is not confirmed by the records.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "485bda3e69a003c3",
+      "recorded_at": "2026-11-16T22:19:01.124+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "the exact Box path across clients"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "The workbook's storage location, system and detailed role in the work remain unclear.",
+      "evidence_turns": [
+        "t1",
+        "t11"
+      ],
+      "history_ref": "eef634b0d645a44a",
+      "recorded_at": "2026-11-16T22:20:55.249+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "trial balance, lead sheets, general ledger and FA-13 workbook"
+        },
+        {
+          "source_id": "t11",
+          "quote": "FA-13 supplies the workbook"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "When the client requests changes or does not approve, approval remains outstanding. The team corrects amounts or presentation, repeats affected checks and reviews, and obtains client approval before releasing the clean PDF.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "e4d1c45c4449794f",
+      "recorded_at": "2026-11-16T22:20:55.249+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "The approval remains outstanding. We correct amounts or presentation, repeat the affected checks and reviews, and obtain client approval before releasing the clean PDF."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "Unresolved differences block finalization and filing in FA-15A; client approval is required before release of the clean PDF.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "809df4b87f098aee",
+      "recorded_at": "2026-11-16T22:20:55.249+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "obtain client approval before releasing the clean PDF. Unresolved differences block finalization and filing in FA-15A."
+        }
+      ],
+      "unverified": [
+        "Check this against the cited sources: 15"
+      ]
+    },
+    {
+      "topic": "checks",
+      "text": "If client approval is outstanding, the team corrects amounts or presentation and repeats affected checks and reviews before obtaining approval and releasing the clean PDF.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "2705a000f9da13ce",
+      "recorded_at": "2026-11-16T22:20:55.253+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "The approval remains outstanding. We correct amounts or presentation, repeat the affected checks and reviews, and obtain client approval before releasing the clean PDF."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "FA-13 supplies the workbook, and FA-15A receives the marked internal evidence.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "840926693bc5cb0e",
+      "recorded_at": "2026-11-16T22:20:55.253+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "FA-13 supplies the workbook and FA-15A gets the marked internal evidence."
+        }
+      ],
+      "unverified": [
+        "Check this against the cited sources: 15"
+      ]
+    },
+    {
+      "topic": "connections",
+      "text": "FA-13 supplies the workbook used as an input; FA-15A receives marked internal evidence, with filing blocked by unresolved differences.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "ab2bca7ecee2aa8f",
+      "recorded_at": "2026-11-16T22:20:55.253+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "Unresolved differences block finalization and filing in FA-15A. FA-13 supplies the workbook and FA-15A gets the marked internal evidence."
+        }
+      ],
+      "unverified": [
+        "Check this against the cited sources: 15"
+      ]
+    },
+    {
+      "topic": "trigger",
+      "text": "The participant reports that the record contains no universal contractual deadline.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "296bfdf36da5a49b",
+      "recorded_at": "2026-11-16T22:20:55.253+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "There is no universal contractual deadline in the record."
+        }
+      ],
+      "unverified": []
+    }
+  ],
+  "fact_history": [
+    {
+      "topic": "lifecycle",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:06.080+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "37ba37c75bc70ebd"
+    },
+    {
+      "topic": "materials",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:06.080+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "1a29420efaf01661"
+    },
+    {
+      "topic": "data_systems",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:06.081+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "09ec37223b2cc2dd"
+    },
+    {
+      "topic": "checks",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:36.075+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "85e8aab0335c6ee9"
+    },
+    {
+      "topic": "checks",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:18:40.592+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "3593ae0a91ff34cf"
+    },
+    {
+      "topic": "checks",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:19:01.123+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "a7c496ea79d4b9e9"
+    }
+  ],
+  "capture_provenance": {
+    "method": "document_simulation",
+    "participant_confirmed": false,
+    "process_owner_approved": false,
+    "source_documents": [
+      {
+        "filename": "IP1-export.pdf",
+        "sha256": "d0f89ee7c7cc8ffbcd39c268b47b765888105e588f60199106356ca31df177c1"
+      }
+    ]
+  },
+  "closure": {
+    "asked": false,
+    "confirmed": false
+  }
+}

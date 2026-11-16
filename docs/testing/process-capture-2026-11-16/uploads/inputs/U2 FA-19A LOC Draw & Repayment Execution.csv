@@ -1,0 +1,11 @@
+﻿Process,Step,Step title,Documented action
+FA-19A LOC Draw & Repayment Execution,1,Confirm the reason for the event and the facility,"Identify whether the event is a draw, repayment, anticipated investment funding, or repayment of fees previously funded by LOC."
+FA-19A LOC Draw & Repayment Execution,1,Confirm the reason for the event and the facility,"Confirm the legal facility, borrowing entity, purpose, requested date, and required amount and date, if known."
+FA-19A LOC Draw & Repayment Execution,1,Confirm the reason for the event and the facility,"Record whether the trigger is contractual, lender-driven, or client-planned."
+FA-19A LOC Draw & Repayment Execution,2,Obtain current capacity and compliance status,Confirm available borrowing capacity for a draw.
+FA-19A LOC Draw & Repayment Execution,2,Obtain current capacity and compliance status,"Confirm no covenant, LPA, maturity, duration, concentration, or certification issue blocks the event."
+FA-19A LOC Draw & Repayment Execution,2,Obtain current capacity and compliance status,Identify the required lender and client forms and approvals.
+FA-19A LOC Draw & Repayment Execution,3,Determine funding path,"For repayment, determine whether available cash is sufficient."
+FA-19A LOC Draw & Repayment Execution,3,Determine funding path,Determine whether a capital call is required or whether repayment will use distribution proceeds.
+FA-19A LOC Draw & Repayment Execution,3,Determine funding path,"For a draw, confirm the approved purpose and planned use of the funds."
+FA-19A LOC Draw & Repayment Execution,3,Determine funding path,Document client timing and amount decisions.

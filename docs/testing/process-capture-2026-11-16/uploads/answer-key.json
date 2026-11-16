@@ -1,0 +1,296 @@
+{
+  "source": "IP1-export.pdf",
+  "source_sha256": "d0f89ee7c7cc8ffbcd39c268b47b765888105e588f60199106356ca31df177c1",
+  "cases": [
+    {
+      "id": "U1",
+      "process": "GP-03",
+      "title": "Carry Vesting & Carry Point Reallocation",
+      "degree": "rich numbered procedure",
+      "file": "U1 GP-03 Carry Vesting & Carry Point Reallocation.pdf",
+      "bytes": 202426,
+      "pages": [
+        1610,
+        1611,
+        1612,
+        1613
+      ],
+      "scope": "original PDF page subset including any adjacent text on boundary pages",
+      "supplied_actions": [],
+      "expected_known": [
+        "Client selects method and named recipients; Method B must be held.",
+        "Vested/released point changes sum to zero.",
+        "Preserve prior dated schedule and apply go-forward only from approved date.",
+        "Calculate inception-to-date less recorded carry; protect schedules and update GP-01/GP-06."
+      ],
+      "valid_gaps": [
+        "Who currently owns the Method B resolution, how evidenced?",
+        "Whether the written procedure accurately reflects current practice."
+      ],
+      "sha256": "425bb3280cc0fae6bd03709893935a03e8dcef0c303461d5f76549f37d61286e"
+    },
+    {
+      "id": "U2",
+      "process": "FA-19A",
+      "title": "LOC Draw & Repayment Execution",
+      "degree": "partial opening",
+      "file": "U2 FA-19A LOC Draw & Repayment Execution.csv",
+      "bytes": 1653,
+      "pages": [
+        1385,
+        1386
+      ],
+      "scope": "selected procedure actions only; other fields withheld",
+      "supplied_actions": [
+        "FA-19A/S1/a",
+        "FA-19A/S1/b",
+        "FA-19A/S1/c",
+        "FA-19A/S2/a",
+        "FA-19A/S2/b",
+        "FA-19A/S2/c",
+        "FA-19A/S3/a",
+        "FA-19A/S3/b",
+        "FA-19A/S3/c",
+        "FA-19A/S3/d"
+      ],
+      "expected_known": [
+        "Identify facility/entity/purpose/date and contractual, lender or client trigger.",
+        "Capacity/covenant/LPA/maturity/concentration gates.",
+        "Draw versus repayment and cash, capital call or distribution proceeds."
+      ],
+      "valid_gaps": [
+        "Calculation of payoff principal and interest.",
+        "Who reviews and approves, who executes cash movement and how the event is reconciled."
+      ],
+      "sha256": "cd359c72160e1f9795240fb7f6b96d2f73d07eb09015dec947701140cd01e2ec"
+    },
+    {
+      "id": "U3",
+      "process": "MC-04",
+      "title": "Monitoring Fee Billing & Revenue Recognition",
+      "degree": "one opening action",
+      "file": "U3 MC-04 Monitoring Fee Billing & Revenue Recognition.csv",
+      "bytes": 265,
+      "pages": [
+        1898
+      ],
+      "scope": "selected procedure actions only; other fields withheld",
+      "supplied_actions": [
+        "MC-04/S1/a"
+      ],
+      "expected_known": [
+        "Approximately 30 days before quarter end review every portfolio company, contact/address, fee and associated fund."
+      ],
+      "valid_gaps": [
+        "Who performs the schedule review and what next?",
+        "Invoice approvals and posting, early payment treatment, fee offsets and AR handoff."
+      ],
+      "sha256": "cc3c411e39a09ebe3215f5fd6acbf40f1d3bfa95c8fc20e9011c2edc5628ac20"
+    },
+    {
+      "id": "U4",
+      "process": "MC-07",
+      "title": "Manco Treasury & Payment Release",
+      "degree": "rich numbered procedure",
+      "file": "U4 MC-07 Manco Treasury & Payment Release.pdf",
+      "bytes": 235408,
+      "pages": [
+        2000,
+        2001,
+        2002,
+        2003
+      ],
+      "scope": "original PDF page subset including any adjacent text on boundary pages",
+      "supplied_actions": [],
+      "expected_known": [
+        "Verify vendor and first-payment controls before the run.",
+        "Independently verify the bank payment.",
+        "Release under dual control; retain confirmations/manage exceptions; reconcile bank, payment log, and accounting."
+      ],
+      "valid_gaps": [
+        "Current practice or client-specifics absent from the numbered procedure."
+      ],
+      "sha256": "90b9a1f8d9a507821e4e29ea01957730bf1c757c57e573d9a4e20fe59824f501"
+    },
+    {
+      "id": "U5",
+      "process": "GP-05",
+      "title": "Carry Vehicle Wind-Down (Bringing Partner Capital to $0)",
+      "degree": "opening two actions",
+      "file": "U5 GP-05 Carry Vehicle Wind-Down (Bringing Partner Capital to $0).csv",
+      "bytes": 447,
+      "pages": [
+        1636
+      ],
+      "scope": "selected procedure actions only; other fields withheld",
+      "supplied_actions": [
+        "GP-05/S1/a",
+        "GP-05/S1/b"
+      ],
+      "expected_known": [
+        "List remaining deals/carry/holdbacks/escrow/interest/expenses/taxes/liabilities and other balances.",
+        "Record date and source for each assumption."
+      ],
+      "valid_gaps": [
+        "How carry is reconciled, who authorizes corrections, what proves zero and handoff."
+      ],
+      "sha256": "a59a0164cc6d99fa360c95f2e67dcd7bc612b0c1c0fd2cc822ed899b541d64e6"
+    },
+    {
+      "id": "U6",
+      "process": "MC-05",
+      "title": "Management Fee Calculation & Offsets",
+      "degree": "partial middle without bookends",
+      "file": "U6 MC-05 Management Fee Calculation & Offsets.csv",
+      "bytes": 1590,
+      "pages": [
+        1935
+      ],
+      "scope": "selected procedure actions only; other fields withheld",
+      "supplied_actions": [
+        "MC-05/S3/a",
+        "MC-05/S3/b",
+        "MC-05/S3/c",
+        "MC-05/S3/d",
+        "MC-05/S4/a",
+        "MC-05/S4/b",
+        "MC-05/S4/c",
+        "MC-05/S4/d",
+        "MC-05/S4/e"
+      ],
+      "expected_known": [
+        "Calculate gross fee by investor and apply offsets, waivers and carryforwards."
+      ],
+      "valid_gaps": [
+        "How rules/inputs are obtained and what starts the period.",
+        "Who signs off, collects/posts the approved fee and where final reconciliation is kept."
+      ],
+      "sha256": "de9ba169116ea9c7711e469e6c52452ebf180e6670634404e04d44b23b69fe55"
+    },
+    {
+      "id": "U7",
+      "process": "GP-03",
+      "title": "Carry Vesting & Carry Point Reallocation",
+      "degree": "single middle step",
+      "file": "U7 GP-03 Carry Vesting & Carry Point Reallocation.csv",
+      "bytes": 374,
+      "pages": [
+        1611
+      ],
+      "scope": "selected procedure actions only; other fields withheld",
+      "supplied_actions": [
+        "GP-03/S4/a",
+        "GP-03/S4/b"
+      ],
+      "expected_known": [
+        "Record permitted method, effective date and named recipients; apply Method B hold."
+      ],
+      "valid_gaps": [
+        "How starting position is established and points are recalculated.",
+        "How dates, accounting and outputs are reviewed and handed off."
+      ],
+      "sha256": "2817138f7c35c51c8b6acefb9bfb5f38170b27190723f409a410751abadac084"
+    },
+    {
+      "id": "U8",
+      "process": "MC-04",
+      "title": "Monitoring Fee Billing & Revenue Recognition",
+      "degree": "rich numbered procedure",
+      "file": "U8 MC-04 Monitoring Fee Billing & Revenue Recognition.pdf",
+      "bytes": 234388,
+      "pages": [
+        1898,
+        1899,
+        1900,
+        1901,
+        1902
+      ],
+      "scope": "original PDF page subset including any adjacent text on boundary pages",
+      "supplied_actions": [],
+      "expected_known": [
+        "30-day schedule review; review invoices internally before client approval and sending.",
+        "Post invoices, account for genuine prepayments, accrue offsets and report to fund team; manage AR."
+      ],
+      "valid_gaps": [
+        "Which current client-specific exceptions apply and independent current-practice confirmation."
+      ],
+      "sha256": "4dc55699558bfd22e9a4225ca408aa74e1c6b5aedb65552e3bca4a3f2f105b64"
+    },
+    {
+      "id": "U9",
+      "process": "FA-19A",
+      "title": "LOC Draw & Repayment Execution",
+      "degree": "partial closing only",
+      "file": "U9 FA-19A LOC Draw & Repayment Execution.csv",
+      "bytes": 1414,
+      "pages": [
+        1388,
+        1389
+      ],
+      "scope": "selected procedure actions only; other fields withheld",
+      "supplied_actions": [
+        "FA-19A/S8/a",
+        "FA-19A/S8/b",
+        "FA-19A/S8/c",
+        "FA-19A/S8/d",
+        "FA-19A/S9/a",
+        "FA-19A/S9/b",
+        "FA-19A/S9/c",
+        "FA-19A/S9/d",
+        "FA-19A/S9/e"
+      ],
+      "expected_known": [
+        "Initiate accounting, execute cash, reconcile and close; preserve supplied distinctions."
+      ],
+      "valid_gaps": [
+        "Why event begins, facility selection, gate/available capacity, funding choices and approvals."
+      ],
+      "sha256": "d5c22ee2514d77c9ddaacb56ee4a68e77525fbb7b791d01ba98e0974944134ce"
+    },
+    {
+      "id": "U10",
+      "process": "GP-03",
+      "title": "Carry Vesting & Carry Point Reallocation",
+      "degree": "entire published process",
+      "file": "U10 GP-03 Carry Vesting & Carry Point Reallocation.pdf",
+      "bytes": 390700,
+      "pages": [
+        1602,
+        1603,
+        1604,
+        1605,
+        1606,
+        1607,
+        1608,
+        1609,
+        1610,
+        1611,
+        1612,
+        1613,
+        1614,
+        1615,
+        1616,
+        1617,
+        1618,
+        1619,
+        1620,
+        1621,
+        1622,
+        1623,
+        1624,
+        1625
+      ],
+      "scope": "original PDF page subset including any adjacent text on boundary pages",
+      "supplied_actions": [],
+      "expected_known": [
+        "All published procedure and related sections supplied.",
+        "Method B held; approved named recipients and net-zero points control; recalculation and dated schedules.",
+        "Retain review evidence, hand off to GP-01 and GP-06."
+      ],
+      "valid_gaps": [
+        "Unresolved items expressly described in the source or a question about actual operating practice."
+      ],
+      "sha256": "d6ecbe0d7b05e0a2a3a4a7bade31a6560d0e731665d8ae8088b9c706ac75e742"
+    }
+  ]
+}

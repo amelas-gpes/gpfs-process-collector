@@ -1,0 +1,1817 @@
+{
+  "schema_version": 1,
+  "context": {
+    "process_name": "Distributions In Kind (DIK)",
+    "objective": "Document how this process works, including controls and what remains unresolved."
+  },
+  "turns": [
+    {
+      "id": "t1",
+      "role": "user",
+      "text": "The process is an in-kind distribution of securities. The client can elect one, but execution is on operational hold because our controlling 7.8.3 checklist and 7.8.4 tax guidance are unavailable."
+    },
+    {
+      "id": "t2",
+      "role": "assistant",
+      "text": "When a client elects a distribution in kind, what steps are established before the operational hold, if any?"
+    },
+    {
+      "id": "t3",
+      "role": "user",
+      "text": "The client gives written direction. The designed procedure documents authority and conditions, timing, eligible lots and adviser instructions before valuation and allocation. GPFS coordinates, client counsel owns legal conclusions and the client tax adviser owns tax conclusions. The missing checklist and guidance block execution, even if there is a client election."
+    },
+    {
+      "id": "t4",
+      "role": "assistant",
+      "text": "What does the designed procedure say happens after valuation and allocation, before securities are transferred?"
+    },
+    {
+      "id": "t5",
+      "role": "user",
+      "text": "Under the documented design, allocation is provisional until final pricing and client approval. Whole shares go to investors and a fractional remainder stays open with no default rounding. Counsel and the investment bank clear the legal package in writing. Investor Services issues client-approved notices via FA-01. The transfer agent or custodian tracks delivery per investor; no live execution is authorized now."
+    },
+    {
+      "id": "t6",
+      "role": "assistant",
+      "text": "In the documented design, what marks the DIK as complete after the transfer agent or custodian tracks delivery?"
+    },
+    {
+      "id": "t7",
+      "role": "user",
+      "text": "Every investor delivery must be confirmed or explicitly open; share/value and fractional remainders must reconcile before completion. Accounting updates the GL, non-cash proceeds, capital accounts, carry and cost/basis. We keep approvals, checklist and preparer/reviewer sign-off in the binder. The internal approver, storage details and role titles remain unconfirmed. This is the designed closeout, not a completed event."
+    },
+    {
+      "id": "t8",
+      "role": "assistant",
+      "text": "What, if anything, changes for the client or investors while execution is on hold?"
+    },
+    {
+      "id": "t9",
+      "role": "user",
+      "text": "The practical effect is we must not send instructions or deliver securities while the operational hold is in force. The write-up doesn't describe what the client or investors actually did while waiting, or how long it lasted. A client election alone does not satisfy the missing legal, tax and controlled-checklist requirements."
+    },
+    {
+      "id": "t10",
+      "role": "assistant",
+      "text": "What concrete consequence could result from executing a DIK incorrectly, or from the hold continuing?"
+    },
+    {
+      "id": "t11",
+      "role": "user",
+      "text": "An incorrect lot can irreversibly change basis and holding period. Missing securities clearance blocks release; insecure transfer of tax identifiers is a confidentiality risk. I don't know the financial impact of a longer hold. I can't confirm any workaround, elapsed time or executed event from the source."
+    },
+    {
+      "id": "t12",
+      "role": "assistant",
+      "text": "Under the documented design, what happens to a fractional remainder that remains open after the distribution?"
+    },
+    {
+      "id": "t13",
+      "role": "assistant",
+      "text": "This capture still has open sections. Still open: Start, cadence & deadlines, Finished condition, Accountability, Items, stages & handoffs, Checks, approvals & proof, Variations and conditions, Manual work & pain, Consequences of failure, Existing materials, Scope & entity context, Business rules & lineage, Connected processes, Data & systems, Volume & effort. You can create a partial draft."
+    }
+  ],
+  "memo_findings": [
+    {
+      "answer": "The process is called “Distributions In Kind (DIK)” and concerns an in-kind distribution of securities.",
+      "evidence_turns": [
+        "context",
+        "t1"
+      ],
+      "key": "name",
+      "status": "captured"
+    },
+    {
+      "answer": "The designed process distributes securities in kind, with whole shares going to investors.",
+      "evidence_turns": [
+        "t1",
+        "t5"
+      ],
+      "key": "purpose",
+      "status": "captured"
+    },
+    {
+      "answer": "The cadence and any fixed deadlines for client-directed distributions remain unestablished.\nThe client can elect an in-kind distribution and gives written direction; the election does not authorize live execution while the hold remains.",
+      "evidence_turns": [
+        "t3",
+        "t1"
+      ],
+      "key": "trigger",
+      "status": "partial"
+    },
+    {
+      "answer": "The design has the transfer agent or custodian track delivery per investor; fractional remainders remain open.\nThe subsequent handling of a fractional remainder left open under the design remains unclear.\nIn the designed closeout, every investor delivery must be confirmed or explicitly open, and share/value and fractional remainders must reconcile before completion. This is not a completed event.",
+      "evidence_turns": [
+        "t5",
+        "t7"
+      ],
+      "key": "completion",
+      "status": "partial"
+    },
+    {
+      "answer": "The role accountable for the distribution is not established.\nGPFS coordinates; client counsel owns legal conclusions and the client tax adviser owns tax conclusions.",
+      "evidence_turns": [
+        "context",
+        "t3"
+      ],
+      "key": "accountable",
+      "status": "partial"
+    },
+    {
+      "answer": "The condition for lifting the operational hold and detailed execution steps remain open.\nThe designed procedure documents authority and conditions, timing, eligible lots and adviser instructions before valuation and allocation.\nUnder the design, allocation remains provisional until final pricing and client approval. Whole shares go to investors; a fractional remainder stays open without default rounding.\nCounsel and the investment bank clear the legal package in writing. Investor Services issues client-approved notices via FA-01, and the transfer agent or custodian tracks delivery per investor.\nIn the designed closeout, Accounting updates the GL, non-cash proceeds, capital accounts, carry and cost/basis. Every investor delivery must be confirmed or explicitly open, and share/value and fractional remainders must reconcile before completion.\nWhile the operational hold is in force, instructions must not be sent and securities must not be delivered.",
+      "evidence_turns": [
+        "t3",
+        "t7",
+        "t5",
+        "t9"
+      ],
+      "key": "lifecycle",
+      "status": "partial"
+    },
+    {
+      "answer": "Detailed review criteria, rejection handling and additional execution controls remain unresolved; the internal approver and role titles are unconfirmed.\nThe documented design requires final pricing and client approval before allocation ceases to be provisional; counsel and the investment bank clear the legal package in writing.\nThe designed closeout retains approvals, checklist and preparer/reviewer sign-off in a binder.\nA client election alone does not satisfy the missing legal, tax and controlled-checklist requirements.",
+      "evidence_turns": [
+        "t1",
+        "t7",
+        "t5",
+        "t9"
+      ],
+      "key": "checks",
+      "status": "partial"
+    },
+    {
+      "answer": "Whether the process differs by client, security, or other circumstance is not established; the reported client election alone does not establish a variant.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "key": "variations",
+      "status": "partial"
+    },
+    {
+      "answer": "Other than the operational hold associated with unavailable guidance, recurring pain points or workarounds are not established.\nThe unavailable checklist and tax guidance block execution even when a client elects a distribution.\nThe write-up does not describe what the client or investors actually did while waiting or how long the hold lasted.\nThe participant cannot confirm a workaround or an executed event from the source.",
+      "evidence_turns": [
+        "t1",
+        "t3",
+        "t9",
+        "t11"
+      ],
+      "key": "pain_points",
+      "status": "partial"
+    },
+    {
+      "answer": "The write-up does not describe actual client or investor actions while waiting; the participant does not know the financial impact of a longer hold.\nThe participant reports that an incorrect lot can irreversibly change basis and holding period.\nMissing securities clearance blocks release; insecure transfer of tax identifiers presents a confidentiality risk.",
+      "evidence_turns": [
+        "t9",
+        "t11"
+      ],
+      "key": "risk",
+      "status": "partial"
+    },
+    {
+      "answer": "The controlling 7.8.3 checklist and 7.8.4 tax guidance are unavailable.\nThe contents of the unavailable checklist and tax guidance remain unverified.\nThe reported design uses written client direction, a legal package cleared in writing, and client-approved investor notices.\nThe designed closeout uses a binder for approvals, checklist and preparer/reviewer sign-off; its storage details are unconfirmed.",
+      "evidence_turns": [
+        "t1",
+        "t3",
+        "t5",
+        "t7"
+      ],
+      "key": "materials",
+      "status": "partial"
+    },
+    {
+      "answer": "A client can elect an in-kind distribution of securities; execution is currently on operational hold.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "key": "scope",
+      "status": "partial"
+    },
+    {
+      "answer": "The unavailable checklist and tax guidance leave execution requirements and tax rules beyond the reported design unresolved.\nThe reported design sends whole shares to investors and leaves fractional remainders open without default rounding.",
+      "evidence_turns": [
+        "t1",
+        "t5"
+      ],
+      "key": "rules",
+      "status": "partial"
+    },
+    {
+      "answer": "Detailed interfaces for notices, delivery tracking and Accounting's closeout updates remain open, as do other process dependencies.\nAccounting updates the GL, non-cash proceeds, capital accounts, carry and cost/basis as part of the designed closeout.",
+      "evidence_turns": [
+        "t5",
+        "t7"
+      ],
+      "key": "connections",
+      "status": "partial"
+    },
+    {
+      "answer": "Data sources, records and systems beyond the reported FA-01 notice route remain unestablished.\nInvestor Services issues client-approved notices via FA-01 under the documented design.\nThe nature of FA-01 is not established.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "key": "data_systems",
+      "status": "partial"
+    },
+    {
+      "answer": "The number of distributions, frequency, and effort are not established.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "key": "volume",
+      "status": "partial"
+    }
+  ],
+  "coverage": [
+    {
+      "key": "name",
+      "label": "Name & other names",
+      "status": "partial"
+    },
+    {
+      "key": "purpose",
+      "label": "Purpose & result",
+      "status": "partial"
+    },
+    {
+      "key": "trigger",
+      "label": "Start, cadence & deadlines",
+      "status": "partial"
+    },
+    {
+      "key": "completion",
+      "label": "Finished condition",
+      "status": "partial"
+    },
+    {
+      "key": "accountable",
+      "label": "Accountability",
+      "status": "partial"
+    },
+    {
+      "key": "lifecycle",
+      "label": "Items, stages & handoffs",
+      "status": "partial"
+    },
+    {
+      "key": "checks",
+      "label": "Checks, approvals & proof",
+      "status": "partial"
+    },
+    {
+      "key": "variations",
+      "label": "Variations and conditions",
+      "status": "partial"
+    },
+    {
+      "key": "pain_points",
+      "label": "Manual work & pain",
+      "status": "partial"
+    },
+    {
+      "key": "risk",
+      "label": "Consequences of failure",
+      "status": "partial"
+    },
+    {
+      "key": "materials",
+      "label": "Existing materials",
+      "status": "partial"
+    },
+    {
+      "key": "scope",
+      "label": "Scope & entity context",
+      "status": "partial"
+    },
+    {
+      "key": "rules",
+      "label": "Business rules & lineage",
+      "status": "partial"
+    },
+    {
+      "key": "connections",
+      "label": "Connected processes",
+      "status": "partial"
+    },
+    {
+      "key": "data_systems",
+      "label": "Data & systems",
+      "status": "partial"
+    },
+    {
+      "key": "volume",
+      "label": "Volume & effort",
+      "status": "partial"
+    }
+  ],
+  "focus": "Consequences of incorrect execution and the operational hold",
+  "summary": "The participant reports basis and holding-period consequences from an incorrect lot, a release block from missing securities clearance, and confidentiality risk from insecure transfer of tax identifiers. The financial impact of a longer hold is unknown.",
+  "parking_lot": [],
+  "taxonomy": [
+    {
+      "evidence_turns": [
+        "t1"
+      ],
+      "facet": "functional_area",
+      "note": "Reported process is an in-kind distribution of securities; functional classification is descriptive, not independently verified.",
+      "value": "capital_activity"
+    },
+    {
+      "evidence_turns": [
+        "t1"
+      ],
+      "facet": "process_level",
+      "note": "Participant refers to this as a process; the broader lifecycle boundary is not yet established.",
+      "value": "process"
+    },
+    {
+      "evidence_turns": [
+        "t1",
+        "t5"
+      ],
+      "facet": "entity_type",
+      "note": "Investor distributions are reported; fund entity applicability is inferred from the distribution context, not independently verified.",
+      "value": "fund"
+    },
+    {
+      "evidence_turns": [
+        "t3",
+        "t5"
+      ],
+      "facet": "functional_area",
+      "note": "The reported design includes provisional allocation of securities to investors.",
+      "value": "allocations"
+    },
+    {
+      "evidence_turns": [
+        "t5"
+      ],
+      "facet": "control_type",
+      "note": "Client approval is a condition for allocation to cease being provisional; notices are also client-approved.",
+      "value": "client_approval"
+    },
+    {
+      "evidence_turns": [
+        "t1"
+      ],
+      "facet": "rule_source",
+      "note": "Participant identifies a controlling checklist and tax guidance, both unavailable; contents are not independently reviewed.",
+      "value": "other"
+    },
+    {
+      "evidence_turns": [
+        "t7"
+      ],
+      "facet": "functional_area",
+      "note": "Reported designed closeout includes Accounting updates to the GL and related records; not independently verified.",
+      "value": "fund_accounting"
+    }
+  ],
+  "connections_out": [
+    {
+      "condition": "Under the documented design, Investor Services issues client-approved notices via FA-01; handoff mechanism is unspecified.",
+      "counterpart": "Investor Services",
+      "evidence_turns": [
+        "t5"
+      ],
+      "relationship_type": "hands_off_to"
+    },
+    {
+      "condition": "Under the documented design, the transfer agent or custodian tracks delivery per investor; handoff mechanism is unspecified.",
+      "counterpart": "Transfer agent or custodian",
+      "evidence_turns": [
+        "t5"
+      ],
+      "relationship_type": "hands_off_to"
+    },
+    {
+      "condition": "Allocation remains provisional until final pricing and client approval.",
+      "counterpart": "Client",
+      "evidence_turns": [
+        "t5"
+      ],
+      "relationship_type": "requires_approval_from"
+    },
+    {
+      "condition": "In the designed closeout, Accounting updates the GL, non-cash proceeds, capital accounts, carry and cost/basis; handoff details are unconfirmed.",
+      "counterpart": "Accounting",
+      "evidence_turns": [
+        "t7"
+      ],
+      "relationship_type": "hands_off_to"
+    }
+  ],
+  "fact_provenance": [
+    {
+      "topic": "name",
+      "text": "The process is called “Distributions In Kind (DIK)” and concerns an in-kind distribution of securities.",
+      "evidence_turns": [
+        "context",
+        "t1"
+      ],
+      "history_ref": "5ff10f49c41094e0",
+      "recorded_at": "2026-11-16T22:15:48.240+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "The process is an in-kind distribution of securities."
+        }
+      ],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "scope",
+      "text": "A client can elect an in-kind distribution of securities; execution is currently on operational hold.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "32f8029982e20f4f",
+      "recorded_at": "2026-11-16T22:15:48.240+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "The client can elect one, but execution is on operational hold"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The controlling 7.8.3 checklist and 7.8.4 tax guidance are unavailable.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "4c343d941b4b2e2c",
+      "recorded_at": "2026-11-16T22:17:53.413+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "our controlling 7.8.3 checklist and 7.8.4 tax guidance are unavailable"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "The unavailable checklist and tax guidance leave execution requirements and tax rules beyond the reported design unresolved.",
+      "evidence_turns": [
+        "t1",
+        "t5"
+      ],
+      "history_ref": "b216787b7678d3ff",
+      "recorded_at": "2026-11-16T22:17:53.413+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "our controlling 7.8.3 checklist and 7.8.4 tax guidance are unavailable"
+        },
+        {
+          "source_id": "t5",
+          "quote": "Under the documented design, allocation is provisional until final pricing and client approval."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The condition for lifting the operational hold and detailed execution steps remain open.",
+      "evidence_turns": [
+        "t3",
+        "t7"
+      ],
+      "history_ref": "689819b770f18235",
+      "recorded_at": "2026-11-16T22:18:24.883+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "The missing checklist and guidance block execution, even if there is a client election."
+        },
+        {
+          "source_id": "t7",
+          "quote": "This is the designed closeout, not a completed event."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "The cadence and any fixed deadlines for client-directed distributions remain unestablished.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "5439547f7c6fd2e1",
+      "recorded_at": "2026-11-16T22:17:53.414+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "The client gives written direction."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "accountable",
+      "text": "The role accountable for the distribution is not established.",
+      "evidence_turns": [
+        "context"
+      ],
+      "history_ref": "5bd480bb2e7963c9",
+      "recorded_at": "2026-11-16T22:15:48.240+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "checks",
+      "text": "Detailed review criteria, rejection handling and additional execution controls remain unresolved; the internal approver and role titles are unconfirmed.",
+      "evidence_turns": [
+        "t1",
+        "t7"
+      ],
+      "history_ref": "5767946e27a53298",
+      "recorded_at": "2026-11-16T22:18:24.883+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "our controlling 7.8.3 checklist and 7.8.4 tax guidance are unavailable"
+        },
+        {
+          "source_id": "t7",
+          "quote": "The internal approver, storage details and role titles remain unconfirmed."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "Whether the process differs by client, security, or other circumstance is not established; the reported client election alone does not establish a variant.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "382cf736d2353004",
+      "recorded_at": "2026-11-16T22:15:48.240+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "The client can elect one"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "pain_points",
+      "text": "Other than the operational hold associated with unavailable guidance, recurring pain points or workarounds are not established.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "7ea1f8c9e63d0ad8",
+      "recorded_at": "2026-11-16T22:15:48.240+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "execution is on operational hold because our controlling 7.8.3 checklist and 7.8.4 tax guidance are unavailable."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "risk",
+      "text": "The write-up does not describe actual client or investor actions while waiting; the participant does not know the financial impact of a longer hold.",
+      "evidence_turns": [
+        "t9",
+        "t11"
+      ],
+      "history_ref": "43267ba108ae02e8",
+      "recorded_at": "2026-11-16T22:20:27.291+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "The write-up doesn't describe what the client or investors actually did while waiting"
+        },
+        {
+          "source_id": "t11",
+          "quote": "I don't know the financial impact of a longer hold."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "Detailed interfaces for notices, delivery tracking and Accounting's closeout updates remain open, as do other process dependencies.",
+      "evidence_turns": [
+        "t5",
+        "t7"
+      ],
+      "history_ref": "657e0e0279fbfe0b",
+      "recorded_at": "2026-11-16T22:18:24.883+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "Investor Services issues client-approved notices via FA-01. The transfer agent or custodian tracks delivery per investor"
+        },
+        {
+          "source_id": "t7",
+          "quote": "Accounting updates the GL, non-cash proceeds, capital accounts, carry and cost/basis."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "Data sources, records and systems beyond the reported FA-01 notice route remain unestablished.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "b8e3f6e52d4a0e5b",
+      "recorded_at": "2026-11-16T22:17:53.414+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "Investor Services issues client-approved notices via FA-01."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "volume",
+      "text": "The number of distributions, frequency, and effort are not established.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "11c8a23082485b9a",
+      "recorded_at": "2026-11-16T22:15:48.240+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "The process is an in-kind distribution of securities."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The contents of the unavailable checklist and tax guidance remain unverified.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "b2812bd26b0adbb8",
+      "recorded_at": "2026-11-16T22:17:53.415+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "our controlling 7.8.3 checklist and 7.8.4 tax guidance are unavailable"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "purpose",
+      "text": "The designed process distributes securities in kind, with whole shares going to investors.",
+      "evidence_turns": [
+        "t1",
+        "t5"
+      ],
+      "history_ref": "a523d182628f0081",
+      "recorded_at": "2026-11-16T22:17:53.415+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "an in-kind distribution of securities"
+        },
+        {
+          "source_id": "t5",
+          "quote": "Whole shares go to investors"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "The client can elect an in-kind distribution and gives written direction; the election does not authorize live execution while the hold remains.",
+      "evidence_turns": [
+        "t1",
+        "t3"
+      ],
+      "history_ref": "cc38398e71f18736",
+      "recorded_at": "2026-11-16T22:17:53.416+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "The client can elect one"
+        }
+      ],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "accountable",
+      "text": "GPFS coordinates; client counsel owns legal conclusions and the client tax adviser owns tax conclusions.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "0621faf616336404",
+      "recorded_at": "2026-11-16T22:17:53.416+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "GPFS coordinates, client counsel owns legal conclusions and the client tax adviser owns tax conclusions."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The designed procedure documents authority and conditions, timing, eligible lots and adviser instructions before valuation and allocation.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "5790ba28717459d1",
+      "recorded_at": "2026-11-16T22:17:53.416+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "The designed procedure documents authority and conditions, timing, eligible lots and adviser instructions before valuation and allocation."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "Under the design, allocation remains provisional until final pricing and client approval. Whole shares go to investors; a fractional remainder stays open without default rounding.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "131dec365f69aa43",
+      "recorded_at": "2026-11-16T22:17:53.416+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "allocation is provisional until final pricing and client approval. Whole shares go to investors and a fractional remainder stays open with no default rounding."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "Counsel and the investment bank clear the legal package in writing. Investor Services issues client-approved notices via FA-01, and the transfer agent or custodian tracks delivery per investor.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "5f6aa1fd82f49f97",
+      "recorded_at": "2026-11-16T22:17:53.416+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "Counsel and the investment bank clear the legal package in writing. Investor Services issues client-approved notices via FA-01. The transfer agent or custodian tracks delivery per investor"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The documented design requires final pricing and client approval before allocation ceases to be provisional; counsel and the investment bank clear the legal package in writing.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "77460069a3e14d6d",
+      "recorded_at": "2026-11-16T22:17:53.417+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "allocation is provisional until final pricing and client approval"
+        },
+        {
+          "source_id": "t5",
+          "quote": "Counsel and the investment bank clear the legal package in writing."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "The reported design sends whole shares to investors and leaves fractional remainders open without default rounding.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "93daebee81d91a0a",
+      "recorded_at": "2026-11-16T22:17:53.417+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "Whole shares go to investors and a fractional remainder stays open with no default rounding."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "The design has the transfer agent or custodian track delivery per investor; fractional remainders remain open.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "05cd21464e7d81d4",
+      "recorded_at": "2026-11-16T22:17:53.417+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "a fractional remainder stays open"
+        },
+        {
+          "source_id": "t5",
+          "quote": "The transfer agent or custodian tracks delivery per investor"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "The subsequent handling of a fractional remainder left open under the design remains unclear.",
+      "evidence_turns": [
+        "t5",
+        "t7"
+      ],
+      "history_ref": "76d43bf05c7189a5",
+      "recorded_at": "2026-11-16T22:18:24.883+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "a fractional remainder stays open with no default rounding"
+        },
+        {
+          "source_id": "t7",
+          "quote": "share/value and fractional remainders must reconcile before completion"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The reported design uses written client direction, a legal package cleared in writing, and client-approved investor notices.",
+      "evidence_turns": [
+        "t3",
+        "t5"
+      ],
+      "history_ref": "6c6b8ffd9f6ace72",
+      "recorded_at": "2026-11-16T22:17:53.417+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "The client gives written direction."
+        },
+        {
+          "source_id": "t5",
+          "quote": "clear the legal package in writing. Investor Services issues client-approved notices via FA-01."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "Investor Services issues client-approved notices via FA-01 under the documented design.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "5c427168b167824a",
+      "recorded_at": "2026-11-16T22:18:24.883+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "Investor Services issues client-approved notices via FA-01."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "pain_points",
+      "text": "The unavailable checklist and tax guidance block execution even when a client elects a distribution.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "87199b9d308d3640",
+      "recorded_at": "2026-11-16T22:17:53.418+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "The missing checklist and guidance block execution, even if there is a client election."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "The nature of FA-01 is not established.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "3c08b3c3e16e5331",
+      "recorded_at": "2026-11-16T22:18:24.885+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "Investor Services issues client-approved notices via FA-01."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "In the designed closeout, every investor delivery must be confirmed or explicitly open, and share/value and fractional remainders must reconcile before completion. This is not a completed event.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "f9b7d8fa26ae3282",
+      "recorded_at": "2026-11-16T22:18:24.885+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "Every investor delivery must be confirmed or explicitly open; share/value and fractional remainders must reconcile before completion."
+        },
+        {
+          "source_id": "t7",
+          "quote": "This is the designed closeout, not a completed event."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "In the designed closeout, Accounting updates the GL, non-cash proceeds, capital accounts, carry and cost/basis. Every investor delivery must be confirmed or explicitly open, and share/value and fractional remainders must reconcile before completion.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "750ef28a33c734e0",
+      "recorded_at": "2026-11-16T22:18:24.885+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "Every investor delivery must be confirmed or explicitly open; share/value and fractional remainders must reconcile before completion. Accounting updates the GL, non-cash proceeds, capital accounts, carry and cost/basis."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The designed closeout retains approvals, checklist and preparer/reviewer sign-off in a binder.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "60b1258a38a6b865",
+      "recorded_at": "2026-11-16T22:18:24.885+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "We keep approvals, checklist and preparer/reviewer sign-off in the binder."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The designed closeout uses a binder for approvals, checklist and preparer/reviewer sign-off; its storage details are unconfirmed.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "ffb2f92ca40eb460",
+      "recorded_at": "2026-11-16T22:18:24.885+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "We keep approvals, checklist and preparer/reviewer sign-off in the binder. The internal approver, storage details and role titles remain unconfirmed."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "Accounting updates the GL, non-cash proceeds, capital accounts, carry and cost/basis as part of the designed closeout.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "eadcd0783d80f592",
+      "recorded_at": "2026-11-16T22:18:24.885+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "Accounting updates the GL, non-cash proceeds, capital accounts, carry and cost/basis."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "While the operational hold is in force, instructions must not be sent and securities must not be delivered.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "129da8cba911f724",
+      "recorded_at": "2026-11-16T22:19:16.788+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "we must not send instructions or deliver securities while the operational hold is in force"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "A client election alone does not satisfy the missing legal, tax and controlled-checklist requirements.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "6f261bfad9f1e8a2",
+      "recorded_at": "2026-11-16T22:19:16.788+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "A client election alone does not satisfy the missing legal, tax and controlled-checklist requirements."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "pain_points",
+      "text": "The write-up does not describe what the client or investors actually did while waiting or how long the hold lasted.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "4d3a0d0f688e0fbf",
+      "recorded_at": "2026-11-16T22:19:16.790+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "The write-up doesn't describe what the client or investors actually did while waiting, or how long it lasted."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "risk",
+      "text": "The participant reports that an incorrect lot can irreversibly change basis and holding period.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "790bd9aff07a957b",
+      "recorded_at": "2026-11-16T22:20:27.291+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "An incorrect lot can irreversibly change basis and holding period."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "risk",
+      "text": "Missing securities clearance blocks release; insecure transfer of tax identifiers presents a confidentiality risk.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "8602e5294c957ce9",
+      "recorded_at": "2026-11-16T22:20:27.291+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "Missing securities clearance blocks release; insecure transfer of tax identifiers is a confidentiality risk."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "pain_points",
+      "text": "The participant cannot confirm a workaround or an executed event from the source.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "2f23160a2d6d87b7",
+      "recorded_at": "2026-11-16T22:20:27.291+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "I can't confirm any workaround, elapsed time or executed event from the source."
+        }
+      ],
+      "unverified": []
+    }
+  ],
+  "fact_history": [
+    {
+      "topic": "materials",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:15:48.240+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "94d7d510f239174d"
+    },
+    {
+      "topic": "rules",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:15:48.240+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "cdefdf92c2d656cd"
+    },
+    {
+      "topic": "lifecycle",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:15:48.240+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "ae110aac9a494da0"
+    },
+    {
+      "topic": "lifecycle",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:17:53.414+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "73452b6d89a5a551"
+    },
+    {
+      "topic": "trigger",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:15:48.240+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "ee5c771b4eb320f0"
+    },
+    {
+      "topic": "checks",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:15:48.240+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "87e5dc2864f48b81"
+    },
+    {
+      "topic": "checks",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:17:53.414+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "264ffedcbe9c235b"
+    },
+    {
+      "topic": "purpose",
+      "state": "withdrawn",
+      "recorded_at": "2026-11-16T22:15:48.240+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "9593f20f69ae7a68"
+    },
+    {
+      "topic": "risk",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:15:48.240+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "ce7c763653924ba3"
+    },
+    {
+      "topic": "risk",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:19:16.788+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "81a7b144da2c6a62"
+    },
+    {
+      "topic": "connections",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:15:48.240+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "6449d75789a5303f"
+    },
+    {
+      "topic": "connections",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:17:53.414+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "5a467717dedfdcaa"
+    },
+    {
+      "topic": "data_systems",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:15:48.240+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "df2eaef64a95da48"
+    },
+    {
+      "topic": "completion",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:17:53.417+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "a7fc52e6ef95eb8c"
+    },
+    {
+      "topic": "data_systems",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:17:53.418+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "6a75de0980488360"
+    }
+  ],
+  "workflow": {
+    "connections": [
+      {
+        "evidence_turns": [
+          "t1"
+        ],
+        "from": "S1",
+        "label": "Election alone does not lift hold",
+        "to": "S2"
+      },
+      {
+        "evidence_turns": [
+          "t3"
+        ],
+        "from": "S3",
+        "label": "Designed order",
+        "to": "S4"
+      },
+      {
+        "evidence_turns": [
+          "t5"
+        ],
+        "from": "S4",
+        "label": "Final pricing and client approval",
+        "to": "S5"
+      },
+      {
+        "evidence_turns": [
+          "t7"
+        ],
+        "from": "S8",
+        "label": "All deliveries confirmed or explicitly open AND share/value and fractional remainders reconciled",
+        "to": "S12"
+      },
+      {
+        "evidence_turns": [
+          "t7"
+        ],
+        "from": "S9",
+        "label": "All deliveries confirmed or explicitly open AND share/value and fractional remainders reconciled",
+        "to": "S12"
+      }
+    ],
+    "open_questions": [
+      "How does step S6 (Clear legal package) connect to the rest of this process, if at all?",
+      "How does step S7 (Issue investor notices) connect to the rest of this process, if at all?",
+      "How does step S10 (Update accounting records) connect to the rest of this process, if at all?",
+      "How does step S11 (Retain closeout evidence) connect to the rest of this process, if at all?",
+      "Are the routes containing S1 (Give written direction) and S3 (Document distribution conditions) separate, or is there a reported handoff between them?",
+      "Are the routes containing S1 (Give written direction) and S8 (Track investor deliveries) separate, or is there a reported handoff between them?",
+      "UNKNOWN: What happens to a fractional remainder after it remains open?",
+      "UNKNOWN: What conditions and authority lift the hold, and how is readiness communicated? Missing securities clearance blocks release.",
+      "UNKNOWN: What is the required order and dependency between final allocation, legal clearance, notices, delivery, accounting and binder sign-off?",
+      "UNKNOWN: What is the order, if any, between confirming or explicitly leaving investor deliveries open and reconciling share/value and fractional remainders? Both are required before completion.",
+      "UNKNOWN: Who receives written direction and is accountable for the overall result? What are the internal approver and preparer/reviewer role titles?",
+      "UNKNOWN: What do reviewers check, what evidence do they retain, and how are failed checks, delays and exceptions handled?",
+      "UNKNOWN: Which entities and clients are in scope, and is the reported design general GPFS practice or client-specific? What is the basis?",
+      "UNKNOWN: How are valuation and allocation calculated, where are they recorded, and which records are authoritative?",
+      "UNKNOWN: Who interprets conflicting legal, tax or checklist requirements, and where are interpretations and overrides recorded?",
+      "UNKNOWN: What are the cadence, deadlines, volumes, variations, effort and applicable charging or removal constraints?",
+      "UNKNOWN: Where are the binder and other materials stored, and can the unavailable checklist and tax guidance be obtained and reviewed?",
+      "An incorrect lot can irreversibly change basis and holding period; insecure transfer of tax identifiers poses a confidentiality risk. The financial impact of a longer hold, any workaround and elapsed time are UNKNOWN."
+    ],
+    "steps": [
+      {
+        "actor": "Client",
+        "completion_criteria": "UNKNOWN",
+        "control_type": [
+          "none_reported"
+        ],
+        "data_origin": "Client",
+        "description": "A client may elect an in-kind distribution and gives written direction. No executed event is confirmed.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "t1",
+          "t3",
+          "t11"
+        ],
+        "handoff": "Recipient UNKNOWN",
+        "id": "S1",
+        "input": "Client election",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "t3"
+            ],
+            "field": "responsible",
+            "text": "The client gives written direction."
+          }
+        ],
+        "output": "Written direction",
+        "parent_process": "UNKNOWN",
+        "rule_source_ref": "UNKNOWN",
+        "system": "UNKNOWN",
+        "title": "Give written direction",
+        "type": "activity"
+      },
+      {
+        "actor": "UNKNOWN",
+        "completion_criteria": "Conditions for lifting the hold are UNKNOWN",
+        "control_type": [],
+        "data_origin": "Participant's account of unavailable materials",
+        "description": "Execution is on operational hold because the controlling 7.8.3 checklist and 7.8.4 tax guidance are unavailable. Instructions must not be sent and securities must not be delivered while the hold is in force.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "t1",
+          "t3",
+          "t9"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S2",
+        "input": "Unavailable checklist and tax guidance",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "t9"
+            ],
+            "field": "control",
+            "text": "The practical effect is we must not send instructions or deliver securities while the operational hold is in force."
+          },
+          {
+            "evidence_turns": [
+              "t9"
+            ],
+            "field": "exception",
+            "text": "A client election alone does not satisfy the missing legal, tax and controlled-checklist requirements."
+          }
+        ],
+        "output": "Execution held",
+        "parent_process": "UNKNOWN",
+        "rule_source_ref": "7.8.3 checklist and 7.8.4 tax guidance; unavailable",
+        "system": "UNKNOWN",
+        "title": "Hold execution",
+        "type": "wait"
+      },
+      {
+        "actor": "GPFS coordinates; client counsel and client tax adviser own their respective conclusions",
+        "completion_criteria": "UNKNOWN",
+        "control_type": [
+          "none_reported"
+        ],
+        "data_origin": "Client and advisers; details UNKNOWN",
+        "description": "In the reported design, document authority and conditions, timing, eligible lots and adviser instructions before valuation and allocation. Live execution is not authorized.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "t3",
+          "t5"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S3",
+        "input": "Written client direction; other inputs UNKNOWN",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "t3"
+            ],
+            "field": "responsible",
+            "text": "GPFS coordinates"
+          },
+          {
+            "evidence_turns": [
+              "t3"
+            ],
+            "field": "accountable",
+            "text": "client counsel owns legal conclusions"
+          },
+          {
+            "evidence_turns": [
+              "t3"
+            ],
+            "field": "accountable",
+            "text": "the client tax adviser owns tax conclusions"
+          }
+        ],
+        "output": "Documented conditions and instructions",
+        "parent_process": "Designed DIK; execution on hold",
+        "rule_source_ref": "Participant's account of designed procedure; exact source UNKNOWN",
+        "system": "UNKNOWN",
+        "title": "Document distribution conditions",
+        "type": "activity"
+      },
+      {
+        "actor": "UNKNOWN",
+        "completion_criteria": "Valuation and provisional allocation completed; final pricing and client approval are required to end provisional status.",
+        "control_type": [
+          "client_approval"
+        ],
+        "data_origin": "UNKNOWN",
+        "description": "The reported design provides for valuation and allocation. Allocation is provisional until final pricing and client approval.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "t3",
+          "t5"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S4",
+        "input": "Eligible lots and other inputs UNKNOWN",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "t5"
+            ],
+            "field": "control",
+            "text": "Under the documented design, allocation is provisional until final pricing and client approval."
+          }
+        ],
+        "output": "Provisional allocation",
+        "parent_process": "Designed DIK; execution on hold",
+        "rule_source_ref": "Participant's account of designed procedure",
+        "system": "UNKNOWN",
+        "title": "Value and allocate securities",
+        "type": "activity"
+      },
+      {
+        "actor": "Client approves; other roles UNKNOWN",
+        "completion_criteria": "Final pricing and client approval",
+        "control_type": [
+          "client_approval"
+        ],
+        "data_origin": "Pricing source UNKNOWN",
+        "description": "Under the reported design, final pricing and client approval end provisional allocation. Whole shares go to investors; a fractional remainder stays open without default rounding.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "t5"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S5",
+        "input": "Provisional allocation and final pricing",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "t5"
+            ],
+            "field": "control",
+            "text": "Under the documented design, allocation is provisional until final pricing and client approval."
+          },
+          {
+            "evidence_turns": [
+              "t5"
+            ],
+            "field": "exception",
+            "text": "Whole shares go to investors and a fractional remainder stays open with no default rounding."
+          }
+        ],
+        "output": "Approved allocation and open fractional remainder",
+        "parent_process": "Designed DIK; execution on hold",
+        "rule_source_ref": "Participant's account of designed procedure",
+        "system": "UNKNOWN",
+        "title": "Finalize allocation",
+        "type": "activity"
+      },
+      {
+        "actor": "Client counsel and investment bank",
+        "completion_criteria": "Written clearance by counsel and investment bank",
+        "control_type": [
+          "none_reported"
+        ],
+        "data_origin": "UNKNOWN",
+        "description": "The reported design calls for counsel and the investment bank to clear the legal package in writing.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "t5"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S6",
+        "input": "Legal package",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "t5"
+            ],
+            "field": "responsible",
+            "text": "Counsel and the investment bank clear the legal package in writing."
+          }
+        ],
+        "output": "Written clearance",
+        "parent_process": "Designed DIK; execution on hold",
+        "rule_source_ref": "Participant's account of designed procedure",
+        "system": "UNKNOWN",
+        "title": "Clear legal package",
+        "type": "activity"
+      },
+      {
+        "actor": "Investor Services",
+        "completion_criteria": "Notices issued",
+        "control_type": [
+          "client_approval"
+        ],
+        "data_origin": "Notice preparer UNKNOWN",
+        "description": "In the reported design, Investor Services issues client-approved notices via FA-01.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "t5"
+        ],
+        "handoff": "Recipient and readiness notification UNKNOWN",
+        "id": "S7",
+        "input": "Client-approved notices",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "t5"
+            ],
+            "field": "responsible",
+            "text": "Investor Services issues client-approved notices via FA-01."
+          },
+          {
+            "evidence_turns": [
+              "t5"
+            ],
+            "field": "system",
+            "text": "Investor Services issues client-approved notices via FA-01."
+          },
+          {
+            "evidence_turns": [
+              "t5"
+            ],
+            "field": "control",
+            "text": "Investor Services issues client-approved notices via FA-01."
+          }
+        ],
+        "output": "Investor notices",
+        "parent_process": "Designed DIK; execution on hold",
+        "rule_source_ref": "Participant's account of designed procedure",
+        "system": "FA-01",
+        "title": "Issue investor notices",
+        "type": "activity"
+      },
+      {
+        "actor": "Transfer agent or custodian",
+        "completion_criteria": "Each delivery confirmed or explicitly open for completion",
+        "control_type": [
+          "none_reported"
+        ],
+        "data_origin": "Transfer agent or custodian",
+        "description": "The reported design has the transfer agent or custodian track delivery per investor. No live delivery is authorized during the hold.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "t5",
+          "t7",
+          "t9"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S8",
+        "input": "Investor delivery information",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "t5"
+            ],
+            "field": "responsible",
+            "text": "The transfer agent or custodian tracks delivery per investor; no live execution is authorized now."
+          },
+          {
+            "evidence_turns": [
+              "t7"
+            ],
+            "field": "control",
+            "text": "Every investor delivery must be confirmed or explicitly open; share/value and fractional remainders must reconcile before completion."
+          }
+        ],
+        "output": "Delivery status per investor",
+        "parent_process": "Designed DIK; execution on hold",
+        "rule_source_ref": "Participant's account of designed closeout",
+        "system": "UNKNOWN",
+        "title": "Track investor deliveries",
+        "type": "activity"
+      },
+      {
+        "actor": "UNKNOWN",
+        "completion_criteria": "Share/value and fractional remainders reconcile",
+        "control_type": [],
+        "data_origin": "UNKNOWN",
+        "description": "In the designed closeout, share/value and fractional remainders must reconcile before completion.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "t7"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S9",
+        "input": "Share, value and fractional remainder information",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "t7"
+            ],
+            "field": "control",
+            "text": "Every investor delivery must be confirmed or explicitly open; share/value and fractional remainders must reconcile before completion."
+          }
+        ],
+        "output": "Reconciliation",
+        "parent_process": "Designed DIK; execution on hold",
+        "rule_source_ref": "Participant's account of designed closeout",
+        "system": "UNKNOWN",
+        "title": "Reconcile distribution",
+        "type": "activity"
+      },
+      {
+        "actor": "Accounting",
+        "completion_criteria": "UNKNOWN",
+        "control_type": [
+          "none_reported"
+        ],
+        "data_origin": "UNKNOWN",
+        "description": "The designed closeout updates the GL, non-cash proceeds, capital accounts, carry and cost/basis.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "t7"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S10",
+        "input": "Distribution information; details UNKNOWN",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "t7"
+            ],
+            "field": "responsible",
+            "text": "Accounting updates the GL, non-cash proceeds, capital accounts, carry and cost/basis."
+          }
+        ],
+        "output": "Updated accounting records",
+        "parent_process": "Designed DIK; execution on hold",
+        "rule_source_ref": "Participant's account of designed closeout",
+        "system": "UNKNOWN",
+        "title": "Update accounting records",
+        "type": "activity"
+      },
+      {
+        "actor": "Preparer and reviewer sign off; other roles UNKNOWN",
+        "completion_criteria": "UNKNOWN",
+        "control_type": [],
+        "data_origin": "UNKNOWN",
+        "description": "The designed closeout retains approvals, the checklist and preparer/reviewer sign-off in the binder. Internal approver and role titles remain unconfirmed.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "t7"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S11",
+        "input": "Approvals, checklist and sign-off",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "t7"
+            ],
+            "field": "control",
+            "text": "We keep approvals, checklist and preparer/reviewer sign-off in the binder."
+          }
+        ],
+        "output": "Closeout evidence in binder",
+        "parent_process": "Designed DIK; execution on hold",
+        "rule_source_ref": "Participant's account of designed closeout",
+        "system": "Binder; storage location UNKNOWN",
+        "title": "Retain closeout evidence",
+        "type": "activity"
+      },
+      {
+        "actor": "UNKNOWN",
+        "completion_criteria": "All deliveries confirmed or explicitly open; required amounts reconcile",
+        "control_type": [],
+        "data_origin": "UNKNOWN",
+        "description": "Completion requires each investor delivery to be confirmed or explicitly open, and share/value and fractional remainders to reconcile. This is a designed condition, not a completed event.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "t7"
+        ],
+        "handoff": "Downstream consumer UNKNOWN",
+        "id": "S12",
+        "input": "Delivery statuses and reconciliations",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "t7"
+            ],
+            "field": "control",
+            "text": "Every investor delivery must be confirmed or explicitly open; share/value and fractional remainders must reconcile before completion."
+          }
+        ],
+        "output": "Designed closeout completion",
+        "parent_process": "Designed DIK; execution on hold",
+        "rule_source_ref": "Participant's account of designed closeout",
+        "system": "UNKNOWN",
+        "title": "Complete designed closeout",
+        "type": "end"
+      }
+    ],
+    "title": "Distributions In Kind"
+  },
+  "capture_provenance": {
+    "method": "document_simulation",
+    "participant_confirmed": false,
+    "process_owner_approved": false,
+    "source_documents": [
+      {
+        "filename": "IP1-export.pdf",
+        "sha256": "d0f89ee7c7cc8ffbcd39c268b47b765888105e588f60199106356ca31df177c1"
+      }
+    ]
+  },
+  "closure": {
+    "asked": false,
+    "confirmed": false
+  }
+}

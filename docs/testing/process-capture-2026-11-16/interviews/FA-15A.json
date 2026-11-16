@@ -1,0 +1,1192 @@
+{
+  "schema_version": 1,
+  "context": {
+    "process_name": "Digital Binder Maintenance",
+    "objective": "Document how this process works, including controls and what remains unresolved."
+  },
+  "turns": [
+    {
+      "id": "t1",
+      "role": "user",
+      "text": "The Fund Accountant files support in a quarterly digital binder as records are created. Support must be filed before a JE affecting cost, income, expense or capital is posted. The Controller reviews binder completeness each quarter."
+    },
+    {
+      "id": "t2",
+      "role": "assistant",
+      "text": "What does the Controller check to determine whether the binder is complete?"
+    },
+    {
+      "id": "t3",
+      "role": "user",
+      "text": "The Controller checks that the binder is for the correct fund/quarter, categories and JE support are filed, all active accounts have H/V coverage and all checks are zero. The Controller independently reruns the Check of Checks and signs; marked tie-outs and internal reviews stay internal. A workbook change invalidates the previous check: regenerate, rerun and re-sign the summary."
+    },
+    {
+      "id": "t4",
+      "role": "assistant",
+      "text": "What happens when a check is not zero or required support is missing?"
+    },
+    {
+      "id": "t5",
+      "role": "user",
+      "text": "Missing support blocks the affected posting; missing or nonzero checks block quarterly completion. Exceptions must be resolved or escalated for an approved decision. No emergency override or exception deadline is documented. The Controller's completeness review is required before close. The Director performs final close review under FA-11 but exception approval authority is not specified."
+    },
+    {
+      "id": "t6",
+      "role": "assistant",
+      "text": "What happens when an exception is escalated for an approved decision, and how is that decision recorded?"
+    },
+    {
+      "id": "t7",
+      "role": "user",
+      "text": "A support exception has to be resolved or have documented approval to remain open. The binder checklist and exception resolution are kept as evidence; the record doesn't give a general emergency exception approver, timeline or override procedure. Without that decision the quarter remains open. At close the Controller's documented completeness review and locked reviewed binder make the records available to FA-15B for audit support."
+    },
+    {
+      "id": "t8",
+      "role": "assistant",
+      "text": "What does H/V coverage mean in the binder review?"
+    },
+    {
+      "id": "t9",
+      "role": "user",
+      "text": "H/V means horizontal and vertical checks defined in the quarterly workbook. The binder review checks coverage of every active general ledger account and that every result is zero; it retains the signed check summary PDF under CC. A zero balance without the required account-level checks doesn't establish that support is complete. The binder stores evidence; posting and approval still occur in the source system."
+    },
+    {
+      "id": "t10",
+      "role": "assistant",
+      "text": "What does the Check of Checks validate in the quarterly workbook?"
+    },
+    {
+      "id": "t11",
+      "role": "user",
+      "text": "It verifies the two controls we just discussed: every active GL account is covered by the prescribed checks and every check equals zero. The preparer runs it, the Controller independently reruns it and the signed final summary is filed as a PDF under CC. Those checks and the approved support exceptions are evidence for locking the quarter's binder and sending it to FA-15B."
+    },
+    {
+      "id": "t12",
+      "role": "assistant",
+      "text": "Does binder maintenance follow the same process across funds, or are there reported differences?"
+    }
+  ],
+  "memo_findings": [
+    {
+      "answer": "The process is called “Digital Binder Maintenance.”",
+      "evidence_turns": [
+        "context"
+      ],
+      "key": "name",
+      "status": "captured"
+    },
+    {
+      "answer": "Maintain a quarterly digital binder containing support for records and qualifying journal entries.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "key": "purpose",
+      "status": "captured"
+    },
+    {
+      "answer": "The event initiating binder maintenance and any fixed calendar deadlines are not specified.\nThe Controller's completeness review is required before close; support must be filed before a qualifying JE is posted.",
+      "evidence_turns": [
+        "t1",
+        "t5"
+      ],
+      "key": "trigger",
+      "status": "partial"
+    },
+    {
+      "answer": "For completeness, the Controller checks the correct fund and quarter, filed categories and JE support, H/V coverage for all active accounts, and zero results for all checks. The Controller independently reruns the Check of Checks and signs.\nMissing or nonzero checks block quarterly completion, and the Controller's completeness review is required before close.\nAt close, the Controller's documented completeness review and the locked reviewed binder make the records available to FA-15B for audit support.\nThe checks and approved support exceptions provide evidence for locking the quarter's binder and sending it to FA-15B.",
+      "evidence_turns": [
+        "t3",
+        "t5",
+        "t7",
+        "t11"
+      ],
+      "key": "completion",
+      "status": "partial"
+    },
+    {
+      "answer": "The role accountable for the overall binder-maintenance result is not identified; the Fund Accountant is identified as filing support and the Controller as reviewing completeness.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "key": "accountable",
+      "status": "partial"
+    },
+    {
+      "answer": "The Fund Accountant files support in a quarterly digital binder as records are created. Support must be filed before posting a JE affecting cost, income, expense, or capital.\nA workbook change invalidates the previous check; the summary is regenerated, the check rerun and the summary re-signed.\nMissing support blocks the affected posting. Missing or nonzero checks block quarterly completion; exceptions must be resolved or escalated for an approved decision.\nA support exception must be resolved or have documented approval to remain open. Without that decision the quarter remains open.\nThe checks and approved support exceptions are evidence for locking the quarter's binder and sending it to FA-15B.",
+      "evidence_turns": [
+        "t1",
+        "t3",
+        "t5",
+        "t7",
+        "t11"
+      ],
+      "key": "lifecycle",
+      "status": "partial"
+    },
+    {
+      "answer": "Each quarter, the Controller reviews binder completeness.\nThe Controller checks the fund and quarter, filed categories and JE support, H/V coverage of all active accounts, and that all checks are zero; the Controller independently reruns the Check of Checks and signs.\nA workbook change invalidates the previous check, requiring regeneration, rerunning and re-signing of the summary.\nThe Check of Checks verifies that every active GL account is covered by the prescribed checks and every check equals zero. The preparer runs it, and the Controller independently reruns it.\nExceptions must be resolved or escalated for an approved decision. The Director performs final close review under FA-11.\nException approval authority is not specified; no emergency override or exception deadline is documented.\nH/V means horizontal and vertical checks defined in the quarterly workbook. Binder review checks coverage for every active general ledger account and that every result is zero; a zero balance without the required account-level checks does not establish complete support.",
+      "evidence_turns": [
+        "t1",
+        "t3",
+        "t11",
+        "t5",
+        "t9"
+      ],
+      "key": "checks",
+      "status": "partial"
+    },
+    {
+      "answer": "",
+      "evidence_turns": [],
+      "key": "variations",
+      "status": "unknown"
+    },
+    {
+      "answer": "",
+      "evidence_turns": [],
+      "key": "pain_points",
+      "status": "unknown"
+    },
+    {
+      "answer": "Missing support can block the affected posting, while missing or nonzero checks can block quarterly completion.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "key": "risk",
+      "status": "partial"
+    },
+    {
+      "answer": "A quarterly digital binder holds support filed as records are created, including JE support.\nThe full range of support artifacts and the binder's location remain unspecified.\nA workbook and signed summary are used in the check; marked tie-outs and internal reviews stay internal.\nFA-11 is referenced for the Director's final close review; the document was not supplied for this capture.\nThe binder checklist and exception resolution are kept as evidence.\nThe signed check summary PDF is retained under CC as binder review evidence.",
+      "evidence_turns": [
+        "t1",
+        "t3",
+        "t9",
+        "t5",
+        "t7"
+      ],
+      "key": "materials",
+      "status": "partial"
+    },
+    {
+      "answer": "The Controller checks that the binder corresponds to the correct fund and quarter.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "key": "scope",
+      "status": "partial"
+    },
+    {
+      "answer": "Support must be filed before posting a JE affecting cost, income, expense or capital.\nThe source or authority for the support-before-posting requirement is not identified.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "key": "rules",
+      "status": "partial"
+    },
+    {
+      "answer": "Binder support filing is required before a qualifying JE is posted; the process responsible for posting the JE is not named.\nThe Controller's binder completeness review is required before close. The Director performs final close review under FA-11.\nAt close, the documented completeness review and locked reviewed binder make records available to FA-15B for audit support.",
+      "evidence_turns": [
+        "t1",
+        "t5",
+        "t7"
+      ],
+      "key": "connections",
+      "status": "partial"
+    },
+    {
+      "answer": "The digital binder platform, storage location, and how support is entered or filed are not specified.\nThe binder stores evidence; posting and approval occur in the source system.",
+      "evidence_turns": [
+        "t1",
+        "t9"
+      ],
+      "key": "data_systems",
+      "status": "partial"
+    },
+    {
+      "answer": "The number of records or JEs handled and the effort required are not specified.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "key": "volume",
+      "status": "partial"
+    }
+  ],
+  "coverage": [
+    {
+      "key": "name",
+      "label": "Name & other names",
+      "status": "partial"
+    },
+    {
+      "key": "purpose",
+      "label": "Purpose & result",
+      "status": "partial"
+    },
+    {
+      "key": "trigger",
+      "label": "Start, cadence & deadlines",
+      "status": "partial"
+    },
+    {
+      "key": "completion",
+      "label": "Finished condition",
+      "status": "partial"
+    },
+    {
+      "key": "accountable",
+      "label": "Accountability",
+      "status": "partial"
+    },
+    {
+      "key": "lifecycle",
+      "label": "Items, stages & handoffs",
+      "status": "partial"
+    },
+    {
+      "key": "checks",
+      "label": "Checks, approvals & proof",
+      "status": "partial"
+    },
+    {
+      "key": "variations",
+      "label": "Variations and conditions",
+      "status": "missing"
+    },
+    {
+      "key": "pain_points",
+      "label": "Manual work & pain",
+      "status": "missing"
+    },
+    {
+      "key": "risk",
+      "label": "Consequences of failure",
+      "status": "partial"
+    },
+    {
+      "key": "materials",
+      "label": "Existing materials",
+      "status": "partial"
+    },
+    {
+      "key": "scope",
+      "label": "Scope & entity context",
+      "status": "partial"
+    },
+    {
+      "key": "rules",
+      "label": "Business rules & lineage",
+      "status": "partial"
+    },
+    {
+      "key": "connections",
+      "label": "Connected processes",
+      "status": "partial"
+    },
+    {
+      "key": "data_systems",
+      "label": "Data & systems",
+      "status": "partial"
+    },
+    {
+      "key": "volume",
+      "label": "Volume & effort",
+      "status": "partial"
+    }
+  ],
+  "focus": "Running the Check of Checks",
+  "summary": "The preparer runs the Check of Checks, which verifies active-account coverage and zero results; the Controller independently reruns it. The checks and approved support exceptions support locking the binder and sending it to FA-15B.",
+  "parking_lot": [],
+  "taxonomy": [
+    {
+      "evidence_turns": [
+        "t1"
+      ],
+      "facet": "entity_type",
+      "note": "Fund context is reported through the Fund Accountant and JEs affecting fund-related categories; scope beyond that is not established.",
+      "value": "fund"
+    },
+    {
+      "evidence_turns": [
+        "t1"
+      ],
+      "facet": "functional_area",
+      "note": "Reported activities include Fund Accountant support filing and JE-related support requirements.",
+      "value": "fund_accounting"
+    },
+    {
+      "evidence_turns": [
+        "context"
+      ],
+      "facet": "process_level",
+      "note": "Captured as the named recurring work, Digital Binder Maintenance.",
+      "value": "process"
+    },
+    {
+      "evidence_turns": [
+        "t1"
+      ],
+      "facet": "system",
+      "note": "A digital binder is reported, but no specific platform is identified.",
+      "value": "other"
+    },
+    {
+      "evidence_turns": [
+        "t1",
+        "t3"
+      ],
+      "facet": "control_type",
+      "note": "The Controller's quarterly completeness review and independent rerun are participant-reported.",
+      "value": "gpfs_supervisory"
+    },
+    {
+      "evidence_turns": [
+        "t5"
+      ],
+      "facet": "control_type",
+      "note": "Participant reports resolution or escalation for an approved decision; approval authority is unspecified.",
+      "value": "exception_escalation"
+    },
+    {
+      "evidence_turns": [
+        "t11"
+      ],
+      "facet": "control_type",
+      "note": "The participant reports that the preparer runs the Check of Checks before the Controller's independent rerun.",
+      "value": "gpfs_operational"
+    }
+  ],
+  "connections_out": [
+    {
+      "condition": "Support must be filed before posting a JE affecting cost, income, expense or capital; missing support blocks the affected posting.",
+      "counterpart": "Journal entry posting",
+      "evidence_turns": [
+        "t1",
+        "t5"
+      ],
+      "relationship_type": "provides_input_to"
+    },
+    {
+      "condition": "The Controller's completeness review is required before close.",
+      "counterpart": "Close",
+      "evidence_turns": [
+        "t5"
+      ],
+      "relationship_type": "provides_input_to"
+    },
+    {
+      "condition": "At close, the Controller's documented completeness review and locked reviewed binder make records available for audit support.",
+      "counterpart": "FA-15B",
+      "evidence_turns": [
+        "t7"
+      ],
+      "relationship_type": "provides_input_to"
+    },
+    {
+      "condition": "The quarter's binder is locked and sent to FA-15B, supported by the checks and approved support exceptions.",
+      "counterpart": "FA-15B",
+      "evidence_turns": [
+        "t11"
+      ],
+      "relationship_type": "hands_off_to"
+    }
+  ],
+  "fact_provenance": [
+    {
+      "topic": "name",
+      "text": "The process is called “Digital Binder Maintenance.”",
+      "evidence_turns": [
+        "context"
+      ],
+      "history_ref": "b07300ce87362cc6",
+      "recorded_at": "2026-11-16T22:35:02.267+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The Fund Accountant files support in a quarterly digital binder as records are created. Support must be filed before posting a JE affecting cost, income, expense, or capital.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "958571cf715182f9",
+      "recorded_at": "2026-11-16T22:35:02.267+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "The Fund Accountant files support in a quarterly digital binder as records are created. Support must be filed before a JE affecting cost, income, expense or capital is posted."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Each quarter, the Controller reviews binder completeness.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "2c1bcf31629f5271",
+      "recorded_at": "2026-11-16T22:35:02.267+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "The Controller reviews binder completeness each quarter."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "A quarterly digital binder holds support filed as records are created, including JE support.",
+      "evidence_turns": [
+        "t1",
+        "t3"
+      ],
+      "history_ref": "a3cd0ef0464804a2",
+      "recorded_at": "2026-11-16T22:35:25.873+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "The Fund Accountant files support in a quarterly digital binder as records are created."
+        },
+        {
+          "source_id": "t3",
+          "quote": "categories and JE support are filed"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "purpose",
+      "text": "Maintain a quarterly digital binder containing support for records and qualifying journal entries.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "7b4b896cb3bffae9",
+      "recorded_at": "2026-11-16T22:35:25.873+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "files support in a quarterly digital binder as records are created. Support must be filed before a JE affecting cost, income, expense or capital is posted."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "The event initiating binder maintenance and any fixed calendar deadlines are not specified.",
+      "evidence_turns": [
+        "t1",
+        "t5"
+      ],
+      "history_ref": "2be12914795e11dd",
+      "recorded_at": "2026-11-16T22:35:55.905+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "files support in a quarterly digital binder as records are created"
+        },
+        {
+          "source_id": "t5",
+          "quote": "The Controller's completeness review is required before close."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "For completeness, the Controller checks the correct fund and quarter, filed categories and JE support, H/V coverage for all active accounts, and zero results for all checks. The Controller independently reruns the Check of Checks and signs.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "3dcc813a3d852500",
+      "recorded_at": "2026-11-16T22:35:25.873+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "The Controller checks that the binder is for the correct fund/quarter, categories and JE support are filed, all active accounts have H/V coverage and all checks are zero. The Controller independently reruns the Check of Checks and signs"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "accountable",
+      "text": "The role accountable for the overall binder-maintenance result is not identified; the Fund Accountant is identified as filing support and the Controller as reviewing completeness.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "aff557821bccefef",
+      "recorded_at": "2026-11-16T22:35:02.267+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "The Fund Accountant files support"
+        },
+        {
+          "source_id": "t1",
+          "quote": "The Controller reviews binder completeness"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "Support must be filed before posting a JE affecting cost, income, expense or capital.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "91d13bc3a0998528",
+      "recorded_at": "2026-11-16T22:35:25.873+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "Support must be filed before a JE affecting cost, income, expense or capital is posted."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "The source or authority for the support-before-posting requirement is not identified.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "391c38d0c84f24c3",
+      "recorded_at": "2026-11-16T22:35:02.267+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "Support must be filed before a JE affecting cost, income, expense or capital is posted."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "Binder support filing is required before a qualifying JE is posted; the process responsible for posting the JE is not named.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "b8535e99cb8e5168",
+      "recorded_at": "2026-11-16T22:35:02.267+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "Support must be filed before a JE affecting cost, income, expense or capital is posted."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "The digital binder platform, storage location, and how support is entered or filed are not specified.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "b144a22bb12ce2a4",
+      "recorded_at": "2026-11-16T22:35:02.267+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "files support in a quarterly digital binder"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "volume",
+      "text": "The number of records or JEs handled and the effort required are not specified.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "6db1bb49693c11c8",
+      "recorded_at": "2026-11-16T22:35:02.267+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "as records are created"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The full range of support artifacts and the binder's location remain unspecified.",
+      "evidence_turns": [
+        "t1",
+        "t9"
+      ],
+      "history_ref": "74d5a51927a975bb",
+      "recorded_at": "2026-11-16T22:36:45.758+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "The Fund Accountant files support in a quarterly digital binder as records are created."
+        },
+        {
+          "source_id": "t9",
+          "quote": "it retains the signed check summary PDF under CC"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The Controller checks the fund and quarter, filed categories and JE support, H/V coverage of all active accounts, and that all checks are zero; the Controller independently reruns the Check of Checks and signs.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "9ce3502a2b126fd1",
+      "recorded_at": "2026-11-16T22:35:25.873+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "The Controller checks that the binder is for the correct fund/quarter, categories and JE support are filed, all active accounts have H/V coverage and all checks are zero. The Controller independently reruns the Check of Checks and signs"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "A workbook change invalidates the previous check; the summary is regenerated, the check rerun and the summary re-signed.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "c9a24411758f5ff8",
+      "recorded_at": "2026-11-16T22:35:25.873+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "A workbook change invalidates the previous check: regenerate, rerun and re-sign the summary."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "A workbook change invalidates the previous check, requiring regeneration, rerunning and re-signing of the summary.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "58b678d7c4908d4a",
+      "recorded_at": "2026-11-16T22:35:25.873+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "A workbook change invalidates the previous check: regenerate, rerun and re-sign the summary."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The Check of Checks verifies that every active GL account is covered by the prescribed checks and every check equals zero. The preparer runs it, and the Controller independently reruns it.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "cd1ae7730c6edc28",
+      "recorded_at": "2026-11-16T22:37:58.762+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "every active GL account is covered by the prescribed checks and every check equals zero. The preparer runs it, the Controller independently reruns it"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "A workbook and signed summary are used in the check; marked tie-outs and internal reviews stay internal.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "9e78d9cd11bec044",
+      "recorded_at": "2026-11-16T22:35:25.873+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "marked tie-outs and internal reviews stay internal. A workbook change invalidates the previous check: regenerate, rerun and re-sign the summary."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "scope",
+      "text": "The Controller checks that the binder corresponds to the correct fund and quarter.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "0c587c1ef1682654",
+      "recorded_at": "2026-11-16T22:35:25.873+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "the binder is for the correct fund/quarter"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "The Controller's completeness review is required before close; support must be filed before a qualifying JE is posted.",
+      "evidence_turns": [
+        "t1",
+        "t5"
+      ],
+      "history_ref": "2973b11e84532081",
+      "recorded_at": "2026-11-16T22:35:55.907+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "Support must be filed before a JE affecting cost, income, expense or capital is posted."
+        },
+        {
+          "source_id": "t5",
+          "quote": "The Controller's completeness review is required before close."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "Missing support blocks the affected posting. Missing or nonzero checks block quarterly completion; exceptions must be resolved or escalated for an approved decision.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "6beb3fa814061a5a",
+      "recorded_at": "2026-11-16T22:35:55.907+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "Missing support blocks the affected posting; missing or nonzero checks block quarterly completion. Exceptions must be resolved or escalated for an approved decision."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "Missing or nonzero checks block quarterly completion, and the Controller's completeness review is required before close.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "cf2cc3cda23a1369",
+      "recorded_at": "2026-11-16T22:35:55.907+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "missing or nonzero checks block quarterly completion"
+        },
+        {
+          "source_id": "t5",
+          "quote": "The Controller's completeness review is required before close."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Exceptions must be resolved or escalated for an approved decision. The Director performs final close review under FA-11.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "8c4658cd73d2dd14",
+      "recorded_at": "2026-11-16T22:35:55.908+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "Exceptions must be resolved or escalated for an approved decision."
+        },
+        {
+          "source_id": "t5",
+          "quote": "The Director performs final close review under FA-11"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Exception approval authority is not specified; no emergency override or exception deadline is documented.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "659bf2d19f917aac",
+      "recorded_at": "2026-11-16T22:35:55.909+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "No emergency override or exception deadline is documented."
+        },
+        {
+          "source_id": "t5",
+          "quote": "exception approval authority is not specified."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "risk",
+      "text": "Missing support can block the affected posting, while missing or nonzero checks can block quarterly completion.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "1c82a074cd2b423d",
+      "recorded_at": "2026-11-16T22:35:55.909+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "Missing support blocks the affected posting; missing or nonzero checks block quarterly completion."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "FA-11 is referenced for the Director's final close review; the document was not supplied for this capture.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "16cbc5e40e29e121",
+      "recorded_at": "2026-11-16T22:35:55.909+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "The Director performs final close review under FA-11"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "The Controller's binder completeness review is required before close. The Director performs final close review under FA-11.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "f3d2524a738fe127",
+      "recorded_at": "2026-11-16T22:35:55.909+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "The Controller's completeness review is required before close. The Director performs final close review under FA-11"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "A support exception must be resolved or have documented approval to remain open. Without that decision the quarter remains open.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "4ecfd9cc410eee37",
+      "recorded_at": "2026-11-16T22:36:14.923+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "completion",
+      "text": "At close, the Controller's documented completeness review and the locked reviewed binder make the records available to FA-15B for audit support.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "9355f9103b948ae8",
+      "recorded_at": "2026-11-16T22:36:14.923+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "At close the Controller's documented completeness review and locked reviewed binder make the records available to FA-15B for audit support."
+        }
+      ],
+      "unverified": [
+        "Check this against the cited sources: 15"
+      ]
+    },
+    {
+      "topic": "materials",
+      "text": "The binder checklist and exception resolution are kept as evidence.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "06abf94aac41cd5f",
+      "recorded_at": "2026-11-16T22:36:14.923+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "The binder checklist and exception resolution are kept as evidence"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "At close, the documented completeness review and locked reviewed binder make records available to FA-15B for audit support.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "6a109ce807fb4e4c",
+      "recorded_at": "2026-11-16T22:36:14.923+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "the Controller's documented completeness review and locked reviewed binder make the records available to FA-15B for audit support"
+        }
+      ],
+      "unverified": [
+        "Check this against the cited sources: 15"
+      ]
+    },
+    {
+      "topic": "checks",
+      "text": "H/V means horizontal and vertical checks defined in the quarterly workbook. Binder review checks coverage for every active general ledger account and that every result is zero; a zero balance without the required account-level checks does not establish complete support.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "db8216f8b38cee68",
+      "recorded_at": "2026-11-16T22:36:45.758+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "H/V means horizontal and vertical checks defined in the quarterly workbook. The binder review checks coverage of every active general ledger account and that every result is zero"
+        },
+        {
+          "source_id": "t9",
+          "quote": "A zero balance without the required account-level checks doesn't establish that support is complete."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The signed check summary PDF is retained under CC as binder review evidence.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "9eaaab18e10f88f2",
+      "recorded_at": "2026-11-16T22:36:45.758+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "it retains the signed check summary PDF under CC"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "The binder stores evidence; posting and approval occur in the source system.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "b44a9293285e3293",
+      "recorded_at": "2026-11-16T22:36:45.758+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "The binder stores evidence; posting and approval still occur in the source system."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The checks and approved support exceptions are evidence for locking the quarter's binder and sending it to FA-15B.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "e9a410c04a5df104",
+      "recorded_at": "2026-11-16T22:37:58.763+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "Those checks and the approved support exceptions are evidence for locking the quarter's binder and sending it to FA-15B."
+        }
+      ],
+      "unverified": [
+        "Check this against the cited sources: 15"
+      ]
+    },
+    {
+      "topic": "completion",
+      "text": "The checks and approved support exceptions provide evidence for locking the quarter's binder and sending it to FA-15B.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "4fab9085e7595314",
+      "recorded_at": "2026-11-16T22:37:58.763+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "Those checks and the approved support exceptions are evidence for locking the quarter's binder and sending it to FA-15B."
+        }
+      ],
+      "unverified": [
+        "Check this against the cited sources: 15"
+      ]
+    }
+  ],
+  "fact_history": [
+    {
+      "topic": "materials",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:35:02.267+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "05fe291e15e242ac"
+    },
+    {
+      "topic": "purpose",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:35:02.267+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "be971864b45a0a9c"
+    },
+    {
+      "topic": "trigger",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:35:02.267+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "2d7185fb4620ffbf"
+    },
+    {
+      "topic": "completion",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:35:02.267+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "f1aa1bd87ea3dad1"
+    },
+    {
+      "topic": "rules",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:35:02.267+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "0150882bb76110cf"
+    },
+    {
+      "topic": "materials",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:35:25.873+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "e76532f09dd99fe6"
+    },
+    {
+      "topic": "checks",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:35:25.873+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "407f8186eeef5c07"
+    },
+    {
+      "topic": "checks",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:35:55.906+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "4ed505480b030293"
+    },
+    {
+      "topic": "checks",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:36:45.758+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "fb8afab34a50e9af"
+    }
+  ],
+  "capture_provenance": {
+    "method": "document_simulation",
+    "participant_confirmed": false,
+    "process_owner_approved": false,
+    "source_documents": [
+      {
+        "filename": "IP1-export.pdf",
+        "sha256": "d0f89ee7c7cc8ffbcd39c268b47b765888105e588f60199106356ca31df177c1"
+      }
+    ]
+  },
+  "closure": {
+    "asked": false,
+    "confirmed": false
+  }
+}

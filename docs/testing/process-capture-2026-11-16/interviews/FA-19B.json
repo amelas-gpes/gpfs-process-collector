@@ -1,0 +1,1225 @@
+{
+  "schema_version": 1,
+  "context": {
+    "process_name": "Facility Compliance & Borrowing Base Certification",
+    "process_owner": "",
+    "objective": "Document how we carry out Facility Compliance & Borrowing Base Certification, the controls and what needs confirmation.",
+    "background": ""
+  },
+  "turns": [
+    {
+      "id": "turn_1",
+      "role": "user",
+      "text": "As facility preparer I start from the executed facility agreement and current amendments when certification is due. We refresh the investor commitments, tiers and outstanding balance, calculate borrowing capacity and prepare the lender's certificate. Independent review and Director review precede authorized signature. The owner's name and exact facility formulas still need confirmation."
+    },
+    {
+      "id": "turn_2",
+      "role": "assistant",
+      "text": "What determines when the certification is due?"
+    },
+    {
+      "id": "turn_3",
+      "role": "user",
+      "text": "The lender specifies the certification schedule in the current executed facility agreement or LSA and amendments. Due dates differ by facility. We track lender and LPA deadlines separately. Riverwood's example says biweekly for tracker updates, but the actual interval and meaning still need confirmation; it is not a company-wide certification frequency."
+    },
+    {
+      "id": "turn_4",
+      "role": "assistant",
+      "text": "After the authorized signature, what happens to the certificate, and how is it sent to the lender?"
+    },
+    {
+      "id": "turn_5",
+      "role": "user",
+      "text": "Once signed it goes through the lender-approved channel by the facility-specific deadline. We save the delivery record and lender acknowledgment or questions and answer from approved sources. Submission owner, cutoff and form of acceptance vary by facility; I don't know the exact values here. After acceptance the preparer updates the tracker and puts the legal records, calculation, review, signed certificate, submission and correspondence in digital-binder category L."
+    },
+    {
+      "id": "turn_6",
+      "role": "assistant",
+      "text": "What does the independent reviewer check in the borrowing-capacity calculation?"
+    },
+    {
+      "id": "turn_7",
+      "role": "user",
+      "text": "The reviewer independently re-performs key formulas and checks borrower/investor inputs, tier eligibility and exclusions, advance rates, concentration caps, effective step-downs and the agreement-defined controlling limit, including any aggregate or LPA cap. They compare outstanding principal to lender support and compare terms, amendments, dates and deadlines. The Director reviews before signature. I have no authoritative facility-specific rate or example of an actual facility formula."
+    },
+    {
+      "id": "turn_8",
+      "role": "assistant",
+      "text": "What can happen if a certification is late or the borrowing-base calculation is wrong?"
+    },
+    {
+      "id": "turn_9",
+      "role": "user",
+      "text": "A wrong calculation can misstate capacity and leave a draw or breach undetected. A late certificate can mean a missed facility deadline. We look to the executed documents or lender notice for the required corrective action, log the deadline and responsible people, track completion and lender confirmation, and escalate anything late or unclear. A capital call goes through FA-01 and FA-19A only when it is the approved remedy. Specific legal consequences are for client or counsel."
+    },
+    {
+      "id": "turn_10",
+      "role": "assistant",
+      "text": "What does the Director review before the certificate is signed?"
+    },
+    {
+      "id": "turn_11",
+      "role": "user",
+      "text": "The package presented for Director review contains the certificate figures tied to the calculation and supporting records, current legal statements and attachments, comparison to the last certification, and independent review of the terms, formulas and deadlines with comments resolved. Director-level review is required before authorized signature. The source does not give the Director's separate checklist or the prescribed sign-off record."
+    },
+    {
+      "id": "turn_12",
+      "role": "assistant",
+      "text": "What part of preparing or reviewing these certifications tends to take the most effort?"
+    }
+  ],
+  "memo_findings": [
+    {
+      "answer": "The process is named “Facility Compliance & Borrowing Base Certification.”",
+      "evidence_turns": [
+        "context"
+      ],
+      "key": "name",
+      "status": "captured"
+    },
+    {
+      "answer": "The work produces a signed lender certificate that is submitted for lender acceptance, with supporting records retained.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_5"
+      ],
+      "key": "purpose",
+      "status": "captured"
+    },
+    {
+      "answer": "The facility preparer starts when certification is due. The lender specifies the schedule in the current executed facility agreement or LSA and amendments; due dates differ by facility, and lender and LPA deadlines are tracked separately.\nRiverwood's example says biweekly for tracker updates, but the actual interval and its meaning need confirmation; it is not a company-wide certification frequency.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3"
+      ],
+      "key": "trigger",
+      "status": "partial"
+    },
+    {
+      "answer": "After lender acceptance, the preparer updates the tracker and files the legal records, calculation, review, signed certificate, submission and correspondence in digital-binder category L.\nThe participant does not know the exact form of lender acceptance for this facility.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "key": "completion",
+      "status": "partial"
+    },
+    {
+      "answer": "The participant identifies their role as facility preparer and describes performing the preparation steps.\nThe name of the accountable owner remains unconfirmed.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "key": "accountable",
+      "status": "partial"
+    },
+    {
+      "answer": "When certification is due, the facility preparer starts from the executed facility agreement and current amendments, refreshes investor commitments, tiers and outstanding balance, calculates borrowing capacity, and prepares the lender’s certificate. Independent review and Director review precede authorized signature.\nAfter signature, the certificate goes through the lender-approved channel by the facility-specific deadline. The team saves the delivery record and lender acknowledgment or questions, and answers questions from approved sources.\nAfter acceptance, the preparer updates the tracker and files the legal records, calculation, review, signed certificate, submission and correspondence in digital-binder category L.\nFor corrective action, the team looks to the executed documents or lender notice for the required action, logs the deadline and responsible people, tracks completion and lender confirmation, and escalates anything late or unclear. A capital call goes through FA-01 and FA-19A only when it is the approved remedy.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_5",
+        "turn_9"
+      ],
+      "key": "lifecycle",
+      "status": "partial"
+    },
+    {
+      "answer": "Independent review and Director review precede authorized signature. Review records are filed after acceptance.\nThe Director's specific checks, the signer and signature authorization requirements remain unconfirmed.\nThe independent reviewer re-performs key formulas and checks borrower and investor inputs, tier eligibility and exclusions, advance rates, concentration caps, effective step-downs and the agreement-defined controlling limit, including any aggregate or LPA cap.\nThe reviewer compares outstanding principal to lender support and compares terms, amendments, dates and deadlines.\nFor corrective action, the team tracks completion and lender confirmation and escalates anything late or unclear.\nThe package presented for Director review contains certificate figures tied to the calculation and supporting records, current legal statements and attachments, a comparison to the last certification, and independent review of terms, formulas and deadlines with comments resolved. Director-level review is required before authorized signature.\nThe source does not specify the Director's separate checklist or prescribed sign-off record.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_5",
+        "turn_7",
+        "turn_9",
+        "turn_11"
+      ],
+      "key": "checks",
+      "status": "partial"
+    },
+    {
+      "answer": "Due dates differ by facility; submission owner, cutoff and form of lender acceptance also vary by facility.",
+      "evidence_turns": [
+        "turn_3",
+        "turn_5"
+      ],
+      "key": "variations",
+      "status": "partial"
+    },
+    {
+      "answer": "",
+      "evidence_turns": [],
+      "key": "pain_points",
+      "status": "unknown"
+    },
+    {
+      "answer": "A wrong calculation can misstate borrowing capacity and leave a draw or breach undetected; a late certificate can mean a missed facility deadline. Specific legal consequences are for the client or counsel.",
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "key": "risk",
+      "status": "partial"
+    },
+    {
+      "answer": "The preparer starts with the executed facility agreement and current amendments; legal records are subsequently filed in digital-binder category L after acceptance.\nThe tracker records the preparer's post-acceptance update. The digital binder retains the calculation, review, signed certificate, submission and correspondence alongside legal records.\nThe independent reviewer uses lender support to check outstanding principal.\nExecuted documents or lender notice are consulted to identify required corrective action; their contents have not been independently reviewed here.\nThe Director review package includes current legal statements and attachments, the calculation and supporting records, a comparison to the last certification, and the independent review with comments resolved.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_5",
+        "turn_7",
+        "turn_9",
+        "turn_11"
+      ],
+      "key": "materials",
+      "status": "partial"
+    },
+    {
+      "answer": "The work concerns facility compliance and borrowing-base certification, including refreshed investor commitments, tiers and outstanding balance. Schedules and submission details vary by facility.",
+      "evidence_turns": [
+        "context",
+        "turn_1",
+        "turn_3",
+        "turn_5"
+      ],
+      "key": "scope",
+      "status": "partial"
+    },
+    {
+      "answer": "The preparer calculates borrowing capacity after refreshing investor commitments, tiers and outstanding balance, starting from the executed facility agreement and current amendments.\nThe exact facility formulas for calculating borrowing capacity remain unconfirmed.\nHow the agreement and amendments govern the remaining borrowing-capacity formula components is not established.\nThe controlling limit is agreement-defined and includes any aggregate or LPA cap.\nThe participant has no authoritative facility-specific rate or example of an actual facility formula.\nThe team looks to executed documents or lender notice for required corrective action; a capital call is routed through FA-01 and FA-19A only when it is the approved remedy.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_7",
+        "turn_9"
+      ],
+      "key": "rules",
+      "status": "partial"
+    },
+    {
+      "answer": "The signed certificate is sent to the lender through the lender-approved channel by the facility-specific deadline. Lender questions are answered from approved sources.\nThe participant does not know the exact submission owner or cutoff for this facility.\nA capital call goes through FA-01 and FA-19A when it is the approved remedy.",
+      "evidence_turns": [
+        "turn_5",
+        "turn_9"
+      ],
+      "key": "connections",
+      "status": "partial"
+    },
+    {
+      "answer": "The preparer updates a tracker after acceptance and files the specified records in digital-binder category L.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "key": "data_systems",
+      "status": "partial"
+    },
+    {
+      "answer": "",
+      "evidence_turns": [],
+      "key": "volume",
+      "status": "unknown"
+    }
+  ],
+  "coverage": [
+    {
+      "key": "name",
+      "label": "Name & other names",
+      "status": "partial"
+    },
+    {
+      "key": "purpose",
+      "label": "Purpose & result",
+      "status": "partial"
+    },
+    {
+      "key": "trigger",
+      "label": "Start, cadence & deadlines",
+      "status": "partial"
+    },
+    {
+      "key": "completion",
+      "label": "Finished condition",
+      "status": "partial"
+    },
+    {
+      "key": "accountable",
+      "label": "Accountability",
+      "status": "partial"
+    },
+    {
+      "key": "lifecycle",
+      "label": "Items, stages & handoffs",
+      "status": "partial"
+    },
+    {
+      "key": "checks",
+      "label": "Checks, approvals & proof",
+      "status": "partial"
+    },
+    {
+      "key": "variations",
+      "label": "Variations and conditions",
+      "status": "partial"
+    },
+    {
+      "key": "pain_points",
+      "label": "Manual work & pain",
+      "status": "missing"
+    },
+    {
+      "key": "risk",
+      "label": "Consequences of failure",
+      "status": "partial"
+    },
+    {
+      "key": "materials",
+      "label": "Existing materials",
+      "status": "partial"
+    },
+    {
+      "key": "scope",
+      "label": "Scope & entity context",
+      "status": "partial"
+    },
+    {
+      "key": "rules",
+      "label": "Business rules & lineage",
+      "status": "partial"
+    },
+    {
+      "key": "connections",
+      "label": "Connected processes",
+      "status": "partial"
+    },
+    {
+      "key": "data_systems",
+      "label": "Data & systems",
+      "status": "partial"
+    },
+    {
+      "key": "volume",
+      "label": "Volume & effort",
+      "status": "missing"
+    }
+  ],
+  "focus": "Director review package and sign-off",
+  "summary": "The Director review package includes tied certificate figures, legal statements and attachments, a prior-certification comparison, and the independent review with comments resolved. The separate Director checklist and prescribed sign-off record are not specified.",
+  "parking_lot": [],
+  "taxonomy": [
+    {
+      "evidence_turns": [
+        "context"
+      ],
+      "facet": "functional_area",
+      "note": "Reported facility compliance and borrowing-base certification; regulatory status is not established.",
+      "value": "compliance_regulatory"
+    },
+    {
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "facet": "system",
+      "note": "Participant reports a tracker and digital-binder category L; products are not identified.",
+      "value": "other"
+    },
+    {
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "facet": "control_type",
+      "note": "Director review precedes authorized signature; specific checks remain unconfirmed.",
+      "value": "gpfs_supervisory"
+    },
+    {
+      "evidence_turns": [
+        "turn_3",
+        "turn_5"
+      ],
+      "facet": "variant_class",
+      "note": "Due dates and submission details vary by facility; source and substantive classification remain open.",
+      "value": "unclassified"
+    },
+    {
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "facet": "rule_source",
+      "note": "The participant reports that the agreement-defined controlling limit includes any aggregate or LPA cap; documents have not been independently reviewed.",
+      "value": "lpa_governing_doc"
+    },
+    {
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "facet": "rule_source",
+      "note": "The participant reports an agreement-defined controlling limit in the facility certification.",
+      "value": "other"
+    },
+    {
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "facet": "control_type",
+      "note": "Independent reviewer re-performs formulas and checks inputs, limits and supporting information.",
+      "value": "gpfs_operational"
+    },
+    {
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "facet": "control_type",
+      "note": "Participant reports escalation of corrective action that is late or unclear.",
+      "value": "exception_escalation"
+    },
+    {
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "facet": "rule_source",
+      "note": "Executed documents or lender notice are reported sources for required corrective action; not independently reviewed.",
+      "value": "other"
+    }
+  ],
+  "connections_out": [
+    {
+      "condition": "Signed certificate is sent through the lender-approved channel by the facility-specific deadline.",
+      "counterpart": "Lender",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "relationship_type": "hands_off_to"
+    },
+    {
+      "condition": "Capital call only when it is the approved remedy; the specific handoff to each process is not described.",
+      "counterpart": "FA-01 and FA-19A",
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "relationship_type": "hands_off_to"
+    }
+  ],
+  "fact_provenance": [
+    {
+      "topic": "name",
+      "text": "The process is named “Facility Compliance & Borrowing Base Certification.”",
+      "evidence_turns": [
+        "context"
+      ],
+      "history_ref": "2175893d3f8aba94",
+      "recorded_at": "2026-11-16T22:16:20.787+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "trigger",
+      "text": "The facility preparer starts when certification is due. The lender specifies the schedule in the current executed facility agreement or LSA and amendments; due dates differ by facility, and lender and LPA deadlines are tracked separately.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3"
+      ],
+      "history_ref": "ceab0f95a25f50f4",
+      "recorded_at": "2026-11-16T22:18:40.183+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "As facility preparer I start from the executed facility agreement and current amendments when certification is due."
+        },
+        {
+          "source_id": "turn_3",
+          "quote": "The lender specifies the certification schedule in the current executed facility agreement or LSA and amendments. Due dates differ by facility. We track lender and LPA deadlines separately."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "When certification is due, the facility preparer starts from the executed facility agreement and current amendments, refreshes investor commitments, tiers and outstanding balance, calculates borrowing capacity, and prepares the lender’s certificate. Independent review and Director review precede authorized signature.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "c5fc47949748b163",
+      "recorded_at": "2026-11-16T22:16:20.789+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "As facility preparer I start from the executed facility agreement and current amendments when certification is due. We refresh the investor commitments, tiers and outstanding balance, calculate borrowing capacity and prepare the lender's certificate. Independent review and Director review precede authorized signature."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The preparer starts with the executed facility agreement and current amendments; legal records are subsequently filed in digital-binder category L after acceptance.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_5"
+      ],
+      "history_ref": "9ea2690ef7cd6962",
+      "recorded_at": "2026-11-16T22:18:40.183+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "I start from the executed facility agreement and current amendments"
+        },
+        {
+          "source_id": "turn_5",
+          "quote": "After acceptance the preparer updates the tracker and puts the legal records, calculation, review, signed certificate, submission and correspondence in digital-binder category L."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "The preparer calculates borrowing capacity after refreshing investor commitments, tiers and outstanding balance, starting from the executed facility agreement and current amendments.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "fe310fcbb29c334b",
+      "recorded_at": "2026-11-16T22:18:40.182+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "I start from the executed facility agreement and current amendments when certification is due. We refresh the investor commitments, tiers and outstanding balance, calculate borrowing capacity"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "The exact facility formulas for calculating borrowing capacity remain unconfirmed.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "e7cc933e2b1f7901",
+      "recorded_at": "2026-11-16T22:16:20.790+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "checks",
+      "text": "Independent review and Director review precede authorized signature. Review records are filed after acceptance.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_5"
+      ],
+      "history_ref": "bf95277f3840f7f4",
+      "recorded_at": "2026-11-16T22:18:40.183+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "Independent review and Director review precede authorized signature."
+        },
+        {
+          "source_id": "turn_5",
+          "quote": "After acceptance the preparer updates the tracker and puts the legal records, calculation, review, signed certificate, submission and correspondence in digital-binder category L."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "accountable",
+      "text": "The participant identifies their role as facility preparer and describes performing the preparation steps.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "2fe8705f114908c6",
+      "recorded_at": "2026-11-16T22:18:40.182+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "As facility preparer I start from the executed facility agreement and current amendments"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "accountable",
+      "text": "The name of the accountable owner remains unconfirmed.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "50c0fb541d02f459",
+      "recorded_at": "2026-11-16T22:16:20.790+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "The owner's name and exact facility formulas still need confirmation."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "After lender acceptance, the preparer updates the tracker and files the legal records, calculation, review, signed certificate, submission and correspondence in digital-binder category L.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "c82192b83050dd50",
+      "recorded_at": "2026-11-16T22:18:40.182+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "After acceptance the preparer updates the tracker and puts the legal records, calculation, review, signed certificate, submission and correspondence in digital-binder category L."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "purpose",
+      "text": "The work produces a signed lender certificate that is submitted for lender acceptance, with supporting records retained.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_5"
+      ],
+      "history_ref": "b7f165f5681dfe8b",
+      "recorded_at": "2026-11-16T22:18:40.182+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "calculate borrowing capacity and prepare the lender's certificate"
+        },
+        {
+          "source_id": "turn_5",
+          "quote": "Once signed it goes through the lender-approved channel by the facility-specific deadline."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "scope",
+      "text": "The work concerns facility compliance and borrowing-base certification, including refreshed investor commitments, tiers and outstanding balance. Schedules and submission details vary by facility.",
+      "evidence_turns": [
+        "context",
+        "turn_1",
+        "turn_3",
+        "turn_5"
+      ],
+      "history_ref": "154ef8c6abc5c914",
+      "recorded_at": "2026-11-16T22:18:40.184+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "context",
+          "quote": "Facility Compliance & Borrowing Base Certification"
+        },
+        {
+          "source_id": "turn_1",
+          "quote": "We refresh the investor commitments, tiers and outstanding balance"
+        },
+        {
+          "source_id": "turn_3",
+          "quote": "Due dates differ by facility."
+        },
+        {
+          "source_id": "turn_5",
+          "quote": "Submission owner, cutoff and form of acceptance vary by facility"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "The signed certificate is sent to the lender through the lender-approved channel by the facility-specific deadline. Lender questions are answered from approved sources.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "2685175bba82dcc0",
+      "recorded_at": "2026-11-16T22:18:40.182+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "Once signed it goes through the lender-approved channel by the facility-specific deadline. We save the delivery record and lender acknowledgment or questions and answer from approved sources."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "How the agreement and amendments govern the remaining borrowing-capacity formula components is not established.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_7"
+      ],
+      "history_ref": "a584ff438049c233",
+      "recorded_at": "2026-11-16T22:20:19.707+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "The owner's name and exact facility formulas still need confirmation."
+        },
+        {
+          "source_id": "turn_7",
+          "quote": "the agreement-defined controlling limit, including any aggregate or LPA cap"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "Riverwood's example says biweekly for tracker updates, but the actual interval and its meaning need confirmation; it is not a company-wide certification frequency.",
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "history_ref": "00bf40b8974fb29c",
+      "recorded_at": "2026-11-16T22:18:40.184+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "Riverwood's example says biweekly for tracker updates, but the actual interval and meaning still need confirmation; it is not a company-wide certification frequency."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "After signature, the certificate goes through the lender-approved channel by the facility-specific deadline. The team saves the delivery record and lender acknowledgment or questions, and answers questions from approved sources.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "feaa16bb07f68ce7",
+      "recorded_at": "2026-11-16T22:18:40.184+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "Once signed it goes through the lender-approved channel by the facility-specific deadline. We save the delivery record and lender acknowledgment or questions and answer from approved sources."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "After acceptance, the preparer updates the tracker and files the legal records, calculation, review, signed certificate, submission and correspondence in digital-binder category L.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "051159f48847eca7",
+      "recorded_at": "2026-11-16T22:18:40.184+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "After acceptance the preparer updates the tracker and puts the legal records, calculation, review, signed certificate, submission and correspondence in digital-binder category L."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The Director's specific checks, the signer and signature authorization requirements remain unconfirmed.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_7"
+      ],
+      "history_ref": "6948f037498f25b1",
+      "recorded_at": "2026-11-16T22:20:19.707+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "Independent review and Director review precede authorized signature."
+        },
+        {
+          "source_id": "turn_7",
+          "quote": "The Director reviews before signature."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The tracker records the preparer's post-acceptance update. The digital binder retains the calculation, review, signed certificate, submission and correspondence alongside legal records.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "c13ed011c654643b",
+      "recorded_at": "2026-11-16T22:18:40.184+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "After acceptance the preparer updates the tracker and puts the legal records, calculation, review, signed certificate, submission and correspondence in digital-binder category L."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "Due dates differ by facility; submission owner, cutoff and form of lender acceptance also vary by facility.",
+      "evidence_turns": [
+        "turn_3",
+        "turn_5"
+      ],
+      "history_ref": "e0d12b78b78854a4",
+      "recorded_at": "2026-11-16T22:18:40.186+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "Due dates differ by facility."
+        },
+        {
+          "source_id": "turn_5",
+          "quote": "Submission owner, cutoff and form of acceptance vary by facility; I don't know the exact values here."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "The participant does not know the exact form of lender acceptance for this facility.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "15eae6bfe6ca5677",
+      "recorded_at": "2026-11-16T22:18:40.186+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "Submission owner, cutoff and form of acceptance vary by facility; I don't know the exact values here."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "The participant does not know the exact submission owner or cutoff for this facility.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "3a7c2511a27f7413",
+      "recorded_at": "2026-11-16T22:18:40.186+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "Submission owner, cutoff and form of acceptance vary by facility; I don't know the exact values here."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "The preparer updates a tracker after acceptance and files the specified records in digital-binder category L.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "4984dada41ddb95e",
+      "recorded_at": "2026-11-16T22:18:40.186+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "After acceptance the preparer updates the tracker and puts the legal records, calculation, review, signed certificate, submission and correspondence in digital-binder category L."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "The controlling limit is agreement-defined and includes any aggregate or LPA cap.",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "history_ref": "ccd8db20b4f4e69a",
+      "recorded_at": "2026-11-16T22:20:19.707+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_7",
+          "quote": "the agreement-defined controlling limit, including any aggregate or LPA cap"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The independent reviewer re-performs key formulas and checks borrower and investor inputs, tier eligibility and exclusions, advance rates, concentration caps, effective step-downs and the agreement-defined controlling limit, including any aggregate or LPA cap.",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "history_ref": "af238e726588df47",
+      "recorded_at": "2026-11-16T22:20:19.707+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_7",
+          "quote": "The reviewer independently re-performs key formulas and checks borrower/investor inputs, tier eligibility and exclusions, advance rates, concentration caps, effective step-downs and the agreement-defined controlling limit, including any aggregate or LPA cap."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The reviewer compares outstanding principal to lender support and compares terms, amendments, dates and deadlines.",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "history_ref": "70a4814e5efa7262",
+      "recorded_at": "2026-11-16T22:20:19.707+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_7",
+          "quote": "They compare outstanding principal to lender support and compare terms, amendments, dates and deadlines."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The independent reviewer uses lender support to check outstanding principal.",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "history_ref": "093568fc5ba4ebb6",
+      "recorded_at": "2026-11-16T22:20:19.707+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_7",
+          "quote": "They compare outstanding principal to lender support"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "The participant has no authoritative facility-specific rate or example of an actual facility formula.",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "history_ref": "478e0ccd588be014",
+      "recorded_at": "2026-11-16T22:20:19.707+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_7",
+          "quote": "I have no authoritative facility-specific rate or example of an actual facility formula."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "risk",
+      "text": "A wrong calculation can misstate borrowing capacity and leave a draw or breach undetected; a late certificate can mean a missed facility deadline. Specific legal consequences are for the client or counsel.",
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "history_ref": "9ccd7c3572fedaae",
+      "recorded_at": "2026-11-16T22:20:41.640+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_9",
+          "quote": "A wrong calculation can misstate capacity and leave a draw or breach undetected. A late certificate can mean a missed facility deadline."
+        },
+        {
+          "source_id": "turn_9",
+          "quote": "Specific legal consequences are for client or counsel."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "For corrective action, the team looks to the executed documents or lender notice for the required action, logs the deadline and responsible people, tracks completion and lender confirmation, and escalates anything late or unclear. A capital call goes through FA-01 and FA-19A only when it is the approved remedy.",
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "history_ref": "b1dddf84dd1cc7e4",
+      "recorded_at": "2026-11-16T22:20:41.640+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_9",
+          "quote": "We look to the executed documents or lender notice for the required corrective action, log the deadline and responsible people, track completion and lender confirmation, and escalate anything late or unclear. A capital call goes through FA-01 and FA-19A only when it is the approved remedy."
+        }
+      ],
+      "unverified": [
+        "Check this against the cited sources: 19"
+      ]
+    },
+    {
+      "topic": "checks",
+      "text": "For corrective action, the team tracks completion and lender confirmation and escalates anything late or unclear.",
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "history_ref": "3ba97e6b90417264",
+      "recorded_at": "2026-11-16T22:20:41.640+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_9",
+          "quote": "track completion and lender confirmation, and escalate anything late or unclear"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "The team looks to executed documents or lender notice for required corrective action; a capital call is routed through FA-01 and FA-19A only when it is the approved remedy.",
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "history_ref": "bd8c3ac5b73de9a0",
+      "recorded_at": "2026-11-16T22:20:41.640+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_9",
+          "quote": "We look to the executed documents or lender notice for the required corrective action"
+        },
+        {
+          "source_id": "turn_9",
+          "quote": "A capital call goes through FA-01 and FA-19A only when it is the approved remedy."
+        }
+      ],
+      "unverified": [
+        "Check this against the cited sources: 19"
+      ]
+    },
+    {
+      "topic": "connections",
+      "text": "A capital call goes through FA-01 and FA-19A when it is the approved remedy.",
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "history_ref": "115d0c7132652cc2",
+      "recorded_at": "2026-11-16T22:20:41.640+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_9",
+          "quote": "A capital call goes through FA-01 and FA-19A only when it is the approved remedy."
+        }
+      ],
+      "unverified": [
+        "Check this against the cited sources: 19"
+      ]
+    },
+    {
+      "topic": "materials",
+      "text": "Executed documents or lender notice are consulted to identify required corrective action; their contents have not been independently reviewed here.",
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "history_ref": "f2f1cbdd4b62e412",
+      "recorded_at": "2026-11-16T22:20:41.640+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_9",
+          "quote": "We look to the executed documents or lender notice for the required corrective action"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The package presented for Director review contains certificate figures tied to the calculation and supporting records, current legal statements and attachments, a comparison to the last certification, and independent review of terms, formulas and deadlines with comments resolved. Director-level review is required before authorized signature.",
+      "evidence_turns": [
+        "turn_11"
+      ],
+      "history_ref": "585b2501111ce021",
+      "recorded_at": "2026-11-16T22:21:56.043+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_11",
+          "quote": "The package presented for Director review contains the certificate figures tied to the calculation and supporting records, current legal statements and attachments, comparison to the last certification, and independent review of the terms, formulas and deadlines with comments resolved. Director-level review is required before authorized signature."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The source does not specify the Director's separate checklist or prescribed sign-off record.",
+      "evidence_turns": [
+        "turn_11"
+      ],
+      "history_ref": "0e13ab78dc62d1c6",
+      "recorded_at": "2026-11-16T22:21:56.043+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_11",
+          "quote": "The source does not give the Director's separate checklist or the prescribed sign-off record."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The Director review package includes current legal statements and attachments, the calculation and supporting records, a comparison to the last certification, and the independent review with comments resolved.",
+      "evidence_turns": [
+        "turn_11"
+      ],
+      "history_ref": "d5757be943bc5150",
+      "recorded_at": "2026-11-16T22:21:56.043+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_11",
+          "quote": "The package presented for Director review contains the certificate figures tied to the calculation and supporting records, current legal statements and attachments, comparison to the last certification, and independent review of the terms, formulas and deadlines with comments resolved."
+        }
+      ],
+      "unverified": []
+    }
+  ],
+  "fact_history": [
+    {
+      "topic": "trigger",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:20.789+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "524ffef3d9dd8680"
+    },
+    {
+      "topic": "materials",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:20.790+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "4e6a51e56fdb71dc"
+    },
+    {
+      "topic": "rules",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:20.790+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "9effd81c7e82b91c"
+    },
+    {
+      "topic": "checks",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:20.790+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "19afa76fb9c91e0c"
+    },
+    {
+      "topic": "accountable",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:20.790+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "346a870f8981a718"
+    },
+    {
+      "topic": "completion",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:20.790+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "7702a8373bee08e9"
+    },
+    {
+      "topic": "purpose",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:20.790+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "046e00e51f5d1c10"
+    },
+    {
+      "topic": "scope",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:20.790+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "15e9bb58f51a711c"
+    },
+    {
+      "topic": "connections",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:20.791+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "8e2c6aee29bc429c"
+    },
+    {
+      "topic": "rules",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:18:40.184+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "674df1e494b49773"
+    },
+    {
+      "topic": "checks",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:18:40.184+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "eee07f3885c7bc96"
+    }
+  ],
+  "capture_provenance": {
+    "method": "document_simulation",
+    "participant_confirmed": false,
+    "process_owner_approved": false,
+    "source_documents": [
+      {
+        "filename": "IP1-export.pdf",
+        "sha256": "d0f89ee7c7cc8ffbcd39c268b47b765888105e588f60199106356ca31df177c1"
+      }
+    ]
+  },
+  "closure": {
+    "asked": false,
+    "confirmed": false
+  }
+}

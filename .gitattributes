@@ -7,3 +7,4 @@
 *.json text eol=lf
 *.cmd text eol=crlf
 *.pdf binary
+docs/testing/process-capture-2026-11-16 export-ignore

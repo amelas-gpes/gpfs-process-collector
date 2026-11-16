@@ -145,6 +145,10 @@ Submitting a process stores a local revision and can send bounded evidence from 
 
 The tool cannot guarantee that every relevant fact has been elicited or interpreted correctly. Source IDs establish attribution, not semantic truth. Unknown actors, locations, timing, handoffs and exception paths must remain visible until a knowledgeable reviewer resolves them.
 
+## Live process testing
+
+The November 2026 regression set includes the source process library, 21 reopenable test interviews and 10 upload variants. Use the answer keys, baseline timings and acceptance checks when testing changes to the interviewer or document analysis. [Process capture findings and replay instructions](docs/testing/process-capture-2026-11-16/README.md)
+
 ## Offline tests
 
 ```powershell

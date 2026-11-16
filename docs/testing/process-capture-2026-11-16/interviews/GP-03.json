@@ -1,0 +1,1805 @@
+{
+  "schema_version": 1,
+  "context": {
+    "process_name": "Carry Vesting & Carry Point Reallocation",
+    "process_owner": "",
+    "objective": "Document how we carry out Carry Vesting & Carry Point Reallocation, the controls and what needs confirmation.",
+    "background": ""
+  },
+  "turns": [
+    {
+      "id": "turn_1",
+      "role": "user",
+      "text": "When a partner's carry changes, the preparer opens a change record from the GP-02 package, checks the governing terms and any approved exception, then ties the prior points and carry to the workbook. The client chooses the allowed method and names recipients. If they select Method B, we put it on hold. We never run Method B from this procedure."
+    },
+    {
+      "id": "turn_2",
+      "role": "assistant",
+      "text": "What does the preparer compare to confirm the prior points and carry tie to the workbook?"
+    },
+    {
+      "id": "turn_3",
+      "role": "user",
+      "text": "We compare the prior schedules, workbooks, distributions and amounts recorded. Original points, cumulative allocations and distributions and the carry calculation base must tie. Next we verify the governing vested percentage and any approved exception, calculate vested and released points and allocate all released points to named recipients. Total member point changes must equal zero. The rounding rule and threshold for action remain unconfirmed."
+    },
+    {
+      "id": "turn_4",
+      "role": "assistant",
+      "text": "After the total member point changes are confirmed to equal zero, what happens next in the process?"
+    },
+    {
+      "id": "turn_5",
+      "role": "user",
+      "text": "We keep the old schedule, build a new dated schedule, include approved deals or tranches, verify coverage of periods and tie the totals. Under go-forward treatment earlier amounts stay unchanged. We use the approved schedule from its effective date, calculate carry from inception through the current period and subtract what's already recorded. A reviewer checks governing support, computations, entries and outputs before final schedules are protected and sent to GP-01 and GP-06. The final release role is unconfirmed."
+    },
+    {
+      "id": "turn_6",
+      "role": "assistant",
+      "text": "When Method B is selected and the work is put on hold, what happens to the change next?"
+    },
+    {
+      "id": "turn_7",
+      "role": "user",
+      "text": "Document the selection and the hold. GP03-GAP-02 blocks calculation, posting, withholding, offsets and release of Method B. Only a concept exists; the formula, tests, release criteria and approvals require the process owner, Accounting, client and relevant Legal or Tax input. I cannot tell you the executable formula or that anyone has approved it."
+    },
+    {
+      "id": "turn_8",
+      "role": "assistant",
+      "text": "What can go wrong if a vesting or point-reallocation error reaches the final schedules?"
+    },
+    {
+      "id": "turn_9",
+      "role": "user",
+      "text": "The wrong recipient, vested percentage or effective date can change cumulative allocations, the current entry and downstream GP-01/GP-06 outputs. The preparer ties the starting position, proves total point changes are zero and checks periods and totals; a reviewer checks the package before release. The authority to correct and reissue outputs and the named release approver still need confirmation."
+    },
+    {
+      "id": "turn_10",
+      "role": "assistant",
+      "text": "When a check fails, what happens to the schedules or calculations before they can be released?"
+    },
+    {
+      "id": "turn_11",
+      "role": "user",
+      "text": "We hold the change if governing support, recipient allocation, total points or schedules fail validation. Preserve prior schedules, resolve the underlying error with approved support, repeat the proof and submit a complete package with no blocking hold for review. I can't name the correction or release authority from this procedure."
+    },
+    {
+      "id": "turn_12",
+      "role": "assistant",
+      "text": "How does the preparer typically learn that a partner’s carry has changed?"
+    }
+  ],
+  "memo_findings": [
+    {
+      "answer": "The process is called “Carry Vesting & Carry Point Reallocation.”",
+      "evidence_turns": [
+        "context"
+      ],
+      "key": "name",
+      "status": "partial"
+    },
+    {
+      "answer": "The work reallocates released carry points and produces an updated schedule and carry calculation for the current period.",
+      "evidence_turns": [
+        "turn_3",
+        "turn_5"
+      ],
+      "key": "purpose",
+      "status": "captured"
+    },
+    {
+      "answer": "The work begins when a partner's carry changes.\nWho detects or receives notice of the change, the cadence, and any deadlines remain unspecified.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "key": "trigger",
+      "status": "partial"
+    },
+    {
+      "answer": "After reviewer checks, final schedules are protected and sent to GP-01 and GP-06.\nWhether downstream acceptance, posting or another closure condition is required remains unspecified; the final release role is unconfirmed.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "key": "completion",
+      "status": "partial"
+    },
+    {
+      "answer": "A preparer opens the change record.\nThe role accountable for the overall result and the final release role are unconfirmed.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_5"
+      ],
+      "key": "accountable",
+      "status": "partial"
+    },
+    {
+      "answer": "When a partner’s carry changes, the preparer opens a change record from the GP-02 package, checks governing terms and any approved exception, then ties the prior points and carry to the workbook. The client chooses an allowed method and names recipients; if Method B is selected, the work is put on hold and Method B is not run under this procedure.\nAfter the prior balances tie, the team verifies the governing vested percentage and any approved exception, calculates vested and released points, and allocates all released points to named recipients. Total member point changes must equal zero.\nThe team keeps the old schedule, builds a new dated schedule including approved deals or tranches, verifies period coverage and ties totals. Under go-forward treatment, earlier amounts remain unchanged.\nThe team uses the approved schedule from its effective date, calculates carry from inception through the current period and subtracts the amount already recorded. A reviewer checks support, computations, entries and outputs before final schedules are protected and sent to GP-01 and GP-06.\nWhen Method B is selected, the selection and hold are documented. GP03-GAP-02 blocks its calculation, posting, withholding, offsets and release.\nAuthority to correct and reissue outputs remains unconfirmed.\nIf governing support, recipient allocation, total points or schedules fail validation, the team holds the change, preserves prior schedules, resolves the underlying error with approved support, repeats the proof and submits a complete package with no blocking hold for review.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3",
+        "turn_5",
+        "turn_7",
+        "turn_9",
+        "turn_11"
+      ],
+      "key": "lifecycle",
+      "status": "partial"
+    },
+    {
+      "answer": "The preparer checks governing terms and any approved exception and ties prior points and carry to the workbook. The team compares prior schedules, workbooks, distributions and recorded amounts; original points, cumulative allocations and distributions, and the carry calculation base must tie.\nThe team verifies the vested percentage and approved exception, checks that member point changes sum to zero, verifies schedule period coverage and ties totals. A reviewer checks governing support, computations, entries and outputs before the schedules are protected and sent.\nThe final release role and the evidence retained for review remain unconfirmed.\nGP03-GAP-02 blocks calculation, posting, withholding, offsets and release for Method B.\nThe preparer ties the starting position, proves total point changes are zero, and checks periods and totals. A reviewer checks the package before release.\nA failed validation results in a hold; the underlying error is resolved with approved support and the proof repeated before a complete package without a blocking hold is submitted for review.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3",
+        "turn_5",
+        "turn_11",
+        "turn_7",
+        "turn_9"
+      ],
+      "key": "checks",
+      "status": "partial"
+    },
+    {
+      "answer": "If the client selects Method B, the work is put on hold; this procedure never runs Method B.\nOther applicability differences remain unspecified.\nUnder go-forward treatment, earlier amounts stay unchanged.\nMethod B is held rather than run under this procedure: only a concept exists, and the selection and hold are documented.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_7",
+        "turn_5"
+      ],
+      "key": "variations",
+      "status": "partial"
+    },
+    {
+      "answer": "",
+      "evidence_turns": [],
+      "key": "pain_points",
+      "status": "unknown"
+    },
+    {
+      "answer": "A wrong recipient, vested percentage or effective date can change cumulative allocations, the current entry and downstream GP-01/GP-06 outputs.",
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "key": "risk",
+      "status": "captured"
+    },
+    {
+      "answer": "The preparer opens a change record from the GP-02 package and uses a workbook to tie prior points and carry.\nPrior schedules, workbooks and distributions are used in the tie-out. The old schedule is retained and a new dated schedule is built, protected and sent onward.\nThe storage locations and maintainers of the package, workbooks and schedules remain unspecified.\nThe Method B selection and hold are documented; GP03-GAP-02 is identified as the block on subsequent Method B activity.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3",
+        "turn_5",
+        "turn_7"
+      ],
+      "key": "materials",
+      "status": "partial"
+    },
+    {
+      "answer": "The described work concerns a partner's carry change and carry points; the client chooses an allowed method and names recipients.\nApplicability across entities, funds and clients, and whether this is general GPFS practice, remain unspecified.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "key": "scope",
+      "status": "partial"
+    },
+    {
+      "answer": "The preparer checks governing terms and any approved exception; the client chooses an allowed method and names recipients.\nThe specific governing documents and exception, and the source establishing allowed methods, have not been identified or independently reviewed.\nAll released points are allocated to named recipients and total member point changes must equal zero. Under go-forward treatment earlier amounts stay unchanged; carry is calculated from inception to the current period using the approved schedule from its effective date, less amounts already recorded.\nThe rounding rule and threshold for action remain unconfirmed.\nMethod B's formula, tests, release criteria and approvals require process owner, Accounting, client and relevant Legal or Tax input. The participant cannot provide an executable formula or confirm approval.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3",
+        "turn_5",
+        "turn_7"
+      ],
+      "key": "rules",
+      "status": "partial"
+    },
+    {
+      "answer": "The preparer opens the change record from the GP-02 package. Final protected schedules are sent to GP-01 and GP-06.\nThe functions of GP-01 and GP-06 and their acceptance requirements remain unspecified.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_5"
+      ],
+      "key": "connections",
+      "status": "partial"
+    },
+    {
+      "answer": "A workbook is used to tie prior points and carry; the comparison includes prior schedules, workbooks, distributions and recorded amounts.\nThe workbook's platform, calculation logic, ownership and any re-keying remain unspecified.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3"
+      ],
+      "key": "data_systems",
+      "status": "partial"
+    },
+    {
+      "answer": "",
+      "evidence_turns": [],
+      "key": "volume",
+      "status": "unknown"
+    }
+  ],
+  "coverage": [
+    {
+      "key": "name",
+      "label": "Name & other names",
+      "status": "partial"
+    },
+    {
+      "key": "purpose",
+      "label": "Purpose & result",
+      "status": "partial"
+    },
+    {
+      "key": "trigger",
+      "label": "Start, cadence & deadlines",
+      "status": "partial"
+    },
+    {
+      "key": "completion",
+      "label": "Finished condition",
+      "status": "partial"
+    },
+    {
+      "key": "accountable",
+      "label": "Accountability",
+      "status": "partial"
+    },
+    {
+      "key": "lifecycle",
+      "label": "Items, stages & handoffs",
+      "status": "partial"
+    },
+    {
+      "key": "checks",
+      "label": "Checks, approvals & proof",
+      "status": "partial"
+    },
+    {
+      "key": "variations",
+      "label": "Variations and conditions",
+      "status": "partial"
+    },
+    {
+      "key": "pain_points",
+      "label": "Manual work & pain",
+      "status": "missing"
+    },
+    {
+      "key": "risk",
+      "label": "Consequences of failure",
+      "status": "partial"
+    },
+    {
+      "key": "materials",
+      "label": "Existing materials",
+      "status": "partial"
+    },
+    {
+      "key": "scope",
+      "label": "Scope & entity context",
+      "status": "partial"
+    },
+    {
+      "key": "rules",
+      "label": "Business rules & lineage",
+      "status": "partial"
+    },
+    {
+      "key": "connections",
+      "label": "Connected processes",
+      "status": "partial"
+    },
+    {
+      "key": "data_systems",
+      "label": "Data & systems",
+      "status": "partial"
+    },
+    {
+      "key": "volume",
+      "label": "Volume & effort",
+      "status": "missing"
+    }
+  ],
+  "focus": "Time-consuming or difficult work",
+  "summary": "A partner carry change leads to checks, point reallocation and a revised schedule. Failed validation puts the change on hold until the error is resolved with approved support and proof repeated. Method B is held and not run under this procedure. Correction and release authorities remain unconfirmed.",
+  "parking_lot": [],
+  "taxonomy": [
+    {
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "facet": "entity_type",
+      "note": "Reported process concerns partner carry changes and carry points; scope beyond the described partner-level work is not established.",
+      "value": "gp_carry"
+    },
+    {
+      "evidence_turns": [
+        "context",
+        "turn_1"
+      ],
+      "facet": "functional_area",
+      "note": "Reported work addresses partner carry and carry-point reallocation.",
+      "value": "fees_and_carry"
+    },
+    {
+      "evidence_turns": [
+        "context"
+      ],
+      "facet": "process_level",
+      "note": "Supplied process name and objective describe an end-to-end recurring work process, though detailed boundaries remain open.",
+      "value": "process"
+    },
+    {
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "facet": "rule_source",
+      "note": "The participant reports checking governing terms; the specific documents and their contents have not been reviewed here.",
+      "value": "lpa_governing_doc"
+    }
+  ],
+  "connections_out": [
+    {
+      "condition": "The preparer opens a change record from the package.",
+      "counterpart": "GP-02 package",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "relationship_type": "consumes"
+    },
+    {
+      "condition": "Final protected schedules are sent after reviewer checks.",
+      "counterpart": "GP-01",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "relationship_type": "hands_off_to"
+    },
+    {
+      "condition": "Final protected schedules are sent after reviewer checks.",
+      "counterpart": "GP-06",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "relationship_type": "hands_off_to"
+    }
+  ],
+  "fact_provenance": [
+    {
+      "topic": "name",
+      "text": "The process is called “Carry Vesting & Carry Point Reallocation.”",
+      "evidence_turns": [
+        "context"
+      ],
+      "history_ref": "e049f4b7def35fb1",
+      "recorded_at": "2026-11-16T22:16:41.796+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "purpose",
+      "text": "The work reallocates released carry points and produces an updated schedule and carry calculation for the current period.",
+      "evidence_turns": [
+        "turn_3",
+        "turn_5"
+      ],
+      "history_ref": "ecc4039bd5721844",
+      "recorded_at": "2026-11-16T22:19:14.490+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "calculate vested and released points and allocate all released points to named recipients"
+        }
+      ],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "trigger",
+      "text": "The work begins when a partner's carry changes.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "5bcb43470af36a2c",
+      "recorded_at": "2026-11-16T22:19:14.490+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "When a partner's carry changes, the preparer opens a change record"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "accountable",
+      "text": "A preparer opens the change record.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "14b8f0cad0ce37f6",
+      "recorded_at": "2026-11-16T22:19:14.490+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "the preparer opens a change record from the GP-02 package"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "When a partner’s carry changes, the preparer opens a change record from the GP-02 package, checks governing terms and any approved exception, then ties the prior points and carry to the workbook. The client chooses an allowed method and names recipients; if Method B is selected, the work is put on hold and Method B is not run under this procedure.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "96589a7afe01bbc8",
+      "recorded_at": "2026-11-16T22:16:41.798+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "the preparer opens a change record from the GP-02 package, checks the governing terms and any approved exception, then ties the prior points and carry to the workbook. The client chooses the allowed method and names recipients. If they select Method B, we put it on hold. We never run Method B from this procedure."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The preparer checks governing terms and any approved exception and ties prior points and carry to the workbook. The team compares prior schedules, workbooks, distributions and recorded amounts; original points, cumulative allocations and distributions, and the carry calculation base must tie.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3"
+      ],
+      "history_ref": "48ccfe13140891f2",
+      "recorded_at": "2026-11-16T22:19:14.490+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "checks the governing terms and any approved exception, then ties the prior points and carry to the workbook"
+        },
+        {
+          "source_id": "turn_3",
+          "quote": "Original points, cumulative allocations and distributions and the carry calculation base must tie."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "If the client selects Method B, the work is put on hold; this procedure never runs Method B.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "9eb17438d9f81319",
+      "recorded_at": "2026-11-16T22:19:14.490+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "If they select Method B, we put it on hold. We never run Method B from this procedure."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The preparer opens a change record from the GP-02 package and uses a workbook to tie prior points and carry.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "556e8e22b092bbac",
+      "recorded_at": "2026-11-16T22:19:14.490+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "scope",
+      "text": "The described work concerns a partner's carry change and carry points; the client chooses an allowed method and names recipients.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "81fa270542933513",
+      "recorded_at": "2026-11-16T22:19:14.490+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "rules",
+      "text": "The preparer checks governing terms and any approved exception; the client chooses an allowed method and names recipients.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "805538673b65c104",
+      "recorded_at": "2026-11-16T22:19:14.490+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "data_systems",
+      "text": "A workbook is used to tie prior points and carry; the comparison includes prior schedules, workbooks, distributions and recorded amounts.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3"
+      ],
+      "history_ref": "b53d4b20e46bbbac",
+      "recorded_at": "2026-11-16T22:19:14.490+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "ties the prior points and carry to the workbook"
+        },
+        {
+          "source_id": "turn_3",
+          "quote": "We compare the prior schedules, workbooks, distributions and amounts recorded."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "Who detects or receives notice of the change, the cadence, and any deadlines remain unspecified.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "ab244739aed12fd2",
+      "recorded_at": "2026-11-16T22:19:14.490+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "When a partner's carry changes"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "accountable",
+      "text": "The role accountable for the overall result and the final release role are unconfirmed.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_5"
+      ],
+      "history_ref": "7294c6140f87dcf7",
+      "recorded_at": "2026-11-16T22:19:14.490+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "the preparer opens a change record"
+        },
+        {
+          "source_id": "turn_5",
+          "quote": "The final release role is unconfirmed."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "Prior schedules, workbooks and distributions are used in the tie-out. The old schedule is retained and a new dated schedule is built, protected and sent onward.",
+      "evidence_turns": [
+        "turn_3",
+        "turn_5"
+      ],
+      "history_ref": "2c78df4a01b0c459",
+      "recorded_at": "2026-11-16T22:19:14.492+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "We compare the prior schedules, workbooks, distributions and amounts recorded."
+        },
+        {
+          "source_id": "turn_5",
+          "quote": "We keep the old schedule, build a new dated schedule"
+        },
+        {
+          "source_id": "turn_5",
+          "quote": "final schedules are protected and sent to GP-01 and GP-06"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The storage locations and maintainers of the package, workbooks and schedules remain unspecified.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_5"
+      ],
+      "history_ref": "c581c3459d3e4209",
+      "recorded_at": "2026-11-16T22:19:14.492+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "the GP-02 package"
+        },
+        {
+          "source_id": "turn_5",
+          "quote": "We keep the old schedule, build a new dated schedule"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "scope",
+      "text": "Applicability across entities, funds and clients, and whether this is general GPFS practice, remain unspecified.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "2e12fa1074e90246",
+      "recorded_at": "2026-11-16T22:19:14.492+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "The client chooses the allowed method and names recipients."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "The specific governing documents and exception, and the source establishing allowed methods, have not been identified or independently reviewed.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "4b2f2b6e7b2fecf9",
+      "recorded_at": "2026-11-16T22:19:14.492+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "checks the governing terms and any approved exception"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "The workbook's platform, calculation logic, ownership and any re-keying remain unspecified.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3"
+      ],
+      "history_ref": "d1c872c5f4ca2b89",
+      "recorded_at": "2026-11-16T22:19:14.493+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "ties the prior points and carry to the workbook"
+        },
+        {
+          "source_id": "turn_3",
+          "quote": "We compare the prior schedules, workbooks, distributions and amounts recorded."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "Other applicability differences remain unspecified.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_7"
+      ],
+      "history_ref": "31e84e5dcc7a1c81",
+      "recorded_at": "2026-11-16T22:19:41.113+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "If they select Method B, we put it on hold."
+        },
+        {
+          "source_id": "turn_7",
+          "quote": "Only a concept exists"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "After the prior balances tie, the team verifies the governing vested percentage and any approved exception, calculates vested and released points, and allocates all released points to named recipients. Total member point changes must equal zero.",
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "history_ref": "c7e9452585f10d66",
+      "recorded_at": "2026-11-16T22:19:14.493+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "Next we verify the governing vested percentage and any approved exception, calculate vested and released points and allocate all released points to named recipients. Total member point changes must equal zero."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The team keeps the old schedule, builds a new dated schedule including approved deals or tranches, verifies period coverage and ties totals. Under go-forward treatment, earlier amounts remain unchanged.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "bc902a9b429ac2a4",
+      "recorded_at": "2026-11-16T22:19:14.493+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "We keep the old schedule, build a new dated schedule, include approved deals or tranches, verify coverage of periods and tie the totals. Under go-forward treatment earlier amounts stay unchanged."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The team uses the approved schedule from its effective date, calculates carry from inception through the current period and subtracts the amount already recorded. A reviewer checks support, computations, entries and outputs before final schedules are protected and sent to GP-01 and GP-06.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "4658682801f0185e",
+      "recorded_at": "2026-11-16T22:19:14.493+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "We use the approved schedule from its effective date, calculate carry from inception through the current period and subtract what's already recorded. A reviewer checks governing support, computations, entries and outputs before final schedules are protected and sent to GP-01 and GP-06."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "After reviewer checks, final schedules are protected and sent to GP-01 and GP-06.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "415024b18f7b771b",
+      "recorded_at": "2026-11-16T22:19:14.493+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "A reviewer checks governing support, computations, entries and outputs before final schedules are protected and sent to GP-01 and GP-06."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "Whether downstream acceptance, posting or another closure condition is required remains unspecified; the final release role is unconfirmed.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "f87448a3c8aa7c79",
+      "recorded_at": "2026-11-16T22:19:14.494+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "final schedules are protected and sent to GP-01 and GP-06. The final release role is unconfirmed."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The team verifies the vested percentage and approved exception, checks that member point changes sum to zero, verifies schedule period coverage and ties totals. A reviewer checks governing support, computations, entries and outputs before the schedules are protected and sent.",
+      "evidence_turns": [
+        "turn_3",
+        "turn_5"
+      ],
+      "history_ref": "d4606d75f9f7f100",
+      "recorded_at": "2026-11-16T22:19:14.494+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "verify coverage of periods and tie the totals"
+        },
+        {
+          "source_id": "turn_5",
+          "quote": "A reviewer checks governing support, computations, entries and outputs before final schedules are protected and sent"
+        }
+      ],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "checks",
+      "text": "The final release role and the evidence retained for review remain unconfirmed.",
+      "evidence_turns": [
+        "turn_5",
+        "turn_11"
+      ],
+      "history_ref": "bc1c9296f044f70b",
+      "recorded_at": "2026-11-16T22:22:17.081+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "The final release role is unconfirmed."
+        },
+        {
+          "source_id": "turn_11",
+          "quote": "I can't name the correction or release authority from this procedure."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "All released points are allocated to named recipients and total member point changes must equal zero. Under go-forward treatment earlier amounts stay unchanged; carry is calculated from inception to the current period using the approved schedule from its effective date, less amounts already recorded.",
+      "evidence_turns": [
+        "turn_3",
+        "turn_5"
+      ],
+      "history_ref": "0487f534be87f88a",
+      "recorded_at": "2026-11-16T22:19:14.494+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "allocate all released points to named recipients. Total member point changes must equal zero."
+        },
+        {
+          "source_id": "turn_5",
+          "quote": "Under go-forward treatment earlier amounts stay unchanged. We use the approved schedule from its effective date, calculate carry from inception through the current period and subtract what's already recorded."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "The rounding rule and threshold for action remain unconfirmed.",
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "history_ref": "68af87e95b6c0703",
+      "recorded_at": "2026-11-16T22:19:14.494+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "The rounding rule and threshold for action remain unconfirmed."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "Under go-forward treatment, earlier amounts stay unchanged.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "388b0d8153a068ae",
+      "recorded_at": "2026-11-16T22:19:14.494+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "Under go-forward treatment earlier amounts stay unchanged."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "The preparer opens the change record from the GP-02 package. Final protected schedules are sent to GP-01 and GP-06.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_5"
+      ],
+      "history_ref": "584595ab0bb4a0a0",
+      "recorded_at": "2026-11-16T22:19:41.113+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "the preparer opens a change record from the GP-02 package"
+        },
+        {
+          "source_id": "turn_5",
+          "quote": "final schedules are protected and sent to GP-01 and GP-06"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "The functions of GP-01 and GP-06 and their acceptance requirements remain unspecified.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "1b85dc8df1ae45ac",
+      "recorded_at": "2026-11-16T22:19:41.113+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "sent to GP-01 and GP-06"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "When Method B is selected, the selection and hold are documented. GP03-GAP-02 blocks its calculation, posting, withholding, offsets and release.",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "history_ref": "19e0bca13cc7bfd9",
+      "recorded_at": "2026-11-16T22:19:41.113+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_7",
+          "quote": "Document the selection and the hold. GP03-GAP-02 blocks calculation, posting, withholding, offsets and release of Method B."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "Method B is held rather than run under this procedure: only a concept exists, and the selection and hold are documented.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_7"
+      ],
+      "history_ref": "975e71f1239ffe9e",
+      "recorded_at": "2026-11-16T22:19:41.113+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "We never run Method B from this procedure."
+        },
+        {
+          "source_id": "turn_7",
+          "quote": "Document the selection and the hold. GP03-GAP-02 blocks calculation, posting, withholding, offsets and release of Method B. Only a concept exists"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "Method B's formula, tests, release criteria and approvals require process owner, Accounting, client and relevant Legal or Tax input. The participant cannot provide an executable formula or confirm approval.",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "history_ref": "f2912033d571327f",
+      "recorded_at": "2026-11-16T22:19:41.114+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_7",
+          "quote": "the formula, tests, release criteria and approvals require the process owner, Accounting, client and relevant Legal or Tax input. I cannot tell you the executable formula or that anyone has approved it."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "GP03-GAP-02 blocks calculation, posting, withholding, offsets and release for Method B.",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "history_ref": "5a306182527b5884",
+      "recorded_at": "2026-11-16T22:19:41.115+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_7",
+          "quote": "GP03-GAP-02 blocks calculation, posting, withholding, offsets and release of Method B."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The Method B selection and hold are documented; GP03-GAP-02 is identified as the block on subsequent Method B activity.",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "history_ref": "ca95f7752f8a5289",
+      "recorded_at": "2026-11-16T22:19:41.115+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_7",
+          "quote": "Document the selection and the hold. GP03-GAP-02 blocks calculation, posting, withholding, offsets and release of Method B."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "risk",
+      "text": "A wrong recipient, vested percentage or effective date can change cumulative allocations, the current entry and downstream GP-01/GP-06 outputs.",
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "history_ref": "25aee210ac19cdb2",
+      "recorded_at": "2026-11-16T22:21:00.072+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_9",
+          "quote": "The wrong recipient, vested percentage or effective date can change cumulative allocations, the current entry and downstream GP-01/GP-06 outputs."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The preparer ties the starting position, proves total point changes are zero, and checks periods and totals. A reviewer checks the package before release.",
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "history_ref": "dad4a300a451242a",
+      "recorded_at": "2026-11-16T22:21:00.073+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_9",
+          "quote": "The preparer ties the starting position, proves total point changes are zero and checks periods and totals; a reviewer checks the package before release."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "Authority to correct and reissue outputs remains unconfirmed.",
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "history_ref": "83488fedc87f7981",
+      "recorded_at": "2026-11-16T22:21:00.073+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_9",
+          "quote": "The authority to correct and reissue outputs and the named release approver still need confirmation."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "If governing support, recipient allocation, total points or schedules fail validation, the team holds the change, preserves prior schedules, resolves the underlying error with approved support, repeats the proof and submits a complete package with no blocking hold for review.",
+      "evidence_turns": [
+        "turn_11"
+      ],
+      "history_ref": "8b5e4d9dc215e098",
+      "recorded_at": "2026-11-16T22:22:17.081+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_11",
+          "quote": "We hold the change if governing support, recipient allocation, total points or schedules fail validation. Preserve prior schedules, resolve the underlying error with approved support, repeat the proof and submit a complete package with no blocking hold for review."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "A failed validation results in a hold; the underlying error is resolved with approved support and the proof repeated before a complete package without a blocking hold is submitted for review.",
+      "evidence_turns": [
+        "turn_11"
+      ],
+      "history_ref": "0f9e8284defe2c82",
+      "recorded_at": "2026-11-16T22:22:17.082+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_11",
+          "quote": "resolve the underlying error with approved support, repeat the proof and submit a complete package with no blocking hold for review"
+        }
+      ],
+      "unverified": []
+    }
+  ],
+  "fact_history": [
+    {
+      "topic": "purpose",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:41.798+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "d2298c0a9be87e5d"
+    },
+    {
+      "topic": "trigger",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:41.798+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "4107588535a5c63e"
+    },
+    {
+      "topic": "accountable",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:41.798+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "35604bf65541d8f2"
+    },
+    {
+      "topic": "checks",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:41.798+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "0cfd3e4c970af25c"
+    },
+    {
+      "topic": "variations",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:41.799+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "dd56892fdce321c5"
+    },
+    {
+      "topic": "materials",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:41.799+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "af297aae5a760533"
+    },
+    {
+      "topic": "scope",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:41.799+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "9b4696d1cdd7ee48"
+    },
+    {
+      "topic": "rules",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:41.799+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "ab8dceb71ba25ea8"
+    },
+    {
+      "topic": "data_systems",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:41.799+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "ba1e90ce5b95abff"
+    },
+    {
+      "topic": "variations",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:19:14.493+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "c0727c3cd0293481"
+    },
+    {
+      "topic": "checks",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:19:14.494+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "654ed85aed221608"
+    },
+    {
+      "topic": "connections",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:19:14.496+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "c282e87a1334bd81"
+    }
+  ],
+  "workflow": {
+    "connections": [
+      {
+        "evidence_turns": [
+          "turn_1"
+        ],
+        "from": "S1",
+        "label": "Check support and tie prior position",
+        "to": "S2"
+      },
+      {
+        "evidence_turns": [
+          "turn_1"
+        ],
+        "from": "S3",
+        "label": "Method selected",
+        "to": "S4"
+      },
+      {
+        "evidence_turns": [
+          "turn_1",
+          "turn_7"
+        ],
+        "from": "S4",
+        "label": "Method B selected",
+        "to": "S5"
+      },
+      {
+        "evidence_turns": [
+          "turn_3",
+          "turn_5"
+        ],
+        "from": "S6",
+        "label": "Point changes proved",
+        "to": "S7"
+      },
+      {
+        "evidence_turns": [
+          "turn_5"
+        ],
+        "from": "S7",
+        "label": "Approved schedule available",
+        "to": "S8"
+      },
+      {
+        "evidence_turns": [
+          "turn_5",
+          "turn_11"
+        ],
+        "from": "S8",
+        "label": "Complete package with no blocking hold",
+        "to": "S9"
+      },
+      {
+        "evidence_turns": [
+          "turn_5"
+        ],
+        "from": "S9",
+        "label": "Review before protection and delivery",
+        "to": "S10"
+      },
+      {
+        "evidence_turns": [
+          "turn_1",
+          "turn_11"
+        ],
+        "from": "S1",
+        "label": "Governing support fails validation",
+        "to": "S11"
+      },
+      {
+        "evidence_turns": [
+          "turn_3",
+          "turn_11"
+        ],
+        "from": "S6",
+        "label": "Recipient allocation or total points fail validation",
+        "to": "S11"
+      },
+      {
+        "evidence_turns": [
+          "turn_5",
+          "turn_11"
+        ],
+        "from": "S7",
+        "label": "Schedule fails validation",
+        "to": "S11"
+      },
+      {
+        "evidence_turns": [
+          "turn_11"
+        ],
+        "from": "S11",
+        "label": "Proof repeated; complete package has no blocking hold",
+        "to": "S9"
+      },
+      {
+        "evidence_turns": [
+          "turn_3"
+        ],
+        "from": "S2",
+        "label": "Starting position tied",
+        "to": "S6"
+      }
+    ],
+    "open_questions": [
+      "Are there other outcomes from decision S4 (Is Method B selected?), and where do they lead?",
+      "Does any incoming route start S9 (Review complete package), or must all prerequisites finish?",
+      "Does any incoming route start S11 (Hold and resolve validation failure), or must all prerequisites finish?",
+      "Are the routes containing S1 (Open and check change record) and S3 (Select method and recipients) separate, or is there a reported handoff between them?",
+      "How is a partner's carry change detected, who receives it, and what upstream input makes the change ready? What are the cadence and deadlines?",
+      "Is client selection necessarily after the starting tie, or can it occur earlier? Which method or methods follow the calculation route, and how does that route connect to the point calculation?",
+      "Who is accountable overall, who performs each calculation and schedule action, and who approves the schedule and final release?",
+      "Who may correct and reissue outputs, and how are review failures, escalations or overrides handled and recorded?",
+      "What are the rounding rule, action threshold, calculation inputs and detailed calculation rules? Who interprets governing terms and resolves conflicting sources?",
+      "Where are records, calculations, schedules and retained review evidence kept? What is the authoritative record, and which data are entered manually or imported?",
+      "What do GP-01 and GP-06 use the schedules for, and is any further delivery, posting, reconciliation or closure required?",
+      "Which entity types and clients are in scope, what is the parent process, and is this general GPFS practice or client-specific? What is the basis for any standard?",
+      "What other variants change the work, why do they exist, and what are their effort, charging and removal constraints where applicable?",
+      "Are checks procedural or system-enforced, are there approval thresholds or segregation requirements, and what happens when client approval is delayed or rejected?",
+      "What materials are available for review, including the GP-02 package and GP03-GAP-02? No document excerpt was supplied for independent review.",
+      "What are the normal volumes, peaks, exception frequency, most effortful steps and reported pain points?",
+      "For Method B, who owns the hold and how would the required process owner, Accounting, client and relevant Legal or Tax input be obtained?"
+    ],
+    "steps": [
+      {
+        "actor": "Preparer",
+        "completion_criteria": "UNKNOWN",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "GP-02 package and governing support",
+        "description": "When a partner's carry changes, open a change record and check the governing terms and any approved exception.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "turn_1"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S1",
+        "input": "Partner carry change",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "turn_1"
+            ],
+            "field": "responsible",
+            "text": "the preparer opens a change record from the GP-02 package, checks the governing terms and any approved exception"
+          }
+        ],
+        "output": "Change record and governing support",
+        "parent_process": "UNKNOWN",
+        "rule_source_ref": "Governing terms and approved exceptions",
+        "system": "GP-02 package",
+        "title": "Open and check change record",
+        "type": "activity"
+      },
+      {
+        "actor": "Preparer",
+        "completion_criteria": "Required starting figures tie",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Prior schedules, workbooks, distributions and recorded amounts",
+        "description": "Compare prior schedules, workbooks, distributions and recorded amounts. Tie original points, cumulative allocations and distributions, and the carry calculation base.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "turn_1",
+          "turn_3",
+          "turn_9"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S2",
+        "input": "Prior schedules, workbooks, distributions and recorded amounts",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "turn_9"
+            ],
+            "field": "responsible",
+            "text": "The preparer ties the starting position"
+          },
+          {
+            "evidence_turns": [
+              "turn_1"
+            ],
+            "field": "system",
+            "text": "ties the prior points and carry to the workbook."
+          },
+          {
+            "evidence_turns": [
+              "turn_3"
+            ],
+            "field": "control",
+            "text": "Original points, cumulative allocations and distributions and the carry calculation base must tie."
+          }
+        ],
+        "output": "Tied starting position",
+        "parent_process": "UNKNOWN",
+        "rule_source_ref": "UNKNOWN",
+        "system": "Workbook",
+        "title": "Tie starting position",
+        "type": "activity"
+      },
+      {
+        "actor": "Client",
+        "completion_criteria": "Method selected and recipients named",
+        "control_type": [
+          "none_reported"
+        ],
+        "data_origin": "Client",
+        "description": "The client chooses the allowed method and names recipients. Who confirms that a method is allowed is UNKNOWN.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "turn_1"
+        ],
+        "handoff": "How the selection reaches the preparer is UNKNOWN",
+        "id": "S3",
+        "input": "Change requiring a method and recipients",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "turn_1"
+            ],
+            "field": "responsible",
+            "text": "The client chooses the allowed method and names recipients."
+          }
+        ],
+        "output": "Selected method and named recipients",
+        "parent_process": "UNKNOWN",
+        "rule_source_ref": "UNKNOWN",
+        "system": "UNKNOWN",
+        "title": "Select method and recipients",
+        "type": "activity"
+      },
+      {
+        "actor": "UNKNOWN",
+        "completion_criteria": "Selected method determined",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Client selection",
+        "description": "Determine whether the selected method is Method B. The method and handoff for the calculation route are UNKNOWN.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "turn_1",
+          "turn_7"
+        ],
+        "handoff": "Method B goes on hold; other routing is UNKNOWN",
+        "id": "S4",
+        "input": "Client's selected method",
+        "operating_details": [],
+        "output": "Method selection outcome",
+        "parent_process": "UNKNOWN",
+        "rule_source_ref": "GP03-GAP-02, as reported by participant",
+        "system": "UNKNOWN",
+        "title": "Is Method B selected?",
+        "type": "decision"
+      },
+      {
+        "actor": "UNKNOWN",
+        "completion_criteria": "Release criteria and approvals are UNKNOWN; Method B remains on hold.",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Client selection",
+        "description": "Document the selection and hold. The participant reports that GP03-GAP-02 blocks calculation, posting, withholding, offsets and release; only a concept exists.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "turn_1",
+          "turn_7"
+        ],
+        "handoff": "Process owner, Accounting, client and relevant Legal or Tax input required; route UNKNOWN",
+        "id": "S5",
+        "input": "Method B selection",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "turn_7"
+            ],
+            "field": "control",
+            "text": "GP03-GAP-02 blocks calculation, posting, withholding, offsets and release of Method B."
+          },
+          {
+            "evidence_turns": [
+              "turn_7"
+            ],
+            "field": "exception",
+            "text": "Only a concept exists; the formula, tests, release criteria and approvals require the process owner, Accounting, client and relevant Legal or Tax input."
+          }
+        ],
+        "output": "Documented hold",
+        "parent_process": "UNKNOWN",
+        "rule_source_ref": "GP03-GAP-02, as reported by participant",
+        "system": "UNKNOWN",
+        "title": "Hold Method B",
+        "type": "wait"
+      },
+      {
+        "actor": "UNKNOWN; preparer proves total point changes",
+        "completion_criteria": "Recipient allocation and total-point validation outcome determined, including any failure.",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Governing terms, approved exception and client selection",
+        "description": "Verify the governing vested percentage and approved exception, calculate vested and released points, and allocate all released points to named recipients. Prove total member point changes equal zero; rounding and action thresholds are unconfirmed.",
+        "entity_scope": [],
+        "entry_mode": "calculated",
+        "evidence_turns": [
+          "turn_3",
+          "turn_9",
+          "turn_11"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S6",
+        "input": "Tied starting position, governing support and named recipients",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "turn_9"
+            ],
+            "field": "responsible",
+            "text": "The preparer ties the starting position, proves total point changes are zero and checks periods and totals"
+          },
+          {
+            "evidence_turns": [
+              "turn_3"
+            ],
+            "field": "control",
+            "text": "Total member point changes must equal zero."
+          },
+          {
+            "evidence_turns": [
+              "turn_11"
+            ],
+            "field": "exception",
+            "text": "We hold the change if governing support, recipient allocation, total points or schedules fail validation."
+          }
+        ],
+        "output": "Vested, released and allocated points, or validation failure",
+        "parent_process": "UNKNOWN",
+        "rule_source_ref": "Governing terms and approved exceptions",
+        "system": "UNKNOWN",
+        "title": "Calculate and allocate points",
+        "type": "activity"
+      },
+      {
+        "actor": "UNKNOWN; preparer checks periods and totals",
+        "completion_criteria": "Period-coverage and totals validation outcome determined, including any failure.",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Prior schedule and approved deals or tranches",
+        "description": "Keep the old schedule and build a new dated schedule including approved deals or tranches. Verify period coverage and tie totals; under go-forward treatment earlier amounts stay unchanged.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "turn_5",
+          "turn_9",
+          "turn_11"
+        ],
+        "handoff": "Schedule approval role and route UNKNOWN",
+        "id": "S7",
+        "input": "Prior schedule and point allocation",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "turn_9"
+            ],
+            "field": "responsible",
+            "text": "The preparer ties the starting position, proves total point changes are zero and checks periods and totals"
+          },
+          {
+            "evidence_turns": [
+              "turn_5"
+            ],
+            "field": "control",
+            "text": "verify coverage of periods and tie the totals."
+          },
+          {
+            "evidence_turns": [
+              "turn_11"
+            ],
+            "field": "exception",
+            "text": "We hold the change if governing support, recipient allocation, total points or schedules fail validation."
+          }
+        ],
+        "output": "New dated schedule and retained prior schedule, or validation failure",
+        "parent_process": "UNKNOWN",
+        "rule_source_ref": "UNKNOWN",
+        "system": "UNKNOWN",
+        "title": "Build and validate schedule",
+        "type": "activity"
+      },
+      {
+        "actor": "UNKNOWN",
+        "completion_criteria": "UNKNOWN",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Approved schedule and recorded amounts",
+        "description": "Use the approved schedule from its effective date, calculate carry from inception through the current period, and subtract what is already recorded.",
+        "entity_scope": [],
+        "entry_mode": "calculated",
+        "evidence_turns": [
+          "turn_5"
+        ],
+        "handoff": "Include calculations and entries in the review package",
+        "id": "S8",
+        "input": "Approved schedule, effective date and recorded amounts",
+        "operating_details": [],
+        "output": "Current carry calculation",
+        "parent_process": "UNKNOWN",
+        "rule_source_ref": "UNKNOWN",
+        "system": "UNKNOWN",
+        "title": "Calculate current carry",
+        "type": "activity"
+      },
+      {
+        "actor": "Reviewer",
+        "completion_criteria": "Review of governing support, computations, entries and outputs",
+        "control_type": [
+          "gpfs_supervisory"
+        ],
+        "data_origin": "Change package",
+        "description": "Review governing support, computations, entries and outputs before final schedules are protected and sent. A complete package with no blocking hold is submitted for review.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "turn_5",
+          "turn_9",
+          "turn_11"
+        ],
+        "handoff": "Release authority is unconfirmed",
+        "id": "S9",
+        "input": "Complete package with no blocking hold",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "turn_5"
+            ],
+            "field": "responsible",
+            "text": "A reviewer checks governing support, computations, entries and outputs before final schedules are protected and sent to GP-01 and GP-06."
+          },
+          {
+            "evidence_turns": [
+              "turn_11"
+            ],
+            "field": "control",
+            "text": "submit a complete package with no blocking hold for review."
+          }
+        ],
+        "output": "Reviewed package",
+        "parent_process": "UNKNOWN",
+        "rule_source_ref": "UNKNOWN",
+        "system": "UNKNOWN",
+        "title": "Review complete package",
+        "type": "activity"
+      },
+      {
+        "actor": "UNKNOWN",
+        "completion_criteria": "Schedules protected and sent; release authority UNKNOWN",
+        "control_type": [
+          "none_reported"
+        ],
+        "data_origin": "Reviewed package",
+        "description": "Protect the final schedules and send them to GP-01 and GP-06. The final release role is unconfirmed.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "turn_5",
+          "turn_9"
+        ],
+        "handoff": "GP-01 and GP-06",
+        "id": "S10",
+        "input": "Reviewed final schedules",
+        "operating_details": [],
+        "output": "Protected schedules sent to GP-01 and GP-06",
+        "parent_process": "UNKNOWN",
+        "rule_source_ref": "UNKNOWN",
+        "system": "UNKNOWN",
+        "title": "Protect and send schedules",
+        "type": "activity"
+      },
+      {
+        "actor": "UNKNOWN",
+        "completion_criteria": "Underlying error resolved with approved support and proof repeated",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Validation results and approved support",
+        "description": "Hold the change if governing support, recipient allocation, total points or schedules fail validation. Preserve prior schedules, resolve the error with approved support and repeat the proof before submitting a complete package with no blocking hold for review.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "turn_11"
+        ],
+        "handoff": "Submit complete package for review; correction authority UNKNOWN",
+        "id": "S11",
+        "input": "Failed validation",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "turn_11"
+            ],
+            "field": "exception",
+            "text": "We hold the change if governing support, recipient allocation, total points or schedules fail validation."
+          },
+          {
+            "evidence_turns": [
+              "turn_11"
+            ],
+            "field": "control",
+            "text": "Preserve prior schedules, resolve the underlying error with approved support, repeat the proof and submit a complete package with no blocking hold for review."
+          }
+        ],
+        "output": "Corrected proof and complete package without a blocking hold",
+        "parent_process": "UNKNOWN",
+        "rule_source_ref": "UNKNOWN",
+        "system": "UNKNOWN",
+        "title": "Hold and resolve validation failure",
+        "type": "activity"
+      }
+    ],
+    "title": "Carry Vesting and Point Reallocation"
+  },
+  "capture_provenance": {
+    "method": "document_simulation",
+    "participant_confirmed": false,
+    "process_owner_approved": false,
+    "source_documents": [
+      {
+        "filename": "IP1-export.pdf",
+        "sha256": "d0f89ee7c7cc8ffbcd39c268b47b765888105e588f60199106356ca31df177c1"
+      }
+    ]
+  },
+  "closure": {
+    "asked": false,
+    "confirmed": false
+  }
+}

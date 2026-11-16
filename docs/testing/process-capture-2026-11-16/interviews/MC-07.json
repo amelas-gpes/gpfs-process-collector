@@ -1,0 +1,1361 @@
+{
+  "schema_version": 1,
+  "context": {
+    "process_name": "Manco Treasury & Payment Release",
+    "process_owner": "",
+    "objective": "Document how we carry out Manco Treasury & Payment Release, the controls and what needs confirmation.",
+    "background": ""
+  },
+  "turns": [
+    {
+      "id": "turn_1",
+      "role": "user",
+      "text": "Treasury receives the approved payment list. New or changed vendor bank details go through independent callback and sanctions screening first. Only supported, client-approved invoices can enter the payment log. Different authorized users initiate and release the payment in the bank. The exact bank cutoff and individual release limits are not confirmed."
+    },
+    {
+      "id": "turn_2",
+      "role": "assistant",
+      "text": "What does Treasury check against the approved payment list and invoices before adding a payment to the log?"
+    },
+    {
+      "id": "turn_3",
+      "role": "user",
+      "text": "For every item we tie vendor, legal entity, amount, currency, payment account and value date or due date back to the approved list and invoice package. We exclude pending queries, duplicates, rejected and unsupported items. Before building the bank instruction we check funding by currency, FX requirements and availability of separate initiator and releaser users. Insufficient funds require an approved funding decision."
+    },
+    {
+      "id": "turn_4",
+      "role": "assistant",
+      "text": "When funds are insufficient, what establishes that the funding decision has been approved?"
+    },
+    {
+      "id": "turn_5",
+      "role": "user",
+      "text": "The procedure says to escalate insufficient funds for an approved funding decision. We cannot retry on our own authority. It does not establish the precise authorizer, threshold, form of approval or evidence for a given account. Those are open with Treasury/control and the GPFS owner. The bank releaser separately checks authority in the current access and limit matrix before release."
+    },
+    {
+      "id": "turn_6",
+      "role": "assistant",
+      "text": "Who sends Treasury the approved payment list, and what indicates it is ready to process?"
+    },
+    {
+      "id": "turn_7",
+      "role": "user",
+      "text": "The input is MC-01 approved invoices or an approved AP platform list. The AP or payment-run preparer validates it; it is ready only once each invoice has client approval, supporting evidence, and all required details. The document doesn't name one sender for every run. Later the independent releaser checks the bank setup to the invoice and log and records the bank reference, time, initiator, releaser and initial status."
+    },
+    {
+      "id": "turn_8",
+      "role": "assistant",
+      "text": "What observable status or event tells Treasury that the payment-release work is complete?"
+    },
+    {
+      "id": "turn_9",
+      "role": "user",
+      "text": "Release alone doesn't close the run. We save bank confirmation with the invoice, update the payment log, monitor exceptions and match the payment log to bank transactions and settled invoices and accounting entries. Released but unsettled, duplicate, returned, missing postings and amount or date differences are investigated. Differences need resolution and reviewer sign-off for each close. The reconciliation schedule, tolerance and exact reviewer remain open."
+    },
+    {
+      "id": "turn_10",
+      "role": "assistant",
+      "text": "What can happen to the business or its payees if a payment-release issue is not caught or resolved?"
+    },
+    {
+      "id": "turn_11",
+      "role": "user",
+      "text": "A missed exception can leave a duplicate or returned payment, a vendor unpaid or the ledger inconsistent with bank settlement. We hold the exception open until investigated and reconciled. Insufficient funding is escalated, and retry or recall authority and deadlines remain unconfirmed."
+    },
+    {
+      "id": "turn_12",
+      "role": "assistant",
+      "text": "Which role is accountable for the payment run from receipt through reconciliation?"
+    }
+  ],
+  "memo_findings": [
+    {
+      "answer": "The supplied process name is “Manco Treasury & Payment Release.”",
+      "evidence_turns": [
+        "context"
+      ],
+      "key": "name",
+      "status": "captured"
+    },
+    {
+      "answer": "The work releases Manco payments through the bank.",
+      "evidence_turns": [
+        "context",
+        "turn_1"
+      ],
+      "key": "purpose",
+      "status": "captured"
+    },
+    {
+      "answer": "The event that initiates the work, its cadence, and any applicable deadline are not established; Treasury receiving the approved payment list is reported as a step, not as the initiating event.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "key": "trigger",
+      "status": "partial"
+    },
+    {
+      "answer": "Release alone does not close the run. The payment log is matched to bank transactions, settled invoices and accounting entries; differences require resolution and reviewer sign-off for each close.",
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "key": "completion",
+      "status": "partial"
+    },
+    {
+      "answer": "The role accountable for the overall result is not identified; the authorized users mentioned for bank initiation and release are not assigned an overall accountability role.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "key": "accountable",
+      "status": "partial"
+    },
+    {
+      "answer": "Treasury receives the approved payment list. Only supported, client-approved invoices can enter the payment log; different authorized users initiate and release the payment in the bank.\nFor new or changed vendor bank details, independent callback and sanctions screening take place first.\nFor every item, Treasury ties vendor, legal entity, amount, currency, payment account and value date or due date back to the approved payment list and invoice package. Pending queries, duplicates, rejected and unsupported items are excluded.\nBefore building the bank instruction, Treasury checks funding by currency, FX requirements and availability of separate initiator and releaser users. Insufficient funds require an approved funding decision.\nFor insufficient funds, the precise authorizer, threshold, approval form and evidence for a given account, as well as subsequent steps after the decision, remain open with Treasury/control and the GPFS owner.\nThe input is MC-01 approved invoices or an approved AP platform list. The AP or payment-run preparer validates it; it is ready only when each invoice has client approval, supporting evidence and all required details.\nThe procedure says to escalate insufficient funds for an approved funding decision; Treasury cannot retry on its own authority.\nLater, the independent releaser checks the bank setup against the invoice and log, and records the bank reference, time, initiator, releaser and initial status.\nAfter release, the team saves bank confirmation with the invoice, updates the payment log, monitors exceptions and matches the log to bank transactions, settled invoices and accounting entries. Released but unsettled payments, duplicates, returns, missing postings and amount or date differences are investigated.\nThe team holds an exception open until it has been investigated and reconciled.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3",
+        "turn_5",
+        "turn_7",
+        "turn_9",
+        "turn_11"
+      ],
+      "key": "lifecycle",
+      "status": "partial"
+    },
+    {
+      "answer": "New or changed vendor bank details go through an independent callback and sanctions screening before proceeding.\nOnly invoices that are supported and client-approved can enter the payment log.\nDifferent authorized users initiate and release the payment in the bank.\nThe bank's individual release limits are not confirmed.\nThe bank cutoff is not confirmed.\nFor every item, Treasury ties vendor, legal entity, amount, currency, payment account and value date or due date back to the approved list and invoice package; pending queries, duplicates, rejected and unsupported items are excluded.\nBefore building the bank instruction, Treasury checks funding by currency, FX requirements and availability of separate initiator and releaser users; insufficient funds require an approved funding decision.\nBefore release, the bank releaser checks authority in the current access and limit matrix.\nThe independent releaser checks bank setup against the invoice and log and records the bank reference, time, initiator, releaser and initial status.\nDifferences found in the close reconciliation require resolution and reviewer sign-off for each close.\nThe reconciliation schedule, tolerance and exact reviewer remain open.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3",
+        "turn_5",
+        "turn_7",
+        "turn_9"
+      ],
+      "key": "checks",
+      "status": "partial"
+    },
+    {
+      "answer": "New or changed vendor bank details go through independent callback and sanctions screening first.\nThe reason for the new-or-changed-details route and its applicability beyond that condition are unspecified.\nWhen funds are insufficient, an approved funding decision is required before the work can proceed.\nWhere funds are insufficient, the procedure calls for escalation for an approved funding decision, and Treasury cannot retry on its own authority.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3",
+        "turn_5"
+      ],
+      "key": "variations",
+      "status": "partial"
+    },
+    {
+      "answer": "",
+      "evidence_turns": [],
+      "key": "pain_points",
+      "status": "unknown"
+    },
+    {
+      "answer": "A missed exception can leave a duplicate or returned payment, a vendor unpaid, or the ledger inconsistent with bank settlement.",
+      "evidence_turns": [
+        "turn_11"
+      ],
+      "key": "risk",
+      "status": "captured"
+    },
+    {
+      "answer": "Treasury receives an approved payment list; the payment log admits only supported, client-approved invoices.\nThe locations and custodians of the input and payment log, and the log's format, remain unspecified.\nThe invoice package and approved payment list are used to tie out each payment item; a bank instruction is built after the reported readiness checks.\nMC-01 approved invoices or an approved AP platform list provide the input; the current access and limit matrix is used by the bank releaser to check authority.\nBank confirmation is saved with the invoice; the payment log is updated and matched to bank transactions, settled invoices and accounting entries.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_7",
+        "turn_3",
+        "turn_5",
+        "turn_9"
+      ],
+      "key": "materials",
+      "status": "partial"
+    },
+    {
+      "answer": "The supplied process context identifies this as Manco Treasury & Payment Release.\nApplicability across entities or clients and whether this is general GPFS or client-specific practice remain unestablished.",
+      "evidence_turns": [
+        "context",
+        "turn_1"
+      ],
+      "key": "scope",
+      "status": "partial"
+    },
+    {
+      "answer": "Only supported, client-approved invoices can enter the payment log.\nNew or changed vendor bank details go through independent callback and sanctions screening first.\nThe source of the support requirement and the meaning or evidence of support are unspecified.\nThe governing source and execution of callback and sanctions screening are unspecified.\nRetry or recall authority and deadlines remain unconfirmed.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_11"
+      ],
+      "key": "rules",
+      "status": "partial"
+    },
+    {
+      "answer": "The document does not name one sender of the approved input for every run; downstream process dependencies remain unspecified.\nTreasury consumes MC-01 approved invoices or an approved AP platform list validated by the AP or payment-run preparer.",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "key": "connections",
+      "status": "partial"
+    },
+    {
+      "answer": "The payment log admits eligible invoices; payments are initiated and released in the bank.\nThe payment log's location or system and the bank platform are unidentified.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "key": "data_systems",
+      "status": "partial"
+    },
+    {
+      "answer": "",
+      "evidence_turns": [],
+      "key": "volume",
+      "status": "unknown"
+    }
+  ],
+  "coverage": [
+    {
+      "key": "name",
+      "label": "Name & other names",
+      "status": "partial"
+    },
+    {
+      "key": "purpose",
+      "label": "Purpose & result",
+      "status": "partial"
+    },
+    {
+      "key": "trigger",
+      "label": "Start, cadence & deadlines",
+      "status": "partial"
+    },
+    {
+      "key": "completion",
+      "label": "Finished condition",
+      "status": "partial"
+    },
+    {
+      "key": "accountable",
+      "label": "Accountability",
+      "status": "partial"
+    },
+    {
+      "key": "lifecycle",
+      "label": "Items, stages & handoffs",
+      "status": "partial"
+    },
+    {
+      "key": "checks",
+      "label": "Checks, approvals & proof",
+      "status": "partial"
+    },
+    {
+      "key": "variations",
+      "label": "Variations and conditions",
+      "status": "partial"
+    },
+    {
+      "key": "pain_points",
+      "label": "Manual work & pain",
+      "status": "missing"
+    },
+    {
+      "key": "risk",
+      "label": "Consequences of failure",
+      "status": "partial"
+    },
+    {
+      "key": "materials",
+      "label": "Existing materials",
+      "status": "partial"
+    },
+    {
+      "key": "scope",
+      "label": "Scope & entity context",
+      "status": "partial"
+    },
+    {
+      "key": "rules",
+      "label": "Business rules & lineage",
+      "status": "partial"
+    },
+    {
+      "key": "connections",
+      "label": "Connected processes",
+      "status": "partial"
+    },
+    {
+      "key": "data_systems",
+      "label": "Data & systems",
+      "status": "partial"
+    },
+    {
+      "key": "volume",
+      "label": "Volume & effort",
+      "status": "missing"
+    }
+  ],
+  "focus": "Payment exceptions and consequences",
+  "summary": "Missed exceptions can leave vendors unpaid, duplicate or returned payments, or ledger inconsistencies. Exceptions remain open until investigated and reconciled; retry and recall authority and deadlines are unconfirmed.",
+  "parking_lot": [
+    "Confirm the bank cutoff and individual release limits."
+  ],
+  "taxonomy": [
+    {
+      "evidence_turns": [
+        "context"
+      ],
+      "facet": "entity_type",
+      "note": "The supplied process name identifies Manco; this is a descriptive classification from the provided context.",
+      "value": "manco"
+    },
+    {
+      "evidence_turns": [
+        "context",
+        "turn_1"
+      ],
+      "facet": "functional_area",
+      "note": "The process name and reported bank payment initiation and release indicate treasury payment activity.",
+      "value": "treasury_payments"
+    },
+    {
+      "evidence_turns": [
+        "context"
+      ],
+      "facet": "process_level",
+      "note": "The supplied context names an overall Manco Treasury & Payment Release work process.",
+      "value": "process"
+    },
+    {
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "facet": "control_type",
+      "note": "Invoices must be client-approved to enter the payment log; the reported approval point is a prerequisite to log entry.",
+      "value": "client_approval"
+    },
+    {
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "facet": "control_type",
+      "note": "Independent callback and sanctions screening are reported as operational checks for new or changed vendor bank details.",
+      "value": "gpfs_operational"
+    },
+    {
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "facet": "control_type",
+      "note": "Reported item-level tie-out, exclusions and pre-instruction readiness checks; organizational affiliation is not independently confirmed.",
+      "value": "gpfs_operational"
+    },
+    {
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "facet": "control_type",
+      "note": "The reported procedure escalates insufficient funds for an approved funding decision; Treasury cannot retry on its own authority.",
+      "value": "exception_escalation"
+    },
+    {
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "facet": "control_type",
+      "note": "The independent releaser checks bank setup against the invoice and log; organizational affiliation is not independently confirmed.",
+      "value": "gpfs_operational"
+    },
+    {
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "facet": "system",
+      "note": "An approved AP platform list is an alternative input; the platform is not named.",
+      "value": "other"
+    }
+  ],
+  "connections_out": [
+    {
+      "condition": "Validated by the AP or payment-run preparer and ready when invoices have client approval, supporting evidence and required details.",
+      "counterpart": "MC-01 approved invoices or approved AP platform list",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "relationship_type": "consumes"
+    }
+  ],
+  "fact_provenance": [
+    {
+      "topic": "name",
+      "text": "The supplied process name is “Manco Treasury & Payment Release.”",
+      "evidence_turns": [
+        "context"
+      ],
+      "history_ref": "85ea5ac06266b233",
+      "recorded_at": "2026-11-16T22:17:15.015+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "context",
+          "quote": "Manco Treasury & Payment Release"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "purpose",
+      "text": "The work releases Manco payments through the bank.",
+      "evidence_turns": [
+        "context",
+        "turn_1"
+      ],
+      "history_ref": "8e913da9170d987d",
+      "recorded_at": "2026-11-16T22:17:52.150+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "context",
+          "quote": "Manco Treasury & Payment Release"
+        },
+        {
+          "source_id": "turn_1",
+          "quote": "Different authorized users initiate and release the payment in the bank."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "The event that initiates the work, its cadence, and any applicable deadline are not established; Treasury receiving the approved payment list is reported as a step, not as the initiating event.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "2fb8bec6af08aca5",
+      "recorded_at": "2026-11-16T22:17:15.015+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "Treasury receives the approved payment list."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "Release alone does not close the run. The payment log is matched to bank transactions, settled invoices and accounting entries; differences require resolution and reviewer sign-off for each close.",
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "history_ref": "658ae3d5c325a833",
+      "recorded_at": "2026-11-16T22:21:22.952+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_9",
+          "quote": "Release alone doesn't close the run. We save bank confirmation with the invoice, update the payment log, monitor exceptions and match the payment log to bank transactions and settled invoices and accounting entries. Released but unsettled, duplicate, returned, missing postings and amount or date differences are investigated. Differences need resolution and reviewer sign-off for each close."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "Treasury receives the approved payment list. Only supported, client-approved invoices can enter the payment log; different authorized users initiate and release the payment in the bank.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "f7dcbedb41b45569",
+      "recorded_at": "2026-11-16T22:17:15.015+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "lifecycle",
+      "text": "For new or changed vendor bank details, independent callback and sanctions screening take place first.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "9c0aee9bb5783394",
+      "recorded_at": "2026-11-16T22:17:15.015+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "New or changed vendor bank details go through independent callback and sanctions screening first."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "accountable",
+      "text": "The role accountable for the overall result is not identified; the authorized users mentioned for bank initiation and release are not assigned an overall accountability role.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "a7a6cdb92f4476e2",
+      "recorded_at": "2026-11-16T22:17:15.015+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "Different authorized users initiate and release the payment in the bank."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "New or changed vendor bank details go through an independent callback and sanctions screening before proceeding.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "a7faa1abe66463b0",
+      "recorded_at": "2026-11-16T22:17:15.015+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "New or changed vendor bank details go through independent callback and sanctions screening first."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Only invoices that are supported and client-approved can enter the payment log.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "d7f7bf290f2a09f2",
+      "recorded_at": "2026-11-16T22:17:15.015+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "Only supported, client-approved invoices can enter the payment log."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Different authorized users initiate and release the payment in the bank.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "26e9078beccc23c9",
+      "recorded_at": "2026-11-16T22:17:15.015+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "Different authorized users initiate and release the payment in the bank."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The bank's individual release limits are not confirmed.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "73070310f77a75ff",
+      "recorded_at": "2026-11-16T22:17:15.015+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "the exact bank cutoff and individual release limits are not confirmed."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The bank cutoff is not confirmed.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "03b3774dc3117945",
+      "recorded_at": "2026-11-16T22:17:15.015+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "the exact bank cutoff and individual release limits are not confirmed."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "New or changed vendor bank details go through independent callback and sanctions screening first.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "c896dac6a05423e4",
+      "recorded_at": "2026-11-16T22:17:52.150+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "New or changed vendor bank details go through independent callback and sanctions screening first."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "Treasury receives an approved payment list; the payment log admits only supported, client-approved invoices.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "6523902bc51169d0",
+      "recorded_at": "2026-11-16T22:17:52.152+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "Treasury receives the approved payment list. New or changed vendor bank details go through independent callback and sanctions screening first. Only supported, client-approved invoices can enter the payment log."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "scope",
+      "text": "The supplied process context identifies this as Manco Treasury & Payment Release.",
+      "evidence_turns": [
+        "context"
+      ],
+      "history_ref": "fc31422ef48b727a",
+      "recorded_at": "2026-11-16T22:17:52.152+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "context",
+          "quote": "Manco Treasury & Payment Release"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "Only supported, client-approved invoices can enter the payment log.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "ecedfa75388307f6",
+      "recorded_at": "2026-11-16T22:17:52.152+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "Only supported, client-approved invoices can enter the payment log."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "New or changed vendor bank details go through independent callback and sanctions screening first.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "96cf91abf7af7f67",
+      "recorded_at": "2026-11-16T22:17:52.152+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "New or changed vendor bank details go through independent callback and sanctions screening first."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "The document does not name one sender of the approved input for every run; downstream process dependencies remain unspecified.",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "history_ref": "44b3738394c414f3",
+      "recorded_at": "2026-11-16T22:20:17.415+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_7",
+          "quote": "The document doesn't name one sender for every run."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "The payment log admits eligible invoices; payments are initiated and released in the bank.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "f7113a46106f655f",
+      "recorded_at": "2026-11-16T22:17:52.152+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "Only supported, client-approved invoices can enter the payment log. Different authorized users initiate and release the payment in the bank."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "The reason for the new-or-changed-details route and its applicability beyond that condition are unspecified.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "98f6fc7d448c8773",
+      "recorded_at": "2026-11-16T22:17:52.152+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "New or changed vendor bank details go through independent callback and sanctions screening first."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The locations and custodians of the input and payment log, and the log's format, remain unspecified.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_7"
+      ],
+      "history_ref": "ae1adf3fa1f5329a",
+      "recorded_at": "2026-11-16T22:20:17.415+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "Treasury receives the approved payment list."
+        },
+        {
+          "source_id": "turn_7",
+          "quote": "The input is MC-01 approved invoices or an approved AP platform list."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "scope",
+      "text": "Applicability across entities or clients and whether this is general GPFS or client-specific practice remain unestablished.",
+      "evidence_turns": [
+        "context",
+        "turn_1"
+      ],
+      "history_ref": "a1998bade2d55052",
+      "recorded_at": "2026-11-16T22:17:52.152+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "context",
+          "quote": "Manco Treasury & Payment Release"
+        },
+        {
+          "source_id": "turn_1",
+          "quote": "Treasury receives the approved payment list."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "The source of the support requirement and the meaning or evidence of support are unspecified.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "2e0ce9881074d0ac",
+      "recorded_at": "2026-11-16T22:17:52.152+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "Only supported, client-approved invoices can enter the payment log."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "The governing source and execution of callback and sanctions screening are unspecified.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "b4a971f5318ff194",
+      "recorded_at": "2026-11-16T22:17:52.152+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "New or changed vendor bank details go through independent callback and sanctions screening first."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "The payment log's location or system and the bank platform are unidentified.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "bfcba45efed58cd0",
+      "recorded_at": "2026-11-16T22:17:52.152+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "Only supported, client-approved invoices can enter the payment log. Different authorized users initiate and release the payment in the bank."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "For every item, Treasury ties vendor, legal entity, amount, currency, payment account and value date or due date back to the approved payment list and invoice package. Pending queries, duplicates, rejected and unsupported items are excluded.",
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "history_ref": "17a6ae199e183bd9",
+      "recorded_at": "2026-11-16T22:17:52.153+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "For every item we tie vendor, legal entity, amount, currency, payment account and value date or due date back to the approved list and invoice package. We exclude pending queries, duplicates, rejected and unsupported items."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "For every item, Treasury ties vendor, legal entity, amount, currency, payment account and value date or due date back to the approved list and invoice package; pending queries, duplicates, rejected and unsupported items are excluded.",
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "history_ref": "f729e7154102623e",
+      "recorded_at": "2026-11-16T22:17:52.153+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "For every item we tie vendor, legal entity, amount, currency, payment account and value date or due date back to the approved list and invoice package. We exclude pending queries, duplicates, rejected and unsupported items."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "Before building the bank instruction, Treasury checks funding by currency, FX requirements and availability of separate initiator and releaser users. Insufficient funds require an approved funding decision.",
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "history_ref": "f26b993bf15f66ab",
+      "recorded_at": "2026-11-16T22:17:52.153+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "Before building the bank instruction we check funding by currency, FX requirements and availability of separate initiator and releaser users. Insufficient funds require an approved funding decision."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Before building the bank instruction, Treasury checks funding by currency, FX requirements and availability of separate initiator and releaser users; insufficient funds require an approved funding decision.",
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "history_ref": "c80bd07c4d6214c0",
+      "recorded_at": "2026-11-16T22:17:52.153+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "Before building the bank instruction we check funding by currency, FX requirements and availability of separate initiator and releaser users. Insufficient funds require an approved funding decision."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "When funds are insufficient, an approved funding decision is required before the work can proceed.",
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "history_ref": "e5223312f4dc3b40",
+      "recorded_at": "2026-11-16T22:17:52.153+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "Insufficient funds require an approved funding decision."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The invoice package and approved payment list are used to tie out each payment item; a bank instruction is built after the reported readiness checks.",
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "history_ref": "f2cb3c539e0064c3",
+      "recorded_at": "2026-11-16T22:17:52.153+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "back to the approved list and invoice package"
+        },
+        {
+          "source_id": "turn_3",
+          "quote": "Before building the bank instruction we check funding by currency"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "For insufficient funds, the precise authorizer, threshold, approval form and evidence for a given account, as well as subsequent steps after the decision, remain open with Treasury/control and the GPFS owner.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "a3d4f5561b1419b9",
+      "recorded_at": "2026-11-16T22:20:17.416+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "It does not establish the precise authorizer, threshold, form of approval or evidence for a given account. Those are open with Treasury/control and the GPFS owner."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The input is MC-01 approved invoices or an approved AP platform list. The AP or payment-run preparer validates it; it is ready only when each invoice has client approval, supporting evidence and all required details.",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "history_ref": "96e5d69a04cd9b8e",
+      "recorded_at": "2026-11-16T22:20:17.416+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_7",
+          "quote": "The input is MC-01 approved invoices or an approved AP platform list. The AP or payment-run preparer validates it; it is ready only once each invoice has client approval, supporting evidence, and all required details."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The procedure says to escalate insufficient funds for an approved funding decision; Treasury cannot retry on its own authority.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "33bd9bef2455a27e",
+      "recorded_at": "2026-11-16T22:20:17.416+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "The procedure says to escalate insufficient funds for an approved funding decision. We cannot retry on our own authority."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Before release, the bank releaser checks authority in the current access and limit matrix.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "81576ad1b930ca0a",
+      "recorded_at": "2026-11-16T22:20:17.417+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "The bank releaser separately checks authority in the current access and limit matrix before release."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "Later, the independent releaser checks the bank setup against the invoice and log, and records the bank reference, time, initiator, releaser and initial status.",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "history_ref": "e0dddb9d87ec38d1",
+      "recorded_at": "2026-11-16T22:20:17.417+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_7",
+          "quote": "Later the independent releaser checks the bank setup to the invoice and log and records the bank reference, time, initiator, releaser and initial status."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The independent releaser checks bank setup against the invoice and log and records the bank reference, time, initiator, releaser and initial status.",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "history_ref": "5c7879677c3a6c9b",
+      "recorded_at": "2026-11-16T22:20:17.417+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_7",
+          "quote": "the independent releaser checks the bank setup to the invoice and log and records the bank reference, time, initiator, releaser and initial status."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "MC-01 approved invoices or an approved AP platform list provide the input; the current access and limit matrix is used by the bank releaser to check authority.",
+      "evidence_turns": [
+        "turn_5",
+        "turn_7"
+      ],
+      "history_ref": "047c6501177fb6a3",
+      "recorded_at": "2026-11-16T22:20:17.417+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "checks authority in the current access and limit matrix before release"
+        },
+        {
+          "source_id": "turn_7",
+          "quote": "The input is MC-01 approved invoices or an approved AP platform list."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "Treasury consumes MC-01 approved invoices or an approved AP platform list validated by the AP or payment-run preparer.",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "history_ref": "de3e95a8d2dac8fc",
+      "recorded_at": "2026-11-16T22:20:17.418+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_7",
+          "quote": "The input is MC-01 approved invoices or an approved AP platform list. The AP or payment-run preparer validates it"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "Where funds are insufficient, the procedure calls for escalation for an approved funding decision, and Treasury cannot retry on its own authority.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "69f098467448d3ed",
+      "recorded_at": "2026-11-16T22:20:17.418+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "escalate insufficient funds for an approved funding decision. We cannot retry on our own authority."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "After release, the team saves bank confirmation with the invoice, updates the payment log, monitors exceptions and matches the log to bank transactions, settled invoices and accounting entries. Released but unsettled payments, duplicates, returns, missing postings and amount or date differences are investigated.",
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "history_ref": "eb77d15cc2a31809",
+      "recorded_at": "2026-11-16T22:21:22.952+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_9",
+          "quote": "We save bank confirmation with the invoice, update the payment log, monitor exceptions and match the payment log to bank transactions and settled invoices and accounting entries. Released but unsettled, duplicate, returned, missing postings and amount or date differences are investigated."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Differences found in the close reconciliation require resolution and reviewer sign-off for each close.",
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "history_ref": "8347a2898badb1a2",
+      "recorded_at": "2026-11-16T22:21:22.952+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_9",
+          "quote": "Differences need resolution and reviewer sign-off for each close."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The reconciliation schedule, tolerance and exact reviewer remain open.",
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "history_ref": "362533842e99ece8",
+      "recorded_at": "2026-11-16T22:21:22.952+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_9",
+          "quote": "The reconciliation schedule, tolerance and exact reviewer remain open."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "Bank confirmation is saved with the invoice; the payment log is updated and matched to bank transactions, settled invoices and accounting entries.",
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "history_ref": "7c671837fff48b6d",
+      "recorded_at": "2026-11-16T22:21:22.952+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_9",
+          "quote": "We save bank confirmation with the invoice, update the payment log, monitor exceptions and match the payment log to bank transactions and settled invoices and accounting entries."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "risk",
+      "text": "A missed exception can leave a duplicate or returned payment, a vendor unpaid, or the ledger inconsistent with bank settlement.",
+      "evidence_turns": [
+        "turn_11"
+      ],
+      "history_ref": "2f61aa5df293081b",
+      "recorded_at": "2026-11-16T22:21:42.090+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_11",
+          "quote": "A missed exception can leave a duplicate or returned payment, a vendor unpaid or the ledger inconsistent with bank settlement."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The team holds an exception open until it has been investigated and reconciled.",
+      "evidence_turns": [
+        "turn_11"
+      ],
+      "history_ref": "f512de842d34ad41",
+      "recorded_at": "2026-11-16T22:21:42.090+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_11",
+          "quote": "We hold the exception open until investigated and reconciled."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "Retry or recall authority and deadlines remain unconfirmed.",
+      "evidence_turns": [
+        "turn_11"
+      ],
+      "history_ref": "926b25b9ef306bc4",
+      "recorded_at": "2026-11-16T22:21:42.090+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_11",
+          "quote": "retry or recall authority and deadlines remain unconfirmed."
+        }
+      ],
+      "unverified": []
+    }
+  ],
+  "fact_history": [
+    {
+      "topic": "purpose",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:17:15.015+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "9c1730ba599e8ace"
+    },
+    {
+      "topic": "completion",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:17:15.015+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "eea0e51cf8bf6cc8"
+    },
+    {
+      "topic": "variations",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:17:15.015+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "eb3fc96480cd9025"
+    },
+    {
+      "topic": "materials",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:17:15.015+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "b5577a2b81477f8c"
+    },
+    {
+      "topic": "scope",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:17:15.015+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "e2f6122a1eb5d13d"
+    },
+    {
+      "topic": "rules",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:17:15.015+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "5ae9985855b8aea1"
+    },
+    {
+      "topic": "rules",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:17:15.015+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "74604a5e608d0695"
+    },
+    {
+      "topic": "connections",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:17:15.015+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "73e993793419d992"
+    },
+    {
+      "topic": "data_systems",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:17:15.015+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "b1d871a1836f25e2"
+    },
+    {
+      "topic": "materials",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:17:52.152+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "5953089aed930f49"
+    },
+    {
+      "topic": "lifecycle",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:17:52.153+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "644ce23f232a5404"
+    }
+  ],
+  "capture_provenance": {
+    "method": "document_simulation",
+    "participant_confirmed": false,
+    "process_owner_approved": false,
+    "source_documents": [
+      {
+        "filename": "IP1-export.pdf",
+        "sha256": "d0f89ee7c7cc8ffbcd39c268b47b765888105e588f60199106356ca31df177c1"
+      }
+    ]
+  },
+  "closure": {
+    "asked": false,
+    "confirmed": false
+  }
+}

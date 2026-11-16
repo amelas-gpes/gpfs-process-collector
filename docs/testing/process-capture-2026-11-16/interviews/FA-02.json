@@ -1,0 +1,938 @@
+{
+  "schema_version": 1,
+  "context": {
+    "process_name": "Cash Application & Capital Call Receivables",
+    "objective": "Document how this process works, including controls and what remains unresolved."
+  },
+  "turns": [
+    {
+      "id": "t1",
+      "role": "user",
+      "text": "Track receipts after the final capital-call notice is out. We reconcile the investor amounts manually in our cash receivable tracker. A shared custodian name alone cannot identify the investor."
+    },
+    {
+      "id": "t2",
+      "role": "assistant",
+      "text": "What information do you use to identify the investor when a receipt has a shared custodian name?"
+    },
+    {
+      "id": "t3",
+      "role": "user",
+      "text": "We compare the receipt amount, transaction reference and available remittance support to the investor and event in the tracker. If the evidence is ambiguous, it stays unidentified. A second reviewer checks material matching decisions. We don't force a match from the custodian name."
+    },
+    {
+      "id": "t4",
+      "role": "assistant",
+      "text": "What happens to a receipt after it stays unidentified?"
+    },
+    {
+      "id": "t5",
+      "role": "user",
+      "text": "We log it as unresolved, escalate and include it in the client's funding-status report. The client or Treasury directs a return, transfer or future application. We record whether downstream payments can proceed from cleared cash or must be held. The tracker owner is assigned per event from the CAP Activity or Fund Team. We don't have a confirmed firmwide process owner or internal approver."
+    },
+    {
+      "id": "t6",
+      "role": "assistant",
+      "text": "What tells your team that a receipt has arrived and needs to be reconciled?"
+    },
+    {
+      "id": "t7",
+      "role": "user",
+      "text": "The tracker owner or bank-access role checks the bank portal daily starting several days before the due date, more often when a time-sensitive payment depends on it. We record the value date, amount and originator/reference. Closeout compares the expected receivable to applied receipts plus documented outstanding items or differences, and ties the tracker to bank, GL and historical contribution balances."
+    },
+    {
+      "id": "t8",
+      "role": "assistant",
+      "text": "What condition or recorded evidence lets you consider the event’s receivables closed?"
+    },
+    {
+      "id": "t9",
+      "role": "user",
+      "text": "As I mentioned, closeout uses expected = applied receipts plus documented outstanding/differences, reconciling bank, tracker, accounting and contribution history. We retain the final tracker, approvals, reports and reconciliation. An unowned unresolved difference prevents closeout. I can't give a firmwide storage path or retention period from this record."
+    },
+    {
+      "id": "t10",
+      "role": "assistant",
+      "text": "What can happen if a receipt is matched to the wrong investor?"
+    },
+    {
+      "id": "t11",
+      "role": "user",
+      "text": "A wrong match misstates the investor funding status, contribution history, GL and cash available for later payments. An unfunded management fee or investment payment can be released in error. Our client funding report feeds Fund Team and Treasury's FA-17 proceed/hold decision. Our evidence repository and retention period are still open."
+    },
+    {
+      "id": "t12",
+      "role": "assistant",
+      "text": "How does Fund Team and Treasury determine whether to proceed with or hold a downstream payment using the funding-status report?"
+    }
+  ],
+  "memo_findings": [
+    {
+      "answer": "The process is named “Cash Application & Capital Call Receivables.”",
+      "evidence_turns": [
+        "context"
+      ],
+      "key": "name",
+      "status": "captured"
+    },
+    {
+      "answer": "The work tracks receipts after the final capital-call notice is out.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "key": "purpose",
+      "status": "captured"
+    },
+    {
+      "answer": "Receipt tracking takes place after the final capital-call notice is out.\nThe tracker owner or bank-access role checks the bank portal daily starting several days before the due date, and more often when a time-sensitive payment depends on it.",
+      "evidence_turns": [
+        "t1",
+        "t7"
+      ],
+      "key": "trigger",
+      "status": "partial"
+    },
+    {
+      "answer": "Closeout compares the expected receivable with applied receipts plus documented outstanding items or differences, and ties the tracker to bank, GL and historical contribution balances.\nAn unowned unresolved difference prevents closeout.",
+      "evidence_turns": [
+        "t7",
+        "t9"
+      ],
+      "key": "completion",
+      "status": "captured"
+    },
+    {
+      "answer": "A tracker owner is assigned per event from the CAP Activity or Fund Team. There is no confirmed firmwide process owner or internal approver.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "key": "accountable",
+      "status": "partial"
+    },
+    {
+      "answer": "After the final capital-call notice is out, investor amounts are reconciled manually in the cash receivable tracker.\nThe team compares receipt amount, transaction reference and available remittance support with the investor and event in the tracker. Ambiguous evidence leaves the receipt unidentified; the team does not force a match using the custodian name.\nThe team logs unidentified receipts as unresolved, escalates them and includes them in the client’s funding-status report. The client or Treasury directs a return, transfer or future application.\nThe team records whether downstream payments can proceed from cleared cash or must be held.\nThe tracker owner or bank-access role checks the bank portal for receipts. The team records the value date, amount and originator/reference.",
+      "evidence_turns": [
+        "t1",
+        "t3",
+        "t5",
+        "t7"
+      ],
+      "key": "lifecycle",
+      "status": "partial"
+    },
+    {
+      "answer": "Investor amounts are reconciled manually; a shared custodian name alone cannot identify the investor.\nA second reviewer checks material matching decisions. The team compares receipt amount, transaction reference and available remittance support to the investor and event in the tracker.\nAt closeout, the expected receivable is compared with applied receipts plus documented outstanding items or differences; the tracker is tied to bank, GL and historical contribution balances.",
+      "evidence_turns": [
+        "t1",
+        "t3",
+        "t7"
+      ],
+      "key": "checks",
+      "status": "partial"
+    },
+    {
+      "answer": "Bank-portal checks are more frequent than daily when a time-sensitive payment depends on them.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "key": "variations",
+      "status": "partial"
+    },
+    {
+      "answer": "When receipt evidence is ambiguous, the receipt remains unidentified and is logged and escalated rather than being matched from a shared custodian name.",
+      "evidence_turns": [
+        "t3",
+        "t5"
+      ],
+      "key": "pain_points",
+      "status": "partial"
+    },
+    {
+      "answer": "A wrong match misstates investor funding status, contribution history, the GL and cash available for later payments. An unfunded management fee or investment payment could be released in error.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "key": "risk",
+      "status": "captured"
+    },
+    {
+      "answer": "The cash receivable tracker is used to reconcile investor amounts; the participant describes the reconciliation as manual.\nAvailable remittance support is used in receipt matching, and unresolved receipts are included in the client’s funding-status report.\nThe final tracker, approvals, reports and reconciliation are retained as closeout records.\nThe participant cannot provide a firmwide storage path or retention period for the retained closeout records from this record.\nThe client funding report feeds the Fund Team and Treasury's FA-17 proceed/hold decision.",
+      "evidence_turns": [
+        "t1",
+        "t3",
+        "t5",
+        "t9",
+        "t11"
+      ],
+      "key": "materials",
+      "status": "partial"
+    },
+    {
+      "answer": "The reported work concerns investor receipts following a final capital-call notice; tracker ownership is assigned by event.",
+      "evidence_turns": [
+        "t1",
+        "t5"
+      ],
+      "key": "scope",
+      "status": "partial"
+    },
+    {
+      "answer": "A shared custodian name alone is insufficient to identify the investor.\nAmbiguous evidence does not support an investor match; a match is not forced from the custodian name.",
+      "evidence_turns": [
+        "t1",
+        "t3"
+      ],
+      "key": "rules",
+      "status": "partial"
+    },
+    {
+      "answer": "The client or Treasury directs the disposition of unresolved receipts; the team records whether downstream payments can proceed or must be held.\nThe client funding report feeds the Fund Team and Treasury's FA-17 proceed/hold decision.",
+      "evidence_turns": [
+        "t5",
+        "t11"
+      ],
+      "key": "connections",
+      "status": "partial"
+    },
+    {
+      "answer": "The tracker is identified, but its format, location, and whether it is a system or workbook are not specified.\nThe tracker owner or bank-access role checks the bank portal for receipts; value date, amount and originator/reference are recorded.",
+      "evidence_turns": [
+        "t1",
+        "t7"
+      ],
+      "key": "data_systems",
+      "status": "partial"
+    },
+    {
+      "answer": "",
+      "evidence_turns": [],
+      "key": "volume",
+      "status": "unknown"
+    }
+  ],
+  "coverage": [
+    {
+      "key": "name",
+      "label": "Name & other names",
+      "status": "partial"
+    },
+    {
+      "key": "purpose",
+      "label": "Purpose & result",
+      "status": "partial"
+    },
+    {
+      "key": "trigger",
+      "label": "Start, cadence & deadlines",
+      "status": "partial"
+    },
+    {
+      "key": "completion",
+      "label": "Finished condition",
+      "status": "partial"
+    },
+    {
+      "key": "accountable",
+      "label": "Accountability",
+      "status": "partial"
+    },
+    {
+      "key": "lifecycle",
+      "label": "Items, stages & handoffs",
+      "status": "partial"
+    },
+    {
+      "key": "checks",
+      "label": "Checks, approvals & proof",
+      "status": "partial"
+    },
+    {
+      "key": "variations",
+      "label": "Variations and conditions",
+      "status": "partial"
+    },
+    {
+      "key": "pain_points",
+      "label": "Manual work & pain",
+      "status": "partial"
+    },
+    {
+      "key": "risk",
+      "label": "Consequences of failure",
+      "status": "partial"
+    },
+    {
+      "key": "materials",
+      "label": "Existing materials",
+      "status": "partial"
+    },
+    {
+      "key": "scope",
+      "label": "Scope & entity context",
+      "status": "partial"
+    },
+    {
+      "key": "rules",
+      "label": "Business rules & lineage",
+      "status": "partial"
+    },
+    {
+      "key": "connections",
+      "label": "Connected processes",
+      "status": "partial"
+    },
+    {
+      "key": "data_systems",
+      "label": "Data & systems",
+      "status": "partial"
+    },
+    {
+      "key": "volume",
+      "label": "Volume & effort",
+      "status": "missing"
+    }
+  ],
+  "focus": "Consequences of a wrong match",
+  "summary": "A wrong match can misstate funding and cash records and lead to an unfunded payment being released. Roughly how many investor receipts do you typically reconcile for an event?",
+  "parking_lot": [],
+  "taxonomy": [
+    {
+      "evidence_turns": [
+        "context",
+        "t1"
+      ],
+      "facet": "entity_type",
+      "note": "Reported capital-call receivables and investor receipt context; classification is descriptive, not independently verified.",
+      "value": "fund"
+    },
+    {
+      "evidence_turns": [
+        "t1"
+      ],
+      "facet": "functional_area",
+      "note": "Reported work tracks receipts after a final capital-call notice and reconciles investor amounts.",
+      "value": "capital_activity"
+    },
+    {
+      "evidence_turns": [
+        "t3"
+      ],
+      "facet": "control_type",
+      "note": "A second reviewer checks material matching decisions; the reviewer’s organizational role is not specified.",
+      "value": "gpfs_supervisory"
+    },
+    {
+      "evidence_turns": [
+        "t5"
+      ],
+      "facet": "control_type",
+      "note": "Unidentified receipts are logged and escalated; the escalation recipient is not specified.",
+      "value": "exception_escalation"
+    },
+    {
+      "evidence_turns": [
+        "t7"
+      ],
+      "facet": "system",
+      "note": "The participant reports checking a bank portal for receipts; no specific platform is named.",
+      "value": "bank_platform"
+    }
+  ],
+  "connections_out": [
+    {
+      "condition": "The team records whether payments can proceed from cleared cash or must be held.",
+      "counterpart": "Downstream payments",
+      "evidence_turns": [
+        "t5"
+      ],
+      "relationship_type": "provides_input_to"
+    },
+    {
+      "condition": "The client funding report feeds the decision.",
+      "counterpart": "Fund Team and Treasury's FA-17 proceed/hold decision",
+      "evidence_turns": [
+        "t11"
+      ],
+      "relationship_type": "provides_input_to"
+    }
+  ],
+  "fact_provenance": [
+    {
+      "topic": "name",
+      "text": "The process is named “Cash Application & Capital Call Receivables.”",
+      "evidence_turns": [
+        "context"
+      ],
+      "history_ref": "324b23289fb474c6",
+      "recorded_at": "2026-11-16T22:15:37.550+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "purpose",
+      "text": "The work tracks receipts after the final capital-call notice is out.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "1222ddae10cc0df4",
+      "recorded_at": "2026-11-16T22:15:37.553+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "Track receipts after the final capital-call notice is out."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "After the final capital-call notice is out, investor amounts are reconciled manually in the cash receivable tracker.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "a6e7e83412f74078",
+      "recorded_at": "2026-11-16T22:15:37.553+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "We reconcile the investor amounts manually in our cash receivable tracker."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Investor amounts are reconciled manually; a shared custodian name alone cannot identify the investor.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "fa01c45aa6369b70",
+      "recorded_at": "2026-11-16T22:15:37.553+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "We reconcile the investor amounts manually in our cash receivable tracker. A shared custodian name alone cannot identify the investor."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "A shared custodian name alone is insufficient to identify the investor.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "227c24952c3040ce",
+      "recorded_at": "2026-11-16T22:15:37.553+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "A shared custodian name alone cannot identify the investor."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The cash receivable tracker is used to reconcile investor amounts; the participant describes the reconciliation as manual.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "569127bdc447b7a4",
+      "recorded_at": "2026-11-16T22:15:37.553+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "We reconcile the investor amounts manually in our cash receivable tracker."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "The tracker is identified, but its format, location, and whether it is a system or workbook are not specified.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "029fe34f6decf836",
+      "recorded_at": "2026-11-16T22:15:37.553+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "in our cash receivable tracker"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "pain_points",
+      "text": "When receipt evidence is ambiguous, the receipt remains unidentified and is logged and escalated rather than being matched from a shared custodian name.",
+      "evidence_turns": [
+        "t3",
+        "t5"
+      ],
+      "history_ref": "2b9e4c10bdfc905d",
+      "recorded_at": "2026-11-16T22:17:05.352+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "If the evidence is ambiguous, it stays unidentified. A second reviewer checks material matching decisions. We don't force a match from the custodian name."
+        },
+        {
+          "source_id": "t5",
+          "quote": "We log it as unresolved, escalate and include it in the client's funding-status report."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "Receipt tracking takes place after the final capital-call notice is out.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "fec4264d6179132b",
+      "recorded_at": "2026-11-16T22:17:05.352+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "Track receipts after the final capital-call notice is out."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "accountable",
+      "text": "A tracker owner is assigned per event from the CAP Activity or Fund Team. There is no confirmed firmwide process owner or internal approver.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "e33cf1a4f4caf0f8",
+      "recorded_at": "2026-11-16T22:17:05.352+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "The tracker owner is assigned per event from the CAP Activity or Fund Team. We don't have a confirmed firmwide process owner or internal approver."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The team compares receipt amount, transaction reference and available remittance support with the investor and event in the tracker. Ambiguous evidence leaves the receipt unidentified; the team does not force a match using the custodian name.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "e4c8fe8ca75923f1",
+      "recorded_at": "2026-11-16T22:17:05.352+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "We compare the receipt amount, transaction reference and available remittance support to the investor and event in the tracker. If the evidence is ambiguous, it stays unidentified."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The team logs unidentified receipts as unresolved, escalates them and includes them in the client’s funding-status report. The client or Treasury directs a return, transfer or future application.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "d13ec0abd7137874",
+      "recorded_at": "2026-11-16T22:17:05.352+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "We log it as unresolved, escalate and include it in the client's funding-status report. The client or Treasury directs a return, transfer or future application."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The team records whether downstream payments can proceed from cleared cash or must be held.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "62a51cab3c8177ce",
+      "recorded_at": "2026-11-16T22:17:05.352+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "We record whether downstream payments can proceed from cleared cash or must be held."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "A second reviewer checks material matching decisions. The team compares receipt amount, transaction reference and available remittance support to the investor and event in the tracker.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "80af3267821eac61",
+      "recorded_at": "2026-11-16T22:17:05.352+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "We compare the receipt amount, transaction reference and available remittance support to the investor and event in the tracker. If the evidence is ambiguous, it stays unidentified. A second reviewer checks material matching decisions."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "Available remittance support is used in receipt matching, and unresolved receipts are included in the client’s funding-status report.",
+      "evidence_turns": [
+        "t3",
+        "t5"
+      ],
+      "history_ref": "07b529183884e95e",
+      "recorded_at": "2026-11-16T22:17:05.355+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "available remittance support to the investor and event in the tracker"
+        },
+        {
+          "source_id": "t5",
+          "quote": "include it in the client's funding-status report"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "scope",
+      "text": "The reported work concerns investor receipts following a final capital-call notice; tracker ownership is assigned by event.",
+      "evidence_turns": [
+        "t1",
+        "t5"
+      ],
+      "history_ref": "e906152e136804cf",
+      "recorded_at": "2026-11-16T22:17:05.355+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "Track receipts after the final capital-call notice is out."
+        },
+        {
+          "source_id": "t5",
+          "quote": "The tracker owner is assigned per event from the CAP Activity or Fund Team."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "Ambiguous evidence does not support an investor match; a match is not forced from the custodian name.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "a93fea21938aeec7",
+      "recorded_at": "2026-11-16T22:17:05.355+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "If the evidence is ambiguous, it stays unidentified. A second reviewer checks material matching decisions. We don't force a match from the custodian name."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "The client or Treasury directs the disposition of unresolved receipts; the team records whether downstream payments can proceed or must be held.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "498bfeaf0ee53c4c",
+      "recorded_at": "2026-11-16T22:17:05.355+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "The client or Treasury directs a return, transfer or future application. We record whether downstream payments can proceed from cleared cash or must be held."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "The tracker owner or bank-access role checks the bank portal daily starting several days before the due date, and more often when a time-sensitive payment depends on it.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "0458f81ee39eeb7c",
+      "recorded_at": "2026-11-16T22:18:40.893+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "The tracker owner or bank-access role checks the bank portal daily starting several days before the due date, more often when a time-sensitive payment depends on it."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The tracker owner or bank-access role checks the bank portal for receipts. The team records the value date, amount and originator/reference.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "477f160707424feb",
+      "recorded_at": "2026-11-16T22:18:40.894+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "The tracker owner or bank-access role checks the bank portal daily starting several days before the due date, more often when a time-sensitive payment depends on it. We record the value date, amount and originator/reference."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "Closeout compares the expected receivable with applied receipts plus documented outstanding items or differences, and ties the tracker to bank, GL and historical contribution balances.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "ddf4a705b546b8fa",
+      "recorded_at": "2026-11-16T22:18:40.895+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "Closeout compares the expected receivable to applied receipts plus documented outstanding items or differences, and ties the tracker to bank, GL and historical contribution balances."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "At closeout, the expected receivable is compared with applied receipts plus documented outstanding items or differences; the tracker is tied to bank, GL and historical contribution balances.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "5841ceb101c77301",
+      "recorded_at": "2026-11-16T22:18:40.895+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "Closeout compares the expected receivable to applied receipts plus documented outstanding items or differences, and ties the tracker to bank, GL and historical contribution balances."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "Bank-portal checks are more frequent than daily when a time-sensitive payment depends on them.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "be433282a177c2a2",
+      "recorded_at": "2026-11-16T22:18:40.895+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "checks the bank portal daily starting several days before the due date, more often when a time-sensitive payment depends on it"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "The tracker owner or bank-access role checks the bank portal for receipts; value date, amount and originator/reference are recorded.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "a8493476e8302338",
+      "recorded_at": "2026-11-16T22:18:40.895+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "The tracker owner or bank-access role checks the bank portal daily starting several days before the due date, more often when a time-sensitive payment depends on it. We record the value date, amount and originator/reference."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "An unowned unresolved difference prevents closeout.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "5f2e0de6b916363b",
+      "recorded_at": "2026-11-16T22:18:55.633+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "An unowned unresolved difference prevents closeout."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The final tracker, approvals, reports and reconciliation are retained as closeout records.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "7989b06cbac07564",
+      "recorded_at": "2026-11-16T22:18:55.633+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "We retain the final tracker, approvals, reports and reconciliation."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The participant cannot provide a firmwide storage path or retention period for the retained closeout records from this record.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "50d07cdd5a449b68",
+      "recorded_at": "2026-11-16T22:18:55.633+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "I can't give a firmwide storage path or retention period from this record."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "risk",
+      "text": "A wrong match misstates investor funding status, contribution history, the GL and cash available for later payments. An unfunded management fee or investment payment could be released in error.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "ee4df76a4ae2b1d7",
+      "recorded_at": "2026-11-16T22:20:20.962+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "A wrong match misstates the investor funding status, contribution history, GL and cash available for later payments. An unfunded management fee or investment payment can be released in error."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "The client funding report feeds the Fund Team and Treasury's FA-17 proceed/hold decision.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "17b5228f29c51282",
+      "recorded_at": "2026-11-16T22:20:20.963+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "Our client funding report feeds Fund Team and Treasury's FA-17 proceed/hold decision."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The client funding report feeds the Fund Team and Treasury's FA-17 proceed/hold decision.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "dffeb16b36e76ee2",
+      "recorded_at": "2026-11-16T22:20:20.963+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "Our client funding report feeds Fund Team and Treasury's FA-17 proceed/hold decision."
+        }
+      ],
+      "unverified": []
+    }
+  ],
+  "fact_history": [
+    {
+      "topic": "pain_points",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:15:37.553+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "40654bb7b6119025"
+    }
+  ],
+  "capture_provenance": {
+    "method": "document_simulation",
+    "participant_confirmed": false,
+    "process_owner_approved": false,
+    "source_documents": [
+      {
+        "filename": "IP1-export.pdf",
+        "sha256": "d0f89ee7c7cc8ffbcd39c268b47b765888105e588f60199106356ca31df177c1"
+      }
+    ]
+  },
+  "closure": {
+    "asked": false,
+    "confirmed": false
+  }
+}

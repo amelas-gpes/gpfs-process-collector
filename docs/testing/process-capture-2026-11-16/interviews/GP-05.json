@@ -1,0 +1,1397 @@
+{
+  "schema_version": 1,
+  "context": {
+    "process_name": "Carry Vehicle Wind-Down (Bringing Partner Capital to $0)",
+    "process_owner": "",
+    "objective": "Document how we carry out Carry Vehicle Wind-Down (Bringing Partner Capital to $0), the controls and what needs confirmation.",
+    "background": ""
+  },
+  "turns": [
+    {
+      "id": "turn_1",
+      "role": "user",
+      "text": "When a carry vehicle approaches wind-down we list all remaining deals, carry, holdbacks, escrow, interest, expenses, taxes, liabilities and reserve assumptions. We reconcile carry by partner and prove each partner's contributions plus income less distributions. Zero for the vehicle in total is insufficient. Each partner must be zero at final close; we cannot plug differences. Objective holdback-release criteria and the final approver's name remain open."
+    },
+    {
+      "id": "turn_2",
+      "role": "assistant",
+      "text": "How do you determine when each partner’s balance is ready to be treated as zero at final close?"
+    },
+    {
+      "id": "turn_3",
+      "role": "user",
+      "text": "Repeat the carry, partner-capital and GL checks for every member. Contributions plus income minus distributions must reconcile to supported timing or unrealized items during wind-down and must equal zero at final close. Review balances by GL account, component and member. If one member is positive and another negative we stop even if the vehicle nets to zero. Resolve each item under approved authority, repeat checks, get approvals, retain the final package and hand off to GP-06 and legal/tax close."
+    },
+    {
+      "id": "turn_4",
+      "role": "assistant",
+      "text": "What determines whether a holdback is ready for release?"
+    },
+    {
+      "id": "turn_5",
+      "role": "user",
+      "text": "As mentioned, the objective clawback-risk and holdback-release criteria are unconfirmed; so is the decision owner. Only an approved amount may be recorded and distributed. Record the approval and update the carry schedule. Unresolved risks or later events stay open. The GP vehicle's legal dissolution is a downstream handoff, not authorization to clear balances."
+    },
+    {
+      "id": "turn_6",
+      "role": "assistant",
+      "text": "What event typically prompts the team to begin this wind-down work?"
+    },
+    {
+      "id": "turn_7",
+      "role": "user",
+      "text": "Active planning starts as the fund or vehicle approaches end of life, ideally before the last investment is realized. The work continues through remaining realizations, releases, settlements, expenses, distributions and adjustments. We draw on approved member economics from GP-01/02/03 and the approved carry and holdback position from GP-04. Legal and tax dissolution begin only after accounting close and the required approvals."
+    },
+    {
+      "id": "turn_8",
+      "role": "assistant",
+      "text": "What is included in the final package you retain?"
+    },
+    {
+      "id": "turn_9",
+      "role": "user",
+      "text": "We retain the list of remaining events with dated source assumptions, member-level carry and capital reconciliations, GL balance analysis, support for any authorized adjustment and affected recipients, repeated checks showing every partner at zero, and required approvals. I cannot give an approved template, filing path, retention period or final approver from the current process."
+    },
+    {
+      "id": "turn_10",
+      "role": "assistant",
+      "text": "What most often causes a carry vehicle wind-down to stop or send work back for rework?"
+    },
+    {
+      "id": "turn_11",
+      "role": "user",
+      "text": "I cannot rank causes by frequency. An unresolved holdback, liability, timing difference or nonzero member balance keeps the wind-down open. Investigate by general ledger component and member; only approved corrections to contributions or profit-and-loss allocations are allowed. Keep support and repeat every affected check. A legal or tax issue goes to the appropriate owner; we do not use a balancing entry to make the vehicle look closed."
+    },
+    {
+      "id": "turn_12",
+      "role": "assistant",
+      "text": "Which role is accountable for carrying the wind-down through accounting close?"
+    },
+    {
+      "id": "turn_13",
+      "role": "user",
+      "text": "The GPFS preparer builds the inventory and reconciliations, and a GPFS reviewer checks the inventory, balances, corrections, and every partner's zero. The reviewer rejects unsupported plugs. The client can make choices only where the governing documents allow it. The process owner and final approver are not named, and the preparer cannot authorize release, a reserve, a correction or legal or tax close."
+    },
+    {
+      "id": "turn_14",
+      "role": "assistant",
+      "text": "Does this wind-down approach stay the same across carry vehicles, or does the work change for particular vehicles or clients?"
+    },
+    {
+      "id": "turn_15",
+      "role": "user",
+      "text": "The approved deal-by-deal method and whole-vehicle method both appear, and member participation can vary by deal. Track that participation at the applicable level. There is also an AIV wind-down variant. I cannot identify a single named client's method from this interview. The proof still has to establish zero for every partner."
+    },
+    {
+      "id": "turn_16",
+      "role": "assistant",
+      "text": "What changes in the work for the AIV wind-down variant?"
+    }
+  ],
+  "memo_findings": [
+    {
+      "answer": "The work is called “Carry Vehicle Wind-Down (Bringing Partner Capital to $0).”",
+      "evidence_turns": [
+        "context"
+      ],
+      "key": "name",
+      "status": "captured"
+    },
+    {
+      "answer": "The stated objective is to bring partner capital to $0 through carry vehicle wind-down.",
+      "evidence_turns": [
+        "context",
+        "turn_1"
+      ],
+      "key": "purpose",
+      "status": "captured"
+    },
+    {
+      "answer": "The work is described in the context of a carry vehicle approaching wind-down.\nCadence and any fixed deadlines for wind-down work remain unspecified.\nActive planning starts as the fund or vehicle approaches end of life, ideally before the last investment is realized.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_7"
+      ],
+      "key": "trigger",
+      "status": "partial"
+    },
+    {
+      "answer": "At final close, each partner must be at zero; zero for the vehicle in total is not sufficient.\nWhether completion requires any downstream confirmation or closeout beyond the reported approvals, package retention and handoff remains unclear.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3"
+      ],
+      "key": "completion",
+      "status": "partial"
+    },
+    {
+      "answer": "The final approver's name remains open; the accountable role for the wind-down result is not established.\nThe GPFS preparer cannot authorize release, a reserve, a correction, or legal or tax close.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_13"
+      ],
+      "key": "accountable",
+      "status": "partial"
+    },
+    {
+      "answer": "As a carry vehicle approaches wind-down, remaining deals, carry, holdbacks, escrow, interest, expenses, taxes, liabilities and reserve assumptions are listed.\nCarry, partner-capital and GL checks are repeated for every member. If one member is positive and another negative, work stops even if the vehicle nets to zero; each item is resolved under approved authority and checks are repeated.\nAfter resolving items and repeating checks, approvals are obtained, the final package is retained, and work is handed off to GP-06 and legal/tax close.\nOnly an approved amount may be recorded and distributed. The approval is recorded and the carry schedule updated; unresolved risks or later events stay open.\nThe work continues through remaining realizations, releases, settlements, expenses, distributions and adjustments.\nAn unresolved holdback, liability, timing difference or nonzero member balance keeps wind-down open. The item is investigated by GL component and member; only approved corrections to contributions or profit-and-loss allocations are allowed, support is kept and every affected check is repeated.\nA legal or tax issue goes to the appropriate owner; a balancing entry is not used to make the vehicle look closed.\nThe GPFS preparer builds the inventory and reconciliations; a GPFS reviewer checks the inventory, balances, corrections and every partner's zero.\nMember participation can vary by deal and is tracked at the applicable level, whether the approved deal-by-deal or whole-vehicle method appears.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3",
+        "turn_5",
+        "turn_7",
+        "turn_11",
+        "turn_13",
+        "turn_15"
+      ],
+      "key": "lifecycle",
+      "status": "partial"
+    },
+    {
+      "answer": "Carry is reconciled by partner, and each partner’s contributions plus income less distributions are proved. Differences cannot be plugged.\nThe final package's custodian and retention location remain unspecified.\nObjective criteria for releasing holdbacks are open.\nBalances are reviewed by GL account, component and member. During wind-down, contributions plus income minus distributions must reconcile to supported timing or unrealized items; at final close they must equal zero for each member.\nOnly an approved amount may be recorded and distributed, and the approval is recorded.\nCorrections to contributions or profit-and-loss allocations must be approved; support is retained and every affected check repeated.\nThe GPFS reviewer checks the inventory, balances, corrections and every partner's zero, and rejects unsupported plugs.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_9",
+        "turn_13",
+        "turn_3",
+        "turn_5",
+        "turn_11"
+      ],
+      "key": "checks",
+      "status": "partial"
+    },
+    {
+      "answer": "Both an approved deal-by-deal method and a whole-vehicle method appear. Member participation can vary by deal and is tracked at the applicable level; the proof must still establish zero for every partner.\nThe participant reports an AIV wind-down variant, without describing its changed steps.\nThe operational differences between the two methods and the AIV variant, their sources and applicable vehicles, and any associated effort or controls remain to be clarified.",
+      "evidence_turns": [
+        "turn_15"
+      ],
+      "key": "variations",
+      "status": "partial"
+    },
+    {
+      "answer": "Unresolved holdbacks, liabilities, timing differences and nonzero member balances keep the wind-down open and require investigation and repeated affected checks.",
+      "evidence_turns": [
+        "turn_11"
+      ],
+      "key": "pain_points",
+      "status": "partial"
+    },
+    {
+      "answer": "A zero balance for the vehicle in total is insufficient to meet the stated final-close condition; each partner must be zero, and differences cannot be plugged.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "key": "risk",
+      "status": "partial"
+    },
+    {
+      "answer": "A final package is retained as part of wind-down closeout.\nThe carry schedule is updated when the approval is recorded.\nThe package custodian remains unspecified; the participant cannot provide an approved template, filing path or retention period from the current process.\nThe retained final package includes the remaining-events list with dated source assumptions, member-level carry and capital reconciliations, GL balance analysis, support for authorized adjustments and affected recipients, repeated checks showing every partner at zero, and required approvals.",
+      "evidence_turns": [
+        "turn_3",
+        "turn_5",
+        "turn_9"
+      ],
+      "key": "materials",
+      "status": "partial"
+    },
+    {
+      "answer": "The described work concerns a carry vehicle and partner-level capital balances.\nWhether the described route is general GPFS practice or specific to a client, and the basis for that applicability, are not established.\nThe applicability of the approved methods and AIV variant to particular vehicles, funds or clients remains unspecified; the participant cannot identify a named client's method.",
+      "evidence_turns": [
+        "context",
+        "turn_1",
+        "turn_15"
+      ],
+      "key": "scope",
+      "status": "partial"
+    },
+    {
+      "answer": "The stated partner-level test is contributions plus income less distributions, reconciled by partner; a vehicle-level zero does not satisfy the stated final-close condition, and differences cannot be plugged.\nObjective clawback-risk and holdback-release criteria and the decision owner are unconfirmed.\nThe client can make choices only where the governing documents allow them.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_5",
+        "turn_13"
+      ],
+      "key": "rules",
+      "status": "partial"
+    },
+    {
+      "answer": "The reported closeout includes a handoff to GP-06 and legal/tax close.\nThe GP vehicle's legal dissolution is a downstream handoff, not authorization to clear balances.\nThe work draws on approved member economics from GP-01/02/03 and the approved carry and holdback position from GP-04.\nLegal and tax dissolution begin only after accounting close and the required approvals.",
+      "evidence_turns": [
+        "turn_3",
+        "turn_5",
+        "turn_7"
+      ],
+      "key": "connections",
+      "status": "partial"
+    },
+    {
+      "answer": "The work includes GL checks and balance review by GL account, component and member; no particular GL system was named.",
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "key": "data_systems",
+      "status": "partial"
+    },
+    {
+      "answer": "The participant cannot rank the causes of wind-down stops by frequency.",
+      "evidence_turns": [
+        "turn_11"
+      ],
+      "key": "volume",
+      "status": "partial"
+    }
+  ],
+  "coverage": [
+    {
+      "key": "name",
+      "label": "Name & other names",
+      "status": "partial"
+    },
+    {
+      "key": "purpose",
+      "label": "Purpose & result",
+      "status": "partial"
+    },
+    {
+      "key": "trigger",
+      "label": "Start, cadence & deadlines",
+      "status": "partial"
+    },
+    {
+      "key": "completion",
+      "label": "Finished condition",
+      "status": "partial"
+    },
+    {
+      "key": "accountable",
+      "label": "Accountability",
+      "status": "partial"
+    },
+    {
+      "key": "lifecycle",
+      "label": "Items, stages & handoffs",
+      "status": "partial"
+    },
+    {
+      "key": "checks",
+      "label": "Checks, approvals & proof",
+      "status": "partial"
+    },
+    {
+      "key": "variations",
+      "label": "Variations and conditions",
+      "status": "partial"
+    },
+    {
+      "key": "pain_points",
+      "label": "Manual work & pain",
+      "status": "partial"
+    },
+    {
+      "key": "risk",
+      "label": "Consequences of failure",
+      "status": "partial"
+    },
+    {
+      "key": "materials",
+      "label": "Existing materials",
+      "status": "partial"
+    },
+    {
+      "key": "scope",
+      "label": "Scope & entity context",
+      "status": "partial"
+    },
+    {
+      "key": "rules",
+      "label": "Business rules & lineage",
+      "status": "partial"
+    },
+    {
+      "key": "connections",
+      "label": "Connected processes",
+      "status": "partial"
+    },
+    {
+      "key": "data_systems",
+      "label": "Data & systems",
+      "status": "partial"
+    },
+    {
+      "key": "volume",
+      "label": "Volume & effort",
+      "status": "partial"
+    }
+  ],
+  "focus": "Wind-down methods and variations",
+  "summary": "The participant reports approved deal-by-deal and whole-vehicle methods, deal-level differences in member participation, and an AIV variant. Every partner must still be proved at zero; the practical differences between the methods remain open.",
+  "parking_lot": [],
+  "taxonomy": [
+    {
+      "evidence_turns": [
+        "context",
+        "turn_1"
+      ],
+      "facet": "entity_type",
+      "note": "Participant describes a carry vehicle and partner-level capital; reported scope, not independently verified.",
+      "value": "gp_carry"
+    },
+    {
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "facet": "functional_area",
+      "note": "Reported work reconciles carry by partner during carry vehicle wind-down.",
+      "value": "fees_and_carry"
+    },
+    {
+      "evidence_turns": [
+        "turn_11"
+      ],
+      "facet": "control_type",
+      "note": "Reported legal or tax issues go to the appropriate owner; the owner is not named.",
+      "value": "exception_escalation"
+    },
+    {
+      "evidence_turns": [
+        "turn_13"
+      ],
+      "facet": "control_type",
+      "note": "A GPFS reviewer checks the inventory, balances, corrections and partner zeros and rejects unsupported plugs; reported by the participant.",
+      "value": "gpfs_supervisory"
+    },
+    {
+      "evidence_turns": [
+        "turn_13"
+      ],
+      "facet": "rule_source",
+      "note": "The participant reports that governing documents limit client choices; the documents have not been reviewed.",
+      "value": "lpa_governing_doc"
+    },
+    {
+      "evidence_turns": [
+        "turn_15"
+      ],
+      "facet": "variant_class",
+      "note": "The participant reports two approved methods and an AIV variant, but their operational differences and sources are not yet established.",
+      "value": "unclassified"
+    }
+  ],
+  "connections_out": [
+    {
+      "condition": "Following resolution, repeated checks, approvals and retention of the final package.",
+      "counterpart": "GP-06",
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "relationship_type": "hands_off_to"
+    },
+    {
+      "condition": "Following resolution, repeated checks, approvals and retention of the final package.",
+      "counterpart": "legal/tax close",
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "relationship_type": "hands_off_to"
+    },
+    {
+      "condition": "Downstream handoff; dissolution is not authorization to clear balances.",
+      "counterpart": "GP vehicle legal dissolution",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "relationship_type": "hands_off_to"
+    },
+    {
+      "condition": "Approved member economics are used in wind-down.",
+      "counterpart": "GP-01/02/03",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "relationship_type": "consumes"
+    },
+    {
+      "condition": "The approved carry and holdback position is used in wind-down.",
+      "counterpart": "GP-04",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "relationship_type": "consumes"
+    },
+    {
+      "condition": "Legal and tax dissolution begin after accounting close and required approvals.",
+      "counterpart": "legal/tax close",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "relationship_type": "hands_off_to"
+    }
+  ],
+  "fact_provenance": [
+    {
+      "topic": "name",
+      "text": "The work is called “Carry Vehicle Wind-Down (Bringing Partner Capital to $0).”",
+      "evidence_turns": [
+        "context"
+      ],
+      "history_ref": "f2739a1dcebfffd9",
+      "recorded_at": "2026-11-16T22:23:54.334+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "context",
+          "quote": "Carry Vehicle Wind-Down (Bringing Partner Capital to $0)"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "purpose",
+      "text": "The stated objective is to bring partner capital to $0 through carry vehicle wind-down.",
+      "evidence_turns": [
+        "context",
+        "turn_1"
+      ],
+      "history_ref": "205d2505baa1f803",
+      "recorded_at": "2026-11-16T22:23:54.334+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "context",
+          "quote": "Document how we carry out Carry Vehicle Wind-Down (Bringing Partner Capital to $0)"
+        },
+        {
+          "source_id": "turn_1",
+          "quote": "Each partner must be zero at final close"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "The work is described in the context of a carry vehicle approaching wind-down.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "8b31c944d81a42e0",
+      "recorded_at": "2026-11-16T22:24:47.335+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "When a carry vehicle approaches wind-down we list all remaining deals"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "At final close, each partner must be at zero; zero for the vehicle in total is not sufficient.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "079f11c57ea71c60",
+      "recorded_at": "2026-11-16T22:23:54.334+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "Zero for the vehicle in total is insufficient. Each partner must be zero at final close"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "Whether completion requires any downstream confirmation or closeout beyond the reported approvals, package retention and handoff remains unclear.",
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "history_ref": "cb5a5cbcd310b192",
+      "recorded_at": "2026-11-16T22:24:47.336+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "get approvals, retain the final package and hand off to GP-06 and legal/tax close"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "As a carry vehicle approaches wind-down, remaining deals, carry, holdbacks, escrow, interest, expenses, taxes, liabilities and reserve assumptions are listed.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "a2c07ae8bcd5ebaf",
+      "recorded_at": "2026-11-16T22:24:47.336+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "we list all remaining deals, carry, holdbacks, escrow, interest, expenses, taxes, liabilities and reserve assumptions"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Carry is reconciled by partner, and each partner’s contributions plus income less distributions are proved. Differences cannot be plugged.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "8ed83b594b2d4d2c",
+      "recorded_at": "2026-11-16T22:23:54.335+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "We reconcile carry by partner and prove each partner's contributions plus income less distributions. Zero for the vehicle in total is insufficient. Each partner must be zero at final close; we cannot plug differences."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The final package's custodian and retention location remain unspecified.",
+      "evidence_turns": [
+        "turn_9",
+        "turn_13"
+      ],
+      "history_ref": "b89683c73b37eb88",
+      "recorded_at": "2026-11-16T22:29:28.441+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_9",
+          "quote": "I cannot give an approved template, filing path, retention period or final approver from the current process."
+        },
+        {
+          "source_id": "turn_13",
+          "quote": "The GPFS preparer builds the inventory and reconciliations, and a GPFS reviewer checks the inventory, balances, corrections, and every partner's zero."
+        }
+      ],
+      "unverified": [
+        "Check this against the cited sources: custodian"
+      ]
+    },
+    {
+      "topic": "checks",
+      "text": "Objective criteria for releasing holdbacks are open.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "205c854a99286696",
+      "recorded_at": "2026-11-16T22:23:54.335+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "accountable",
+      "text": "The final approver's name remains open; the accountable role for the wind-down result is not established.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "111391c042480d8b",
+      "recorded_at": "2026-11-16T22:23:54.335+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "the final approver's name remain open"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "The stated partner-level test is contributions plus income less distributions, reconciled by partner; a vehicle-level zero does not satisfy the stated final-close condition, and differences cannot be plugged.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "86753863dfadde81",
+      "recorded_at": "2026-11-16T22:23:54.335+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "We reconcile carry by partner and prove each partner's contributions plus income less distributions. Zero for the vehicle in total is insufficient. Each partner must be zero at final close; we cannot plug differences."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "risk",
+      "text": "A zero balance for the vehicle in total is insufficient to meet the stated final-close condition; each partner must be zero, and differences cannot be plugged.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "9f400823db7d35cd",
+      "recorded_at": "2026-11-16T22:23:54.335+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "Zero for the vehicle in total is insufficient. Each partner must be zero at final close; we cannot plug differences."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "scope",
+      "text": "The described work concerns a carry vehicle and partner-level capital balances.",
+      "evidence_turns": [
+        "context",
+        "turn_1"
+      ],
+      "history_ref": "0697051815c6f161",
+      "recorded_at": "2026-11-16T22:24:47.336+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "context",
+          "quote": "Carry Vehicle Wind-Down (Bringing Partner Capital to $0)"
+        },
+        {
+          "source_id": "turn_1",
+          "quote": "We reconcile carry by partner"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "scope",
+      "text": "Whether the described route is general GPFS practice or specific to a client, and the basis for that applicability, are not established.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "f5c8b8db2eb97e2c",
+      "recorded_at": "2026-11-16T22:23:54.336+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "When a carry vehicle approaches wind-down"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "Cadence and any fixed deadlines for wind-down work remain unspecified.",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "history_ref": "9d58f5e51e312b3b",
+      "recorded_at": "2026-11-16T22:27:21.168+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_7",
+          "quote": "Active planning starts as the fund or vehicle approaches end of life, ideally before the last investment is realized."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "Carry, partner-capital and GL checks are repeated for every member. If one member is positive and another negative, work stops even if the vehicle nets to zero; each item is resolved under approved authority and checks are repeated.",
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "history_ref": "54d8f0698d9c851d",
+      "recorded_at": "2026-11-16T22:24:47.337+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "Repeat the carry, partner-capital and GL checks for every member."
+        },
+        {
+          "source_id": "turn_3",
+          "quote": "If one member is positive and another negative we stop even if the vehicle nets to zero. Resolve each item under approved authority, repeat checks"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "After resolving items and repeating checks, approvals are obtained, the final package is retained, and work is handed off to GP-06 and legal/tax close.",
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "history_ref": "4e783cef24bd8fd2",
+      "recorded_at": "2026-11-16T22:24:47.337+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "Resolve each item under approved authority, repeat checks, get approvals, retain the final package and hand off to GP-06 and legal/tax close."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Balances are reviewed by GL account, component and member. During wind-down, contributions plus income minus distributions must reconcile to supported timing or unrealized items; at final close they must equal zero for each member.",
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "history_ref": "38d5f8c534a3288d",
+      "recorded_at": "2026-11-16T22:24:47.337+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "Contributions plus income minus distributions must reconcile to supported timing or unrealized items during wind-down and must equal zero at final close. Review balances by GL account, component and member."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "scope",
+      "text": "The applicability of the approved methods and AIV variant to particular vehicles, funds or clients remains unspecified; the participant cannot identify a named client's method.",
+      "evidence_turns": [
+        "turn_15"
+      ],
+      "history_ref": "85738774c8546b28",
+      "recorded_at": "2026-11-16T22:30:15.821+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_15",
+          "quote": "There is also an AIV wind-down variant. I cannot identify a single named client's method from this interview."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "A final package is retained as part of wind-down closeout.",
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "history_ref": "6b06d17f59effc14",
+      "recorded_at": "2026-11-16T22:27:21.169+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "get approvals, retain the final package and hand off to GP-06 and legal/tax close"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "The reported closeout includes a handoff to GP-06 and legal/tax close.",
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "history_ref": "ecd716c3f4655bbe",
+      "recorded_at": "2026-11-16T22:24:47.337+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "hand off to GP-06 and legal/tax close"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "The work includes GL checks and balance review by GL account, component and member; no particular GL system was named.",
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "history_ref": "55ba55d53cd49a24",
+      "recorded_at": "2026-11-16T22:24:47.338+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "Repeat the carry, partner-capital and GL checks for every member."
+        },
+        {
+          "source_id": "turn_3",
+          "quote": "Review balances by GL account, component and member."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "Only an approved amount may be recorded and distributed. The approval is recorded and the carry schedule updated; unresolved risks or later events stay open.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "4be95d35f07807c3",
+      "recorded_at": "2026-11-16T22:25:14.327+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "Only an approved amount may be recorded and distributed. Record the approval and update the carry schedule. Unresolved risks or later events stay open."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Only an approved amount may be recorded and distributed, and the approval is recorded.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "f8567c8f1a8de7ca",
+      "recorded_at": "2026-11-16T22:25:14.327+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "Only an approved amount may be recorded and distributed. Record the approval"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "Objective clawback-risk and holdback-release criteria and the decision owner are unconfirmed.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "2d9041b12828c33d",
+      "recorded_at": "2026-11-16T22:25:14.327+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "the objective clawback-risk and holdback-release criteria are unconfirmed; so is the decision owner."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The carry schedule is updated when the approval is recorded.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "2b520f8dd749899c",
+      "recorded_at": "2026-11-16T22:25:14.327+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "Record the approval and update the carry schedule."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "The GP vehicle's legal dissolution is a downstream handoff, not authorization to clear balances.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "7533e10e63f7af2f",
+      "recorded_at": "2026-11-16T22:25:14.328+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "The GP vehicle's legal dissolution is a downstream handoff, not authorization to clear balances."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "Active planning starts as the fund or vehicle approaches end of life, ideally before the last investment is realized.",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "history_ref": "f1f13be8fa5ca5c5",
+      "recorded_at": "2026-11-16T22:27:21.169+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_7",
+          "quote": "Active planning starts as the fund or vehicle approaches end of life, ideally before the last investment is realized."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The package custodian remains unspecified; the participant cannot provide an approved template, filing path or retention period from the current process.",
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "history_ref": "d3b3e9e92ef94073",
+      "recorded_at": "2026-11-16T22:28:11.477+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_9",
+          "quote": "I cannot give an approved template, filing path, retention period or final approver from the current process."
+        }
+      ],
+      "unverified": [
+        "Check this against the cited sources: custodian"
+      ]
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The work continues through remaining realizations, releases, settlements, expenses, distributions and adjustments.",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "history_ref": "6d9deec270044437",
+      "recorded_at": "2026-11-16T22:27:21.169+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_7",
+          "quote": "The work continues through remaining realizations, releases, settlements, expenses, distributions and adjustments."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "The work draws on approved member economics from GP-01/02/03 and the approved carry and holdback position from GP-04.",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "history_ref": "eb501371853793ff",
+      "recorded_at": "2026-11-16T22:27:21.170+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_7",
+          "quote": "We draw on approved member economics from GP-01/02/03 and the approved carry and holdback position from GP-04."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "Legal and tax dissolution begin only after accounting close and the required approvals.",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "history_ref": "d562e488b0e5febb",
+      "recorded_at": "2026-11-16T22:27:21.171+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_7",
+          "quote": "Legal and tax dissolution begin only after accounting close and the required approvals."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The retained final package includes the remaining-events list with dated source assumptions, member-level carry and capital reconciliations, GL balance analysis, support for authorized adjustments and affected recipients, repeated checks showing every partner at zero, and required approvals.",
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "history_ref": "f1665b947e75db1d",
+      "recorded_at": "2026-11-16T22:28:11.477+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_9",
+          "quote": "We retain the list of remaining events with dated source assumptions, member-level carry and capital reconciliations, GL balance analysis, support for any authorized adjustment and affected recipients, repeated checks showing every partner at zero, and required approvals."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "An unresolved holdback, liability, timing difference or nonzero member balance keeps wind-down open. The item is investigated by GL component and member; only approved corrections to contributions or profit-and-loss allocations are allowed, support is kept and every affected check is repeated.",
+      "evidence_turns": [
+        "turn_11"
+      ],
+      "history_ref": "a265dd0c98f5f114",
+      "recorded_at": "2026-11-16T22:28:47.690+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_11",
+          "quote": "An unresolved holdback, liability, timing difference or nonzero member balance keeps the wind-down open. Investigate by general ledger component and member; only approved corrections to contributions or profit-and-loss allocations are allowed. Keep support and repeat every affected check."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "A legal or tax issue goes to the appropriate owner; a balancing entry is not used to make the vehicle look closed.",
+      "evidence_turns": [
+        "turn_11"
+      ],
+      "history_ref": "26b331c4f4cf1138",
+      "recorded_at": "2026-11-16T22:28:47.698+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_11",
+          "quote": "A legal or tax issue goes to the appropriate owner; we do not use a balancing entry to make the vehicle look closed."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Corrections to contributions or profit-and-loss allocations must be approved; support is retained and every affected check repeated.",
+      "evidence_turns": [
+        "turn_11"
+      ],
+      "history_ref": "b2bdc08582ad9425",
+      "recorded_at": "2026-11-16T22:28:47.698+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_11",
+          "quote": "only approved corrections to contributions or profit-and-loss allocations are allowed. Keep support and repeat every affected check."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "pain_points",
+      "text": "Unresolved holdbacks, liabilities, timing differences and nonzero member balances keep the wind-down open and require investigation and repeated affected checks.",
+      "evidence_turns": [
+        "turn_11"
+      ],
+      "history_ref": "ced8f7bc5db4e5fa",
+      "recorded_at": "2026-11-16T22:28:47.698+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_11",
+          "quote": "An unresolved holdback, liability, timing difference or nonzero member balance keeps the wind-down open. Investigate by general ledger component and member"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "volume",
+      "text": "The participant cannot rank the causes of wind-down stops by frequency.",
+      "evidence_turns": [
+        "turn_11"
+      ],
+      "history_ref": "0c6305ff2ed35451",
+      "recorded_at": "2026-11-16T22:28:47.698+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_11",
+          "quote": "I cannot rank causes by frequency."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The GPFS preparer builds the inventory and reconciliations; a GPFS reviewer checks the inventory, balances, corrections and every partner's zero.",
+      "evidence_turns": [
+        "turn_13"
+      ],
+      "history_ref": "f049ce39f439e0f3",
+      "recorded_at": "2026-11-16T22:29:28.441+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_13",
+          "quote": "The GPFS preparer builds the inventory and reconciliations, and a GPFS reviewer checks the inventory, balances, corrections, and every partner's zero."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The GPFS reviewer checks the inventory, balances, corrections and every partner's zero, and rejects unsupported plugs.",
+      "evidence_turns": [
+        "turn_13"
+      ],
+      "history_ref": "75f4a872afdab318",
+      "recorded_at": "2026-11-16T22:29:28.442+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_13",
+          "quote": "a GPFS reviewer checks the inventory, balances, corrections, and every partner's zero. The reviewer rejects unsupported plugs."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "accountable",
+      "text": "The GPFS preparer cannot authorize release, a reserve, a correction, or legal or tax close.",
+      "evidence_turns": [
+        "turn_13"
+      ],
+      "history_ref": "4da56eb3e2a4897e",
+      "recorded_at": "2026-11-16T22:29:28.442+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_13",
+          "quote": "the preparer cannot authorize release, a reserve, a correction or legal or tax close."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "The client can make choices only where the governing documents allow them.",
+      "evidence_turns": [
+        "turn_13"
+      ],
+      "history_ref": "705a319e4ac089a7",
+      "recorded_at": "2026-11-16T22:29:28.442+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_13",
+          "quote": "The client can make choices only where the governing documents allow it."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "Both an approved deal-by-deal method and a whole-vehicle method appear. Member participation can vary by deal and is tracked at the applicable level; the proof must still establish zero for every partner.",
+      "evidence_turns": [
+        "turn_15"
+      ],
+      "history_ref": "d20653ff90b7ea99",
+      "recorded_at": "2026-11-16T22:30:15.823+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_15",
+          "quote": "The approved deal-by-deal method and whole-vehicle method both appear, and member participation can vary by deal. Track that participation at the applicable level."
+        },
+        {
+          "source_id": "turn_15",
+          "quote": "The proof still has to establish zero for every partner."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "Member participation can vary by deal and is tracked at the applicable level, whether the approved deal-by-deal or whole-vehicle method appears.",
+      "evidence_turns": [
+        "turn_15"
+      ],
+      "history_ref": "061d3505f3ff506c",
+      "recorded_at": "2026-11-16T22:30:15.823+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_15",
+          "quote": "The approved deal-by-deal method and whole-vehicle method both appear, and member participation can vary by deal. Track that participation at the applicable level."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "The participant reports an AIV wind-down variant, without describing its changed steps.",
+      "evidence_turns": [
+        "turn_15"
+      ],
+      "history_ref": "50983d7530f51640",
+      "recorded_at": "2026-11-16T22:30:15.823+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_15",
+          "quote": "There is also an AIV wind-down variant."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "The operational differences between the two methods and the AIV variant, their sources and applicable vehicles, and any associated effort or controls remain to be clarified.",
+      "evidence_turns": [
+        "turn_15"
+      ],
+      "history_ref": "c06f64f55d0a3b8c",
+      "recorded_at": "2026-11-16T22:30:15.823+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_15",
+          "quote": "The approved deal-by-deal method and whole-vehicle method both appear"
+        },
+        {
+          "source_id": "turn_15",
+          "quote": "There is also an AIV wind-down variant. I cannot identify a single named client's method from this interview."
+        }
+      ],
+      "unverified": []
+    }
+  ],
+  "fact_history": [
+    {
+      "topic": "trigger",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:23:54.334+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "df916959962af405"
+    },
+    {
+      "topic": "completion",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:23:54.334+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "60ac563e6ad2310e"
+    },
+    {
+      "topic": "lifecycle",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:23:54.334+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "fce3a50556d776fc"
+    },
+    {
+      "topic": "checks",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:23:54.335+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "d2a9c345819ccb5d"
+    },
+    {
+      "topic": "checks",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:24:47.336+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "b223f2bbdf6606ea"
+    },
+    {
+      "topic": "checks",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:28:11.476+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "32d24cc5acf3e41f"
+    },
+    {
+      "topic": "scope",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:23:54.336+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "8da785acbe59a750"
+    },
+    {
+      "topic": "trigger",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:24:47.336+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "301b347b0e718af5"
+    },
+    {
+      "topic": "scope",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:24:47.337+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "c5eb774bd56c04f8"
+    },
+    {
+      "topic": "materials",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:24:47.337+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "61c44165ab4bc519"
+    },
+    {
+      "topic": "materials",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:27:21.169+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "8f3a50e8d8467237"
+    }
+  ],
+  "capture_provenance": {
+    "method": "document_simulation",
+    "participant_confirmed": false,
+    "process_owner_approved": false,
+    "source_documents": [
+      {
+        "filename": "IP1-export.pdf",
+        "sha256": "d0f89ee7c7cc8ffbcd39c268b47b765888105e588f60199106356ca31df177c1"
+      }
+    ]
+  },
+  "closure": {
+    "asked": false,
+    "confirmed": false
+  }
+}

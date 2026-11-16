@@ -1,0 +1,1255 @@
+{
+  "schema_version": 1,
+  "context": {
+    "process_name": "Quarterly Workbook Preparation & Binder",
+    "objective": "Document how this process works, including controls and what remains unresolved."
+  },
+  "turns": [
+    {
+      "id": "t1",
+      "role": "user",
+      "text": "For the quarterly close we prepare the Excel workbook for financial statement production and the binder. A Fund Accountant updates the activity tabs and later sends the reviewed workbook to FA-12 and binder support to FA-15A."
+    },
+    {
+      "id": "t2",
+      "role": "assistant",
+      "text": "What information does the Fund Accountant use to update the activity tabs?"
+    },
+    {
+      "id": "t3",
+      "role": "user",
+      "text": "The Activities and Tax Activities tabs carry the current client-approved method and activity details: allocation, fees, waivers, waterfall and tax treatment as applicable. Prior-quarter Excel is rolled forward, then the Fund Accountant loads the current TB and records the report run date and username. Review ownership is Fund Accountant preparation, Controller review and Director final review based on complexity; formal workbook approval authority is unconfirmed."
+    },
+    {
+      "id": "t4",
+      "role": "assistant",
+      "text": "What does the Controller compare or check in the workbook during review?"
+    },
+    {
+      "id": "t5",
+      "role": "user",
+      "text": "The Controller reviews workbook and checklist results and returns exceptions. For the Check of Checks every active GL account must be covered by an H- or V-check; every check must equal zero and both clearing accounts 20080 and 20090 must be zero. A zero balance alone could mask incomplete activity. After any later change, the Check of Checks is regenerated, re-reviewed and re-signed."
+    },
+    {
+      "id": "t6",
+      "role": "assistant",
+      "text": "What workbook changes or results trigger the Check of Checks to be regenerated and re-reviewed?"
+    },
+    {
+      "id": "t7",
+      "role": "user",
+      "text": "Any later change triggers regeneration and renewed review and signature; I don't have a narrower list of qualifying changes. During close the Fund Accountant links the statement and lead-sheet tabs to the TB. A cleaned and validated external copy goes to FA-12, while binder support goes to FA-15A; unresolved or nonzero checks prevent binder completion. The internal workbook is retained separately."
+    },
+    {
+      "id": "t8",
+      "role": "assistant",
+      "text": "What indicates that binder support has finished the binder after receiving the workbook?"
+    },
+    {
+      "id": "t9",
+      "role": "user",
+      "text": "Binder support is the package of supporting records, not the person finishing the binder. FA-15A receives those reviewed records. This workbook process is finished when the reviewed internal workbook, cleaned/validated external copy, and binder handoff exist after the required checks and reviews. It does not claim the receiving process has finished its work."
+    },
+    {
+      "id": "t10",
+      "role": "assistant",
+      "text": "What event or input tells the Fund Accountant to begin preparing the quarterly workbook?"
+    },
+    {
+      "id": "t11",
+      "role": "user",
+      "text": "The quarterly close begins and the current-period GL data and client-approved method become available. Binder support collection can start before quarter-end with engagement letters, DTM packages and purchase/sale support. No firmwide completion deadline is documented. About a 5% administration/technology exclusion is an observed accrual practice, not a universal rule."
+    },
+    {
+      "id": "t12",
+      "role": "assistant",
+      "text": "How does the Fund Accountant know the current-period GL data and client-approved method are ready to use?"
+    }
+  ],
+  "memo_findings": [
+    {
+      "answer": "The process is called “Quarterly Workbook Preparation & Binder.”",
+      "evidence_turns": [
+        "context"
+      ],
+      "key": "name",
+      "status": "captured"
+    },
+    {
+      "answer": "The quarterly-close workbook is prepared for financial statement production and the binder.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "key": "purpose",
+      "status": "captured"
+    },
+    {
+      "answer": "The work is associated with the quarterly close.\nWorkbook preparation begins as the quarterly close starts and current-period GL data and the client-approved method become available. No firmwide completion deadline is documented.\nAny engagement-specific fixed deadlines and who detects readiness remain unspecified.",
+      "evidence_turns": [
+        "t1",
+        "t11"
+      ],
+      "key": "trigger",
+      "status": "partial"
+    },
+    {
+      "answer": "The workbook process is finished when the reviewed internal workbook, cleaned and validated external copy, and binder handoff exist after required checks and reviews. This does not mean the receiving process has finished its work.\nUnresolved or nonzero checks prevent binder completion.",
+      "evidence_turns": [
+        "t9",
+        "t7"
+      ],
+      "key": "completion",
+      "status": "captured"
+    },
+    {
+      "answer": "A Fund Accountant is reported to update activity tabs and later send the workbook, but the role accountable for the overall result is not established.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "key": "accountable",
+      "status": "partial"
+    },
+    {
+      "answer": "A Fund Accountant updates the activity tabs and later sends the reviewed workbook to FA-12 and binder support to FA-15A.\nPrior-quarter Excel is rolled forward; the Fund Accountant then loads the current TB and records the report run date and username.\nThe handoff methods and detailed ordering of tab updates and reviews are not established.\nThe Controller reviews workbook and checklist results and returns exceptions. After any later change, the Check of Checks is regenerated, re-reviewed and re-signed.\nDuring close, the Fund Accountant links the statement and lead-sheet tabs to the TB.\nA cleaned and validated external copy goes to FA-12, binder support goes to FA-15A, and the internal workbook is retained separately.\nBinder support collection can begin before quarter-end with engagement letters, DTM packages and purchase/sale support.",
+      "evidence_turns": [
+        "t1",
+        "t3",
+        "t5",
+        "t7",
+        "t11"
+      ],
+      "key": "lifecycle",
+      "status": "partial"
+    },
+    {
+      "answer": "Director review checks, whether review blocks sending, retained evidence and formal workbook approval authority remain unconfirmed.\nThe participant describes Fund Accountant preparation, Controller review and Director final review based on complexity.\nThe Controller reviews workbook and checklist results and returns exceptions. For the Check of Checks, every active GL account must be covered by an H- or V-check, every check must equal zero, and clearing accounts 20080 and 20090 must both be zero.\nAfter any later change, the Check of Checks is regenerated, re-reviewed and re-signed.\nUnresolved or nonzero checks prevent binder completion.",
+      "evidence_turns": [
+        "t3",
+        "t5",
+        "t7"
+      ],
+      "key": "checks",
+      "status": "partial"
+    },
+    {
+      "answer": "Director final review is based on complexity.\nThe complexity criteria for Director final review are unspecified.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "key": "variations",
+      "status": "partial"
+    },
+    {
+      "answer": "",
+      "evidence_turns": [],
+      "key": "pain_points",
+      "status": "unknown"
+    },
+    {
+      "answer": "The participant notes that a zero balance alone could mask incomplete activity.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "key": "risk",
+      "status": "partial"
+    },
+    {
+      "answer": "Prior-quarter Excel is rolled forward for the workbook; its Activities and Tax Activities tabs carry the current client-approved method and activity details.\nThe workbook location and availability of supporting materials are not established.\nThe Controller reviews checklist results alongside the workbook. A Check of Checks is regenerated, re-reviewed and re-signed after any later change.\nThe workbook includes statement and lead-sheet tabs linked to the TB. A cleaned and validated external copy is sent to FA-12, while the internal workbook is retained separately.\nBinder support is a package of supporting records, not a person; FA-15A receives the reviewed records.\nBinder support can include engagement letters, DTM packages and purchase/sale support collected before quarter-end.",
+      "evidence_turns": [
+        "t3",
+        "t1",
+        "t5",
+        "t7",
+        "t9",
+        "t11"
+      ],
+      "key": "materials",
+      "status": "partial"
+    },
+    {
+      "answer": "The reported quarterly-close work supports financial statement production and a binder.\nThe entity population and whether this is general practice or a client-specific route are not established.\nThe workbook process ends with its checked and reviewed outputs and binder handoff; completion of the receiving process is outside that finish condition.",
+      "evidence_turns": [
+        "t1",
+        "t3",
+        "t9"
+      ],
+      "key": "scope",
+      "status": "partial"
+    },
+    {
+      "answer": "The Activities and Tax Activities tabs carry the current client-approved method and activity details for allocation, fees, waivers, waterfall and tax treatment as applicable.\nThe source and implementation of the client-approved method are not established.\nAn approximately 5% administration/technology exclusion is reported as an observed accrual practice, not a universal rule.\nThe applicability, calculation basis and source of the observed administration/technology exclusion are unspecified.",
+      "evidence_turns": [
+        "t3",
+        "t11"
+      ],
+      "key": "rules",
+      "status": "partial"
+    },
+    {
+      "answer": "The Fund Accountant sends the reviewed workbook to FA-12 and binder support to FA-15A.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "key": "connections",
+      "status": "partial"
+    },
+    {
+      "answer": "Prior-quarter Excel is rolled forward; the Fund Accountant loads the current TB and records the report run date and username.\nWorkbook storage, the current TB's origin and whether calculations occur in the workbook are not established.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "key": "data_systems",
+      "status": "partial"
+    },
+    {
+      "answer": "The number of workbooks or entities per quarter, peak volume, exception frequency, and effort are not established.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "key": "volume",
+      "status": "partial"
+    }
+  ],
+  "coverage": [
+    {
+      "key": "name",
+      "label": "Name & other names",
+      "status": "partial"
+    },
+    {
+      "key": "purpose",
+      "label": "Purpose & result",
+      "status": "partial"
+    },
+    {
+      "key": "trigger",
+      "label": "Start, cadence & deadlines",
+      "status": "partial"
+    },
+    {
+      "key": "completion",
+      "label": "Finished condition",
+      "status": "partial"
+    },
+    {
+      "key": "accountable",
+      "label": "Accountability",
+      "status": "partial"
+    },
+    {
+      "key": "lifecycle",
+      "label": "Items, stages & handoffs",
+      "status": "partial"
+    },
+    {
+      "key": "checks",
+      "label": "Checks, approvals & proof",
+      "status": "partial"
+    },
+    {
+      "key": "variations",
+      "label": "Variations and conditions",
+      "status": "partial"
+    },
+    {
+      "key": "pain_points",
+      "label": "Manual work & pain",
+      "status": "missing"
+    },
+    {
+      "key": "risk",
+      "label": "Consequences of failure",
+      "status": "partial"
+    },
+    {
+      "key": "materials",
+      "label": "Existing materials",
+      "status": "partial"
+    },
+    {
+      "key": "scope",
+      "label": "Scope & entity context",
+      "status": "partial"
+    },
+    {
+      "key": "rules",
+      "label": "Business rules & lineage",
+      "status": "partial"
+    },
+    {
+      "key": "connections",
+      "label": "Connected processes",
+      "status": "partial"
+    },
+    {
+      "key": "data_systems",
+      "label": "Data & systems",
+      "status": "partial"
+    },
+    {
+      "key": "volume",
+      "label": "Volume & effort",
+      "status": "partial"
+    }
+  ],
+  "focus": "Quarterly start, binder collection and observed accrual practice",
+  "summary": "Quarterly close and availability of current GL data and the client-approved method initiate workbook preparation. Binder support collection may begin before quarter-end; no firmwide completion deadline is documented. The approximately 5% administration/technology exclusion is an observed accrual practice, not a universal rule.",
+  "parking_lot": [],
+  "taxonomy": [
+    {
+      "evidence_turns": [
+        "t1"
+      ],
+      "facet": "system",
+      "note": "Participant reports an Excel workbook with activity tabs used in quarterly-close preparation; workbook storage and any embedded calculation logic are not established.",
+      "value": "excel_workbook"
+    },
+    {
+      "evidence_turns": [
+        "t1"
+      ],
+      "facet": "functional_area",
+      "note": "Reported purpose is to prepare a workbook for financial statement production; the broader process boundary is not established.",
+      "value": "financial_reporting"
+    },
+    {
+      "evidence_turns": [
+        "t3"
+      ],
+      "facet": "rule_source",
+      "note": "The participant reports a current client-approved method carried in the activity tabs; its underlying source has not been reviewed.",
+      "value": "client_methodology"
+    },
+    {
+      "evidence_turns": [
+        "t3"
+      ],
+      "facet": "control_type",
+      "note": "Controller review and Director final review based on complexity are reported; their checks and formal approval authority are unconfirmed.",
+      "value": "gpfs_supervisory"
+    }
+  ],
+  "connections_out": [
+    {
+      "condition": "Reviewed workbook",
+      "counterpart": "FA-12",
+      "evidence_turns": [
+        "t1"
+      ],
+      "relationship_type": "hands_off_to"
+    },
+    {
+      "condition": "Binder support",
+      "counterpart": "FA-15A",
+      "evidence_turns": [
+        "t1"
+      ],
+      "relationship_type": "hands_off_to"
+    },
+    {
+      "condition": "Cleaned and validated external workbook copy",
+      "counterpart": "FA-12",
+      "evidence_turns": [
+        "t1",
+        "t7"
+      ],
+      "relationship_type": "hands_off_to"
+    },
+    {
+      "condition": "Reviewed binder-support records",
+      "counterpart": "FA-15A",
+      "evidence_turns": [
+        "t9"
+      ],
+      "relationship_type": "hands_off_to"
+    }
+  ],
+  "fact_provenance": [
+    {
+      "topic": "name",
+      "text": "The process is called “Quarterly Workbook Preparation & Binder.”",
+      "evidence_turns": [
+        "context"
+      ],
+      "history_ref": "1b94ae10b839e661",
+      "recorded_at": "2026-11-16T22:25:02.641+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "purpose",
+      "text": "The quarterly-close workbook is prepared for financial statement production and the binder.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "69d98190da1af7da",
+      "recorded_at": "2026-11-16T22:25:02.642+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "For the quarterly close we prepare the Excel workbook for financial statement production and the binder."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "The work is associated with the quarterly close.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "3f56edb16ce1547e",
+      "recorded_at": "2026-11-16T22:25:42.136+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "For the quarterly close we prepare the Excel workbook"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "The workbook process is finished when the reviewed internal workbook, cleaned and validated external copy, and binder handoff exist after required checks and reviews. This does not mean the receiving process has finished its work.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "f8b2bc21f2b4bade",
+      "recorded_at": "2026-11-16T22:26:50.805+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "This workbook process is finished when the reviewed internal workbook, cleaned/validated external copy, and binder handoff exist after the required checks and reviews. It does not claim the receiving process has finished its work."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "accountable",
+      "text": "A Fund Accountant is reported to update activity tabs and later send the workbook, but the role accountable for the overall result is not established.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "ecfff16f1ed59949",
+      "recorded_at": "2026-11-16T22:25:02.642+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "A Fund Accountant updates the activity tabs and later sends"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "A Fund Accountant updates the activity tabs and later sends the reviewed workbook to FA-12 and binder support to FA-15A.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "39740a0810599326",
+      "recorded_at": "2026-11-16T22:25:42.136+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "A Fund Accountant updates the activity tabs and later sends the reviewed workbook to FA-12 and binder support to FA-15A."
+        }
+      ],
+      "unverified": [
+        "Check this against the cited sources: 15"
+      ]
+    },
+    {
+      "topic": "checks",
+      "text": "Director review checks, whether review blocks sending, retained evidence and formal workbook approval authority remain unconfirmed.",
+      "evidence_turns": [
+        "t3",
+        "t5"
+      ],
+      "history_ref": "2a19dcc6da770bd1",
+      "recorded_at": "2026-11-16T22:26:03.012+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "Director final review based on complexity; formal workbook approval authority is unconfirmed."
+        },
+        {
+          "source_id": "t5",
+          "quote": "The Controller reviews workbook and checklist results and returns exceptions."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "Prior-quarter Excel is rolled forward for the workbook; its Activities and Tax Activities tabs carry the current client-approved method and activity details.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "72e7cad00e0e34fc",
+      "recorded_at": "2026-11-16T22:25:42.137+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "The Activities and Tax Activities tabs carry the current client-approved method and activity details"
+        },
+        {
+          "source_id": "t3",
+          "quote": "Prior-quarter Excel is rolled forward"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "scope",
+      "text": "The reported quarterly-close work supports financial statement production and a binder.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "deea71e2fa29af92",
+      "recorded_at": "2026-11-16T22:25:42.137+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "For the quarterly close we prepare the Excel workbook for financial statement production and the binder."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "The Fund Accountant sends the reviewed workbook to FA-12 and binder support to FA-15A.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "877bee93105c201f",
+      "recorded_at": "2026-11-16T22:25:42.137+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "sends the reviewed workbook to FA-12 and binder support to FA-15A"
+        }
+      ],
+      "unverified": [
+        "Check this against the cited sources: 15"
+      ]
+    },
+    {
+      "topic": "data_systems",
+      "text": "Prior-quarter Excel is rolled forward; the Fund Accountant loads the current TB and records the report run date and username.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "8fe98f4bcf8e27b1",
+      "recorded_at": "2026-11-16T22:25:42.137+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "Prior-quarter Excel is rolled forward, then the Fund Accountant loads the current TB and records the report run date and username."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "volume",
+      "text": "The number of workbooks or entities per quarter, peak volume, exception frequency, and effort are not established.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "a7a3df0f3dd11a51",
+      "recorded_at": "2026-11-16T22:25:02.643+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "For the quarterly close"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "Workbook preparation begins as the quarterly close starts and current-period GL data and the client-approved method become available. No firmwide completion deadline is documented.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "04016c5e00a55767",
+      "recorded_at": "2026-11-16T22:27:48.236+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "The quarterly close begins and the current-period GL data and client-approved method become available."
+        },
+        {
+          "source_id": "t11",
+          "quote": "No firmwide completion deadline is documented."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "Prior-quarter Excel is rolled forward; the Fund Accountant then loads the current TB and records the report run date and username.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "2a628e161a872613",
+      "recorded_at": "2026-11-16T22:25:42.138+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "Prior-quarter Excel is rolled forward, then the Fund Accountant loads the current TB and records the report run date and username."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The handoff methods and detailed ordering of tab updates and reviews are not established.",
+      "evidence_turns": [
+        "t1",
+        "t3"
+      ],
+      "history_ref": "64cbca29fbda2a3c",
+      "recorded_at": "2026-11-16T22:25:42.138+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "later sends the reviewed workbook to FA-12 and binder support to FA-15A"
+        },
+        {
+          "source_id": "t3",
+          "quote": "Controller review and Director final review based on complexity"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The participant describes Fund Accountant preparation, Controller review and Director final review based on complexity.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "c4d0565a82081a8a",
+      "recorded_at": "2026-11-16T22:25:42.139+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "Review ownership is Fund Accountant preparation, Controller review and Director final review based on complexity"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "Director final review is based on complexity.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "12fdf642fb56b52e",
+      "recorded_at": "2026-11-16T22:26:29.759+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "Director final review based on complexity"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The workbook location and availability of supporting materials are not established.",
+      "evidence_turns": [
+        "t1",
+        "t3"
+      ],
+      "history_ref": "36dc8fd93b2288b4",
+      "recorded_at": "2026-11-16T22:25:42.140+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "the Excel workbook"
+        },
+        {
+          "source_id": "t3",
+          "quote": "Prior-quarter Excel is rolled forward"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "scope",
+      "text": "The entity population and whether this is general practice or a client-specific route are not established.",
+      "evidence_turns": [
+        "t1",
+        "t3"
+      ],
+      "history_ref": "e5a314ef1979cd6c",
+      "recorded_at": "2026-11-16T22:25:42.140+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "For the quarterly close we prepare the Excel workbook"
+        },
+        {
+          "source_id": "t3",
+          "quote": "the current client-approved method"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "Workbook storage, the current TB's origin and whether calculations occur in the workbook are not established.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "0b58220e23d4f979",
+      "recorded_at": "2026-11-16T22:25:42.140+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "Prior-quarter Excel is rolled forward, then the Fund Accountant loads the current TB"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "The Activities and Tax Activities tabs carry the current client-approved method and activity details for allocation, fees, waivers, waterfall and tax treatment as applicable.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "9224f6788079bb5a",
+      "recorded_at": "2026-11-16T22:25:42.140+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "The Activities and Tax Activities tabs carry the current client-approved method and activity details: allocation, fees, waivers, waterfall and tax treatment as applicable."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "The source and implementation of the client-approved method are not established.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "872601e11a0cf856",
+      "recorded_at": "2026-11-16T22:25:42.140+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "the current client-approved method and activity details"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The Controller reviews workbook and checklist results and returns exceptions. For the Check of Checks, every active GL account must be covered by an H- or V-check, every check must equal zero, and clearing accounts 20080 and 20090 must both be zero.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "0154f615aa8f4b0e",
+      "recorded_at": "2026-11-16T22:26:03.012+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "The Controller reviews workbook and checklist results and returns exceptions. For the Check of Checks every active GL account must be covered by an H- or V-check; every check must equal zero and both clearing accounts 20080 and 20090 must be zero."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The Controller reviews workbook and checklist results and returns exceptions. After any later change, the Check of Checks is regenerated, re-reviewed and re-signed.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "402e7991d5b2e7e6",
+      "recorded_at": "2026-11-16T22:26:03.013+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "The Controller reviews workbook and checklist results and returns exceptions."
+        },
+        {
+          "source_id": "t5",
+          "quote": "After any later change, the Check of Checks is regenerated, re-reviewed and re-signed."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "After any later change, the Check of Checks is regenerated, re-reviewed and re-signed.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "14ddb92bd8b00fea",
+      "recorded_at": "2026-11-16T22:26:03.013+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "After any later change, the Check of Checks is regenerated, re-reviewed and re-signed."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "risk",
+      "text": "The participant notes that a zero balance alone could mask incomplete activity.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "49beaf128d9c0b37",
+      "recorded_at": "2026-11-16T22:26:03.014+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "A zero balance alone could mask incomplete activity."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The Controller reviews checklist results alongside the workbook. A Check of Checks is regenerated, re-reviewed and re-signed after any later change.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "1fdc9e26e08f35a5",
+      "recorded_at": "2026-11-16T22:26:03.014+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "The Controller reviews workbook and checklist results"
+        },
+        {
+          "source_id": "t5",
+          "quote": "After any later change, the Check of Checks is regenerated, re-reviewed and re-signed."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "Unresolved or nonzero checks prevent binder completion.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "bc4b518655957b39",
+      "recorded_at": "2026-11-16T22:26:29.761+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "unresolved or nonzero checks prevent binder completion"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "The complexity criteria for Director final review are unspecified.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "571b43af611b3477",
+      "recorded_at": "2026-11-16T22:26:29.761+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "Director final review based on complexity"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "During close, the Fund Accountant links the statement and lead-sheet tabs to the TB.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "ce526a698757166f",
+      "recorded_at": "2026-11-16T22:26:29.761+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "During close the Fund Accountant links the statement and lead-sheet tabs to the TB."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "A cleaned and validated external copy goes to FA-12, binder support goes to FA-15A, and the internal workbook is retained separately.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "48ccebc3d4236b12",
+      "recorded_at": "2026-11-16T22:26:29.761+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "A cleaned and validated external copy goes to FA-12, while binder support goes to FA-15A; unresolved or nonzero checks prevent binder completion. The internal workbook is retained separately."
+        }
+      ],
+      "unverified": [
+        "Check this against the cited sources: 15"
+      ]
+    },
+    {
+      "topic": "materials",
+      "text": "The workbook includes statement and lead-sheet tabs linked to the TB. A cleaned and validated external copy is sent to FA-12, while the internal workbook is retained separately.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "310446970ed31ce3",
+      "recorded_at": "2026-11-16T22:26:29.761+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "the Fund Accountant links the statement and lead-sheet tabs to the TB. A cleaned and validated external copy goes to FA-12"
+        },
+        {
+          "source_id": "t7",
+          "quote": "The internal workbook is retained separately."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Unresolved or nonzero checks prevent binder completion.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "8b0565a22eb9b887",
+      "recorded_at": "2026-11-16T22:26:29.761+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "unresolved or nonzero checks prevent binder completion"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "Binder support is a package of supporting records, not a person; FA-15A receives the reviewed records.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "f31d56515b9e3af6",
+      "recorded_at": "2026-11-16T22:26:50.805+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "Binder support is the package of supporting records, not the person finishing the binder. FA-15A receives those reviewed records."
+        }
+      ],
+      "unverified": [
+        "Check this against the cited sources: 15"
+      ]
+    },
+    {
+      "topic": "scope",
+      "text": "The workbook process ends with its checked and reviewed outputs and binder handoff; completion of the receiving process is outside that finish condition.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "54cd08c41af8ec90",
+      "recorded_at": "2026-11-16T22:26:50.806+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "It does not claim the receiving process has finished its work."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "Any engagement-specific fixed deadlines and who detects readiness remain unspecified.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "d9d1ac55b8bd1126",
+      "recorded_at": "2026-11-16T22:27:48.237+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "No firmwide completion deadline is documented."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "Binder support collection can begin before quarter-end with engagement letters, DTM packages and purchase/sale support.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "def98e8db2f022fe",
+      "recorded_at": "2026-11-16T22:27:48.237+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "Binder support collection can start before quarter-end with engagement letters, DTM packages and purchase/sale support."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "Binder support can include engagement letters, DTM packages and purchase/sale support collected before quarter-end.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "17b52228021a4211",
+      "recorded_at": "2026-11-16T22:27:48.238+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "Binder support collection can start before quarter-end with engagement letters, DTM packages and purchase/sale support."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "An approximately 5% administration/technology exclusion is reported as an observed accrual practice, not a universal rule.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "750cb10c6c96ee18",
+      "recorded_at": "2026-11-16T22:27:48.238+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "About a 5% administration/technology exclusion is an observed accrual practice, not a universal rule."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "The applicability, calculation basis and source of the observed administration/technology exclusion are unspecified.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "5d35737b492d06bb",
+      "recorded_at": "2026-11-16T22:27:48.240+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "About a 5% administration/technology exclusion is an observed accrual practice, not a universal rule."
+        }
+      ],
+      "unverified": []
+    }
+  ],
+  "fact_history": [
+    {
+      "topic": "trigger",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:25:02.642+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "69a3d143856f9d02"
+    },
+    {
+      "topic": "completion",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:25:02.642+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "6b850cf6846449ee"
+    },
+    {
+      "topic": "completion",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:26:29.759+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "dd39142505a5c049"
+    },
+    {
+      "topic": "lifecycle",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:25:02.642+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "f998314814e421b3"
+    },
+    {
+      "topic": "checks",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:25:02.642+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "13591bc039cb4731"
+    },
+    {
+      "topic": "checks",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:25:42.137+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "32f7d566c431112f"
+    },
+    {
+      "topic": "materials",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:25:02.642+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "a74842d090150491"
+    },
+    {
+      "topic": "scope",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:25:02.643+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "d164bd25d56f2a99"
+    },
+    {
+      "topic": "connections",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:25:02.643+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "25b76f0e92bd075a"
+    },
+    {
+      "topic": "data_systems",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:25:02.643+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "2190b99b83767403"
+    },
+    {
+      "topic": "trigger",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:25:42.138+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "37b4c336efebc7b4"
+    },
+    {
+      "topic": "variations",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:25:42.139+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "b26b85aeb7cec88e"
+    },
+    {
+      "topic": "checks",
+      "state": "withdrawn",
+      "recorded_at": "2026-11-16T22:26:29.761+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "4722e3d11fe6148e"
+    }
+  ],
+  "capture_provenance": {
+    "method": "document_simulation",
+    "participant_confirmed": false,
+    "process_owner_approved": false,
+    "source_documents": [
+      {
+        "filename": "IP1-export.pdf",
+        "sha256": "d0f89ee7c7cc8ffbcd39c268b47b765888105e588f60199106356ca31df177c1"
+      }
+    ]
+  },
+  "closure": {
+    "asked": false,
+    "confirmed": false
+  }
+}

@@ -1,0 +1,1402 @@
+{
+  "schema_version": 1,
+  "context": {
+    "process_name": "Partner Transfers",
+    "objective": "Document how this process works, including controls and what remains unresolved."
+  },
+  "turns": [
+    {
+      "id": "t1",
+      "role": "user",
+      "text": "A client or investor notifies us about a proposed full or partial partner transfer. The procedure is on operational hold. Approximately 48 hours after complete executed documents and data arrive is a target, not a contractual SLA."
+    },
+    {
+      "id": "t2",
+      "role": "assistant",
+      "text": "What does the operational hold mean for work on a proposed transfer today?"
+    },
+    {
+      "id": "t3",
+      "role": "user",
+      "text": "A proposed transfer must not be processed until the controlled checklist, component split/rounding rules, required systems fields and entries, side-letter review, wire callback requirements and accountable owner, reviewer and approver are documented. The assigned preparer can describe the design; the record does not confirm those role titles or a transfer being executed."
+    },
+    {
+      "id": "t4",
+      "role": "assistant",
+      "text": "While the process is on hold, what happens when a proposed transfer notification comes in?"
+    },
+    {
+      "id": "t5",
+      "role": "user",
+      "text": "The design opens a transfer record with roles/scope and validates executed terms, written effective date and client consent. There is no documented workaround or actual post-hold intake outcome in this account. No processing goes ahead while on hold. In the designed partial-transfer split the transferor plus transferee must equal the pre-transfer position for every component, with no unexplained difference."
+    },
+    {
+      "id": "t6",
+      "role": "assistant",
+      "text": "What happens to a transfer record when the required validation finds an issue?"
+    },
+    {
+      "id": "t7",
+      "role": "user",
+      "text": "Unresolved consent, effective date, side-letter treatment, AML/KYC or split differences hold the transfer. Client legal counsel decides legal interpretation, the client approves material split treatment and exceptions, and an independent reviewer checks the component reconciliation. We cannot close while a component is unexplained. For a full transfer adjust the old investor's portal access; on a partial transfer preserve it. Both future participant lists need to observe the approved effective date."
+    },
+    {
+      "id": "t8",
+      "role": "assistant",
+      "text": "In the design, what prevents a transfer from progressing while one of those issues remains unresolved?"
+    },
+    {
+      "id": "t9",
+      "role": "user",
+      "text": "These are documented stop conditions, not an automated system block we can verify. The reviewer compares the transferor and transferee to the locked baseline for each component, returns unresolved splits and preserves evidence. A proposed transfer is not a completed transfer. The source doesn't specify a system lock or a firmwide internal sign-off title. An incorrect split/effective date can assign P&L to the wrong investor."
+    },
+    {
+      "id": "t10",
+      "role": "assistant",
+      "text": "In the design, what observable evidence would show that a transfer is complete and ready for the next use?"
+    },
+    {
+      "id": "t11",
+      "role": "user",
+      "text": "A closed record includes the second-reviewer evidence, consent and approved treatment, executed package, reconciliations and notice of the effective post-transfer participant list to Investor Services, Fund Team and FA-01. The client receives completion confirmation. CRM and accounting must agree with the split; portal and future-event population must be tested. That is the design; no live transfer execution is established."
+    },
+    {
+      "id": "t12",
+      "role": "assistant",
+      "text": "What result is the Partner Transfers process intended to deliver when it is operating?"
+    }
+  ],
+  "memo_findings": [
+    {
+      "answer": "The process is called “Partner Transfers.”",
+      "evidence_turns": [
+        "context"
+      ],
+      "key": "name",
+      "status": "captured"
+    },
+    {
+      "answer": "The designed process produces an effective post-transfer participant list and reconciled split, with completion confirmed to the client.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "key": "purpose",
+      "status": "captured"
+    },
+    {
+      "answer": "A client or investor notification about a proposed full or partial partner transfer initiates the work.\nThe procedure is currently on operational hold.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "key": "trigger",
+      "status": "partial"
+    },
+    {
+      "answer": "A transfer cannot close while a component is unexplained.\nIn the design, the closed record includes second-reviewer evidence, consent and approved treatment, the executed package, reconciliations, and notice of the effective post-transfer participant list to Investor Services, Fund Team and FA-01. The client receives completion confirmation.\nCRM and accounting must agree with the split, and portal and future-event population must be tested. These are design conditions, not evidence of a live execution.",
+      "evidence_turns": [
+        "t7",
+        "t11"
+      ],
+      "key": "completion",
+      "status": "partial"
+    },
+    {
+      "answer": "The accountable owner, reviewer and approver must be documented; their role titles are not confirmed.\nThe assigned preparer can describe the design.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "key": "accountable",
+      "status": "partial"
+    },
+    {
+      "answer": "A proposed transfer must not be processed until the controlled checklist, component split and rounding rules, required systems fields and entries, side-letter review, wire callback requirements, and accountable owner, reviewer and approver are documented.\nThe design opens a transfer record with roles and scope and validates executed terms, the written effective date and client consent.\nNo processing goes ahead while the procedure is on hold.\nThe account documents no workaround or actual post-hold intake outcome.\nIn the designed partial-transfer split, transferor plus transferee must equal the pre-transfer position for every component, with no unexplained difference.\nUnresolved consent, effective date, side-letter treatment, AML/KYC or split differences hold the transfer.\nFor a full transfer, adjust the old investor's portal access; for a partial transfer, preserve it. Both future participant lists need to observe the approved effective date.\nThe issue holds are documented stop conditions; an automated system block or system lock is not verified in the source. A proposed transfer is not a completed transfer.\nThe designed closeout includes notice of the effective post-transfer participant list to Investor Services, Fund Team and FA-01, and completion confirmation to the client.",
+      "evidence_turns": [
+        "t3",
+        "t5",
+        "t7",
+        "t9",
+        "t11"
+      ],
+      "key": "lifecycle",
+      "status": "partial"
+    },
+    {
+      "answer": "The controlled checklist, side-letter review and wire callback requirements must be documented before processing; their detailed operation and the formal reviewer and approver roles remain unresolved.\nThe design validates executed terms, written effective date and client consent. For a partial split, every component must reconcile to the pre-transfer position with no unexplained difference.\nClient legal counsel decides legal interpretation; the client approves material split treatment and exceptions. An independent reviewer checks the component reconciliation.\nThe reviewer compares the transferor and transferee against the locked baseline for each component, returns unresolved splits and preserves evidence.\nThe design requires CRM and accounting to agree with the split and requires testing of the portal and future-event population.\nWho performs the CRM and accounting agreement and portal and future-event tests, and how those tests are performed, is unspecified.",
+      "evidence_turns": [
+        "t3",
+        "t7",
+        "t5",
+        "t9",
+        "t11"
+      ],
+      "key": "checks",
+      "status": "partial"
+    },
+    {
+      "answer": "Proposed partner transfers may be full or partial.\nBeyond the specified split and portal-access treatments, other differences between full and partial transfers remain unspecified.\nFor a partial transfer, the design requires the transferor and transferee positions to sum to the pre-transfer position for each component, without unexplained differences.\nPortal-access treatment differs by transfer scope: adjust the old investor's access for a full transfer, but preserve it for a partial transfer.",
+      "evidence_turns": [
+        "t1",
+        "t5",
+        "t7"
+      ],
+      "key": "variations",
+      "status": "partial"
+    },
+    {
+      "answer": "",
+      "evidence_turns": [],
+      "key": "pain_points",
+      "status": "unknown"
+    },
+    {
+      "answer": "An incorrect split or effective date can assign P&L to the wrong investor.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "key": "risk",
+      "status": "captured"
+    },
+    {
+      "answer": "The specific executed documents and data supporting validation of terms, effective date and client consent remain unidentified.\nA controlled checklist must be documented before processing; its content and location are unresolved.\nThe design uses a transfer record containing roles and scope.\nThe design refers to future participant lists that need to observe the approved effective date.\nThe reviewer uses a locked baseline for component comparisons and preserves review evidence.\nThe location of preserved review evidence is unspecified.\nThe designed closed record contains second-reviewer evidence, consent, approved treatment, the executed package, reconciliations and notice of the effective post-transfer participant list.",
+      "evidence_turns": [
+        "t1",
+        "t5",
+        "t3",
+        "t7",
+        "t9",
+        "t11"
+      ],
+      "key": "materials",
+      "status": "partial"
+    },
+    {
+      "answer": "The work concerns proposed full or partial partner transfers notified by a client or investor.\nThe relevant entity types and broader applicability remain unspecified.\nThe record does not confirm that a transfer has been executed.",
+      "evidence_turns": [
+        "t1",
+        "t3"
+      ],
+      "key": "scope",
+      "status": "partial"
+    },
+    {
+      "answer": "Approximately 48 hours after complete executed documents and data arrive is a target, not a contractual SLA.\nComponent split mechanics and rounding rules must be documented before processing and remain unresolved.\nThe designed partial-transfer split requires the transferor and transferee together to equal the pre-transfer position for every component, with no unexplained difference.\nBoth future participant lists need to observe the approved effective date; client legal counsel decides legal interpretation.",
+      "evidence_turns": [
+        "t1",
+        "t3",
+        "t5",
+        "t7"
+      ],
+      "key": "rules",
+      "status": "partial"
+    },
+    {
+      "answer": "Client legal counsel decides legal interpretation, and the client approves material split treatment and exceptions.\nThe design sends notice of the effective post-transfer participant list to Investor Services, Fund Team and FA-01, and completion confirmation to the client.",
+      "evidence_turns": [
+        "t7",
+        "t11"
+      ],
+      "key": "connections",
+      "status": "partial"
+    },
+    {
+      "answer": "Required system fields and entries must be documented before processing; the specific fields and entries remain unidentified.\nThe design requires CRM and accounting to agree with the split and the portal and future-event population to be tested; no live execution is established.",
+      "evidence_turns": [
+        "t3",
+        "t11"
+      ],
+      "key": "data_systems",
+      "status": "partial"
+    },
+    {
+      "answer": "Transfer volume and frequency have not been provided.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "key": "volume",
+      "status": "partial"
+    }
+  ],
+  "coverage": [
+    {
+      "key": "name",
+      "label": "Name & other names",
+      "status": "partial"
+    },
+    {
+      "key": "purpose",
+      "label": "Purpose & result",
+      "status": "partial"
+    },
+    {
+      "key": "trigger",
+      "label": "Start, cadence & deadlines",
+      "status": "partial"
+    },
+    {
+      "key": "completion",
+      "label": "Finished condition",
+      "status": "partial"
+    },
+    {
+      "key": "accountable",
+      "label": "Accountability",
+      "status": "partial"
+    },
+    {
+      "key": "lifecycle",
+      "label": "Items, stages & handoffs",
+      "status": "partial"
+    },
+    {
+      "key": "checks",
+      "label": "Checks, approvals & proof",
+      "status": "partial"
+    },
+    {
+      "key": "variations",
+      "label": "Variations and conditions",
+      "status": "partial"
+    },
+    {
+      "key": "pain_points",
+      "label": "Manual work & pain",
+      "status": "missing"
+    },
+    {
+      "key": "risk",
+      "label": "Consequences of failure",
+      "status": "partial"
+    },
+    {
+      "key": "materials",
+      "label": "Existing materials",
+      "status": "partial"
+    },
+    {
+      "key": "scope",
+      "label": "Scope & entity context",
+      "status": "partial"
+    },
+    {
+      "key": "rules",
+      "label": "Business rules & lineage",
+      "status": "partial"
+    },
+    {
+      "key": "connections",
+      "label": "Connected processes",
+      "status": "partial"
+    },
+    {
+      "key": "data_systems",
+      "label": "Data & systems",
+      "status": "partial"
+    },
+    {
+      "key": "volume",
+      "label": "Volume & effort",
+      "status": "partial"
+    }
+  ],
+  "focus": "Designed transfer completion and verification",
+  "summary": "Partner Transfers remains on operational hold. The designed closeout requires reconciled records, testing, a documented evidence package, participant-list notices and client confirmation; no live execution is established.",
+  "parking_lot": [],
+  "taxonomy": [
+    {
+      "evidence_turns": [
+        "t1"
+      ],
+      "facet": "functional_area",
+      "note": "Partner transfers are described, but the functional area is not further specified.",
+      "value": "other"
+    },
+    {
+      "evidence_turns": [
+        "t7"
+      ],
+      "facet": "control_type",
+      "note": "The client approves material split treatment and exceptions in the reported design; formal approver roles still need documentation.",
+      "value": "client_approval"
+    },
+    {
+      "evidence_turns": [
+        "t7"
+      ],
+      "facet": "control_type",
+      "note": "An independent reviewer checks component reconciliation; the account does not identify a formal reviewer title.",
+      "value": "gpfs_operational"
+    },
+    {
+      "evidence_turns": [
+        "t7"
+      ],
+      "facet": "variant_class",
+      "note": "Full versus partial transfer changes the old investor's portal-access treatment.",
+      "value": "structural"
+    },
+    {
+      "evidence_turns": [
+        "t7"
+      ],
+      "facet": "system",
+      "note": "The old investor's portal access is adjusted for a full transfer and preserved for a partial transfer; the portal is not named.",
+      "value": "client_portal"
+    },
+    {
+      "evidence_turns": [
+        "t11"
+      ],
+      "facet": "system",
+      "note": "CRM and accounting are identified as systems whose records must agree with the split; product names are not given.",
+      "value": "other"
+    },
+    {
+      "evidence_turns": [
+        "t1",
+        "t11"
+      ],
+      "facet": "entity_type",
+      "note": "Investor and fund-team context is reported; the precise entity types and applicability are not specified.",
+      "value": "fund"
+    }
+  ],
+  "connections_out": [
+    {
+      "condition": "Material split treatment and exceptions",
+      "counterpart": "Client",
+      "evidence_turns": [
+        "t7"
+      ],
+      "relationship_type": "requires_approval_from"
+    },
+    {
+      "condition": "Designed notice of the effective post-transfer participant list at closeout.",
+      "counterpart": "Investor Services",
+      "evidence_turns": [
+        "t11"
+      ],
+      "relationship_type": "provides_input_to"
+    },
+    {
+      "condition": "Designed notice of the effective post-transfer participant list at closeout.",
+      "counterpart": "Fund Team",
+      "evidence_turns": [
+        "t11"
+      ],
+      "relationship_type": "provides_input_to"
+    },
+    {
+      "condition": "Designed notice of the effective post-transfer participant list at closeout.",
+      "counterpart": "FA-01",
+      "evidence_turns": [
+        "t11"
+      ],
+      "relationship_type": "provides_input_to"
+    }
+  ],
+  "fact_provenance": [
+    {
+      "topic": "name",
+      "text": "The process is called “Partner Transfers.”",
+      "evidence_turns": [
+        "context"
+      ],
+      "history_ref": "fc7b082bbee33c48",
+      "recorded_at": "2026-11-16T22:28:31.945+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "trigger",
+      "text": "A client or investor notification about a proposed full or partial partner transfer initiates the work.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "c23a83c64a7ff844",
+      "recorded_at": "2026-11-16T22:28:31.946+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "A client or investor notifies us about a proposed full or partial partner transfer."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "The procedure is currently on operational hold.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "6b76c4d62b599227",
+      "recorded_at": "2026-11-16T22:28:31.946+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "The procedure is on operational hold."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "Proposed partner transfers may be full or partial.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "1beea5758bf4def5",
+      "recorded_at": "2026-11-16T22:29:10.713+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "a proposed full or partial partner transfer"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The specific executed documents and data supporting validation of terms, effective date and client consent remain unidentified.",
+      "evidence_turns": [
+        "t1",
+        "t5"
+      ],
+      "history_ref": "bd9698a3061c0061",
+      "recorded_at": "2026-11-16T22:29:55.594+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "complete executed documents and data arrive"
+        },
+        {
+          "source_id": "t5",
+          "quote": "validates executed terms, written effective date and client consent"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "scope",
+      "text": "The work concerns proposed full or partial partner transfers notified by a client or investor.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "3487f31a63b19977",
+      "recorded_at": "2026-11-16T22:29:10.714+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "A client or investor notifies us about a proposed full or partial partner transfer."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "Approximately 48 hours after complete executed documents and data arrive is a target, not a contractual SLA.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "7ca7ad8df8d4f181",
+      "recorded_at": "2026-11-16T22:28:31.946+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "Approximately 48 hours after complete executed documents and data arrive is a target, not a contractual SLA."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "volume",
+      "text": "Transfer volume and frequency have not been provided.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "3408e170ddcb6077",
+      "recorded_at": "2026-11-16T22:28:31.946+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "A client or investor notifies us about a proposed full or partial partner transfer."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "Beyond the specified split and portal-access treatments, other differences between full and partial transfers remain unspecified.",
+      "evidence_turns": [
+        "t5",
+        "t7"
+      ],
+      "history_ref": "ac6410d47370876e",
+      "recorded_at": "2026-11-16T22:30:20.047+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "In the designed partial-transfer split the transferor plus transferee must equal the pre-transfer position for every component"
+        },
+        {
+          "source_id": "t7",
+          "quote": "For a full transfer adjust the old investor's portal access; on a partial transfer preserve it."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "scope",
+      "text": "The relevant entity types and broader applicability remain unspecified.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "65968dade8d3a0bf",
+      "recorded_at": "2026-11-16T22:29:10.715+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "a proposed full or partial partner transfer"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "A proposed transfer must not be processed until the controlled checklist, component split and rounding rules, required systems fields and entries, side-letter review, wire callback requirements, and accountable owner, reviewer and approver are documented.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "c6d4f00a3fba5d85",
+      "recorded_at": "2026-11-16T22:29:10.715+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "A proposed transfer must not be processed until the controlled checklist, component split/rounding rules, required systems fields and entries, side-letter review, wire callback requirements and accountable owner, reviewer and approver are documented."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "accountable",
+      "text": "The accountable owner, reviewer and approver must be documented; their role titles are not confirmed.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "81864dd3aa471fc7",
+      "recorded_at": "2026-11-16T22:29:55.595+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "accountable owner, reviewer and approver are documented"
+        },
+        {
+          "source_id": "t3",
+          "quote": "the record does not confirm those role titles"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The controlled checklist, side-letter review and wire callback requirements must be documented before processing; their detailed operation and the formal reviewer and approver roles remain unresolved.",
+      "evidence_turns": [
+        "t3",
+        "t7"
+      ],
+      "history_ref": "401da7079c1039ce",
+      "recorded_at": "2026-11-16T22:30:20.047+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "the controlled checklist, component split/rounding rules, required systems fields and entries, side-letter review, wire callback requirements and accountable owner, reviewer and approver are documented"
+        },
+        {
+          "source_id": "t7",
+          "quote": "the client approves material split treatment and exceptions, and an independent reviewer checks the component reconciliation"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "Component split mechanics and rounding rules must be documented before processing and remain unresolved.",
+      "evidence_turns": [
+        "t3",
+        "t5"
+      ],
+      "history_ref": "ee03f8650472d3fb",
+      "recorded_at": "2026-11-16T22:29:55.595+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "component split/rounding rules"
+        },
+        {
+          "source_id": "t5",
+          "quote": "the transferor plus transferee must equal the pre-transfer position for every component"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "Required system fields and entries must be documented before processing; the specific fields and entries remain unidentified.",
+      "evidence_turns": [
+        "t3",
+        "t11"
+      ],
+      "history_ref": "7c82d4e834a9bdd5",
+      "recorded_at": "2026-11-16T22:31:30.463+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "required systems fields and entries"
+        },
+        {
+          "source_id": "t11",
+          "quote": "CRM and accounting must agree with the split"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "A controlled checklist must be documented before processing; its content and location are unresolved.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "144fc0ffe8bab89e",
+      "recorded_at": "2026-11-16T22:29:10.716+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "must not be processed until the controlled checklist"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "scope",
+      "text": "The record does not confirm that a transfer has been executed.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "c02654ba4a79f2a0",
+      "recorded_at": "2026-11-16T22:29:10.716+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "the record does not confirm those role titles or a transfer being executed."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "accountable",
+      "text": "The assigned preparer can describe the design.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "2266313150a173e2",
+      "recorded_at": "2026-11-16T22:29:55.596+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "The assigned preparer can describe the design"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The design opens a transfer record with roles and scope and validates executed terms, the written effective date and client consent.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "30b83e46a4e93de2",
+      "recorded_at": "2026-11-16T22:29:55.596+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "The design opens a transfer record with roles/scope and validates executed terms, written effective date and client consent."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "No processing goes ahead while the procedure is on hold.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "7bfe1f7639ed11a2",
+      "recorded_at": "2026-11-16T22:29:55.596+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "No processing goes ahead while on hold."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The account documents no workaround or actual post-hold intake outcome.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "75f8a700fe039bbf",
+      "recorded_at": "2026-11-16T22:29:55.596+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "There is no documented workaround or actual post-hold intake outcome in this account."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "In the designed partial-transfer split, transferor plus transferee must equal the pre-transfer position for every component, with no unexplained difference.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "76eb4a875fad09e6",
+      "recorded_at": "2026-11-16T22:29:55.596+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "In the designed partial-transfer split the transferor plus transferee must equal the pre-transfer position for every component, with no unexplained difference."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The design validates executed terms, written effective date and client consent. For a partial split, every component must reconcile to the pre-transfer position with no unexplained difference.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "026ab7edd8f9b9d3",
+      "recorded_at": "2026-11-16T22:29:55.596+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "validates executed terms, written effective date and client consent"
+        },
+        {
+          "source_id": "t5",
+          "quote": "the transferor plus transferee must equal the pre-transfer position for every component, with no unexplained difference"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "For a partial transfer, the design requires the transferor and transferee positions to sum to the pre-transfer position for each component, without unexplained differences.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "2a053c731eca960d",
+      "recorded_at": "2026-11-16T22:29:55.596+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "In the designed partial-transfer split the transferor plus transferee must equal the pre-transfer position for every component, with no unexplained difference."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "The designed partial-transfer split requires the transferor and transferee together to equal the pre-transfer position for every component, with no unexplained difference.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "9a03f97999b6227d",
+      "recorded_at": "2026-11-16T22:29:55.596+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "the transferor plus transferee must equal the pre-transfer position for every component, with no unexplained difference"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The design uses a transfer record containing roles and scope.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "b09f8afd489dca09",
+      "recorded_at": "2026-11-16T22:29:55.596+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "The design opens a transfer record with roles/scope"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "Unresolved consent, effective date, side-letter treatment, AML/KYC or split differences hold the transfer.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "4c03c8da6ba308d7",
+      "recorded_at": "2026-11-16T22:30:20.047+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "Unresolved consent, effective date, side-letter treatment, AML/KYC or split differences hold the transfer."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Client legal counsel decides legal interpretation; the client approves material split treatment and exceptions. An independent reviewer checks the component reconciliation.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "2c3adc237cab568c",
+      "recorded_at": "2026-11-16T22:30:20.048+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "Client legal counsel decides legal interpretation, the client approves material split treatment and exceptions, and an independent reviewer checks the component reconciliation."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "A transfer cannot close while a component is unexplained.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "7c8726966d703daf",
+      "recorded_at": "2026-11-16T22:30:20.048+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "We cannot close while a component is unexplained."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "For a full transfer, adjust the old investor's portal access; for a partial transfer, preserve it. Both future participant lists need to observe the approved effective date.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "a65002d3198da058",
+      "recorded_at": "2026-11-16T22:30:20.048+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "For a full transfer adjust the old investor's portal access; on a partial transfer preserve it. Both future participant lists need to observe the approved effective date."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "Portal-access treatment differs by transfer scope: adjust the old investor's access for a full transfer, but preserve it for a partial transfer.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "0c136b9387967f24",
+      "recorded_at": "2026-11-16T22:30:20.048+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "For a full transfer adjust the old investor's portal access; on a partial transfer preserve it."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "Both future participant lists need to observe the approved effective date; client legal counsel decides legal interpretation.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "c47c753c208e699b",
+      "recorded_at": "2026-11-16T22:30:20.048+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "Client legal counsel decides legal interpretation"
+        },
+        {
+          "source_id": "t7",
+          "quote": "Both future participant lists need to observe the approved effective date."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The design refers to future participant lists that need to observe the approved effective date.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "49daa47d37f3a3b2",
+      "recorded_at": "2026-11-16T22:30:20.048+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "Both future participant lists need to observe the approved effective date."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The reviewer compares the transferor and transferee against the locked baseline for each component, returns unresolved splits and preserves evidence.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "c31b88b8207c575a",
+      "recorded_at": "2026-11-16T22:30:45.856+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "The reviewer compares the transferor and transferee to the locked baseline for each component, returns unresolved splits and preserves evidence."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The issue holds are documented stop conditions; an automated system block or system lock is not verified in the source. A proposed transfer is not a completed transfer.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "0d704c0061d428ca",
+      "recorded_at": "2026-11-16T22:30:45.870+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "materials",
+      "text": "The reviewer uses a locked baseline for component comparisons and preserves review evidence.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "0be296bec3f484a2",
+      "recorded_at": "2026-11-16T22:31:30.464+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "The reviewer compares the transferor and transferee to the locked baseline for each component, returns unresolved splits and preserves evidence."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "risk",
+      "text": "An incorrect split or effective date can assign P&L to the wrong investor.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "c9adc7aabf827686",
+      "recorded_at": "2026-11-16T22:30:45.870+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "An incorrect split/effective date can assign P&L to the wrong investor."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "Client legal counsel decides legal interpretation, and the client approves material split treatment and exceptions.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "abe50db2a4598183",
+      "recorded_at": "2026-11-16T22:30:45.870+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "Client legal counsel decides legal interpretation, the client approves material split treatment and exceptions"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The location of preserved review evidence is unspecified.",
+      "evidence_turns": [
+        "t9",
+        "t11"
+      ],
+      "history_ref": "b9979beb2137ad62",
+      "recorded_at": "2026-11-16T22:31:30.469+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "A closed record includes the second-reviewer evidence"
+        }
+      ],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "purpose",
+      "text": "The designed process produces an effective post-transfer participant list and reconciled split, with completion confirmed to the client.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "b17210cc65108782",
+      "recorded_at": "2026-11-16T22:31:30.470+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "notice of the effective post-transfer participant list to Investor Services, Fund Team and FA-01. The client receives completion confirmation. CRM and accounting must agree with the split"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "In the design, the closed record includes second-reviewer evidence, consent and approved treatment, the executed package, reconciliations, and notice of the effective post-transfer participant list to Investor Services, Fund Team and FA-01. The client receives completion confirmation.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "bd1f77555f8f1e90",
+      "recorded_at": "2026-11-16T22:31:30.471+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "A closed record includes the second-reviewer evidence, consent and approved treatment, executed package, reconciliations and notice of the effective post-transfer participant list to Investor Services, Fund Team and FA-01. The client receives completion confirmation."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "CRM and accounting must agree with the split, and portal and future-event population must be tested. These are design conditions, not evidence of a live execution.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "067eb7741dd2b219",
+      "recorded_at": "2026-11-16T22:31:30.471+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "CRM and accounting must agree with the split; portal and future-event population must be tested. That is the design; no live transfer execution is established."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The design requires CRM and accounting to agree with the split and requires testing of the portal and future-event population.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "dc989069b64962bb",
+      "recorded_at": "2026-11-16T22:31:30.473+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "CRM and accounting must agree with the split; portal and future-event population must be tested."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Who performs the CRM and accounting agreement and portal and future-event tests, and how those tests are performed, is unspecified.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "8ad256ad920836b2",
+      "recorded_at": "2026-11-16T22:31:30.473+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "CRM and accounting must agree with the split; portal and future-event population must be tested."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The designed closeout includes notice of the effective post-transfer participant list to Investor Services, Fund Team and FA-01, and completion confirmation to the client.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "aa09d3e4ff89edf6",
+      "recorded_at": "2026-11-16T22:31:30.473+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "notice of the effective post-transfer participant list to Investor Services, Fund Team and FA-01. The client receives completion confirmation."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The designed closed record contains second-reviewer evidence, consent, approved treatment, the executed package, reconciliations and notice of the effective post-transfer participant list.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "2c0c96bf7829694a",
+      "recorded_at": "2026-11-16T22:31:30.474+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "A closed record includes the second-reviewer evidence, consent and approved treatment, executed package, reconciliations and notice of the effective post-transfer participant list"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "The design requires CRM and accounting to agree with the split and the portal and future-event population to be tested; no live execution is established.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "c9b2e5c3b75a4840",
+      "recorded_at": "2026-11-16T22:31:30.475+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "CRM and accounting must agree with the split; portal and future-event population must be tested. That is the design; no live transfer execution is established."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "The design sends notice of the effective post-transfer participant list to Investor Services, Fund Team and FA-01, and completion confirmation to the client.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "c8d215a77dadf0e0",
+      "recorded_at": "2026-11-16T22:31:30.475+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "notice of the effective post-transfer participant list to Investor Services, Fund Team and FA-01. The client receives completion confirmation."
+        }
+      ],
+      "unverified": []
+    }
+  ],
+  "fact_history": [
+    {
+      "topic": "variations",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:28:31.946+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "f2f561e397076072"
+    },
+    {
+      "topic": "materials",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:28:31.946+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "606c9d0f494fe4fb"
+    },
+    {
+      "topic": "scope",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:28:31.946+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "9c331cdf38166ab7"
+    },
+    {
+      "topic": "variations",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:29:10.715+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "8d0cb7b9f1ec7760"
+    },
+    {
+      "topic": "variations",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:29:55.595+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "13368301c265fa08"
+    },
+    {
+      "topic": "accountable",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:29:10.715+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "2cdf4ace89cb82aa"
+    },
+    {
+      "topic": "checks",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:29:10.715+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "9e93ae97a07ccdb9"
+    },
+    {
+      "topic": "rules",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:29:10.715+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "3f80f029e4e0947f"
+    },
+    {
+      "topic": "data_systems",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:29:10.716+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "97f23a12bfbebf7c"
+    },
+    {
+      "topic": "data_systems",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:30:45.856+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "3088fad5218f5027"
+    },
+    {
+      "topic": "materials",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:30:45.870+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "cc9fce97c017de69"
+    }
+  ],
+  "capture_provenance": {
+    "method": "document_simulation",
+    "participant_confirmed": false,
+    "process_owner_approved": false,
+    "source_documents": [
+      {
+        "filename": "IP1-export.pdf",
+        "sha256": "d0f89ee7c7cc8ffbcd39c268b47b765888105e588f60199106356ca31df177c1"
+      }
+    ]
+  },
+  "closure": {
+    "asked": false,
+    "confirmed": false
+  }
+}

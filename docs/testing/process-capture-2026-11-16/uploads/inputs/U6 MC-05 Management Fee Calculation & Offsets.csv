@@ -1,0 +1,10 @@
+﻿Process,Step,Step title,Documented action
+MC-05 Management Fee Calculation & Offsets,3,Calculate gross fee by investor,Apply the fund- and investor-specific fee base and rate to each time segment in which they are effective.
+MC-05 Management Fee Calculation & Offsets,3,Calculate gross fee by investor,"Apply the approved annualization, proration, and stub-period rules."
+MC-05 Management Fee Calculation & Offsets,3,Calculate gross fee by investor,"Apply side-letter, class, holiday, exclusion, start-date, and step-down rules."
+MC-05 Management Fee Calculation & Offsets,3,Calculate gross fee by investor,Reconcile investor gross fees to fund-level totals.
+MC-05 Management Fee Calculation & Offsets,4,"Apply offsets, waivers, and carryforwards","Allocate each offset type using its LPA rule, applicable fund and portfolio-company list, percentage, and timing."
+MC-05 Management Fee Calculation & Offsets,4,"Apply offsets, waivers, and carryforwards","Apply monitoring-fee offsets from MC-04 in the correct period, including any approved delay."
+MC-05 Management Fee Calculation & Offsets,4,"Apply offsets, waivers, and carryforwards",Apply waiver elections and caps on related contribution amounts or excess costs from FA- 06.
+MC-05 Management Fee Calculation & Offsets,4,"Apply offsets, waivers, and carryforwards",Apply approved carryforwards and move any remaining approved amount to the next period.
+MC-05 Management Fee Calculation & Offsets,4,"Apply offsets, waivers, and carryforwards",Calculate the net fee using the validated rule for nonnegative or negative fees.

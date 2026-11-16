@@ -1,0 +1,1414 @@
+{
+  "schema_version": 1,
+  "context": {
+    "process_name": "Year-End Audit Support",
+    "objective": "Document how this process works, including controls and what remains unresolved."
+  },
+  "turns": [
+    {
+      "id": "t1",
+      "role": "user",
+      "text": "For year-end audit support, we log auditor requests on the PBC list and reconcile them against the open-items log. Reviewed FA-15A binder records must be available. There is no standard response deadline across engagements."
+    },
+    {
+      "id": "t2",
+      "role": "assistant",
+      "text": "Talk me through how an auditor request is handled from the time it comes in?"
+    },
+    {
+      "id": "t3",
+      "role": "user",
+      "text": "The Fund Accountant or audit-support preparer logs the request ID, description, due date, status and response reference. They match reviewed binder support to entity, year and request. The Controller reviews or returns the response consistent with the client's communication rules. Once approved, the preparer uploads it to the authorized portal or Box, saves proof and updates the log. An upload receipt does not close the request."
+    },
+    {
+      "id": "t4",
+      "role": "assistant",
+      "text": "What marks an auditor request as closed after the response is uploaded?"
+    },
+    {
+      "id": "t5",
+      "role": "user",
+      "text": "The auditor confirms closure or there is a recorded authorized reason for closure. To close the cycle, the log must reconcile to the final request list with no untracked items, and we retain proof, correspondence and final submissions. The overall cycle owner and final sign-off authority are unconfirmed; the Controller can approve individual responses under client rules."
+    },
+    {
+      "id": "t6",
+      "role": "assistant",
+      "text": "How do auditor requests usually reach the preparer?"
+    },
+    {
+      "id": "t7",
+      "role": "user",
+      "text": "The auditor issues a portal or request list or sends a follow-up. The preparer downloads or records the current list and tracks each item against the portal. Portal, Box use, format, recipients and permitted calls vary by engagement. If access fails, stop unless an alternative is authorized; a client can submit an inaccessible item directly."
+    },
+    {
+      "id": "t8",
+      "role": "assistant",
+      "text": "What most often causes an auditor request to be delayed or sent back, and what happens then?"
+    },
+    {
+      "id": "t9",
+      "role": "user",
+      "text": "I can't say what is most frequent; the source gives no ranking. Missing portal access stops the work pending approval of an alternative. If support does not match the entity, year or request, the Controller can return it for correction. Send only the approved shareable version; valuation, tax, legal or client-judgment matters go to the authorized owner."
+    },
+    {
+      "id": "t10",
+      "role": "assistant",
+      "text": "When the Controller returns a response for correction, what does the preparer change before resubmitting it for review?"
+    },
+    {
+      "id": "t11",
+      "role": "user",
+      "text": "The preparer corrects the mismatch identified by review, matches the revised support to the auditor's request, correct entity and year, and routes it back for approval before uploading. The exact item-specific change depends on the reviewer’s finding. Client restrictions also govern who can attend calls; a Director or management representative participates when required."
+    },
+    {
+      "id": "t12",
+      "role": "assistant",
+      "text": "What can happen if a year-end audit request is delayed or an item is sent in a form the auditor cannot use?"
+    }
+  ],
+  "memo_findings": [
+    {
+      "answer": "The process is called “Year-End Audit Support.”",
+      "evidence_turns": [
+        "context"
+      ],
+      "key": "name",
+      "status": "captured"
+    },
+    {
+      "answer": "The stated objective is to document how the process works, including controls and unresolved points.\nThe work supports auditor requests through approved submissions and a reconciled, documented request closure cycle.",
+      "evidence_turns": [
+        "context",
+        "t3",
+        "t5"
+      ],
+      "key": "purpose",
+      "status": "captured"
+    },
+    {
+      "answer": "The event initiating the overall year-end audit support cycle remains unclear.\nAuditor requests arrive through an issued portal or request list or a follow-up.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "key": "trigger",
+      "status": "partial"
+    },
+    {
+      "answer": "A request closes when the auditor confirms closure or there is a recorded authorized reason for closure. To close the cycle, the log must reconcile to the final request list with no untracked items, and proof, correspondence and final submissions are retained.\nAn upload receipt does not close the request.",
+      "evidence_turns": [
+        "t5",
+        "t3"
+      ],
+      "key": "completion",
+      "status": "partial"
+    },
+    {
+      "answer": "The role accountable for the result is not established.\nThe Controller can approve individual responses under client rules.",
+      "evidence_turns": [
+        "context",
+        "t5"
+      ],
+      "key": "accountable",
+      "status": "partial"
+    },
+    {
+      "answer": "Auditor requests are logged on the PBC list and reconciled against the open-items log.\nThe Fund Accountant or audit-support preparer logs the request ID, description, due date, status and response reference, then matches reviewed binder support to the entity, year and request.\nThe Controller reviews or returns the response consistent with the client's communication rules. Once approved, the preparer uploads it to the authorized portal or Box, saves proof and updates the log.\nAfter upload, request closure requires auditor confirmation or a recorded authorized reason. Cycle closure requires a reconciled final request list with no untracked items and retention of proof, correspondence and final submissions.\nThe preparer downloads or records the current request list and tracks each item against the portal.\nIf access fails, work stops unless an alternative is authorized; a client can submit an inaccessible item directly.\nIf support does not match the entity, year or request, the Controller can return it for correction. Only the approved shareable version is sent.\nValuation, tax, legal or client-judgment matters go to the authorized owner.\nAfter a return, the preparer corrects the mismatch identified by review, matches the revised support to the request, entity and year, and routes it back for approval before uploading. The specific change depends on the reviewer's finding.\nClient restrictions govern call attendance; a Director or management representative participates when required.",
+      "evidence_turns": [
+        "t1",
+        "t3",
+        "t5",
+        "t7",
+        "t9",
+        "t11"
+      ],
+      "key": "lifecycle",
+      "status": "partial"
+    },
+    {
+      "answer": "Auditor requests are reconciled against the open-items log.\nThe reconciliation method and performer remain unclear.\nThe preparer matches reviewed binder support to the entity, year and request. The Controller reviews or returns the response; the preparer uploads only once it is approved and saves proof.\nCycle closure requires reconciling the log to the final request list with no untracked items.\nFinal cycle sign-off authority is unconfirmed.\nAccess failure stops the work unless an alternative is authorized.\nThe Controller can return support that does not match the entity, year or request for correction; only the approved shareable version is sent.\nRevised support is matched to the auditor's request, entity and year and routed back for approval before upload.",
+      "evidence_turns": [
+        "t1",
+        "t5",
+        "t3",
+        "t7",
+        "t9",
+        "t11"
+      ],
+      "key": "checks",
+      "status": "partial"
+    },
+    {
+      "answer": "There is no standard response deadline across engagements.\nThe Controller reviews or returns the response consistent with the applicable client's communication rules; approved responses go to the authorized portal or Box.\nPortal and Box use, format, recipients and permitted calls vary by engagement.\nWhen access fails, an authorized alternative may be used, including direct submission of an inaccessible item by a client.\nClient restrictions affect who can attend calls; a Director or management representative participates when required.",
+      "evidence_turns": [
+        "t1",
+        "t3",
+        "t7",
+        "t11"
+      ],
+      "key": "variations",
+      "status": "partial"
+    },
+    {
+      "answer": "Missing portal access stops work pending approval of an alternative; mismatched support can be returned for correction.\nThe participant cannot say which cause of delay or return is most frequent; the source gives no ranking.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "key": "pain_points",
+      "status": "partial"
+    },
+    {
+      "answer": "",
+      "evidence_turns": [],
+      "key": "risk",
+      "status": "unknown"
+    },
+    {
+      "answer": "The PBC list and open-items log are used to log auditor requests and reconcile them. Reviewed FA-15A binder records must be available.\nReviewed binder support is matched to the entity, year and request; the response reference is logged and upload proof is saved.\nProof, correspondence and final submissions are retained for cycle closure; the final request list is used for reconciliation.\nThe current auditor request list is downloaded or recorded by the preparer and used to track items against the portal.",
+      "evidence_turns": [
+        "t1",
+        "t3",
+        "t5",
+        "t7"
+      ],
+      "key": "materials",
+      "status": "partial"
+    },
+    {
+      "answer": "The work concerns year-end audit support across engagements.\nEntity applicability and the basis for a common route remain unclear.",
+      "evidence_turns": [
+        "t1",
+        "t3"
+      ],
+      "key": "scope",
+      "status": "partial"
+    },
+    {
+      "answer": "There is no standard response deadline across engagements.\nThe Controller's review or return of the response is consistent with the client's communication rules.\nOnly the approved shareable version is sent; valuation, tax, legal or client-judgment matters go to the authorized owner.\nClient restrictions govern who can attend calls, with a Director or management representative participating when required.",
+      "evidence_turns": [
+        "t1",
+        "t3",
+        "t9",
+        "t11"
+      ],
+      "key": "rules",
+      "status": "partial"
+    },
+    {
+      "answer": "Auditor requests are inputs to the work.\nThe auditor issues a portal or request list or sends a follow-up; the preparer downloads or records the current list and tracks each item against the portal.",
+      "evidence_turns": [
+        "t1",
+        "t7"
+      ],
+      "key": "connections",
+      "status": "partial"
+    },
+    {
+      "answer": "The PBC list and open-items log are records used to log and reconcile auditor requests.\nThe preparer uploads the approved response to the authorized portal or Box and saves proof; the log captures request ID, description, due date, status and response reference.\nThe storage location and system for the PBC list and open-items log are not established.",
+      "evidence_turns": [
+        "t1",
+        "t3"
+      ],
+      "key": "data_systems",
+      "status": "partial"
+    },
+    {
+      "answer": "Request counts, peak volumes, and effort are not established.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "key": "volume",
+      "status": "partial"
+    }
+  ],
+  "coverage": [
+    {
+      "key": "name",
+      "label": "Name & other names",
+      "status": "partial"
+    },
+    {
+      "key": "purpose",
+      "label": "Purpose & result",
+      "status": "partial"
+    },
+    {
+      "key": "trigger",
+      "label": "Start, cadence & deadlines",
+      "status": "partial"
+    },
+    {
+      "key": "completion",
+      "label": "Finished condition",
+      "status": "partial"
+    },
+    {
+      "key": "accountable",
+      "label": "Accountability",
+      "status": "partial"
+    },
+    {
+      "key": "lifecycle",
+      "label": "Items, stages & handoffs",
+      "status": "partial"
+    },
+    {
+      "key": "checks",
+      "label": "Checks, approvals & proof",
+      "status": "partial"
+    },
+    {
+      "key": "variations",
+      "label": "Variations and conditions",
+      "status": "partial"
+    },
+    {
+      "key": "pain_points",
+      "label": "Manual work & pain",
+      "status": "partial"
+    },
+    {
+      "key": "risk",
+      "label": "Consequences of failure",
+      "status": "missing"
+    },
+    {
+      "key": "materials",
+      "label": "Existing materials",
+      "status": "partial"
+    },
+    {
+      "key": "scope",
+      "label": "Scope & entity context",
+      "status": "partial"
+    },
+    {
+      "key": "rules",
+      "label": "Business rules & lineage",
+      "status": "partial"
+    },
+    {
+      "key": "connections",
+      "label": "Connected processes",
+      "status": "partial"
+    },
+    {
+      "key": "data_systems",
+      "label": "Data & systems",
+      "status": "partial"
+    },
+    {
+      "key": "volume",
+      "label": "Volume & effort",
+      "status": "partial"
+    }
+  ],
+  "focus": "Correcting returned support and call participation",
+  "summary": "Returned support is corrected, re-matched and sent back for approval before upload. Client restrictions govern call attendance. The overall cycle owner and final sign-off authority remain unconfirmed.",
+  "parking_lot": [],
+  "taxonomy": [
+    {
+      "evidence_turns": [
+        "t1"
+      ],
+      "facet": "functional_area",
+      "note": "Reported year-end audit support activity; classification is descriptive, not independently verified.",
+      "value": "financial_reporting"
+    },
+    {
+      "evidence_turns": [
+        "t3"
+      ],
+      "facet": "system",
+      "note": "The participant reports an authorized portal as one upload route; its ownership is not specified.",
+      "value": "client_portal"
+    },
+    {
+      "evidence_turns": [
+        "t3"
+      ],
+      "facet": "system",
+      "note": "Box is reported as an alternative authorized upload destination.",
+      "value": "other"
+    },
+    {
+      "evidence_turns": [
+        "t3"
+      ],
+      "facet": "control_type",
+      "note": "The Controller reviews or returns responses; the participant does not specify the review criteria.",
+      "value": "gpfs_supervisory"
+    },
+    {
+      "evidence_turns": [
+        "t7"
+      ],
+      "facet": "client_applicability",
+      "note": "Participant reports engagement-level differences in portal and Box use, format, recipients and permitted calls; the common standard is not established.",
+      "value": "multi_client_variant"
+    },
+    {
+      "evidence_turns": [
+        "t7"
+      ],
+      "facet": "variant_class",
+      "note": "Communication and submission arrangements vary by engagement; reasons and individual engagement differences remain unspecified.",
+      "value": "client_specific"
+    },
+    {
+      "evidence_turns": [
+        "t9"
+      ],
+      "facet": "control_type",
+      "note": "Participant reports referring valuation, tax, legal and client-judgment matters to the authorized owner.",
+      "value": "exception_escalation"
+    }
+  ],
+  "connections_out": [
+    {
+      "condition": "The auditor issues a portal or request list or sends a follow-up.",
+      "counterpart": "Auditor request list and follow-ups",
+      "evidence_turns": [
+        "t7"
+      ],
+      "relationship_type": "consumes"
+    }
+  ],
+  "fact_provenance": [
+    {
+      "topic": "name",
+      "text": "The process is called “Year-End Audit Support.”",
+      "evidence_turns": [
+        "context"
+      ],
+      "history_ref": "a3ff933bfd802460",
+      "recorded_at": "2026-11-16T22:27:42.324+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "purpose",
+      "text": "The stated objective is to document how the process works, including controls and unresolved points.",
+      "evidence_turns": [
+        "context"
+      ],
+      "history_ref": "5228c427314e99cc",
+      "recorded_at": "2026-11-16T22:27:42.325+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "lifecycle",
+      "text": "Auditor requests are logged on the PBC list and reconciled against the open-items log.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "9eaa522f2d8e26b6",
+      "recorded_at": "2026-11-16T22:28:57.518+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "we log auditor requests on the PBC list and reconcile them against the open-items log"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Auditor requests are reconciled against the open-items log.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "8f6ebf4920201092",
+      "recorded_at": "2026-11-16T22:28:57.518+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "reconcile them against the open-items log"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The PBC list and open-items log are used to log auditor requests and reconcile them. Reviewed FA-15A binder records must be available.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "e700cf196c0743a6",
+      "recorded_at": "2026-11-16T22:27:42.325+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "we log auditor requests on the PBC list and reconcile them against the open-items log. Reviewed FA-15A binder records must be available."
+        }
+      ],
+      "unverified": [
+        "Check this against the cited sources: 15"
+      ]
+    },
+    {
+      "topic": "trigger",
+      "text": "The event initiating the overall year-end audit support cycle remains unclear.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "0e899dbc62a2c72a",
+      "recorded_at": "2026-11-16T22:29:43.626+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "The auditor issues a portal or request list or sends a follow-up."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "A request closes when the auditor confirms closure or there is a recorded authorized reason for closure. To close the cycle, the log must reconcile to the final request list with no untracked items, and proof, correspondence and final submissions are retained.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "cefe197c3c54b4b5",
+      "recorded_at": "2026-11-16T22:29:22.379+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "The auditor confirms closure or there is a recorded authorized reason for closure. To close the cycle, the log must reconcile to the final request list with no untracked items, and we retain proof, correspondence and final submissions."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "accountable",
+      "text": "The role accountable for the result is not established.",
+      "evidence_turns": [
+        "context"
+      ],
+      "history_ref": "1873729c89a43807",
+      "recorded_at": "2026-11-16T22:27:42.326+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "variations",
+      "text": "There is no standard response deadline across engagements.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "66679e8f9a2a06af",
+      "recorded_at": "2026-11-16T22:28:57.518+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "There is no standard response deadline across engagements."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "scope",
+      "text": "The work concerns year-end audit support across engagements.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "68a40697a310562c",
+      "recorded_at": "2026-11-16T22:28:57.518+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "For year-end audit support"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "There is no standard response deadline across engagements.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "c16f7f7a5ed6d8ee",
+      "recorded_at": "2026-11-16T22:28:57.518+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "There is no standard response deadline across engagements."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "Auditor requests are inputs to the work.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "326246c28a3d1760",
+      "recorded_at": "2026-11-16T22:28:57.518+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "we log auditor requests on the PBC list"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "The PBC list and open-items log are records used to log and reconcile auditor requests.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "8d7b57d99ec3fb35",
+      "recorded_at": "2026-11-16T22:29:22.379+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "we log auditor requests on the PBC list and reconcile them against the open-items log"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "volume",
+      "text": "Request counts, peak volumes, and effort are not established.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "3593d269244db41b",
+      "recorded_at": "2026-11-16T22:27:42.328+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "we log auditor requests on the PBC list"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The reconciliation method and performer remain unclear.",
+      "evidence_turns": [
+        "t1",
+        "t5"
+      ],
+      "history_ref": "84bf4a27e831a252",
+      "recorded_at": "2026-11-16T22:29:22.379+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "reconcile them against the open-items log"
+        },
+        {
+          "source_id": "t5",
+          "quote": "the log must reconcile to the final request list with no untracked items"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "scope",
+      "text": "Entity applicability and the basis for a common route remain unclear.",
+      "evidence_turns": [
+        "t1",
+        "t3"
+      ],
+      "history_ref": "3e121403a1a69365",
+      "recorded_at": "2026-11-16T22:28:57.518+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "match reviewed binder support to entity, year and request"
+        }
+      ],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    },
+    {
+      "topic": "connections",
+      "text": "The auditor issues a portal or request list or sends a follow-up; the preparer downloads or records the current list and tracks each item against the portal.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "0460a32e1c1ceb75",
+      "recorded_at": "2026-11-16T22:29:43.626+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "The auditor issues a portal or request list or sends a follow-up. The preparer downloads or records the current list and tracks each item against the portal."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The Fund Accountant or audit-support preparer logs the request ID, description, due date, status and response reference, then matches reviewed binder support to the entity, year and request.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "e96e3996685a1e3e",
+      "recorded_at": "2026-11-16T22:28:57.518+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "The Fund Accountant or audit-support preparer logs the request ID, description, due date, status and response reference. They match reviewed binder support to entity, year and request."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The Controller reviews or returns the response consistent with the client's communication rules. Once approved, the preparer uploads it to the authorized portal or Box, saves proof and updates the log.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "980e659feef5454e",
+      "recorded_at": "2026-11-16T22:28:57.518+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "The Controller reviews or returns the response consistent with the client's communication rules. Once approved, the preparer uploads it to the authorized portal or Box, saves proof and updates the log."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "An upload receipt does not close the request.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "89c68a18a021c643",
+      "recorded_at": "2026-11-16T22:28:57.518+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "An upload receipt does not close the request."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The preparer matches reviewed binder support to the entity, year and request. The Controller reviews or returns the response; the preparer uploads only once it is approved and saves proof.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "8d72f73fef3f28a2",
+      "recorded_at": "2026-11-16T22:28:57.518+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "They match reviewed binder support to entity, year and request. The Controller reviews or returns the response consistent with the client's communication rules. Once approved, the preparer uploads it to the authorized portal or Box, saves proof"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "Reviewed binder support is matched to the entity, year and request; the response reference is logged and upload proof is saved.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "853b11194dc24496",
+      "recorded_at": "2026-11-16T22:28:57.521+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "They match reviewed binder support to entity, year and request"
+        },
+        {
+          "source_id": "t3",
+          "quote": "saves proof and updates the log"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "The Controller's review or return of the response is consistent with the client's communication rules.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "50ebdc5f64d41dcb",
+      "recorded_at": "2026-11-16T22:28:57.521+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "The Controller reviews or returns the response consistent with the client's communication rules."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "The Controller reviews or returns the response consistent with the applicable client's communication rules; approved responses go to the authorized portal or Box.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "1d2ee1d9df1c1464",
+      "recorded_at": "2026-11-16T22:28:57.521+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "consistent with the client's communication rules"
+        },
+        {
+          "source_id": "t3",
+          "quote": "uploads it to the authorized portal or Box"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "The preparer uploads the approved response to the authorized portal or Box and saves proof; the log captures request ID, description, due date, status and response reference.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "4a9d58c2ff968931",
+      "recorded_at": "2026-11-16T22:28:57.521+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "logs the request ID, description, due date, status and response reference"
+        },
+        {
+          "source_id": "t3",
+          "quote": "uploads it to the authorized portal or Box, saves proof and updates the log"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "The storage location and system for the PBC list and open-items log are not established.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "1be33812dee29254",
+      "recorded_at": "2026-11-16T22:29:22.379+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "we log auditor requests on the PBC list and reconcile them against the open-items log"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Cycle closure requires reconciling the log to the final request list with no untracked items.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "e4235ba59f61f177",
+      "recorded_at": "2026-11-16T22:29:22.380+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "the log must reconcile to the final request list with no untracked items"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "After upload, request closure requires auditor confirmation or a recorded authorized reason. Cycle closure requires a reconciled final request list with no untracked items and retention of proof, correspondence and final submissions.",
+      "evidence_turns": [
+        "t3",
+        "t5"
+      ],
+      "history_ref": "fa653f6cb95b0e77",
+      "recorded_at": "2026-11-16T22:29:22.380+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "An upload receipt does not close the request."
+        },
+        {
+          "source_id": "t5",
+          "quote": "The auditor confirms closure or there is a recorded authorized reason for closure. To close the cycle, the log must reconcile to the final request list with no untracked items, and we retain proof, correspondence and final submissions."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "accountable",
+      "text": "The Controller can approve individual responses under client rules.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "539bbecebde27574",
+      "recorded_at": "2026-11-16T22:30:09.135+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "the Controller can approve individual responses under client rules"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Final cycle sign-off authority is unconfirmed.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "9a993755c35519ae",
+      "recorded_at": "2026-11-16T22:29:22.380+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "The overall cycle owner and final sign-off authority are unconfirmed"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "Proof, correspondence and final submissions are retained for cycle closure; the final request list is used for reconciliation.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "9a35228e396697d9",
+      "recorded_at": "2026-11-16T22:29:22.380+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "the log must reconcile to the final request list with no untracked items, and we retain proof, correspondence and final submissions"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "Auditor requests arrive through an issued portal or request list or a follow-up.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "e7f2794ce33a7ccd",
+      "recorded_at": "2026-11-16T22:29:43.626+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "The auditor issues a portal or request list or sends a follow-up."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The preparer downloads or records the current request list and tracks each item against the portal.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "46372ac3f3cfcae1",
+      "recorded_at": "2026-11-16T22:29:43.626+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "The preparer downloads or records the current list and tracks each item against the portal."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "If access fails, work stops unless an alternative is authorized; a client can submit an inaccessible item directly.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "fe7a99b18e238dcc",
+      "recorded_at": "2026-11-16T22:29:43.626+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "If access fails, stop unless an alternative is authorized; a client can submit an inaccessible item directly."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "Portal and Box use, format, recipients and permitted calls vary by engagement.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "de696751a7811144",
+      "recorded_at": "2026-11-16T22:29:43.626+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "Portal, Box use, format, recipients and permitted calls vary by engagement."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "When access fails, an authorized alternative may be used, including direct submission of an inaccessible item by a client.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "6a69db18eb9b1693",
+      "recorded_at": "2026-11-16T22:29:43.626+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "If access fails, stop unless an alternative is authorized; a client can submit an inaccessible item directly."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Access failure stops the work unless an alternative is authorized.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "3166802addf16c1a",
+      "recorded_at": "2026-11-16T22:29:43.626+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "If access fails, stop unless an alternative is authorized"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The current auditor request list is downloaded or recorded by the preparer and used to track items against the portal.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "d4045bf472cf3a1f",
+      "recorded_at": "2026-11-16T22:29:43.628+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "The preparer downloads or records the current list and tracks each item against the portal."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "If support does not match the entity, year or request, the Controller can return it for correction. Only the approved shareable version is sent.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "67450f562be64af2",
+      "recorded_at": "2026-11-16T22:30:09.137+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "If support does not match the entity, year or request, the Controller can return it for correction. Send only the approved shareable version"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "Valuation, tax, legal or client-judgment matters go to the authorized owner.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "77d8479fe4a3e4c8",
+      "recorded_at": "2026-11-16T22:30:09.137+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "valuation, tax, legal or client-judgment matters go to the authorized owner"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The Controller can return support that does not match the entity, year or request for correction; only the approved shareable version is sent.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "67c08788fb068ac2",
+      "recorded_at": "2026-11-16T22:30:09.137+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "If support does not match the entity, year or request, the Controller can return it for correction. Send only the approved shareable version"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "pain_points",
+      "text": "Missing portal access stops work pending approval of an alternative; mismatched support can be returned for correction.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "91f1d260cc496a92",
+      "recorded_at": "2026-11-16T22:30:09.137+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "Missing portal access stops the work pending approval of an alternative. If support does not match the entity, year or request, the Controller can return it for correction."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "pain_points",
+      "text": "The participant cannot say which cause of delay or return is most frequent; the source gives no ranking.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "a0d88740d93b737d",
+      "recorded_at": "2026-11-16T22:30:09.138+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "I can't say what is most frequent; the source gives no ranking."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "Only the approved shareable version is sent; valuation, tax, legal or client-judgment matters go to the authorized owner.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "23a09bf5c4339a1a",
+      "recorded_at": "2026-11-16T22:30:09.138+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "Send only the approved shareable version; valuation, tax, legal or client-judgment matters go to the authorized owner."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "purpose",
+      "text": "The work supports auditor requests through approved submissions and a reconciled, documented request closure cycle.",
+      "evidence_turns": [
+        "t3",
+        "t5"
+      ],
+      "history_ref": "5d78c4c9e8089215",
+      "recorded_at": "2026-11-16T22:30:38.241+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "Once approved, the preparer uploads it to the authorized portal or Box, saves proof and updates the log."
+        },
+        {
+          "source_id": "t5",
+          "quote": "To close the cycle, the log must reconcile to the final request list with no untracked items, and we retain proof, correspondence and final submissions."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "After a return, the preparer corrects the mismatch identified by review, matches the revised support to the request, entity and year, and routes it back for approval before uploading. The specific change depends on the reviewer's finding.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "9303b2e091166c10",
+      "recorded_at": "2026-11-16T22:30:38.242+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "The preparer corrects the mismatch identified by review, matches the revised support to the auditor's request, correct entity and year, and routes it back for approval before uploading. The exact item-specific change depends on the reviewer’s finding."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Revised support is matched to the auditor's request, entity and year and routed back for approval before upload.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "dbd5b6a0793bddb9",
+      "recorded_at": "2026-11-16T22:30:38.243+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "matches the revised support to the auditor's request, correct entity and year, and routes it back for approval before uploading"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "Client restrictions govern call attendance; a Director or management representative participates when required.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "693ff356ff9435ab",
+      "recorded_at": "2026-11-16T22:30:38.244+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "Client restrictions also govern who can attend calls; a Director or management representative participates when required."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "Client restrictions affect who can attend calls; a Director or management representative participates when required.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "35938426c33e7ac7",
+      "recorded_at": "2026-11-16T22:30:38.244+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "Client restrictions also govern who can attend calls; a Director or management representative participates when required."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "Client restrictions govern who can attend calls, with a Director or management representative participating when required.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "9896d0eaf9cb5168",
+      "recorded_at": "2026-11-16T22:30:38.245+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "Client restrictions also govern who can attend calls; a Director or management representative participates when required."
+        }
+      ],
+      "unverified": []
+    }
+  ],
+  "fact_history": [
+    {
+      "topic": "lifecycle",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:27:42.325+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "2fa2d43470244cdb"
+    },
+    {
+      "topic": "checks",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:27:42.325+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "7fe9dafd63df85cc"
+    },
+    {
+      "topic": "trigger",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:27:42.326+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "f312e3351b23d371"
+    },
+    {
+      "topic": "completion",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:27:42.326+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "f217cb4a4923d4d3"
+    },
+    {
+      "topic": "variations",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:27:42.326+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "7aa64599c67152e0"
+    },
+    {
+      "topic": "scope",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:27:42.326+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "bd62de07e1a3c970"
+    },
+    {
+      "topic": "rules",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:27:42.326+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "0652db64b6e1f943"
+    },
+    {
+      "topic": "connections",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:27:42.327+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "d7fede48b7f2dad6"
+    },
+    {
+      "topic": "data_systems",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:27:42.328+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "718097fb07851ae5"
+    },
+    {
+      "topic": "checks",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:28:57.518+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "824389fdb8b837a5"
+    },
+    {
+      "topic": "connections",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:28:57.518+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "534196b30946f500"
+    },
+    {
+      "topic": "accountable",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:29:22.380+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "f3f70ff8ea0ec0eb"
+    }
+  ],
+  "capture_provenance": {
+    "method": "document_simulation",
+    "participant_confirmed": false,
+    "process_owner_approved": false,
+    "source_documents": [
+      {
+        "filename": "IP1-export.pdf",
+        "sha256": "d0f89ee7c7cc8ffbcd39c268b47b765888105e588f60199106356ca31df177c1"
+      }
+    ]
+  },
+  "closure": {
+    "asked": false,
+    "confirmed": false
+  }
+}

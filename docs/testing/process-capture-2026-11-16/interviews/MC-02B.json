@@ -1,0 +1,1069 @@
+{
+  "schema_version": 1,
+  "context": {
+    "process_name": "AEA Due to Managers Workbook Procedure",
+    "process_owner": "",
+    "objective": "Document how we carry out AEA Due to Managers Workbook Procedure, the controls and what needs confirmation.",
+    "background": ""
+  },
+  "turns": [
+    {
+      "id": "turn_1",
+      "role": "user",
+      "text": "AEA's due-to-manager workbook is quarterly. We start only when both AEA's email confirms the quarter is closed and AEA-generated Bilixio reports are saved to the shared drive. GPFS cannot access Bilixio directly. The preparer builds a quarterly workbook per fund, reconciles every project code and total to Sage with zero differences, saves an invoice PDF and updates the annual workbook. We email AEA when reports are ready. Whether AEA acceptance must be retained before closing is unconfirmed."
+    },
+    {
+      "id": "turn_2",
+      "role": "assistant",
+      "text": "How does the preparer reconcile the project codes and totals in the workbook to Sage?"
+    },
+    {
+      "id": "turn_3",
+      "role": "user",
+      "text": "Use the Sage GL balance and the approved project-code mapping. Subtract a GP-project amount only where a prior approved workbook, expense matrix or client-approved source supports it. Do not infer the exclusion from its label. If its amount or approval is unclear, stop and get AEA or GPFS reviewer direction. Resolve differences to exactly zero for each code and in total, paste the Sage screenshot, sign and date the reconciliation, and repeat it for the full-year workbook."
+    },
+    {
+      "id": "turn_4",
+      "role": "assistant",
+      "text": "When the workbook is ready, what does AEA do next, and what—if anything—must happen before you consider the work closed?"
+    },
+    {
+      "id": "turn_5",
+      "role": "user",
+      "text": "GPFS checks off all handled funds in the expense matrix and verifies that each has its quarterly workbook, complete readable PDF, annual update and signed zero-difference support. Then GPFS emails AEA and retains the email and package location. AEA reviews and distributes internally. As I mentioned, whether GPFS has to retain AEA acceptance before closing is unresolved. No individual approver is named."
+    },
+    {
+      "id": "turn_6",
+      "role": "assistant",
+      "text": "What business result does the due-to-manager workbook process provide to AEA or GPFS?"
+    },
+    {
+      "id": "turn_7",
+      "role": "user",
+      "text": "AEA receives the supported invoice amounts for every GPFS-handled LP fund in a quarterly workbook and PDF. It can review the package and distribute the invoices internally. The zero-difference Sage reconciliation and annual workbook establish that the numbers agree. Preparing off-cycle packages and distributing the invoices are outside GPFS's work."
+    },
+    {
+      "id": "turn_8",
+      "role": "assistant",
+      "text": "Does the work differ across the GPFS-handled LP funds, or is the same process used for each?"
+    },
+    {
+      "id": "turn_9",
+      "role": "user",
+      "text": "All in-scope AEA funds use the quarterly process and the per-code and total zero checks. The report population, project codes and workbook structure depend on the fund in the expense matrix. Whether the GP-project adjustment applies needs approved evidence for the particular case. The full project-code master and approved templates by fund remain open. One prior Q1 started in early April, but that is not a contractual deadline."
+    },
+    {
+      "id": "turn_10",
+      "role": "assistant",
+      "text": "What does the reviewer check in the signed zero-difference reconciliation before GPFS emails AEA?"
+    }
+  ],
+  "memo_findings": [
+    {
+      "answer": "The process is called “AEA Due to Managers Workbook Procedure”; the participant also refers to “AEA's due-to-manager workbook.”",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "key": "name",
+      "status": "captured"
+    },
+    {
+      "answer": "AEA receives supported invoice amounts for every GPFS-handled LP fund in a quarterly workbook and PDF, enabling it to review the package and distribute invoices internally. The zero-difference Sage reconciliation and annual workbook establish that the numbers agree.",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "key": "purpose",
+      "status": "captured"
+    },
+    {
+      "answer": "Work is quarterly and starts only after both conditions are met: AEA's email confirms the quarter is closed, and AEA-generated Bilixio reports are saved to the shared drive.\nOne prior Q1 cycle started in early April; the participant says this is not a contractual deadline.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_9"
+      ],
+      "key": "trigger",
+      "status": "partial"
+    },
+    {
+      "answer": "GPFS checks off all handled funds in the expense matrix and verifies each has a quarterly workbook, complete readable PDF, annual update and signed zero-difference support. GPFS then emails AEA and retains the email and package location; AEA reviews and distributes internally.\nConfirm whether AEA acceptance must be retained before the work can be considered closed.",
+      "evidence_turns": [
+        "turn_5",
+        "turn_1"
+      ],
+      "key": "completion",
+      "status": "partial"
+    },
+    {
+      "answer": "A preparer builds the quarterly workbook per fund; the role accountable for the overall result is not stated.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "key": "accountable",
+      "status": "partial"
+    },
+    {
+      "answer": "After the start conditions are met, the preparer builds a quarterly workbook per fund, reconciles each project code and total to Sage with zero differences, saves an invoice PDF and updates the annual workbook. AEA is emailed when reports are ready.\nFor reconciliation, the preparer uses the Sage GL balance and approved project-code mapping. A GP-project amount is subtracted only when supported by a prior approved workbook, expense matrix or client-approved source; its label alone is insufficient.\nIf a GP-project amount or its approval is unclear, stop and obtain direction from AEA or a GPFS reviewer. Resolve differences to exactly zero for each code and in total, paste the Sage screenshot, sign and date the reconciliation, and repeat it for the full-year workbook.\nThe relative order of saving the invoice PDF and updating the annual workbook remains unclear.\nGPFS checks off handled funds in the expense matrix and verifies each package has the required workbook, readable PDF, annual update and signed zero-difference support before emailing AEA. GPFS retains the email and package location; AEA reviews and distributes internally.\nThe report population, project codes and workbook structure depend on the fund in the expense matrix.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3",
+        "turn_5",
+        "turn_9"
+      ],
+      "key": "lifecycle",
+      "status": "partial"
+    },
+    {
+      "answer": "The preparer reconciles every project code and the total to Sage. Differences must be resolved to exactly zero; the Sage screenshot is pasted and the reconciliation signed and dated, with the reconciliation repeated for the full-year workbook.\nWho reviews the reconciliation, what that reviewer checks, and the approval process remain unclear. GPFS's package-completeness check is known, but no individual approver is named.\nGPFS verifies each handled fund has its quarterly workbook, complete readable PDF, annual update and signed zero-difference support, and checks off the funds in the expense matrix before emailing AEA. AEA reviews the package; no individual approver is named.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3",
+        "turn_5"
+      ],
+      "key": "checks",
+      "status": "partial"
+    },
+    {
+      "answer": "All in-scope AEA funds use the quarterly process and per-code and total zero checks. Report population, project codes and workbook structure depend on the fund in the expense matrix; a GP-project adjustment requires approved evidence for the particular case.",
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "key": "variations",
+      "status": "partial"
+    },
+    {
+      "answer": "",
+      "evidence_turns": [],
+      "key": "pain_points",
+      "status": "unknown"
+    },
+    {
+      "answer": "",
+      "evidence_turns": [],
+      "key": "risk",
+      "status": "unknown"
+    },
+    {
+      "answer": "AEA-generated Bilixio reports are saved to the shared drive and are a prerequisite for starting; the preparer produces a quarterly workbook per fund, saves an invoice PDF, and updates an annual workbook. The participant says GPFS cannot access Bilixio directly.\nThe approved project-code mapping and Sage GL balance are reconciliation inputs. A prior approved workbook, expense matrix or client-approved source can support a GP-project exclusion; a Sage screenshot is pasted into the reconciliation.\nThe expense matrix records GPFS's checkoff of handled funds. GPFS retains the email to AEA and the package location.\nThe full project-code master and approved templates by fund remain open.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3",
+        "turn_5",
+        "turn_9"
+      ],
+      "key": "materials",
+      "status": "partial"
+    },
+    {
+      "answer": "The quarterly package covers every GPFS-handled LP fund. Preparing off-cycle packages and distributing invoices are outside GPFS's work; AEA distributes the invoices internally.\nThe number of GPFS-handled funds is not established.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_7",
+        "turn_9"
+      ],
+      "key": "scope",
+      "status": "partial"
+    },
+    {
+      "answer": "The reported reconciliation criterion is zero differences when reconciling every project code and total to Sage. The governing source for this criterion is not stated.\nA GP-project amount may be excluded only where a prior approved workbook, expense matrix or client-approved source supports it; the project label alone is not sufficient.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3"
+      ],
+      "key": "rules",
+      "status": "partial"
+    },
+    {
+      "answer": "AEA generates the prerequisite Bilixio reports; GPFS cannot access Bilixio directly. The preparer reconciles project codes and totals to Sage. GPFS emails AEA after its package checks; AEA reviews and distributes internally.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_5"
+      ],
+      "key": "connections",
+      "status": "partial"
+    },
+    {
+      "answer": "AEA-generated Bilixio reports are saved to the shared drive; GPFS cannot access Bilixio directly. The preparer compares project codes and totals to Sage. The location of workbook and invoice storage beyond the shared-drive reports is not stated.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "key": "data_systems",
+      "status": "partial"
+    },
+    {
+      "answer": "The work is quarterly and a quarterly workbook is built per fund; the number of funds and effort per cycle are not stated.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "key": "volume",
+      "status": "partial"
+    }
+  ],
+  "coverage": [
+    {
+      "key": "name",
+      "label": "Name & other names",
+      "status": "partial"
+    },
+    {
+      "key": "purpose",
+      "label": "Purpose & result",
+      "status": "partial"
+    },
+    {
+      "key": "trigger",
+      "label": "Start, cadence & deadlines",
+      "status": "partial"
+    },
+    {
+      "key": "completion",
+      "label": "Finished condition",
+      "status": "partial"
+    },
+    {
+      "key": "accountable",
+      "label": "Accountability",
+      "status": "partial"
+    },
+    {
+      "key": "lifecycle",
+      "label": "Items, stages & handoffs",
+      "status": "partial"
+    },
+    {
+      "key": "checks",
+      "label": "Checks, approvals & proof",
+      "status": "partial"
+    },
+    {
+      "key": "variations",
+      "label": "Variations and conditions",
+      "status": "partial"
+    },
+    {
+      "key": "pain_points",
+      "label": "Manual work & pain",
+      "status": "missing"
+    },
+    {
+      "key": "risk",
+      "label": "Consequences of failure",
+      "status": "missing"
+    },
+    {
+      "key": "materials",
+      "label": "Existing materials",
+      "status": "partial"
+    },
+    {
+      "key": "scope",
+      "label": "Scope & entity context",
+      "status": "partial"
+    },
+    {
+      "key": "rules",
+      "label": "Business rules & lineage",
+      "status": "partial"
+    },
+    {
+      "key": "connections",
+      "label": "Connected processes",
+      "status": "partial"
+    },
+    {
+      "key": "data_systems",
+      "label": "Data & systems",
+      "status": "partial"
+    },
+    {
+      "key": "volume",
+      "label": "Volume & effort",
+      "status": "partial"
+    }
+  ],
+  "focus": "Differences across AEA funds",
+  "summary": "All in-scope AEA funds follow the quarterly process and zero checks, with fund-dependent report populations, codes and workbook structures. What most often stops this work or sends it back?",
+  "parking_lot": [
+    "Whether AEA acceptance must be retained before closing"
+  ],
+  "taxonomy": [
+    {
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "facet": "entity_type",
+      "note": "Participant reports a quarterly workbook per fund; fund scope is reported, not independently verified.",
+      "value": "fund"
+    },
+    {
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "facet": "functional_area",
+      "note": "AEA due-to-manager workbook procedure; specific functional area is not established by the testimony.",
+      "value": "other"
+    },
+    {
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "facet": "process_level",
+      "note": "Named recurring procedure with a start condition, preparation, reconciliation, outputs, and communication step.",
+      "value": "process"
+    },
+    {
+      "evidence_turns": [
+        "turn_1",
+        "turn_3"
+      ],
+      "facet": "system",
+      "note": "AEA-generated Bilixio reports are saved to a shared drive; GPFS cannot access Bilixio directly. Sage supplies the GL comparison.",
+      "value": "other"
+    },
+    {
+      "evidence_turns": [
+        "turn_1",
+        "turn_3"
+      ],
+      "facet": "control_type",
+      "note": "The preparer reconciles codes and totals to zero and retains a signed, dated reconciliation with a Sage screenshot.",
+      "value": "gpfs_operational"
+    },
+    {
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "facet": "control_type",
+      "note": "Unclear GP-project amounts or approvals require stopping and seeking AEA or GPFS reviewer direction.",
+      "value": "exception_escalation"
+    },
+    {
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "facet": "rule_source",
+      "note": "A prior approved workbook is one reported source supporting a GP-project exclusion; it is not the only source.",
+      "value": "prior_period_practice"
+    },
+    {
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "facet": "control_type",
+      "note": "AEA reviews and distributes internally; acceptance as a closure requirement remains unresolved.",
+      "value": "client_review"
+    },
+    {
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "facet": "applicability",
+      "note": "Participant reports common quarterly checks across AEA funds, with fund-dependent report populations, project codes and workbook structures.",
+      "value": "multi_variant"
+    }
+  ],
+  "connections_out": [
+    {
+      "condition": "Reports must be saved to the shared drive before work starts; GPFS cannot access Bilixio directly.",
+      "counterpart": "AEA-generated Bilixio reports",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "relationship_type": "consumes"
+    },
+    {
+      "condition": "Used as the comparison for project codes and totals during reconciliation.",
+      "counterpart": "Sage",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "relationship_type": "consumes"
+    },
+    {
+      "condition": "The participant emails AEA when reports are ready.",
+      "counterpart": "AEA",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "relationship_type": "hands_off_to"
+    },
+    {
+      "condition": "After GPFS checks the handled-fund packages, it emails AEA; AEA reviews and distributes internally.",
+      "counterpart": "AEA",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "relationship_type": "hands_off_to"
+    }
+  ],
+  "fact_provenance": [
+    {
+      "topic": "name",
+      "text": "The process is called “AEA Due to Managers Workbook Procedure”; the participant also refers to “AEA's due-to-manager workbook.”",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "16e0b41219c82834",
+      "recorded_at": "2026-11-16T22:27:16.848+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "AEA's due-to-manager workbook"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "purpose",
+      "text": "AEA receives supported invoice amounts for every GPFS-handled LP fund in a quarterly workbook and PDF, enabling it to review the package and distribute invoices internally. The zero-difference Sage reconciliation and annual workbook establish that the numbers agree.",
+      "evidence_turns": [
+        "turn_7"
+      ],
+      "history_ref": "918f5ffac9b76cc8",
+      "recorded_at": "2026-11-16T22:29:20.745+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_7",
+          "quote": "AEA receives the supported invoice amounts for every GPFS-handled LP fund in a quarterly workbook and PDF. It can review the package and distribute the invoices internally. The zero-difference Sage reconciliation and annual workbook establish that the numbers agree."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "Work is quarterly and starts only after both conditions are met: AEA's email confirms the quarter is closed, and AEA-generated Bilixio reports are saved to the shared drive.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "ecb6c952c1f0b73d",
+      "recorded_at": "2026-11-16T22:27:16.853+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "quarterly. We start only when both AEA's email confirms the quarter is closed and AEA-generated Bilixio reports are saved to the shared drive."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "After the start conditions are met, the preparer builds a quarterly workbook per fund, reconciles each project code and total to Sage with zero differences, saves an invoice PDF and updates the annual workbook. AEA is emailed when reports are ready.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "fb32e196b600b19e",
+      "recorded_at": "2026-11-16T22:28:27.194+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "The preparer builds a quarterly workbook per fund, reconciles every project code and total to Sage with zero differences, saves an invoice PDF and updates the annual workbook. We email AEA when reports are ready."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "GPFS checks off all handled funds in the expense matrix and verifies each has a quarterly workbook, complete readable PDF, annual update and signed zero-difference support. GPFS then emails AEA and retains the email and package location; AEA reviews and distributes internally.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "98bb29123a7d4f88",
+      "recorded_at": "2026-11-16T22:28:47.988+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "GPFS checks off all handled funds in the expense matrix and verifies that each has its quarterly workbook, complete readable PDF, annual update and signed zero-difference support. Then GPFS emails AEA and retains the email and package location. AEA reviews and distributes internally."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "accountable",
+      "text": "A preparer builds the quarterly workbook per fund; the role accountable for the overall result is not stated.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "d11cd62f3a701672",
+      "recorded_at": "2026-11-16T22:27:16.854+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "The preparer builds a quarterly workbook per fund"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The preparer reconciles every project code and the total to Sage. Differences must be resolved to exactly zero; the Sage screenshot is pasted and the reconciliation signed and dated, with the reconciliation repeated for the full-year workbook.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3"
+      ],
+      "history_ref": "9635b7e64583ce56",
+      "recorded_at": "2026-11-16T22:28:27.194+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "reconciles every project code and total to Sage with zero differences"
+        },
+        {
+          "source_id": "turn_3",
+          "quote": "Resolve differences to exactly zero for each code and in total, paste the Sage screenshot, sign and date the reconciliation, and repeat it for the full-year workbook."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "AEA-generated Bilixio reports are saved to the shared drive and are a prerequisite for starting; the preparer produces a quarterly workbook per fund, saves an invoice PDF, and updates an annual workbook. The participant says GPFS cannot access Bilixio directly.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "924ff2fd608e7c33",
+      "recorded_at": "2026-11-16T22:27:16.856+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "AEA-generated Bilixio reports are saved to the shared drive. GPFS cannot access Bilixio directly."
+        },
+        {
+          "source_id": "turn_1",
+          "quote": "builds a quarterly workbook per fund, reconciles every project code and total to Sage with zero differences, saves an invoice PDF and updates the annual workbook"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "scope",
+      "text": "The quarterly package covers every GPFS-handled LP fund. Preparing off-cycle packages and distributing invoices are outside GPFS's work; AEA distributes the invoices internally.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_7"
+      ],
+      "history_ref": "50395f69c2ed8728",
+      "recorded_at": "2026-11-16T22:29:20.745+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "The preparer builds a quarterly workbook per fund"
+        },
+        {
+          "source_id": "turn_7",
+          "quote": "every GPFS-handled LP fund"
+        },
+        {
+          "source_id": "turn_7",
+          "quote": "Preparing off-cycle packages and distributing the invoices are outside GPFS's work."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "The reported reconciliation criterion is zero differences when reconciling every project code and total to Sage. The governing source for this criterion is not stated.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "835859f04d6fdee2",
+      "recorded_at": "2026-11-16T22:27:16.857+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "reconciles every project code and total to Sage with zero differences"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "AEA generates the prerequisite Bilixio reports; GPFS cannot access Bilixio directly. The preparer reconciles project codes and totals to Sage. GPFS emails AEA after its package checks; AEA reviews and distributes internally.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_5"
+      ],
+      "history_ref": "17903f3624e020a4",
+      "recorded_at": "2026-11-16T22:28:47.988+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "AEA-generated Bilixio reports are saved to the shared drive. GPFS cannot access Bilixio directly."
+        },
+        {
+          "source_id": "turn_1",
+          "quote": "reconciles every project code and total to Sage"
+        },
+        {
+          "source_id": "turn_5",
+          "quote": "Then GPFS emails AEA and retains the email and package location. AEA reviews and distributes internally."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "AEA-generated Bilixio reports are saved to the shared drive; GPFS cannot access Bilixio directly. The preparer compares project codes and totals to Sage. The location of workbook and invoice storage beyond the shared-drive reports is not stated.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "05c8b52554fa6998",
+      "recorded_at": "2026-11-16T22:27:16.858+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "AEA-generated Bilixio reports are saved to the shared drive. GPFS cannot access Bilixio directly."
+        },
+        {
+          "source_id": "turn_1",
+          "quote": "reconciles every project code and total to Sage"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "volume",
+      "text": "The work is quarterly and a quarterly workbook is built per fund; the number of funds and effort per cycle are not stated.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "a373cb1b8e0b13aa",
+      "recorded_at": "2026-11-16T22:27:16.859+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "AEA's due-to-manager workbook is quarterly."
+        },
+        {
+          "source_id": "turn_1",
+          "quote": "builds a quarterly workbook per fund"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "Confirm whether AEA acceptance must be retained before the work can be considered closed.",
+      "evidence_turns": [
+        "turn_1"
+      ],
+      "history_ref": "0c40df10ae8e60d5",
+      "recorded_at": "2026-11-16T22:27:16.860+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "Whether AEA acceptance must be retained before closing is unconfirmed."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "For reconciliation, the preparer uses the Sage GL balance and approved project-code mapping. A GP-project amount is subtracted only when supported by a prior approved workbook, expense matrix or client-approved source; its label alone is insufficient.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_3"
+      ],
+      "history_ref": "2033ea64b478054e",
+      "recorded_at": "2026-11-16T22:28:27.195+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "The preparer builds a quarterly workbook per fund, reconciles every project code and total to Sage with zero differences"
+        },
+        {
+          "source_id": "turn_3",
+          "quote": "Use the Sage GL balance and the approved project-code mapping. Subtract a GP-project amount only where a prior approved workbook, expense matrix or client-approved source supports it. Do not infer the exclusion from its label."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "If a GP-project amount or its approval is unclear, stop and obtain direction from AEA or a GPFS reviewer. Resolve differences to exactly zero for each code and in total, paste the Sage screenshot, sign and date the reconciliation, and repeat it for the full-year workbook.",
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "history_ref": "7984b46a1597213c",
+      "recorded_at": "2026-11-16T22:28:27.195+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "If its amount or approval is unclear, stop and get AEA or GPFS reviewer direction. Resolve differences to exactly zero for each code and in total, paste the Sage screenshot, sign and date the reconciliation, and repeat it for the full-year workbook."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The relative order of saving the invoice PDF and updating the annual workbook remains unclear.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_5"
+      ],
+      "history_ref": "3089f597c7af99e1",
+      "recorded_at": "2026-11-16T22:28:47.988+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "saves an invoice PDF and updates the annual workbook"
+        },
+        {
+          "source_id": "turn_5",
+          "quote": "verifies that each has its quarterly workbook, complete readable PDF, annual update and signed zero-difference support. Then GPFS emails AEA"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Who reviews the reconciliation, what that reviewer checks, and the approval process remain unclear. GPFS's package-completeness check is known, but no individual approver is named.",
+      "evidence_turns": [
+        "turn_3",
+        "turn_5"
+      ],
+      "history_ref": "b41da6145dcdad19",
+      "recorded_at": "2026-11-16T22:29:20.745+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "sign and date the reconciliation"
+        },
+        {
+          "source_id": "turn_5",
+          "quote": "GPFS checks off all handled funds in the expense matrix and verifies that each has its quarterly workbook, complete readable PDF, annual update and signed zero-difference support."
+        },
+        {
+          "source_id": "turn_5",
+          "quote": "No individual approver is named."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "A GP-project amount may be excluded only where a prior approved workbook, expense matrix or client-approved source supports it; the project label alone is not sufficient.",
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "history_ref": "e3a88e8277ec37e4",
+      "recorded_at": "2026-11-16T22:28:27.196+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "Subtract a GP-project amount only where a prior approved workbook, expense matrix or client-approved source supports it. Do not infer the exclusion from its label."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The approved project-code mapping and Sage GL balance are reconciliation inputs. A prior approved workbook, expense matrix or client-approved source can support a GP-project exclusion; a Sage screenshot is pasted into the reconciliation.",
+      "evidence_turns": [
+        "turn_3"
+      ],
+      "history_ref": "a6ff0dc51f8420aa",
+      "recorded_at": "2026-11-16T22:28:27.196+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_3",
+          "quote": "Use the Sage GL balance and the approved project-code mapping. Subtract a GP-project amount only where a prior approved workbook, expense matrix or client-approved source supports it."
+        },
+        {
+          "source_id": "turn_3",
+          "quote": "paste the Sage screenshot, sign and date the reconciliation"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "GPFS checks off handled funds in the expense matrix and verifies each package has the required workbook, readable PDF, annual update and signed zero-difference support before emailing AEA. GPFS retains the email and package location; AEA reviews and distributes internally.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "196f7ab8f5de7d51",
+      "recorded_at": "2026-11-16T22:28:47.988+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "GPFS checks off all handled funds in the expense matrix and verifies that each has its quarterly workbook, complete readable PDF, annual update and signed zero-difference support. Then GPFS emails AEA and retains the email and package location. AEA reviews and distributes internally."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "GPFS verifies each handled fund has its quarterly workbook, complete readable PDF, annual update and signed zero-difference support, and checks off the funds in the expense matrix before emailing AEA. AEA reviews the package; no individual approver is named.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "7a98b6ba215245d5",
+      "recorded_at": "2026-11-16T22:28:47.989+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "GPFS checks off all handled funds in the expense matrix and verifies that each has its quarterly workbook, complete readable PDF, annual update and signed zero-difference support."
+        },
+        {
+          "source_id": "turn_5",
+          "quote": "AEA reviews and distributes internally. As I mentioned, whether GPFS has to retain AEA acceptance before closing is unresolved. No individual approver is named."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The expense matrix records GPFS's checkoff of handled funds. GPFS retains the email to AEA and the package location.",
+      "evidence_turns": [
+        "turn_5"
+      ],
+      "history_ref": "7c703de4a91f6859",
+      "recorded_at": "2026-11-16T22:28:47.989+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_5",
+          "quote": "GPFS checks off all handled funds in the expense matrix"
+        },
+        {
+          "source_id": "turn_5",
+          "quote": "GPFS emails AEA and retains the email and package location."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "scope",
+      "text": "The number of GPFS-handled funds is not established.",
+      "evidence_turns": [
+        "turn_1",
+        "turn_7",
+        "turn_9"
+      ],
+      "history_ref": "673a69116c0ce462",
+      "recorded_at": "2026-11-16T22:30:09.945+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_1",
+          "quote": "The preparer builds a quarterly workbook per fund"
+        },
+        {
+          "source_id": "turn_7",
+          "quote": "every GPFS-handled LP fund"
+        },
+        {
+          "source_id": "turn_9",
+          "quote": "All in-scope AEA funds use the quarterly process"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "All in-scope AEA funds use the quarterly process and per-code and total zero checks. Report population, project codes and workbook structure depend on the fund in the expense matrix; a GP-project adjustment requires approved evidence for the particular case.",
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "history_ref": "0f199fa1128a6edd",
+      "recorded_at": "2026-11-16T22:30:09.945+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_9",
+          "quote": "All in-scope AEA funds use the quarterly process and the per-code and total zero checks. The report population, project codes and workbook structure depend on the fund in the expense matrix. Whether the GP-project adjustment applies needs approved evidence for the particular case."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The report population, project codes and workbook structure depend on the fund in the expense matrix.",
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "history_ref": "fa156b38c6207c2f",
+      "recorded_at": "2026-11-16T22:30:09.946+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_9",
+          "quote": "The report population, project codes and workbook structure depend on the fund in the expense matrix."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The full project-code master and approved templates by fund remain open.",
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "history_ref": "3a3c54c3929e9dda",
+      "recorded_at": "2026-11-16T22:30:09.946+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_9",
+          "quote": "The full project-code master and approved templates by fund remain open."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "One prior Q1 cycle started in early April; the participant says this is not a contractual deadline.",
+      "evidence_turns": [
+        "turn_9"
+      ],
+      "history_ref": "456097b97364bdd7",
+      "recorded_at": "2026-11-16T22:30:09.946+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "turn_9",
+          "quote": "One prior Q1 started in early April, but that is not a contractual deadline."
+        }
+      ],
+      "unverified": []
+    }
+  ],
+  "fact_history": [
+    {
+      "topic": "purpose",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:27:16.852+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "d4e13bbdeb0a0c27"
+    },
+    {
+      "topic": "lifecycle",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:27:16.853+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "67ae71a8d51dc274"
+    },
+    {
+      "topic": "completion",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:27:16.854+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "73cc284de3b3a0c5"
+    },
+    {
+      "topic": "checks",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:27:16.854+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "fa5b7fdc463f4eb6"
+    },
+    {
+      "topic": "scope",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:27:16.857+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "6fc18ae28b0e7da8"
+    },
+    {
+      "topic": "connections",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:27:16.858+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "fe7940299358a6d7"
+    },
+    {
+      "topic": "lifecycle",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:28:27.195+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "d401153d94948d66"
+    },
+    {
+      "topic": "checks",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:28:27.196+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "0bfc17bd8d4359b8"
+    },
+    {
+      "topic": "scope",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:29:20.745+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "d4efe13778fc04e2"
+    }
+  ],
+  "capture_provenance": {
+    "method": "document_simulation",
+    "participant_confirmed": false,
+    "process_owner_approved": false,
+    "source_documents": [
+      {
+        "filename": "IP1-export.pdf",
+        "sha256": "d0f89ee7c7cc8ffbcd39c268b47b765888105e588f60199106356ca31df177c1"
+      }
+    ]
+  },
+  "closure": {
+    "asked": false,
+    "confirmed": false
+  }
+}

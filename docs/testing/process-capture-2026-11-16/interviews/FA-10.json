@@ -1,0 +1,1401 @@
+{
+  "schema_version": 1,
+  "context": {
+    "process_name": "Debt Investment Economics: Loan Workbook, Yields, PIK, OID & Warrants",
+    "objective": "Document how this process works, including controls and what remains unresolved."
+  },
+  "turns": [
+    {
+      "id": "t1",
+      "role": "user",
+      "text": "After FA-09 purchase setup is complete and the client sends final executed loan documents, we build the debt-investment workbook. It supports monthly interest and amortization, plus event-driven updates to the loan."
+    },
+    {
+      "id": "t2",
+      "role": "assistant",
+      "text": "Talk me through how you build the debt-investment workbook from the executed loan documents."
+    },
+    {
+      "id": "t3",
+      "role": "user",
+      "text": "The preparer records the contract terms with page citations, ties opening balances and builds an Excel schedule through maturity with stubs, cash interest, PIK principal and OID or warrant amortization where applicable. An independent checker recalculates key terms and period-one principal, PIK and OID before anyone relies on the workbook."
+    },
+    {
+      "id": "t4",
+      "role": "assistant",
+      "text": "What kinds of loan events lead you to update the workbook, and how does the update get initiated?"
+    },
+    {
+      "id": "t5",
+      "role": "user",
+      "text": "The client or investment team confirms new draws, tranches, amendments, rate changes, cash/PIK elections, prepayment or default. For an amendment we preserve the pre-change copy, identify the effective date, split periods and compare before and after for independent review. The workbook cannot be extended past contractual maturity without written direction."
+    },
+    {
+      "id": "t6",
+      "role": "assistant",
+      "text": "What does the independent checker compare the key terms against when recalculating them?"
+    },
+    {
+      "id": "t7",
+      "role": "user",
+      "text": "The checker independently extracts the material terms from the executed documents, verifies the document citations and recalculates the initial build. Each monthly accrual run compares suggested Allvue lines against the Excel schedule, documenting rounding. Zero unexplained difference across principal, income, cash, amortization and GL/TB is the close control. The checker signs and the period version is locked. The formal process owner and JE approval route are unconfirmed."
+    },
+    {
+      "id": "t8",
+      "role": "assistant",
+      "text": "When a monthly comparison shows an unexplained difference, what happens before the period version can be signed and locked?"
+    },
+    {
+      "id": "t9",
+      "role": "user",
+      "text": "The preparer classifies and investigates the variance against actual cash, terms, elections and the workbook. Unexplained differences keep posting and reporting close on hold. Open items are resolved or assigned in the variance log. The Accounting or Fund Team posts reviewed entries only after the controls; legal or tax/accounting advisers decide unclear nonstandard treatment."
+    },
+    {
+      "id": "t10",
+      "role": "assistant",
+      "text": "What is the practical impact when an unexplained variance keeps posting and reporting close on hold?"
+    },
+    {
+      "id": "t11",
+      "role": "user",
+      "text": "Posting remains on hold, so the GL/TB and financial reporting cannot rely on the amounts. Wrong terms or formulas can misstate income and principal across periods. The results feed FA-13 quarterly workbook, FA-14 analytical review and FA-15 audit support; no standard dollar impact or duration is provided."
+    },
+    {
+      "id": "t12",
+      "role": "assistant",
+      "text": "If the independent checker finds a discrepancy in the initial build, what happens before the workbook can be relied on?"
+    }
+  ],
+  "memo_findings": [
+    {
+      "answer": "The process is called “Debt Investment Economics: Loan Workbook, Yields, PIK, OID & Warrants.”",
+      "evidence_turns": [
+        "context"
+      ],
+      "key": "name",
+      "status": "captured"
+    },
+    {
+      "answer": "The debt-investment workbook supports monthly interest and amortization and event-driven updates to the loan.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "key": "purpose",
+      "status": "captured"
+    },
+    {
+      "answer": "The workbook build follows completion of FA-09 purchase setup and the client sending final executed loan documents.\nThe document recipient, build cadence and fixed deadlines remain unclear.\nThe client or investment team confirms new draws, tranches, amendments, rate changes, cash/PIK elections, prepayment or default as events for workbook updates.",
+      "evidence_turns": [
+        "t1",
+        "t7",
+        "t5"
+      ],
+      "key": "trigger",
+      "status": "partial"
+    },
+    {
+      "answer": "The final completion and handoff of the initial workbook build remain unclear.\nAn independent checker recalculates key terms and period-one principal, PIK and OID before anyone relies on the workbook.\nFor monthly close, zero unexplained difference is required; the checker signs and the period version is locked. The Accounting or Fund Team posts reviewed entries only after the controls.",
+      "evidence_turns": [
+        "t3",
+        "t7",
+        "t9"
+      ],
+      "key": "completion",
+      "status": "partial"
+    },
+    {
+      "answer": "The formal process owner is unconfirmed.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "key": "accountable",
+      "status": "partial"
+    },
+    {
+      "answer": "After FA-09 purchase setup is complete and the client sends final executed loan documents, the team builds a debt-investment workbook supporting monthly interest and amortization and event-driven loan updates.\nThe preparer records contract terms with page citations, ties opening balances and builds an Excel schedule through maturity with stubs, cash interest, PIK principal and, where applicable, OID or warrant amortization.\nAn independent checker recalculates key terms and period-one principal, PIK and OID before the workbook is relied on.\nThe opening-balance tie-out source, initial build handoff and update steps for events other than amendments remain unclear.\nFor an amendment, the team preserves the pre-change copy, identifies the effective date, splits periods and compares before and after for independent review.\nEach monthly accrual run compares suggested Allvue lines with the Excel schedule and documents rounding. The checker signs and the period version is locked.\nThe preparer classifies and investigates variances against actual cash, terms, elections and the workbook. Open items are resolved or assigned in the variance log; unexplained differences hold up posting and reporting close.",
+      "evidence_turns": [
+        "t1",
+        "t3",
+        "t5",
+        "t9",
+        "t7"
+      ],
+      "key": "lifecycle",
+      "status": "partial"
+    },
+    {
+      "answer": "An independent checker recalculates key terms and period-one principal, PIK and OID before anyone relies on the workbook.\nHandling of initial-build discrepancies and the location and custodian of retained check evidence remain unclear.\nFor an amendment, the before-and-after comparison is prepared for independent review.\nThe independent checker extracts material terms from executed documents, verifies citations and recalculates the initial build.\nThe close control requires zero unexplained difference across principal, income, cash, amortization and GL/TB; rounding is documented.\nThe journal-entry approval route is unconfirmed.",
+      "evidence_turns": [
+        "t3",
+        "t7",
+        "t9",
+        "t5"
+      ],
+      "key": "checks",
+      "status": "partial"
+    },
+    {
+      "answer": "The workbook supports monthly interest and amortization and event-driven loan updates.\nThe schedule includes OID or warrant amortization where applicable.\nThe conditions for OID or warrant amortization and the steps for event updates other than amendments remain unclear.\nAn amendment entails preserving a pre-change copy, identifying the effective date, splitting periods and comparing before and after for independent review.",
+      "evidence_turns": [
+        "t1",
+        "t3",
+        "t5"
+      ],
+      "key": "variations",
+      "status": "partial"
+    },
+    {
+      "answer": "Unexplained differences hold posting and reporting close while the preparer investigates the variance.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "key": "pain_points",
+      "status": "partial"
+    },
+    {
+      "answer": "When posting is on hold, the GL/TB and financial reporting cannot rely on the amounts. Wrong terms or formulas can misstate income and principal across periods.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "key": "risk",
+      "status": "captured"
+    },
+    {
+      "answer": "The client sends final executed loan documents; the preparer records contract terms with page citations and builds an Excel schedule. The workbook supports monthly interest and amortization and event-driven loan updates.\nA pre-change workbook copy is preserved for an amendment, and a before-and-after comparison is made for independent review.\nA variance log records open items as resolved or assigned; the period workbook version is locked after the checker signs.",
+      "evidence_turns": [
+        "t1",
+        "t3",
+        "t5",
+        "t7",
+        "t9"
+      ],
+      "key": "materials",
+      "status": "partial"
+    },
+    {
+      "answer": "The described work concerns a debt-investment loan workbook.\nApplicability across entities, clients and loans, and whether this is general GPFS practice, remain unclear.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "key": "scope",
+      "status": "partial"
+    },
+    {
+      "answer": "The preparer records contract terms with page citations from the final executed loan documents when building the workbook.\nSpecific economic terms, calculation methods, input origins and implementation details remain unclear.\nThe workbook cannot be extended past contractual maturity without written direction.\nLegal or tax/accounting advisers decide unclear nonstandard treatment.",
+      "evidence_turns": [
+        "t1",
+        "t3",
+        "t5",
+        "t9"
+      ],
+      "key": "rules",
+      "status": "partial"
+    },
+    {
+      "answer": "FA-09 purchase setup is complete before the workbook is built.\nThe specific FA-09 output or handoff used for the workbook is not established.\nThe results feed the FA-13 quarterly workbook, FA-14 analytical review and FA-15 audit support.",
+      "evidence_turns": [
+        "t1",
+        "t11"
+      ],
+      "key": "connections",
+      "status": "partial"
+    },
+    {
+      "answer": "The preparer builds the debt-investment schedule in Excel after the client sends final executed loan documents.\nWorkbook storage and calculation implementation remain unclear.\nMonthly runs compare suggested Allvue lines to the Excel schedule.",
+      "evidence_turns": [
+        "t1",
+        "t3",
+        "t7"
+      ],
+      "key": "data_systems",
+      "status": "partial"
+    },
+    {
+      "answer": "No standard duration for the reported impact is provided; normal volumes and effort remain unspecified.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "key": "volume",
+      "status": "partial"
+    }
+  ],
+  "coverage": [
+    {
+      "key": "name",
+      "label": "Name & other names",
+      "status": "partial"
+    },
+    {
+      "key": "purpose",
+      "label": "Purpose & result",
+      "status": "partial"
+    },
+    {
+      "key": "trigger",
+      "label": "Start, cadence & deadlines",
+      "status": "partial"
+    },
+    {
+      "key": "completion",
+      "label": "Finished condition",
+      "status": "partial"
+    },
+    {
+      "key": "accountable",
+      "label": "Accountability",
+      "status": "partial"
+    },
+    {
+      "key": "lifecycle",
+      "label": "Items, stages & handoffs",
+      "status": "partial"
+    },
+    {
+      "key": "checks",
+      "label": "Checks, approvals & proof",
+      "status": "partial"
+    },
+    {
+      "key": "variations",
+      "label": "Variations and conditions",
+      "status": "partial"
+    },
+    {
+      "key": "pain_points",
+      "label": "Manual work & pain",
+      "status": "partial"
+    },
+    {
+      "key": "risk",
+      "label": "Consequences of failure",
+      "status": "partial"
+    },
+    {
+      "key": "materials",
+      "label": "Existing materials",
+      "status": "partial"
+    },
+    {
+      "key": "scope",
+      "label": "Scope & entity context",
+      "status": "partial"
+    },
+    {
+      "key": "rules",
+      "label": "Business rules & lineage",
+      "status": "partial"
+    },
+    {
+      "key": "connections",
+      "label": "Connected processes",
+      "status": "partial"
+    },
+    {
+      "key": "data_systems",
+      "label": "Data & systems",
+      "status": "partial"
+    },
+    {
+      "key": "volume",
+      "label": "Volume & effort",
+      "status": "partial"
+    }
+  ],
+  "focus": "Impact of variances and downstream uses",
+  "summary": "Unexplained variances hold posting, leaving GL/TB and reporting unable to rely on the amounts. Incorrect terms or formulas can misstate income and principal; results feed FA-13, FA-14 and FA-15.",
+  "parking_lot": [],
+  "taxonomy": [
+    {
+      "evidence_turns": [
+        "t3"
+      ],
+      "facet": "system",
+      "note": "Participant reports an Excel schedule for the debt-investment workbook.",
+      "value": "excel_workbook"
+    },
+    {
+      "evidence_turns": [
+        "t1",
+        "t3"
+      ],
+      "facet": "functional_area",
+      "note": "Reported debt-investment interest and amortization work; entity applicability is not established.",
+      "value": "fund_accounting"
+    },
+    {
+      "evidence_turns": [
+        "t1",
+        "t3"
+      ],
+      "facet": "rule_source",
+      "note": "Reported source is final executed loan documents, with page citations to contract terms.",
+      "value": "other"
+    },
+    {
+      "evidence_turns": [
+        "t3"
+      ],
+      "facet": "control_type",
+      "note": "Reported independent recalculation before reliance; organizational affiliation of the checker is not specified.",
+      "value": "gpfs_operational"
+    },
+    {
+      "evidence_turns": [
+        "t7"
+      ],
+      "facet": "system",
+      "note": "Suggested Allvue lines are compared with the Excel schedule each monthly accrual run.",
+      "value": "allvue"
+    },
+    {
+      "evidence_turns": [
+        "t9"
+      ],
+      "facet": "control_type",
+      "note": "Unclear nonstandard treatment is decided by legal or tax/accounting advisers.",
+      "value": "exception_escalation"
+    }
+  ],
+  "connections_out": [
+    {
+      "condition": "Workbook build follows completion of FA-09 purchase setup.",
+      "counterpart": "FA-09 purchase setup",
+      "evidence_turns": [
+        "t1"
+      ],
+      "relationship_type": "happens_after"
+    },
+    {
+      "condition": "The team posts reviewed entries after the controls.",
+      "counterpart": "Accounting or Fund Team",
+      "evidence_turns": [
+        "t9"
+      ],
+      "relationship_type": "hands_off_to"
+    },
+    {
+      "condition": "Debt-investment results feed the quarterly workbook.",
+      "counterpart": "FA-13 quarterly workbook",
+      "evidence_turns": [
+        "t11"
+      ],
+      "relationship_type": "provides_input_to"
+    },
+    {
+      "condition": "Debt-investment results feed analytical review.",
+      "counterpart": "FA-14 analytical review",
+      "evidence_turns": [
+        "t11"
+      ],
+      "relationship_type": "provides_input_to"
+    },
+    {
+      "condition": "Debt-investment results feed audit support.",
+      "counterpart": "FA-15 audit support",
+      "evidence_turns": [
+        "t11"
+      ],
+      "relationship_type": "provides_input_to"
+    }
+  ],
+  "fact_provenance": [
+    {
+      "topic": "name",
+      "text": "The process is called “Debt Investment Economics: Loan Workbook, Yields, PIK, OID & Warrants.”",
+      "evidence_turns": [
+        "context"
+      ],
+      "history_ref": "b6eed0a165f889f0",
+      "recorded_at": "2026-11-16T22:16:04.869+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "context",
+          "quote": "Debt Investment Economics: Loan Workbook, Yields, PIK, OID & Warrants"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "purpose",
+      "text": "The debt-investment workbook supports monthly interest and amortization and event-driven updates to the loan.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "8c8a856799a83fec",
+      "recorded_at": "2026-11-16T22:16:04.869+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "It supports monthly interest and amortization, plus event-driven updates to the loan."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "The workbook build follows completion of FA-09 purchase setup and the client sending final executed loan documents.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "8991b992f2bb5932",
+      "recorded_at": "2026-11-16T22:16:49.362+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "After FA-09 purchase setup is complete and the client sends final executed loan documents, we build the debt-investment workbook."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "The final completion and handoff of the initial workbook build remain unclear.",
+      "evidence_turns": [
+        "t3",
+        "t7"
+      ],
+      "history_ref": "e7c7f20f734b4241",
+      "recorded_at": "2026-11-16T22:19:31.917+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "before anyone relies on the workbook"
+        },
+        {
+          "source_id": "t7",
+          "quote": "The checker signs and the period version is locked."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "After FA-09 purchase setup is complete and the client sends final executed loan documents, the team builds a debt-investment workbook supporting monthly interest and amortization and event-driven loan updates.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "e8cffe2c0cc4f984",
+      "recorded_at": "2026-11-16T22:16:49.363+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "After FA-09 purchase setup is complete and the client sends final executed loan documents, we build the debt-investment workbook. It supports monthly interest and amortization, plus event-driven updates to the loan."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "The workbook supports monthly interest and amortization and event-driven loan updates.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "3863e9a5eeb5b076",
+      "recorded_at": "2026-11-16T22:16:49.363+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "It supports monthly interest and amortization, plus event-driven updates to the loan."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The client sends final executed loan documents; the preparer records contract terms with page citations and builds an Excel schedule. The workbook supports monthly interest and amortization and event-driven loan updates.",
+      "evidence_turns": [
+        "t1",
+        "t3"
+      ],
+      "history_ref": "85e834b7c67fe5dd",
+      "recorded_at": "2026-11-16T22:16:49.363+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "the client sends final executed loan documents, we build the debt-investment workbook. It supports monthly interest and amortization, plus event-driven updates to the loan."
+        },
+        {
+          "source_id": "t3",
+          "quote": "records the contract terms with page citations, ties opening balances and builds an Excel schedule through maturity"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "scope",
+      "text": "The described work concerns a debt-investment loan workbook.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "c754db2a9b5bda06",
+      "recorded_at": "2026-11-16T22:16:49.363+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "we build the debt-investment workbook"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "The preparer records contract terms with page citations from the final executed loan documents when building the workbook.",
+      "evidence_turns": [
+        "t1",
+        "t3"
+      ],
+      "history_ref": "88f57c6d8a5501e1",
+      "recorded_at": "2026-11-16T22:16:49.363+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "the client sends final executed loan documents"
+        },
+        {
+          "source_id": "t3",
+          "quote": "The preparer records the contract terms with page citations"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "FA-09 purchase setup is complete before the workbook is built.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "c8bc26806b683ba9",
+      "recorded_at": "2026-11-16T22:19:31.917+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "After FA-09 purchase setup is complete"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "The preparer builds the debt-investment schedule in Excel after the client sends final executed loan documents.",
+      "evidence_turns": [
+        "t1",
+        "t3"
+      ],
+      "history_ref": "3781428b15f083c1",
+      "recorded_at": "2026-11-16T22:16:49.363+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "the client sends final executed loan documents, we build the debt-investment workbook"
+        },
+        {
+          "source_id": "t3",
+          "quote": "builds an Excel schedule through maturity"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "The document recipient, build cadence and fixed deadlines remain unclear.",
+      "evidence_turns": [
+        "t1",
+        "t7"
+      ],
+      "history_ref": "fd0a1f8857cc17d7",
+      "recorded_at": "2026-11-16T22:19:31.917+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "the client sends final executed loan documents"
+        },
+        {
+          "source_id": "t7",
+          "quote": "Each monthly accrual run"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "An independent checker recalculates key terms and period-one principal, PIK and OID before anyone relies on the workbook.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "640c975df94c96ae",
+      "recorded_at": "2026-11-16T22:16:49.363+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "An independent checker recalculates key terms and period-one principal, PIK and OID before anyone relies on the workbook."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The preparer records contract terms with page citations, ties opening balances and builds an Excel schedule through maturity with stubs, cash interest, PIK principal and, where applicable, OID or warrant amortization.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "245ad7aa52cbdca6",
+      "recorded_at": "2026-11-16T22:16:49.365+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "The preparer records the contract terms with page citations, ties opening balances and builds an Excel schedule through maturity with stubs, cash interest, PIK principal and OID or warrant amortization where applicable."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "An independent checker recalculates key terms and period-one principal, PIK and OID before the workbook is relied on.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "36f1da91b7398ed0",
+      "recorded_at": "2026-11-16T22:16:49.365+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "An independent checker recalculates key terms and period-one principal, PIK and OID before anyone relies on the workbook."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The opening-balance tie-out source, initial build handoff and update steps for events other than amendments remain unclear.",
+      "evidence_turns": [
+        "t3",
+        "t5",
+        "t9"
+      ],
+      "history_ref": "ef5004405791016b",
+      "recorded_at": "2026-11-16T22:19:31.917+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "ties opening balances"
+        },
+        {
+          "source_id": "t5",
+          "quote": "new draws, tranches, amendments, rate changes, cash/PIK elections, prepayment or default"
+        },
+        {
+          "source_id": "t9",
+          "quote": "The Accounting or Fund Team posts reviewed entries only after the controls"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "An independent checker recalculates key terms and period-one principal, PIK and OID before anyone relies on the workbook.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "b9b5639c9feb0eb4",
+      "recorded_at": "2026-11-16T22:16:49.365+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "An independent checker recalculates key terms and period-one principal, PIK and OID before anyone relies on the workbook."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Handling of initial-build discrepancies and the location and custodian of retained check evidence remain unclear.",
+      "evidence_turns": [
+        "t7",
+        "t9"
+      ],
+      "history_ref": "dfb3c0c840825726",
+      "recorded_at": "2026-11-16T22:19:31.919+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "verifies the document citations and recalculates the initial build"
+        },
+        {
+          "source_id": "t9",
+          "quote": "Open items are resolved or assigned in the variance log."
+        }
+      ],
+      "unverified": [
+        "Check this against the cited sources: custodian"
+      ]
+    },
+    {
+      "topic": "variations",
+      "text": "The schedule includes OID or warrant amortization where applicable.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "bf9dd61af852f57c",
+      "recorded_at": "2026-11-16T22:16:49.365+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "OID or warrant amortization where applicable"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "The conditions for OID or warrant amortization and the steps for event updates other than amendments remain unclear.",
+      "evidence_turns": [
+        "t3",
+        "t5"
+      ],
+      "history_ref": "abd31cceb1faa6e3",
+      "recorded_at": "2026-11-16T22:17:16.215+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "OID or warrant amortization where applicable"
+        },
+        {
+          "source_id": "t5",
+          "quote": "For an amendment we preserve the pre-change copy, identify the effective date, split periods and compare before and after for independent review."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "scope",
+      "text": "Applicability across entities, clients and loans, and whether this is general GPFS practice, remain unclear.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "dd364905388927c8",
+      "recorded_at": "2026-11-16T22:16:49.366+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "we build the debt-investment workbook"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "Specific economic terms, calculation methods, input origins and implementation details remain unclear.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "5bb4750838b2da1c",
+      "recorded_at": "2026-11-16T22:16:49.366+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "builds an Excel schedule through maturity with stubs, cash interest, PIK principal and OID or warrant amortization where applicable"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "Workbook storage and calculation implementation remain unclear.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "da73dc1d2f06535a",
+      "recorded_at": "2026-11-16T22:16:49.366+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "builds an Excel schedule through maturity"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "The client or investment team confirms new draws, tranches, amendments, rate changes, cash/PIK elections, prepayment or default as events for workbook updates.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "7411a6e9984af76f",
+      "recorded_at": "2026-11-16T22:17:16.215+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "The client or investment team confirms new draws, tranches, amendments, rate changes, cash/PIK elections, prepayment or default."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "For an amendment, the team preserves the pre-change copy, identifies the effective date, splits periods and compares before and after for independent review.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "947618e3ea919be1",
+      "recorded_at": "2026-11-16T22:17:16.215+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "For an amendment we preserve the pre-change copy, identify the effective date, split periods and compare before and after for independent review."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "An amendment entails preserving a pre-change copy, identifying the effective date, splitting periods and comparing before and after for independent review.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "8f230b23406db322",
+      "recorded_at": "2026-11-16T22:17:16.215+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "For an amendment we preserve the pre-change copy, identify the effective date, split periods and compare before and after for independent review."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "For an amendment, the before-and-after comparison is prepared for independent review.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "7732ce6f6523933a",
+      "recorded_at": "2026-11-16T22:17:16.215+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "compare before and after for independent review"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "The workbook cannot be extended past contractual maturity without written direction.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "805347cb463493f8",
+      "recorded_at": "2026-11-16T22:17:16.215+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "The workbook cannot be extended past contractual maturity without written direction."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "A pre-change workbook copy is preserved for an amendment, and a before-and-after comparison is made for independent review.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "4fe9358a10318c4a",
+      "recorded_at": "2026-11-16T22:17:16.215+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "we preserve the pre-change copy, identify the effective date, split periods and compare before and after for independent review"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "The specific FA-09 output or handoff used for the workbook is not established.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "bb582d5e7a7916f5",
+      "recorded_at": "2026-11-16T22:19:31.919+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "After FA-09 purchase setup is complete"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "accountable",
+      "text": "The formal process owner is unconfirmed.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "f1bde948ae0fa4dd",
+      "recorded_at": "2026-11-16T22:19:31.919+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "The formal process owner and JE approval route are unconfirmed."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The independent checker extracts material terms from executed documents, verifies citations and recalculates the initial build.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "2fd68bde9fa534da",
+      "recorded_at": "2026-11-16T22:19:31.919+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "The checker independently extracts the material terms from the executed documents, verifies the document citations and recalculates the initial build."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "Each monthly accrual run compares suggested Allvue lines with the Excel schedule and documents rounding. The checker signs and the period version is locked.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "8a048d7e69249bdf",
+      "recorded_at": "2026-11-16T22:19:31.919+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "Each monthly accrual run compares suggested Allvue lines against the Excel schedule, documenting rounding."
+        },
+        {
+          "source_id": "t7",
+          "quote": "The checker signs and the period version is locked."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The close control requires zero unexplained difference across principal, income, cash, amortization and GL/TB; rounding is documented.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "76d4b1eded0b5982",
+      "recorded_at": "2026-11-16T22:19:31.919+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "documenting rounding. Zero unexplained difference across principal, income, cash, amortization and GL/TB is the close control."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The preparer classifies and investigates variances against actual cash, terms, elections and the workbook. Open items are resolved or assigned in the variance log; unexplained differences hold up posting and reporting close.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "412941c00f6e8d93",
+      "recorded_at": "2026-11-16T22:19:31.919+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "The preparer classifies and investigates the variance against actual cash, terms, elections and the workbook. Unexplained differences keep posting and reporting close on hold. Open items are resolved or assigned in the variance log."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "For monthly close, zero unexplained difference is required; the checker signs and the period version is locked. The Accounting or Fund Team posts reviewed entries only after the controls.",
+      "evidence_turns": [
+        "t7",
+        "t9"
+      ],
+      "history_ref": "ba8442f338a5d58a",
+      "recorded_at": "2026-11-16T22:19:31.919+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "Zero unexplained difference across principal, income, cash, amortization and GL/TB is the close control. The checker signs and the period version is locked."
+        },
+        {
+          "source_id": "t9",
+          "quote": "The Accounting or Fund Team posts reviewed entries only after the controls"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The journal-entry approval route is unconfirmed.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "e2601854d64e6bb5",
+      "recorded_at": "2026-11-16T22:19:31.919+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "The formal process owner and JE approval route are unconfirmed."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "Legal or tax/accounting advisers decide unclear nonstandard treatment.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "1458e5aca12105d9",
+      "recorded_at": "2026-11-16T22:19:31.919+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "legal or tax/accounting advisers decide unclear nonstandard treatment."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "A variance log records open items as resolved or assigned; the period workbook version is locked after the checker signs.",
+      "evidence_turns": [
+        "t7",
+        "t9"
+      ],
+      "history_ref": "fbc63b8cbc5e005d",
+      "recorded_at": "2026-11-16T22:19:31.919+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "The checker signs and the period version is locked."
+        },
+        {
+          "source_id": "t9",
+          "quote": "Open items are resolved or assigned in the variance log."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "Monthly runs compare suggested Allvue lines to the Excel schedule.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "8e067118c5d46cc8",
+      "recorded_at": "2026-11-16T22:19:31.919+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "Each monthly accrual run compares suggested Allvue lines against the Excel schedule"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "risk",
+      "text": "When posting is on hold, the GL/TB and financial reporting cannot rely on the amounts. Wrong terms or formulas can misstate income and principal across periods.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "08f645689ac2fafa",
+      "recorded_at": "2026-11-16T22:20:43.833+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "Posting remains on hold, so the GL/TB and financial reporting cannot rely on the amounts. Wrong terms or formulas can misstate income and principal across periods."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "pain_points",
+      "text": "Unexplained differences hold posting and reporting close while the preparer investigates the variance.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "fce1ae6114220fc9",
+      "recorded_at": "2026-11-16T22:20:43.833+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "The preparer classifies and investigates the variance against actual cash, terms, elections and the workbook. Unexplained differences keep posting and reporting close on hold."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "The results feed the FA-13 quarterly workbook, FA-14 analytical review and FA-15 audit support.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "22646dab28bd7a55",
+      "recorded_at": "2026-11-16T22:20:43.834+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "The results feed FA-13 quarterly workbook, FA-14 analytical review and FA-15 audit support"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "volume",
+      "text": "No standard duration for the reported impact is provided; normal volumes and effort remain unspecified.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "54b649abaca7fd63",
+      "recorded_at": "2026-11-16T22:20:43.834+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "no standard dollar impact or duration is provided."
+        }
+      ],
+      "unverified": []
+    }
+  ],
+  "fact_history": [
+    {
+      "topic": "trigger",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:04.869+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "deb7d9224c9098aa"
+    },
+    {
+      "topic": "completion",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:04.870+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "482a103ec0e2741c"
+    },
+    {
+      "topic": "completion",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:49.363+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "a20e1baaa97ede94"
+    },
+    {
+      "topic": "lifecycle",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:04.870+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "73cc4c77e6be8ff6"
+    },
+    {
+      "topic": "variations",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:04.870+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "162115ca7435e251"
+    },
+    {
+      "topic": "materials",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:04.870+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "e61e8fa839b7e077"
+    },
+    {
+      "topic": "scope",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:04.870+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "40a6f7910c6c492d"
+    },
+    {
+      "topic": "rules",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:04.870+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "37df7f4959530e0f"
+    },
+    {
+      "topic": "connections",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:04.871+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "5bc0bae0ac0071b5"
+    },
+    {
+      "topic": "data_systems",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:04.871+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "819abc373eabc16d"
+    },
+    {
+      "topic": "trigger",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:49.363+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "0246353b92ce6633"
+    },
+    {
+      "topic": "trigger",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:17:16.215+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "fa0b0dbf2bef08bc"
+    },
+    {
+      "topic": "lifecycle",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:49.365+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "4ab7867151788fe2"
+    },
+    {
+      "topic": "lifecycle",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:17:16.215+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "0d3442f82105d51d"
+    },
+    {
+      "topic": "checks",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:49.365+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "90ef1accb59463fd"
+    },
+    {
+      "topic": "variations",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:16:49.366+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "48d6c5a8ac9a5edb"
+    }
+  ],
+  "capture_provenance": {
+    "method": "document_simulation",
+    "participant_confirmed": false,
+    "process_owner_approved": false,
+    "source_documents": [
+      {
+        "filename": "IP1-export.pdf",
+        "sha256": "d0f89ee7c7cc8ffbcd39c268b47b765888105e588f60199106356ca31df177c1"
+      }
+    ]
+  },
+  "closure": {
+    "asked": false,
+    "confirmed": false
+  }
+}

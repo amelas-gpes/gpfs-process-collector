@@ -1,0 +1,1092 @@
+{
+  "fact_history": [
+    {
+      "history_ref": "8a750112d8f05b7a",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:41:37.371+00:00",
+      "topic": "purpose",
+      "state": "superseded"
+    },
+    {
+      "history_ref": "2581d54e80aa75bb",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:41:37.371+00:00",
+      "topic": "trigger",
+      "state": "superseded"
+    },
+    {
+      "history_ref": "6ffd5daa590a0d3b",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:41:37.371+00:00",
+      "topic": "completion",
+      "state": "superseded"
+    },
+    {
+      "history_ref": "b3b5f08065650837",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:41:37.371+00:00",
+      "topic": "checks",
+      "state": "superseded"
+    },
+    {
+      "history_ref": "11ad21223a616d3d",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:41:37.371+00:00",
+      "topic": "checks",
+      "state": "superseded"
+    },
+    {
+      "history_ref": "6a2fc0917aae2e39",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:30.862+00:00",
+      "topic": "checks",
+      "state": "superseded"
+    },
+    {
+      "history_ref": "1a0155677e15f01b",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:41:37.373+00:00",
+      "topic": "scope",
+      "state": "superseded"
+    },
+    {
+      "history_ref": "90db30ab8f445d4e",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:41:37.373+00:00",
+      "topic": "connections",
+      "state": "superseded"
+    },
+    {
+      "history_ref": "e8e711f0134c279e",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:41:37.373+00:00",
+      "topic": "data_systems",
+      "state": "superseded"
+    }
+  ],
+  "turn_metadata": {
+    "t001": {
+      "channel": "interviewer",
+      "at": "2026-11-16T22:41:16.708Z"
+    },
+    "t002": {
+      "channel": "typed",
+      "at": "2026-11-16T22:41:17.041Z"
+    },
+    "t003": {
+      "channel": "interviewer",
+      "at": "2026-11-16T22:41:18.661Z"
+    },
+    "t004": {
+      "channel": "typed",
+      "at": "2026-11-16T22:41:47.927Z"
+    },
+    "t005": {
+      "channel": "interviewer",
+      "at": "2026-11-16T22:41:49.678Z"
+    },
+    "t006": {
+      "channel": "typed",
+      "at": "2026-11-16T22:42:18.648Z"
+    },
+    "t007": {
+      "channel": "interviewer",
+      "at": "2026-11-16T22:42:20.981Z"
+    }
+  },
+  "fact_provenance": [
+    {
+      "history_ref": "938493b0b9f1f4aa",
+      "origin": "legacy_aid",
+      "recorded_at": "2026-11-16T22:41:16.796+00:00",
+      "topic": "name",
+      "text": "Accounts Payable",
+      "evidence_turns": [
+        "context"
+      ],
+      "support": [],
+      "unverified": []
+    },
+    {
+      "history_ref": "cd63c2378fc4a399",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:30.861+00:00",
+      "topic": "purpose",
+      "text": "Accounts Payable prepares and hands off manager-reviewed, client-approved vendor invoices to Treasury.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "Only a manager-reviewed, client-approved invoice is sent to Treasury under MC-07."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "05239995c41d88a8",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:58.288+00:00",
+      "topic": "trigger",
+      "text": "The initiating event and who receives or detects it are not established. The participant cannot give a universal cycle or deadline.",
+      "evidence_turns": [
+        "t002",
+        "t006"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "Accounts payable reviews a vendor invoice"
+        },
+        {
+          "source_id": "t006",
+          "quote": "I can't give a universal cycle, deadline or urgent approver"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "3c3bddff09796864",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:58.293+00:00",
+      "topic": "completion",
+      "text": "Who performs the closing match and how discrepancies are resolved before invoice closure remain unspecified.",
+      "evidence_turns": [
+        "t006"
+      ],
+      "support": [
+        {
+          "source_id": "t006",
+          "quote": "The retained PDF, invoice log, Entrilia, payment log and bank evidence must match before closing the invoice."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "333283b05634384e",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:41:37.371+00:00",
+      "topic": "accountable",
+      "text": "The role accountable for the overall result is not established; the manager is reported as reviewing invoices, not as accountable for the process.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "Only a manager-reviewed, client-approved invoice"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "385759bf3638b40f",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:41:37.371+00:00",
+      "topic": "lifecycle",
+      "text": "Accounts payable reviews a vendor invoice, saves its PDF in Box, and logs vendor, invoice number, date, entity, and amount in Excel. Before recording it in Entrilia, the team searches for duplicates by vendor, invoice number, and amount. Only an invoice that has been manager-reviewed and client-approved is sent to Treasury under MC-07.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "Accounts payable reviews a vendor invoice, saves the PDF in Box and logs vendor, invoice number, date, entity and amount in Excel. We search for duplicates by vendor, invoice number and amount before recording it in Entrilia. Only a manager-reviewed, client-approved invoice is sent to Treasury under MC-07."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "fb26e6b21c9def54",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:30.862+00:00",
+      "topic": "checks",
+      "text": "Before recording an invoice in Entrilia, AP searches for duplicates using vendor, invoice number and amount. An invoice is sent to Treasury only after manager review and client approval.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "We search for duplicates by vendor, invoice number and amount before recording it in Entrilia. Only a manager-reviewed, client-approved invoice is sent to Treasury under MC-07."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "db34c617d15eb95b",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:58.293+00:00",
+      "topic": "checks",
+      "text": "The client's review criteria and handling of delayed invoices remain unspecified.",
+      "evidence_turns": [
+        "t004",
+        "t006"
+      ],
+      "support": [
+        {
+          "source_id": "t004",
+          "quote": "retain the client's approval identifying each invoice and the total"
+        },
+        {
+          "source_id": "t006",
+          "quote": "Any invoice under query or rejected must stay out of the approved batch and payment run."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "72934d414fda75c6",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:41:37.373+00:00",
+      "topic": "materials",
+      "text": "The vendor invoice PDF is saved in Box; an Excel log records vendor, invoice number, date, entity, and amount. MC-07 is cited as the basis under which the approved invoice is sent to Treasury; its contents and location are not provided.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "saves the PDF in Box and logs vendor, invoice number, date, entity and amount in Excel"
+        },
+        {
+          "source_id": "t002",
+          "quote": "sent to Treasury under MC-07"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "0604db0b7e1cdfd3",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:30.862+00:00",
+      "topic": "scope",
+      "text": "The reported work concerns vendor invoices and includes an entity field in the log.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "reviews a vendor invoice, saves the PDF in Box and logs vendor, invoice number, date, entity and amount in Excel"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "17fe8509169f59b5",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:41:37.373+00:00",
+      "topic": "rules",
+      "text": "The reported duplicate search compares vendor, invoice number, and amount before Entrilia recording. MC-07 is cited for sending only manager-reviewed and client-approved invoices to Treasury; its authority and contents have not been supplied.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "search for duplicates by vendor, invoice number and amount before recording it in Entrilia"
+        },
+        {
+          "source_id": "t002",
+          "quote": "Only a manager-reviewed, client-approved invoice is sent to Treasury under MC-07."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "94d0e8305822172b",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:30.862+00:00",
+      "topic": "connections",
+      "text": "Accounts Payable sends a manager-reviewed, client-approved invoice to Treasury under MC-07; vendor, amount, entity and approval must match at handoff.",
+      "evidence_turns": [
+        "t002",
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "Only a manager-reviewed, client-approved invoice is sent to Treasury under MC-07."
+        },
+        {
+          "source_id": "t004",
+          "quote": "The vendor, amount, entity and approval must match when AP hands off to Treasury."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "7c65e2cad1d0e563",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:30.862+00:00",
+      "topic": "data_systems",
+      "text": "AP saves the invoice PDF in Box and logs invoice details in Excel; the duplicate search occurs before recording the invoice in Entrilia.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "saves the PDF in Box and logs vendor, invoice number, date, entity and amount in Excel. We search for duplicates by vendor, invoice number and amount before recording it in Entrilia."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "16e7e355ef197969",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:30.862+00:00",
+      "topic": "checks",
+      "text": "The manager checks the invoice log, Entrilia record, amount, coding, duplicate-check result and package completeness. AP resolves comments before sending the exact batch for client approval.",
+      "evidence_turns": [
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t004",
+          "quote": "The manager checks the invoice log, Entrilia record, amount, coding, result of the duplicate check and whether the package is complete. We resolve comments, send the exact batch"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "567153aa15d0dccc",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:30.863+00:00",
+      "topic": "checks",
+      "text": "AP retains the client's approval identifying each invoice and the total. Vendor, amount, entity and approval must match at the Treasury handoff.",
+      "evidence_turns": [
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t004",
+          "quote": "retain the client's approval identifying each invoice and the total. The vendor, amount, entity and approval must match when AP hands off to Treasury."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "c0fb1bb9831516e4",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:30.863+00:00",
+      "topic": "checks",
+      "text": "New or changed bank details are flagged for callback and screening.",
+      "evidence_turns": [
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t004",
+          "quote": "New or changed bank details are flagged for callback and screening."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "ba3bd5b37db5b008",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:30.863+00:00",
+      "topic": "checks",
+      "text": "Who performs callback and screening, how they are completed and what happens if they fail remain unspecified.",
+      "evidence_turns": [
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t004",
+          "quote": "New or changed bank details are flagged for callback and screening."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "abae31d02338cecb",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:30.863+00:00",
+      "topic": "lifecycle",
+      "text": "After the manager checks the log, record, amount, coding, duplicate result and package completeness, AP resolves comments and sends the exact batch using the approved email or Adobe e-sign method. AP retains the client approval identifying each invoice and total.",
+      "evidence_turns": [
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t004",
+          "quote": "The manager checks the invoice log, Entrilia record, amount, coding, result of the duplicate check and whether the package is complete. We resolve comments, send the exact batch using the approved email or Adobe e-sign method, and retain the client's approval identifying each invoice and the total."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "49d8861ef6400ced",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:30.863+00:00",
+      "topic": "lifecycle",
+      "text": "At handoff to Treasury, vendor, amount, entity and approval must match. New or changed bank details are flagged for callback and screening.",
+      "evidence_turns": [
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t004",
+          "quote": "The vendor, amount, entity and approval must match when AP hands off to Treasury. New or changed bank details are flagged for callback and screening."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "78f154a37aced9ca",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:30.863+00:00",
+      "topic": "variations",
+      "text": "For new or changed bank details, the details are flagged for callback and screening.",
+      "evidence_turns": [
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t004",
+          "quote": "New or changed bank details are flagged for callback and screening."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "92cce04de96023eb",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:30.863+00:00",
+      "topic": "variations",
+      "text": "The reason for the callback and screening route and its additional effort are not established; other applicable differences remain unexplored.",
+      "evidence_turns": [
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t004",
+          "quote": "New or changed bank details are flagged for callback and screening."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "263461dd88b58faa",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:30.863+00:00",
+      "topic": "materials",
+      "text": "AP retains client approval identifying each invoice and the batch total; the exact batch is sent using approved email or Adobe e-sign.",
+      "evidence_turns": [
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t004",
+          "quote": "send the exact batch using the approved email or Adobe e-sign method, and retain the client's approval identifying each invoice and the total."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "83e83cfd6f4e779b",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:30.863+00:00",
+      "topic": "scope",
+      "text": "Entity types and clients covered, general GPFS versus client-specific applicability, and the process boundary remain unspecified.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "logs vendor, invoice number, date, entity and amount in Excel"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "0d94e24cce5e8111",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:30.863+00:00",
+      "topic": "connections",
+      "text": "Treasury's subsequent actions and receipt or acceptance confirmation remain unspecified.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "invoice is sent to Treasury under MC-07"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "e79d0809c5597f57",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:30.863+00:00",
+      "topic": "data_systems",
+      "text": "The source of invoice data, entry method and authoritative record remain unspecified.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "logs vendor, invoice number, date, entity and amount in Excel"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "de65a565a79f45b1",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:30.863+00:00",
+      "topic": "data_systems",
+      "text": "AP sends the exact batch using the approved email or Adobe e-sign method and retains the client approval.",
+      "evidence_turns": [
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t004",
+          "quote": "send the exact batch using the approved email or Adobe e-sign method, and retain the client's approval"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "ac08aa6d08fcd08f",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:58.293+00:00",
+      "topic": "completion",
+      "text": "Before an invoice is closed, the retained PDF, invoice log, Entrilia, payment log and bank evidence must match.",
+      "evidence_turns": [
+        "t006"
+      ],
+      "support": [
+        {
+          "source_id": "t006",
+          "quote": "The retained PDF, invoice log, Entrilia, payment log and bank evidence must match before closing the invoice."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "0af47d690117e9c3",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:58.293+00:00",
+      "topic": "lifecycle",
+      "text": "Invoices under query or rejected stay out of the approved batch and payment run. Comments are resolved against the invoice and its support; the exact client-approved invoices and total are retained, and only those items are released to MC-07.",
+      "evidence_turns": [
+        "t006"
+      ],
+      "support": [
+        {
+          "source_id": "t006",
+          "quote": "Any invoice under query or rejected must stay out of the approved batch and payment run. Resolve comments against the invoice and its support, retain the exact client-approved invoices and total, and then release just those items to MC-07."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "099bbf022f9d8892",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:58.294+00:00",
+      "topic": "checks",
+      "text": "Queried or rejected invoices must be excluded from the approved batch and payment run; comments are resolved against the invoice and support before release of approved items.",
+      "evidence_turns": [
+        "t006"
+      ],
+      "support": [
+        {
+          "source_id": "t006",
+          "quote": "Any invoice under query or rejected must stay out of the approved batch and payment run. Resolve comments against the invoice and its support"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "c8ea73d95467e5a5",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:58.294+00:00",
+      "topic": "checks",
+      "text": "Relevant authorizations must be documented; the participant cannot identify a universal urgent approver.",
+      "evidence_turns": [
+        "t006"
+      ],
+      "support": [
+        {
+          "source_id": "t006",
+          "quote": "I can't give a universal cycle, deadline or urgent approver; the relevant authorizations have to be documented."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "2d8abc8a64ac17aa",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:58.294+00:00",
+      "topic": "materials",
+      "text": "The payment log and bank evidence are used alongside the retained PDF, invoice log and Entrilia for the match required before invoice closure.",
+      "evidence_turns": [
+        "t006"
+      ],
+      "support": [
+        {
+          "source_id": "t006",
+          "quote": "The retained PDF, invoice log, Entrilia, payment log and bank evidence must match before closing the invoice."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "a6c714646e73615b",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:42:58.294+00:00",
+      "topic": "lifecycle",
+      "text": "Before closing the invoice, the retained PDF, invoice log, Entrilia, payment log and bank evidence must match.",
+      "evidence_turns": [
+        "t006"
+      ],
+      "support": [
+        {
+          "source_id": "t006",
+          "quote": "The retained PDF, invoice log, Entrilia, payment log and bank evidence must match before closing the invoice."
+        }
+      ],
+      "unverified": []
+    }
+  ],
+  "taxonomy": [
+    {
+      "facet": "functional_area",
+      "value": "treasury_payments",
+      "note": "Reported Accounts Payable work handles vendor invoices and hands approved invoices to Treasury; classification reflects the stated payment-related scope, not independently verified taxonomy.",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "facet": "process_level",
+      "value": "process",
+      "note": "The participant identifies the work as Accounts Payable and describes invoice review through a Treasury handoff; process boundary remains to be clarified.",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "facet": "system",
+      "value": "excel_workbook",
+      "note": "Excel is reported as the location where invoice details are logged; workbook format or logic is not otherwise described.",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "facet": "system",
+      "value": "entrilia",
+      "note": "Entrilia is reported as the system in which invoices are recorded after the duplicate search.",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "facet": "system",
+      "value": "other",
+      "note": "Box is reported as the location where invoice PDFs are saved; Box is not separately listed in the controlled system vocabulary.",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "facet": "control_type",
+      "value": "client_review",
+      "note": "The participant reports that client approval is required before an invoice is sent to Treasury; the approval's mechanism and evidence are not established.",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "facet": "control_type",
+      "value": "gpfs_supervisory",
+      "note": "The participant reports manager review as a prerequisite to Treasury handoff; what is reviewed is not established.",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "facet": "control_type",
+      "value": "client_approval",
+      "note": "Client approval is required before Treasury handoff; AP retains approval identifying each invoice and total.",
+      "evidence_turns": [
+        "t002",
+        "t004"
+      ]
+    },
+    {
+      "facet": "system",
+      "value": "email",
+      "note": "Approved email is one reported method for sending the exact batch for client approval.",
+      "evidence_turns": [
+        "t004"
+      ]
+    },
+    {
+      "facet": "system",
+      "value": "other",
+      "note": "Adobe e-sign is a reported alternative approved method for sending the exact batch.",
+      "evidence_turns": [
+        "t004"
+      ]
+    },
+    {
+      "facet": "control_type",
+      "value": "gpfs_operational",
+      "note": "AP matches vendor, amount, entity and approval at the Treasury handoff; new or changed bank details are flagged for callback and screening.",
+      "evidence_turns": [
+        "t004"
+      ]
+    }
+  ],
+  "connections_out": [
+    {
+      "relationship_type": "hands_off_to",
+      "counterpart": "Treasury",
+      "condition": "Only after manager review and client approval; sent under MC-07. Treasury's receipt and subsequent actions are not described.",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "relationship_type": "hands_off_to",
+      "counterpart": "Treasury",
+      "condition": "Only after manager review and client approval under MC-07; vendor, amount, entity and approval must match at handoff.",
+      "evidence_turns": [
+        "t002",
+        "t004"
+      ]
+    }
+  ],
+  "document_evidence": [],
+  "workflow": null,
+  "schema_version": 1,
+  "context": {
+    "process_name": "Accounts Payable",
+    "process_owner": "",
+    "objective": "Understand the current process, responsibilities, handoffs, and exceptions.",
+    "background": ""
+  },
+  "turns": [
+    {
+      "id": "t001",
+      "role": "assistant",
+      "text": "What starts this work?"
+    },
+    {
+      "id": "t002",
+      "role": "user",
+      "text": "Accounts payable reviews a vendor invoice, saves the PDF in Box and logs vendor, invoice number, date, entity and amount in Excel. We search for duplicates by vendor, invoice number and amount before recording it in Entrilia. Only a manager-reviewed, client-approved invoice is sent to Treasury under MC-07."
+    },
+    {
+      "id": "t003",
+      "role": "assistant",
+      "text": "What does the manager review on the invoice before it is sent for client approval?"
+    },
+    {
+      "id": "t004",
+      "role": "user",
+      "text": "The manager checks the invoice log, Entrilia record, amount, coding, result of the duplicate check and whether the package is complete. We resolve comments, send the exact batch using the approved email or Adobe e-sign method, and retain the client's approval identifying each invoice and the total. The vendor, amount, entity and approval must match when AP hands off to Treasury. New or changed bank details are flagged for callback and screening."
+    },
+    {
+      "id": "t005",
+      "role": "assistant",
+      "text": "When a client comments on or rejects an invoice package, what happens to it before it can be approved?"
+    },
+    {
+      "id": "t006",
+      "role": "user",
+      "text": "Any invoice under query or rejected must stay out of the approved batch and payment run. Resolve comments against the invoice and its support, retain the exact client-approved invoices and total, and then release just those items to MC-07. I can't give a universal cycle, deadline or urgent approver; the relevant authorizations have to be documented. The retained PDF, invoice log, Entrilia, payment log and bank evidence must match before closing the invoice."
+    },
+    {
+      "id": "t007",
+      "role": "assistant",
+      "text": "What confirms that Treasury has received and accepted the approved invoices from AP?"
+    }
+  ],
+  "coverage": [
+    {
+      "key": "name",
+      "label": "Name and scope",
+      "status": "partial"
+    },
+    {
+      "key": "purpose",
+      "label": "Purpose",
+      "status": "partial"
+    },
+    {
+      "key": "trigger",
+      "label": "Starting point",
+      "status": "partial"
+    },
+    {
+      "key": "completion",
+      "label": "End point",
+      "status": "partial"
+    },
+    {
+      "key": "accountable",
+      "label": "Owner",
+      "status": "partial"
+    },
+    {
+      "key": "lifecycle",
+      "label": "Flow of work",
+      "status": "partial"
+    },
+    {
+      "key": "checks",
+      "label": "Checks and controls",
+      "status": "partial"
+    },
+    {
+      "key": "variations",
+      "label": "Variations",
+      "status": "partial"
+    },
+    {
+      "key": "pain_points",
+      "label": "Pain points",
+      "status": "missing"
+    },
+    {
+      "key": "risk",
+      "label": "Risks",
+      "status": "missing"
+    },
+    {
+      "key": "materials",
+      "label": "Documents",
+      "status": "partial"
+    },
+    {
+      "key": "scope",
+      "label": "Scope and entities",
+      "status": "partial"
+    },
+    {
+      "key": "rules",
+      "label": "Rules and sources",
+      "status": "partial"
+    },
+    {
+      "key": "connections",
+      "label": "Connected processes",
+      "status": "partial"
+    },
+    {
+      "key": "data_systems",
+      "label": "Data and systems",
+      "status": "partial"
+    },
+    {
+      "key": "volume",
+      "label": "Volume and effort",
+      "status": "missing"
+    }
+  ],
+  "summary": "AP reviews and records vendor invoices, obtains manager review and client approval, and hands approved items to Treasury. Queried or rejected invoices stay out of the batch and payment run. The invoice is closed only after the specified records and bank evidence match. The initiating event and accountable role remain open.",
+  "memo_findings": [
+    {
+      "key": "name",
+      "status": "captured",
+      "answer": "Accounts Payable",
+      "evidence_turns": [
+        "context"
+      ]
+    },
+    {
+      "key": "purpose",
+      "status": "captured",
+      "answer": "Accounts Payable prepares and hands off manager-reviewed, client-approved vendor invoices to Treasury.",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "key": "trigger",
+      "status": "partial",
+      "answer": "The initiating event and who receives or detects it are not established. The participant cannot give a universal cycle or deadline.",
+      "evidence_turns": [
+        "t002",
+        "t006"
+      ]
+    },
+    {
+      "key": "completion",
+      "status": "partial",
+      "answer": "Who performs the closing match and how discrepancies are resolved before invoice closure remain unspecified.\nBefore an invoice is closed, the retained PDF, invoice log, Entrilia, payment log and bank evidence must match.",
+      "evidence_turns": [
+        "t006"
+      ]
+    },
+    {
+      "key": "accountable",
+      "status": "partial",
+      "answer": "The role accountable for the overall result is not established; the manager is reported as reviewing invoices, not as accountable for the process.",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "key": "lifecycle",
+      "status": "partial",
+      "answer": "Accounts payable reviews a vendor invoice, saves its PDF in Box, and logs vendor, invoice number, date, entity, and amount in Excel. Before recording it in Entrilia, the team searches for duplicates by vendor, invoice number, and amount. Only an invoice that has been manager-reviewed and client-approved is sent to Treasury under MC-07.\nAfter the manager checks the log, record, amount, coding, duplicate result and package completeness, AP resolves comments and sends the exact batch using the approved email or Adobe e-sign method. AP retains the client approval identifying each invoice and total.\nAt handoff to Treasury, vendor, amount, entity and approval must match. New or changed bank details are flagged for callback and screening.\nInvoices under query or rejected stay out of the approved batch and payment run. Comments are resolved against the invoice and its support; the exact client-approved invoices and total are retained, and only those items are released to MC-07.\nBefore closing the invoice, the retained PDF, invoice log, Entrilia, payment log and bank evidence must match.",
+      "evidence_turns": [
+        "t002",
+        "t004",
+        "t006"
+      ]
+    },
+    {
+      "key": "checks",
+      "status": "partial",
+      "answer": "Before recording an invoice in Entrilia, AP searches for duplicates using vendor, invoice number and amount. An invoice is sent to Treasury only after manager review and client approval.\nThe client's review criteria and handling of delayed invoices remain unspecified.\nThe manager checks the invoice log, Entrilia record, amount, coding, duplicate-check result and package completeness. AP resolves comments before sending the exact batch for client approval.\nAP retains the client's approval identifying each invoice and the total. Vendor, amount, entity and approval must match at the Treasury handoff.\nNew or changed bank details are flagged for callback and screening.\nWho performs callback and screening, how they are completed and what happens if they fail remain unspecified.\nQueried or rejected invoices must be excluded from the approved batch and payment run; comments are resolved against the invoice and support before release of approved items.\nRelevant authorizations must be documented; the participant cannot identify a universal urgent approver.",
+      "evidence_turns": [
+        "t002",
+        "t004",
+        "t006"
+      ]
+    },
+    {
+      "key": "variations",
+      "status": "partial",
+      "answer": "For new or changed bank details, the details are flagged for callback and screening.\nThe reason for the callback and screening route and its additional effort are not established; other applicable differences remain unexplored.",
+      "evidence_turns": [
+        "t004"
+      ]
+    },
+    {
+      "key": "pain_points",
+      "status": "unknown",
+      "answer": "UNKNOWN / TBD — not established in the interview.",
+      "evidence_turns": []
+    },
+    {
+      "key": "risk",
+      "status": "unknown",
+      "answer": "UNKNOWN / TBD — not established in the interview.",
+      "evidence_turns": []
+    },
+    {
+      "key": "materials",
+      "status": "partial",
+      "answer": "The vendor invoice PDF is saved in Box; an Excel log records vendor, invoice number, date, entity, and amount. MC-07 is cited as the basis under which the approved invoice is sent to Treasury; its contents and location are not provided.\nAP retains client approval identifying each invoice and the batch total; the exact batch is sent using approved email or Adobe e-sign.\nThe payment log and bank evidence are used alongside the retained PDF, invoice log and Entrilia for the match required before invoice closure.",
+      "evidence_turns": [
+        "t002",
+        "t004",
+        "t006"
+      ]
+    },
+    {
+      "key": "scope",
+      "status": "partial",
+      "answer": "The reported work concerns vendor invoices and includes an entity field in the log.\nEntity types and clients covered, general GPFS versus client-specific applicability, and the process boundary remain unspecified.",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "key": "rules",
+      "status": "partial",
+      "answer": "The reported duplicate search compares vendor, invoice number, and amount before Entrilia recording. MC-07 is cited for sending only manager-reviewed and client-approved invoices to Treasury; its authority and contents have not been supplied.",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "key": "connections",
+      "status": "partial",
+      "answer": "Accounts Payable sends a manager-reviewed, client-approved invoice to Treasury under MC-07; vendor, amount, entity and approval must match at handoff.\nTreasury's subsequent actions and receipt or acceptance confirmation remain unspecified.",
+      "evidence_turns": [
+        "t002",
+        "t004"
+      ]
+    },
+    {
+      "key": "data_systems",
+      "status": "partial",
+      "answer": "AP saves the invoice PDF in Box and logs invoice details in Excel; the duplicate search occurs before recording the invoice in Entrilia.\nThe source of invoice data, entry method and authoritative record remain unspecified.\nAP sends the exact batch using the approved email or Adobe e-sign method and retains the client approval.",
+      "evidence_turns": [
+        "t002",
+        "t004"
+      ]
+    },
+    {
+      "key": "volume",
+      "status": "unknown",
+      "answer": "UNKNOWN / TBD — not established in the interview.",
+      "evidence_turns": []
+    }
+  ],
+  "focus": "Invoice queries, release and closing match",
+  "parking_lot": [],
+  "draft": null,
+  "app_version": "0.32.0",
+  "capture_provenance": {
+    "method": "document_simulation",
+    "participant_confirmed": false,
+    "process_owner_approved": false,
+    "source_documents": [
+      {
+        "filename": "IP1-export.pdf",
+        "sha256": "d0f89ee7c7cc8ffbcd39c268b47b765888105e588f60199106356ca31df177c1"
+      }
+    ]
+  },
+  "closure": {
+    "asked": false,
+    "confirmed": false
+  }
+}

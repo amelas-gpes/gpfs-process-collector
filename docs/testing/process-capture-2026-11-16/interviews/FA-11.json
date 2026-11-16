@@ -1,0 +1,1603 @@
+{
+  "schema_version": 1,
+  "context": {
+    "process_name": "Financial Close & Reporting Overview",
+    "objective": "Document how this process works, including controls and what remains unresolved."
+  },
+  "turns": [
+    {
+      "id": "t1",
+      "role": "user",
+      "text": "Financial Close & Reporting Overview routes the quarterly close to the detailed processes. It has no separate execution or completion criteria and grants no extra approval authority."
+    },
+    {
+      "id": "t2",
+      "role": "assistant",
+      "text": "Which detailed close or reporting process would you like to walk through?"
+    },
+    {
+      "id": "t3",
+      "role": "user",
+      "text": "I'd like to document the routing itself. For workbook preparation and account support the overview sends work to FA-13, cash reconciliation to FA-16, statement generation and tie-out to FA-12 and binder assembly to FA-15A. Before work begins, each workstream must be assigned to its documented detailed process and a routing or assignment record retained."
+    },
+    {
+      "id": "t4",
+      "role": "assistant",
+      "text": "Who assigns each workstream to its detailed process?"
+    },
+    {
+      "id": "t5",
+      "role": "user",
+      "text": "The overview does not specify who makes the routing assignment, who checks it, or the firmwide close calendar owner. Each detailed process defines its own controls. At overall close level the documented review chain is Fund Accountant, Controller, Director and client; the client approves the completed package. This chain is not evidence that any one of those roles owns routing."
+    },
+    {
+      "id": "t6",
+      "role": "assistant",
+      "text": "Where is the routing or assignment record kept?"
+    },
+    {
+      "id": "t7",
+      "role": "user",
+      "text": "I can't identify a controlled location for that assignment record from this overview. Recordkeeping otherwise follows the detailed processes. The current approved calendar, checklists and their owners aren't confirmed. We preserve the client's approved method with its source, effective date, owner/approver and exceptions; the mostly blank toolkit does not authorize choosing a method."
+    },
+    {
+      "id": "t8",
+      "role": "assistant",
+      "text": "Does this routing apply the same way across the quarterly closes you cover, or does it vary?"
+    },
+    {
+      "id": "t9",
+      "role": "user",
+      "text": "Q1–Q3 are usually unaudited; Q4 is generally audited with footnotes, subject to the client and engagement. Client methods, templates, delivery and milestones differ. A prior client's answer must be verified for the current entity and period and can't be generalized to another engagement. Organization-wide due dates and escalation timeframes are not confirmed."
+    },
+    {
+      "id": "t10",
+      "role": "assistant",
+      "text": "How does the Q4 audit and footnote work change the routing to detailed processes, if at all?"
+    },
+    {
+      "id": "t11",
+      "role": "user",
+      "text": "The route for audited financial statements and the agreement check is still FA-12, with engagement-specific footnote work. Binder support goes to FA-15A and year-end audit support to FA-15B. I cannot identify a separate Q4 routing workflow from this overview. An unresolved upstream issue keeps the dependent statement, binder or investor reporting step open. The investor-reporting and portal release SOP has not been identified."
+    },
+    {
+      "id": "t12",
+      "role": "assistant",
+      "text": "What can go wrong if a workstream is not assigned to its documented detailed process before work begins?"
+    },
+    {
+      "id": "t13",
+      "role": "user",
+      "text": "Without a documented assignment, execution and release can be assigned inconsistently; an unsupported item can block downstream client, auditor, tax or investor use. The quarter's intended outputs include a reconciled workbook, approved statements, evidence of review, complete binder and released investor packages. Those outputs and detailed procedures govern completion, not a separate sign-off for the routing overview."
+    },
+    {
+      "id": "t14",
+      "role": "assistant",
+      "text": "When a client’s milestones or delivery method differs, what changes in the workstream assignments, if anything?"
+    }
+  ],
+  "memo_findings": [
+    {
+      "answer": "The overview is called “Financial Close & Reporting Overview.”",
+      "evidence_turns": [
+        "t1"
+      ],
+      "key": "name",
+      "status": "captured"
+    },
+    {
+      "answer": "The overview routes quarterly close work to its detailed processes.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "key": "purpose",
+      "status": "captured"
+    },
+    {
+      "answer": "The overview concerns the quarterly close.\nThe event that initiates routing and any fixed routing deadline remain unspecified.\nThe overview does not specify the firmwide close calendar owner.\nOrganization-wide due dates and escalation timeframes are not confirmed.",
+      "evidence_turns": [
+        "t1",
+        "t3",
+        "t5",
+        "t9"
+      ],
+      "key": "trigger",
+      "status": "partial"
+    },
+    {
+      "answer": "This overview has no separate completion criteria; completion belongs to the detailed processes it routes to.\nThe quarter's intended outputs are a reconciled workbook, approved statements, evidence of review, a complete binder and released investor packages. Those outputs and the detailed procedures govern completion; there is no separate routing-overview sign-off.",
+      "evidence_turns": [
+        "t1",
+        "t13"
+      ],
+      "key": "completion",
+      "status": "captured"
+    },
+    {
+      "answer": "The overview does not specify who makes routing assignments; the overall close review chain does not establish a routing owner.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "key": "accountable",
+      "status": "partial"
+    },
+    {
+      "answer": "The overview routes the quarterly close to detailed processes and has no separate execution. Before work begins, each workstream must be assigned to its documented detailed process, and a routing or assignment record retained.\nFor audited financial statements and the agreement check, the overview routes work to FA-12, with engagement-specific footnote work. Binder support goes to FA-15A and year-end audit support to FA-15B.\nAn unresolved upstream issue keeps the dependent statement, binder or investor reporting step open.",
+      "evidence_turns": [
+        "t1",
+        "t3",
+        "t11"
+      ],
+      "key": "lifecycle",
+      "status": "partial"
+    },
+    {
+      "answer": "The overview grants no extra approval authority.\nBefore work begins, each workstream must be assigned to its documented detailed process and a routing or assignment record retained.\nThe overview does not specify who checks routing assignments.\nEach detailed process defines its own controls. At overall close level, the documented review chain is Fund Accountant, Controller, Director and client; the client approves the completed package. This does not establish routing ownership.",
+      "evidence_turns": [
+        "t1",
+        "t3",
+        "t5"
+      ],
+      "key": "checks",
+      "status": "partial"
+    },
+    {
+      "answer": "Q1–Q3 closes are usually unaudited; Q4 is generally audited with footnotes, subject to the client and engagement.\nClient methods, templates, delivery and milestones differ between engagements.\nThe specific changes to routing or other work arising from differing client methods, templates, delivery and milestones have not been described.\nQ4 is generally audited with footnotes, subject to the client and engagement. Audited statements and the agreement check still route to FA-12, with engagement-specific footnote work; year-end audit support routes to FA-15B.\nThe participant cannot identify a separate Q4 routing workflow from the overview.",
+      "evidence_turns": [
+        "t9",
+        "t11"
+      ],
+      "key": "variations",
+      "status": "partial"
+    },
+    {
+      "answer": "",
+      "evidence_turns": [],
+      "key": "pain_points",
+      "status": "unknown"
+    },
+    {
+      "answer": "An unresolved upstream issue can keep a dependent statement, binder or investor reporting step open.\nWithout a documented assignment, execution and release can be assigned inconsistently. An unsupported item can block downstream client, auditor, tax or investor use.",
+      "evidence_turns": [
+        "t11",
+        "t13"
+      ],
+      "key": "risk",
+      "status": "captured"
+    },
+    {
+      "answer": "A routing or assignment record must be retained for the workstream assignments.\nThe location and custodian of the routing or assignment record are not established.\nRecordkeeping otherwise follows the detailed processes.\nThe current approved calendar and checklists, and their owners, are not confirmed.\nA mostly blank toolkit is mentioned; it does not authorize choosing a method.\nThe investor-reporting and portal release SOP has not been identified.",
+      "evidence_turns": [
+        "t3",
+        "t7",
+        "t11"
+      ],
+      "key": "materials",
+      "status": "partial"
+    },
+    {
+      "answer": "This is an overview of the quarterly close that routes to detailed processes, with no separate execution or completion criteria.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "key": "scope",
+      "status": "partial"
+    },
+    {
+      "answer": "Each workstream must be assigned to its documented detailed process before work begins.\nThe client's approved method is preserved with its source, effective date, owner/approver and exceptions; the mostly blank toolkit does not authorize choosing a method.\nA prior client's answer must be verified for the current entity and period and cannot be generalized to another engagement.",
+      "evidence_turns": [
+        "t3",
+        "t7",
+        "t9"
+      ],
+      "key": "rules",
+      "status": "partial"
+    },
+    {
+      "answer": "The overview routes workbook preparation and account support to FA-13, cash reconciliation to FA-16, statement generation and tie-out to FA-12, and binder assembly to FA-15A.\nYear-end audit support routes to FA-15B. An unresolved upstream issue keeps dependent statement, binder or investor reporting work open.\nThe investor-reporting and portal release SOP has not been identified.",
+      "evidence_turns": [
+        "t3",
+        "t11"
+      ],
+      "key": "connections",
+      "status": "partial"
+    },
+    {
+      "answer": "The participant cannot identify a controlled location for the routing or assignment record from the overview.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "key": "data_systems",
+      "status": "partial"
+    },
+    {
+      "answer": "",
+      "evidence_turns": [],
+      "key": "volume",
+      "status": "unknown"
+    }
+  ],
+  "coverage": [
+    {
+      "key": "name",
+      "label": "Name & other names",
+      "status": "partial"
+    },
+    {
+      "key": "purpose",
+      "label": "Purpose & result",
+      "status": "partial"
+    },
+    {
+      "key": "trigger",
+      "label": "Start, cadence & deadlines",
+      "status": "partial"
+    },
+    {
+      "key": "completion",
+      "label": "Finished condition",
+      "status": "partial"
+    },
+    {
+      "key": "accountable",
+      "label": "Accountability",
+      "status": "partial"
+    },
+    {
+      "key": "lifecycle",
+      "label": "Items, stages & handoffs",
+      "status": "partial"
+    },
+    {
+      "key": "checks",
+      "label": "Checks, approvals & proof",
+      "status": "partial"
+    },
+    {
+      "key": "variations",
+      "label": "Variations and conditions",
+      "status": "partial"
+    },
+    {
+      "key": "pain_points",
+      "label": "Manual work & pain",
+      "status": "missing"
+    },
+    {
+      "key": "risk",
+      "label": "Consequences of failure",
+      "status": "partial"
+    },
+    {
+      "key": "materials",
+      "label": "Existing materials",
+      "status": "partial"
+    },
+    {
+      "key": "scope",
+      "label": "Scope & entity context",
+      "status": "partial"
+    },
+    {
+      "key": "rules",
+      "label": "Business rules & lineage",
+      "status": "partial"
+    },
+    {
+      "key": "connections",
+      "label": "Connected processes",
+      "status": "partial"
+    },
+    {
+      "key": "data_systems",
+      "label": "Data & systems",
+      "status": "partial"
+    },
+    {
+      "key": "volume",
+      "label": "Volume & effort",
+      "status": "missing"
+    }
+  ],
+  "focus": "Consequences of missing assignments and close completion",
+  "summary": "The participant identified the quarter's intended outputs and clarified that detailed procedures, not a separate overview sign-off, govern completion. Missing assignments can lead to inconsistent execution or release, while unsupported items can block downstream use.",
+  "parking_lot": [],
+  "taxonomy": [
+    {
+      "evidence_turns": [
+        "t1"
+      ],
+      "facet": "functional_area",
+      "note": "Participant describes a quarterly financial close and reporting overview.",
+      "value": "financial_reporting"
+    },
+    {
+      "evidence_turns": [
+        "t3"
+      ],
+      "facet": "functional_area",
+      "note": "Reported detailed work includes account support and cash reconciliation.",
+      "value": "fund_accounting"
+    },
+    {
+      "evidence_turns": [
+        "t5"
+      ],
+      "facet": "control_type",
+      "note": "Reported at overall close level for the completed package, not as routing approval.",
+      "value": "client_approval"
+    },
+    {
+      "evidence_turns": [
+        "t9"
+      ],
+      "facet": "client_applicability",
+      "note": "Participant reports client methods, templates, delivery and milestones differ; specific routing effects remain unresolved.",
+      "value": "multi_client_variant"
+    },
+    {
+      "evidence_turns": [
+        "t9"
+      ],
+      "facet": "variant_class",
+      "note": "Reported client differences in methods, templates, delivery and milestones; details and sources are not yet established.",
+      "value": "client_specific"
+    }
+  ],
+  "connections_out": [
+    {
+      "condition": "Workbook preparation and account support",
+      "counterpart": "FA-13",
+      "evidence_turns": [
+        "t3"
+      ],
+      "relationship_type": "hands_off_to"
+    },
+    {
+      "condition": "Cash reconciliation",
+      "counterpart": "FA-16",
+      "evidence_turns": [
+        "t3"
+      ],
+      "relationship_type": "hands_off_to"
+    },
+    {
+      "condition": "Statement generation and tie-out",
+      "counterpart": "FA-12",
+      "evidence_turns": [
+        "t3"
+      ],
+      "relationship_type": "hands_off_to"
+    },
+    {
+      "condition": "Binder assembly",
+      "counterpart": "FA-15A",
+      "evidence_turns": [
+        "t3"
+      ],
+      "relationship_type": "hands_off_to"
+    },
+    {
+      "condition": "Audited financial statements and agreement check, with engagement-specific footnote work",
+      "counterpart": "FA-12",
+      "evidence_turns": [
+        "t11"
+      ],
+      "relationship_type": "hands_off_to"
+    },
+    {
+      "condition": "Binder support",
+      "counterpart": "FA-15A",
+      "evidence_turns": [
+        "t11"
+      ],
+      "relationship_type": "hands_off_to"
+    },
+    {
+      "condition": "Year-end audit support",
+      "counterpart": "FA-15B",
+      "evidence_turns": [
+        "t11"
+      ],
+      "relationship_type": "hands_off_to"
+    }
+  ],
+  "fact_provenance": [
+    {
+      "topic": "name",
+      "text": "The overview is called “Financial Close & Reporting Overview.”",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "520c44fa2b884d7e",
+      "recorded_at": "2026-11-16T22:32:45.392+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "Financial Close & Reporting Overview routes the quarterly close to the detailed processes."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "purpose",
+      "text": "The overview routes quarterly close work to its detailed processes.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "2247cce467abb9b0",
+      "recorded_at": "2026-11-16T22:33:20.031+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "routes the quarterly close to the detailed processes"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "The overview concerns the quarterly close.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "c2b8f8084f1908b9",
+      "recorded_at": "2026-11-16T22:33:20.031+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "routes the quarterly close to the detailed processes"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "This overview has no separate completion criteria; completion belongs to the detailed processes it routes to.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "cd5c89bc0be5d12b",
+      "recorded_at": "2026-11-16T22:32:45.392+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "It has no separate execution or completion criteria"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The overview routes the quarterly close to detailed processes and has no separate execution. Before work begins, each workstream must be assigned to its documented detailed process, and a routing or assignment record retained.",
+      "evidence_turns": [
+        "t1",
+        "t3"
+      ],
+      "history_ref": "7c7c7abe40925392",
+      "recorded_at": "2026-11-16T22:33:20.034+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "routes the quarterly close to the detailed processes. It has no separate execution"
+        },
+        {
+          "source_id": "t3",
+          "quote": "Before work begins, each workstream must be assigned to its documented detailed process and a routing or assignment record retained."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The overview grants no extra approval authority.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "c140cb207be9d3c4",
+      "recorded_at": "2026-11-16T22:33:20.034+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "grants no extra approval authority"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "scope",
+      "text": "This is an overview of the quarterly close that routes to detailed processes, with no separate execution or completion criteria.",
+      "evidence_turns": [
+        "t1"
+      ],
+      "history_ref": "22273733eab9d50b",
+      "recorded_at": "2026-11-16T22:32:45.392+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "routes the quarterly close to the detailed processes. It has no separate execution or completion criteria"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "The overview routes workbook preparation and account support to FA-13, cash reconciliation to FA-16, statement generation and tie-out to FA-12, and binder assembly to FA-15A.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "9c5fee36afce4868",
+      "recorded_at": "2026-11-16T22:33:20.034+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "For workbook preparation and account support the overview sends work to FA-13, cash reconciliation to FA-16, statement generation and tie-out to FA-12 and binder assembly to FA-15A."
+        }
+      ],
+      "unverified": [
+        "Check this against the cited sources: 15"
+      ]
+    },
+    {
+      "topic": "trigger",
+      "text": "The event that initiates routing and any fixed routing deadline remain unspecified.",
+      "evidence_turns": [
+        "t1",
+        "t3"
+      ],
+      "history_ref": "24ceb999a0f701d6",
+      "recorded_at": "2026-11-16T22:33:20.035+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t1",
+          "quote": "routes the quarterly close"
+        },
+        {
+          "source_id": "t3",
+          "quote": "Before work begins, each workstream must be assigned"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Before work begins, each workstream must be assigned to its documented detailed process and a routing or assignment record retained.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "0242bc934efedb8c",
+      "recorded_at": "2026-11-16T22:33:20.038+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "Before work begins, each workstream must be assigned to its documented detailed process and a routing or assignment record retained."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "A routing or assignment record must be retained for the workstream assignments.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "3e2c4ebfcf6f43c0",
+      "recorded_at": "2026-11-16T22:33:36.906+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "a routing or assignment record retained"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "Each workstream must be assigned to its documented detailed process before work begins.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "3bd3115fc5c3476a",
+      "recorded_at": "2026-11-16T22:33:20.040+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "Before work begins, each workstream must be assigned to its documented detailed process"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The location and custodian of the routing or assignment record are not established.",
+      "evidence_turns": [
+        "t3"
+      ],
+      "history_ref": "13328f6dcaa1f26a",
+      "recorded_at": "2026-11-16T22:33:36.906+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t3",
+          "quote": "a routing or assignment record retained"
+        }
+      ],
+      "unverified": [
+        "Check this against the cited sources: custodian"
+      ]
+    },
+    {
+      "topic": "accountable",
+      "text": "The overview does not specify who makes routing assignments; the overall close review chain does not establish a routing owner.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "e5fb847fcbaa28aa",
+      "recorded_at": "2026-11-16T22:33:36.906+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "The overview does not specify who makes the routing assignment"
+        },
+        {
+          "source_id": "t5",
+          "quote": "This chain is not evidence that any one of those roles owns routing."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The overview does not specify who checks routing assignments.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "2dae36dde94cbb8f",
+      "recorded_at": "2026-11-16T22:33:36.906+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "who checks it"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "The overview does not specify the firmwide close calendar owner.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "59bc2954c3f1e293",
+      "recorded_at": "2026-11-16T22:33:36.906+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "or the firmwide close calendar owner"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "Each detailed process defines its own controls. At overall close level, the documented review chain is Fund Accountant, Controller, Director and client; the client approves the completed package. This does not establish routing ownership.",
+      "evidence_turns": [
+        "t5"
+      ],
+      "history_ref": "d14e0e95f988f990",
+      "recorded_at": "2026-11-16T22:33:36.906+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t5",
+          "quote": "Each detailed process defines its own controls. At overall close level the documented review chain is Fund Accountant, Controller, Director and client; the client approves the completed package. This chain is not evidence that any one of those roles owns routing."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "Recordkeeping otherwise follows the detailed processes.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "b74f7ec73f7d9b60",
+      "recorded_at": "2026-11-16T22:33:55.058+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "Recordkeeping otherwise follows the detailed processes."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The current approved calendar and checklists, and their owners, are not confirmed.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "5ef673b8d296a03f",
+      "recorded_at": "2026-11-16T22:33:55.058+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "The current approved calendar, checklists and their owners aren't confirmed."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "A mostly blank toolkit is mentioned; it does not authorize choosing a method.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "90a56e91fbf42a61",
+      "recorded_at": "2026-11-16T22:33:55.058+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "the mostly blank toolkit does not authorize choosing a method"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "The client's approved method is preserved with its source, effective date, owner/approver and exceptions; the mostly blank toolkit does not authorize choosing a method.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "e3c02406459d47a8",
+      "recorded_at": "2026-11-16T22:33:55.058+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "We preserve the client's approved method with its source, effective date, owner/approver and exceptions; the mostly blank toolkit does not authorize choosing a method."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "The participant cannot identify a controlled location for the routing or assignment record from the overview.",
+      "evidence_turns": [
+        "t7"
+      ],
+      "history_ref": "d6f664100db896a2",
+      "recorded_at": "2026-11-16T22:33:55.058+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t7",
+          "quote": "I can't identify a controlled location for that assignment record from this overview."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "Q1–Q3 closes are usually unaudited; Q4 is generally audited with footnotes, subject to the client and engagement.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "bd555fc75fe9d574",
+      "recorded_at": "2026-11-16T22:34:33.606+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "Q1–Q3 are usually unaudited; Q4 is generally audited with footnotes, subject to the client and engagement."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "Client methods, templates, delivery and milestones differ between engagements.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "9e3f4663ae2e8d34",
+      "recorded_at": "2026-11-16T22:34:33.606+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "Client methods, templates, delivery and milestones differ."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "rules",
+      "text": "A prior client's answer must be verified for the current entity and period and cannot be generalized to another engagement.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "39efaa5935b7d06a",
+      "recorded_at": "2026-11-16T22:34:33.608+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "A prior client's answer must be verified for the current entity and period and can't be generalized to another engagement."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "trigger",
+      "text": "Organization-wide due dates and escalation timeframes are not confirmed.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "37af5baeabcb02b6",
+      "recorded_at": "2026-11-16T22:34:33.608+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "Organization-wide due dates and escalation timeframes are not confirmed."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "The specific changes to routing or other work arising from differing client methods, templates, delivery and milestones have not been described.",
+      "evidence_turns": [
+        "t9"
+      ],
+      "history_ref": "861ff2683a614479",
+      "recorded_at": "2026-11-16T22:34:33.608+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "Client methods, templates, delivery and milestones differ."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "For audited financial statements and the agreement check, the overview routes work to FA-12, with engagement-specific footnote work. Binder support goes to FA-15A and year-end audit support to FA-15B.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "b72c7ec562ac39fa",
+      "recorded_at": "2026-11-16T22:35:03.283+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "The route for audited financial statements and the agreement check is still FA-12, with engagement-specific footnote work. Binder support goes to FA-15A and year-end audit support to FA-15B."
+        }
+      ],
+      "unverified": [
+        "Check this against the cited sources: 15"
+      ]
+    },
+    {
+      "topic": "variations",
+      "text": "Q4 is generally audited with footnotes, subject to the client and engagement. Audited statements and the agreement check still route to FA-12, with engagement-specific footnote work; year-end audit support routes to FA-15B.",
+      "evidence_turns": [
+        "t9",
+        "t11"
+      ],
+      "history_ref": "0ee23f48df04fc60",
+      "recorded_at": "2026-11-16T22:35:03.284+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t9",
+          "quote": "Q4 is generally audited with footnotes, subject to the client and engagement."
+        },
+        {
+          "source_id": "t11",
+          "quote": "The route for audited financial statements and the agreement check is still FA-12, with engagement-specific footnote work. Binder support goes to FA-15A and year-end audit support to FA-15B."
+        }
+      ],
+      "unverified": [
+        "Check this against the cited sources: 15"
+      ]
+    },
+    {
+      "topic": "variations",
+      "text": "The participant cannot identify a separate Q4 routing workflow from the overview.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "738348aa9ea1ed40",
+      "recorded_at": "2026-11-16T22:35:03.284+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "I cannot identify a separate Q4 routing workflow from this overview."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "An unresolved upstream issue keeps the dependent statement, binder or investor reporting step open.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "837bd7308cc54e61",
+      "recorded_at": "2026-11-16T22:35:03.285+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "An unresolved upstream issue keeps the dependent statement, binder or investor reporting step open."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "risk",
+      "text": "An unresolved upstream issue can keep a dependent statement, binder or investor reporting step open.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "26c278c94bfcaa2a",
+      "recorded_at": "2026-11-16T22:35:03.285+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "An unresolved upstream issue keeps the dependent statement, binder or investor reporting step open."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "Year-end audit support routes to FA-15B. An unresolved upstream issue keeps dependent statement, binder or investor reporting work open.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "3f83d1888aec3ab0",
+      "recorded_at": "2026-11-16T22:35:03.285+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "year-end audit support to FA-15B. I cannot identify a separate Q4 routing workflow from this overview. An unresolved upstream issue keeps the dependent statement, binder or investor reporting step open."
+        }
+      ],
+      "unverified": [
+        "Check this against the cited sources: 15"
+      ]
+    },
+    {
+      "topic": "materials",
+      "text": "The investor-reporting and portal release SOP has not been identified.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "24ac48c9c0b1f527",
+      "recorded_at": "2026-11-16T22:35:03.285+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "The investor-reporting and portal release SOP has not been identified."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "The investor-reporting and portal release SOP has not been identified.",
+      "evidence_turns": [
+        "t11"
+      ],
+      "history_ref": "3995b5e52fda0d3b",
+      "recorded_at": "2026-11-16T22:35:03.285+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t11",
+          "quote": "The investor-reporting and portal release SOP has not been identified."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "completion",
+      "text": "The quarter's intended outputs are a reconciled workbook, approved statements, evidence of review, a complete binder and released investor packages. Those outputs and the detailed procedures govern completion; there is no separate routing-overview sign-off.",
+      "evidence_turns": [
+        "t13"
+      ],
+      "history_ref": "dc2b365e4c2c872f",
+      "recorded_at": "2026-11-16T22:35:23.056+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t13",
+          "quote": "The quarter's intended outputs include a reconciled workbook, approved statements, evidence of review, complete binder and released investor packages. Those outputs and detailed procedures govern completion, not a separate sign-off for the routing overview."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "risk",
+      "text": "Without a documented assignment, execution and release can be assigned inconsistently. An unsupported item can block downstream client, auditor, tax or investor use.",
+      "evidence_turns": [
+        "t13"
+      ],
+      "history_ref": "1743f48a017c86fe",
+      "recorded_at": "2026-11-16T22:35:23.056+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "support": [
+        {
+          "source_id": "t13",
+          "quote": "Without a documented assignment, execution and release can be assigned inconsistently; an unsupported item can block downstream client, auditor, tax or investor use."
+        }
+      ],
+      "unverified": []
+    }
+  ],
+  "fact_history": [
+    {
+      "topic": "purpose",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:32:45.392+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "9a1d9ff2031321ef"
+    },
+    {
+      "topic": "trigger",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:32:45.392+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "a925256197d86744"
+    },
+    {
+      "topic": "lifecycle",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:32:45.392+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "2b0f3a3ef28e9081"
+    },
+    {
+      "topic": "checks",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:32:45.392+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "970d0eaa21671d7e"
+    },
+    {
+      "topic": "connections",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:32:45.392+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6-luna",
+      "history_ref": "182bac00a9aa4047"
+    },
+    {
+      "topic": "materials",
+      "state": "superseded",
+      "recorded_at": "2026-11-16T22:33:20.038+00:00",
+      "origin": "lead",
+      "origin_model": "gpt-6.1-terra",
+      "history_ref": "d24280df8f639f34"
+    }
+  ],
+  "workflow": {
+    "connections": [
+      {
+        "evidence_turns": [
+          "t3"
+        ],
+        "from": "S1",
+        "label": "Workstream assigned AND assignment record retained",
+        "to": "S3"
+      },
+      {
+        "evidence_turns": [
+          "t3"
+        ],
+        "from": "S2",
+        "label": "Workstream assigned AND assignment record retained",
+        "to": "S3"
+      },
+      {
+        "evidence_turns": [
+          "t3"
+        ],
+        "from": "S1",
+        "label": "Workstream assigned AND assignment record retained",
+        "to": "S4"
+      },
+      {
+        "evidence_turns": [
+          "t3"
+        ],
+        "from": "S2",
+        "label": "Workstream assigned AND assignment record retained",
+        "to": "S4"
+      },
+      {
+        "evidence_turns": [
+          "t3"
+        ],
+        "from": "S1",
+        "label": "Workstream assigned AND assignment record retained",
+        "to": "S5"
+      },
+      {
+        "evidence_turns": [
+          "t3"
+        ],
+        "from": "S2",
+        "label": "Workstream assigned AND assignment record retained",
+        "to": "S5"
+      },
+      {
+        "evidence_turns": [
+          "t3"
+        ],
+        "from": "S1",
+        "label": "Workstream assigned AND assignment record retained",
+        "to": "S6"
+      },
+      {
+        "evidence_turns": [
+          "t3"
+        ],
+        "from": "S2",
+        "label": "Workstream assigned AND assignment record retained",
+        "to": "S6"
+      },
+      {
+        "evidence_turns": [
+          "t3",
+          "t11"
+        ],
+        "from": "S1",
+        "label": "Workstream assigned AND assignment record retained",
+        "to": "S7"
+      },
+      {
+        "evidence_turns": [
+          "t3",
+          "t11"
+        ],
+        "from": "S2",
+        "label": "Workstream assigned AND assignment record retained",
+        "to": "S7"
+      }
+    ],
+    "open_questions": [
+      "Are the outgoing paths from S1 (Assign workstreams) alternatives, or must they all occur?",
+      "Are the outgoing paths from S2 (Retain assignment record) alternatives, or must they all occur?",
+      "Does any incoming route start S3 (FA-13 workbook and support), or must all prerequisites finish?",
+      "Does any incoming route start S4 (FA-16 cash reconciliation), or must all prerequisites finish?",
+      "Does any incoming route start S5 (FA-12 statement work), or must all prerequisites finish?",
+      "Does any incoming route start S6 (FA-15A binder work), or must all prerequisites finish?",
+      "Does any incoming route start S7 (FA-15B year-end audit support), or must all prerequisites finish?",
+      "How does step S8 (Preserve client method) connect to the rest of this process, if at all?",
+      "How does step S9 (Hold dependent work open) connect to the rest of this process, if at all?",
+      "How does step S10 (Overall close review) connect to the rest of this process, if at all?",
+      "How does step S11 (Verify prior client answer) connect to the rest of this process, if at all?",
+      "What initiates routing, who detects it, and what input is ready at that point?",
+      "Who is accountable for routing, who makes and checks assignments, and how are handoffs communicated?",
+      "Where is the assignment record kept, who records it, and how is the before-work requirement enforced?",
+      "What is the order, if any, between assigning a workstream and retaining its assignment record, and how are the two prerequisites coordinated before detailed work begins?",
+      "How are unresolved upstream issues resolved, escalated and returned to the affected work?",
+      "What does each overall close reviewer check, what is blocked pending review, and how are rejection and rework handled?",
+      "Where are the overview, detailed procedures, current calendar and checklists available, and have they been reviewed? Who owns the calendar and checklists?",
+      "Which entity types and engagements does this routing cover, and what is the basis for treating it as general GPFS practice?",
+      "How are client methods verified for the current entity and period, who interprets conflicting sources, and where is that interpretation recorded?",
+      "Where does verification of a prior client's answer occur in the workflow, and what is its handoff?",
+      "How do client-specific methods, templates, delivery and milestones change the work, effort, charging or removal constraints?",
+      "What are the applicable deadlines, volumes, exception frequencies and most time-consuming or error-prone steps?",
+      "Which systems or records are authoritative, and how are routing information and client methods entered and stored?",
+      "What is the investor-reporting and portal release process, and how does it connect to this overview?"
+    ],
+    "steps": [
+      {
+        "actor": "UNKNOWN",
+        "completion_criteria": "Each workstream is assigned before work begins.",
+        "control_type": [
+          "none_reported"
+        ],
+        "data_origin": "UNKNOWN",
+        "description": "Assign each quarterly close workstream to its documented detailed process before work begins. The overview does not identify who assigns or checks the routing.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "t1",
+          "t3",
+          "t5"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S1",
+        "input": "Quarterly close workstreams",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "t3"
+            ],
+            "field": "deadline",
+            "text": "Before work begins, each workstream must be assigned to its documented detailed process and a routing or assignment record retained."
+          }
+        ],
+        "output": "Workstream-to-process assignments",
+        "parent_process": "Quarterly financial close and reporting",
+        "rule_source_ref": "Overview, as described by the participant",
+        "system": "UNKNOWN",
+        "title": "Assign workstreams",
+        "type": "activity"
+      },
+      {
+        "actor": "UNKNOWN",
+        "completion_criteria": "Record retained before work begins.",
+        "control_type": [
+          "none_reported"
+        ],
+        "data_origin": "Workstream assignments",
+        "description": "Retain a routing or assignment record before work begins. Its controlled location is not identified.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "t3",
+          "t7"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S2",
+        "input": "Workstream assignments",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "t3"
+            ],
+            "field": "deadline",
+            "text": "Before work begins, each workstream must be assigned to its documented detailed process and a routing or assignment record retained."
+          }
+        ],
+        "output": "Routing or assignment record",
+        "parent_process": "Quarterly financial close and reporting",
+        "rule_source_ref": "Overview, as described by the participant",
+        "system": "UNKNOWN",
+        "title": "Retain assignment record",
+        "type": "activity"
+      },
+      {
+        "actor": "UNKNOWN",
+        "completion_criteria": "UNKNOWN",
+        "control_type": [
+          "none_reported"
+        ],
+        "data_origin": "UNKNOWN",
+        "description": "The overview routes workbook preparation and account support to FA-13; its detailed execution is outside this routing overview.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "t1",
+          "t3"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S3",
+        "input": "Workbook preparation and account support workstream",
+        "operating_details": [],
+        "output": "UNKNOWN",
+        "parent_process": "Quarterly financial close and reporting",
+        "rule_source_ref": "Overview, as described by the participant",
+        "system": "UNKNOWN",
+        "title": "FA-13 workbook and support",
+        "type": "subprocess"
+      },
+      {
+        "actor": "UNKNOWN",
+        "completion_criteria": "UNKNOWN",
+        "control_type": [
+          "none_reported"
+        ],
+        "data_origin": "UNKNOWN",
+        "description": "The overview routes cash reconciliation to FA-16; its detailed execution is outside this routing overview.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "t1",
+          "t3"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S4",
+        "input": "Cash reconciliation workstream",
+        "operating_details": [],
+        "output": "UNKNOWN",
+        "parent_process": "Quarterly financial close and reporting",
+        "rule_source_ref": "Overview, as described by the participant",
+        "system": "UNKNOWN",
+        "title": "FA-16 cash reconciliation",
+        "type": "subprocess"
+      },
+      {
+        "actor": "UNKNOWN",
+        "completion_criteria": "UNKNOWN",
+        "control_type": [
+          "none_reported"
+        ],
+        "data_origin": "UNKNOWN",
+        "description": "The overview routes statement generation and tie-out to FA-12. Audited financial statements and the agreement check also route to FA-12, with engagement-specific footnote work.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "t3",
+          "t11"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S5",
+        "input": "Statement workstream",
+        "operating_details": [],
+        "output": "UNKNOWN",
+        "parent_process": "Quarterly financial close and reporting",
+        "rule_source_ref": "Overview, as described by the participant",
+        "system": "UNKNOWN",
+        "title": "FA-12 statement work",
+        "type": "subprocess"
+      },
+      {
+        "actor": "UNKNOWN",
+        "completion_criteria": "UNKNOWN",
+        "control_type": [
+          "none_reported"
+        ],
+        "data_origin": "UNKNOWN",
+        "description": "The overview routes binder assembly and binder support to FA-15A.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "t3",
+          "t11"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S6",
+        "input": "Binder workstream",
+        "operating_details": [],
+        "output": "UNKNOWN",
+        "parent_process": "Quarterly financial close and reporting",
+        "rule_source_ref": "Overview, as described by the participant",
+        "system": "UNKNOWN",
+        "title": "FA-15A binder work",
+        "type": "subprocess"
+      },
+      {
+        "actor": "UNKNOWN",
+        "completion_criteria": "UNKNOWN",
+        "control_type": [
+          "none_reported"
+        ],
+        "data_origin": "UNKNOWN",
+        "description": "The overview routes year-end audit support to FA-15B.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "t11"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S7",
+        "input": "Year-end audit support workstream",
+        "operating_details": [],
+        "output": "UNKNOWN",
+        "parent_process": "Quarterly financial close and reporting",
+        "rule_source_ref": "Overview, as described by the participant",
+        "system": "UNKNOWN",
+        "title": "FA-15B year-end audit support",
+        "type": "subprocess"
+      },
+      {
+        "actor": "UNKNOWN",
+        "completion_criteria": "UNKNOWN",
+        "control_type": [
+          "none_reported"
+        ],
+        "data_origin": "Client's approved method; source location UNKNOWN",
+        "description": "Preserve the client's approved method with its source, effective date, owner/approver, and exceptions. The mostly blank toolkit does not authorize choosing a method.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "t7"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S8",
+        "input": "Client's approved method and supporting details",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "t7"
+            ],
+            "field": "control",
+            "text": "the mostly blank toolkit does not authorize choosing a method."
+          }
+        ],
+        "output": "Preserved method and supporting details",
+        "parent_process": "Quarterly financial close and reporting",
+        "rule_source_ref": "UNKNOWN",
+        "system": "UNKNOWN",
+        "title": "Preserve client method",
+        "type": "activity"
+      },
+      {
+        "actor": "UNKNOWN",
+        "completion_criteria": "UNKNOWN",
+        "control_type": [
+          "none_reported"
+        ],
+        "data_origin": "UNKNOWN",
+        "description": "An unresolved upstream issue keeps the dependent statement, binder or investor reporting step open. Resolution and return handling are UNKNOWN.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "t11"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S9",
+        "input": "Unresolved upstream issue",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "t11"
+            ],
+            "field": "exception",
+            "text": "An unresolved upstream issue keeps the dependent statement, binder or investor reporting step open."
+          }
+        ],
+        "output": "Dependent step remains open",
+        "parent_process": "Quarterly financial close and reporting",
+        "rule_source_ref": "UNKNOWN",
+        "system": "UNKNOWN",
+        "title": "Hold dependent work open",
+        "type": "wait"
+      },
+      {
+        "actor": "Fund Accountant, Controller, Director and client",
+        "completion_criteria": "UNKNOWN for individual review levels",
+        "control_type": [
+          "client_approval"
+        ],
+        "data_origin": "UNKNOWN",
+        "description": "The participant reports an overall close review chain of Fund Accountant, Controller, Director and client; the client approves the completed package. This does not establish routing ownership or a separate routing sign-off.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "t5",
+          "t13"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S10",
+        "input": "Close package",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "t5"
+            ],
+            "field": "responsible",
+            "text": "the client approves the completed package."
+          }
+        ],
+        "output": "Client-approved completed package",
+        "parent_process": "Quarterly financial close and reporting",
+        "rule_source_ref": "Overview, as described by the participant",
+        "system": "UNKNOWN",
+        "title": "Overall close review",
+        "type": "activity"
+      },
+      {
+        "actor": "UNKNOWN",
+        "completion_criteria": "Verification for the current entity and period; verification method UNKNOWN.",
+        "control_type": [
+          "none_reported"
+        ],
+        "data_origin": "Prior client's answer",
+        "description": "A prior client's answer must be verified for the current entity and period and cannot be generalized to another engagement. Its placement and handoff are UNKNOWN.",
+        "entity_scope": [],
+        "entry_mode": "unknown",
+        "evidence_turns": [
+          "t9"
+        ],
+        "handoff": "UNKNOWN",
+        "id": "S11",
+        "input": "Prior client's answer and current entity and period",
+        "operating_details": [
+          {
+            "evidence_turns": [
+              "t9"
+            ],
+            "field": "control",
+            "text": "A prior client's answer must be verified for the current entity and period and can't be generalized to another engagement."
+          }
+        ],
+        "output": "UNKNOWN",
+        "parent_process": "Quarterly financial close and reporting",
+        "rule_source_ref": "UNKNOWN",
+        "system": "UNKNOWN",
+        "title": "Verify prior client answer",
+        "type": "activity"
+      }
+    ],
+    "title": "Financial Close & Reporting Overview"
+  },
+  "capture_provenance": {
+    "method": "document_simulation",
+    "participant_confirmed": false,
+    "process_owner_approved": false,
+    "source_documents": [
+      {
+        "filename": "IP1-export.pdf",
+        "sha256": "d0f89ee7c7cc8ffbcd39c268b47b765888105e588f60199106356ca31df177c1"
+      }
+    ]
+  },
+  "closure": {
+    "asked": false,
+    "confirmed": false
+  }
+}

@@ -1,0 +1,10 @@
+﻿Process,Step,Step title,Documented action
+FA-19A LOC Draw & Repayment Execution,8,Initiate accounting and execute cash movement,Initiate or post the required GL entry under the applicable accounting process.
+FA-19A LOC Draw & Repayment Execution,8,Initiate accounting and execute cash movement,"Complete the FA-17 payment, independent phone-verification (callback), and approval checks for repayment."
+FA-19A LOC Draw & Repayment Execution,8,Initiate accounting and execute cash movement,Execute the lender or bank cash movement.
+FA-19A LOC Draw & Repayment Execution,8,Initiate accounting and execute cash movement,"For a draw, confirm receipt before treating proceeds as cash available."
+FA-19A LOC Draw & Repayment Execution,9,Reconcile and close the event,Compare the executed amount with the approved request or repayment instruction.
+FA-19A LOC Draw & Repayment Execution,9,Reconcile and close the event,"Update the principal, accrued interest, maturity and duration dates or measures, and facility tracker."
+FA-19A LOC Draw & Repayment Execution,9,Reconcile and close the event,Update FA-16 categorized cash.
+FA-19A LOC Draw & Repayment Execution,9,Reconcile and close the event,"Resolve rejected, partial, or misapplied activity."
+FA-19A LOC Draw & Repayment Execution,9,Reconcile and close the event,"File the facility documents, model, approval, GL record, bank record, and reconciliation."

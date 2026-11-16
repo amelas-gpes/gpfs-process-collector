@@ -1,0 +1,3587 @@
+{
+  "fact_history": [
+    {
+      "history_ref": "bea1ae048f955f4e",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:16:44.971+00:00",
+      "topic": "checks",
+      "state": "superseded"
+    },
+    {
+      "history_ref": "1420340915c4034e",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:17:25.615+00:00",
+      "topic": "checks",
+      "state": "superseded"
+    },
+    {
+      "history_ref": "513d1c37a329814f",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:17:25.616+00:00",
+      "topic": "materials",
+      "state": "superseded"
+    },
+    {
+      "history_ref": "e91d9d341e88cfe8",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:18:01.778+00:00",
+      "topic": "materials",
+      "state": "superseded"
+    },
+    {
+      "history_ref": "d4dad19695065888",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:19:01.266+00:00",
+      "topic": "completion",
+      "state": "superseded"
+    }
+  ],
+  "turn_metadata": {
+    "t001": {
+      "channel": "interviewer",
+      "at": "2026-11-16T22:16:12.009Z"
+    },
+    "t002": {
+      "channel": "typed",
+      "at": "2026-11-16T22:16:34.371Z"
+    },
+    "t003": {
+      "channel": "interviewer",
+      "at": "2026-11-16T22:16:37.252Z"
+    },
+    "t004": {
+      "channel": "typed",
+      "at": "2026-11-16T22:17:08.535Z"
+    },
+    "t005": {
+      "channel": "interviewer",
+      "at": "2026-11-16T22:17:11.143Z"
+    },
+    "t006": {
+      "channel": "typed",
+      "at": "2026-11-16T22:17:39.541Z"
+    },
+    "t007": {
+      "channel": "interviewer",
+      "at": "2026-11-16T22:17:42.155Z"
+    },
+    "t008": {
+      "channel": "typed",
+      "at": "2026-11-16T22:18:33.257Z"
+    },
+    "t009": {
+      "channel": "interviewer",
+      "at": "2026-11-16T22:18:37.731Z"
+    },
+    "t010": {
+      "channel": "typed",
+      "at": "2026-11-16T22:19:07.491Z"
+    },
+    "t011": {
+      "channel": "interviewer",
+      "at": "2026-11-16T22:19:12.238Z"
+    },
+    "t012": {
+      "channel": "interviewer",
+      "at": "2026-11-16T22:22:24.165Z",
+      "kind": "pause"
+    }
+  },
+  "fact_provenance": [
+    {
+      "history_ref": "811f2c187732a136",
+      "origin": "legacy_aid",
+      "recorded_at": "2026-11-16T22:16:11.691+00:00",
+      "topic": "name",
+      "text": "Payment Execution & Callback Verification Controls",
+      "evidence_turns": [
+        "context"
+      ],
+      "support": [],
+      "unverified": []
+    },
+    {
+      "history_ref": "ee9f1d2b6bd753c1",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:16:44.969+00:00",
+      "topic": "trigger",
+      "text": "The payment preparer starts the work when there is an approved obligation and proposed payment instructions.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "The payment preparer starts when there is an approved obligation and proposed payment instructions."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "f61da60c24c1c692",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:16:44.971+00:00",
+      "topic": "lifecycle",
+      "text": "The payment preparer enters the payee, amount, purpose, entity, value date and folder reference in the Payments Log where those fields exist, then sets the status.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "They enter the payee, amount, purpose, entity, value date and folder reference in the Payments Log where those fields exist. They set the status"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "7fcaa56ab1e44eb3",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:16:44.971+00:00",
+      "topic": "checks",
+      "text": "The payment preparer checks whether the payment instructions are new or changed; either condition requires a callback.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "They set the status and check whether instructions are new or changed. Either condition requires a callback."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "0cae28e3060ebb38",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:18:01.778+00:00",
+      "topic": "checks",
+      "text": "The callback performer's specific role remains unclear.",
+      "evidence_turns": [
+        "t004",
+        "t006"
+      ],
+      "support": [
+        {
+          "source_id": "t004",
+          "quote": "The callback performer uses an approved independent source"
+        },
+        {
+          "source_id": "t006",
+          "quote": "On a verified payment, the reviewer still matches the invoice"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "462495ce59428554",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:16:44.971+00:00",
+      "topic": "materials",
+      "text": "The Payments Log is used to enter payment details and set status; the preparer enters the listed fields where they exist.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "They enter the payee, amount, purpose, entity, value date and folder reference in the Payments Log where those fields exist. They set the status"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "880c5e6825a863ef",
+      "origin_model": "gpt-6-luna",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:16:44.971+00:00",
+      "topic": "rules",
+      "text": "New or changed payment instructions each require a callback.",
+      "evidence_turns": [
+        "t002"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "check whether instructions are new or changed. Either condition requires a callback."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "385d6a48f81a8feb",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:17:25.615+00:00",
+      "topic": "lifecycle",
+      "text": "For a required callback, the callback performer obtains the phone number from an approved independent source, not the instruction email, and calls the known contact. They verify the contact's name and relationship, compare payee and account-holder names, and verify applicable bank details.",
+      "evidence_turns": [
+        "t002",
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t002",
+          "quote": "Either condition requires a callback."
+        },
+        {
+          "source_id": "t004",
+          "quote": "They call the known contact, verify the name and relationship, compare payee and account-holder names, and verify IBAN and SWIFT in Europe or ABA in the US plus other applicable account details."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "b46553f885211e67",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:17:25.616+00:00",
+      "topic": "checks",
+      "text": "The callback performer uses an approved independent source for the phone number, never the instruction email. They verify the contact's name and relationship, compare payee and account-holder names, and verify IBAN and SWIFT in Europe or ABA in the US, plus other applicable account details.",
+      "evidence_turns": [
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t004",
+          "quote": "The callback performer uses an approved independent source for the phone number, never the instruction email. They call the known contact, verify the name and relationship, compare payee and account-holder names, and verify IBAN and SWIFT in Europe or ABA in the US plus other applicable account details."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "5a6be437e781cbb8",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:17:25.616+00:00",
+      "topic": "checks",
+      "text": "The callback performer records who called, the contact, relationship, date and time, retaining only permitted masked bank details.",
+      "evidence_turns": [
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t004",
+          "quote": "They record who called, contact, relationship, date and time, keeping only permitted masked bank details."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "9913507eb3c7b75d",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:18:01.778+00:00",
+      "topic": "materials",
+      "text": "A callback record captures the caller, contact, relationship, date and time, with only permitted masked bank details retained.",
+      "evidence_turns": [
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t004",
+          "quote": "They record who called, contact, relationship, date and time, keeping only permitted masked bank details."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "095df7d85d7d6d44",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:17:25.616+00:00",
+      "topic": "variations",
+      "text": "Callback bank-detail verification differs by geography: IBAN and SWIFT are verified in Europe, while ABA is verified in the US, alongside other applicable account details.",
+      "evidence_turns": [
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t004",
+          "quote": "verify IBAN and SWIFT in Europe or ABA in the US plus other applicable account details"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "d411dcdd71405787",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:17:25.617+00:00",
+      "topic": "rules",
+      "text": "The callback phone number must come from an approved independent source, not the instruction email; only permitted masked bank details are kept.",
+      "evidence_turns": [
+        "t004"
+      ],
+      "support": [
+        {
+          "source_id": "t004",
+          "quote": "uses an approved independent source for the phone number, never the instruction email"
+        },
+        {
+          "source_id": "t004",
+          "quote": "keeping only permitted masked bank details"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "7125c6772db7d3e1",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:19:31.773+00:00",
+      "topic": "materials",
+      "text": "The preparer files callback records in the binder or payment folder and links it in the Payments Log.",
+      "evidence_turns": [
+        "t010"
+      ],
+      "support": [
+        {
+          "source_id": "t010",
+          "quote": "The preparer files the approval, callback, screening, balance, payment and final bank-status records in the binder or payment folder, links it in the log"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "b7232278bb410417",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:18:01.780+00:00",
+      "topic": "lifecycle",
+      "text": "Work stops and the payment cannot be released if the contact cannot be reached, details conflict, or payee and account-holder names do not match.",
+      "evidence_turns": [
+        "t006"
+      ],
+      "support": [
+        {
+          "source_id": "t006",
+          "quote": "Stop if the contact cannot be reached, details conflict, or payee and account-holder names do not match. The procedure leaves the escalation owner and threshold unspecified. We cannot release on that basis."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "9ee4674bb29dee47",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:18:01.780+00:00",
+      "topic": "checks",
+      "text": "The procedure leaves the escalation owner and threshold for callback failures unspecified.",
+      "evidence_turns": [
+        "t006"
+      ],
+      "support": [
+        {
+          "source_id": "t006",
+          "quote": "The procedure leaves the escalation owner and threshold unspecified."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "a5f4d2f4c04be9f1",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:18:01.780+00:00",
+      "topic": "lifecycle",
+      "text": "On a verified payment, the reviewer matches the invoice and checks for duplicates, Exiger sanctions and high-risk-country screening, and UK CIS where applicable. A potential high-risk-country match goes to two Signatory A approvers.",
+      "evidence_turns": [
+        "t006"
+      ],
+      "support": [
+        {
+          "source_id": "t006",
+          "quote": "On a verified payment, the reviewer still matches the invoice and checks duplicates, Exiger sanctions/high-risk-country screening and UK CIS where applicable. A potential high-risk-country match goes to two Signatory A approvers."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "c4a061b3fb88f9e8",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:18:01.780+00:00",
+      "topic": "checks",
+      "text": "After verification, the reviewer matches the invoice and checks duplicates, Exiger sanctions and high-risk-country screening, and UK CIS where applicable. Potential high-risk-country matches go to two Signatory A approvers.",
+      "evidence_turns": [
+        "t006"
+      ],
+      "support": [
+        {
+          "source_id": "t006",
+          "quote": "the reviewer still matches the invoice and checks duplicates, Exiger sanctions/high-risk-country screening and UK CIS where applicable. A potential high-risk-country match goes to two Signatory A approvers."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "50ce6e03ef24f824",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:18:01.784+00:00",
+      "topic": "data_systems",
+      "text": "The reviewer checks Exiger sanctions and high-risk-country screening on a verified payment.",
+      "evidence_turns": [
+        "t006"
+      ],
+      "support": [
+        {
+          "source_id": "t006",
+          "quote": "the reviewer still matches the invoice and checks duplicates, Exiger sanctions/high-risk-country screening"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "219286897f90af91",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:19:01.262+00:00",
+      "topic": "lifecycle",
+      "text": "For a US payment, client approval is required before release. European payments follow the applicable FA-18 regulated approval sequence and a capital-adequacy check where applicable.",
+      "evidence_turns": [
+        "t008"
+      ],
+      "support": [
+        {
+          "source_id": "t008",
+          "quote": "For a US payment, client approval is required before release. European payments follow the applicable FA-18 regulated approval sequence and a capital-adequacy check where applicable."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "63c272930dacf154",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:19:01.262+00:00",
+      "topic": "lifecycle",
+      "text": "Treasury checks cash against pending payments, cutoff and value date, retains a balance screenshot and arranges FX as needed. If funds are short, the status becomes Insufficient Funds and FA-16 takes over.",
+      "evidence_turns": [
+        "t008"
+      ],
+      "support": [
+        {
+          "source_id": "t008",
+          "quote": "Treasury checks cash against pending payments, cutoff and value date, retains a balance screenshot and arranges FX as needed. If funds are short the status becomes Insufficient Funds and FA-16 takes over."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "13c4011443af0a6b",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:19:01.262+00:00",
+      "topic": "lifecycle",
+      "text": "Otherwise, the preparer inputs the payment at the bank for Signatory 1 and an independent Signatory 2 to approve, plus two Signatory A approvals when required, before scheduling or release.",
+      "evidence_turns": [
+        "t008"
+      ],
+      "support": [
+        {
+          "source_id": "t008",
+          "quote": "Otherwise the preparer inputs the payment at the bank for Signatory 1 and an independent Signatory 2 to approve, plus two Signatory A approvals when required, before schedule or release."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "0387b2968f97ca3c",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:19:01.262+00:00",
+      "topic": "checks",
+      "text": "US payments require client approval before release; European payments follow the applicable FA-18 regulated approval sequence and capital-adequacy check where applicable.",
+      "evidence_turns": [
+        "t008"
+      ],
+      "support": [
+        {
+          "source_id": "t008",
+          "quote": "For a US payment, client approval is required before release. European payments follow the applicable FA-18 regulated approval sequence and a capital-adequacy check where applicable."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "d38dd674c0460802",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:19:01.262+00:00",
+      "topic": "checks",
+      "text": "Before scheduling or release, Signatory 1 and an independent Signatory 2 approve the payment entered at the bank; two Signatory A approvals are also required when applicable.",
+      "evidence_turns": [
+        "t008"
+      ],
+      "support": [
+        {
+          "source_id": "t008",
+          "quote": "for Signatory 1 and an independent Signatory 2 to approve, plus two Signatory A approvals when required, before schedule or release"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "e4f29daf13a8b081",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:19:01.262+00:00",
+      "topic": "variations",
+      "text": "The reported approval route differs geographically: US payments require client approval before release, while European payments follow the applicable FA-18 regulated approval sequence and capital-adequacy check where applicable.",
+      "evidence_turns": [
+        "t008"
+      ],
+      "support": [
+        {
+          "source_id": "t008",
+          "quote": "For a US payment, client approval is required before release. European payments follow the applicable FA-18 regulated approval sequence and a capital-adequacy check where applicable."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "eac3c8c8df549680",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:19:01.262+00:00",
+      "topic": "materials",
+      "text": "Treasury retains a balance screenshot as part of its cash check.",
+      "evidence_turns": [
+        "t008"
+      ],
+      "support": [
+        {
+          "source_id": "t008",
+          "quote": "Treasury checks cash against pending payments, cutoff and value date, retains a balance screenshot"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "7d7934a918b5ad7d",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:19:01.265+00:00",
+      "topic": "rules",
+      "text": "European payments follow the applicable FA-18 regulated approval sequence and a capital-adequacy check where applicable.",
+      "evidence_turns": [
+        "t008"
+      ],
+      "support": [
+        {
+          "source_id": "t008",
+          "quote": "European payments follow the applicable FA-18 regulated approval sequence and a capital-adequacy check where applicable."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "cfed18a8fefda1d4",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:19:01.265+00:00",
+      "topic": "scope",
+      "text": "The account covers US and European payments, with different reported approval requirements.",
+      "evidence_turns": [
+        "t008"
+      ],
+      "support": [
+        {
+          "source_id": "t008",
+          "quote": "For a US payment, client approval is required before release. European payments follow the applicable FA-18 regulated approval sequence"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "0b9b5bc8fafb3598",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:19:01.266+00:00",
+      "topic": "data_systems",
+      "text": "The preparer inputs the payment at the bank for signatory approvals.",
+      "evidence_turns": [
+        "t008"
+      ],
+      "support": [
+        {
+          "source_id": "t008",
+          "quote": "the preparer inputs the payment at the bank for Signatory 1 and an independent Signatory 2 to approve"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "37c0f4c57b421148",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:19:31.773+00:00",
+      "topic": "completion",
+      "text": "Treasury monitors final bank status and updates the Payments Log from In Progress to Settled, Pending Query or Not Paid by GPFS as applicable. The preparer files the records, links the binder or payment folder in the log and obtains AFC-or-higher sign-off that the records are complete.",
+      "evidence_turns": [
+        "t010"
+      ],
+      "support": [
+        {
+          "source_id": "t010",
+          "quote": "Treasury monitors the final bank status and updates the Payments Log from In Progress to Settled, Pending Query or Not Paid by GPFS as applicable."
+        },
+        {
+          "source_id": "t010",
+          "quote": "links it in the log, and obtains AFC-or-higher sign-off that the records are complete."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "de64316271de4155",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:19:31.773+00:00",
+      "topic": "lifecycle",
+      "text": "Treasury monitors final bank status and updates the Payments Log from In Progress to Settled, Pending Query or Not Paid by GPFS as applicable.",
+      "evidence_turns": [
+        "t010"
+      ],
+      "support": [
+        {
+          "source_id": "t010",
+          "quote": "Treasury monitors the final bank status and updates the Payments Log from In Progress to Settled, Pending Query or Not Paid by GPFS as applicable."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "78a886552de9ba9e",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:19:31.773+00:00",
+      "topic": "lifecycle",
+      "text": "Returns, rejects and queries are investigated; changed instructions are verified again before resubmission.",
+      "evidence_turns": [
+        "t010"
+      ],
+      "support": [
+        {
+          "source_id": "t010",
+          "quote": "Returns, rejects and queries are investigated, and changed instructions are verified again before resubmission."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "450a3485325911d9",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:19:31.773+00:00",
+      "topic": "lifecycle",
+      "text": "The preparer files approval, callback, screening, balance, payment and final bank-status records in the binder or payment folder, links it in the log, and obtains AFC-or-higher sign-off that the records are complete.",
+      "evidence_turns": [
+        "t010"
+      ],
+      "support": [
+        {
+          "source_id": "t010",
+          "quote": "The preparer files the approval, callback, screening, balance, payment and final bank-status records in the binder or payment folder, links it in the log, and obtains AFC-or-higher sign-off that the records are complete."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "9e79f4ba87e35de0",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:19:31.773+00:00",
+      "topic": "checks",
+      "text": "The preparer obtains AFC-or-higher sign-off that the filed payment records are complete.",
+      "evidence_turns": [
+        "t010"
+      ],
+      "support": [
+        {
+          "source_id": "t010",
+          "quote": "obtains AFC-or-higher sign-off that the records are complete"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "76927feeeabe7158",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:19:31.773+00:00",
+      "topic": "materials",
+      "text": "The binder or payment folder holds approval, callback, screening, balance, payment and final bank-status records; it is linked in the Payments Log.",
+      "evidence_turns": [
+        "t010"
+      ],
+      "support": [
+        {
+          "source_id": "t010",
+          "quote": "files the approval, callback, screening, balance, payment and final bank-status records in the binder or payment folder, links it in the log"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "history_ref": "eba559e3368ed9c3",
+      "origin_model": "gpt-6.1-terra",
+      "origin": "lead",
+      "recorded_at": "2026-11-16T22:19:31.773+00:00",
+      "topic": "completion",
+      "text": "Whether further reconciliation or closure is required after the final bank-status update and records sign-off remains unclear.",
+      "evidence_turns": [
+        "t010"
+      ],
+      "support": [
+        {
+          "source_id": "t010",
+          "quote": "Treasury monitors the final bank status"
+        },
+        {
+          "source_id": "t010",
+          "quote": "obtains AFC-or-higher sign-off that the records are complete"
+        }
+      ],
+      "unverified": []
+    }
+  ],
+  "taxonomy": [
+    {
+      "facet": "functional_area",
+      "value": "treasury_payments",
+      "note": "Process name identifies payment execution; participant describes a payment preparer and payment instructions. Reported account, not independently verified.",
+      "evidence_turns": [
+        "context",
+        "t002"
+      ]
+    },
+    {
+      "facet": "control_type",
+      "value": "gpfs_operational",
+      "note": "Participant reports callback verification and recording as an operational control; not independently verified.",
+      "evidence_turns": [
+        "t004"
+      ]
+    },
+    {
+      "facet": "variant_class",
+      "value": "structural",
+      "note": "Reported geographic difference in bank details verified: Europe versus US.",
+      "evidence_turns": [
+        "t004"
+      ]
+    },
+    {
+      "facet": "system",
+      "value": "other",
+      "note": "Exiger is reported for sanctions and high-risk-country screening; system details are not independently verified.",
+      "evidence_turns": [
+        "t006"
+      ]
+    },
+    {
+      "facet": "control_type",
+      "value": "exception_escalation",
+      "note": "Potential high-risk-country matches go to two Signatory A approvers; callback-failure escalation ownership and threshold are unspecified.",
+      "evidence_turns": [
+        "t006"
+      ]
+    },
+    {
+      "facet": "control_type",
+      "value": "client_approval",
+      "note": "Participant reports client approval before release for US payments; not independently verified.",
+      "evidence_turns": [
+        "t008"
+      ]
+    },
+    {
+      "facet": "system",
+      "value": "bank_platform",
+      "note": "Participant reports payment input at the bank for signatory approval; platform not named.",
+      "evidence_turns": [
+        "t008"
+      ]
+    },
+    {
+      "facet": "control_type",
+      "value": "gpfs_supervisory",
+      "note": "Participant reports AFC-or-higher sign-off that payment records are complete; not independently verified.",
+      "evidence_turns": [
+        "t010"
+      ]
+    }
+  ],
+  "connections_out": [
+    {
+      "relationship_type": "requires_approval_from",
+      "counterpart": "Client",
+      "condition": "For US payments, before release.",
+      "evidence_turns": [
+        "t008"
+      ]
+    },
+    {
+      "relationship_type": "hands_off_to",
+      "counterpart": "FA-16",
+      "condition": "When funds are short and status becomes Insufficient Funds.",
+      "evidence_turns": [
+        "t008"
+      ]
+    }
+  ],
+  "document_evidence": [],
+  "workflow": {
+    "title": "Payment Execution and Callback Verification",
+    "overview": "",
+    "trigger": "",
+    "inputs": [],
+    "outputs": [],
+    "steps": [
+      {
+        "id": "S1",
+        "title": "Log proposed payment",
+        "type": "data_store",
+        "actor": "Payment preparer",
+        "system": "Payments Log",
+        "description": "When an approved obligation and proposed instructions are available, enter the payee, amount, purpose, entity, value date and folder reference where fields exist, and set the status.",
+        "input": "Approved obligation and proposed payment instructions",
+        "output": "Payment entry with status",
+        "completion_criteria": "Available fields entered and status set",
+        "handoff": "UNKNOWN",
+        "control_type": [
+          "none_reported"
+        ],
+        "data_origin": "Approved obligation and proposed instructions",
+        "entry_mode": "manual",
+        "rule_source_ref": "UNKNOWN",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t002"
+        ],
+        "operating_details": [
+          {
+            "field": "responsible",
+            "text": "They enter the payee, amount, purpose, entity, value date and folder reference in the Payments Log where those fields exist.",
+            "evidence_turns": [
+              "t002"
+            ]
+          },
+          {
+            "field": "system",
+            "text": "They enter the payee, amount, purpose, entity, value date and folder reference in the Payments Log where those fields exist.",
+            "evidence_turns": [
+              "t002"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S2",
+        "title": "Are instructions new or changed?",
+        "type": "decision",
+        "actor": "Payment preparer",
+        "system": "UNKNOWN",
+        "description": "Check whether the instructions are new or changed. Either condition requires a callback.",
+        "input": "Proposed payment instructions",
+        "output": "Callback requirement",
+        "completion_criteria": "New or changed status checked",
+        "handoff": "Callback performer when required",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Proposed payment instructions",
+        "entry_mode": "unknown",
+        "rule_source_ref": "UNKNOWN",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t002"
+        ],
+        "operating_details": [
+          {
+            "field": "control",
+            "text": "Either condition requires a callback.",
+            "evidence_turns": [
+              "t002"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S3",
+        "title": "Perform callback",
+        "type": "activity",
+        "actor": "Callback performer",
+        "system": "UNKNOWN",
+        "description": "Use an approved independent source, not the instruction email, for the known contact's number. Verify the contact's name and relationship, compare payee and account-holder names, and verify applicable bank identifiers and other account details.",
+        "input": "Payment instructions and independent contact source",
+        "output": "Callback verification or identified problem",
+        "completion_criteria": "Applicable details verified or a problem identified",
+        "handoff": "UNKNOWN",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Independent contact source and known contact",
+        "entry_mode": "manual",
+        "rule_source_ref": "UNKNOWN",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t004"
+        ],
+        "operating_details": [
+          {
+            "field": "control",
+            "text": "The callback performer uses an approved independent source for the phone number, never the instruction email.",
+            "evidence_turns": [
+              "t004"
+            ]
+          },
+          {
+            "field": "responsible",
+            "text": "They call the known contact, verify the name and relationship, compare payee and account-holder names, and verify IBAN and SWIFT in Europe or ABA in the US plus other applicable account details.",
+            "evidence_turns": [
+              "t004"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S4",
+        "title": "Record callback",
+        "type": "activity",
+        "actor": "Callback performer",
+        "system": "UNKNOWN",
+        "description": "Record the caller, contact, relationship, date and time, retaining only permitted masked bank details.",
+        "input": "Callback details",
+        "output": "Callback record",
+        "completion_criteria": "Reported callback details recorded",
+        "handoff": "Record retained for the payment file",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Callback",
+        "entry_mode": "manual",
+        "rule_source_ref": "UNKNOWN",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t004"
+        ],
+        "operating_details": [
+          {
+            "field": "control",
+            "text": "They record who called, contact, relationship, date and time, keeping only permitted masked bank details.",
+            "evidence_turns": [
+              "t004"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S5",
+        "title": "Is the callback verified?",
+        "type": "decision",
+        "actor": "UNKNOWN",
+        "system": "UNKNOWN",
+        "description": "Assess whether the callback is verified or must be stopped because the contact cannot be reached, details conflict, or payee and account-holder names do not match.",
+        "input": "Callback result",
+        "output": "Verified or stopped outcome",
+        "completion_criteria": "Callback outcome known",
+        "handoff": "Reviewer for a verified payment; stopped handling otherwise",
+        "control_type": [
+          "gpfs_operational",
+          "exception_escalation"
+        ],
+        "data_origin": "Callback",
+        "entry_mode": "unknown",
+        "rule_source_ref": "Procedure mentioned by participant; exact document not supplied",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t006"
+        ],
+        "operating_details": [
+          {
+            "field": "exception",
+            "text": "Stop if the contact cannot be reached, details conflict, or payee and account-holder names do not match.",
+            "evidence_turns": [
+              "t006"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S6",
+        "title": "Review payment checks",
+        "type": "activity",
+        "actor": "Reviewer",
+        "system": "Exiger",
+        "description": "For a verified payment, match the invoice, check for duplicates and check sanctions and high-risk-country screening. Check UK CIS where applicable.",
+        "input": "Verified payment, invoice and screening information",
+        "output": "Payment review and any potential high-risk-country match",
+        "completion_criteria": "Applicable checks performed",
+        "handoff": "Potential high-risk-country match to two Signatory A approvers",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Invoice, payment information and Exiger screening",
+        "entry_mode": "unknown",
+        "rule_source_ref": "UNKNOWN",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t006"
+        ],
+        "operating_details": [
+          {
+            "field": "responsible",
+            "text": "On a verified payment, the reviewer still matches the invoice and checks duplicates, Exiger sanctions/high-risk-country screening and UK CIS where applicable.",
+            "evidence_turns": [
+              "t006"
+            ]
+          },
+          {
+            "field": "system",
+            "text": "On a verified payment, the reviewer still matches the invoice and checks duplicates, Exiger sanctions/high-risk-country screening and UK CIS where applicable.",
+            "evidence_turns": [
+              "t006"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S7",
+        "title": "Refer potential high-risk match",
+        "type": "activity",
+        "actor": "UNKNOWN",
+        "system": "UNKNOWN",
+        "description": "A potential high-risk-country match goes to two Signatory A approvers. What they check and the outcome of rejection are UNKNOWN.",
+        "input": "Potential high-risk-country match",
+        "output": "Match referred to two Signatory A approvers",
+        "completion_criteria": "UNKNOWN",
+        "handoff": "Two Signatory A approvers; subsequent outcome UNKNOWN",
+        "control_type": [
+          "gpfs_supervisory",
+          "exception_escalation"
+        ],
+        "data_origin": "Reviewer screening check",
+        "entry_mode": "unknown",
+        "rule_source_ref": "UNKNOWN",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t006"
+        ],
+        "operating_details": [
+          {
+            "field": "exception",
+            "text": "A potential high-risk-country match goes to two Signatory A approvers.",
+            "evidence_turns": [
+              "t006"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S8",
+        "title": "Obtain US client approval",
+        "type": "activity",
+        "actor": "Client",
+        "system": "UNKNOWN",
+        "description": "US payments require client approval before release.",
+        "input": "US payment",
+        "output": "Client approval",
+        "completion_criteria": "Client approval obtained before release",
+        "handoff": "UNKNOWN",
+        "control_type": [
+          "client_approval"
+        ],
+        "data_origin": "Payment information",
+        "entry_mode": "unknown",
+        "rule_source_ref": "UNKNOWN",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t008"
+        ],
+        "operating_details": [
+          {
+            "field": "control",
+            "text": "For a US payment, client approval is required before release.",
+            "evidence_turns": [
+              "t008"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S9",
+        "title": "Apply European approval sequence",
+        "type": "activity",
+        "actor": "UNKNOWN",
+        "system": "UNKNOWN",
+        "description": "European payments follow the applicable FA-18 regulated approval sequence and a capital-adequacy check where applicable.",
+        "input": "European payment",
+        "output": "Applicable approvals and check",
+        "completion_criteria": "UNKNOWN",
+        "handoff": "UNKNOWN",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Payment information",
+        "entry_mode": "unknown",
+        "rule_source_ref": "FA-18 mentioned by participant; exact document not supplied",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t008"
+        ],
+        "operating_details": [
+          {
+            "field": "control",
+            "text": "European payments follow the applicable FA-18 regulated approval sequence and a capital-adequacy check where applicable.",
+            "evidence_turns": [
+              "t008"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S10",
+        "title": "Check funds and timing",
+        "type": "activity",
+        "actor": "Treasury",
+        "system": "UNKNOWN",
+        "description": "Check cash against pending payments, cutoff and value date, retain a balance screenshot and arrange FX as needed.",
+        "input": "Cash balance and pending payments",
+        "output": "Funds assessment, balance screenshot and FX where needed",
+        "completion_criteria": "Reported checks performed",
+        "handoff": "Preparer if funds are sufficient; FA-16 if short",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Cash balance and pending payments",
+        "entry_mode": "unknown",
+        "rule_source_ref": "UNKNOWN",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t008"
+        ],
+        "operating_details": [
+          {
+            "field": "responsible",
+            "text": "Treasury checks cash against pending payments, cutoff and value date, retains a balance screenshot and arranges FX as needed.",
+            "evidence_turns": [
+              "t008"
+            ]
+          },
+          {
+            "field": "exception",
+            "text": "If funds are short the status becomes Insufficient Funds and FA-16 takes over.",
+            "evidence_turns": [
+              "t008"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S11",
+        "title": "Handle insufficient funds",
+        "type": "subprocess",
+        "actor": "UNKNOWN",
+        "system": "Payments Log",
+        "description": "If funds are short, set the status to Insufficient Funds and hand over to FA-16. The subsequent route is UNKNOWN.",
+        "input": "Insufficient funds assessment",
+        "output": "Insufficient Funds status and FA-16 handoff",
+        "completion_criteria": "Status set and FA-16 takes over",
+        "handoff": "FA-16",
+        "control_type": [
+          "exception_escalation"
+        ],
+        "data_origin": "Treasury funds assessment",
+        "entry_mode": "unknown",
+        "rule_source_ref": "FA-16 mentioned by participant; exact document not supplied",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t008"
+        ],
+        "operating_details": [
+          {
+            "field": "exception",
+            "text": "If funds are short the status becomes Insufficient Funds and FA-16 takes over.",
+            "evidence_turns": [
+              "t008"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S12",
+        "title": "Enter payment at bank",
+        "type": "activity",
+        "actor": "Payment preparer",
+        "system": "Bank",
+        "description": "When funds are sufficient, input the payment at the bank for signatory approval.",
+        "input": "Payment information and sufficient funds",
+        "output": "Payment entered for approval",
+        "completion_criteria": "Payment entered at bank",
+        "handoff": "Signatory 1 and independent Signatory 2",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Payment information",
+        "entry_mode": "manual",
+        "rule_source_ref": "UNKNOWN",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t008"
+        ],
+        "operating_details": [
+          {
+            "field": "responsible",
+            "text": "Otherwise the preparer inputs the payment at the bank for Signatory 1 and an independent Signatory 2 to approve, plus two Signatory A approvals when required, before schedule or release.",
+            "evidence_turns": [
+              "t008"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S13",
+        "title": "Approve bank payment",
+        "type": "activity",
+        "actor": "Signatory 1 and independent Signatory 2; two Signatory A approvers when required",
+        "system": "Bank",
+        "description": "Signatory 1 and an independent Signatory 2 approve the payment, with two Signatory A approvals when required, before scheduling or release.",
+        "input": "Payment entered at bank",
+        "output": "Applicable signatory approvals",
+        "completion_criteria": "Required signatory approvals obtained",
+        "handoff": "Scheduling or release",
+        "control_type": [
+          "gpfs_supervisory"
+        ],
+        "data_origin": "Bank payment entry",
+        "entry_mode": "unknown",
+        "rule_source_ref": "UNKNOWN",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t008"
+        ],
+        "operating_details": [
+          {
+            "field": "control",
+            "text": "Otherwise the preparer inputs the payment at the bank for Signatory 1 and an independent Signatory 2 to approve, plus two Signatory A approvals when required, before schedule or release.",
+            "evidence_turns": [
+              "t008"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S14",
+        "title": "Schedule or release payment",
+        "type": "activity",
+        "actor": "UNKNOWN",
+        "system": "Bank",
+        "description": "Schedule or release after required signatory approvals. US client approval is additionally required before US release; applicable European requirements also apply.",
+        "input": "Payment and required approvals",
+        "output": "Scheduled or released payment",
+        "completion_criteria": "Payment scheduled or released",
+        "handoff": "Treasury monitors final bank status",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Bank payment and approvals",
+        "entry_mode": "unknown",
+        "rule_source_ref": "UNKNOWN",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t008"
+        ],
+        "operating_details": [
+          {
+            "field": "control",
+            "text": "For a US payment, client approval is required before release.",
+            "evidence_turns": [
+              "t008"
+            ]
+          },
+          {
+            "field": "control",
+            "text": "Otherwise the preparer inputs the payment at the bank for Signatory 1 and an independent Signatory 2 to approve, plus two Signatory A approvals when required, before schedule or release.",
+            "evidence_turns": [
+              "t008"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S15",
+        "title": "Monitor bank status",
+        "type": "activity",
+        "actor": "Treasury",
+        "system": "Bank and Payments Log",
+        "description": "Monitor final bank status and update the log from In Progress to Settled, Pending Query or Not Paid by GPFS, as applicable.",
+        "input": "Bank status",
+        "output": "Updated Payments Log status",
+        "completion_criteria": "Applicable status recorded",
+        "handoff": "Returns, rejects and queries for investigation",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Bank status",
+        "entry_mode": "manual",
+        "rule_source_ref": "UNKNOWN",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t010"
+        ],
+        "operating_details": [
+          {
+            "field": "responsible",
+            "text": "Treasury monitors the final bank status and updates the Payments Log from In Progress to Settled, Pending Query or Not Paid by GPFS as applicable.",
+            "evidence_turns": [
+              "t010"
+            ]
+          },
+          {
+            "field": "system",
+            "text": "Treasury monitors the final bank status and updates the Payments Log from In Progress to Settled, Pending Query or Not Paid by GPFS as applicable.",
+            "evidence_turns": [
+              "t010"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S16",
+        "title": "Investigate payment exceptions",
+        "type": "activity",
+        "actor": "UNKNOWN",
+        "system": "UNKNOWN",
+        "description": "Investigate returns, rejects and queries. Changed instructions are verified again before resubmission.",
+        "input": "Return, reject or query",
+        "output": "Investigated exception",
+        "completion_criteria": "UNKNOWN",
+        "handoff": "Reverification before resubmission when instructions change",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Bank status and exception",
+        "entry_mode": "unknown",
+        "rule_source_ref": "UNKNOWN",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t010"
+        ],
+        "operating_details": [
+          {
+            "field": "exception",
+            "text": "Returns, rejects and queries are investigated, and changed instructions are verified again before resubmission.",
+            "evidence_turns": [
+              "t010"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S17",
+        "title": "Reverify changed instructions",
+        "type": "activity",
+        "actor": "UNKNOWN",
+        "system": "UNKNOWN",
+        "description": "Verify changed instructions again before resubmission. The detailed resubmission route is UNKNOWN.",
+        "input": "Changed payment instructions",
+        "output": "Reverified instructions",
+        "completion_criteria": "Changed instructions verified before resubmission",
+        "handoff": "Resubmission; destination UNKNOWN",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Changed instructions",
+        "entry_mode": "unknown",
+        "rule_source_ref": "UNKNOWN",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t010"
+        ],
+        "operating_details": [
+          {
+            "field": "control",
+            "text": "Returns, rejects and queries are investigated, and changed instructions are verified again before resubmission.",
+            "evidence_turns": [
+              "t010"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S18",
+        "title": "File payment records",
+        "type": "document",
+        "actor": "Payment preparer",
+        "system": "Binder or payment folder and Payments Log",
+        "description": "File approval, callback, screening, balance, payment and final bank-status records, and link the binder or folder in the log.",
+        "input": "Payment and control records",
+        "output": "Linked payment file",
+        "completion_criteria": "Records filed and file linked in the log",
+        "handoff": "AFC-or-higher sign-off",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Payment, approval, callback, screening, balance and bank-status records",
+        "entry_mode": "manual",
+        "rule_source_ref": "UNKNOWN",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t010"
+        ],
+        "operating_details": [
+          {
+            "field": "responsible",
+            "text": "The preparer files the approval, callback, screening, balance, payment and final bank-status records in the binder or payment folder, links it in the log, and obtains AFC-or-higher sign-off that the records are complete.",
+            "evidence_turns": [
+              "t010"
+            ]
+          },
+          {
+            "field": "system",
+            "text": "The preparer files the approval, callback, screening, balance, payment and final bank-status records in the binder or payment folder, links it in the log, and obtains AFC-or-higher sign-off that the records are complete.",
+            "evidence_turns": [
+              "t010"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S19",
+        "title": "Sign off record completeness",
+        "type": "activity",
+        "actor": "AFC or higher",
+        "system": "UNKNOWN",
+        "description": "Sign off that the payment records are complete.",
+        "input": "Payment records",
+        "output": "Completeness sign-off",
+        "completion_criteria": "Sign-off obtained",
+        "handoff": "UNKNOWN",
+        "control_type": [
+          "gpfs_supervisory"
+        ],
+        "data_origin": "Payment file",
+        "entry_mode": "unknown",
+        "rule_source_ref": "UNKNOWN",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t010"
+        ],
+        "operating_details": [
+          {
+            "field": "control",
+            "text": "The preparer files the approval, callback, screening, balance, payment and final bank-status records in the binder or payment folder, links it in the log, and obtains AFC-or-higher sign-off that the records are complete.",
+            "evidence_turns": [
+              "t010"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S20",
+        "title": "Stop unverified payment",
+        "type": "activity",
+        "actor": "UNKNOWN",
+        "system": "UNKNOWN",
+        "description": "Stop when the contact cannot be reached, details conflict, or payee and account-holder names do not match. Release is not permitted on that basis; the escalation owner and threshold are unspecified.",
+        "input": "Unreachable contact, conflicting details or name mismatch",
+        "output": "Stopped payment",
+        "completion_criteria": "Payment stopped",
+        "handoff": "UNKNOWN",
+        "control_type": [
+          "gpfs_operational",
+          "exception_escalation"
+        ],
+        "data_origin": "Callback result",
+        "entry_mode": "unknown",
+        "rule_source_ref": "Procedure mentioned by participant; exact document not supplied",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t006"
+        ],
+        "operating_details": [
+          {
+            "field": "exception",
+            "text": "Stop if the contact cannot be reached, details conflict, or payee and account-holder names do not match.",
+            "evidence_turns": [
+              "t006"
+            ]
+          },
+          {
+            "field": "control",
+            "text": "We cannot release on that basis.",
+            "evidence_turns": [
+              "t006"
+            ]
+          },
+          {
+            "field": "exception",
+            "text": "The procedure leaves the escalation owner and threshold unspecified.",
+            "evidence_turns": [
+              "t006"
+            ]
+          }
+        ]
+      }
+    ],
+    "connections": [
+      {
+        "from": "S1",
+        "to": "S2",
+        "label": "Check instructions",
+        "evidence_turns": [
+          "t002"
+        ]
+      },
+      {
+        "from": "S2",
+        "to": "S3",
+        "label": "New or changed",
+        "evidence_turns": [
+          "t002"
+        ]
+      },
+      {
+        "from": "S3",
+        "to": "S4",
+        "label": "Record callback",
+        "evidence_turns": [
+          "t004"
+        ]
+      },
+      {
+        "from": "S3",
+        "to": "S5",
+        "label": "Assess result",
+        "evidence_turns": [
+          "t006"
+        ]
+      },
+      {
+        "from": "S5",
+        "to": "S6",
+        "label": "Verified",
+        "evidence_turns": [
+          "t006"
+        ]
+      },
+      {
+        "from": "S6",
+        "to": "S7",
+        "label": "Potential high-risk-country match",
+        "evidence_turns": [
+          "t006"
+        ]
+      },
+      {
+        "from": "S10",
+        "to": "S11",
+        "label": "Funds short",
+        "evidence_turns": [
+          "t008"
+        ]
+      },
+      {
+        "from": "S10",
+        "to": "S12",
+        "label": "Funds sufficient",
+        "evidence_turns": [
+          "t008"
+        ]
+      },
+      {
+        "from": "S12",
+        "to": "S13",
+        "label": "Bank entry for approval",
+        "evidence_turns": [
+          "t008"
+        ]
+      },
+      {
+        "from": "S14",
+        "to": "S15",
+        "label": "Monitor bank status",
+        "evidence_turns": [
+          "t008",
+          "t010"
+        ]
+      },
+      {
+        "from": "S15",
+        "to": "S16",
+        "label": "Return, reject or query",
+        "evidence_turns": [
+          "t010"
+        ]
+      },
+      {
+        "from": "S16",
+        "to": "S17",
+        "label": "Instructions changed",
+        "evidence_turns": [
+          "t010"
+        ]
+      },
+      {
+        "from": "S15",
+        "to": "S18",
+        "label": "Final bank-status record",
+        "evidence_turns": [
+          "t010"
+        ]
+      },
+      {
+        "from": "S18",
+        "to": "S19",
+        "label": "Completeness sign-off",
+        "evidence_turns": [
+          "t010"
+        ]
+      },
+      {
+        "from": "S5",
+        "to": "S20",
+        "label": "Contact unreachable, details conflict, or names mismatch",
+        "evidence_turns": [
+          "t006"
+        ]
+      },
+      {
+        "from": "S13",
+        "to": "S14",
+        "label": "Signatory approvals AND, for US release, client approval",
+        "evidence_turns": [
+          "t008"
+        ]
+      },
+      {
+        "from": "S8",
+        "to": "S14",
+        "label": "Signatory approvals AND US client approval for release",
+        "evidence_turns": [
+          "t008"
+        ]
+      }
+    ],
+    "exceptions": [],
+    "controls": [],
+    "open_questions": [
+      "Are there other outcomes from decision S2 (Are instructions new or changed?), and where do they lead?",
+      "Does any incoming route start S14 (Schedule or release payment), or must all prerequisites finish?",
+      "How does step S9 (Apply European approval sequence) connect to the rest of this process, if at all?",
+      "Are the routes containing S1 (Log proposed payment) and S8 (Obtain US client approval) separate, or is there a reported handoff between them?",
+      "What is the route when instructions are neither new nor changed, and how does it reach review and release?",
+      "Who owns the overall result, and who supplies the approved obligation and instructions?",
+      "Is this the normal route across GPFS or specific to particular clients or entities? What is the basis for any general standard?",
+      "What entity types, frequency, deadlines, volumes and peak periods apply?",
+      "Where is the callback recorded, and in what order are recording and assessment completed?",
+      "Who handles stopped callbacks, what triggers escalation, and how are unresolved or corrected instructions returned to the process?",
+      "What happens when invoice, duplicate, sanctions or CIS checks fail? What do the Signatory A approvers check, and what happens if they reject a potential match?",
+      "How are reviewer checks, client or FA-18 approvals, treasury checks and bank entry sequenced? How is readiness communicated?",
+      "What does FA-18 require in practice, when does the capital-adequacy check apply, and what happens after FA-16 takes over?",
+      "When are two Signatory A approvals required, and are they the same approvals as those for a potential high-risk-country match?",
+      "Who schedules or releases the payment, what is blocked pending each approval, and are controls procedural or system-enforced?",
+      "Who investigates exceptions, how are unchanged instructions handled, and where does resubmission return for checks and approvals?",
+      "What conditions establish completion beyond status and record sign-off, and who uses the output next?",
+      "Which record is authoritative for the payment result, where are records and sign-offs retained, and who interprets conflicting rules?",
+      "Are procedures, templates or other materials available for review? FA-16, FA-18 and a procedure were mentioned but no excerpts were supplied.",
+      "What variations, extra effort, charging or removal constraints apply, if any? What manual friction and material failure consequences are reported?"
+    ],
+    "validation_notes": [],
+    "memo_summary": [
+      {
+        "key": "name",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "purpose",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "trigger",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "completion",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "accountable",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "lifecycle",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "checks",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "variations",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "pain_points",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "risk",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "materials",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "scope",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "rules",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "connections",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "data_systems",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      },
+      {
+        "key": "volume",
+        "status": "unknown",
+        "answer": "UNKNOWN / TBD — not established in the interview.",
+        "evidence_turns": []
+      }
+    ],
+    "variations": [],
+    "lifecycle_items": [],
+    "taxonomy": [],
+    "connections_out": []
+  },
+  "schema_version": 1,
+  "context": {
+    "process_name": "Payment Execution & Callback Verification Controls",
+    "process_owner": "",
+    "objective": "Understand the current process, responsibilities, handoffs, and exceptions.",
+    "background": ""
+  },
+  "turns": [
+    {
+      "id": "t001",
+      "role": "assistant",
+      "text": "What starts this work?"
+    },
+    {
+      "id": "t002",
+      "role": "user",
+      "text": "The payment preparer starts when there is an approved obligation and proposed payment instructions. They enter the payee, amount, purpose, entity, value date and folder reference in the Payments Log where those fields exist. They set the status and check whether instructions are new or changed. Either condition requires a callback."
+    },
+    {
+      "id": "t003",
+      "role": "assistant",
+      "text": "During the callback, what does the preparer verify about the payment instructions?"
+    },
+    {
+      "id": "t004",
+      "role": "user",
+      "text": "The callback performer uses an approved independent source for the phone number, never the instruction email. They call the known contact, verify the name and relationship, compare payee and account-holder names, and verify IBAN and SWIFT in Europe or ABA in the US plus other applicable account details. They record who called, contact, relationship, date and time, keeping only permitted masked bank details."
+    },
+    {
+      "id": "t005",
+      "role": "assistant",
+      "text": "What happens if the callback details do not match the payment instructions?"
+    },
+    {
+      "id": "t006",
+      "role": "user",
+      "text": "Stop if the contact cannot be reached, details conflict, or payee and account-holder names do not match. The procedure leaves the escalation owner and threshold unspecified. We cannot release on that basis. On a verified payment, the reviewer still matches the invoice and checks duplicates, Exiger sanctions/high-risk-country screening and UK CIS where applicable. A potential high-risk-country match goes to two Signatory A approvers."
+    },
+    {
+      "id": "t007",
+      "role": "assistant",
+      "text": "After the reviewer’s invoice, duplicate, screening, and CIS checks, what permits the payment to be released?"
+    },
+    {
+      "id": "t008",
+      "role": "user",
+      "text": "For a US payment, client approval is required before release. European payments follow the applicable FA-18 regulated approval sequence and a capital-adequacy check where applicable. Treasury checks cash against pending payments, cutoff and value date, retains a balance screenshot and arranges FX as needed. If funds are short the status becomes Insufficient Funds and FA-16 takes over. Otherwise the preparer inputs the payment at the bank for Signatory 1 and an independent Signatory 2 to approve, plus two Signatory A approvals when required, before schedule or release."
+    },
+    {
+      "id": "t009",
+      "role": "assistant",
+      "text": "What confirms that a payment has been executed?"
+    },
+    {
+      "id": "t010",
+      "role": "user",
+      "text": "Treasury monitors the final bank status and updates the Payments Log from In Progress to Settled, Pending Query or Not Paid by GPFS as applicable. Returns, rejects and queries are investigated, and changed instructions are verified again before resubmission. The preparer files the approval, callback, screening, balance, payment and final bank-status records in the binder or payment folder, links it in the log, and obtains AFC-or-higher sign-off that the records are complete."
+    },
+    {
+      "id": "t011",
+      "role": "assistant",
+      "text": "Once Treasury marks a payment Settled, what—if anything—happens next to close it out?"
+    },
+    {
+      "id": "t012",
+      "role": "assistant",
+      "text": "This capture still has open sections. Still open: Purpose & result, Start, cadence & deadlines, Finished condition, Accountability, Items, stages & handoffs, Checks, approvals & proof, Variations and conditions, Manual work & pain, Consequences of failure, Existing materials, Scope & entity context, Business rules & lineage, Connected processes, Data & systems, Volume & effort. You can create a partial draft."
+    }
+  ],
+  "coverage": [
+    {
+      "key": "name",
+      "label": "Name and scope",
+      "status": "partial"
+    },
+    {
+      "key": "purpose",
+      "label": "Purpose",
+      "status": "missing"
+    },
+    {
+      "key": "trigger",
+      "label": "Starting point",
+      "status": "partial"
+    },
+    {
+      "key": "completion",
+      "label": "End point",
+      "status": "partial"
+    },
+    {
+      "key": "accountable",
+      "label": "Owner",
+      "status": "missing"
+    },
+    {
+      "key": "lifecycle",
+      "label": "Flow of work",
+      "status": "partial"
+    },
+    {
+      "key": "checks",
+      "label": "Checks and controls",
+      "status": "partial"
+    },
+    {
+      "key": "variations",
+      "label": "Variations",
+      "status": "partial"
+    },
+    {
+      "key": "pain_points",
+      "label": "Pain points",
+      "status": "missing"
+    },
+    {
+      "key": "risk",
+      "label": "Risks",
+      "status": "missing"
+    },
+    {
+      "key": "materials",
+      "label": "Documents",
+      "status": "partial"
+    },
+    {
+      "key": "scope",
+      "label": "Scope and entities",
+      "status": "partial"
+    },
+    {
+      "key": "rules",
+      "label": "Rules and sources",
+      "status": "partial"
+    },
+    {
+      "key": "connections",
+      "label": "Connected processes",
+      "status": "missing"
+    },
+    {
+      "key": "data_systems",
+      "label": "Data and systems",
+      "status": "partial"
+    },
+    {
+      "key": "volume",
+      "label": "Volume and effort",
+      "status": "missing"
+    }
+  ],
+  "summary": "Treasury monitors the bank status and updates the log. Returns, rejects and queries are investigated; changed instructions are verified before resubmission. The preparer files the evidence and obtains AFC-or-higher completeness sign-off.",
+  "memo_findings": [
+    {
+      "key": "name",
+      "status": "captured",
+      "answer": "Payment Execution & Callback Verification Controls",
+      "evidence_turns": [
+        "context"
+      ]
+    },
+    {
+      "key": "purpose",
+      "status": "unknown",
+      "answer": "UNKNOWN / TBD — not established in the interview.",
+      "evidence_turns": []
+    },
+    {
+      "key": "trigger",
+      "status": "partial",
+      "answer": "The payment preparer starts the work when there is an approved obligation and proposed payment instructions.",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "key": "completion",
+      "status": "partial",
+      "answer": "Treasury monitors final bank status and updates the Payments Log from In Progress to Settled, Pending Query or Not Paid by GPFS as applicable. The preparer files the records, links the binder or payment folder in the log and obtains AFC-or-higher sign-off that the records are complete.\nWhether further reconciliation or closure is required after the final bank-status update and records sign-off remains unclear.",
+      "evidence_turns": [
+        "t010"
+      ]
+    },
+    {
+      "key": "accountable",
+      "status": "unknown",
+      "answer": "UNKNOWN / TBD — not established in the interview.",
+      "evidence_turns": []
+    },
+    {
+      "key": "lifecycle",
+      "status": "partial",
+      "answer": "The payment preparer enters the payee, amount, purpose, entity, value date and folder reference in the Payments Log where those fields exist, then sets the status.\nFor a required callback, the callback performer obtains the phone number from an approved independent source, not the instruction email, and calls the known contact. They verify the contact's name and relationship, compare payee and account-holder names, and verify applicable bank details.\nWork stops and the payment cannot be released if the contact cannot be reached, details conflict, or payee and account-holder names do not match.\nOn a verified payment, the reviewer matches the invoice and checks for duplicates, Exiger sanctions and high-risk-country screening, and UK CIS where applicable. A potential high-risk-country match goes to two Signatory A approvers.\nFor a US payment, client approval is required before release. European payments follow the applicable FA-18 regulated approval sequence and a capital-adequacy check where applicable.\nTreasury checks cash against pending payments, cutoff and value date, retains a balance screenshot and arranges FX as needed. If funds are short, the status becomes Insufficient Funds and FA-16 takes over.\nOtherwise, the preparer inputs the payment at the bank for Signatory 1 and an independent Signatory 2 to approve, plus two Signatory A approvals when required, before scheduling or release.\nTreasury monitors final bank status and updates the Payments Log from In Progress to Settled, Pending Query or Not Paid by GPFS as applicable.\nReturns, rejects and queries are investigated; changed instructions are verified again before resubmission.\nThe preparer files approval, callback, screening, balance, payment and final bank-status records in the binder or payment folder, links it in the log, and obtains AFC-or-higher sign-off that the records are complete.",
+      "evidence_turns": [
+        "t002",
+        "t004",
+        "t006",
+        "t008",
+        "t010"
+      ]
+    },
+    {
+      "key": "checks",
+      "status": "partial",
+      "answer": "The payment preparer checks whether the payment instructions are new or changed; either condition requires a callback.\nThe callback performer's specific role remains unclear.\nThe callback performer uses an approved independent source for the phone number, never the instruction email. They verify the contact's name and relationship, compare payee and account-holder names, and verify IBAN and SWIFT in Europe or ABA in the US, plus other applicable account details.\nThe callback performer records who called, the contact, relationship, date and time, retaining only permitted masked bank details.\nThe procedure leaves the escalation owner and threshold for callback failures unspecified.\nAfter verification, the reviewer matches the invoice and checks duplicates, Exiger sanctions and high-risk-country screening, and UK CIS where applicable. Potential high-risk-country matches go to two Signatory A approvers.\nUS payments require client approval before release; European payments follow the applicable FA-18 regulated approval sequence and capital-adequacy check where applicable.\nBefore scheduling or release, Signatory 1 and an independent Signatory 2 approve the payment entered at the bank; two Signatory A approvals are also required when applicable.\nThe preparer obtains AFC-or-higher sign-off that the filed payment records are complete.",
+      "evidence_turns": [
+        "t002",
+        "t004",
+        "t006",
+        "t008",
+        "t010"
+      ]
+    },
+    {
+      "key": "variations",
+      "status": "partial",
+      "answer": "Callback bank-detail verification differs by geography: IBAN and SWIFT are verified in Europe, while ABA is verified in the US, alongside other applicable account details.\nThe reported approval route differs geographically: US payments require client approval before release, while European payments follow the applicable FA-18 regulated approval sequence and capital-adequacy check where applicable.",
+      "evidence_turns": [
+        "t004",
+        "t008"
+      ]
+    },
+    {
+      "key": "pain_points",
+      "status": "unknown",
+      "answer": "UNKNOWN / TBD — not established in the interview.",
+      "evidence_turns": []
+    },
+    {
+      "key": "risk",
+      "status": "unknown",
+      "answer": "UNKNOWN / TBD — not established in the interview.",
+      "evidence_turns": []
+    },
+    {
+      "key": "materials",
+      "status": "partial",
+      "answer": "The Payments Log is used to enter payment details and set status; the preparer enters the listed fields where they exist.\nA callback record captures the caller, contact, relationship, date and time, with only permitted masked bank details retained.\nThe preparer files callback records in the binder or payment folder and links it in the Payments Log.\nTreasury retains a balance screenshot as part of its cash check.\nThe binder or payment folder holds approval, callback, screening, balance, payment and final bank-status records; it is linked in the Payments Log.",
+      "evidence_turns": [
+        "t002",
+        "t004",
+        "t010",
+        "t008"
+      ]
+    },
+    {
+      "key": "scope",
+      "status": "partial",
+      "answer": "The account covers US and European payments, with different reported approval requirements.",
+      "evidence_turns": [
+        "t008"
+      ]
+    },
+    {
+      "key": "rules",
+      "status": "partial",
+      "answer": "New or changed payment instructions each require a callback.\nThe callback phone number must come from an approved independent source, not the instruction email; only permitted masked bank details are kept.\nEuropean payments follow the applicable FA-18 regulated approval sequence and a capital-adequacy check where applicable.",
+      "evidence_turns": [
+        "t002",
+        "t004",
+        "t008"
+      ]
+    },
+    {
+      "key": "connections",
+      "status": "unknown",
+      "answer": "UNKNOWN / TBD — not established in the interview.",
+      "evidence_turns": []
+    },
+    {
+      "key": "data_systems",
+      "status": "partial",
+      "answer": "The reviewer checks Exiger sanctions and high-risk-country screening on a verified payment.\nThe preparer inputs the payment at the bank for signatory approvals.",
+      "evidence_turns": [
+        "t006",
+        "t008"
+      ]
+    },
+    {
+      "key": "volume",
+      "status": "unknown",
+      "answer": "UNKNOWN / TBD — not established in the interview.",
+      "evidence_turns": []
+    }
+  ],
+  "focus": "Final payment status and exceptions",
+  "parking_lot": [],
+  "draft": {
+    "generated_by": [
+      {
+        "stage": "process_draft",
+        "model": "gpt-6.1-terra",
+        "prompt_id": "a15d4b646e9a1d4f",
+        "reasoning_effort": "low",
+        "generated_at": "2026-11-16T22:25:20.104+00:00",
+        "build_id": "2fcf87b2074f2a33e7a8f8b7e5071db6b1ff526da1f56d8d503c198a34dac64f"
+      },
+      {
+        "stage": "process_draft_audit",
+        "model": "gpt-6.1-terra",
+        "prompt_id": "9ccb3ce3dab28edf",
+        "reasoning_effort": "medium",
+        "generated_at": "2026-11-16T22:27:54.167+00:00",
+        "build_id": "2fcf87b2074f2a33e7a8f8b7e5071db6b1ff526da1f56d8d503c198a34dac64f"
+      }
+    ],
+    "field_evidence": [
+      {
+        "field": "trigger",
+        "index": 0,
+        "text": "The payment preparer starts when there is an approved obligation and proposed payment instructions. Their upstream source and readiness handoff are UNKNOWN.",
+        "evidence_turns": [
+          "t002"
+        ]
+      },
+      {
+        "field": "inputs",
+        "index": 0,
+        "text": "Approved obligation and proposed payment instructions",
+        "evidence_turns": [
+          "t002"
+        ]
+      },
+      {
+        "field": "inputs",
+        "index": 1,
+        "text": "Invoice and applicable screening information",
+        "evidence_turns": [
+          "t006"
+        ]
+      },
+      {
+        "field": "inputs",
+        "index": 2,
+        "text": "Cash balance, pending payments, cutoff and value date",
+        "evidence_turns": [
+          "t008"
+        ]
+      },
+      {
+        "field": "inputs",
+        "index": 3,
+        "text": "Approved independent source for the callback telephone number",
+        "evidence_turns": [
+          "t004"
+        ]
+      },
+      {
+        "field": "outputs",
+        "index": 0,
+        "text": "Payment status updated in the Payments Log",
+        "evidence_turns": [
+          "t010"
+        ]
+      },
+      {
+        "field": "outputs",
+        "index": 1,
+        "text": "Payment records filed in a binder or payment folder and linked in the log",
+        "evidence_turns": [
+          "t010"
+        ]
+      },
+      {
+        "field": "outputs",
+        "index": 2,
+        "text": "AFC-or-higher sign-off that the records are complete",
+        "evidence_turns": [
+          "t010"
+        ]
+      },
+      {
+        "field": "exceptions",
+        "index": 0,
+        "text": "An unreachable contact, conflicting details or a payee/account-holder name mismatch stops the payment; release cannot proceed on that basis. Escalation owner, threshold and recovery are UNKNOWN.",
+        "evidence_turns": [
+          "t006"
+        ]
+      },
+      {
+        "field": "exceptions",
+        "index": 1,
+        "text": "A potential high-risk-country match goes to two Signatory A approvers; their decision and subsequent route are UNKNOWN.",
+        "evidence_turns": [
+          "t006"
+        ]
+      },
+      {
+        "field": "exceptions",
+        "index": 2,
+        "text": "Short funds produce an Insufficient Funds status and FA-16 takeover; subsequent handling is UNKNOWN.",
+        "evidence_turns": [
+          "t008"
+        ]
+      },
+      {
+        "field": "exceptions",
+        "index": 3,
+        "text": "Returns, rejects and queries are investigated. Changed instructions are verified again before resubmission; the connection between investigation and a change, other outcomes and the resubmission route are UNKNOWN.",
+        "evidence_turns": [
+          "t010"
+        ]
+      },
+      {
+        "field": "controls",
+        "index": 0,
+        "text": "New or changed instructions require a callback using an approved independent telephone source, not the instruction email.",
+        "evidence_turns": [
+          "t002",
+          "t004"
+        ]
+      },
+      {
+        "field": "controls",
+        "index": 1,
+        "text": "The callback includes contact, name and applicable bank-detail verification and a record with only permitted masked bank details.",
+        "evidence_turns": [
+          "t004"
+        ]
+      },
+      {
+        "field": "controls",
+        "index": 2,
+        "text": "The reviewer matches the invoice and checks duplicates, Exiger sanctions/high-risk-country screening and UK CIS where applicable.",
+        "evidence_turns": [
+          "t006"
+        ]
+      },
+      {
+        "field": "controls",
+        "index": 3,
+        "text": "US client approval is required before release; European payments follow the applicable FA-18 sequence and capital-adequacy check where applicable.",
+        "evidence_turns": [
+          "t008"
+        ]
+      },
+      {
+        "field": "controls",
+        "index": 4,
+        "text": "Treasury checks cash and timing and retains a balance screenshot.",
+        "evidence_turns": [
+          "t008"
+        ]
+      },
+      {
+        "field": "controls",
+        "index": 5,
+        "text": "Signatory 1 and an independent Signatory 2 approve, with two Signatory A approvals when required, before scheduling or release.",
+        "evidence_turns": [
+          "t008"
+        ]
+      },
+      {
+        "field": "controls",
+        "index": 6,
+        "text": "The preparer obtains AFC-or-higher sign-off on record completeness.",
+        "evidence_turns": [
+          "t010"
+        ]
+      }
+    ],
+    "title": "DRAFT — Payment Execution & Callback Verification Controls",
+    "overview": "Current-practice draft based on one participant account. It describes payment logging, callbacks, checks, approvals, Treasury activities, exception handling and records. Several handoffs and outcomes remain UNKNOWN. The draft is pending participant and process-owner review; no procedure was supplied for independent review.",
+    "trigger": "The payment preparer starts when there is an approved obligation and proposed payment instructions. Their upstream source and readiness handoff are UNKNOWN.",
+    "inputs": [
+      "Approved obligation and proposed payment instructions",
+      "Invoice and applicable screening information",
+      "Cash balance, pending payments, cutoff and value date",
+      "Approved independent source for the callback telephone number"
+    ],
+    "outputs": [
+      "Payment status updated in the Payments Log",
+      "Payment records filed in a binder or payment folder and linked in the log",
+      "AFC-or-higher sign-off that the records are complete"
+    ],
+    "steps": [
+      {
+        "id": "S1",
+        "title": "Log proposed payment",
+        "type": "data_store",
+        "actor": "Payment preparer",
+        "system": "Payments Log",
+        "description": "Enter payee, amount, purpose, entity, value date and folder reference where those fields exist, and set the status. The initial status is UNKNOWN.",
+        "input": "Approved obligation and proposed payment instructions",
+        "output": "Payment entry with a status",
+        "completion_criteria": "Reported fields entered where they exist and status set.",
+        "handoff": "The preparer checks whether instructions are new or changed.",
+        "control_type": [],
+        "data_origin": "Approved obligation and proposed payment instructions; upstream source UNKNOWN.",
+        "entry_mode": "manual",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t002"
+        ],
+        "operating_details": [
+          {
+            "field": "responsible",
+            "text": "They enter the payee, amount, purpose, entity, value date and folder reference in the Payments Log where those fields exist.",
+            "evidence_turns": [
+              "t002"
+            ]
+          },
+          {
+            "field": "system",
+            "text": "in the Payments Log",
+            "evidence_turns": [
+              "t002"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S2",
+        "title": "Are instructions new or changed?",
+        "type": "decision",
+        "actor": "Payment preparer",
+        "system": "UNKNOWN",
+        "description": "Check whether instructions are new or changed. Either condition requires a callback. The route when neither condition applies is UNKNOWN.",
+        "input": "Proposed payment instructions",
+        "output": "Instruction status and callback requirement",
+        "completion_criteria": "The instruction status is determined.",
+        "handoff": "Callback performer when instructions are new or changed; handoff method UNKNOWN.",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Proposed payment instructions",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t002"
+        ],
+        "operating_details": [
+          {
+            "field": "responsible",
+            "text": "They set the status and check whether instructions are new or changed.",
+            "evidence_turns": [
+              "t002"
+            ]
+          },
+          {
+            "field": "control",
+            "text": "Either condition requires a callback.",
+            "evidence_turns": [
+              "t002"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S3",
+        "title": "Perform and record callback",
+        "type": "activity",
+        "actor": "Callback performer",
+        "system": "UNKNOWN",
+        "description": "Use an approved independent source for the known contact's telephone number, never the instruction email. Call the contact; verify name and relationship; compare payee and account-holder names; and verify IBAN and SWIFT in Europe or ABA in the US, plus other applicable account details. Record who called, contact, relationship, date and time, retaining only permitted masked bank details. The recording location and what can be recorded when a contact is unreachable are UNKNOWN.",
+        "input": "Payment instructions, known contact and approved independent telephone source",
+        "output": "Callback result and applicable callback record",
+        "completion_criteria": "The verification outcome or a reported stopping condition is identified; the recording treatment for an incomplete callback is UNKNOWN.",
+        "handoff": "A verified payment proceeds to reviewer checks. An unreachable contact, conflicting details or a name mismatch stops the payment.",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Independent telephone source, known contact and payment instructions",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t004",
+          "t006"
+        ],
+        "operating_details": [
+          {
+            "field": "control",
+            "text": "The callback performer uses an approved independent source for the phone number, never the instruction email.",
+            "evidence_turns": [
+              "t004"
+            ]
+          },
+          {
+            "field": "responsible",
+            "text": "They call the known contact, verify the name and relationship, compare payee and account-holder names, and verify IBAN and SWIFT in Europe or ABA in the US plus other applicable account details.",
+            "evidence_turns": [
+              "t004"
+            ]
+          },
+          {
+            "field": "control",
+            "text": "They record who called, contact, relationship, date and time, keeping only permitted masked bank details.",
+            "evidence_turns": [
+              "t004"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S4",
+        "title": "Stop unverified payment",
+        "type": "activity",
+        "actor": "UNKNOWN",
+        "system": "UNKNOWN",
+        "description": "Stop if the contact cannot be reached, details conflict, or payee and account-holder names do not match. The participant says release cannot proceed on that basis and that the mentioned procedure leaves escalation owner and threshold unspecified. Resolution and return are UNKNOWN.",
+        "input": "Unreachable contact, conflicting details or name mismatch",
+        "output": "Stopped payment",
+        "completion_criteria": "Payment stopped; subsequent resolution UNKNOWN.",
+        "handoff": "UNKNOWN",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Callback result",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t006"
+        ],
+        "operating_details": [
+          {
+            "field": "exception",
+            "text": "Stop if the contact cannot be reached, details conflict, or payee and account-holder names do not match.",
+            "evidence_turns": [
+              "t006"
+            ]
+          },
+          {
+            "field": "control",
+            "text": "We cannot release on that basis.",
+            "evidence_turns": [
+              "t006"
+            ]
+          },
+          {
+            "field": "exception",
+            "text": "The procedure leaves the escalation owner and threshold unspecified.",
+            "evidence_turns": [
+              "t006"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S5",
+        "title": "Review payment checks",
+        "type": "activity",
+        "actor": "Reviewer",
+        "system": "Exiger",
+        "description": "For a verified payment, match the invoice and check duplicates, Exiger sanctions and high-risk-country screening, and UK CIS where applicable. Detailed tests, failure handling and other handoffs are UNKNOWN.",
+        "input": "Verified payment, invoice and screening information",
+        "output": "Review results and any potential high-risk-country match",
+        "completion_criteria": "Applicable reported checks performed; acceptance criteria UNKNOWN.",
+        "handoff": "A potential high-risk-country match goes to two Signatory A approvers; other handoffs UNKNOWN.",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Invoice, payment information and Exiger screening",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t006"
+        ],
+        "operating_details": [
+          {
+            "field": "responsible",
+            "text": "On a verified payment, the reviewer still matches the invoice and checks duplicates, Exiger sanctions/high-risk-country screening and UK CIS where applicable.",
+            "evidence_turns": [
+              "t006"
+            ]
+          },
+          {
+            "field": "system",
+            "text": "Exiger sanctions/high-risk-country screening",
+            "evidence_turns": [
+              "t006"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S6",
+        "title": "Refer potential high-risk match",
+        "type": "activity",
+        "actor": "UNKNOWN",
+        "system": "UNKNOWN",
+        "description": "A potential high-risk-country match goes to two Signatory A approvers. Their checks, decisions, order, rejection handling and relationship to bank-stage Signatory A approvals are UNKNOWN.",
+        "input": "Potential high-risk-country match",
+        "output": "Match referred to two Signatory A approvers",
+        "completion_criteria": "The match goes to the two approvers; subsequent outcome UNKNOWN.",
+        "handoff": "Two Signatory A approvers; sender and mechanism UNKNOWN.",
+        "control_type": [
+          "exception_escalation"
+        ],
+        "data_origin": "Reviewer screening check",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t006"
+        ],
+        "operating_details": [
+          {
+            "field": "exception",
+            "text": "A potential high-risk-country match goes to two Signatory A approvers.",
+            "evidence_turns": [
+              "t006"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S7",
+        "title": "Obtain US client approval",
+        "type": "activity",
+        "actor": "Client",
+        "system": "UNKNOWN",
+        "description": "For a US payment, client approval is required before release. The request, any review, rejection route and timing relative to signatory approvals are UNKNOWN.",
+        "input": "US payment",
+        "output": "Client approval",
+        "completion_criteria": "Client approval obtained for release.",
+        "handoff": "US release also requires the applicable signatory approvals; coordination is UNKNOWN.",
+        "control_type": [
+          "client_approval"
+        ],
+        "data_origin": "Payment information",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t008"
+        ],
+        "operating_details": [
+          {
+            "field": "control",
+            "text": "For a US payment, client approval is required before release.",
+            "evidence_turns": [
+              "t008"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S8",
+        "title": "Apply European approval sequence",
+        "type": "activity",
+        "actor": "UNKNOWN",
+        "system": "UNKNOWN",
+        "description": "European payments follow the applicable FA-18 regulated approval sequence and a capital-adequacy check where applicable. The sequence, applicability, performers and placement relative to other steps are UNKNOWN.",
+        "input": "European payment",
+        "output": "Applicable approval sequence and check",
+        "completion_criteria": "UNKNOWN",
+        "handoff": "UNKNOWN",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Payment information",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t008"
+        ],
+        "operating_details": [
+          {
+            "field": "control",
+            "text": "European payments follow the applicable FA-18 regulated approval sequence and a capital-adequacy check where applicable.",
+            "evidence_turns": [
+              "t008"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S9",
+        "title": "Check funds and timing",
+        "type": "activity",
+        "actor": "Treasury",
+        "system": "UNKNOWN",
+        "description": "Check cash against pending payments, cutoff and value date; retain a balance screenshot and arrange FX as needed. If funds are short, status becomes Insufficient Funds and FA-16 takes over. Otherwise the preparer inputs the payment at the bank.",
+        "input": "Cash balance, pending payments, cutoff and value date",
+        "output": "Funds assessment, balance screenshot and FX arrangements where needed",
+        "completion_criteria": "Reported checks performed and funds identified as short or otherwise.",
+        "handoff": "FA-16 if funds are short; preparer for bank entry otherwise. Handoff methods UNKNOWN.",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Cash balance and pending payments",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t008"
+        ],
+        "operating_details": [
+          {
+            "field": "responsible",
+            "text": "Treasury checks cash against pending payments, cutoff and value date, retains a balance screenshot and arranges FX as needed.",
+            "evidence_turns": [
+              "t008"
+            ]
+          },
+          {
+            "field": "exception",
+            "text": "If funds are short the status becomes Insufficient Funds and FA-16 takes over.",
+            "evidence_turns": [
+              "t008"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S10",
+        "title": "Hand off insufficient funds",
+        "type": "activity",
+        "actor": "UNKNOWN",
+        "system": "UNKNOWN",
+        "description": "When funds are short, the status becomes Insufficient Funds and FA-16 takes over. Who changes the status, where it is changed and the subsequent FA-16 route are UNKNOWN.",
+        "input": "Short-funds assessment",
+        "output": "Insufficient Funds status and FA-16 takeover",
+        "completion_criteria": "Status becomes Insufficient Funds and FA-16 takes over.",
+        "handoff": "FA-16; mechanism and return UNKNOWN.",
+        "control_type": [
+          "exception_escalation"
+        ],
+        "data_origin": "Treasury funds assessment",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t008"
+        ],
+        "operating_details": [
+          {
+            "field": "exception",
+            "text": "If funds are short the status becomes Insufficient Funds and FA-16 takes over.",
+            "evidence_turns": [
+              "t008"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S11",
+        "title": "Enter payment at bank",
+        "type": "activity",
+        "actor": "Payment preparer",
+        "system": "Bank",
+        "description": "When funds are not short, input the payment at the bank for Signatory 1 and an independent Signatory 2 to approve, plus two Signatory A approvals when required.",
+        "input": "Payment information and Treasury funds assessment",
+        "output": "Payment entered for approval",
+        "completion_criteria": "Payment entered at the bank.",
+        "handoff": "Signatory approvers",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Payment information",
+        "entry_mode": "manual",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t008"
+        ],
+        "operating_details": [
+          {
+            "field": "responsible",
+            "text": "Otherwise the preparer inputs the payment at the bank for Signatory 1 and an independent Signatory 2 to approve, plus two Signatory A approvals when required, before schedule or release.",
+            "evidence_turns": [
+              "t008"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S12",
+        "title": "Approve bank payment",
+        "type": "activity",
+        "actor": "Signatory 1 and independent Signatory 2; two Signatory A approvers when required",
+        "system": "UNKNOWN",
+        "description": "Signatory 1 and independent Signatory 2 approve, plus two Signatory A approvals when required, before scheduling or release. Approval order, checks, rejection handling and system enforcement are UNKNOWN.",
+        "input": "Payment entered at the bank",
+        "output": "Required signatory approvals",
+        "completion_criteria": "All applicable signatory approvals obtained.",
+        "handoff": "Scheduling or release; US release also requires client approval.",
+        "control_type": [
+          "gpfs_supervisory"
+        ],
+        "data_origin": "Bank payment entry",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t008"
+        ],
+        "operating_details": [
+          {
+            "field": "control",
+            "text": "Signatory 1 and an independent Signatory 2 to approve, plus two Signatory A approvals when required, before schedule or release.",
+            "evidence_turns": [
+              "t008"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S13",
+        "title": "Release payment",
+        "type": "activity",
+        "actor": "UNKNOWN",
+        "system": "UNKNOWN",
+        "description": "Release requires the reported applicable signatory approvals; for a US payment, client approval is also required. European payments follow the applicable FA-18 sequence and capital-adequacy check where applicable, but their precise placement is UNKNOWN. This node represents release, not scheduling.",
+        "input": "Payment and applicable approvals",
+        "output": "Released payment",
+        "completion_criteria": "Payment released after required signatory approvals and, for a US payment, client approval.",
+        "handoff": "Connection to bank-status monitoring and notification method UNKNOWN.",
+        "control_type": [
+          "client_approval",
+          "gpfs_supervisory"
+        ],
+        "data_origin": "Payment and approvals",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t008"
+        ],
+        "operating_details": [
+          {
+            "field": "control",
+            "text": "For a US payment, client approval is required before release.",
+            "evidence_turns": [
+              "t008"
+            ]
+          },
+          {
+            "field": "control",
+            "text": "Signatory 1 and an independent Signatory 2 to approve, plus two Signatory A approvals when required, before schedule or release.",
+            "evidence_turns": [
+              "t008"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S14",
+        "title": "Monitor bank status",
+        "type": "activity",
+        "actor": "Treasury",
+        "system": "Bank and Payments Log",
+        "description": "Monitor final bank status and update the Payments Log from In Progress to Settled, Pending Query or Not Paid by GPFS, as applicable. Status criteria, the entry into monitoring and any later closure are UNKNOWN.",
+        "input": "Final bank status",
+        "output": "Updated Payments Log status",
+        "completion_criteria": "Applicable reported status recorded; overall closure UNKNOWN.",
+        "handoff": "UNKNOWN",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Bank status",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t010"
+        ],
+        "operating_details": [
+          {
+            "field": "responsible",
+            "text": "Treasury monitors the final bank status and updates the Payments Log from In Progress to Settled, Pending Query or Not Paid by GPFS as applicable.",
+            "evidence_turns": [
+              "t010"
+            ]
+          },
+          {
+            "field": "system",
+            "text": "updates the Payments Log from In Progress to Settled, Pending Query or Not Paid by GPFS",
+            "evidence_turns": [
+              "t010"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S15",
+        "title": "Investigate payment exceptions",
+        "type": "activity",
+        "actor": "UNKNOWN",
+        "system": "UNKNOWN",
+        "description": "Returns, rejects and queries are investigated. Investigation ownership, entry, outcomes and connection to changed instructions or other subsequent work are UNKNOWN.",
+        "input": "Return, reject or query",
+        "output": "Investigation outcome",
+        "completion_criteria": "UNKNOWN",
+        "handoff": "UNKNOWN",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Payment exception",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t010"
+        ],
+        "operating_details": [
+          {
+            "field": "exception",
+            "text": "Returns, rejects and queries are investigated, and changed instructions are verified again before resubmission.",
+            "evidence_turns": [
+              "t010"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S16",
+        "title": "Reverify changed instructions",
+        "type": "activity",
+        "actor": "UNKNOWN",
+        "system": "UNKNOWN",
+        "description": "Verify changed instructions again before resubmission. New or changed instructions require a callback under the participant's reported rule. The performer, exact reverification, origin of the change and resubmission route are UNKNOWN.",
+        "input": "Changed payment instructions",
+        "output": "Reverified instructions",
+        "completion_criteria": "Changed instructions verified before resubmission.",
+        "handoff": "Resubmission; destination and further checks UNKNOWN.",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Changed instructions; source UNKNOWN.",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t002",
+          "t010"
+        ],
+        "operating_details": [
+          {
+            "field": "control",
+            "text": "changed instructions are verified again before resubmission.",
+            "evidence_turns": [
+              "t010"
+            ]
+          },
+          {
+            "field": "control",
+            "text": "Either condition requires a callback.",
+            "evidence_turns": [
+              "t002"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S17",
+        "title": "File payment records",
+        "type": "document",
+        "actor": "Payment preparer",
+        "system": "Binder or payment folder; Payments Log",
+        "description": "File approval, callback, screening, balance, payment and final bank-status records in the binder or payment folder, and link it in the log. Which records apply where a callback or another action is not required is UNKNOWN.",
+        "input": "Approval, callback, screening, balance, payment and final bank-status records",
+        "output": "Payment file linked in the log",
+        "completion_criteria": "Reported records filed and file linked; applicability on alternative routes UNKNOWN.",
+        "handoff": "Preparer obtains AFC-or-higher sign-off on completeness.",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Payment and control records",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t010"
+        ],
+        "operating_details": [
+          {
+            "field": "responsible",
+            "text": "The preparer files the approval, callback, screening, balance, payment and final bank-status records in the binder or payment folder, links it in the log, and obtains AFC-or-higher sign-off that the records are complete.",
+            "evidence_turns": [
+              "t010"
+            ]
+          },
+          {
+            "field": "system",
+            "text": "in the binder or payment folder, links it in the log",
+            "evidence_turns": [
+              "t010"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S18",
+        "title": "Sign off record completeness",
+        "type": "activity",
+        "actor": "AFC or higher",
+        "system": "UNKNOWN",
+        "description": "The preparer obtains AFC-or-higher sign-off that the payment records are complete. The sign-off method, evidence location and action if records are incomplete are UNKNOWN.",
+        "input": "Payment records",
+        "output": "Completeness sign-off",
+        "completion_criteria": "AFC-or-higher sign-off obtained.",
+        "handoff": "UNKNOWN",
+        "control_type": [
+          "gpfs_supervisory"
+        ],
+        "data_origin": "Payment records",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t010"
+        ],
+        "operating_details": [
+          {
+            "field": "control",
+            "text": "obtains AFC-or-higher sign-off that the records are complete.",
+            "evidence_turns": [
+              "t010"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S19",
+        "title": "Schedule payment",
+        "type": "activity",
+        "actor": "UNKNOWN",
+        "system": "UNKNOWN",
+        "description": "Scheduling is a reported alternative to release and follows the required signatory approvals. Whether US client approval is also required before scheduling, and the subsequent scheduling route, are UNKNOWN.",
+        "input": "Payment and required signatory approvals",
+        "output": "Scheduled payment",
+        "completion_criteria": "Payment scheduled after required signatory approvals; other applicable conditions UNKNOWN.",
+        "handoff": "UNKNOWN",
+        "control_type": [
+          "gpfs_supervisory"
+        ],
+        "data_origin": "Payment and signatory approvals",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t008"
+        ],
+        "operating_details": [
+          {
+            "field": "control",
+            "text": "Signatory 1 and an independent Signatory 2 to approve, plus two Signatory A approvals when required, before schedule or release.",
+            "evidence_turns": [
+              "t008"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "S20",
+        "title": "Resubmit payment",
+        "type": "activity",
+        "actor": "UNKNOWN",
+        "system": "UNKNOWN",
+        "description": "Resubmission is reported after changed instructions have been verified again. Its destination, mechanism, additional checks and subsequent outcome are UNKNOWN.",
+        "input": "Payment with changed instructions verified again",
+        "output": "Resubmitted payment",
+        "completion_criteria": "Resubmission; further outcome UNKNOWN.",
+        "handoff": "UNKNOWN",
+        "control_type": [
+          "gpfs_operational"
+        ],
+        "data_origin": "Changed instructions",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "UNKNOWN",
+        "evidence_turns": [
+          "t010"
+        ],
+        "operating_details": [
+          {
+            "field": "control",
+            "text": "changed instructions are verified again before resubmission.",
+            "evidence_turns": [
+              "t010"
+            ]
+          }
+        ]
+      }
+    ],
+    "connections": [
+      {
+        "from": "S1",
+        "to": "S2",
+        "label": "Check instructions",
+        "evidence_turns": [
+          "t002"
+        ]
+      },
+      {
+        "from": "S2",
+        "to": "S3",
+        "label": "Instructions new or changed",
+        "evidence_turns": [
+          "t002"
+        ]
+      },
+      {
+        "from": "S3",
+        "to": "S4",
+        "label": "Contact unreachable, details conflict or names mismatch",
+        "evidence_turns": [
+          "t006"
+        ]
+      },
+      {
+        "from": "S3",
+        "to": "S5",
+        "label": "Payment verified",
+        "evidence_turns": [
+          "t006"
+        ]
+      },
+      {
+        "from": "S5",
+        "to": "S6",
+        "label": "Potential high-risk-country match",
+        "evidence_turns": [
+          "t006"
+        ]
+      },
+      {
+        "from": "S9",
+        "to": "S10",
+        "label": "Funds short",
+        "evidence_turns": [
+          "t008"
+        ]
+      },
+      {
+        "from": "S9",
+        "to": "S11",
+        "label": "Funds not short",
+        "evidence_turns": [
+          "t008"
+        ]
+      },
+      {
+        "from": "S11",
+        "to": "S12",
+        "label": "Entered for approval",
+        "evidence_turns": [
+          "t008"
+        ]
+      },
+      {
+        "from": "S12",
+        "to": "S13",
+        "label": "Required signatory approvals; US release also requires client approval",
+        "evidence_turns": [
+          "t008"
+        ]
+      },
+      {
+        "from": "S7",
+        "to": "S13",
+        "label": "US release: client approval AND required signatory approvals",
+        "evidence_turns": [
+          "t008"
+        ]
+      },
+      {
+        "from": "S17",
+        "to": "S18",
+        "label": "Obtain completeness sign-off",
+        "evidence_turns": [
+          "t010"
+        ]
+      },
+      {
+        "from": "S12",
+        "to": "S19",
+        "label": "Required signatory approvals before scheduling",
+        "evidence_turns": [
+          "t008"
+        ]
+      },
+      {
+        "from": "S16",
+        "to": "S20",
+        "label": "Changed instructions verified before resubmission",
+        "evidence_turns": [
+          "t010"
+        ]
+      }
+    ],
+    "exceptions": [
+      "An unreachable contact, conflicting details or a payee/account-holder name mismatch stops the payment; release cannot proceed on that basis. Escalation owner, threshold and recovery are UNKNOWN.",
+      "A potential high-risk-country match goes to two Signatory A approvers; their decision and subsequent route are UNKNOWN.",
+      "Short funds produce an Insufficient Funds status and FA-16 takeover; subsequent handling is UNKNOWN.",
+      "Returns, rejects and queries are investigated. Changed instructions are verified again before resubmission; the connection between investigation and a change, other outcomes and the resubmission route are UNKNOWN."
+    ],
+    "controls": [
+      "New or changed instructions require a callback using an approved independent telephone source, not the instruction email.",
+      "The callback includes contact, name and applicable bank-detail verification and a record with only permitted masked bank details.",
+      "The reviewer matches the invoice and checks duplicates, Exiger sanctions/high-risk-country screening and UK CIS where applicable.",
+      "US client approval is required before release; European payments follow the applicable FA-18 sequence and capital-adequacy check where applicable.",
+      "Treasury checks cash and timing and retains a balance screenshot.",
+      "Signatory 1 and an independent Signatory 2 approve, with two Signatory A approvals when required, before scheduling or release.",
+      "The preparer obtains AFC-or-higher sign-off on record completeness."
+    ],
+    "open_questions": [
+      "Are there other outcomes from decision S2 (Are instructions new or changed?), and where do they lead?",
+      "Does any incoming route start S13 (Release payment), or must all prerequisites finish?",
+      "How does step S8 (Apply European approval sequence) connect to the rest of this process, if at all?",
+      "How does step S14 (Monitor bank status) connect to the rest of this process, if at all?",
+      "How does step S15 (Investigate payment exceptions) connect to the rest of this process, if at all?",
+      "Are the routes containing S1 (Log proposed payment) and S7 (Obtain US client approval) separate, or is there a reported handoff between them?",
+      "Are the routes containing S1 (Log proposed payment) and S16 (Reverify changed instructions) separate, or is there a reported handoff between them?",
+      "Are the routes containing S1 (Log proposed payment) and S17 (File payment records) separate, or is there a reported handoff between them?",
+      "Who is accountable for the overall result, and what observable condition closes the work after settlement or another final status?",
+      "What is the route for instructions that are neither new nor changed, and how do reviewer checks connect to Treasury checks and the regional approval activities?",
+      "How are US client approval, European FA-18 requirements and signatory approvals coordinated with scheduling and release? Is US client approval required before scheduling as well as release?",
+      "How are stopped callbacks, failed reviewer checks and potential high-risk-country matches resolved, and what happens next in each case?",
+      "What leads into bank-status monitoring and exception investigation? How, if at all, does an investigation lead to changed instructions, and where does resubmission go?",
+      "When and how does final bank-status information become available to the preparer for filing?",
+      "Who supplies the approved obligation and proposed instructions, and how is readiness communicated?",
+      "What entity types, client scope and parent process apply? Is the described route general GPFS practice or a particular route, and what is the basis?",
+      "Where is the callback record initially kept, and what is recorded when the contact cannot be reached?",
+      "What does each reviewer or approver check, what is blocked pending each check, and what evidence, thresholds, overrides or system restrictions apply?",
+      "What is the FA-18 sequence, when does the capital-adequacy check apply, and what happens after FA-16 takes over?",
+      "When are two Signatory A approvals required, and are they the same approvals involved in the high-risk-country referral?",
+      "Which records are filed where a callback or another listed action is not required, and what happens if completeness sign-off is withheld?",
+      "What cadence, fixed deadlines, volumes, peaks, exception frequency and effort apply?",
+      "What manual friction, failure consequences, other variations, charging and removal constraints have participants observed?",
+      "Which record is authoritative, who interprets conflicting rules, and are the mentioned procedure, FA-16 and FA-18 available for review?"
+    ],
+    "validation_notes": [
+      "AI-generated current-practice draft requiring participant and process-owner review. Confirmation and approval are pending; the capture is not an executable procedure.",
+      "The evidence is one participant account. No supporting document excerpt was supplied or reviewed. The procedure, FA-16 and FA-18 are mentions, not independently verified written rules.",
+      "US client approval and signatory approvals are separate prerequisites for US release. Their order and coordination are UNKNOWN. Scheduling is represented separately because the participant specified client approval before release, not expressly before scheduling.",
+      "European approval and Treasury checks retain disconnected entry points rather than an invented order. The unchanged-instruction route is also UNKNOWN.",
+      "No direct edges were retained from release to monitoring, monitoring to investigation or filing, or investigation to reverification: the account reports those activities but does not establish those particular handoffs. Their exact connections remain open.",
+      "Reverification is a stated prerequisite to resubmission when instructions change; its entry and subsequent route remain UNKNOWN.",
+      "The location of the Insufficient Funds status and the system used for signatory approval are UNKNOWN. Filing a final bank-status record does not establish that every payment settled or that the overall work is closed.",
+      "No approved GPFS standard, entity classification or authoritative system of record is established. Missing branches and outcomes are not evidence that they do not exist.",
+      "AI-generated draft. Process-owner review is required; interview statements have not been independently verified.",
+      "The independent audit changed or removed 3 proposed exception(s)."
+    ],
+    "memo_summary": [
+      {
+        "key": "name",
+        "status": "partial",
+        "answer": "The intake calls the work Payment Execution & Callback Verification Controls. The account includes logging, verification, approvals, Treasury monitoring and recordkeeping. Other names and exact boundaries are UNKNOWN.",
+        "evidence_turns": [
+          "context",
+          "t002",
+          "t010"
+        ]
+      },
+      {
+        "key": "purpose",
+        "status": "partial",
+        "answer": "The work prepares and controls payments, monitors bank status and retains supporting records. The participant did not state the full intended organizational or client result or the overall completion boundary.",
+        "evidence_turns": [
+          "t008",
+          "t010"
+        ]
+      },
+      {
+        "key": "trigger",
+        "status": "partial",
+        "answer": "The preparer starts when there is an approved obligation and proposed payment instructions. The producing process, readiness handoff, cadence and fixed deadlines are UNKNOWN. Treasury considers cutoff and value date.",
+        "evidence_turns": [
+          "t002",
+          "t008"
+        ]
+      },
+      {
+        "key": "completion",
+        "status": "partial",
+        "answer": "Treasury updates the log to an applicable reported bank status. The preparer files the listed records, links the file and obtains AFC-or-higher completeness sign-off. Whether these constitute overall closure, including after settlement, and any downstream consumer are UNKNOWN.",
+        "evidence_turns": [
+          "t010"
+        ]
+      },
+      {
+        "key": "accountable",
+        "status": "unknown",
+        "answer": "UNKNOWN. The account identifies preparer, reviewer, Treasury and approver actions, but not the role accountable for the overall result.",
+        "evidence_turns": [
+          "t002",
+          "t006",
+          "t008",
+          "t010"
+        ]
+      },
+      {
+        "key": "lifecycle",
+        "status": "partial",
+        "answer": "The preparer logs payment details, sets a status and checks whether instructions are new or changed; either requires a callback. The callback performer verifies and records details, and a verified payment receives reviewer checks. Treasury checks cash and timing; short funds go to FA-16, otherwise the preparer enters the payment at the bank for approvals. Treasury monitors bank status, exceptions are investigated, changed instructions are reverified before resubmission, and the preparer files records and obtains completeness sign-off. The unchanged-instruction route, several handoffs and the ordering of review, regional approvals and Treasury work are UNKNOWN.",
+        "evidence_turns": [
+          "t002",
+          "t004",
+          "t006",
+          "t008",
+          "t010"
+        ]
+      },
+      {
+        "key": "checks",
+        "status": "partial",
+        "answer": "The callback uses an independent number source and verifies contact, names and applicable bank details; an unreachable contact, conflicting details or mismatched names stops release. The reviewer checks invoice, duplicates, Exiger screening and applicable UK CIS; a potential high-risk-country match goes to two Signatory A approvers. US client approval precedes release; European FA-18 and applicable capital-adequacy requirements apply. Treasury checks cash and timing; signatories approve before scheduling or release, and AFC or higher signs off record completeness. Detailed review tests, rejection handling, evidence, thresholds, overrides and system enforcement remain UNKNOWN.",
+        "evidence_turns": [
+          "t004",
+          "t006",
+          "t008",
+          "t010"
+        ]
+      },
+      {
+        "key": "variations",
+        "status": "partial",
+        "answer": "Europe and the US have different reported callback identifiers and approval requirements. UK CIS and capital-adequacy checks apply where relevant, and Treasury arranges FX as needed. Reasons, effort, charging, removal constraints, boundary comparison and whether the routes are GPFS-wide or client-specific are UNKNOWN.",
+        "evidence_turns": [
+          "t004",
+          "t006",
+          "t008"
+        ]
+      },
+      {
+        "key": "pain_points",
+        "status": "unknown",
+        "answer": "UNKNOWN. No participant-described friction, time estimate or workaround was supplied.",
+        "evidence_turns": []
+      },
+      {
+        "key": "risk",
+        "status": "partial",
+        "answer": "The participant says a payment cannot be released when the callback contact is unreachable, details conflict or names do not match. Concrete consequences of failure beyond that restriction are UNKNOWN.",
+        "evidence_turns": [
+          "t006"
+        ]
+      },
+      {
+        "key": "materials",
+        "status": "partial",
+        "answer": "The participant mentions a procedure, FA-16 and FA-18. No excerpts were supplied or reviewed; availability, locations and other materials are UNKNOWN.",
+        "evidence_turns": [
+          "t006",
+          "t008"
+        ]
+      },
+      {
+        "key": "scope",
+        "status": "partial",
+        "answer": "The Payments Log has an entity field where available, and the account distinguishes US, European and applicable UK circumstances. Entity types, client coverage, parent process and basis for a general GPFS standard are UNKNOWN.",
+        "evidence_turns": [
+          "t002",
+          "t006",
+          "t008"
+        ]
+      },
+      {
+        "key": "rules",
+        "status": "partial",
+        "answer": "The participant reports callback, approval and stopping requirements and refers to FA-18, FA-16 and a procedure; none was supplied for review. The participant says the procedure leaves escalation ownership and threshold unspecified. Rule interpretation, authority, conflicts, client modifications and any calculation logic are UNKNOWN.",
+        "evidence_turns": [
+          "t002",
+          "t006",
+          "t008"
+        ]
+      },
+      {
+        "key": "connections",
+        "status": "partial",
+        "answer": "An approved obligation and proposed instructions are upstream inputs, but their source is UNKNOWN. FA-16 takes over for short funds. Treasury checks cash and monitors bank status. Other connected processes, consumers and readiness handoffs are UNKNOWN.",
+        "evidence_turns": [
+          "t002",
+          "t008",
+          "t010"
+        ]
+      },
+      {
+        "key": "data_systems",
+        "status": "partial",
+        "answer": "The preparer enters available fields in the Payments Log and enters the payment at the bank. Exiger is named for sanctions/high-risk-country screening. Treasury updates log statuses; the preparer files records in a binder or payment folder and links it in the log. The authoritative record, callback-record location, detailed entry modes and calculation locations are UNKNOWN.",
+        "evidence_turns": [
+          "t002",
+          "t006",
+          "t008",
+          "t010"
+        ]
+      },
+      {
+        "key": "volume",
+        "status": "unknown",
+        "answer": "UNKNOWN. Counts, peaks, exception frequency and effort by step were not supplied.",
+        "evidence_turns": []
+      }
+    ],
+    "variations": [
+      {
+        "applies_to": "European and US callbacks",
+        "difference": "Verify IBAN and SWIFT in Europe or ABA in the US, plus other applicable account details.",
+        "reason": "UNKNOWN",
+        "cost": "UNKNOWN",
+        "charging": "UNKNOWN",
+        "removability": "UNKNOWN; who would object is UNKNOWN.",
+        "boundary": "untested",
+        "boundary_reason": "Trigger, accountability and finished-result differences were not established.",
+        "variant_class": "structural",
+        "substantive_or_presentation": "substantive",
+        "source": "Participant account",
+        "standard_route_ref": "S3",
+        "evidence_turns": [
+          "t004"
+        ]
+      },
+      {
+        "applies_to": "US payments",
+        "difference": "Client approval is required before release.",
+        "reason": "UNKNOWN",
+        "cost": "UNKNOWN",
+        "charging": "UNKNOWN",
+        "removability": "UNKNOWN; who would object is UNKNOWN.",
+        "boundary": "untested",
+        "boundary_reason": "Trigger, accountability and finished-result differences were not established.",
+        "variant_class": "structural",
+        "substantive_or_presentation": "substantive",
+        "source": "Participant account",
+        "standard_route_ref": "S13",
+        "evidence_turns": [
+          "t008"
+        ]
+      },
+      {
+        "applies_to": "European payments",
+        "difference": "Follow the applicable FA-18 regulated approval sequence and a capital-adequacy check where applicable.",
+        "reason": "UNKNOWN",
+        "cost": "UNKNOWN",
+        "charging": "UNKNOWN",
+        "removability": "UNKNOWN; who would object is UNKNOWN.",
+        "boundary": "untested",
+        "boundary_reason": "Trigger, accountability and finished-result differences were not established.",
+        "variant_class": "structural",
+        "substantive_or_presentation": "substantive",
+        "source": "Participant account; FA-18 mentioned but not reviewed",
+        "standard_route_ref": "S13",
+        "evidence_turns": [
+          "t008"
+        ]
+      },
+      {
+        "applies_to": "Payments where UK CIS applies",
+        "difference": "The reviewer checks UK CIS.",
+        "reason": "UNKNOWN",
+        "cost": "UNKNOWN",
+        "charging": "UNKNOWN",
+        "removability": "UNKNOWN; who would object is UNKNOWN.",
+        "boundary": "untested",
+        "boundary_reason": "Trigger, accountability and finished-result differences were not established.",
+        "variant_class": "structural",
+        "substantive_or_presentation": "substantive",
+        "source": "Participant account",
+        "standard_route_ref": "S5",
+        "evidence_turns": [
+          "t006"
+        ]
+      },
+      {
+        "applies_to": "Payments needing FX",
+        "difference": "Treasury arranges FX as needed.",
+        "reason": "UNKNOWN",
+        "cost": "UNKNOWN",
+        "charging": "UNKNOWN",
+        "removability": "UNKNOWN; who would object is UNKNOWN.",
+        "boundary": "untested",
+        "boundary_reason": "Trigger, accountability and finished-result differences were not established.",
+        "variant_class": "unclassified",
+        "substantive_or_presentation": "substantive",
+        "source": "Participant account",
+        "standard_route_ref": "S9",
+        "evidence_turns": [
+          "t008"
+        ]
+      }
+    ],
+    "lifecycle_items": [
+      {
+        "item": "Payment and instructions",
+        "stages": [
+          "Approved obligation and proposed instructions",
+          "Status set; initial status UNKNOWN",
+          "In Progress",
+          "Settled, Pending Query or Not Paid by GPFS as applicable",
+          "Insufficient Funds if short; recording location UNKNOWN"
+        ],
+        "locations": [
+          "Payments Log",
+          "Bank"
+        ],
+        "handoffs": [
+          "Preparer enters payment at bank for signatory approval",
+          "Treasury monitors final bank status; entry and notification mechanism UNKNOWN"
+        ],
+        "evidence_turns": [
+          "t002",
+          "t008",
+          "t010"
+        ]
+      },
+      {
+        "item": "Callback record",
+        "stages": [
+          "Callback performed and details recorded",
+          "Record filed"
+        ],
+        "locations": [
+          "Initial recording location UNKNOWN",
+          "Binder or payment folder"
+        ],
+        "handoffs": [
+          "Preparer files callback record; intermediate handoff UNKNOWN"
+        ],
+        "evidence_turns": [
+          "t004",
+          "t010"
+        ]
+      },
+      {
+        "item": "Payment records",
+        "stages": [
+          "Filed and linked",
+          "Completeness signed off"
+        ],
+        "locations": [
+          "Binder or payment folder",
+          "Payments Log link"
+        ],
+        "handoffs": [
+          "Preparer obtains AFC-or-higher sign-off"
+        ],
+        "evidence_turns": [
+          "t010"
+        ]
+      }
+    ],
+    "taxonomy": [
+      {
+        "facet": "functional_area",
+        "value": "treasury_payments",
+        "note": "Payment execution, Treasury checks and bank-status monitoring.",
+        "evidence_turns": [
+          "t008",
+          "t010"
+        ]
+      },
+      {
+        "facet": "applicability",
+        "value": "unknown",
+        "note": "Entity applicability is not established.",
+        "evidence_turns": [
+          "t002"
+        ]
+      },
+      {
+        "facet": "client_applicability",
+        "value": "unknown",
+        "note": "General versus client-specific scope is not established.",
+        "evidence_turns": [
+          "t008"
+        ]
+      },
+      {
+        "facet": "system",
+        "value": "other",
+        "note": "Payments Log, Exiger and bank are reported; authoritative system is UNKNOWN.",
+        "evidence_turns": [
+          "t002",
+          "t006",
+          "t008"
+        ]
+      },
+      {
+        "facet": "control_type",
+        "value": "client_approval",
+        "note": "US payment release requires client approval.",
+        "evidence_turns": [
+          "t008"
+        ]
+      },
+      {
+        "facet": "control_type",
+        "value": "gpfs_operational",
+        "note": "Reported callback, reviewer and Treasury checks.",
+        "evidence_turns": [
+          "t004",
+          "t006",
+          "t008"
+        ]
+      },
+      {
+        "facet": "variant_class",
+        "value": "structural",
+        "note": "Reported regional differences in identifiers and approval requirements; standard basis is UNKNOWN.",
+        "evidence_turns": [
+          "t004",
+          "t008"
+        ]
+      }
+    ],
+    "connections_out": [
+      {
+        "relationship_type": "hands_off_to",
+        "counterpart": "FA-16",
+        "condition": "Funds are short; status becomes Insufficient Funds and FA-16 takes over.",
+        "evidence_turns": [
+          "t008"
+        ]
+      },
+      {
+        "relationship_type": "requires_approval_from",
+        "counterpart": "Client",
+        "condition": "US payment before release.",
+        "evidence_turns": [
+          "t008"
+        ]
+      }
+    ]
+  },
+  "app_version": "0.32.0",
+  "capture_provenance": {
+    "method": "document_simulation",
+    "participant_confirmed": false,
+    "process_owner_approved": false,
+    "source_documents": [
+      {
+        "filename": "IP1-export.pdf",
+        "sha256": "d0f89ee7c7cc8ffbcd39c268b47b765888105e588f60199106356ca31df177c1"
+      }
+    ]
+  },
+  "closure": {
+    "asked": false,
+    "confirmed": false
+  }
+}

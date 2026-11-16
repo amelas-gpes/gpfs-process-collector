@@ -1,4 +1,5 @@
 """Offline SQLite graph tests; injected analyzer, no network or external provider."""
+import knowledge_rows as rows
 import importlib.util
 from contextlib import ExitStack
 import sqlite3
@@ -39,7 +40,7 @@ def proposal(current,candidates):
 
 def wait(graph,job):
     for _ in range(300):
-        row=next(x for x in graph.admin_snapshot()['jobs'] if x['id']==job)
+        row=next(x for x in rows.jobs(graph) if x['id']==job)
         if row['status'] not in ('pending','processing'): return row
         time.sleep(.01)
     raise AssertionError('job timed out')
@@ -101,30 +102,26 @@ class GraphTests(unittest.TestCase):
         self.graph.analyzer=None
         p,evidence=self.document_submission();original_text=evidence['text']
         receipt=self.graph.submit(p,document_scope='private-scope',document_evidence=[evidence])
-        saved=self.graph.admin_detail('submission',receipt['submission_id'],1)['item']
+        saved=self.graph._revision(receipt['submission_id'],1)
         self.assertEqual(saved['turns'],[])
         self.assertEqual(saved['document_evidence'][0]['text'],original_text)
         self.assertFalse(saved['document_evidence'][0]['participant_confirmed'])
         self.assertTrue(saved['document_evidence'][0]['owner_review_required'])
         self.assertNotIn('private-scope',kg.dumps(saved))
-        snapshot=self.graph.admin_snapshot()
-        step=next(item for item in snapshot['entities'] if item['type']=='step')
+        step=next(item for item in rows.entities(self.graph) if item['type']=='step')
         self.assertEqual(step['data']['source_kind'],'document')
         self.assertFalse(step['data']['participant_confirmed'])
         self.assertEqual(step['data']['document_source_ids'],[evidence['id']])
-        connection=next(item for item in snapshot['edges'] if item['type']=='happens_after')
+        connection=next(item for item in rows.edges(self.graph) if item['type']=='happens_after')
         self.assertEqual(connection['status'],'reported')
         self.assertEqual(connection['evidence']['source_kind'],'document')
-        detail=self.graph.admin_detail('entity',step['id'])
-        self.assertEqual(detail['submissions'][0]['document_evidence'][0]['text'],original_text)
-        self.assertEqual(detail['submissions'][0]['turns'],[])
     def test_imported_catalog_cannot_authorize_document_citations(self):
         self.graph.analyzer=None
         p,evidence=self.document_submission(with_participant=True)
         p['document_evidence']=[evidence]
         with self.assertRaisesRegex(ValueError,'non-participant evidence'):
             self.graph.submit(p,document_scope='private-scope')
-        self.assertEqual(self.graph.admin_snapshot()['submissions'],[])
+        self.assertEqual(rows.submissions(self.graph),[])
     def test_verified_catalog_rejects_missing_manifest_inactive_sources_and_missing_scope(self):
         self.graph.analyzer=None
         for change in ({'retained_only':True},{'archived':True},{'disposition':'parked'},
@@ -136,17 +133,16 @@ class GraphTests(unittest.TestCase):
         with self.assertRaises(ValueError):self.graph.submit(p,document_scope='private-scope',document_evidence=[evidence])
         p,evidence=self.document_submission()
         with self.assertRaisesRegex(ValueError,'authorized scope'):self.graph.submit(p,document_evidence=[evidence])
-        self.assertEqual(self.graph.admin_snapshot()['submissions'],[])
+        self.assertEqual(rows.submissions(self.graph),[])
     def test_mixed_document_and_participant_provenance_does_not_confirm_connections(self):
         self.graph.analyzer=None
         p,evidence=self.document_submission(with_participant=True)
         p['draft']['steps'][0]['evidence_turns'].append('u1')
         self.graph.submit(p,document_scope='private-scope',document_evidence=[evidence])
-        snapshot=self.graph.admin_snapshot()
-        step=next(item for item in snapshot['entities'] if item['type']=='step')
+        step=next(item for item in rows.entities(self.graph) if item['type']=='step')
         self.assertEqual(step['data']['source_kind'],'mixed')
         self.assertTrue(step['data']['owner_review_required'])
-        self.assertTrue(all(item['status']=='reported' for item in snapshot['edges']))
+        self.assertTrue(all(item['status']=='reported' for item in rows.edges(self.graph)))
     def test_document_simulation_provenance_survives_persistence_without_employee_attestation(self):
         p=payload('Document-derived process','The reference describes sending the approved file.')
         p['capture_provenance']=simulation_provenance()
@@ -155,7 +151,7 @@ class GraphTests(unittest.TestCase):
         p['submitter']='forged employee'
         result=self.graph.submit(p);wait(self.graph,result['job_id'])
         self.graph.close();self.graph=kg.KnowledgeGraph(self.path,proposal)
-        saved=self.graph.admin_detail('submission',result['submission_id'],1)['item']
+        saved=self.graph._revision(result['submission_id'],1)
         self.assertEqual(saved['capture_provenance'],simulation_provenance())
         self.assertEqual(saved['participant'],p['participant'])
         self.assertIsNone(saved['submitter'])
@@ -176,7 +172,7 @@ class GraphTests(unittest.TestCase):
         p=payload('A','The source describes a handoff.');p['capture_provenance']=simulation_provenance()
         p['closure']={'asked':True,'confirmed':True}
         with self.assertRaisesRegex(ValueError,'cannot claim participant confirmation'):self.graph.submit(p)
-        self.assertEqual(self.graph.admin_snapshot()['submissions'],[])
+        self.assertEqual(rows.submissions(self.graph),[])
     def test_simulated_transcript_evidence_cannot_be_promoted_to_employee_reports_or_confirmations(self):
         def mislabeled(current,candidates):
             result=proposal(current,candidates)
@@ -188,8 +184,8 @@ class GraphTests(unittest.TestCase):
         first=self.graph.submit(a);wait(self.graph,first['job_id'])
         b=payload('Statements','The source describes consuming approved NAV.');b['capture_provenance']=simulation_provenance()
         second=self.graph.submit(b);self.assertEqual(wait(self.graph,second['job_id'])['status'],'completed')
-        saved=self.graph.admin_snapshot()['proposals'][0]
-        self.assertEqual(saved['status'],'proposed');self.assertEqual(saved['history'],[])
+        saved=rows.proposals(self.graph)[0]
+        self.assertEqual(saved['status'],'proposed')
         self.assertNotIn('sender_confirmed',saved);self.assertNotIn('receiver_confirmed',saved)
         self.assertEqual({item['type'] for item in saved['evidence']},{'simulated_document_account'})
         for item in saved['evidence']:
@@ -203,13 +199,13 @@ class GraphTests(unittest.TestCase):
         b=self.graph.submit(payload('B','We use approved NAV.'))
         # live-draft-knowledge-5: the refused proposal is dropped on its own; the job is not a failure.
         self.assertEqual(wait_dropped(self.graph,b['job_id'])['detail']['dropped_reasons'],{'Simulation evidence requires declared document-simulation provenance.':1})
-        self.assertEqual(self.graph.admin_snapshot()['proposals'],[])
+        self.assertEqual(rows.proposals(self.graph),[])
     def test_persists_revisions_and_trusted_attribution(self):
         p=payload('Publishing','We publish approved NAV.');p['submitter']='untrusted';first=self.graph.submit(p,principal='verified-user');wait(self.graph,first['job_id'])
         self.assertTrue(self.graph.can_revise(first['process_id'],'verified-user'));self.assertFalse(self.graph.can_revise(first['process_id'],None))
         p['process_id']=first['process_id'];p['turns'][0]['text']='Corrected account.';second=self.graph.submit(p,principal='verified-user');wait(self.graph,second['job_id'])
         self.graph.close();self.graph=kg.KnowledgeGraph(self.path,proposal)
-        records=self.graph.admin_snapshot()['submissions'];self.assertEqual(len(records),2);self.assertEqual({r['revision'] for r in records},{1,2});self.assertTrue(all(r['submitter']=='verified-user' for r in records));self.assertTrue(any(r['turns'][0]['text']=='We publish approved NAV.' for r in records))
+        records=rows.submissions(self.graph);self.assertEqual(len(records),2);self.assertEqual({r['revision'] for r in records},{1,2});self.assertTrue(all(r['submitter']=='verified-user' for r in records));self.assertTrue(any(r['turns'][0]['text']=='We publish approved NAV.' for r in records))
     def test_revision_from_an_older_copy_needs_the_latest_revision_confirmed(self):
         # gap3-reopen-continue-2; the cases are in tests/test_knowledge_base_revision.py.
         self.graph.analyzer=None
@@ -217,82 +213,49 @@ class GraphTests(unittest.TestCase):
         p['process_id']=first['process_id'];p['turns'][0]['text']='Corrected account.';self.graph.submit(p,principal='verified-user',base_revision=1)
         p['turns'][0]['text']='We publish approved NAV.'
         with self.assertRaisesRegex(kg.RevisionConflict,r'A newer revision \(2\) of this process exists'):self.graph.submit(p,principal='verified-user',base_revision=1)
-        self.assertEqual({r['revision'] for r in self.graph.admin_snapshot()['submissions']},{1,2})
+        self.assertEqual({r['revision'] for r in rows.submissions(self.graph)},{1,2})
         self.assertEqual(self.graph.submit(p,principal='verified-user',base_revision=1,acknowledged_revision=2)['revision'],3)
-    def test_overlapping_source_revision_invalidates_new_group_and_proposal(self):
-        for kind,insert in (('group','INSERT INTO canonical_groups'),('proposal','INSERT OR IGNORE INTO proposals')):
-            with self.subTest(kind=kind), ExitStack() as resources:
-                path=Path(self.temp.name)/(kind+'.sqlite')
-                graph=kg.KnowledgeGraph(path)
-                resources.callback(graph.close)
-                peer=kg.KnowledgeGraph(path)
-                resources.callback(peer.close)
-                peer.db.execute('PRAGMA busy_timeout=0')
-                first=graph.submit(payload('Publishing','We publish approved NAV.'))
-                second=graph.submit(payload('Statements','We use approved NAV.'))
-                revised={**payload('Publishing','We publish corrected NAV.'),'process_id':first['process_id']}
-                attempted=[]
-                def revise_during_insert(sql):
-                    if not attempted and sql.startswith(insert):
-                        try:
-                            peer.submit(revised)
-                            attempted.append('committed')
-                        except sqlite3.OperationalError as error:
-                            attempted.append(str(error))
-                graph.db.set_trace_callback(revise_during_insert)
-                if kind=='group':
-                    systems=[r[0] for r in graph.db.execute("SELECT id FROM entities WHERE type='system'")]
-                    graph.canonical_create('Ledger',systems,'reviewer','Checked both accounts')
-                    table='canonical_groups'
-                else:
-                    graph.analyzer=proposal
-                    graph._run(second['job_id'])
-                    table='proposals'
-                graph.db.set_trace_callback(None)
-                self.assertEqual(len(attempted),1)
-                if attempted!=['committed']:
-                    self.assertIn('locked',attempted[0])
-                    peer.submit(revised)
-                self.assertEqual([r[0] for r in graph.db.execute('SELECT status FROM '+table)],['stale'])
+    def test_overlapping_source_revision_invalidates_new_proposal(self):
+        with ExitStack() as resources:
+            path=Path(self.temp.name)/'proposals.sqlite'
+            graph=kg.KnowledgeGraph(path)
+            resources.callback(graph.close)
+            peer=kg.KnowledgeGraph(path)
+            resources.callback(peer.close)
+            peer.db.execute('PRAGMA busy_timeout=0')
+            first=graph.submit(payload('Publishing','We publish approved NAV.'))
+            second=graph.submit(payload('Statements','We use approved NAV.'))
+            revised={**payload('Publishing','We publish corrected NAV.'),'process_id':first['process_id']}
+            attempted=[]
+            def revise_during_insert(sql):
+                if not attempted and sql.startswith('INSERT OR IGNORE INTO proposals'):
+                    try:
+                        peer.submit(revised)
+                        attempted.append('committed')
+                    except sqlite3.OperationalError as error:
+                        attempted.append(str(error))
+            graph.db.set_trace_callback(revise_during_insert)
+            graph.analyzer=proposal
+            graph._run(second['job_id'])
+            graph.db.set_trace_callback(None)
+            self.assertEqual(len(attempted),1)
+            if attempted!=['committed']:
+                self.assertIn('locked',attempted[0])
+                peer.submit(revised)
+            self.assertEqual([r[0] for r in graph.db.execute('SELECT status FROM proposals')],['stale'])
 
-    def test_proposal_review_stale_and_exact_evidence(self):
+    def test_proposal_becomes_stale_on_source_revision(self):
         a=self.graph.submit(payload('Publishing','We publish approved NAV.'));wait(self.graph,a['job_id'])
         b=self.graph.submit(payload('Statements','We use approved NAV.'));self.assertEqual(wait(self.graph,b['job_id'])['status'],'completed')
-        p=self.graph.admin_snapshot()['proposals'][0];self.assertEqual(p['status'],'proposed')
-        p=self.graph.review(p['id'],'confirm','local-owner','Evidence reviewed',p['review_version'],side='sender')
-        self.assertEqual(p['status'],'confirmed');self.assertEqual([x['side'] for x in p['history']],['sender'])
+        p=rows.proposals(self.graph)[0];self.assertEqual(p['status'],'proposed')
         changed=payload('Publishing','Corrected NAV.');changed['process_id']=a['process_id'];self.graph.submit(changed)
-        stale=next(x for x in self.graph.admin_snapshot()['proposals'] if x['id']==p['id']);self.assertEqual(stale['status'],'stale')
-        with self.assertRaises(ValueError): self.graph.review(p['id'],'confirm','owner','approve',stale['review_version'])
-    def test_admin_approval_and_two_side_statements_are_separate_and_stale_on_revision(self):
-        def claiming_confirmation(current,candidates):
-            items=proposal(current,candidates)
-            items[0].update(status='confirmed',history=[{'reviewer':'AI','side':'sender'}],sender_confirmed=True,receiver_confirmed=True)
-            return items
-        self.graph.analyzer=claiming_confirmation
-        first=self.graph.submit(payload('Publishing','We publish approved NAV.'));wait(self.graph,first['job_id'])
-        second=self.graph.submit(payload('Statements','We use approved NAV.'));self.assertEqual(wait(self.graph,second['job_id'])['status'],'completed')
-        initial=self.graph.admin_snapshot()['proposals'][0]
-        self.assertEqual(initial['status'],'proposed');self.assertEqual(initial['history'],[])
-        self.assertNotIn('sender_confirmed',initial);self.assertNotIn('receiver_confirmed',initial)
-        # Analyzer output is only a proposal; it cannot supply side confirmation.
-        admin=self.graph.review(initial['id'],'confirm','admin','Administrator reviewed the evidence',initial['review_version'])
-        self.assertEqual(admin['status'],'confirmed');self.assertEqual([(h['reviewer'],h['side']) for h in admin['history']],[('admin',None)])
-        sender=self.graph.review(admin['id'],'confirm','admin','Sender Alice confirmed publication',admin['review_version'],side='sender')
-        receiver=self.graph.review(sender['id'],'confirm','admin','Receiver Bob confirmed use',sender['review_version'],side='receiver')
-        self.assertEqual([(h['reviewer'],h['side'],h['reason']) for h in receiver['history']],
-                         [('admin',None,'Administrator reviewed the evidence'),('admin','sender','Sender Alice confirmed publication'),('admin','receiver','Receiver Bob confirmed use')])
-        revised=payload('Publishing','Corrected publication account.');revised['process_id']=first['process_id'];new=self.graph.submit(revised);wait(self.graph,new['job_id'])
-        old=next(p for p in self.graph.admin_snapshot()['proposals'] if p['id']==initial['id'])
-        self.assertEqual(old['status'],'stale');self.assertEqual(old['history'][-1]['action'],'stale')
-        with self.assertRaisesRegex(ValueError,'Stale proposals'):
-            self.graph.review(old['id'],'confirm','admin','Reuse prior approval',old['review_version'])
+        stale=next(x for x in rows.proposals(self.graph) if x['id']==p['id']);self.assertEqual(stale['status'],'stale')
     def test_duplicate_key_and_topology(self):
         p=payload('Publishing','We publish NAV.');p['submission_key']=str(uuid.uuid4());r=self.graph.submit(p);same=self.graph.submit(p);self.assertEqual({**r,'status':same['status']},same)
         p['turns'][0]['text']='Changed';self.assertRaises(ValueError,self.graph.submit,p)
-        data=self.graph.admin_snapshot();self.assertEqual(len(data['submissions']),1)
-        self.assertTrue({'process','process_version','team','system','role','step','decision','business_object','scope'} <= {e['type'] for e in data['entities']})
-        nodes={e['id']:e['label'] for e in data['entities']};edge=next(e for e in data['edges'] if e['type']=='happens_after');self.assertEqual((nodes[edge['source']],nodes[edge['target']]),('Check','Start'))
+        self.assertEqual(len(rows.submissions(self.graph)),1)
+        self.assertTrue({'process','process_version','team','system','role','step','decision','business_object','scope'} <= {e['type'] for e in rows.entities(self.graph)})
+        nodes={e['id']:e['label'] for e in rows.entities(self.graph)};edge=next(e for e in rows.edges(self.graph) if e['type']=='happens_after');self.assertEqual((nodes[edge['source']],nodes[edge['target']]),('Check','Start'))
     def test_submissions_materialize_current_workflow_before_review_or_when_draft_stale(self):
         self.graph.analyzer=lambda current,candidates: []
         for has_stale_draft in (False,True):
@@ -300,11 +263,11 @@ class GraphTests(unittest.TestCase):
             p['workflow']={'title':'Current map','steps':[{'id':'x','title':'Current step','type':'activity','evidence_turns':['u1']}, {'id':'y','title':'Current decision','type':'decision','evidence_turns':['u1']}], 'connections':[{'from':'x','to':'y','evidence_turns':['u1']}]}
             if has_stale_draft:p['draft_stale']=True
             else:p['draft']=None
-            r=self.graph.submit(p);wait(self.graph,r['job_id']);snapshot=self.graph.admin_snapshot()
-            entities=[e for e in snapshot['entities'] if e['submission_id']==r['submission_id']]
+            r=self.graph.submit(p);wait(self.graph,r['job_id'])
+            entities=[e for e in rows.entities(self.graph) if e['submission_id']==r['submission_id']]
             self.assertEqual({e['label'] for e in entities if e['type'] in ('step','decision')},{'Current step','Current decision'})
             step=next(e for e in entities if e['type']=='step');self.assertEqual(step['data']['_materialized_from'],'workflow');self.assertEqual(step['data']['evidence_turns'],['u1'])
-            edge=next(e for e in snapshot['edges'] if e['submission_id']==r['submission_id'] and e['type']=='happens_after');self.assertEqual(edge['evidence']['evidence_turns'],['u1']);self.assertEqual(edge['evidence']['_materialized_from'],'workflow')
+            edge=next(e for e in rows.edges(self.graph) if e['submission_id']==r['submission_id'] and e['type']=='happens_after');self.assertEqual(edge['evidence']['evidence_turns'],['u1']);self.assertEqual(edge['evidence']['_materialized_from'],'workflow')
     def test_workflow_cannot_cite_invented_or_interviewer_evidence(self):
         p=payload('A','We report two steps.');p['draft']=None
         p['turns'].insert(0,{'id':'a1','role':'assistant','text':'What happens?'})
@@ -312,19 +275,19 @@ class GraphTests(unittest.TestCase):
             p['workflow']={'steps':[{'id':'x','title':'Step','evidence_turns':[forged]}],'connections':[]}
             with self.subTest(forged=forged), self.assertRaisesRegex(ValueError,'non-participant evidence'):
                 self.graph.submit(p)
-        self.assertEqual(self.graph.admin_snapshot()['submissions'],[])
+        self.assertEqual(rows.submissions(self.graph),[])
     def test_invalid_fabricated_evidence_fails_without_proposal(self):
         a=self.graph.submit(payload('A','We send data.'));wait(self.graph,a['job_id'])
         def fake(current,candidates):
             p=proposal(current,candidates);p[0]['evidence'][0]['quote']='Invented';return p
-        self.graph.analyzer=fake;b=self.graph.submit(payload('B','We receive data.'));self.assertEqual(wait_dropped(self.graph,b['job_id'])['detail']['dropped_reasons'],{'Evidence must quote an exact participant statement.':1});self.assertEqual(self.graph.admin_snapshot()['proposals'],[])
+        self.graph.analyzer=fake;b=self.graph.submit(payload('B','We receive data.'));self.assertEqual(wait_dropped(self.graph,b['job_id'])['detail']['dropped_reasons'],{'Evidence must quote an exact participant statement.':1});self.assertEqual(rows.proposals(self.graph),[])
     def test_different_scope_does_not_connect_similar_names(self):
         a=self.graph.submit(payload('A','We send data.','Fund A'));wait(self.graph,a['job_id'])
         calls=[]
         self.graph.analyzer=lambda current,candidates: calls.append(candidates) or []
         b=self.graph.submit(payload('B','We receive data.','Fund B'));self.assertEqual(wait(self.graph,b['job_id'])['status'],'completed')
         self.assertEqual(calls,[], 'An incompatible scope must not be sent to the analyzer.')
-        self.assertEqual(self.graph.admin_snapshot()['proposals'],[])
+        self.assertEqual(rows.proposals(self.graph),[])
 
     def test_nonfinite_json_and_malformed_workflow_cannot_poison_saved_graph(self):
         for invalid in (float('nan'),float('inf'),float('-inf')):
@@ -336,7 +299,7 @@ class GraphTests(unittest.TestCase):
             if field in ('steps','connections'):p['draft'][field]=value
             else:p[field]=value
             with self.subTest(field=field),self.assertRaises(ValueError):self.graph.submit(p)
-        self.assertEqual(self.graph.admin_snapshot()['submissions'],[])
+        self.assertEqual(rows.submissions(self.graph),[])
 
     def test_file_event_is_not_participant_evidence(self):
         p=payload('A','File received.');p['turns'][0]['document_event']=True
@@ -347,7 +310,7 @@ class GraphTests(unittest.TestCase):
         a=self.graph.submit(p);wait(self.graph,a['job_id'])
         b=self.graph.submit(payload('B','We receive NAV.'))
         wait_dropped(self.graph,b['job_id'])
-        self.assertEqual(self.graph.admin_snapshot()['proposals'],[])
+        self.assertEqual(rows.proposals(self.graph),[])
 
     def test_candidate_document_reads_are_scoped_and_bounded_before_analysis(self):
         self.graph.analyzer=None
@@ -367,7 +330,7 @@ class GraphTests(unittest.TestCase):
         self.assertEqual(len(reads),8)
         self.assertFalse(any(doc in reads for doc in ('doc8','doc9','doc10','doc11')))
 
-    def test_repeated_pending_retry_does_not_queue_duplicate_work(self):
+    def test_repeated_status_checks_do_not_queue_duplicate_work(self):
         a=self.graph.submit(payload('A','We send NAV.'));wait(self.graph,a['job_id'])
         entered=threading.Event();release=threading.Event()
         def blocked(current,candidates):
@@ -380,30 +343,16 @@ class GraphTests(unittest.TestCase):
         self.graph.executor.submit=count_scheduled
         try:
             c=self.graph.submit(payload('C','We consume NAV.'))
-            for _ in range(30):self.graph.retry(c['job_id'])
+            for _ in range(30):self.graph.status(c['submission_id'],c['revision'],c['status_token'])
             self.assertEqual(scheduled,[c['job_id']])
         finally:release.set()
         self.assertEqual(wait(self.graph,c['job_id'])['attempts'],1)
 
-    def test_shutdown_rejects_new_submissions_and_retries_clearly(self):
+    def test_shutdown_rejects_new_submissions(self):
         result=self.graph.submit(payload('A','We send NAV.'));wait(self.graph,result['job_id'])
         self.graph.close()
         with self.assertRaisesRegex(ValueError,'closed'):self.graph.submit(payload('B','We receive NAV.'))
-        with self.assertRaisesRegex(ValueError,'closed'):self.graph.retry(result['job_id'])
 
-    def test_retry_during_failed_worker_cleanup_is_not_lost(self):
-        first=self.graph.submit(payload('A','We send NAV.'));wait(self.graph,first['job_id'])
-        self.graph.analyzer=lambda current,candidates: (_ for _ in ()).throw(ValueError('Synthetic failure'))
-        failed=threading.Event();release=threading.Event();run=self.graph._run
-        def hold_cleanup(job):
-            run(job)
-            failed.set();release.wait(3)
-        self.graph._run=hold_cleanup
-        second=self.graph.submit(payload('B','We receive NAV.'));self.assertTrue(failed.wait(1))
-        self.assertEqual(wait(self.graph,second['job_id'])['status'],'failed')
-        self.graph.analyzer=lambda current,candidates: []
-        self.graph.retry(second['job_id']);release.set()
-        self.assertEqual(wait(self.graph,second['job_id'])['status'],'completed')
 
     def test_boolean_revision_cannot_masquerade_as_integer_evidence(self):
         first=self.graph.submit(payload('A','We send NAV.'));wait(self.graph,first['job_id'])
@@ -416,39 +365,8 @@ class GraphTests(unittest.TestCase):
             self.graph.analyzer=invalid
             second=self.graph.submit(payload('B','We receive NAV.'))
             wait_dropped(self.graph,second['job_id'])
-        self.assertEqual(self.graph.admin_snapshot()['proposals'],[])
+        self.assertEqual(rows.proposals(self.graph),[])
 
-    def test_snapshot_batches_records_and_preserves_history_and_evidence(self):
-        records=[]
-        for index in range(3):
-            record=self.graph.submit(payload(str(index),'We report approved NAV.'))
-            wait(self.graph,record['job_id']);records.append(record)
-        initial=self.graph.admin_snapshot()
-        item=initial['proposals'][0]
-        reviewed=self.graph.review(item['id'],'confirm','owner','Exact sources checked',item['review_version'],side='sender')
-        systems=[entry for entry in initial['entities'] if entry['type']=='system']
-        group=self.graph.canonical_create('Ledger',[systems[0]['id'],systems[1]['id']],'owner','Checked systems')
-        group=self.graph.canonical_update(group['id'],'add_alias','GL','owner','Known alias',group['review_version'])
-        roles=[entry for entry in initial['entities'] if entry['type']=='role']
-        other=self.graph.canonical_create('Analyst',[roles[0]['id'],roles[1]['id']],'owner','Checked roles')
-        def snapshot_queries():
-            statements=[]
-            self.graph.db.set_trace_callback(lambda sql:statements.append(sql) if sql.lstrip().upper().startswith('SELECT') else None)
-            try:return self.graph.admin_snapshot(),len(statements)
-            finally:self.graph.db.set_trace_callback(None)
-        before,before_queries=snapshot_queries()
-        self.graph.analyzer=None
-        for index in range(20):self.graph.submit(payload('Additional '+str(index),'A complete additional account.'))
-        after,after_queries=snapshot_queries()
-        self.assertEqual(before_queries,10)
-        self.assertEqual(after_queries,before_queries,'Snapshot reads must not grow per submission, proposal or canonical group.')
-        self.assertEqual(len(after['submissions']),23,'Batching must not truncate saved revisions.')
-        self.assertEqual(len(after['jobs']),23)
-        self.assertEqual(next(p for p in after['proposals'] if p['id']==reviewed['id']),reviewed)
-        self.assertEqual(next(g for g in after['canonical_groups'] if g['id']==group['id']),group)
-        self.assertEqual(next(g for g in after['canonical_groups'] if g['id']==other['id']),other)
-        self.assertTrue(all(e in after['entities'] for e in before['entities']))
-        self.assertTrue(all(e in after['edges'] for e in before['edges']))
 
     def test_server_intent_recovery_binds_principal_and_handles_concurrent_hydration(self):
         self.graph.analyzer=None
@@ -467,7 +385,7 @@ class GraphTests(unittest.TestCase):
             for worker in workers:worker.join(2)
         finally:other.close()
         self.assertEqual(failures,[]);self.assertEqual(len(results),2);self.assertEqual(results[0],results[1])
-        self.assertEqual(len(self.graph.admin_snapshot()['submissions']),1)
+        self.assertEqual(len(rows.submissions(self.graph)),1)
         self.assertEqual(self.graph.recover_submission(p['submission_key'],'a'*64,principal='employee'),results[0])
         for digest,principal in (('b'*64,'employee'),('a'*64,'other')):
             with self.assertRaisesRegex(ValueError,'different content'):self.graph.recover_submission(p['submission_key'],digest,principal)
@@ -486,9 +404,9 @@ class GraphTests(unittest.TestCase):
         self.graph.analyzer=lambda current,candidates: []
         a=self.graph.submit(payload('A','We send data.'));wait(self.graph,a['job_id'])
         b=self.graph.submit(payload('B','We receive data.'));wait(self.graph,b['job_id'])
-        data=self.graph.admin_snapshot();systems=[x for x in data['entities'] if x['type']=='system' and x['label']=='Ledger']
+        systems=[x for x in rows.entities(self.graph) if x['type']=='system' and x['label']=='Ledger']
         self.assertEqual(len(systems),2);self.assertNotEqual(systems[0]['id'],systems[1]['id'])
-        self.assertEqual(data['proposals'],[])
+        self.assertEqual(rows.proposals(self.graph),[])
     def test_parallel_paths_loop_and_variant_are_preserved_in_source_and_graph(self):
         self.graph.analyzer=lambda current,candidates: []
         p=payload('Portfolio approval','For Fund A, reviews run in parallel, then failed checks return to correction.')
@@ -502,56 +420,43 @@ class GraphTests(unittest.TestCase):
             ('start','legal','Parallel'),('start','ops','Parallel'),('legal','decision','Legal complete'),
             ('ops','decision','Operations complete'),('decision','correct','Failed'),('correct','decision','Retry')]]
         p['draft']['variations']=[{'applies_to':'Fund A','difference':'Both reviews are required','evidence_turns':['u1']}]
-        result=self.graph.submit(p);wait(self.graph,result['job_id']);snapshot=self.graph.admin_snapshot()
-        stored=next(s for s in snapshot['submissions'] if s['submission_id']==result['submission_id'])
+        result=self.graph.submit(p);wait(self.graph,result['job_id'])
+        stored=next(s for s in rows.submissions(self.graph) if s['submission_id']==result['submission_id'])
         self.assertEqual(stored['draft']['variations'],p['draft']['variations'])
-        nodes={e['id']:e['label'] for e in snapshot['entities'] if e['submission_id']==result['submission_id']}
-        reported={(nodes[e['target']],nodes[e['source']],e['evidence']['label']) for e in snapshot['edges'] if e['submission_id']==result['submission_id'] and e['type']=='happens_after'}
+        nodes={e['id']:e['label'] for e in rows.entities(self.graph) if e['submission_id']==result['submission_id']}
+        reported={(nodes[e['target']],nodes[e['source']],e['evidence']['label']) for e in rows.edges(self.graph) if e['submission_id']==result['submission_id'] and e['type']=='happens_after'}
         self.assertEqual(reported,{('Start','Legal review','Parallel'),('Start','Operations review','Parallel'),('Legal review','Checks complete?','Legal complete'),('Operations review','Checks complete?','Operations complete'),('Checks complete?','Correct issue','Failed'),('Correct issue','Checks complete?','Retry')})
 
-    def test_conflicting_accounts_remain_separate_through_clarification_and_dispute(self):
+    def test_conflicting_accounts_keep_both_statements(self):
         def conflicting(current,candidates):
             result=proposal(current,candidates);result[0]['contradictions']=['Accounts disagree about whether approval precedes publication.'];return result
         self.graph.analyzer=conflicting
         first=self.graph.submit(payload('Publishing','We publish NAV before approval.'));wait(self.graph,first['job_id'])
         second=self.graph.submit(payload('Statements','We use NAV only after approval.'));self.assertEqual(wait(self.graph,second['job_id'])['status'],'completed')
-        snapshot=self.graph.admin_snapshot();item=snapshot['proposals'][0]
+        item=rows.proposals(self.graph)[0]
         self.assertEqual(item['contradictions'],['Accounts disagree about whether approval precedes publication.'])
         self.assertEqual({e['quote'] for e in item['evidence']},{'We publish NAV before approval.','We use NAV only after approval.'})
-        clarified=self.graph.review(item['id'],'clarify','owner','Ask each side about approval timing',item['review_version'])
-        self.assertEqual(clarified['status'],'awaiting_clarification')
-        disputed=self.graph.review(item['id'],'dispute','owner','The accounts still conflict',clarified['review_version'])
-        self.assertEqual(disputed['status'],'disputed');self.assertEqual([h['action'] for h in disputed['history']],['clarify','dispute'])
-        self.assertEqual({s['turns'][0]['text'] for s in snapshot['submissions']},{'We publish NAV before approval.','We use NAV only after approval.'})
-    def test_rejected_connection_requires_explicit_reopen_with_history(self):
-        a=self.graph.submit(payload('A','We send NAV.'));wait(self.graph,a['job_id'])
-        b=self.graph.submit(payload('B','We receive NAV.'));wait(self.graph,b['job_id'])
-        item=self.graph.admin_snapshot()['proposals'][0]
-        rejected=self.graph.review(item['id'],'reject','owner','Different record.',item['review_version'])
-        with self.assertRaisesRegex(ValueError,'Reopen'):
-            self.graph.review(item['id'],'confirm','owner','Bypass rejection.',rejected['review_version'])
-        reopened=self.graph.review(item['id'],'reopen','owner','New explanation to check.',rejected['review_version'])
-        self.assertEqual(reopened['status'],'proposed')
-        self.assertEqual([entry['action'] for entry in reopened['history']],['reject','reopen'])
-
-    def test_retry_keeps_rejection_despite_changed_model_explanation(self):
+    def test_historical_rejection_survives_revision_despite_changed_model_explanation(self):
         a=self.graph.submit(payload('A','We send NAV.'));wait(self.graph,a['job_id']);b=self.graph.submit(payload('B','We receive NAV.'));wait(self.graph,b['job_id'])
-        p=self.graph.admin_snapshot()['proposals'][0];self.graph.review(p['id'],'reject','owner','Not related',p['review_version'])
+        p=rows.proposals(self.graph)[0]
+        # This decision was filed by an earlier build.
+        with self.graph.lock,self.graph.db:
+            self.graph.db.execute("UPDATE proposals SET status='rejected', review_version=2 WHERE id=?", (p['id'],))
+            self.graph.db.execute("INSERT INTO review_history VALUES (?,?,?,?,?,?,?,?)",
+                                  (kg.new_id(),p['id'],'reject','owner','Not related',None,kg.now(),2))
         def reword(current,candidates):
             result=proposal(current,candidates);result[0]['explanation']='Different words, same claim';return result
         self.graph.analyzer=reword
-        with self.graph.lock,self.graph.db:self.graph.db.execute("UPDATE jobs SET status='failed' WHERE id=?",(b['job_id'],))
-        self.graph.retry(b['job_id']);wait(self.graph,b['job_id']);items=self.graph.admin_snapshot()['proposals'];self.assertEqual(len(items),1);self.assertEqual(items[0]['status'],'rejected')
         revised=payload('B','We receive NAV.');revised['process_id']=b['process_id'];again=self.graph.submit(revised);wait(self.graph,again['job_id'])
-        items=self.graph.admin_snapshot()['proposals'];self.assertEqual(len(items),1);self.assertEqual(items[0]['status'],'stale')
-        self.assertEqual([entry['action'] for entry in items[0]['history']],['reject','stale'])
+        items=rows.proposals(self.graph);self.assertEqual(len(items),1);self.assertEqual(items[0]['status'],'stale')
+        self.assertEqual([row[0] for row in self.graph.db.execute('SELECT action FROM review_history ORDER BY rowid')],['reject','stale'])
     def test_document_scope_is_private_and_bounded_to_revision(self):
         p=payload('A','We send data.');p['documents']={'scope':'secret-token','documents':[{'id':'doc-1','name':'reference.pdf'}]}
         r=self.graph.submit(p,document_scope='secret-token');wait(self.graph,r['job_id'])
-        self.assertNotIn('secret-token',kg.dumps(self.graph.admin_snapshot()))
-        self.assertEqual(self.graph.document_scope(r['submission_id'],1,'doc-1'),kg.scope_digest('secret-token'))
-        with self.assertRaises(PermissionError): self.graph.document_scope(r['submission_id'],1,'doc-2')
-    def test_document_citation_is_checked_against_exact_source_and_invalidated_on_change(self):
+        self.assertNotIn('secret-token',kg.dumps(rows.submissions(self.graph)))
+        scope=self.graph.db.execute('SELECT scope FROM private_documents WHERE submission_id=? AND revision=1',(r['submission_id'],)).fetchone()[0]
+        self.assertEqual(scope,kg.scope_digest('secret-token'))
+    def test_document_citation_is_checked_against_exact_source(self):
         source={'text':'Approved NAV is published for Fund A.','label':'Page 5','origin':'source_extraction'}
         def resolve(scope,document_id,source_id):
             if (scope,document_id,source_id)!=(kg.scope_digest('private-capability'),'doc1','page5'):raise PermissionError('unknown')
@@ -565,11 +470,7 @@ class GraphTests(unittest.TestCase):
             result=proposal(current,candidates);result[0]['evidence'][0]={'type':'document_supported','submission_id':candidates[0]['submission_id'],'revision':candidates[0]['revision'],'document_id':'doc1','source_id':'page5','quote':'Approved NAV is published'}
             return result
         self.graph.analyzer=analyze;b=self.graph.submit(payload('B','We receive approved NAV.'));self.assertEqual(wait(self.graph,b['job_id'])['status'],'completed')
-        item=self.graph.admin_snapshot()['proposals'][0];self.assertEqual(item['evidence'][0]['type'],'document_supported')
-        source['text']='Revised source without the previous quote.'
-        with self.assertRaisesRegex(ValueError,'Stale proposals'):
-            self.graph.review(item['id'],'confirm','owner','Reviewed',item['review_version'])
-        changed=self.graph.admin_snapshot()['proposals'][0];self.assertEqual(changed['status'],'stale');self.assertEqual(changed['history'][-1]['action'],'stale')
+        item=rows.proposals(self.graph)[0];self.assertEqual(item['evidence'][0]['type'],'document_supported')
     def test_forged_document_quote_or_source_cannot_create_proposals(self):
         self.graph.document_resolver=lambda scope,doc,source:{'text':'Actual document text','label':'Page 5'}
         p=payload('A','We prepare NAV.');p['documents']={'documents':[{'id':'doc1','sources':[{'source_id':'page5'}]}]}
@@ -578,7 +479,7 @@ class GraphTests(unittest.TestCase):
             def analyze(current,candidates):
                 result=proposal(current,candidates);result[0]['evidence'][0]={'type':'document_supported','submission_id':candidates[0]['submission_id'],'revision':candidates[0]['revision'],'document_id':'doc1','source_id':source_id,'quote':quote};return result
             self.graph.analyzer=analyze;b=self.graph.submit(payload('B','We receive NAV.'));wait_dropped(self.graph,b['job_id'])
-        self.assertEqual(self.graph.admin_snapshot()['proposals'],[])
+        self.assertEqual(rows.proposals(self.graph),[])
     def test_archived_document_is_not_eligible_evidence(self):
         def archived(scope,document_id,source_id):raise PermissionError('Archived')
         self.graph.document_resolver=archived
@@ -586,7 +487,7 @@ class GraphTests(unittest.TestCase):
         a=self.graph.submit(p,document_scope='private');wait(self.graph,a['job_id'])
         def analyze(current,candidates):
             result=proposal(current,candidates);result[0]['evidence'][0]={'type':'document_supported','submission_id':candidates[0]['submission_id'],'revision':candidates[0]['revision'],'document_id':'doc1','source_id':'page5','quote':'NAV'};return result
-        self.graph.analyzer=analyze;b=self.graph.submit(payload('B','We receive NAV.'));self.assertEqual(wait_dropped(self.graph,b['job_id'])['detail']['dropped_reasons'],{'Document source is unavailable.':1});self.assertEqual(self.graph.admin_snapshot()['proposals'],[])
+        self.graph.analyzer=analyze;b=self.graph.submit(payload('B','We receive NAV.'));self.assertEqual(wait_dropped(self.graph,b['job_id'])['detail']['dropped_reasons'],{'Document source is unavailable.':1});self.assertEqual(rows.proposals(self.graph),[])
     def test_second_instance_does_not_reset_a_live_job(self):
         a=self.graph.submit(payload('A','We send NAV.'));wait(self.graph,a['job_id'])
         started=threading.Event();release=threading.Event()
@@ -596,9 +497,8 @@ class GraphTests(unittest.TestCase):
         self.assertTrue(started.wait(1))
         other=kg.KnowledgeGraph(self.path,blocked)
         try:
-            job=next(j for j in other.admin_snapshot()['jobs'] if j['id']==b['job_id'])
+            job=next(j for j in rows.jobs(other) if j['id']==b['job_id'])
             self.assertEqual(job['status'],'processing')
-            with self.assertRaises(ValueError):other.retry(b['job_id'])
         finally:
             release.set();other.close()
         self.assertEqual(wait(self.graph,b['job_id'])['status'],'completed')
@@ -610,48 +510,44 @@ class GraphTests(unittest.TestCase):
         with patch.object(kg,'_process_is_alive',return_value=False) as probe:
             other=kg.KnowledgeGraph(self.path)
         try:
-            job=next(j for j in other.admin_snapshot()['jobs'] if j['id']==result['job_id'])
+            job=next(j for j in rows.jobs(other) if j['id']==result['job_id'])
             self.assertEqual(job['status'],'pending')
             self.assertIn('Interrupted before completion',job['error'])
             probe.assert_called_once_with(42)
         finally:other.close()
-    def test_admin_canonical_alias_and_reversible_unmerge_preserve_sources(self):
-        self.graph.analyzer=lambda current,candidates: []
-        a=self.graph.submit(payload('A','We send NAV.'));wait(self.graph,a['job_id'])
-        b=self.graph.submit(payload('B','We receive NAV.'));wait(self.graph,b['job_id'])
-        systems=[e for e in self.graph.admin_snapshot()['entities'] if e['type']=='system' and e['label']=='Ledger']
-        ids=[e['id'] for e in systems];group=self.graph.canonical_create('Shared ledger',ids,'local-owner','Reviewed both sources')
-        group=self.graph.canonical_update(group['id'],'add_alias','GL','local-owner','Known alias',group['review_version'])
-        self.assertEqual(group['aliases'],['GL'])
-        stale_version=group['review_version'];group=self.graph.canonical_update(group['id'],'remove_member',ids[1],'local-owner','Incorrect match',stale_version)
-        self.assertEqual(group['members'],[ids[0]])
-        with self.assertRaises(ValueError): self.graph.canonical_update(group['id'],'add_member',ids[1],'local-owner','Stale edit',stale_version)
-        self.assertEqual(len([e for e in self.graph.admin_snapshot()['entities'] if e['id'] in ids]),2)
-        self.assertEqual([h['action'] for h in group['history']],['create','add_alias','remove_member'])
-    def test_canonical_revision_stales_membership_until_explicit_revalidation(self):
-        self.graph.analyzer=lambda current,candidates: []
-        p=payload('A','We send NAV.');a=self.graph.submit(p);wait(self.graph,a['job_id'])
-        b=self.graph.submit(payload('B','We receive NAV.'));wait(self.graph,b['job_id'])
-        first=next(e for e in self.graph.admin_snapshot()['entities'] if e['submission_id']==a['submission_id'] and e['type']=='system')
-        other=next(e for e in self.graph.admin_snapshot()['entities'] if e['submission_id']==b['submission_id'] and e['type']=='system')
-        group=self.graph.canonical_create('Ledger',[first['id'],other['id']],'owner','Identified shared system')
-        group=self.graph.canonical_update(group['id'],'remove_member',other['id'],'owner','Corrected one member',group['review_version'])
-        p['process_id']=a['process_id'];second=self.graph.submit(p);wait(self.graph,second['job_id'])
-        data=self.graph.admin_snapshot();stale=data['canonical_groups'][0]
-        self.assertEqual(stale['status'],'stale');self.assertEqual(stale['members'],[first['id']]);self.assertEqual(stale['history'][-1]['action'],'stale')
-        with self.assertRaisesRegex(ValueError,'outdated members'):
-            self.graph.canonical_update(stale['id'],'revalidate','reviewed','owner','Recheck',stale['review_version'])
-        stale=self.graph.canonical_update(stale['id'],'remove_member',first['id'],'owner','Replaced old revision',stale['review_version'])
-        current=next(e for e in data['entities'] if e['submission_id']==a['submission_id'] and e['revision']==2 and e['type']=='system')
-        stale=self.graph.canonical_update(stale['id'],'add_member',current['id'],'owner','Checked revised source',stale['review_version'])
-        current_group=self.graph.canonical_update(stale['id'],'revalidate','reviewed','owner','Confirmed mapping',stale['review_version'])
-        self.assertEqual(current_group['status'],'active');self.assertEqual(current_group['members'],[current['id']])
+    def test_revising_a_member_preserves_a_group_filed_by_an_earlier_build(self):
+        self.graph.analyzer=None
+        first=self.graph.submit(payload('Publishing','We publish NAV.'))
+        self.graph.submit(payload('Statements','We receive NAV.'))
+        members=[item['id'] for item in rows.entities(self.graph) if item['type']=='system']
+        group=kg.new_id()
+        with self.graph.lock,self.graph.db:
+            self.graph.db.execute("INSERT INTO canonical_groups(id,label,type,review_version,created_at) VALUES (?,?,?,?,?)",
+                                  (group,'Ledger','system',1,kg.now()))
+            self.graph.db.executemany("INSERT INTO canonical_members VALUES (?,?)",[(group,member) for member in members])
+        self.graph.submit({**payload('Publishing','We publish corrected NAV.'),'process_id':first['process_id']})
+        self.assertEqual(self.graph.db.execute('SELECT status FROM canonical_groups WHERE id=?',(group,)).fetchone()[0],'stale')
+        self.assertEqual({row[0] for row in self.graph.db.execute('SELECT entity_id FROM canonical_members WHERE canonical_id=?',(group,))},set(members))
+
+    def test_status_for_a_historically_deleted_process_requires_its_original_capability(self):
+        sid=kg.new_id()
+        with self.graph.lock,self.graph.db:
+            self.graph.db.execute("INSERT INTO deletions VALUES (?,?,?,?,?,?,?,?)",
+                                  (kg.new_id(),sid,kg.new_id(),2,0,"owner","legacy deletion",kg.now()))
+        for revision in (1,2):
+            token=self.graph._status_token(sid,revision)
+            result=self.graph.status(sid,revision,token)
+            self.assertEqual((result["status"],result["latest_revision"]),("deleted",None))
+        for revision,token in ((1,"wrong"),(3,self.graph._status_token(sid,3))):
+            with self.assertRaises(PermissionError):
+                self.graph.status(sid,revision,token)
+
     def test_status_capability_is_scoped_private_and_recoverable_by_idempotent_retry(self):
         p=payload('A','We send NAV.');p['submission_key']=str(uuid.uuid4());r=self.graph.submit(p);wait(self.graph,r['job_id'])
         self.assertEqual(self.graph.status(r['submission_id'],r['revision'],r['status_token'])['status'],'completed')
         with self.assertRaises(PermissionError):self.graph.status(r['submission_id'],r['revision'],'wrong')
         with self.assertRaises(PermissionError):self.graph.status(r['submission_id'],r['revision']+1,r['status_token'])
-        self.assertNotIn(r['status_token'],kg.dumps(self.graph.admin_snapshot()))
+        self.assertNotIn(r['status_token'],kg.dumps(rows.submissions(self.graph)))
         self.assertEqual(self.graph.submit(p)['status_token'],r['status_token'])
         self.graph.close();self.graph=kg.KnowledgeGraph(self.path,proposal)
         self.assertEqual(self.graph.submit(p)['status_token'],r['status_token'])

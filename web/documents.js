@@ -10,7 +10,7 @@
   const PARKED_REVIEW_NOTICE = "Further review is paused while this file is saved for later. A request already sent can finish.";
   // The reviewer's verdict on a file, in the words shown beside its reason.
   const RELEVANCE = {relevant:"related to this process",unclear:"not clearly related to this process",unrelated:"not related to this process"};
-  // The same sentence as the Admin view and the interview's source dialog use for such an excerpt.
+  // The same sentence as the interview's source dialog uses for such an excerpt.
   const AI_TRANSCRIPTION_NOTE = "AI visual transcription is unverified; inspect the original before relying on it.";
   const copy = value => JSON.parse(JSON.stringify(value));
   const abortError = () => new DOMException("Cancelled", "AbortError");
@@ -697,7 +697,7 @@
     }
     reindexNote(document,actionLabel) {
       // Shown beside the button, before the click: this retry re-indexes the file or reads kept
-      // transcriptions again, which costs provider credits and can change text that connections quote.
+      // transcriptions again, which costs provider credits and can replace searchable source text.
       const awaiting=this.awaitingReread(document);
       if(!document.extraction_needs_reindex&&!awaiting)return null;
       const stored=awaiting||(Array.isArray(document.inventory?.visual_transcribed_units)?document.inventory.visual_transcribed_units.length:0);
@@ -708,8 +708,7 @@
         ?`${actionLabel} re-indexes this file and sends it to the AI provider for a new review. This is a paid re-read: it uses provider credits${visual}.`
         :`${actionLabel} sends this file to the AI provider for a new review. This is a paid re-read: it uses provider credits.`));
       if(stored){
-        list.append(this.node("li","",`${stored} stored AI visual ${stored===1?"transcription is":"transcriptions are"} read again. Each one is kept as it is unless its new reading succeeds.`));
-        list.append(this.node("li","","If a new transcription differs from the stored one, confirmed Company knowledge connections that quote it go back for review."));
+        list.append(this.node("li","",`${stored} stored AI visual ${stored===1?"transcription is":"transcriptions are"} read again. A successful reading replaces the text used for future searches and citations. If a reading fails, the stored text stays available.`));
       }
       note.append(list);return note;
     }

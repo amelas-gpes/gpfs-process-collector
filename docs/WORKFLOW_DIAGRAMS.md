@@ -85,8 +85,8 @@ reset.”, “… Follow path restarts at this step. …”, or the step's new t
 
 Keyboard users can Tab to steps, select with Enter/Space, move between steps with arrow keys, use
 plus/minus to zoom, 0/Home for overview, F to follow a path, and Escape to leave path mode. A step
-that takes keyboard focus off screen is brought into view at the current zoom, in Diagram, the Admin
-graph and Cinematic; a click never moves the map. SVG export
+that takes keyboard focus off screen is brought into view at the current zoom in Diagram and
+Cinematic. A click keeps the map in place. SVG export
 includes the complete diagram and every route, independent of the current zoom or path highlighting.
 Dragging or pinching can begin on a component as well as the background. A short tap still opens
 details. Fit includes every supported component even in an 80-step map; selecting a step restores

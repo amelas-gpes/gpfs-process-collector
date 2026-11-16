@@ -1,10 +1,12 @@
 """Matching jobs left waiting are picked up again (knowledge-store-1).
 
 A job stays 'pending' when the app stopped before it ran, when it was interrupted, or when no
-provider was configured at Submit. The next start with an analyzer runs it; the Admin overview
-counts the ones nobody is running, and the submitter's status says when analysis has not started.
+provider was configured at Submit. The next start with an analyzer runs it. The submitter's
+status shows whether analysis has started.
 Temporary SQLite; the analyzer is injected, no provider or network.
 """
+import knowledge_rows as rows
+import os
 import tempfile
 import threading
 import unittest
@@ -29,7 +31,7 @@ class JobResumeTests(unittest.TestCase):
         return self.graph
 
     def jobs(self):
-        return {row['id']: row for row in self.graph.admin_snapshot()['jobs']}
+        return {row['id']: row for row in rows.jobs(self.graph)}
 
     def test_jobs_submitted_without_a_provider_run_at_the_next_start_with_one(self):
         first = self.graph.submit(payload('Publishing', 'We publish approved NAV.'))
@@ -44,7 +46,7 @@ class JobResumeTests(unittest.TestCase):
         self.assertEqual(wait(self.graph, second['job_id'])['status'], 'completed')
         # Oldest first; each job compared its process with the other and stored its proposal.
         self.assertEqual(order, [first['submission_id'], second['submission_id']])
-        self.assertEqual(len(self.graph.admin_snapshot()['proposals']), 2)
+        self.assertEqual(len(rows.proposals(self.graph)), 2)
 
     def test_a_job_interrupted_by_a_stopped_process_runs_again(self):
         self.graph.submit(payload('Publishing', 'We publish approved NAV.'))
@@ -55,13 +57,11 @@ class JobResumeTests(unittest.TestCase):
         row = wait(self.graph, second['job_id'])
         self.assertEqual((row['status'], row['attempts'], row['error']), ('completed', 2, ''))
 
-    def test_without_a_provider_nothing_is_scheduled_and_jobs_stay_retryable(self):
+    def test_without_a_provider_nothing_is_scheduled_and_jobs_stay_pending(self):
         first = self.graph.submit(payload('Publishing', 'We publish approved NAV.'))
         self.reopen(None)
         self.assertEqual(self.jobs()[first['job_id']]['status'], 'pending')
         self.assertEqual(self.graph.queued_jobs, set())
-        with self.assertRaisesRegex(ValueError, 'not configured'):
-            self.graph.retry(first['job_id'])
 
     def test_a_job_that_keeps_being_interrupted_is_not_resumed_forever(self):
         first = self.graph.submit(payload('Publishing', 'We publish approved NAV.'))
@@ -73,10 +73,18 @@ class JobResumeTests(unittest.TestCase):
         self.assertEqual(wait(self.graph, first['job_id'])['status'], 'completed')
         self.graph.executor.submit(lambda: None).result(3)  # Everything that was scheduled has run.
         self.assertEqual(calls, [first['submission_id']])
-        self.assertEqual(self.jobs()[second['job_id']]['status'], 'pending')
-        # An administrator can still run it deliberately.
-        self.graph.retry(second['job_id'])
-        self.assertEqual(wait(self.graph, second['job_id'])['status'], 'completed')
+        self.assertEqual(self.jobs()[second['job_id']]['status'], 'failed')
+
+    def test_status_at_attempt_limit_settles_only_the_callers_pending_job(self):
+        stopped = self.graph.submit(payload('Publishing', 'We publish NAV.'))
+        active = self.graph.submit(payload('Statements', 'We receive NAV.'))
+        with self.graph.db:
+            self.graph.db.execute('UPDATE jobs SET attempts=?', (self.graph.AUTO_RESUME_ATTEMPTS,))
+            self.graph.db.execute("UPDATE jobs SET status='processing',owner_pid=? WHERE id=?", (os.getpid(), active['job_id']))
+        self.assertEqual(self.graph.status(stopped['submission_id'], 1, stopped['status_token'])['status'], 'failed')
+        self.assertEqual(self.graph.status(active['submission_id'], 1, active['status_token'])['status'], 'processing')
+        self.reopen(None)
+        self.assertEqual(self.graph.status(active['submission_id'], 1, active['status_token'])['status'], 'processing')
 
     def test_an_outdated_pending_revision_is_superseded_not_analysed(self):
         first = self.graph.submit(payload('Publishing', 'We publish approved NAV.'))
@@ -108,13 +116,8 @@ class JobResumeTests(unittest.TestCase):
         self.assertEqual(sorted(calls), sorted(set(calls)), 'No job was analysed twice')
         self.assertEqual(len(calls), 2)
 
-    def test_overview_counts_jobs_that_have_waited_and_status_says_analysis_has_not_started(self):
+    def test_status_shows_a_waiting_job_and_its_completion_with_a_provider(self):
         receipt = self.graph.submit(payload('Publishing', 'We publish approved NAV.'))
-        counts = self.graph.admin_browse('overview')['counts']
-        self.assertEqual((counts['processing_failures'], counts['processing_stalled']), (0, 0), 'A job filed a moment ago is not yet stalled')
-        with self.graph.db:
-            self.graph.db.execute("UPDATE jobs SET created_at='2026-01-01T00:00:00+00:00'")
-        self.assertEqual(self.graph.admin_browse('overview')['counts']['processing_stalled'], 1)
         status = self.graph.status(receipt['submission_id'], 1, receipt['status_token'])
         self.assertEqual((status['status'], status['stalled']), ('pending', True))
         # With a provider the same job is simply waiting its turn, or done.
@@ -122,11 +125,10 @@ class JobResumeTests(unittest.TestCase):
         wait(self.graph, receipt['job_id'])
         status = self.graph.status(receipt['submission_id'], 1, receipt['status_token'])
         self.assertEqual((status['status'], status['stalled']), ('completed', False))
-        self.assertEqual(self.graph.admin_browse('overview')['counts']['processing_stalled'], 0)
 
     def test_status_requeues_the_callers_own_waiting_job(self):
         # A provider configured on a running instance (or a job whose worker entry was lost): the submitter's
-        # Refresh status starts it, without Admin.
+        # status check starts it.
         receipt = self.graph.submit(payload('Publishing', 'We publish approved NAV.'))
         self.graph.analyzer = lambda current, candidates: []
         status = self.graph.status(receipt['submission_id'], 1, receipt['status_token'])
@@ -141,8 +143,9 @@ class JobResumeTests(unittest.TestCase):
             self.graph.db.execute("UPDATE jobs SET status='processing',attempts=?,owner_pid=?", (kg.KnowledgeGraph.AUTO_RESUME_ATTEMPTS, 2 ** 31 - 2))
         self.reopen(proposal)
         status = self.graph.status(receipt['submission_id'], 1, receipt['status_token'])
-        self.assertEqual((status['status'], status['stalled']), ('pending', True))
-        self.assertIn('Interrupted before completion', status['error'])
+        self.assertEqual((status['status'], status['stalled']), ('failed', False))
+        self.assertIn('reached its attempt limit', status['error'])
+        self.assertEqual(status['latest_revision'], 1)
 
 
 if __name__ == '__main__':

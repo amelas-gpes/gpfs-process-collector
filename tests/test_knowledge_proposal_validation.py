@@ -5,6 +5,7 @@ a refused one is dropped (never stored) and counted with the validator's reason 
 that does fail says whether the provider, the result or this app was the cause.
 Temporary SQLite; the analyzer is injected, no provider or network.
 """
+import knowledge_rows as rows
 import copy
 import sqlite3
 import tempfile
@@ -42,7 +43,7 @@ class ProposalValidationTests(unittest.TestCase):
         return wait(self.graph, receipt['job_id'])
 
     def stored(self):
-        return self.graph.admin_snapshot()['proposals']
+        return rows.proposals(self.graph)
 
     @staticmethod
     def one_per_candidate(current, candidates):
@@ -55,7 +56,8 @@ class ProposalValidationTests(unittest.TestCase):
             return items
         row = self.run_job(analyzer)
         self.assertEqual((row['status'], row['error'], row['attempts']), ('completed', '', 1))
-        self.assertEqual(row['detail'], {'candidates': 3, 'candidates_omitted': 0, 'proposals_returned': 3, 'proposals_kept': 2,
+        metrics = {key: value for key, value in row['detail'].items() if key not in ('claim_token', 'claimed_at')}
+        self.assertEqual(metrics, {'candidates': 3, 'candidates_omitted': 0, 'proposals_returned': 3, 'proposals_kept': 2,
                                          'proposals_dropped': 1, 'dropped_reasons': {QUOTE_REASON: 1}})
         self.assertEqual(len(self.stored()), 2)
         self.assertTrue(all('…' not in evidence['quote'] for item in self.stored() for evidence in item['evidence']), 'The refused proposal is not stored')
@@ -89,19 +91,18 @@ class ProposalValidationTests(unittest.TestCase):
         row = self.run_job(analyzer)
         self.assertEqual((row['status'], row['detail']['proposals_kept'], row['detail']['dropped_reasons']), ('completed', 0, {QUOTE_REASON: 3}))
         self.assertEqual(self.stored(), [])
-        with self.assertRaisesRegex(ValueError, 'cannot be retried'):
-            self.graph.retry(row['id'])  # Nothing to retry: no new paid request for the same refusals.
 
     def test_a_clean_response_records_no_reasons(self):
         row = self.run_job(self.one_per_candidate)
-        self.assertEqual(row['detail'], {'candidates': 3, 'candidates_omitted': 0, 'proposals_returned': 3, 'proposals_kept': 3, 'proposals_dropped': 0})
+        metrics = {key: value for key, value in row['detail'].items() if key not in ('claim_token', 'claimed_at')}
+        self.assertEqual(metrics, {'candidates': 3, 'candidates_omitted': 0, 'proposals_returned': 3, 'proposals_kept': 3, 'proposals_dropped': 0})
 
     def test_a_provider_error_is_named_as_such_with_its_own_sentence(self):
         def analyzer(current, candidates):
             raise APIError('PRIVATE-EXCEPTION-TEXT')
         row = self.run_job(analyzer)
         self.assertEqual(row['status'], 'failed')
-        self.assertEqual(row['error'], 'The AI provider did not complete the analysis. Retry when the provider is available.')
+        self.assertEqual(row['error'], 'The AI provider did not complete the analysis.')
         self.assertEqual((row['detail']['error_kind'], row['detail']['error_class'], row['detail']['candidates']), ('provider', 'APIError', 3))
         self.assertEqual(self.events, [('knowledge_job_failed', {'error_category': 'provider', 'error_type': 'APIError'})])
         self.assertEqual(self.stored(), [])
@@ -115,11 +116,11 @@ class ProposalValidationTests(unittest.TestCase):
 
     def test_connection_result_and_internal_failures_are_told_apart(self):
         secret = 'ZQ-SECRET-IN-AN-EXCEPTION'
-        cases = ((TimeoutError(secret), 'provider', 'The AI provider could not be reached. Retry when the connection is available.'),
-                 (ConnectionResetError(secret), 'provider', 'The AI provider could not be reached. Retry when the connection is available.'),
-                 (ValueError(secret), 'result', 'The analysis returned a result this app could not use. Retry sends a new request to the provider.'),
-                 (KeyError(secret), 'internal', 'Analysis stopped on an internal error in this app (KeyError). Retrying is unlikely to help.'),
-                 (sqlite3.OperationalError(secret), 'internal', 'The analysis could not be saved in the knowledge store (OperationalError). Retry in a moment.'))
+        cases = ((TimeoutError(secret), 'provider', 'The AI provider could not be reached.'),
+                 (ConnectionResetError(secret), 'provider', 'The AI provider could not be reached.'),
+                 (ValueError(secret), 'result', 'The analysis returned a result this app could not use.'),
+                 (KeyError(secret), 'internal', 'Analysis stopped on an internal error in this app (KeyError).'),
+                 (sqlite3.OperationalError(secret), 'internal', 'The analysis could not be saved in the knowledge store (OperationalError).'))
         for error, kind, sentence in cases:
             with self.subTest(error=type(error).__name__):
                 def analyzer(current, candidates, error=error):
@@ -128,7 +129,7 @@ class ProposalValidationTests(unittest.TestCase):
                 self.assertEqual((row['status'], row['error'], row['detail']['error_kind'], row['detail']['error_class']),
                                  ('failed', sentence, kind, type(error).__name__))
                 self.assertEqual(self.events[-1], ('knowledge_job_failed', {'error_category': kind, 'error_type': type(error).__name__}))
-        self.assertNotIn(secret, str(self.graph.admin_snapshot()['jobs']) + str(self.events), 'No exception text other than the provider class\'s own is kept')
+        self.assertNotIn(secret, str(rows.jobs(self.graph)) + str(self.events), 'No exception text other than the provider class\'s own is kept')
 
     def test_an_exception_that_only_looks_like_a_provider_error_does_not_get_its_text_shown(self):
         class Lookalike(Exception):
@@ -150,16 +151,6 @@ class ProposalValidationTests(unittest.TestCase):
                 row = self.run_job(lambda current, candidates, response=response: response)
                 self.assertEqual((row['status'], row['detail']['error_kind']), ('failed', 'result'))
 
-    def test_a_failed_job_can_be_retried_and_its_record_is_replaced(self):
-        def failing(current, candidates):
-            raise APIError('The model declined this request.')
-        row = self.run_job(failing)
-        self.assertEqual(row['status'], 'failed')
-        self.graph.analyzer = self.one_per_candidate
-        self.graph.retry(row['id'])
-        again = wait(self.graph, row['id'])
-        self.assertEqual((again['status'], again['error'], again['attempts']), ('completed', '', 2))
-        self.assertEqual(again['detail'], {'candidates': 3, 'candidates_omitted': 0, 'proposals_returned': 3, 'proposals_kept': 3, 'proposals_dropped': 0})
 
     def test_a_failing_diagnostics_writer_does_not_change_the_outcome(self):
         def broken(event, **fields):

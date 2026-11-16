@@ -852,7 +852,7 @@ if(process.argv.includes("--usability-only")){
   t.applyInterview({question:"What happens next in the written procedure?",summary:"",coverage:[],memo_findings:[],focus:"",parking_lot:[],closure:{asked:true,confirmed:true}});
   assert.equal(t.state.closure.confirmed,false,"A model response cannot turn simulation into participant confirmation");
   t.state.closure.confirmed=true;assert.equal(t.sessionObject().closure.confirmed,false,"Export/submission cannot claim simulation confirmation even if a stale local flag is true");t.state.closure.confirmed=false;
-  for(const [id,tag] of [["knowledge-submit","dialog"],["knowledge-admin","dialog"],["submit-process-menu","button"],["submit-process-review","button"],["open-knowledge-admin","button"]])if(!document.getElementById(id))mount(id,tag);
+  for(const [id,tag] of [["knowledge-submit","dialog"],["submit-process-menu","button"],["submit-process-review","button"]])if(!document.getElementById(id))mount(id,tag);
   const oldCrypto=context.crypto;context.crypto={randomUUID:()=>"00000000-0000-4000-8000-000000000001"};
   vm.runInContext(fs.readFileSync(path.join(__dirname,"..","web","knowledge-ui.js"),"utf8"),context,{filename:"knowledge-ui.js"});
   const submissions=[],controller=context.window.CollectorKnowledge.create({session:t.sessionObject,notice(){},request:async(url,payload)=>{assert.equal(url,"/api/knowledge/submit");submissions.push(JSON.parse(JSON.stringify(payload)));return{process_id:"00000000-0000-4000-8000-000000000002",submission_id:"00000000-0000-4000-8000-000000000003",job_id:"00000000-0000-4000-8000-000000000004",revision:1,status:"pending",status_token:"b".repeat(64)};}});

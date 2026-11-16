@@ -2,6 +2,25 @@
 
 (() => {
   const $ = (id) => document.getElementById(id);
+  const rawTrace = (...args) => window.CollectorRawTrace?.record(...args);
+  const rawRefs = value => window.CollectorRawTrace?.references?.(value);
+  function configureTrace(config) {
+    window.CollectorRawTrace?.configure(config.raw_trace, () => state.config?.csrf_token,
+      () => state.interviewId || (state.started && !state.importing ? interviewIdentity() : null));
+    const notice = $("developer-trace-notice");
+    if (notice) notice.hidden = !(config.raw_trace?.enabled && config.raw_trace.content);
+    if ($("recovery-trace-note")) $("recovery-trace-note").hidden = notice?.hidden !== false;
+    rawTrace("settings.theme_observed",{mode:$("theme-select")?.value,state:document.documentElement?.dataset?.theme});
+  }
+  function traceTurn(type, turn, metadata) {
+    rawTrace(type, {role:turn.role, ...metadata}, {text:turn.text}, {...rawRefs(turn),turn_id:turn.id});
+  }
+  function traceNotes(source) {
+    rawTrace("notes.applied", {source, count:state.memo_findings.length}, () => ({
+      memo_findings:state.memo_findings, coverage:state.coverage, summary:state.summary,
+      focus:state.focus, parking_lot:state.parking_lot, closure:state.closure
+    }));
+  }
   const TOPICS = [
     ["name", "Name and scope"], ["purpose", "Purpose"], ["trigger", "Starting point"],
     ["completion", "End point"], ["accountable", "Owner"], ["lifecycle", "Flow of work"],
@@ -496,8 +515,8 @@
     return open.find(dialog=>dialog.contains(document.activeElement))||open.at(-1)||null;
   }
   // The notice element is found once and then kept: while it is inside a
-  // dialog, that dialog's owner may rebuild the dialog's content (Admin, Submit,
-  // a source excerpt) and so drop the notice from the page, where a lookup by
+  // dialog, that dialog's owner may rebuild the dialog's content (Submit or a
+  // source excerpt) and so drop the notice from the page, where a lookup by
   // id would no longer find it. It is put back as soon as that happens.
   let noticeNode=null,noticeWatch=null;
   const noticeRegion=()=>noticeNode||(noticeNode=$("global-notice"));
@@ -548,6 +567,8 @@
     $("notice-text").textContent = message;
     toast.classList.toggle("error", error);
     toast.hidden = false;
+    rawTrace("notice.rendered", {kind,error,lasting,in_dialog:Boolean(host),hidden:toast.hidden},
+      {text:$("notice-text").textContent});
     $("live-status").setAttribute("aria-live",error?"assertive":"polite");$("live-status").textContent = message;
     if(error||lasting){
       const region=$($("review-view").hidden?"interview-error":"review-error");
@@ -570,6 +591,7 @@
   function dismissNotice() {
     clearTimeout(noticeTimer);noticeTimer=null;noticeHeld=false;noticeHover=false;noticeFocus=false;
     const region=noticeRegion(),restore=region.contains(document.activeElement),host=region.closest?.("dialog");region.hidden=true;
+    rawTrace("notice.dismissed",{kind:noticeKind,in_dialog:Boolean(host),hidden:region.hidden});
     if(!restore)return;
     if(host?.open)([...host.querySelectorAll("button:not([disabled])")].find(button=>!region.contains(button)&&!button.closest("[hidden]"))||host).focus({preventScroll:true});
     else focusWorkspace($("review-view").hidden?"interview":"review");
@@ -625,6 +647,7 @@
     if(name!=="interview")setTranscriptExport(false,false);
     $("interview-view").hidden = name !== "interview";
     $("review-view").hidden = name !== "review";
+    rawTrace("workspace.selected", {name});
     document.body?.classList.toggle("review-mode", name === "review");
     if (name === "review") {setMemoSheet(false,false);selectReviewSection(reviewUI.section);}
     document.querySelectorAll("[data-tab]").forEach(button => {
@@ -928,7 +951,9 @@
     if(!on&&held&&!confirm(`Turn off recovery copies? The copy stored on this computer${recovery.offer?.name?` (${recovery.offer.name})`:""} will be deleted and cannot be brought back.`)){renderRecovery();return;}
     try{
       applyRecoveryStatus(await recoveryTask(()=>recoveryCall("setting",{enabled:Boolean(on)})));
-      notice(recovery.enabled?"Recovery copy on. One copy of the unsaved interview is kept on this computer until you save it, start over, discard it or seven days pass.":"Recovery copy off. Nothing about an interview is kept on this computer unless you save it.");
+      notice(recovery.enabled?"Recovery copy on. One copy of the unsaved interview is kept on this computer until you save it, start over, discard it or seven days pass.":
+        state.config?.raw_trace?.content?"Recovery copy off. Developer content logging is still on.":
+        "Recovery copy off. No unsaved interview is being kept for recovery.");
     }catch(error){renderRecovery();notice(`The setting was not changed. ${error.message}`,true);}
   }
   async function initRecovery(config) {
@@ -1012,10 +1037,15 @@
     $("draft-stale").hidden = !staleReason;
     if (staleReason && $("draft-stale").textContent !== staleText) $("draft-stale").textContent = staleText;
     if ($("draft-confirm-current")) {$("draft-confirm-current").hidden = !staleReason; $("draft-confirm-current").disabled = working || recording;}
-    $("thinking").hidden = !working;
+    const thinking=$("thinking"), thinkingText=$("thinking-text"), previouslyHidden=thinking.hidden;
+    thinking.hidden = !working;
     if ($("current-question")) $("current-question").setAttribute("aria-busy", String(state.busy));
     const waitingStep = state.requestingMic ? "Waiting for microphone access…" : state.transcribing ? "Transcribing…" : pendingCompletionReview?.promise ? COMPLETION_REVIEW_LABEL : "";
-    $("thinking-text").textContent = waitingStep || (state.provisionalQuestion ? `Up next: ${state.provisionalQuestion} — finishing the notes…` : state.busyMessage || "Thinking of the next question…");
+    const thinkingLine = waitingStep || (state.provisionalQuestion ? `Up next: ${state.provisionalQuestion} — finishing the notes…` : state.busyMessage || "Thinking of the next question…");
+    const lineChanged=thinkingText.textContent!==thinkingLine;
+    if(lineChanged)thinkingText.textContent=thinkingLine;
+    if(lineChanged||previouslyHidden!==thinking.hidden)rawTrace("interview.progress_rendered",
+      {hidden:thinking.hidden,provisional:Boolean(state.provisionalQuestion)&&!waitingStep}, {text:thinkingText.textContent});
     announceWorking(working, waitingStep || state.busyMessage || "Thinking of the next question…");
     if($("pause-completion-review"))$("pause-completion-review").hidden=!pendingCompletionReview?.promise||Boolean(conversationUI.live?.active);
     $("record-answer").classList.toggle("recording", recording);
@@ -1105,6 +1135,7 @@
     if(value)backgroundTitle("Working");
     else if(state.busy)backgroundTitle("Ready");
     state.busy = value;
+    rawTrace("interview.busy", {busy:value}, {message});
     state.busyMessage = message;
     if(!value)state.provisionalQuestion=null;
     updateControls();
@@ -1325,7 +1356,7 @@
     }
     const flag=value=>value==="current"?true:value==="behind"?false:null;
     // notes_assumed / map_assumed (present only when true): the turn named is where the reopened file stood,
-    // not a recorded coverage; validate_capture_state in knowledge_graph.py stores it and Admin words it so.
+    // an estimate saved separately from recorded coverage.
     return {waiting,action:waiting?action:"",missing,capture:{in_progress:Boolean(waiting||intakeStopped||reviewStopped),notes_current:flag(notes),map_current:flag(map),
       notes_through_turn:count&&notesProgress&&notes!=="unknown"?notesProgress.through:null,map_through_turn:count&&mapProgress&&map!=="unknown"?mapProgress.through:null,
       ...(notes==="behind"&&unrecorded(notesProgress)?{notes_assumed:true}:{}),...(map==="behind"&&unrecorded(mapProgress)?{map_assumed:true}:{})}};
@@ -1459,11 +1490,12 @@
     settingsRestoreFocus=restoreFocus;
     const dialog=$("interview-settings"); if(!dialog)return;
     if(open)closeMenu();
-    if(open&&!dialog.open)dialog.showModal();
+    if(open&&!dialog.open){dialog.showModal();rawTrace("settings.dialog_opened",{open:dialog.open});}
     if(!open&&dialog.open)dialog.close();
   }
   let settingsOpener=null;
   function settingsClosed() {
+    rawTrace("settings.dialog_closed",{open:$("interview-settings").open});
     const opener=settingsOpener?.isConnected&&!settingsOpener.closest("[hidden]")?settingsOpener:$("session-menu-toggle");settingsOpener=null;
     if(sourceOrigin && $("settings-source-return")?.hidden===false){returnToSource();return;}
     if(settingsRestoreFocus)opener.focus({preventScroll:true});
@@ -1599,10 +1631,12 @@
       if(!row){
         row=createTranscriptRow(turn,caption,playDisabled);
         root.append(row.item);transcriptRows.push(row);
+        traceTurn("transcript.rendered", turn, {index, view:conversationUI.view});
         firstChanged=Math.min(firstChanged,index);
       }else{
         if(row.text!==turn.text){
           row.paragraph.textContent=turn.text;row.text=turn.text;
+          traceTurn("transcript.rendered", turn, {index, view:conversationUI.view});
           firstChanged=Math.min(firstChanged,index);
         }
         if(row.play&&row.play.disabled!==playDisabled)row.play.disabled=playDisabled;
@@ -1842,6 +1876,7 @@
     if(view!=="transcript")setTranscriptExport(false,false);
     const dockFocus=!focus&&$("conversation-dock")?.contains(document.activeElement)?document.activeElement:null;
     conversationUI.view=view;
+    rawTrace("conversation.view_selected", {view});
     if(view!=="workflow" && $("interview-view").classList.contains("workflow-expanded"))setWorkflowExpanded(false);
     document.querySelectorAll("[data-conversation-view]").forEach(button=>{
       const active=button.dataset.conversationView===view;
@@ -1940,15 +1975,19 @@
     // so an over-long one stops the start here, with the field opened and the reason beside it.
     const tooLong=CONTEXT_FIELDS.find(fieldLimitProblem);
     if(tooLong){revealContext();showFieldLimit(tooLong);$(tooLong.id).focus();notice(fieldLimitProblem(tooLong),true,"limit");return false;}
-    state.context=readContext();state.started=true;state.example=false;recordInput();updateControls();return true;
+    state.context=readContext();state.started=true;state.example=false;
+    rawTrace("interview.started", {}, () => ({context:state.context}));
+    recordInput();updateControls();return true;
   }
   function documentContext() {
     return {context:clone(state.context||readContext()),turns:clone(state.turns.slice(-8)),focus:state.focus,
       current_question:[...state.turns].reverse().find(turn=>turn.role==="assistant"&&!turn.document_event)?.text||""};
   }
-  function rememberTurn(turn,channel,kind){
+  function rememberTurn(turn,channel,kind,source){
     if(!state.turnMetadata)state.turnMetadata={};
     state.turnMetadata[turn.id]={channel,at:new Date().toISOString(),...(interviewLines.includes(kind)?{kind}:{})};
+    window.CollectorRawTrace?.link?.(turn,source);
+    traceTurn("turn.created", turn, {channel, kind:state.turnMetadata[turn.id].kind, document_event:turn.document_event});
     return turn;
   }
   function appendDocumentMessage(message, document, isQuestion=false) {
@@ -2174,6 +2213,10 @@
     });
   }
   function onDocumentEvent(event) {
+    rawTrace("document.event", {event:event.type, action:event.action, files:event.state?.documents?.length,
+      uploading:event.state?.uploading, mutating:event.state?.mutating}, () => ({
+        document_id:event.document?.id, name:event.document?.name, question:event.question?.text
+      }));
     if(state.example)return;
     const document=event.document,analysis=event.analysis||document?.analysis||{};
     if(event.type==="remote_file"){
@@ -2292,6 +2335,7 @@
           reviewBeforeSending:()=>Boolean($("review-voice-transcript")?.checked),
           onEditableAnswer:answer=>{
             const box=$("answer-text");box.value=[box.value.trim(),answer].filter(Boolean).join("\n\n");
+            rawTrace("voice.editor_updated",{channel:"reviewed_voice",chars:answer.length,value_omitted:"transient_input"});
             state.dictatedAnswer=box.value.trim();state.dirty=true;voiceEnded=true;
             conversationUI.typing=true;selectConversationView("transcript");updateControls();
             notice("Voice paused. Check the transcribed answer, then choose Send.",false,"voice",true);
@@ -2302,7 +2346,8 @@
             // answer that has no reply yet, so the interviewer is asked about the whole of it.
             const open=info?.continuation?state.turns.at(-1):null,joined=open?.role==="user"&&!open.document_event&&charCount(open.text)+charCount(answer)<6000?`${open.text} ${answer}`:null;
             if(charCount(answer)>6000||!(joined===null?answerHasRoom(answer):transcriptHasRoom(answer,1)))throw new Error(transcriptLimit().answersBlocked?limitReason(transcriptLimit()):"This answer exceeds the remaining interview space. Save a copy or continue with a shorter typed answer.");
-            if(joined===null)state.turns.push(rememberTurn({id:nextTurnId(),role:"user",text:answer},"reviewed_voice"));else open.text=joined;
+            if(joined===null)state.turns.push(rememberTurn({id:nextTurnId(),role:"user",text:answer},"reviewed_voice"));
+            else {open.text=joined;traceTurn("turn.amended",open,{channel:"reviewed_voice"});}
             state.version++;participantEvidenceChanged();state.dirty=true;
             conversationUI.revision++;suppressWorkflowReadiness();renderTranscript(true);
             // Map scheduling runs alongside the lead; reader preparation already began.
@@ -2322,7 +2367,11 @@
             return voice&&window.CollectorSpeechPreparation?new window.CollectorSpeechPreparation(
               (id,signal)=>takeVoiceSession({id},signal),voice.id,{signal}):null;
           },
-          onTurnTiming:record=>{voiceTimingRecords.push({...record,answer_number:state.turns.filter(t=>t.role==="user"&&!t.document_event).length});if(voiceTimingRecords.length>100)voiceTimingRecords.shift();if($("export-voice-timing"))$("export-voice-timing").hidden=false;},
+          onTurnTiming:record=>{
+            const timing={...record,answer_number:state.turns.filter(t=>t.role==="user"&&!t.document_event).length};
+            voiceTimingRecords.push(timing);rawTrace("reviewed.turn_timing",timing);
+            if(voiceTimingRecords.length>100)voiceTimingRecords.shift();if($("export-voice-timing"))$("export-voice-timing").hidden=false;
+          },
           onStatus:status=>{conversationUI.status=status;updateControls();if(status==="listening"){const panel=$("interview-error");if(panel?.dataset.errorKind==="voice"&&!conversationUI.live?.hasPendingAudio)panel.hidden=true;scheduleWorkflow();}},
           onError:message=>{if(pendingCompletionReview){$("retry-question").hidden=false;$("retry-question").textContent="Retry completion review";}notice(message+(/\bstill here\b/.test(message)?unsavedReminder():""),true,conversationUI.live?.hasPendingAudio?'transcription':'voice');},
           onNotice:message=>notice(message),
@@ -2419,7 +2468,8 @@
     }
     chunks.forEach((chunk,i)=>{
       let turn=state.turns.find(t=>t.id===ids[i]);
-      if(!turn){turn=rememberTurn({id:nextTurnId(),role:caption.role,text:chunk},"live_voice");ids[i]=turn.id;state.turns.push(turn);}else turn.text=chunk;
+      if(!turn){turn=rememberTurn({id:nextTurnId(),role:caption.role,text:chunk},"live_voice");ids[i]=turn.id;state.turns.push(turn);}
+      else {turn.text=chunk;traceTurn("turn.amended",turn,{channel:"live_voice"});}
     });
     conversationUI.captions.set(key,ids);state.version++;state.dirty=true;
     renderTranscript(true);
@@ -2579,6 +2629,7 @@
     state.coverageVerified=(kept||!notesOnly)&&result.coverage_verified===true;state.completion=notesOnly&&!kept?null:result.completion||null;
     if(memo){
       Object.assign(state,memo);notesProgress=captureProgressMark(captured.turns);keepMapProgress(result,captured.turns);
+      traceNotes("live_capture");
       rememberCoverageCheckpoint(captured.turns,captured.revision,captured.document_revision,result.coverage_assessment);
       rewritten=acceptRepairs(repairs,memo.memo_findings);
       // The notes now include these answers; the notes line reads from this.
@@ -2814,6 +2865,7 @@
       applyProcessTitle(workflow.title);
       if(memo){
         Object.assign(state,memo);
+        traceNotes("workflow");
         if(options.documentIntake){
           const basis=participantCoverageBasis(captured.turns);
           analysisCheckpoint={basis:JSON.stringify(basis),count:basis.length,documents:captured.document_revision??activeDocumentSignature()};
@@ -2912,6 +2964,7 @@
       state.mapCorrections=(state.mapCorrections||[]).slice(-50);
     }
     conversationUI.workflow=graph;
+    rawTrace("workflow.applied", {step_count:graph.steps?.length, turn_count:turns.length}, () => ({graph}));
   }
   function currentDocumentState(){return documentController?.peekState?.()||documentController?.exportState();}
   function renderWorkingMap() {
@@ -2985,6 +3038,7 @@
         if(!current||typeof current.csrf_token!=="string"||!current.csrf_token||current.csrf_token===sent)return false;
         if(current.build_id!==state.config.build_id){const error=new Error(PAGE_OUTDATED);error.status=403;throw error;}
         state.config.csrf_token=current.csrf_token;
+        state.config.raw_trace=current.raw_trace;configureTrace(state.config);
         return true;
       })();
       tokenRenewal=renewal;
@@ -3052,6 +3106,9 @@
     }
     try {
       const headers = {...usageHeaders(),"X-CSRF-Token": state.config?.csrf_token || ""};
+      const turn = data?.action === "answer" && data.turns?.at(-1);
+      if(state.config?.raw_trace?.enabled && turn?.role === "user" && /^[\w-]{1,80}$/.test(turn.id))
+        headers["X-Trace-Turn"] = turn.id;
       let body;
       if (data instanceof Blob) {
         headers["Content-Type"] = data.type || "audio/webm";
@@ -3095,6 +3152,8 @@
       let result;
       try{result=options.audio?await response.blob():await response.json();}
       catch{throw Error("The local app returned an unreadable response. Try the request again.");}
+      window.CollectorRawTrace?.link?.(result,response);
+      rawTrace("http.body_parsed",{path,format:options.audio?"blob":"json"},undefined,rawRefs(response));
       if(replacedByIntake())throw new DOMException("File intake replaced this request","AbortError");
       if(controller.signal.aborted)throw new DOMException("Request cancelled","AbortError");
       // A notes capture is kept while the answers it read still stand
@@ -3273,6 +3332,7 @@
       const sendInput=()=>{
         if(inputSent||settled)return;inputSent=true;clearTimeout(connectionTimer);
         socket.send(JSON.stringify({type:"conversation.item.create",item:{id:itemId,type:"message",role:"user",content:[{type:"input_text",text:message}]}}));
+        rawTrace("reader.input_sent", {item_id:itemId}, {text:message});
       };
       const prepared=operation.preparedSocket;
       connectionTimer=setTimeout(()=>fail("The voice reader did not connect. The question is on screen.","reader_timeout"),12000);
@@ -3285,6 +3345,10 @@
         if(settled)return;
         if(typeof event.data!=="string"||event.data.length>12*1024*1024){fail("The AI voice returned an unsupported audio response.");return;}
         let packet;try{packet=JSON.parse(event.data);}catch{fail("The AI voice returned an unreadable response.");return;}
+        const transcriptPacket = packet?.type === "response.output_audio_transcript.delta" || packet?.type === "response.output_audio_transcript.done";
+        rawTrace("reader.packet_received", {event_type:/^[a-z][a-z0-9._]{0,79}$/.test(packet?.type) ? packet.type : "unrecognized",
+          chars:typeof packet?.delta === "string" ? packet.delta.length : packet?.transcript?.length,
+          value_omitted:packet?.type === "response.output_audio.delta" ? "transient_audio" : transcriptPacket ? "before_playback_gate" : undefined});
         try {
           if(packet.type==="session.created"&&!inputSent){
             sendInput();
@@ -3302,7 +3366,10 @@
             transcript=packet.transcript;
           } else if(packet.type==="response.done"){
             if(packet.response?.status!=="completed"){fail("The AI voice did not finish this question. Please try again.");return;}
-            if(normalizedSpeech(transcript)!==normalizedSpeech(message)){fail("The AI voice did not read the question exactly, so playback was withheld. Try Preview or Listen again; the original question remains on screen.","reader_mismatch");return;}
+            const matched=normalizedSpeech(transcript)===normalizedSpeech(message);
+            rawTrace("reader.transcript_checked",{matched,chars:transcript.length,
+              value_omitted:matched?undefined:"withheld_playback"},matched?{text:transcript}:undefined);
+            if(!matched){fail("The AI voice did not read the question exactly, so playback was withheld. Try Preview or Listen again; the original question remains on screen.","reader_mismatch");return;}
             finish(null,pcmWave(chunks,bytes));
           } else if(packet.type==="error"){
             // Name the cause the provider gave (no quota, a rejected key, a rate limit) in fixed wording.
@@ -3335,6 +3402,8 @@
       operation.url=URL.createObjectURL(blob);
       operation.audio=new Audio(operation.url);
       const ended=()=>{if(version===state.speechVersion)stopSpeaking();};
+      for(const event_type of ["playing","waiting","pause","ended","error"])
+        operation.audio.addEventListener(event_type,()=>rawTrace("reader.audio_callback",{event_type}));
       operation.audio.addEventListener("ended",ended,{once:true});
       operation.audio.addEventListener("playing",()=>{if(version===state.speechVersion){auxiliaryVoiceState="speaking";updatePresence();}});
       operation.audio.addEventListener("waiting",()=>{if(version===state.speechVersion){auxiliaryVoiceState="processing";updatePresence();}});
@@ -3462,10 +3531,12 @@
     $("stop-speaking").hidden = false;
     $("stop-speaking").textContent = "Stop playback";
     utterance.onend = () => {
+      rawTrace("reader.utterance_callback",{event_type:"end"});
       if (version === state.speechVersion) {state.utterance = null;auxiliaryVoiceState="idle";updatePresence(); $("stop-speaking").hidden = true;setReading(null);}
     };
-    utterance.onstart=()=>{if(version===state.speechVersion){auxiliaryVoiceState="speaking";updatePresence();if(reading)setReading({...reading,phase:"speaking"});}};
+    utterance.onstart=()=>{rawTrace("reader.utterance_callback",{event_type:"start"});if(version===state.speechVersion){auxiliaryVoiceState="speaking";updatePresence();if(reading)setReading({...reading,phase:"speaking"});}};
     utterance.onerror = event => {
+      rawTrace("reader.utterance_callback",{event_type:"error",reason:event.error});
       if (version !== state.speechVersion || ["canceled","interrupted"].includes(event.error)) return;
       stopSpeaking();
       notice("The installed voice could not play this question. You can read it above and continue by voice or text.", true);
@@ -3553,6 +3624,7 @@
         summary:text(result.summary,6000),focus:text(result.focus,500),parking_lot:strings(result.parking_lot,50),documentEvidence:evidence};
       const facts=normalizedFacts(result.fact_provenance,captured.turns,evidence);
       Object.assign(state,update);notesProgress=captureProgressMark(captured.turns);
+      traceNotes("background");
       rememberDiscussion(result,captured,facts);
     }
     // Background observations are provisional until the current transcript
@@ -3694,7 +3766,7 @@
       const matchingAck=state.resumedReviewAck&&state.turns.at(-1)?.id===state.resumedReviewAck&&state.turns.at(-1)?.text===question;
       const repeatedFailure=result.review_retry_required===true&&result.review_ticket&&result.review_ticket===pendingCompletionReview?.ticket&&
         state.turns.at(-1)?.role==="assistant"&&state.turns.at(-1)?.text===question;
-      if(!full&&!matchingAck&&!repeatedFailure)state.turns.push(rememberTurn({id:nextTurnId(),role:"assistant",text:question},"interviewer",result.speech_authorization?.kind));
+      if(!full&&!matchingAck&&!repeatedFailure)state.turns.push(rememberTurn({id:nextTurnId(),role:"assistant",text:question},"interviewer",result.speech_authorization?.kind,result));
       state.resumedReviewAck=null;
       state.version++;state.dirty=true;
       // A review whose acknowledgement was never shown is not started.
@@ -3711,7 +3783,7 @@
     const resumedAck=state.resumedReviewAck&&state.turns.at(-1)?.id===state.resumedReviewAck&&state.turns.at(-1)?.text===question;state.resumedReviewAck=null;
     const sameReviewFailure=result.review_retry_required===true&&Boolean(result.review_ticket)&&result.review_ticket===pendingCompletionReview?.ticket;
     const repeated=resumedAck||(result.no_new_run===true||sameReviewFailure)&&result.speech_authorization?.kind==="pause"&&state.turns.at(-1)?.role==="assistant"&&state.turns.at(-1).text===question;
-    if(!repeated&&!issued&&!full)state.turns.push(rememberTurn({id:nextTurnId(),role:"assistant",text:question},"interviewer",result.speech_authorization?.kind));
+    if(!repeated&&!issued&&!full)state.turns.push(rememberTurn({id:nextTurnId(),role:"assistant",text:question},"interviewer",result.speech_authorization?.kind,result));
     state.version++;
     state.coverage = coverage;
     state.summary = summary;
@@ -3720,6 +3792,7 @@
     state.focus = focus;
     state.parking_lot = parked;
     state.closure = {asked:result.closure?.asked === true&&(!full||result.closure?.confirmed===true),confirmed:!state.captureProvenance&&result.closure?.confirmed === true&&coverageVerified()&&(!state.config?.agent_team?.enabled||result.completion?.complete===true),...partialClosure(result,findings)};
+    traceNotes("interview");
     rememberCoverageCheckpoint(state.turns,conversationUI.revision,activeDocumentSignature(),result.coverage_assessment);
     const rewritten = acceptRepairs(repairs,findings);
     state.dirty = true;
@@ -3976,6 +4049,7 @@
       recorder.addEventListener("error", () => { recording.discard = true; notice("Recording didn’t work. Try again, or type your answer.", true); finishRecording(); });
       recorder.addEventListener("stop", () => completeRecording(recording));
       recorder.start(250);
+      rawTrace("dictation.recorder_started", {state:recorder.state, audio_omitted:"transient_audio"});
       // The clock is written when the second changes, not on every tick. It is a timer that is
       // never announced: the start of the recording is said once through the status line below,
       // and speech from a screen reader would be picked up by the open microphone.
@@ -4083,6 +4157,7 @@
     releaseRecording(recording);
   }
   async function completeRecording(recording) {
+    rawTrace("dictation.recorder_stopped", {state:recording.recorder?.state, discarded:Boolean(recording.discard)});
     if (state.recording === recording) state.recording = null;
     const measured = Boolean(recording.meterRan);
     releaseRecording(recording);
@@ -4112,6 +4187,7 @@
       const existing = $("answer-text").value.trim();
       const combined = existing ? `${existing}\n\n${answer}` : answer;
       $("answer-text").value = combined;state.dictatedAnswer=combined.trim();
+      rawTrace("voice.editor_updated",{channel:"dictated",chars:answer.length,value_omitted:"transient_input"});
       state.dirty = true;
       if (exceeds(combined, REPLY_FIELD.limit)) {
         notice(fieldLimitProblem(REPLY_FIELD),true,"limit");
@@ -4572,6 +4648,7 @@
   }
   function draftChanged(map = false) {
     state.draftEdited = true;
+    rawTrace("draft.edited", {map}, () => ({draft:state.draft}));
     state.dirty = true;
     updateSaveHint();
     if (map) scheduleMap();
@@ -4783,6 +4860,7 @@
     if (!state.draft) return;
     const draft = state.draft;
     updateDraftHistoryControls();
+    rawTrace("draft.rendered", {step_count:draft.steps?.length}, () => ({draft}));
     const fields = {"draft-title": "title", "draft-overview": "overview", "draft-trigger": "trigger", "draft-inputs": "inputs", "draft-outputs": "outputs", "draft-open-questions": "open_questions", "draft-validation-notes": "validation_notes", "draft-exceptions": "exceptions", "draft-controls": "controls"};
     Object.entries(fields).forEach(([id, key]) => { $(id).value = Array.isArray(draft[key]) ? draft[key].join("\n") : draft[key]; });
     renderSteps();
@@ -5696,6 +5774,7 @@
   function download(content, filename, type) {
     const url = URL.createObjectURL(new Blob([content], {type}));
     const link = el("a"); link.href = url; link.download = filename; document.body.append(link); link.click(); link.remove();
+    rawTrace("file.download_clicked", {mime_type:type}, {filename});
     setTimeout(() => URL.revokeObjectURL(url), 10000);
   }
   // Which code wrote a file or is running: the release number, and the build the server
@@ -5746,8 +5825,10 @@
         writable=await handle.createWritable();
         await writable.write(content);
         await writable.close();
+        rawTrace("file.write_closed", {kind:"interview_copy"}, {filename});
         written=true;
       }catch(error){
+        rawTrace("file.write_interrupted", {handle_acquired:Boolean(handle), aborted:error?.name==="AbortError"});
         // Cancel: nothing was written, nothing changes and there is nothing to announce.
         if(!handle&&error?.name==="AbortError"&&Date.now()-asked>=SAVE_DIALOG_MIN_MS)return;
         refused=Boolean(handle);
@@ -5994,6 +6075,7 @@
     if (!response.ok) throw Error("Couldn’t stop background work. Try Start over again.");
   }
   function clearState(context = null) {
+    rawTrace("interview.clearing", {turn_count:state.turns.length, generation:state.generation});
     state.historicalDraft=false;owedFiles=null;renderOwedFiles();state.draftUndo=[];state.draftRedo=[];
     state.savedClosure=null;state.resumedReviewAck=null;state.resumeFileIntake=null;state.previousMap=null;state.mapCorrections=[];state.dictatedAnswer=null;
     deferredDiagrams.clear();
@@ -6216,7 +6298,6 @@
       state.draftEvidence = draft&&saved.draft_stale===false ? draftEvidenceMark() : null;
       $("answer-text").value = unsent;
       renderTranscript(); renderDraft();
-      if(state.example)knowledgeUI?.activateExample();
       if(state.coverageNeedsReview)offerCoverageRecheck("Saved answers are preserved. Recheck coverage before treating topics as complete.");
       const unanswered=turns.filter(turn=>!turn.document_event).at(-1)?.role==="user";
       if(unanswered){const retry=$("retry-question");retry.hidden=false;retry.textContent="Ask the next question";delete retry.dataset.resumeReview;}
@@ -6227,6 +6308,7 @@
       // An opened file is a known copy of this interview; a recovery copy is not a file.
       if(!recovered)lastFile={at:new Date(),opened:true};
       opened=true;
+      rawTrace("interview.opened", {recovered, synthetic:state.example, turn_count:turns.length});
       resumeReply=Boolean(unsent.trim());
       if(resumeReply||(unanswered&&!draft)){
         tab("interview");selectConversationView("transcript");scrollConversation();
@@ -6348,7 +6430,6 @@
     $("workflow-status").textContent="Prepared fictional workflow.";
     state.dirty = false;
     renderTranscript(); renderDraft(); scrollConversation();
-    knowledgeUI?.activateExample();
     $("live-status").textContent="Fictional example loaded.";
   }
   function initEvents() {
@@ -6613,6 +6694,8 @@
       }else{
         window.localStorage?.setItem(key,JSON.stringify({voice:state.voiceChoice,"speak-questions":$("speak-questions").checked,"stop-on-silence":$("stop-on-silence").checked}));
       }
+      rawTrace("settings.voice_controls_observed",{action:restore?"restore":"save_requested",
+        speak_questions:$("speak-questions").checked,stop_on_silence:$("stop-on-silence").checked}, {voice:state.voiceChoice});
     }catch{/* The browser may disable local preferences. */}
   }
   async function loadConfiguration(){
@@ -6622,6 +6705,7 @@
       const config = await response.json();
       if (typeof config.csrf_token !== "string") throw new Error("The interviewer isn’t available right now. Try again in a moment.");
       state.config = config;
+      configureTrace(config);
       showBuildIdentity();
       knowledgeUI?.configure(config);
       $("data-notice").textContent = text(config.data_notice,4000) || "Data handling information is unavailable. Check the service configuration before submitting interview content.";

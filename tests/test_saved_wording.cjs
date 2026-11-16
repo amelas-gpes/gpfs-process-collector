@@ -34,7 +34,7 @@ class E{
 const settle=async()=>{for(let i=0;i<3;i++)await new Promise(resolve=>setImmediate(resolve));};
 const uuid=n=>`00000000-0000-4000-8000-${String(n).padStart(12,"0")}`;
 function dialog(extra={}){
-  const nodes={};for(const id of ["knowledge-submit","knowledge-admin","submit-process-menu","submit-process-review","open-knowledge-admin","session-menu","session-menu-toggle","interview-settings"])nodes[id]=new E("div");
+  const nodes={};for(const id of ["knowledge-submit","submit-process-menu","submit-process-review","session-menu","session-menu-toggle","interview-settings"])nodes[id]=new E("div");
   let keys=0;const env={window:{addEventListener(){},removeEventListener(){}},document:{getElementById:id=>nodes[id],createElement:tag=>new E(tag)},console,Date,JSON,
     setTimeout:()=>0,clearTimeout(){},crypto:{randomUUID:()=>`eeeeeeee-eeee-4eee-8eee-${String(++keys).padStart(12,"0")}`}};
   vm.runInNewContext(web("knowledge-ui.js"),env,{filename:"knowledge-ui.js"});

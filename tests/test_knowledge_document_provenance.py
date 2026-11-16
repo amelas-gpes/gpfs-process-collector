@@ -4,6 +4,7 @@ A step may cite a model's reading of a screenshot or scanned page. The stored ex
 (origin 'ai_visual_transcription', verified False), so Admin does not present it as the file's own text.
 The pair comes from the server-hydrated catalog only. Temporary SQLite; no analyzer, provider or network.
 """
+import knowledge_rows as rows
 import tempfile
 import unittest
 import uuid
@@ -45,7 +46,7 @@ class DocumentProvenanceTests(unittest.TestCase):
         self.temp.cleanup()
 
     def stored(self, receipt):
-        item = self.graph.admin_detail('submission', receipt['submission_id'], receipt['revision'])['item']
+        item = self.graph._revision(receipt['submission_id'], receipt['revision'])
         return {source['id']: source for source in item['document_evidence']}
 
     def test_stored_excerpt_keeps_how_it_was_read(self):
@@ -58,14 +59,6 @@ class DocumentProvenanceTests(unittest.TestCase):
         self.assertNotIn('verified', saved[PAGE], 'Native text is not claimed to be verified or unverified')
         self.assertNotIn('location', saved[IMAGE], 'Only the allow-listed pair is stored, not the whole location')
 
-    def test_step_and_relationship_details_carry_the_marker(self):
-        receipt = self.graph.submit(submission(), document_scope='private', document_evidence=hydrated())
-        step = next(row for row in self.graph.admin_browse('entities', {'type': 'step'})['items'])
-        detail = self.graph.admin_detail('entity', step['id'])
-        cited = {source['id']: source for source in detail['submissions'][0]['document_evidence']}
-        self.assertEqual(set(cited), {IMAGE})
-        self.assertEqual((cited[IMAGE]['origin'], cited[IMAGE]['verified']), ('ai_visual_transcription', False))
-        self.assertEqual(receipt['revision'], 1)
 
     def test_only_the_two_known_origins_are_stored(self):
         # Anything else the hydrated source says about itself is not carried into the stored record.
@@ -104,7 +97,7 @@ class DocumentProvenanceTests(unittest.TestCase):
         legacy = [{k: v for k, v in item.items() if k != 'location'} for item in hydrated()]
         again = self.graph.submit(submission(submission_key=key), document_scope='private', document_evidence=legacy)
         self.assertEqual(again['submission_id'], receipt['submission_id'])
-        self.assertEqual(self.graph.admin_browse('submissions')['page']['total'], 1)
+        self.assertEqual(len(rows.submissions(self.graph)), 1)
 
 
 if __name__ == '__main__':

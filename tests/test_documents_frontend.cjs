@@ -503,8 +503,8 @@ function response(document){return{ok:true,json:async()=>({document})};}
   assert.ok(card.children.indexOf(note)<card.children.indexOf(retry),"The statement is read before the button");
   assert.equal(note.querySelector("h4").textContent,"Before you choose Re-index and review");
   assert.match(note.textContent,/re-indexes this file/);assert.match(note.textContent,/paid re-read/);assert.match(note.textContent,/provider credits/);assert.match(note.textContent,/including for every page or image that needs visual reading/);
-  assert.match(note.textContent,/1 stored AI visual transcription is read again/);assert.match(note.textContent,/kept as it is unless its new reading succeeds/);
-  assert.match(note.textContent,/confirmed Company knowledge connections that quote it go back for review/);
+  assert.match(note.textContent,/1 stored AI visual transcription is read again/);
+  assert.match(note.textContent,/A successful reading replaces the text used for future searches and citations\. If a reading fails, the stored text stays available\./);
   assert.equal(h.jsonCalls.length,0,"Showing the statement requests nothing");
   h.api.setDocuments([outdated({kind:"pdf",name:"Scan.pdf",inventory:{pages:3,visual_transcribed_units:[1,2,3]}})],false);
   assert.match(h.api.body.querySelector(".documents-reindex-note").textContent,/3 stored AI visual transcriptions are read again/);
@@ -515,7 +515,7 @@ function response(document){return{ok:true,json:async()=>({document})};}
   const awaitingOne={doc_1_image_c1:"PNG image 66 by 21 pixels. Image contents require native visual review; no OCR was performed."};
   h.api.setDocuments([outdated({extraction_needs_reindex:false,coverage:{indexed_units:1,total_units:1},visual_reread_pending:awaitingOne,analysis:{phase:"error",disposition:"relevant",version:2,error:"Document review paused after an invalid response or service error. Revisit to retry."}})],false);
   const awaiting=h.api.body.querySelector(".documents-reindex-note").textContent;
-  assert.doesNotMatch(awaiting,/re-indexes/);assert.match(awaiting,/paid re-read/);assert.match(awaiting,/1 stored AI visual transcription is read again/);assert.match(awaiting,/go back for review/);
+  assert.doesNotMatch(awaiting,/re-indexes/);assert.match(awaiting,/paid re-read/);assert.match(awaiting,/1 stored AI visual transcription is read again/);assert.match(awaiting,/the stored text stays available/);
   assert.equal(h.api.body.querySelector(".documents-reread-status"),null,"Beside a retry button the full statement is shown, not a second line");
   h.api.setDocuments([outdated({extraction_needs_reindex:false,visual_reread_pending:awaitingOne,analysis:{phase:"complete",disposition:"parked",version:3}})],false);
   assert.ok(h.findText("button","Revisit this file"));assert.equal(h.api.body.querySelector(".documents-reindex-note").querySelector("h4").textContent,"Before you choose Revisit this file");

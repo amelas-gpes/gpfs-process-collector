@@ -108,7 +108,7 @@ class DamagedStore(Fixture):
         problem = config["knowledge_unavailable"]
         self.assertIn("knowledge.sqlite3", problem)
         self.assertIn("damaged", problem)
-        self.assertIn("Submit process and Admin", problem)
+        self.assertIn("Submit process is unavailable", problem)
         self.assertIn("Nothing was changed", problem)
         self.assertNotIn(str(self.root), problem, "The page is not told where on the disk the file is")
         self.assertIn(str(self.knowledge_file), console.getvalue(), "The console line names the file")

@@ -22,7 +22,7 @@ const receipt=(revision=1,extra={})=>({submission_id:uuid(1),process_id:uuid(2),
 
 // respond(path,payload) answers each request; restore a saved receipt with h.controller.restore.
 function setup(respond,session={}){
-  const nodes={};for(const id of ["knowledge-submit","knowledge-admin","submit-process-menu","submit-process-review","open-knowledge-admin","session-menu","session-menu-toggle","interview-settings"])nodes[id]=new E("div");
+  const nodes={};for(const id of ["knowledge-submit","submit-process-menu","submit-process-review","session-menu","session-menu-toggle","interview-settings"])nodes[id]=new E("div");
   const calls=[];let keys=0;
   const env={window:{addEventListener(){},removeEventListener(){}},document:{getElementById:id=>nodes[id],createElement:tag=>new E(tag)},console,Date,JSON,
     crypto:{randomUUID:()=>`eeeeeeee-eeee-4eee-8eee-${String(++keys).padStart(12,"0")}`}};
@@ -56,9 +56,9 @@ await check("refresh status says when analysis has not started and shows the sto
   const h=setup(pathName=>pathName.endsWith("/status")?answers.shift():undefined);
   h.controller.restore(uuid(2),receipt(1));await h.open();
   await h.click("Refresh status");
-  assert.equal(h.statusLine(),"Revision 1 · pending · analysis has not started. Your process is saved; analysis starts when the app next starts with an AI provider configured, or when an administrator retries it.");
+  assert.equal(h.statusLine(),"Revision 1 · pending · analysis has not started. Your process is saved. Analysis can start the next time the app opens with an AI provider configured.");
   await h.click("Refresh status");
-  assert.match(h.statusLine(),/^Revision 1 · pending · analysis has not started · Interrupted before completion; retry available\. Your process is saved;/);
+  assert.match(h.statusLine(),/^Revision 1 · pending · analysis has not started · Interrupted before completion; retry available\. Your process is saved\./);
   await h.click("Refresh status");
   assert.equal(h.statusLine(),"Revision 1 · pending","A job that is waiting its turn is not called stalled");
   await h.click("Refresh status");
@@ -149,18 +149,15 @@ await check("a process ID without a saved receipt is submitted as a copy that do
 });
 
 // gap-privacy-3: the dialog says how long a submission is kept, and a deleted process is reported as such.
-await check("the dialog says before Submit that submissions are kept, and whether an administrator can delete them",async()=>{
-  let h=setup(()=>receipt(1));await h.open();
-  assert.match(h.text(),/A submitted process, with every revision, its transcript and the cited file passages, stays in company knowledge on this computer\. This app does not delete submissions; removing one is a manual step for the owner of this computer\./);
-  h=setup(()=>receipt(1));h.controller.configure({knowledge_delete_enabled:true});await h.open();
-  assert.match(h.text(),/stays in company knowledge on this computer until an administrator deletes it\./);
-  assert.doesNotMatch(h.text(),/does not delete submissions/);
+await check("the dialog explains which submission records are kept on this computer",async()=>{
+  const h=setup(()=>receipt(1));await h.open();
+  assert.match(h.text(),/A submitted process, including every revision, its transcript and the cited file passages, stays in company knowledge on this computer\./);
 });
 
-await check("refresh status reports a process that an administrator deleted",async()=>{
+await check("refresh status reports a previously deleted process",async()=>{
   const h=setup(pathName=>pathName.endsWith("/status")?{submission_id:uuid(1),revision:1,job_id:null,status:"deleted",error:"",attempts:0,stalled:false,latest_revision:null}:undefined);
   h.controller.restore(uuid(2),receipt(1));await h.open();
-  assert.equal(h.statusLine(),"Revision 1 · deleted. An administrator removed this process from company knowledge. To file it again, submit it as a new process.");
+  assert.equal(h.statusLine(),"Revision 1 · deleted. This process was removed from company knowledge. To file it again, submit it as a new process.");
   assert.equal(h.controller.exportReceipt().status,"pending","The saved receipt is left as it was");
 });
 

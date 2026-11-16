@@ -5,6 +5,7 @@ revision with no warning. The submit route now takes base_revision; the store re
 base is not the latest (409) until the submitter confirms it, naming the latest revision.
 Real server and store on temporary folders, local-owner mode; no provider or network.
 """
+import knowledge_rows as rows
 import json
 import tempfile
 import threading
@@ -35,7 +36,7 @@ class BaseRevisionStoreTests(unittest.TestCase):
         self.temp.cleanup()
 
     def revisions(self):
-        return sorted(row['revision'] for row in self.graph.admin_browse('submissions')['items'])
+        return sorted(row['revision'] for row in rows.submissions(self.graph))
 
     def test_a_copy_based_on_the_latest_revision_is_accepted(self):
         self.assertEqual(self.second['revision'], 2)
@@ -47,7 +48,7 @@ class BaseRevisionStoreTests(unittest.TestCase):
         self.assertEqual((refused.exception.base_revision, refused.exception.latest_revision), (1, 2))
         self.assertRegex(str(refused.exception), r'A newer revision \(2\) of this process exists\. This copy is based on revision 1\.')
         self.assertEqual(self.revisions(), [1, 2])
-        self.assertEqual(len(self.graph.admin_snapshot()['jobs']), 2)
+        self.assertEqual(len(rows.jobs(self.graph)), 2)
 
     def test_confirming_the_latest_revision_files_the_older_copy(self):
         third = self.revise('Registration is due by 10 a.m.', base_revision=1, acknowledged_revision=2)
@@ -135,13 +136,13 @@ class BaseRevisionRouteTests(unittest.TestCase):
         self.assertEqual(status, 409)
         self.assertEqual((refused['code'], refused['latest_revision'], refused['base_revision']), ('newer_revision_exists', 2, 1))
         self.assertIn('A newer revision (2) of this process exists', refused['error'])
-        listed = self.post('/api/knowledge/admin/browse', {'section': 'submissions'})[1]
-        self.assertEqual(listed['page']['total'], 2, 'The refused copy was not stored')
+        self.assertEqual(len(rows.submissions(self.httpd.knowledge)), 2, 'The refused copy was not stored')
 
         # The refusal stored nothing, so the same key may be resent with the confirmation.
         status, third = self.post('/api/knowledge/submit', {**stale, 'acknowledged_revision': 2})
         self.assertEqual((status, third['revision']), (202, 3))
-        detail = self.post('/api/knowledge/admin/detail', {'kind': 'submission', 'id': third['submission_id'], 'revision': 3})[1]['item']
+        with self.httpd.knowledge.lock:
+            detail = self.httpd.knowledge._revision(third['submission_id'], third['revision'])
         self.assertNotIn('base_revision', detail)
         self.assertNotIn('acknowledged_revision', detail)
 

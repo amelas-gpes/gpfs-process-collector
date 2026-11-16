@@ -346,13 +346,14 @@ class TeamBlockedError(RuntimeError):
 class TeamRun:
     """One bounded invocation; callbacks may run sequentially or concurrently."""
 
-    def __init__(self, ledger, models=None, include_document_analyst=False, max_calls=None, roles=None):
+    def __init__(self, ledger, models=None, include_document_analyst=False, max_calls=None, roles=None, trace=None):
         if not isinstance(ledger, EvidenceLedger):
             raise ValueError("A team invocation requires an evidence ledger.")
         if not isinstance(include_document_analyst, bool) or not isinstance(models or {}, dict):
             raise ValueError("Invalid specialist configuration.")
         self.ledger = ledger
         self.run_id = uuid.uuid4().hex
+        self._trace = trace
         self.roles = tuple(roles) if roles is not None else CORE_ROLES + (("document_analyst",) if include_document_analyst else ())
         if (not self.roles or any(role not in ROLE_CONTRACTS for role in self.roles)
                 or len(set(self.roles)) != len(self.roles)):
@@ -378,6 +379,11 @@ class TeamRun:
             self._agents[role] = {"role": role, "label": ROLE_CONTRACTS[role]["label"], "status": "pending",
                                   "model": model, "calls": 0, "max_calls": ROLE_CONTRACTS[role]["max_calls"], "reason_code": "",
                                   "started_at": None, "finished_at": None}
+        self._observe("team.run.created", roles=list(self.roles), max_calls=self.max_calls)
+
+    def _observe(self, event, **fields):
+        if self._trace:
+            self._trace(event, {"team_id": self.run_id, "revision": self.ledger.revision, **fields})
 
     def set_provisional_question(self, question):
         """The lead's question as it streams in: display-only until the capture is accepted."""
@@ -387,6 +393,7 @@ class TeamRun:
             if self._cancelled or self._stale:
                 return False
             self._provisional = question
+            self._observe("team.question.provisional", content={"question": question})
             return True
 
     def role_settings(self, role):
@@ -403,6 +410,7 @@ class TeamRun:
                 raise ValueError("Only unused work can be placed on standby.")
             for role in self.roles:
                 self._agents[role].update(status="idle", reason_code="role_not_requested")
+                self._observe("team.role.idle", role=role, reason_code="role_not_requested")
 
     def defer_roles(self, roles):
         """Expose unused specialists as idle, without claiming an invocation."""
@@ -412,6 +420,7 @@ class TeamRun:
                 if row["calls"] or row["status"] not in ("pending", "idle"):
                     raise ValueError("Only unused specialist roles can be deferred.")
                 row.update(status="idle", reason_code="role_not_requested")
+                self._observe("team.role.idle", role=role, reason_code="role_not_requested")
 
     def reuse_lead_result(self, previous):
         """A deliberate review retry may reuse the actual same-evidence capture."""
@@ -444,6 +453,8 @@ class TeamRun:
             row["finished_at"] = now
         self._events.append({"sequence": len(self._events) + 1, "role": role, "label": row["label"],
                              "status": status, "reason_code": reason, "at": now})
+        self._observe("team.role.changed", role=role, status=status, reason_code=reason,
+                      sequence=len(self._events), calls=row["calls"], model=row["model"])
 
     def invalidate(self, current_revision):
         if current_revision == self.ledger.revision:

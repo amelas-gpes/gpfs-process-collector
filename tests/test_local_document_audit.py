@@ -1,16 +1,14 @@
 """Offline regressions for the local parser, privacy boundary and durable knowledge worker."""
 import io
-import json
 import sqlite3
 import tempfile
-import time
 import unittest
 import zipfile
 from pathlib import Path
 from unittest.mock import Mock, patch
 
 from test_documents import documents, workbook_bytes
-from test_knowledge_graph import kg, payload, proposal, wait
+from test_knowledge_graph import kg, payload, wait
 
 
 class DocumentAuditTests(unittest.TestCase):
@@ -127,71 +125,21 @@ class KnowledgeAuditTests(unittest.TestCase):
         self.graph=kg.KnowledgeGraph(self.path)
         self.addCleanup(self.graph.close)
 
-    def test_transient_job_claim_failure_has_one_failure_and_explicit_retry(self):
+    def test_transient_job_claim_failure_sets_failed_status(self):
         item=self.graph.submit(payload('Fictional review','We check the document.'))
         self.graph.analyzer=lambda *_:[]
         with self.graph.db:
             self.graph.db.execute("CREATE TRIGGER fail_claim BEFORE UPDATE ON jobs WHEN new.status='processing' BEGIN SELECT RAISE(ABORT,'reproduction'); END")
-        self.graph.retry(item['job_id'])
+        self.graph.status(item['submission_id'],1,item['status_token'])
         self.assertEqual(wait(self.graph,item['job_id'])['status'],'failed')
-        with self.graph.db: self.graph.db.execute('DROP TRIGGER fail_claim')
-        self.graph.retry(item['job_id'])
-        result=wait(self.graph,item['job_id'])
-        self.assertEqual((result['status'],result['attempts']),('completed',1))
-
-    def test_saved_document_scope_is_a_digest_and_replay_tracks_current_job(self):
+    def test_saved_document_scope_is_a_digest(self):
         body=payload('Example','We check every statement.')
         body['documents']={'documents':[{'id':'doc-1','sources':[{'source_id':'p1'}]}]}
         secret='private-capability-for-a-synthetic-interview'
         result=self.graph.submit(body,document_scope=secret)
-        token=self.graph.document_scope(result['submission_id'],1,'doc-1')
+        token=self.graph.db.execute('SELECT scope FROM private_documents WHERE submission_id=? AND revision=1', (result['submission_id'],)).fetchone()[0]
         self.assertEqual(token,kg.scope_digest(secret))
-        self.assertTrue(token.document_scope_digest)
-        self.assertFalse(getattr(str(token),'document_scope_digest',False))
         self.assertNotIn(secret.encode(),self.path.read_bytes())
-
-    def test_transient_read_preserves_a_confirmation_and_revalidation_checks_the_original_quote(self):
-        body=payload('Sender','We prepare the accepted invoice.')
-        body['documents']={'documents':[{'id':'support','sources':[{'source_id':'page1'}]}]}
-        source={'text':'The manager personally approves the invoice before settlement.'}
-        self.graph.document_resolver=lambda *_:dict(source)
-        a=self.graph.submit(body,document_scope='fictional-private-scope')
-        def analyzer(current,candidates):
-            item=proposal(current,candidates)[0]
-            item['evidence'][0]={'type':'document_supported','submission_id':a['submission_id'],'revision':1,'document_id':'support','source_id':'page1','quote':'The manager personally approves the invoice'}
-            return [item]
-        self.graph.analyzer=analyzer
-        b=self.graph.submit({**payload('Receiver','We then settle the approved amount.'),'team':'Receiving team'})
-        self.assertEqual(wait(self.graph,b['job_id'])['status'],'completed')
-        item=self.graph.admin_browse('connections')['items'][0]
-        for team in ('Operations','Receiving team'):
-            self.assertEqual(self.graph.admin_browse('connections',{'team':team})['page']['total'],1)
-        self.graph.review(item['id'],'confirm','reviewer','Reviewed both accounts',1)
-        with patch.object(self.graph,'document_resolver',side_effect=sqlite3.OperationalError('temporary lock')):
-            detail=self.graph.admin_detail('proposal',item['id'])['item']
-            self.assertEqual((detail['status'],detail['source_verification']),('confirmed','temporarily_unavailable'))
-        source['text']+=' A reviewer corrected the footer.'
-        stale=self.graph.admin_detail('proposal',item['id'])['item']
-        self.assertEqual(stale['status'],'stale')
-        restored=self.graph.review(item['id'],'revalidate','reviewer','Original quote verified',stale['review_version'])
-        self.assertEqual(restored['status'],'proposed')
-
-    def test_over_limit_company_count_with_confirmed_links(self):
-        with self.graph.db:
-            receipts=[]
-            for n in range(400):
-                sid,eid=kg.new_id(),kg.new_id()
-                self.graph.db.execute('INSERT INTO revisions VALUES (?,?,?,?,?,?)',(sid,sid,1,'{}','fixture',kg.now()))
-                self.graph.db.execute('INSERT INTO entities VALUES (?,?,?,?,?,?)',(eid,sid,1,'process_version','Example','{}'))
-                receipts.append(sid)
-            for n in range(80):
-                data={'source_submission_id':receipts[n],'source_revision':1,'destination_submission_id':receipts[n+1],'destination_revision':1,'relationship_type':'hands_off_to'}
-                self.graph.db.execute('INSERT INTO proposals(id,fingerprint,data,status,created_at) VALUES (?,?,?,?,?)',(kg.new_id(),str(n),json.dumps(data),'confirmed',kg.now()))
-        started=time.monotonic()
-        result=self.graph.admin_graph({},'overview')
-        self.assertEqual(result['counts'],{'nodes':400,'connections':80})
-        self.assertTrue(result['too_large'])
-        self.assertLess(time.monotonic()-started,10)
 
     def test_one_letter_quote_and_mixed_scope_filter(self):
         self.assertFalse(kg.meaningful_quote('a','An analyst approves a file.'))

@@ -388,8 +388,9 @@ class OwnWordingTests(unittest.TestCase):
                 (lambda: server.bounded_text(5, "Label"), "Label must be text of at most 6000 characters."),
                 (lambda: server.validate_payload([]), "A JSON object is required."),
                 (lambda: server.agent_team._text(5, "Summary"), "Summary must be bounded text."),
+                (lambda: graph.named_text(5, 100, "Participant"), "Participant must be text."),
                 # One line that replaces a library error by the application's own sentence.
-                (lambda: graph.KnowledgeGraph._admin_uuid(LIBRARY_TEXT), "Choose a valid record."),
+                (lambda: server.bounded_text("\ud800", "Turn"), "Turn contains an incomplete Unicode character. Edit that text and try again."),
                 (lambda: service._text(5, "summary", 10), "Document review returned invalid summary.")):
             with self.subTest(expected=expected):
                 error = self.caught(action)

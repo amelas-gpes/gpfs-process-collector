@@ -1,6 +1,6 @@
 "use strict";
-// Keyboard focus on a step or route that is off screen brings it into view, in the diagram (also
-// used by the Admin graph) and in the Cinematic map. Focus that comes from a click does not move the map.
+// Keyboard focus on a step or route that is off screen brings it into view, in the diagram and
+// in the Cinematic map. Focus that comes from a click does not move the map.
 // Real bundled ELK and a fictional process; no browser, network or provider calls.
 const assert=require('node:assert/strict');
 const {RealmELK,environment,chain}=require('./fixtures/workflow_canvas.cjs');

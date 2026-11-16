@@ -94,7 +94,7 @@ async function check(name, fn) {try {await fn(); passed++;} catch (error) {error
   // knowledge-store-6: a saved store that was damaged at start-up switches off one feature, and the page says which.
   await check("a switched-off saved store is explained when the page opens", async () => {
     const FILES = "Reference files are switched off: the saved file database on this computer (documents.sqlite3) is damaged and was not opened.";
-    const KNOWLEDGE = "Company knowledge is switched off: its saved database on this computer (knowledge.sqlite3) is damaged and was not opened, so Submit process and Admin are unavailable.";
+    const KNOWLEDGE = "Company knowledge is switched off: its saved database on this computer (knowledge.sqlite3) is damaged and was not opened, so Submit process is unavailable.";
     let page = await open(config({api_configured:true, knowledge_unavailable:KNOWLEDGE}));
     assert.deepEqual(page.shown, everywhere(KNOWLEDGE));
     assert.equal(page.noticeHidden, false); assert.equal(page.noticeIsError, true);

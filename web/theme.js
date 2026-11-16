@@ -24,6 +24,7 @@
     colorScheme.content = theme;
     themeColor.content = dark ? "#202429" : "#ffffff";
     if (select) select.value = preference;
+    window.CollectorRawTrace?.record("settings.theme_applied",{mode:preference,state:theme});
   }
 
   // This script runs before stylesheets so a saved override applies on first paint.

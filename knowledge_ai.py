@@ -59,8 +59,7 @@ absence from this input does not imply absence from the full submission. Return 
 
 # The instructions allow MAX_PROPOSALS proposals. One proposal with a quote from each side is roughly 350
 # to 500 output tokens, and a reasoning model spends part of the limit before it writes, so the earlier
-# limit of 6,000 could cut a full answer short; a cut answer fails the whole job and is paid for again on
-# Retry. The limit is an upper bound, not a target. Estimated, not measured against the provider.
+# limit of 6,000 could cut a full answer short and cause the job to fail. This is an estimated upper bound.
 MAX_PROPOSALS = 20
 OUTPUT_TOKEN_LIMIT = 12000
 

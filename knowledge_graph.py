@@ -36,12 +36,12 @@ def _sibling(name):
 
 
 gpfs_interview = _sibling("gpfs_interview")
+raw_trace = _sibling("raw_trace")
 validate_generation_records = _sibling("provider_usage").validate_generation_records
 
 RELATIONSHIPS = frozenset(('provides_input_to', 'produces', 'consumes', 'hands_off_to',
                            'requires_approval_from', 'happens_after', 'uses_system',
                            'performed_by', 'variant_of', 'subprocess_of', 'parallel_with', 'shares_calculation_with'))
-ACTIONS = {'confirm': 'confirmed', 'reject': 'rejected', 'dispute': 'disputed', 'clarify': 'awaiting_clarification', 'reopen':'proposed'}
 # The layouts of knowledge.sqlite3 this build opens: the oldest it upgrades in place, and the
 # one it writes. SQLite keeps the number in the file (PRAGMA user_version; 0 in a store from
 # before it was recorded). Raise the second number with any change an older build would
@@ -132,7 +132,7 @@ def validated_document_evidence(value, documents, scope):
     A saved excerpt from a file that was removed or saved for later is bound to
     the manifest's separate 'retained' list and keeps its flags. It is provenance
     for an existing capture: that file is not in the manifest of active files, so
-    it is never resolved again for matching, proposals or Admin source reads.
+    it is never resolved again for matching or proposals.
 
     Each stored entry says how its text was read: 'origin' is 'ai_visual_transcription'
     (with 'verified': False) for a model's reading of a page or image, else
@@ -266,11 +266,11 @@ def validate_capture_state(value, turns):
 
     The browser reports it: the server cannot see whether a capture was still running, only
     that cited evidence exists. The marker is checked against the transcript and stored with
-    answer counts so Admin can show a revision whose notes or map stop before the last answer.
+    answer counts to record when the notes or map stop before the last answer.
 
     notes_assumed / map_assumed (optional, only ever true): the interview was reopened from a file
     that recorded no capture position, so the turn named is where that file stood, not a recorded
-    coverage. Only the answers after it are known to be missing; Admin must not show the count as fact.
+    coverage. Only the answers after it are known to be missing; the count is an estimate.
     """
     fields={'in_progress','notes_current','map_current','notes_through_turn','map_through_turn'}
     if not isinstance(value,dict) or not fields<=set(value)<=fields|{'notes_assumed','map_assumed'} or not isinstance(value['in_progress'],bool):
@@ -345,7 +345,6 @@ class KnowledgeGraph:
                 + ' Nothing was changed.')
         self.db.execute('PRAGMA foreign_keys=ON')
         self.db.execute('PRAGMA journal_mode=WAL')
-        # Rows removed by delete_submission are overwritten in the file, not left in free pages.
         self.db.execute('PRAGMA secure_delete=ON')
         self.db.executescript('''
         CREATE TABLE IF NOT EXISTS revisions(submission_id TEXT NOT NULL, process_id TEXT NOT NULL, revision INTEGER NOT NULL,
@@ -414,7 +413,8 @@ class KnowledgeGraph:
                 try: claimed_at=json.loads(row['detail'] or '{}').get('claimed_at')
                 except (TypeError,ValueError): claimed_at=None
                 if not alive or (claimed_at is not None and not 0 <= time.time()-claimed_at < 900):
-                    self.db.execute("UPDATE jobs SET status='pending',owner_pid=NULL,error='Interrupted before completion; retry available.' WHERE id=?",(row['id'],))
+                    self.db.execute("UPDATE jobs SET status='pending',owner_pid=NULL,error='Interrupted before completion.' WHERE id=?",(row['id'],))
+            self.db.execute(self._FAIL_EXHAUSTED_JOBS, (self.AUTO_RESUME_ATTEMPTS,))
         self.request_scope = request_scope or nullcontext
         self.analyzer = analyzer
         self.document_resolver = document_resolver
@@ -425,13 +425,16 @@ class KnowledgeGraph:
         # A job left waiting (the app stopped before it ran, it was interrupted, or no provider was configured
         # when it was filed) runs now, oldest first. _run supersedes outdated revisions, and its conditional
         # claim keeps two instances on one store from analysing the same job. The cap stops a job that brings
-        # the process down from doing so at every start; Admin's Retry still runs it deliberately.
+        # the process down from doing so at every start.
         if self.analyzer:
             for row in self.db.execute("SELECT id FROM jobs WHERE status='pending' AND attempts<? ORDER BY created_at,rowid",(self.AUTO_RESUME_ATTEMPTS,)).fetchall():
                 self._schedule(row['id'])
 
     # How many times a waiting job is started without anyone asking (at startup, or from its submitter's status check).
     AUTO_RESUME_ATTEMPTS = 3
+    _FAIL_EXHAUSTED_JOBS = ("UPDATE jobs SET status='failed',owner_pid=NULL, "
+                            "error='Matching was interrupted before completion and reached its attempt limit. Your process is saved.' "
+                            "WHERE status='pending' AND attempts>=?")
     # How many other processes one matching job compares with: the most recent ones of a compatible scope.
     CANDIDATE_LIMIT = 8
 
@@ -692,6 +695,10 @@ class KnowledgeGraph:
             # The caller's own waiting job is started here when nothing in this process is going to run it (a
             # provider configured since it was filed, or a lost worker entry), under the same cap as at startup.
             # 'stalled' tells the submitter that the job is waiting and no worker holds it.
+            if row['status']=='pending' and row['attempts']>=self.AUTO_RESUME_ATTEMPTS:
+                with self.db:
+                    self.db.execute(self._FAIL_EXHAUSTED_JOBS+' AND id=?',(self.AUTO_RESUME_ATTEMPTS,row['id']))
+                row=self.db.execute('SELECT id,status,error,attempts FROM jobs WHERE id=?',(row['id'],)).fetchone()
             stalled=False
             if row['status']=='pending' and not self.closed:
                 if self.analyzer and row['attempts']<self.AUTO_RESUME_ATTEMPTS: self._schedule(row['id'])
@@ -820,9 +827,6 @@ class KnowledgeGraph:
 
     def _latest(self,sid):
         return self.db.execute('SELECT MAX(revision) AS revision FROM revisions WHERE submission_id=?',(sid,)).fetchone()['revision']
-
-    def document_source(self, submission_id, revision, document_id, source_id):
-        return self._document_source(submission_id, revision, document_id, source_id)
 
     def _document_source(self, submission_id, revision, document_id, source_id):
         if not self.document_resolver: raise ValueError('Document source resolution is unavailable.')
@@ -978,7 +982,7 @@ class KnowledgeGraph:
             if not isinstance(proposed,list) or len(proposed)>100: raise ValueError('Invalid analyzer response.')
             # Each proposal stands or falls alone. One that fails a check (a quote that is not verbatim, evidence
             # from one side only, a wrong revision or scope) is dropped and never stored; the others are kept and
-            # the job completes. The reasons are the validator's own sentences, counted on the job row for Admin.
+            # the job completes. The reasons are the validator's own sentences, counted on the job row.
             valid=[];dropped={}
             for p in proposed:
                 try: valid.append(self._validate_proposal(p,current,candidates))
@@ -1021,8 +1025,7 @@ class KnowledgeGraph:
                     self.db.execute('INSERT OR IGNORE INTO proposals(id,fingerprint,claim_key,data,status,created_at) VALUES (?,?,?,?,?,?)',(new_id(),fingerprint,claim,dumps(p),'proposed',now()))
                 self.db.execute("UPDATE jobs SET status='completed',error='',owner_pid=NULL,detail=? WHERE id=?",(dumps(detail),job_id))
         except Exception as error:
-            # Say which kind of failure it was, so that Retry (a new paid request) is not pressed blindly:
-            # the provider, an unusable result, or this app. The class goes to the job row and the diagnostics.
+            # Keep the failure category and exception class in the job row and diagnostics.
             kind,message=self._failure(error)
             detail.update(error_kind=kind,error_class=type(error).__name__)
             with self.lock,self.db:
@@ -1046,87 +1049,17 @@ class KnowledgeGraph:
         if type(error).__name__=='APIError' and isinstance(getattr(error,'status',None),int):
             category=getattr(error,'category',None)
             if category=='quota' or error.status==429:
-                return 'provider','The provider rate limit or quota was reached. Check the project limits before retrying.'
+                return 'provider','The provider rate limit or quota was reached. Check the project limits.'
             if category in ('authentication','permissions','model_access','invalid_configuration') or error.status in (401,403):
-                return 'provider','The provider rejected the configured credentials, model or permissions. Check the settings before retrying.'
-            return 'provider','The AI provider did not complete the analysis. Retry when the provider is available.'
+                return 'provider','The provider rejected the configured credentials, model or permissions. Check the provider settings.'
+            return 'provider','The AI provider did not complete the analysis.'
         if isinstance(error,(OSError,TimeoutError)):
-            return 'provider','The AI provider could not be reached. Retry when the connection is available.'
+            return 'provider','The AI provider could not be reached.'
         if isinstance(error,ValueError):
-            return 'result','The analysis returned a result this app could not use. Retry sends a new request to the provider.'
+            return 'result','The analysis returned a result this app could not use.'
         if isinstance(error,sqlite3.Error):
-            return 'internal','The analysis could not be saved in the knowledge store ('+type(error).__name__+'). Retry in a moment.'
-        return 'internal','Analysis stopped on an internal error in this app ('+type(error).__name__+'). Retrying is unlikely to help.'
-
-    @staticmethod
-    def _job(row):
-        """A job row for Admin; detail is what its last run compared and kept (see _run), {} before any run."""
-        item=dict(row)
-        try: item['detail']=json.loads(item['detail']) if item.get('detail') else {}
-        except ValueError: item['detail']={}
-        if isinstance(item['detail'],dict):
-            item['detail'].pop('claim_token',None)
-            if item.get('status')!='processing': item['detail'].pop('claimed_at',None)
-        return item
-
-    def _proposal(self,row,history=None):
-        item=json.loads(row['data']); item.update(id=row['id'],status=row['status'],review_version=row['review_version'],created_at=row['created_at'],stale_reason=row['stale_reason'])
-        item['history']=history if history is not None else [dict(x) for x in self.db.execute('SELECT action,reviewer,reason,side,created_at,review_version FROM review_history WHERE proposal_id=? ORDER BY rowid',(row['id'],))]
-        return item
-
-    def review(self,proposal_id,action,reviewer,reason,expected_revision,side=None,bounded_result=False):
-        if action not in {*ACTIONS, 'revalidate'} or side not in (None,'sender','receiver'): raise ValueError('Unsupported review action.')
-        reviewer=text(reviewer,500);reason=text(reason,6000)
-        if not reviewer or not reason: raise ValueError('Reviewer and review reason are required.')
-        # Commit invalidation separately, so rejecting a stale review cannot roll it back.
-        with self.lock,self.db:
-            unavailable=self._invalidate_changed_document_evidence([proposal_id])
-        if proposal_id in unavailable and action=='confirm':
-            raise ValueError('The document source cannot be checked just now. Retry when local storage is available.')
-        with self.lock,self.db:
-            row=self.db.execute('SELECT * FROM proposals WHERE id=?',(proposal_id,)).fetchone()
-            if not row: raise ValueError('Proposal not found.')
-            if action == 'revalidate':
-                if row['status']!='stale' or not row['stale_reason'].startswith('Document source changed'):
-                    raise ValueError('Only stale document evidence can be revalidated.')
-                if type(expected_revision) is not int or expected_revision!=row['review_version']:
-                    raise ValueError('Proposal changed; refresh before reviewing.')
-                data=json.loads(row['data'])
-                for side_name in ('source','destination'):
-                    if self._latest(data[side_name+'_submission_id'])!=data[side_name+'_revision']:
-                        raise ValueError('This process revision has been superseded.')
-                for item in data['evidence']:
-                    if item['type']!='document_supported': continue
-                    source=self._document_source(item['submission_id'],item['revision'],item['document_id'],item['source_id'])
-                    if item['quote'] not in source['text']: raise ValueError('The cited text is no longer present.')
-                    item['source_hash']=hashlib.sha256(source['text'].encode()).hexdigest()
-                rebuilt=self.db.execute("UPDATE proposals SET data=?,review_version=review_version+1,status='proposed',stale_reason='' WHERE id=? AND review_version=?",(dumps(data),proposal_id,expected_revision))
-                if rebuilt.rowcount!=1: raise ValueError('Proposal changed; refresh before reviewing.')
-                self.db.execute('INSERT INTO review_history VALUES (?,?,?,?,?,?,?,?)',(new_id(),proposal_id,action,reviewer,reason,None,now(),expected_revision+1))
-                return {'id':proposal_id,'status':'proposed','review_version':expected_revision+1} if bounded_result else self._proposal(self.db.execute('SELECT * FROM proposals WHERE id=?',(proposal_id,)).fetchone())
-            if row['status'] in ('stale','superseded'): raise ValueError('Stale proposals require new evidence and review.')
-            if (row['status']=='rejected') != (action=='reopen'):
-                raise ValueError('Reopen a rejected connection with a reason before making a new decision.')
-            if type(expected_revision) is not int or expected_revision!=row['review_version']: raise ValueError('Proposal changed; refresh before reviewing.')
-            version=row['review_version']+1
-            changed=self.db.execute("UPDATE proposals SET status=?,review_version=? WHERE id=? AND review_version=? AND status NOT IN ('stale','superseded')",(ACTIONS[action],version,proposal_id,expected_revision))
-            if changed.rowcount!=1: raise ValueError('Proposal changed; refresh before reviewing.')
-            self.db.execute('INSERT INTO review_history VALUES (?,?,?,?,?,?,?,?)',(new_id(),proposal_id,action,reviewer,reason,side,now(),version))
-            row=self.db.execute('SELECT * FROM proposals WHERE id=?',(proposal_id,)).fetchone()
-            if bounded_result:
-                return {'id':row['id'],'status':row['status'],'review_version':row['review_version']}
-            return self._proposal(row)
-
-    def document_scope(self, submission_id, revision, document_id):
-        with self.lock:
-            data=self._revision(submission_id,revision)
-            docs=data.get('documents') or {}
-            items=docs.get('documents',[]) if isinstance(docs,dict) else []
-            if not isinstance(items,list) or not any(isinstance(item,dict) and item.get('id')==document_id for item in items):
-                raise PermissionError('Document not in submission revision.')
-            row=self.db.execute('SELECT scope FROM private_documents WHERE submission_id=? AND revision=?',(submission_id,revision)).fetchone()
-            if not row: raise PermissionError('Document source unavailable.')
-            return StoredScopeDigest(row['scope'])
+            return 'internal','The analysis could not be saved in the knowledge store ('+type(error).__name__+').'
+        return 'internal','Analysis stopped on an internal error in this app ('+type(error).__name__+').'
 
     def filed_document_sources(self, process_id):
         """Source IDs of the file passages that the stored revisions of a process already hold.
@@ -1143,75 +1076,18 @@ class KnowledgeGraph:
     def can_revise(self, process_id, principal):
         if not principal: return False
         with self.lock:
-            # A revision records its own author. An administrator editing the
-            # account does not transfer ownership of the original submission.
+            # Each revision records its author. The original submitter owns the process.
             row=self.db.execute('SELECT submitter FROM revisions WHERE process_id=? AND revision=1',(process_id,)).fetchone()
             return bool(row and row['submitter'] and row['submitter']==principal)
 
-    def delete_submission(self, submission_id, reviewer, reason, expected_revision):
-        """Remove one submitted process, with every revision, from the store. The API boundary decides who may.
-
-        One transaction removes its revisions (participant, transcript, copied file excerpts), its graph
-        entities and edges, jobs, status capabilities, document scope and idempotency keys, the proposals
-        that quote it together with their review history, and its memberships of reviewed groups (those
-        groups go back for review). What is kept is a record without content: identifiers, counts, who
-        deleted it and why. expected_revision is the latest revision the administrator was shown, so a
-        revision filed meanwhile is not removed unseen. Files uploaded to the interview are not touched:
-        they belong to the interview's own file workspace, not to this store.
-        """
-        submission_id=self._admin_uuid(submission_id,'submission')
-        reviewer=text(reviewer,500);reason=text(reason,6000)
-        if not reviewer or not reason: raise ValueError('A reviewer and a reason for the deletion are required.')
-        with self._write():
-            rows=self.db.execute('SELECT process_id,revision FROM revisions WHERE submission_id=? ORDER BY revision',(submission_id,)).fetchall()
-            if not rows: raise ValueError('Submission is unavailable.')
-            if type(expected_revision) is not int or expected_revision!=rows[-1]['revision']:
-                raise ValueError('Submission changed; refresh before deleting.')
-            # Children before parents: review_history -> proposals, canonical_members -> entities, jobs -> revisions.
-            quoting="FROM proposals WHERE json_extract(data,'$.source_submission_id')=? OR json_extract(data,'$.destination_submission_id')=?"
-            self.db.execute('DELETE FROM review_history WHERE proposal_id IN (SELECT id '+quoting+')',(submission_id,submission_id))
-            proposals=self.db.execute('DELETE '+quoting,(submission_id,submission_id)).rowcount
-            groups=self.db.execute('SELECT DISTINCT g.id,g.review_version FROM canonical_groups g JOIN canonical_members m ON m.canonical_id=g.id JOIN entities e ON e.id=m.entity_id WHERE e.submission_id=?',(submission_id,)).fetchall()
-            self.db.execute('DELETE FROM canonical_members WHERE entity_id IN (SELECT id FROM entities WHERE submission_id=?)',(submission_id,))
-            for group in groups:
-                note='A member source was deleted; review the remaining members.'
-                self.db.execute("UPDATE canonical_groups SET status='stale',stale_reason=?,review_version=review_version+1 WHERE id=?",(note,group['id']))
-                self.db.execute('INSERT INTO canonical_history VALUES (?,?,?,?,?,?,?,?)',(new_id(),group['id'],'stale',submission_id,'system',note,group['review_version']+1,now()))
-            for table in ('edges','entities','jobs','status_capabilities','private_documents'):
-                self.db.execute('DELETE FROM '+table+' WHERE submission_id=?',(submission_id,))
-            self.db.execute("DELETE FROM submission_keys WHERE json_extract(receipt,'$.submission_id')=?",(submission_id,))
-            self.db.execute('DELETE FROM revisions WHERE submission_id=?',(submission_id,))
-            self.db.execute('INSERT INTO deletions VALUES (?,?,?,?,?,?,?,?)',(new_id(),submission_id,rows[0]['process_id'],len(rows),proposals,reviewer,reason,now()))
-        with self.lock:
-            # The write-ahead log still holds the removed rows until it is folded into the file.
-            try: self.db.execute('PRAGMA wal_checkpoint(TRUNCATE)')
-            except sqlite3.Error: pass
-        return {'deleted':True,'submission_id':submission_id,'revisions':len(rows),'proposals':proposals,'groups_for_review':len(groups)}
-
-    def retry(self,job_id):
-        with self._write():
-            row=self.db.execute('SELECT * FROM jobs WHERE id=?',(job_id,)).fetchone()
-            if row and row['status']=='processing':
-                try: claimed_at=json.loads(row['detail'] or '{}').get('claimed_at')
-                except (TypeError,ValueError): claimed_at=None
-                if not _process_is_alive(row['owner_pid']) or claimed_at is None or not 0 <= time.time()-claimed_at < 900:
-                    self.db.execute("UPDATE jobs SET status='failed',owner_pid=NULL,detail='' WHERE id=?",(job_id,))
-                    row=self.db.execute('SELECT * FROM jobs WHERE id=?',(job_id,)).fetchone()
-            if not row or row['status'] not in ('failed','pending'): raise ValueError('Job cannot be retried.')
-            if not self.analyzer: raise ValueError('Background analysis is not configured.')
-            updated=self.db.execute("UPDATE jobs SET status='pending',error='' WHERE id=? AND status IN ('failed','pending')",(job_id,))
-            if updated.rowcount!=1: raise ValueError('Job is already processing.')
-        self._schedule(job_id)
-        return {'id':job_id,'status':'pending'}
-
     def _schedule(self, job_id):
-        # A durable pending job may be retried while it is still waiting behind
-        # another analysis. Keep one executor entry per job, including when
-        # repeated retry requests arrive before that job can claim its row.
+        # Startup and participant status checks can both schedule a pending job.
         with self.lock:
             if not self.scheduling or job_id in self.queued_jobs: return False
             self.queued_jobs.add(job_id)
-            try: self.executor.submit(self._execute,job_id)
+            try:
+                raw_trace.emit("knowledge.job_queued", {"job_id":job_id})
+                self.executor.submit(raw_trace.wrap(self._execute),job_id)
             except Exception:
                 self.queued_jobs.discard(job_id)
                 raise
@@ -1220,626 +1096,19 @@ class KnowledgeGraph:
     def _execute(self, job_id):
         completed = False
         try:
+            raw_trace.emit("knowledge.job_started", {"job_id":job_id})
             self._run(job_id)
             completed = True
         except Exception:
             with self.lock,self.db:
-                self.db.execute("UPDATE jobs SET status='failed',owner_pid=NULL,error='The knowledge job could not start. Retry after checking local storage.' WHERE id=? AND status IN ('processing','pending')",(job_id,))
+                self.db.execute("UPDATE jobs SET status='failed',owner_pid=NULL,error='The knowledge job could not start. Check local storage.' WHERE id=? AND status IN ('processing','pending')",(job_id,))
         finally:
             with self.lock:
                 self.queued_jobs.discard(job_id)
-                # A retry can arrive after _run records failure but before this
-                # wrapper releases its queue slot. Preserve that retry rather
-                # than leaving a durable pending job with no scheduled worker.
+                raw_trace.emit("knowledge.job_returned", {"job_id":job_id, "returned":completed})
                 if completed and self.scheduling:
                     row=self.db.execute('SELECT status FROM jobs WHERE id=?',(job_id,)).fetchone()
-                    if row and row['status']=='pending': self._schedule(job_id)
-
-    def _canonical(self, row, members=None, aliases=None, history=None):
-        result=dict(row)
-        result['members']=members if members is not None else [r['entity_id'] for r in self.db.execute('SELECT entity_id FROM canonical_members WHERE canonical_id=? ORDER BY entity_id',(row['id'],))]
-        result['aliases']=aliases if aliases is not None else [r['alias'] for r in self.db.execute('SELECT alias FROM canonical_aliases WHERE canonical_id=? ORDER BY alias',(row['id'],))]
-        result['history']=history if history is not None else [dict(r) for r in self.db.execute('SELECT action,value,reviewer,reason,review_version,created_at FROM canonical_history WHERE canonical_id=? ORDER BY rowid',(row['id'],))]
-        return result
-
-    def canonical_create(self,label,entity_ids,reviewer,reason,bounded_result=False):
-        label=text(label,500);reviewer=text(reviewer,500);reason=text(reason,6000)
-        if not label or not reviewer or not reason or not isinstance(entity_ids,list) or not 2<=len(entity_ids)<=100 or any(not isinstance(x,str) or len(x)>100 for x in entity_ids) or len(set(entity_ids))!=len(entity_ids):
-            raise ValueError('A label, reviewer, reason and unique entity IDs are required.')
-        with self._write():
-            entities=[]
-            for entity_id in entity_ids:
-                row=self.db.execute('SELECT id,type,submission_id,revision FROM entities WHERE id=?',(entity_id,)).fetchone()
-                if not row: raise ValueError('Entity not found.')
-                if self._latest(row['submission_id'])!=row['revision']: raise ValueError('Cannot group an outdated entity revision.')
-                entities.append(row)
-            kind=entities[0]['type']
-            if any(e['type']!=kind for e in entities): raise ValueError('Only entities of the same type may be grouped.')
-            cid=new_id();self.db.execute('INSERT INTO canonical_groups(id,label,type,review_version,created_at) VALUES (?,?,?,?,?)',(cid,label,kind,1,now()))
-            try:
-                for entity_id in entity_ids: self.db.execute('INSERT INTO canonical_members VALUES (?,?)',(cid,entity_id))
-            except sqlite3.IntegrityError: raise ValueError('An entity already belongs to a canonical group.') from None
-            self.db.execute('INSERT INTO canonical_history VALUES (?,?,?,?,?,?,?,?)',(new_id(),cid,'create',dumps(entity_ids),reviewer,reason,1,now()))
-            row=self.db.execute('SELECT * FROM canonical_groups WHERE id=?',(cid,)).fetchone()
-            return self._admin_group_meta(row) if bounded_result else self._canonical(row)
-
-    def canonical_update(self,canonical_id,action,value,reviewer,reason,expected_revision,bounded_result=False):
-        if action not in ('add_member','remove_member','add_alias','remove_alias','revalidate','replace_outdated'): raise ValueError('Unsupported canonical action.')
-        value=text(value,1000);reviewer=text(reviewer,500);reason=text(reason,6000)
-        if not value or not reviewer or not reason: raise ValueError('Value, reviewer and reason are required.')
-        with self.lock,self.db:
-            group=self.db.execute('SELECT * FROM canonical_groups WHERE id=?',(canonical_id,)).fetchone()
-            if not group: raise ValueError('Canonical group not found.')
-            if type(expected_revision) is not int or expected_revision!=group['review_version']: raise ValueError('Canonical group changed; refresh before reviewing.')
-            # Compare-and-swap under a SQLite write transaction also protects multiple local processes.
-            changed=self.db.execute('UPDATE canonical_groups SET review_version=review_version+1 WHERE id=? AND review_version=?',(canonical_id,expected_revision))
-            if changed.rowcount!=1: raise ValueError('Canonical group changed; refresh before reviewing.')
-            if action=='add_member':
-                entity=self.db.execute('SELECT type,submission_id,revision FROM entities WHERE id=?',(value,)).fetchone()
-                if not entity or entity['type']!=group['type']: raise ValueError('Entity must exist and have the same type.')
-                if self._latest(entity['submission_id'])!=entity['revision']: raise ValueError('Cannot group an outdated entity revision.')
-                try:self.db.execute('INSERT INTO canonical_members VALUES (?,?)',(canonical_id,value))
-                except sqlite3.IntegrityError: raise ValueError('Entity already belongs to a canonical group.') from None
-            elif action=='remove_member':
-                removed=self.db.execute('DELETE FROM canonical_members WHERE canonical_id=? AND entity_id=?',(canonical_id,value))
-                if removed.rowcount!=1: raise ValueError('Entity is not in this group.')
-                if self.db.execute('SELECT COUNT(*) FROM canonical_members WHERE canonical_id=?',(canonical_id,)).fetchone()[0]<2:
-                    self.db.execute("UPDATE canonical_groups SET status='stale',stale_reason='Group has fewer than two members; review its remaining membership.' WHERE id=?",(canonical_id,))
-            elif action=='add_alias':
-                try:self.db.execute('INSERT INTO canonical_aliases VALUES (?,?)',(canonical_id,value))
-                except sqlite3.IntegrityError: raise ValueError('Alias is already recorded.') from None
-            elif action=='revalidate':
-                members=self.db.execute('SELECT e.submission_id,e.revision FROM canonical_members m JOIN entities e ON e.id=m.entity_id WHERE m.canonical_id=?',(canonical_id,)).fetchall()
-                if not members or any(self._latest(m['submission_id'])!=m['revision'] for m in members):
-                    raise ValueError('Remove outdated members and add current source entities before revalidating.')
-                self.db.execute("UPDATE canonical_groups SET status='active',stale_reason='' WHERE id=?",(canonical_id,))
-            elif action=='replace_outdated':
-                # After a member's process was revised: each member of an earlier revision is exchanged for the one
-                # entity of the same type and label in the latest revision of its process. A member without exactly
-                # one such entity, or whose successor is in another group, stays for the administrator to decide.
-                # The group stays as it is (stale) until it is revalidated: this prepares the review, it is not one.
-                replaced=[];left=0
-                for member in self.db.execute('SELECT e.id,e.submission_id,e.revision,e.type,e.label FROM canonical_members m JOIN entities e ON e.id=m.entity_id WHERE m.canonical_id=? ORDER BY e.rowid',(canonical_id,)).fetchall():
-                    latest=self._latest(member['submission_id'])
-                    if latest==member['revision']: continue
-                    successors=self.db.execute('SELECT id FROM entities WHERE submission_id=? AND revision=? AND type=? AND casefold(label)=casefold(?)',(member['submission_id'],latest,member['type'],member['label'])).fetchall()
-                    owner=self.db.execute('SELECT canonical_id FROM canonical_members WHERE entity_id=?',(successors[0]['id'],)).fetchone() if len(successors)==1 else None
-                    if len(successors)!=1 or (owner and owner['canonical_id']!=canonical_id):
-                        left+=1;continue
-                    self.db.execute('DELETE FROM canonical_members WHERE canonical_id=? AND entity_id=?',(canonical_id,member['id']))
-                    if not owner: self.db.execute('INSERT INTO canonical_members VALUES (?,?)',(canonical_id,successors[0]['id']))
-                    replaced.append([member['id'],successors[0]['id']])
-                if not replaced: raise ValueError('No outdated member has exactly one entity of the same type and label in the latest revision of its process.')
-                value=dumps({'replaced':replaced,'left_outdated':left})
-            else:
-                removed=self.db.execute('DELETE FROM canonical_aliases WHERE canonical_id=? AND alias=?',(canonical_id,value))
-                if removed.rowcount!=1: raise ValueError('Alias is not in this group.')
-            version=expected_revision+1
-            self.db.execute('INSERT INTO canonical_history VALUES (?,?,?,?,?,?,?,?)',(new_id(),canonical_id,action,value,reviewer,reason,version,now()))
-            row=self.db.execute('SELECT * FROM canonical_groups WHERE id=?',(canonical_id,)).fetchone()
-            result=self._admin_group_meta(row) if bounded_result else self._canonical(row)
-            if action=='replace_outdated': result.update(replaced=len(replaced),left_outdated=left)
-            return result
-
-    def _invalidate_changed_document_evidence(self,proposal_ids=None):
-        unavailable=set()
-        if not self.document_resolver: return unavailable
-        if proposal_ids is not None:
-            if not proposal_ids:return unavailable
-            placeholders=','.join('?'*len(proposal_ids))
-            rows=self.db.execute("SELECT id,data,review_version FROM proposals WHERE status NOT IN ('stale','superseded') AND id IN ("+placeholders+")",list(proposal_ids)).fetchall()
-        else:
-            rows=self.db.execute("SELECT id,data,review_version FROM proposals WHERE status NOT IN ('stale','superseded')").fetchall()
-        digests={}
-        for row in rows:
-            for evidence in json.loads(row['data']).get('evidence',[]):
-                if evidence.get('type')!='document_supported': continue
-                key=(evidence['submission_id'],evidence['revision'],evidence['document_id'],evidence['source_id'])
-                if key not in digests:
-                    try:
-                        source=self._document_source(*key)
-                        digests[key]=hashlib.sha256(source['text'].encode('utf-8')).hexdigest()
-                    except (PermissionError, ValueError):
-                        digests[key]=None
-                    except (OSError, sqlite3.Error, TimeoutError):
-                        unavailable.add(row['id'])
-                        continue
-                digest=digests[key]
-                if digest!=evidence.get('source_hash'):
-                    reason='Document source changed or became unavailable; evidence requires review.'
-                    changed=self.db.execute("UPDATE proposals SET status='stale',stale_reason=?,review_version=review_version+1 WHERE id=? AND review_version=? AND status NOT IN ('stale','superseded')",(reason,row['id'],row['review_version']))
-                    if changed.rowcount:
-                        self.db.execute('INSERT INTO review_history VALUES (?,?,?,?,?,?,?,?)',(new_id(),row['id'],'stale','system',reason,None,now(),row['review_version']+1))
-                    break
-
-        return unavailable
-
-    ADMIN_LIMITATIONS = ('Reported accounts are not operational measurements. Sources are checked when a connection is opened, '
-                         'graphed or reviewed. Lists and histories are paged; Refresh restarts pages when records change. '
-                         'AI matching uses at most eight compatible candidates and bounded excerpts; it is not exhaustive.')
-    _ADMIN_STATES = frozenset(('all','reported','proposed','awaiting_clarification','confirmed','disputed','rejected',
-                              'stale','superseded','active','pending','processing','completed','failed','unknown'))
-
-    @staticmethod
-    def _admin_uuid(value, name='record'):
-        if not isinstance(value,str): raise ValueError('Choose a valid '+name+'.')
-        try: return str(uuid.UUID(value))
-        except (ValueError,TypeError,AttributeError): raise ValueError('Choose a valid '+name+'.') from None
-
-    @staticmethod
-    def _admin_page_args(offset,limit):
-        if type(offset) is not int or not 0<=offset<=9223372036854775807 or type(limit) is not int or not 1<=limit<=50:
-            raise ValueError('Choose a nonnegative page offset and a page size from 1 to 50.')
-        return offset,limit
-
-    @staticmethod
-    def _admin_page(offset,limit,total):
-        return {'offset':offset,'limit':limit,'total':total,'has_more':offset+limit<total}
-
-    def _admin_filters(self,filters):
-        if filters is None: filters={}
-        if not isinstance(filters,dict): raise ValueError('Admin filters must be an object.')
-        allowed={'team','system','scope','state','freshness','query','type','submission_id','revision','latest_only','exclude_group_id'}
-        if set(filters)-allowed: raise ValueError('Unsupported Admin filter.')
-        result={}
-        for key in ('team','system','scope','query','type'):
-            result[key]=unicodedata.normalize('NFKC',text(filters.get(key,''),500))
-        result['state']=filters.get('state','all')
-        result['freshness']=filters.get('freshness','all')
-        if not isinstance(result['state'],str) or result['state'] not in self._ADMIN_STATES:
-            raise ValueError('Choose a valid review state.')
-        if not isinstance(result['freshness'],str) or result['freshness'] not in ('all','recent','older'):
-            raise ValueError('Choose a valid freshness filter.')
-        result['latest_only']=filters.get('latest_only',False)
-        if type(result['latest_only']) is not bool: raise ValueError('Latest revisions must be a boolean.')
-        for key in ('submission_id','exclude_group_id'):
-            raw=filters.get(key)
-            result[key]=None if raw is None or raw=='' else self._admin_uuid(raw,key.replace('_',' '))
-        result['revision']=filters.get('revision')
-        if result['revision'] is not None and (type(result['revision']) is not int or not 1<=result['revision']<=9223372036854775807):
-            raise ValueError('Choose a valid revision.')
-        return result
-
-    @contextmanager
-    def _admin_read(self):
-        with self.lock:
-            if self.closed: raise ValueError('Knowledge storage is closed.')
-            savepoint='admin_'+uuid.uuid4().hex
-            self.db.execute('SAVEPOINT '+savepoint)
-            try:
-                yield
-            except BaseException:
-                self.db.execute('ROLLBACK TO '+savepoint)
-                self.db.execute('RELEASE '+savepoint)
-                raise
-            else:
-                self.db.execute('RELEASE '+savepoint)
-
-    def _admin_matching(self,filters,latest=False):
-        clauses=[];args=[]
-        for key,expression in (('team',"COALESCE(json_extract(r.payload,'$.team'),'')||' '||COALESCE(json_extract(r.payload,'$.department'),'')"),
-                               ('scope',"COALESCE(json_extract(r.payload,'$.scope'),'')")):
-            if filters[key]:
-                clauses.append('instr(casefold('+expression+'),?)>0');args.append(filters[key].casefold())
-        if filters['system']:
-            clauses.append("EXISTS(SELECT 1 FROM entities fs WHERE fs.submission_id=r.submission_id AND fs.revision=r.revision AND fs.type='system' AND instr(casefold(fs.label),?)>0)")
-            args.append(filters['system'].casefold())
-        if filters['submission_id']:
-            clauses.append('r.submission_id=?');args.append(filters['submission_id'])
-        if filters['revision'] is not None:
-            clauses.append('r.revision=?');args.append(filters['revision'])
-        if latest or filters['latest_only']:
-            clauses.append('r.revision=(SELECT MAX(lr.revision) FROM revisions lr WHERE lr.submission_id=r.submission_id)')
-        if filters['freshness']!='all':
-            # ISO timestamps are emitted in UTC by this module. julianday also
-            # supports valid imported offsets and treats unknown dates as older.
-            recent="julianday(r.created_at)>=julianday('now','-30 days')"
-            clauses.append(recent if filters['freshness']=='recent' else '('+recent+' IS NOT TRUE)')
-        where=' AND '.join(clauses) or '1'
-        return 'matching AS (SELECT r.submission_id,r.revision FROM revisions r WHERE '+where+')',args
-
-    @staticmethod
-    def _admin_display_name(alias='r'):
-        # Use the stored presentation title for older interviews too. Keep the
-        # original process_name in context so a generated title never becomes
-        # participant-supplied evidence. The entity provides the draft or map
-        # title for older saves that predate derived_process_title.
-        payload=alias+'.payload'
-        return (f"COALESCE(CASE WHEN json_type({payload},'$.process_name_manual')='false' "
-                f"AND json_type({payload},'$.derived_process_title')='text' "
-                f"AND length(json_extract({payload},'$.derived_process_title'))<=180 "
-                f"THEN NULLIF(trim(json_extract({payload},'$.derived_process_title')),'') END,"
-                f"NULLIF(json_extract({payload},'$.context.process_name'),''),"
-                f"(SELECT n.label FROM entities n WHERE n.submission_id={alias}.submission_id "
-                f"AND n.revision={alias}.revision AND n.type='process' LIMIT 1),'Untitled process')")
-
-    @classmethod
-    def _admin_submission_select(cls,alias='r'):
-        return (f"{alias}.submission_id,{alias}.process_id,{alias}.revision,{alias}.submitter,{alias}.created_at,"
-                f"json_extract({alias}.payload,'$.context.process_name') AS process_name,"
-                f"{cls._admin_display_name(alias)} AS display_name,"
-                f"json_extract({alias}.payload,'$.context.process_owner') AS process_owner,"
-                f"json_extract({alias}.payload,'$.team') AS team,json_extract({alias}.payload,'$.department') AS department,"
-                f"json_extract({alias}.payload,'$.scope') AS scope,"
-                # False for a revision that a later revision of the same submission has replaced.
-                f"({alias}.revision=(SELECT MAX(lr.revision) FROM revisions lr WHERE lr.submission_id={alias}.submission_id)) AS latest,"
-                # Filed while capture was running, or with notes or a working map that stop before the last answer.
-                f"COALESCE(json_extract({alias}.payload,'$.capture.in_progress')=1 OR json_extract({alias}.payload,'$.capture.notes_current')=0 "
-                f"OR json_extract({alias}.payload,'$.capture.map_current')=0,0) AS capture_incomplete")
-
-    @staticmethod
-    def _admin_submission_meta(row):
-        return {'submission_id':row['submission_id'],'process_id':row['process_id'],'revision':row['revision'],
-                'submitter':row['submitter'],'created_at':row['created_at'],
-                'display_name':row['display_name'],
-                'context':{'process_name':row['process_name'] or '', 'process_owner':row['process_owner'] or ''},
-                'team':row['team'] or '', 'department':row['department'] or '', 'scope':row['scope'] or '',
-                'capture_incomplete':bool(row['capture_incomplete']),'latest':bool(row['latest']),
-                **({'job_status':row['job_status'] or 'unknown'} if 'job_status' in row.keys() else {})}
-
-    @staticmethod
-    def _admin_entity_select(alias='e'):
-        steps=" FROM edges x JOIN entities s ON s.id=x.source AND s.type IN ('step','decision') WHERE x.target="+alias+".id"
-        return (alias+".id,"+alias+".submission_id,"+alias+".revision,"+alias+".type,"+alias+".label,"
-                "("+alias+".revision=(SELECT MAX(lr.revision) FROM revisions lr WHERE lr.submission_id="+alias+".submission_id)) AS latest,"
-                "(SELECT cm.canonical_id FROM canonical_members cm WHERE cm.entity_id="+alias+".id) AS canonical_id,"
-                # Where the entity comes from, so that equal labels of different processes can be told apart:
-                # its process, and the steps that name it (one role or system serves many steps of a revision).
-                "(SELECT "+KnowledgeGraph._admin_display_name('pr')+" FROM revisions pr WHERE pr.submission_id="+alias+".submission_id AND pr.revision="+alias+".revision) AS process_name,"
-                "(SELECT COUNT(DISTINCT x.source)"+steps+") AS step_count,"
-                "(SELECT s.label"+steps+" ORDER BY s.rowid LIMIT 1) AS step_label")
-
-    @staticmethod
-    def _admin_entity_meta(row):
-        result=dict(row)
-        result['latest']=bool(result.get('latest'))
-        return result
-
-    @classmethod
-    def _admin_proposal_meta_select(cls):
-        return ("p.id,p.status,p.review_version,p.created_at,p.stale_reason,"
-                "json_extract(p.data,'$.source_submission_id') AS source_submission_id,"
-                "json_extract(p.data,'$.source_revision') AS source_revision,"
-                "json_extract(p.data,'$.destination_submission_id') AS destination_submission_id,"
-                "json_extract(p.data,'$.destination_revision') AS destination_revision,"
-                "json_extract(p.data,'$.relationship_type') AS relationship_type,"
-                "json_extract(p.data,'$.explanation') AS explanation,json_extract(p.data,'$.condition') AS condition,"
-                "json_extract(p.data,'$.scope') AS scope,"
-                f"{cls._admin_display_name('sr')} AS source_name,"
-                f"{cls._admin_display_name('dr')} AS destination_name")
-
-    @staticmethod
-    def _admin_proposal_joins():
-        return (" JOIN revisions sr ON sr.submission_id=json_extract(p.data,'$.source_submission_id') AND sr.revision=json_extract(p.data,'$.source_revision')"
-                " JOIN revisions dr ON dr.submission_id=json_extract(p.data,'$.destination_submission_id') AND dr.revision=json_extract(p.data,'$.destination_revision')"
-                " AND (EXISTS(SELECT 1 FROM matching sm WHERE sm.submission_id=sr.submission_id AND sm.revision=sr.revision)"
-                " OR EXISTS(SELECT 1 FROM matching dm WHERE dm.submission_id=dr.submission_id AND dm.revision=dr.revision))")
-
-    def _admin_query_parts(self,section,filters):
-        cte,args=self._admin_matching(filters)
-        clauses=[];extra=[]
-        query=filters['query'];kind=filters['type'];state=filters['state']
-        if section=='submissions':
-            source="revisions r JOIN matching m USING(submission_id,revision) LEFT JOIN jobs j USING(submission_id,revision)"
-            select=self._admin_submission_select()+',j.status AS job_status'
-            order='r.rowid DESC'
-            if query:clauses.append("instr(casefold("+self._admin_display_name()+"),?)>0");extra.append(query.casefold())
-        elif section=='connections':
-            source='proposals p'+self._admin_proposal_joins();select=self._admin_proposal_meta_select();order='p.rowid DESC'
-            if state in {'proposed','confirmed','disputed','rejected','awaiting_clarification','stale','superseded'}:clauses.append('p.status=?');extra.append(state)
-            if query:
-                clauses.append("instr(casefold(COALESCE(json_extract(p.data,'$.explanation'),'')||' '||COALESCE(json_extract(p.data,'$.relationship_type'),'')),?)>0");extra.append(query.casefold())
-        elif section=='entities':
-            source='entities e JOIN matching m USING(submission_id,revision)';select=self._admin_entity_select();order='e.label COLLATE NOCASE,e.id'
-            if query:clauses.append('instr(casefold(e.label),?)>0');extra.append(query.casefold())
-            if kind:clauses.append('e.type=?');extra.append(kind)
-            # Internal entities have their own provenance and no connection review state.
-            if filters['exclude_group_id']:
-                clauses.append('NOT EXISTS(SELECT 1 FROM canonical_members em WHERE em.entity_id=e.id AND em.canonical_id=?)');extra.append(filters['exclude_group_id'])
-        elif section=='groups':
-            source='canonical_groups g'
-            select=("g.*,(SELECT COUNT(*) FROM canonical_members cm WHERE cm.canonical_id=g.id) AS member_count,"
-                    "(SELECT COUNT(*) FROM canonical_aliases ca WHERE ca.canonical_id=g.id) AS alias_count,"
-                    "(SELECT COUNT(*) FROM canonical_history ch WHERE ch.canonical_id=g.id) AS history_count")
-            order='g.rowid DESC'
-            constrained=any(filters[k] for k in ('team','system','scope','submission_id')) or filters['revision'] is not None or filters['latest_only'] or filters['freshness']!='all'
-            if constrained:clauses.append('EXISTS(SELECT 1 FROM canonical_members cm JOIN entities e ON e.id=cm.entity_id JOIN matching m USING(submission_id,revision) WHERE cm.canonical_id=g.id)')
-            if query:clauses.append('instr(casefold(g.label),?)>0');extra.append(query.casefold())
-            if kind:clauses.append('g.type=?');extra.append(kind)
-            if state in {'active','stale'}:clauses.append('g.status=?');extra.append(state)
-        elif section=='jobs':
-            source='jobs j JOIN matching m USING(submission_id,revision) JOIN revisions r USING(submission_id,revision)'
-            select="j.id,j.submission_id,j.revision,j.status,j.attempts,j.error,j.created_at,j.detail,"+self._admin_display_name()+" AS process_name"
-            order='j.rowid DESC'
-            if state in {'pending','processing','completed','failed','superseded'}:clauses.append('j.status=?');extra.append(state)
-            if query:clauses.append("instr(casefold("+self._admin_display_name()+"),?)>0");extra.append(query.casefold())
-        else: raise ValueError('Choose a valid Admin section.')
-        return cte,select,source,' AND '.join(clauses) or '1',order,args+extra
-
-    def _admin_counts(self,filters):
-        result={}
-        for section,key in (('submissions','submissions'),('connections','connections'),('entities','entities'),('groups','groups'),('jobs','jobs')):
-            cte,_,source,where,_,args=self._admin_query_parts(section,filters)
-            result[key]=self.db.execute('WITH '+cte+' SELECT COUNT(*) FROM '+source+' WHERE '+where,args).fetchone()[0]
-            if section=='submissions':
-                result['processes']=self.db.execute('WITH '+cte+' SELECT COUNT(DISTINCT r.submission_id) FROM '+source+' WHERE '+where,args).fetchone()[0]
-        for state,key in (('proposed','awaiting_review'),('awaiting_clarification','awaiting_clarification'),('disputed','disputed'),('confirmed','confirmed_connections')):
-            active=dict(filters);active['state']=state
-            cte,_,source,where,_,args=self._admin_query_parts('connections',active)
-            result[key]=self.db.execute('WITH '+cte+' SELECT COUNT(*) FROM '+source+' WHERE '+where,args).fetchone()[0]
-        result['open_decisions']=result['awaiting_review']+result['awaiting_clarification']+result['disputed']
-        active=dict(filters);active['state']='failed';active['latest_only']=True
-        cte,_,source,where,_,args=self._admin_query_parts('jobs',active)
-        result['processing_failures']=self.db.execute('WITH '+cte+' SELECT COUNT(*) FROM '+source+' WHERE '+where,args).fetchone()[0]
-        # Jobs still waiting some minutes after they were filed: no provider was configured, or a stop left them.
-        # An unreadable date counts as old, as in the freshness filter.
-        active=dict(filters);active['state']='pending'
-        cte,_,source,where,_,args=self._admin_query_parts('jobs',active)
-        result['processing_stalled']=self.db.execute('WITH '+cte+' SELECT COUNT(*) FROM '+source+' WHERE '+where+" AND (julianday(j.created_at)>=julianday('now','-5 minutes')) IS NOT TRUE",args).fetchone()[0]
-        return result
-
-    def admin_browse(self,section,filters=None,offset=0,limit=25):
-        offset,limit=self._admin_page_args(offset,limit);filters=self._admin_filters(filters)
-        if section not in ('overview','submissions','connections','entities','groups','jobs'):raise ValueError('Choose a valid Admin section.')
-        with self._admin_read():
-            if section=='overview':
-                counts=self._admin_counts(filters)
-                return {'section':section,'items':[],'page':self._admin_page(offset,limit,0),'counts':counts,'analysis_limitations':self.ADMIN_LIMITATIONS}
-            cte,select,source,where,order,args=self._admin_query_parts(section,filters)
-            # Browsing reports stored states. Resolving sources while filtering
-            # by status can move rows between pages and trigger unbounded refill
-            # scans; exact detail, graph and review validate selected sources.
-            total=self.db.execute('WITH '+cte+' SELECT COUNT(*) FROM '+source+' WHERE '+where,args).fetchone()[0]
-            rows=self.db.execute('WITH '+cte+' SELECT '+select+' FROM '+source+' WHERE '+where+' ORDER BY '+order+' LIMIT ? OFFSET ?',args+[limit,offset]).fetchall()
-            if section=='submissions':items=[self._admin_submission_meta(row) for row in rows]
-            elif section=='entities':items=[self._admin_entity_meta(row) for row in rows]
-            elif section=='jobs':items=[self._job(row) for row in rows]
-            else:items=[dict(row) for row in rows]
-            return {'section':section,'items':items,'page':self._admin_page(offset,limit,total),'analysis_limitations':self.ADMIN_LIMITATIONS}
-
-    def _admin_group_meta(self,row):
-        result=dict(row);cid=row['id']
-        for key,table in (('member_count','canonical_members'),('alias_count','canonical_aliases'),('history_count','canonical_history')):
-            result[key]=self.db.execute('SELECT COUNT(*) FROM '+table+' WHERE canonical_id=?',(cid,)).fetchone()[0]
-        result.update(members=[],aliases=[],history=[])
-        return result
-
-    def _admin_sources(self,refs):
-        result=[]
-        for (sid,revision),ids in refs.items():
-            row=self.db.execute('SELECT '+self._admin_submission_select()+' FROM revisions r WHERE r.submission_id=? AND r.revision=?',(sid,revision)).fetchone()
-            if not row:continue
-            item=self._admin_submission_meta(row)
-            context=self.db.execute("SELECT json_extract(payload,'$.context') FROM revisions WHERE submission_id=? AND revision=?",(sid,revision)).fetchone()[0]
-            context=json.loads(context) if isinstance(context,str) else {}
-            item['context'].update({key:context.get(key,'') for key in ('objective','background') if isinstance(context.get(key,''),str)})
-            item['turns']=[dict(turn) for turn in self.db.execute("SELECT json_extract(t.value,'$.id') AS id,json_extract(t.value,'$.role') AS role,json_extract(t.value,'$.text') AS text FROM revisions r,json_each(r.payload,'$.turns') t WHERE r.submission_id=? AND r.revision=? AND json_extract(t.value,'$.role')='user' AND NOT COALESCE(json_extract(t.value,'$.document_event'),0)",(sid,revision)) if turn['id'] in ids]
-            catalog=self.db.execute("SELECT json_extract(payload,'$.document_evidence') FROM revisions WHERE submission_id=? AND revision=?",(sid,revision)).fetchone()[0]
-            if isinstance(catalog,str):
-                item['document_evidence']=[source for source in json.loads(catalog) if source.get('id') in ids]
-            item['transcript_partial']=True
-            result.append(item)
-        return result
-
-    def admin_detail(self,kind,id,revision=None):
-        id=self._admin_uuid(id);refs={};entity_ids=set()
-        if kind not in ('submission','entity','relationship','proposal','group'):raise ValueError('Choose a valid detail kind.')
-        if revision is not None and (type(revision) is not int or not 1<=revision<=9223372036854775807):raise ValueError('Choose a submission revision.')
-        if kind=='submission' and revision is None:raise ValueError('Choose a submission revision.')
-        with self._admin_read():
-            if kind=='submission':
-                row=self.db.execute('SELECT r.*,j.status AS job_status,'+self._admin_display_name()+' AS display_name FROM revisions r LEFT JOIN jobs j USING(submission_id,revision) WHERE r.submission_id=? AND r.revision=?',(id,revision)).fetchone()
-                if not row:raise ValueError('Submission revision is unavailable.')
-                item=self._submission(row);item.update(job_status=row['job_status'] or 'unknown',display_name=row['display_name'],latest_revision=self._latest(id))
-                # Which map the stored graph was built from: the detail shows the draft when there is one.
-                basis=self.db.execute("SELECT json_extract(data,'$.source') FROM entities WHERE submission_id=? AND revision=? AND type='process' LIMIT 1",(id,revision)).fetchone()
-                if basis and basis[0] in ('draft','workflow'):item['graph_source']=basis[0]
-                return {'kind':kind,'item':item,'submissions':[],'entities':[],'edges':[],'proposals':[]}
-            elif kind=='entity':
-                row=self.db.execute('SELECT * FROM entities WHERE id=?',(id,)).fetchone()
-                if not row:raise ValueError('Entity is unavailable.')
-                item={**dict(row),'data':json.loads(row['data'])}
-                ids=set(item['data'].get('evidence_turns',[]))
-                if not ids:
-                    for edge in self.db.execute("SELECT evidence FROM edges WHERE target=? AND status='reported'",(id,)):
-                        ids.update(json.loads(edge['evidence']).get('evidence_turns',[]))
-                    item['data']['evidence_turns']=sorted(ids)
-                refs[(row['submission_id'],row['revision'])]=ids
-                entity_ids.add(id)
-                item['neighbor_count']=self._admin_related_count('entity_neighbors',id)
-            elif kind=='relationship':
-                row=self.db.execute('SELECT * FROM edges WHERE id=?',(id,)).fetchone()
-                if not row:raise ValueError('Relationship is unavailable.')
-                item={**dict(row),'evidence':json.loads(row['evidence'])}
-                ids=set(item['evidence'].get('evidence_turns',[]));entity_ids.update((row['source'],row['target']))
-                if row['type']=='contains':
-                    target=self.db.execute('SELECT data FROM entities WHERE id=?',(row['target'],)).fetchone()
-                    if target:ids.update(json.loads(target['data']).get('evidence_turns',[]))
-                    # The bounded label references omit step data. Carry the
-                    # target's cited IDs on this detail so readers can select
-                    # exact supplied excerpts without fetching every entity.
-                    item['evidence']['evidence_turns']=sorted(ids)
-                refs[(row['submission_id'],row['revision'])]=ids
-            elif kind=='proposal':
-                unavailable=self._invalidate_changed_document_evidence([id])
-                row=self.db.execute('SELECT * FROM proposals WHERE id=?',(id,)).fetchone()
-                if not row:raise ValueError('Connection is unavailable.')
-                item=self._proposal(row,[])
-                if id in unavailable: item['source_verification']='temporarily_unavailable'
-                for side in ('source','destination'):
-                    refs.setdefault((item[side+'_submission_id'],item[side+'_revision']),set())
-                item['history_count']=self.db.execute('SELECT COUNT(*) FROM review_history WHERE proposal_id=?',(id,)).fetchone()[0]
-                for evidence in item.get('evidence',[]):
-                    pair=(evidence['submission_id'],evidence['revision'])
-                    refs.setdefault(pair,set()).add(evidence.get('turn_id',''))
-            else:
-                row=self.db.execute('SELECT * FROM canonical_groups WHERE id=?',(id,)).fetchone()
-                if not row:raise ValueError('Reviewed group is unavailable.')
-                item=self._admin_group_meta(row)
-            entities=[]
-            for eid in entity_ids:
-                row=self.db.execute('SELECT '+self._admin_entity_select()+' FROM entities e WHERE e.id=?',(eid,)).fetchone()
-                if row:entities.append(self._admin_entity_meta(row))
-            return {'kind':kind,'item':item,'submissions':self._admin_sources(refs),'entities':entities,'edges':[],'proposals':[]}
-
-    def _admin_direct_cte(self, neighbors=False):
-        # "happens_after" stores the inverse claim. Normalize it once for both
-        # paged neighbors and the recursive reachability traversal.
-        return ("""direct AS (
-          SELECT x.id,CASE WHEN x.type='happens_after' THEN x.target ELSE x.source END AS source,
-            CASE WHEN x.type='happens_after' THEN x.source ELSE x.target END AS target,
-            CASE WHEN x.type='happens_after' THEN 'before' ELSE x.type END AS type,
-            x.status,x.submission_id,x.revision,NULL AS proposal_id
-          FROM edges x WHERE x.status='reported' """ + ("AND (x.source=? OR x.target=?) " if neighbors else "") + """
-          UNION ALL
-          SELECT p.id,CASE WHEN json_extract(p.data,'$.relationship_type')='happens_after' THEN de.id ELSE se.id END,
-            CASE WHEN json_extract(p.data,'$.relationship_type')='happens_after' THEN se.id ELSE de.id END,
-            CASE WHEN json_extract(p.data,'$.relationship_type')='happens_after' THEN 'before' ELSE json_extract(p.data,'$.relationship_type') END,p.status,
-            json_extract(p.data,'$.source_submission_id'),json_extract(p.data,'$.source_revision'),p.id
-          FROM proposals p CROSS JOIN entities se ON se.type='process_version' AND se.submission_id=json_extract(p.data,'$.source_submission_id') AND se.revision=json_extract(p.data,'$.source_revision')
-          CROSS JOIN entities de ON de.type='process_version' AND de.submission_id=json_extract(p.data,'$.destination_submission_id') AND de.revision=json_extract(p.data,'$.destination_revision')
-          WHERE p.status='confirmed' """ + (" AND (se.id=? OR de.id=?)" if neighbors else "") + ")")
-
-    def _admin_related_parts(self,kind,id):
-        if kind=='entity_neighbors':
-            return self._admin_direct_cte(neighbors=True),'direct d JOIN entities se ON se.id=d.source JOIN entities de ON de.id=d.target','1',[id,id,id,id]
-        if kind=='downstream':
-            cte=self._admin_direct_cte()+", reachable(node) AS (SELECT ? UNION SELECT d.target FROM direct d JOIN reachable r ON r.node=d.source WHERE d.type IN ('before','provides_input_to','hands_off_to'))"
-            return cte,'direct d JOIN entities se ON se.id=d.source JOIN entities de ON de.id=d.target',"d.type IN ('before','provides_input_to','hands_off_to') AND d.source IN (SELECT node FROM reachable)",[id]
-        raise ValueError('Choose a valid related view.')
-
-    def _admin_related_count(self,kind,id):
-        cte,source,where,args=self._admin_related_parts(kind,id)
-        return self.db.execute('WITH RECURSIVE '+cte+' SELECT COUNT(*) FROM '+source+' WHERE '+where,args).fetchone()[0]
-
-    def admin_history(self,kind,id,offset=0,limit=25):
-        offset,limit=self._admin_page_args(offset,limit);id=self._admin_uuid(id)
-        if kind not in ('proposal','group','group_members','group_aliases','entity_neighbors','downstream'):
-            raise ValueError('Choose a valid history or related-record kind.')
-        with self._admin_read():
-            if kind=='proposal':
-                if not self.db.execute('SELECT 1 FROM proposals WHERE id=?',(id,)).fetchone():raise ValueError('Connection is unavailable.')
-                table='review_history';where='proposal_id=?';args=[id];select='action,reviewer,reason,side,created_at,review_version';order='rowid DESC'
-            elif kind in ('group','group_members','group_aliases'):
-                if not self.db.execute('SELECT 1 FROM canonical_groups WHERE id=?',(id,)).fetchone():raise ValueError('Reviewed group is unavailable.')
-                if kind=='group':
-                    table='canonical_history';where='canonical_id=?';args=[id];select='action,value,reviewer,reason,review_version,created_at';order='rowid DESC'
-                elif kind=='group_aliases':
-                    table='canonical_aliases';where='canonical_id=?';args=[id];select='alias';order='alias'
-                else:
-                    table='canonical_members cm JOIN entities e ON e.id=cm.entity_id';where='cm.canonical_id=?';args=[id];select=self._admin_entity_select();order='e.label COLLATE NOCASE,e.id'
-            else:
-                if not self.db.execute('SELECT 1 FROM entities WHERE id=?',(id,)).fetchone():raise ValueError('Entity is unavailable.')
-                cte,source,where,args=self._admin_related_parts(kind,id)
-                total=self.db.execute('WITH RECURSIVE '+cte+' SELECT COUNT(*) FROM '+source+' WHERE '+where,args).fetchone()[0]
-                items=[dict(row) for row in self.db.execute('WITH RECURSIVE '+cte+' SELECT d.*,se.label AS source_label,de.label AS target_label FROM '+source+' WHERE '+where+' ORDER BY d.source,d.target,d.id LIMIT ? OFFSET ?',args+[limit,offset])]
-                return {'kind':kind,'id':id,'items':items,'page':self._admin_page(offset,limit,total),
-                        'source_verification':'stored_status',
-                        'analysis_limitations':'Connection status reflects the last source check. Open a connection to revalidate its evidence before relying on it.'}
-            total=self.db.execute('SELECT COUNT(*) FROM '+table+' WHERE '+where,args).fetchone()[0]
-            rows=self.db.execute('SELECT '+select+' FROM '+table+' WHERE '+where+' ORDER BY '+order+' LIMIT ? OFFSET ?',args+[limit,offset]).fetchall()
-            items=[self._admin_entity_meta(row) for row in rows] if kind=='group_members' else [dict(row) for row in rows]
-            return {'kind':kind,'id':id,'items':items,'page':self._admin_page(offset,limit,total)}
-
-    def admin_graph(self,filters=None,level='overview',submission_id=None, *, _visible_steps=False):
-        filters=self._admin_filters(filters)
-        if level not in ('overview','steps','all'):raise ValueError('Choose a valid graph level.')
-        if filters['state'] not in ('reported','confirmed'): filters['state']='all'
-        if submission_id is not None:submission_id=self._admin_uuid(submission_id,'process')
-        with self._admin_read():
-            cte,args=self._admin_matching(filters,latest=True)
-            clauses=[]
-            if level=='overview':clauses.append("e.type='process_version'")
-            elif level=='steps':clauses.append("e.type IN ('step','decision')" if _visible_steps else "e.type IN ('process_version','step','decision')")
-            if filters['type']:clauses.append('e.type=?');args.append(filters['type'])
-            if filters['query']:clauses.append('instr(casefold(e.label),?)>0');args.append(filters['query'].casefold())
-            if submission_id:clauses.append('e.submission_id=?');args.append(submission_id)
-            where=' AND '.join(clauses) or '1'
-            base='SELECT e.id FROM entities e JOIN matching m USING(submission_id,revision) WHERE '+where
-            # For an explicitly selected process, include immediate confirmed
-            # process-version endpoints as context without importing their steps.
-            neighbors=''
-            if submission_id and not _visible_steps and filters['state'] in ('all','confirmed'):
-                neighbors=(" UNION SELECT other.id FROM proposals p JOIN entities mine ON mine.type='process_version' AND mine.submission_id=?"
-                           " AND mine.revision=(SELECT MAX(revision) FROM revisions WHERE submission_id=mine.submission_id)"
-                           " JOIN entities other ON other.type='process_version' AND ((json_extract(p.data,'$.source_submission_id')=mine.submission_id AND json_extract(p.data,'$.source_revision')=mine.revision AND other.submission_id=json_extract(p.data,'$.destination_submission_id') AND other.revision=json_extract(p.data,'$.destination_revision')) OR (json_extract(p.data,'$.destination_submission_id')=mine.submission_id AND json_extract(p.data,'$.destination_revision')=mine.revision AND other.submission_id=json_extract(p.data,'$.source_submission_id') AND other.revision=json_extract(p.data,'$.source_revision')))"
-                           " JOIN matching om ON om.submission_id=other.submission_id AND om.revision=other.revision WHERE p.status='confirmed' AND EXISTS(SELECT 1 FROM base_visible)")
-                args.append(submission_id)
-            ctes=cte+', base_visible AS ('+base+'), visible AS (SELECT id FROM base_visible'+neighbors+')'
-            total=self.db.execute('WITH '+ctes+' SELECT COUNT(*) FROM visible',args).fetchone()[0]
-            empty={'entities':[],'edges':[],'proposals':[],'submissions':[],'too_large':False,'counts':{'nodes':total,'connections':0},'message':'','analysis_limitations':self.ADMIN_LIMITATIONS}
-            if total>80:
-                if level=='steps' and submission_id and not _visible_steps:
-                    return self.admin_graph(filters,level,submission_id,_visible_steps=True)
-                # Count in SQL without materializing the large view. Zero here
-                # would falsely say that an over-limit graph has no routes.
-                edge_state=" AND 0" if filters['state'] not in ('all','reported') else ''
-                edge_kind=" AND x.type IN ('contains','happens_after')" if level=='steps' else ''
-                n_edges=self.db.execute("WITH "+ctes+" SELECT COUNT(*) FROM edges x JOIN visible sv ON sv.id=x.source JOIN visible tv ON tv.id=x.target WHERE x.status='reported'"+edge_state+edge_kind,args).fetchone()[0]
-                proposal_state=" AND 0" if filters['state'] not in ('all','confirmed') else ''
-                n_proposals=self.db.execute("WITH "+ctes+" SELECT COUNT(*) FROM proposals p CROSS JOIN entities se ON se.type='process_version' AND se.submission_id=json_extract(p.data,'$.source_submission_id') AND se.revision=json_extract(p.data,'$.source_revision') CROSS JOIN entities de ON de.type='process_version' AND de.submission_id=json_extract(p.data,'$.destination_submission_id') AND de.revision=json_extract(p.data,'$.destination_revision') JOIN visible sv ON sv.id=se.id JOIN visible tv ON tv.id=de.id WHERE p.status='confirmed'"+proposal_state,args).fetchone()[0]
-                return {**empty,'too_large':True,'counts':{'nodes':total,'connections':n_edges+n_proposals},'message':'Select a process or refine filters to show a complete graph of at most 80 entities and 150 connections.'}
-            ids=[row[0] for row in self.db.execute('WITH '+ctes+' SELECT id FROM visible ORDER BY id LIMIT 80',args)]
-            if not ids:return {**empty,'message':'No graph entities match these filters.'}
-            placeholders=','.join('?'*len(ids))
-            edge_where='x.source IN ('+placeholders+') AND x.target IN ('+placeholders+") AND x.status='reported'"
-            if level=='steps':edge_where+=" AND x.type IN ('contains','happens_after')"
-            if filters['state'] not in ('all','reported'):edge_where+=' AND 0'
-            edge_args=ids+ids
-            direct_count=self.db.execute('SELECT COUNT(*) FROM edges x WHERE '+edge_where,edge_args).fetchone()[0]
-            proposal_where="p.status='confirmed' AND se.id IN ("+placeholders+') AND de.id IN ('+placeholders+')'
-            if filters['state'] not in ('all','confirmed'):proposal_where+=' AND 0'
-            proposal_source=("proposals p CROSS JOIN entities se ON se.type='process_version' AND se.submission_id=json_extract(p.data,'$.source_submission_id') AND se.revision=json_extract(p.data,'$.source_revision')"
-                             " CROSS JOIN entities de ON de.type='process_version' AND de.submission_id=json_extract(p.data,'$.destination_submission_id') AND de.revision=json_extract(p.data,'$.destination_revision')")
-            proposal_ids=[row[0] for row in self.db.execute('SELECT p.id FROM '+proposal_source+' WHERE '+proposal_where+' LIMIT 151',ids+ids)]
-            if direct_count+len(proposal_ids)>150:
-                if level=='steps' and submission_id and not _visible_steps:
-                    return self.admin_graph(filters,level,submission_id,_visible_steps=True)
-                full_count=self.db.execute('SELECT COUNT(*) FROM '+proposal_source+' WHERE '+proposal_where,ids+ids).fetchone()[0]
-                return {**empty,'too_large':True,'counts':{'nodes':total,'connections':direct_count+full_count},'message':'Select a process or refine filters to show a complete graph of at most 80 entities and 150 connections.'}
-            self._invalidate_changed_document_evidence(proposal_ids)
-            entities=[]
-            for row in self.db.execute('SELECT e.id,e.submission_id,e.revision,e.type,e.label,json_extract(e.data,\'$.actor\') AS actor,json_extract(e.data,\'$.system\') AS system,json_extract(e.data,\'$.evidence_turns\') AS refs FROM entities e WHERE e.id IN ('+placeholders+') ORDER BY e.submission_id,e.revision,e.rowid',ids):
-                entity={key:row[key] for key in ('id','submission_id','revision','type','label')}
-                entity['data']={'actor':row['actor'] if isinstance(row['actor'],str) else '', 'system':row['system'] if isinstance(row['system'],str) else '',
-                                'evidence_turns':json.loads(row['refs']) if isinstance(row['refs'],str) else []}
-                entities.append(entity)
-            edges=[{**{key:row[key] for key in ('id','source','target','type','status','submission_id','revision')},
-                    'evidence':{'label':row['label'] or '', 'evidence_turns':json.loads(row['refs']) if isinstance(row['refs'],str) else []}}
-                   for row in self.db.execute("SELECT x.id,x.source,x.target,x.type,x.status,x.submission_id,x.revision,json_extract(x.evidence,'$.label') AS label,json_extract(x.evidence,'$.evidence_turns') AS refs FROM edges x WHERE "+edge_where+' ORDER BY x.id LIMIT 150',edge_args)]
-            # Metadata only: source quotes and history are loaded by detail.
-            matching_all='matching AS (SELECT submission_id,revision FROM revisions)'
-            proposals=[dict(row) for row in self.db.execute('WITH '+matching_all+' SELECT '+self._admin_proposal_meta_select()+' FROM proposals p'+self._admin_proposal_joins()+' WHERE p.id IN ('+','.join('?'*len(proposal_ids))+") AND p.status='confirmed' ORDER BY p.id",proposal_ids)] if proposal_ids else []
-            pairs={(e['submission_id'],e['revision']) for e in entities}
-            submissions=[]
-            for sid,revision in sorted(pairs):
-                row=self.db.execute('SELECT '+self._admin_submission_select()+' FROM revisions r WHERE r.submission_id=? AND r.revision=?',(sid,revision)).fetchone()
-                if row:submissions.append(self._admin_submission_meta(row))
-            return {**empty,'entities':entities,'edges':edges,'proposals':proposals,'submissions':submissions,'counts':{'nodes':len(entities),'connections':len(edges)+len(proposals)}}
-
-    def admin_snapshot(self):
-        with self.lock,self.db:
-            self._invalidate_changed_document_evidence()
-            rows=self.db.execute('SELECT r.*,j.status AS job_status FROM revisions r LEFT JOIN jobs j ON j.submission_id=r.submission_id AND j.revision=r.revision ORDER BY r.created_at DESC').fetchall()
-            submissions=[]
-            for row in rows:
-                sub=self._submission(row)
-                sub['job_status']=row['job_status'] or 'unknown';submissions.append(sub)
-            proposal_history={}
-            for row in self.db.execute('SELECT proposal_id,action,reviewer,reason,side,created_at,review_version FROM review_history ORDER BY rowid'):
-                entry=dict(row);pid=entry.pop('proposal_id');proposal_history.setdefault(pid,[]).append(entry)
-            members={};aliases={};canonical_history={}
-            for row in self.db.execute('SELECT canonical_id,entity_id FROM canonical_members ORDER BY entity_id'):
-                members.setdefault(row['canonical_id'],[]).append(row['entity_id'])
-            for row in self.db.execute('SELECT canonical_id,alias FROM canonical_aliases ORDER BY alias'):
-                aliases.setdefault(row['canonical_id'],[]).append(row['alias'])
-            for row in self.db.execute('SELECT canonical_id,action,value,reviewer,reason,review_version,created_at FROM canonical_history ORDER BY rowid'):
-                entry=dict(row);cid=entry.pop('canonical_id');canonical_history.setdefault(cid,[]).append(entry)
-            return {'submissions':submissions,
-                    'proposals':[self._proposal(row,proposal_history.get(row['id'],[])) for row in self.db.execute('SELECT * FROM proposals ORDER BY created_at DESC')],
-                    'entities':[{**dict(r),'data':json.loads(r['data'])} for r in self.db.execute('SELECT * FROM entities')],
-                    'edges':[{**dict(r),'evidence':json.loads(r['evidence'])} for r in self.db.execute('SELECT * FROM edges')],
-                    'jobs':[self._job(r) for r in self.db.execute('SELECT * FROM jobs ORDER BY created_at DESC')], 'canonical_groups':[self._canonical(r,members.get(r['id'],[]),aliases.get(r['id'],[]),canonical_history.get(r['id'],[])) for r in self.db.execute('SELECT * FROM canonical_groups ORDER BY created_at')], 'analysis_limitations':'Analysis uses at most eight compatible candidate submissions and bounded transcript excerpts; it is not exhaustive. Document analysis is limited to two source excerpts per submission; visual transcriptions remain unverified.'}
+                    raw_trace.emit("knowledge.job_status_read", {"job_id":job_id, "status":row['status'] if row else None})
 
     def stop_scheduling(self):
         with self.lock:

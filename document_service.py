@@ -156,15 +156,16 @@ def _shorten(context, size, limit):
 
 
 class DocumentService:
-    def __init__(self, store, analyze_callback):
+    def __init__(self, store, analyze_callback, trace=None):
         if not callable(analyze_callback):
             raise TypeError('A document analysis callback is required.')
         self.store, self.analyze = store, analyze_callback
+        self.trace = trace
         self.request_scope = nullcontext
         self._interviews = {}
         self._condition = threading.Condition(threading.RLock())
         self._urgent, self._deep = deque(), deque()
-        self._queued, self._running, self._contexts, self._failures = set(), {}, {}, {}
+        self._queued, self._running, self._contexts, self._failures = {}, {}, {}, {}
         self._support_memo, self._support_lock = {}, threading.Lock()
         self._closed = False
         self._worker = threading.Thread(target=self._loop, name='document-review', daemon=True)
@@ -306,11 +307,16 @@ class DocumentService:
             obsolete = {task for task in self._queued
                         if task[:2] == item[:2] and task[2] < generation}
             if obsolete:
-                self._queued.difference_update(obsolete)
+                for task in obsolete:
+                    self._queued.pop(task)
+                    if self.trace:
+                        self.trace.emit("document.superseded", {"document_id":document_id, "revision":task[2], "phase":task[3]})
                 self._urgent = deque(task for task in self._urgent if task not in obsolete)
                 self._deep = deque(task for task in self._deep if task not in obsolete)
             (self._urgent if phase == 'quick' else self._deep).append(item)
-            self._queued.add(item)
+            self._queued[item] = self.trace.wrap(self._execute_task) if self.trace else self._execute_task
+            if self.trace:
+                self.trace.emit("document.queued", {"document_id":document_id, "revision":generation, "phase":phase})
             self._condition.notify()
 
     def _current(self, scope, document_id, generation):
@@ -326,51 +332,63 @@ class DocumentService:
                 if self._closed:
                     return
                 task = (self._urgent or self._deep).popleft()
-                self._queued.discard(task)
+                run = self._queued.pop(task)
                 scope, document_id, generation, phase = task
                 self._running[(scope, document_id)] = (generation, phase)
-            continuation = None
-            try:
-                lease = getattr(self.store, 'review_lease', None)
-                with (lease(scope,document_id) if lease else nullcontext(True)) as claimed:
-                    if claimed:
+            run(scope, document_id, generation, phase)
+
+    def _execute_task(self, scope, document_id, generation, phase):
+        observed = {"document_id":document_id, "revision":generation, "phase":phase}
+        if self.trace:
+            self.trace.emit("document.dequeued", observed)
+        continuation = None
+        try:
+            lease = getattr(self.store, 'review_lease', None)
+            with (lease(scope,document_id) if lease else nullcontext(True)) as claimed:
+                if claimed:
+                    current = self._current(scope, document_id, generation)
+                    state = (current or {}).get('analysis') or {}
+                    if current and (phase == 'reindex' or current.get('status') in ('pending','indexing') or not state.get('phase') or state.get('phase') == phase):
+                        if self.trace:
+                            self.trace.emit("document.review_started", observed)
+                        continuation = self._run(scope, document_id, generation, phase)
+                        if self.trace:
+                            self.trace.emit("document.review_returned", {**observed, "continuation":continuation})
+        except Exception as error:
+            if self.trace:
+                self.trace.emit("document.review_failed", {**observed, "error_type":type(error).__name__})
+            # Provider/parser exceptions may contain private document text. Keep
+            # ordinary status output controlled and preserve cursor/originals.
+            with self._condition:
+                # The client labels its own failures with a category; nothing
+                # else of the exception, least of all its text, is shown.
+                category = getattr(error, 'category', None)
+                message = REVIEW_PAUSED_BY_CATEGORY.get(category, REVIEW_PAUSED) if isinstance(category, str) else REVIEW_PAUSED
+                if isinstance(error, documents.ExtractionError) and str(error) == documents.TRANSCRIPTION_LIMIT_MESSAGE:
+                    message = documents.TRANSCRIPTION_LIMIT_MESSAGE
+                if not self._closed:
+                    self._failures[(scope, document_id)] = (generation, message, phase)
+                    try:
                         current = self._current(scope, document_id, generation)
-                        state = (current or {}).get('analysis') or {}
-                        if current and (phase == 'reindex' or current.get('status') in ('pending','indexing') or not state.get('phase') or state.get('phase') == phase):
-                            continuation = self._run(scope, document_id, generation, phase)
-            except Exception as error:
-                # Provider/parser exceptions may contain private document text. Keep
-                # ordinary status output controlled and preserve cursor/originals.
-                with self._condition:
-                    # The client labels its own failures with a category; nothing
-                    # else of the exception, least of all its text, is shown.
-                    category = getattr(error, 'category', None)
-                    message = REVIEW_PAUSED_BY_CATEGORY.get(category, REVIEW_PAUSED) if isinstance(category, str) else REVIEW_PAUSED
-                    if isinstance(error, documents.ExtractionError) and str(error) == documents.TRANSCRIPTION_LIMIT_MESSAGE:
-                        message = documents.TRANSCRIPTION_LIMIT_MESSAGE
-                    if not self._closed:
-                        self._failures[(scope, document_id)] = (generation, message, phase)
-                        try:
-                            current = self._current(scope, document_id, generation)
-                            if current:
-                                analysis = current.get('analysis') or {}
-                                # error_phase lets Retry review continue an in-depth
-                                # pass where it stopped instead of starting it again.
-                                analysis.update(phase='error', error=message, error_phase=phase, review_complete=False,
-                                                retry_required=True, retry_reason=message,
-                                                limitations=list(dict.fromkeys([*analysis.get('limitations', []), message])),
-                                                version=analysis.get('version', 0) + 1)
-                                self.store.update(scope, document_id, {'analysis': analysis})
-                        except Exception:
-                            # Failure reporting must not kill the sole worker.
-                            # status() exposes the in-memory paused state if the
-                            # database becomes readable before it becomes writable.
-                            pass
-            finally:
-                with self._condition:
-                    self._running.pop((scope, document_id), None)
-                    if continuation:
-                        self._schedule(scope, document_id, generation, continuation)
+                        if current:
+                            analysis = current.get('analysis') or {}
+                            # error_phase lets Retry review continue an in-depth
+                            # pass where it stopped instead of starting it again.
+                            analysis.update(phase='error', error=message, error_phase=phase, review_complete=False,
+                                            retry_required=True, retry_reason=message,
+                                            limitations=list(dict.fromkeys([*analysis.get('limitations', []), message])),
+                                            version=analysis.get('version', 0) + 1)
+                            self.store.update(scope, document_id, {'analysis': analysis})
+                    except Exception:
+                        # Failure reporting must not kill the sole worker.
+                        # status() exposes the in-memory paused state if the
+                        # database becomes readable before it becomes writable.
+                        pass
+        finally:
+            with self._condition:
+                self._running.pop((scope, document_id), None)
+                if continuation:
+                    self._schedule(scope, document_id, generation, continuation)
 
     def _batch(self, chunks, sample=False):
         batch, size, vision = [], 0, 0
@@ -816,10 +834,13 @@ class DocumentService:
         timeout, provider-side error). An invalid reply is never sent again by
         itself. Returns None when the file's intent changed while waiting.
         """
-        for delay in (*RETRY_DELAYS, None):
+        for attempt, delay in enumerate((*RETRY_DELAYS, None), 1):
             reserve=getattr(self.store,'reserve_review_request',None)
             if reserve and not reserve(scope,document_id,generation): return None
             try:
+                if self.trace:
+                    self.trace.emit("document.review_attempt", {"document_id":document_id, "revision":generation,
+                        "phase":phase, "attempt":attempt, "source_ids":[chunk.get("id") for chunk in batch]})
                 with self.request_scope(self._interviews.get(scope)):
                     return self.analyze(context, callback_record, copy.deepcopy(batch), phase)
             except Exception as error:
@@ -1156,8 +1177,17 @@ class DocumentService:
             with self._support_lock:
                 known = self._support_memo.get(key) if key is not None else None
             if known is not None:
+                if self.trace:
+                    self.trace.emit("document.selection_reused", {"source_versions":known.get("source_versions", []),
+                        "document_ids":[row.get("id") for row in known.get("documents", [])]})
                 return copy.deepcopy(known)
             result = self._supporting_context(reader, query, source_ids, required_documents, frozen, selected_documents, pinned_first)
+        if self.trace:
+            self.trace.emit("document.selection", {"query":query, "requested_source_ids":list(source_ids),
+                "required_document_ids":list(required_documents), "frozen":frozen,
+                "documents":[{"id":row.get("id"), "source_revision":row.get("source_revision"),
+                              "source_ids":[chunk["id"] for chunk in row.get("excerpts", []) if "id" in chunk]}
+                             for row in result.get("documents", [])]})
         if key is not None:
             with self._support_lock:
                 self._support_memo[key] = copy.deepcopy(result)

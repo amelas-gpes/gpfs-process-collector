@@ -16,6 +16,7 @@ from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 from test_server import server
+import knowledge_rows as rows
 from test_knowledge_graph import kg, wait
 
 KEY = '11111111-1111-4111-8111-%012d'
@@ -65,10 +66,11 @@ class SubmitRouteCase(unittest.TestCase):
             return error.code, json.loads(error.read())
 
     def submissions(self):
-        return self.httpd.knowledge.admin_browse('submissions')['items']
+        return rows.submissions(self.httpd.knowledge)
 
     def detail(self, receipt):
-        return self.httpd.knowledge.admin_detail('submission', receipt['submission_id'], receipt['revision'])['item']
+        with self.httpd.knowledge.lock:
+            return self.httpd.knowledge._revision(receipt['submission_id'], receipt['revision'])
 
 
 class SubmissionSizeTests(SubmitRouteCase):

@@ -12,7 +12,7 @@ def instance_id(root):
 def build_id(root):
     root = Path(root)
     files = [root / name for name in (
-        'server.py', 'draft_audit.py', 'provider_schema.py', 'provider_usage.py', 'launcher.py', 'runtime_build.py', 'documents.py',
+        'server.py', 'draft_audit.py', 'provider_schema.py', 'provider_usage.py', 'raw_trace.py', 'launcher.py', 'runtime_build.py', 'documents.py',
         'document_service.py', 'knowledge_graph.py', 'knowledge_ai.py',
         'gpfs_interview.py', 'interview_coverage.py', 'agent_team.py', 'interview_orchestrator.py', 'capture_facts.py', 'concurrent_interview.py', 'FOUNDATION.md')]
     web = root / 'web'

@@ -5,11 +5,11 @@ until a visual review transcribes it (and again when a re-read loses the transcr
 is not an excerpt for matching and cannot be quoted as document-supported evidence.
 Temporary SQLite and stores only; the analyzer is injected, no provider or network.
 """
+import knowledge_rows as rows
 import importlib.util
 import io
 import json
 import tempfile
-import threading
 import time
 import unittest
 from pathlib import Path
@@ -81,7 +81,7 @@ class PlaceholderEvidenceGraphTests(unittest.TestCase):
         # live-draft-knowledge-5: the refused proposal is dropped on its own; the job completes without it.
         row = wait(self.graph, second['job_id'])
         self.assertEqual((row['status'], row['detail']['dropped_reasons']), ('completed', {'Document source has not been read.': 1}))
-        self.assertEqual(self.graph.admin_snapshot()['proposals'], [])
+        self.assertEqual(rows.proposals(self.graph), [])
 
     def test_location_alone_marks_a_placeholder(self):
         # A resolver that reports the chunk location without spreading it over the source.
@@ -104,23 +104,9 @@ class PlaceholderEvidenceGraphTests(unittest.TestCase):
         second = self.graph.submit(payload('B', 'We receive approved NAV.'))
         self.assertEqual(wait(self.graph, second['job_id'])['status'], 'completed')
         self.assertEqual((seen[0][0]['origin'], seen[0][0]['verified']), ('ai_visual_transcription', False))
-        evidence = self.graph.admin_snapshot()['proposals'][0]['evidence'][0]
+        evidence = rows.proposals(self.graph)[0]['evidence'][0]
         self.assertEqual((evidence['type'], evidence['origin'], evidence['verified']), ('document_supported', 'ai_visual_transcription', False))
 
-    def test_evidence_whose_source_is_a_placeholder_goes_back_for_review(self):
-        # A proposal stored while the text counted as file content (for example by an earlier build that
-        # accepted the placeholder itself): same text, same hash, but the source is an unread image.
-        self.sources['image'] = {'text': PLACEHOLDER, 'label': 'image', 'origin': 'source_extraction'}
-        self.submit_with_file(sources=('image',))
-        self.graph.analyzer = quoting('doc1', 'image', 'Image contents require native visual review')
-        second = self.graph.submit(payload('B', 'We receive approved NAV.'))
-        self.assertEqual(wait(self.graph, second['job_id'])['status'], 'completed')
-        item = self.graph.admin_snapshot()['proposals'][0]
-        self.assertEqual(self.graph.review(item['id'], 'confirm', 'owner', 'Reviewed', item['review_version'])['status'], 'confirmed')
-        self.sources['image'] = placeholder()
-        changed = self.graph.admin_detail('proposal', item['id'])['item']
-        self.assertEqual(changed['status'], 'stale')
-        self.assertIn('Document source changed or became unavailable', changed['stale_reason'])
 
 
 @unittest.skipUnless(importlib.util.find_spec('PIL'), 'Existing Pillow runtime required')
@@ -169,17 +155,17 @@ class PlaceholderEvidenceStoreTests(unittest.TestCase):
         self.reply = quoting(record['id'], source['id'], 'Image contents require native visual review')
         b = graph.submit(payload('Returns', 'We raise a carrier claim for damaged returns.'))
         self.assertEqual(self.finished(b), 'completed', 'The job completes; the proposal that quotes the placeholder is dropped')
-        self.assertEqual(next(job for job in graph.admin_browse('jobs')['items'] if job['id'] == b['job_id'])['detail']['dropped_reasons'],
+        self.assertEqual(next(job for job in rows.jobs(graph) if job['id'] == b['job_id'])['detail']['dropped_reasons'],
                          {'Document source has not been read.': 1}, 'The placeholder sentence is not document-supported evidence')
         self.assertEqual(self.requests[-1], [], 'The placeholder sentence is not sent to matching as an excerpt')
-        self.assertEqual(graph.admin_browse('connections')['items'], [])
+        self.assertEqual(rows.proposals(graph), [])
         store.record_extracted_text(scope, record['id'], source['id'], TRANSCRIPTION)
         self.reply = quoting(record['id'], source['id'], 'Brindle Freight | Standard pallet | $2,375')
         c = graph.submit(payload('Freight', 'We book standard pallets with the carrier.'))
         self.assertEqual(self.finished(c), 'completed')
         self.assertEqual([(excerpt['text'], excerpt['origin'], excerpt['verified']) for excerpt in self.requests[-1]],
                          [(TRANSCRIPTION, 'ai_visual_transcription', False)])
-        self.assertEqual(len(graph.admin_browse('connections')['items']), 1)
+        self.assertEqual(len(rows.proposals(graph)), 1)
 
 
 if __name__ == '__main__':

@@ -12,6 +12,7 @@ from concurrent.futures import ThreadPoolExecutor
 import agent_team
 import capture_facts
 import provider_usage
+import raw_trace
 from interview_coverage import finding_reports_unavailable_knowledge, refused_repair
 
 REVIEW_ACKNOWLEDGEMENT = "Let me check that I have everything before we finish."
@@ -94,7 +95,7 @@ class Coordinator:
         models = dict(self.client.agent_models)
         if lead_model is not None:
             models["lead_interviewer"] = lead_model
-        run = agent_team.TeamRun(ledger, models=models,
+        run = agent_team.TeamRun(ledger, models=models, trace=raw_trace.emit,
                                 include_document_analyst=include_document_analyst,
                                 **({"roles": roles} if roles else {}))
         if callable(getattr(self.client, "request_scope", None)):
@@ -402,6 +403,8 @@ class Coordinator:
             if any(item.get("review", {}).get("phase") == "reindex_required" for item in supporting.get("documents", [])):
                 # Named separately: such a file waits for a re-index after an application update, not for a running review.
                 permit["blockers"].append("documents_reindex_required")
+        raw_trace.emit("coordinator.completion.permit", {"revision": run.ledger.revision,
+            "documents_pending": documents_pending, "content": {"withdrawn_repairs": withdrawn, "permit": permit}})
         return permit
 
     def _publish(self, token, run, capture, supporting, *, verified=False):
@@ -1068,6 +1071,8 @@ class Coordinator:
         capture["question"] = question
         capture["speech_authorization"] = {"approved": True, "kind": kind, "text": question,
             "revision": run.ledger.revision, "completion_allowed": capture["completion"]["complete"]}
+        raw_trace.emit("coordinator.speech.authorized", {"revision": run.ledger.revision, "kind": kind,
+            "completion_allowed": capture["completion"]["complete"], "content": {"text": question}})
 
     @provider_usage.track_generation
     def interview(self, payload):
@@ -1117,11 +1122,13 @@ class Coordinator:
         # check again, and an explicit "no" then completes the account without new calls.
         held = step == "held"
         if step and not held:
+            raw_trace.emit("coordinator.interview.route", {"route": "confirmed_capture", "step": step, "action": action})
             return self._confirmed_capture(prior, extension, context, turns, supporting, step)
         if (prior and not stopped and not extension and
                 (action == "answer" or action == "close" and self._verified_pause(prior["capture"]))):
             cached = copy.deepcopy(prior["capture"])
             cached["no_new_run"] = True
+            raw_trace.emit("coordinator.interview.route", {"route": "cached_capture", "action": action})
             return cached
         if prior and not held:
             self._invalidate_capture(prior)
@@ -1140,6 +1147,10 @@ class Coordinator:
                       if capture_facts.reconciliation_targets(fact_state, focus) else "lead_interviewer")
         lead_model = self.client.agent_models[model_role]
         token, run = self._new_run(payload, context, turns, evidence, lead_model=lead_model)
+        raw_trace.emit("coordinator.interview.model_selected", {"revision": run.ledger.revision, "action": action,
+            "role": model_role, "model": lead_model, "large_rebuild": large_rebuild,
+            "new_document_baseline": new_document_baseline, "facts_only": facts_only,
+            "continued": continued, "held": held, "stopped": stopped})
         run.defer_roles(("coverage_reviewer", "process_reviewer"))
         if not held:
             # Claiming the family retires its earlier runs, the held review among them.
@@ -1147,6 +1158,7 @@ class Coordinator:
         # Remembered on the run: its completion review and final check come later.
         run.stop_answered = stop_answered
         if stopped:
+            raw_trace.emit("coordinator.interview.route", {"route": "participant_stop", "revision": run.ledger.revision})
             run.cancel()
             question = "Of course. We can stop here. Your account is retained, with any unfinished sections still open."
             return {"question": question, "preserve_capture": True, "ready_for_draft": False,
@@ -1158,6 +1170,7 @@ class Coordinator:
                                              "revision": run.ledger.revision, "completion_allowed": False}}
         if (action == "start" and not any(turn["role"] == "user" and not turn.get("document_event") for turn in turns)
                 and not evidence and not supporting.get("documents") and not supporting.get("pending_documents")):
+            raw_trace.emit("coordinator.interview.route", {"route": "opening", "revision": run.ledger.revision})
             # No process facts exist to review yet. Ask a deterministic opening
             # and leave every specialist pending rather than spending model calls
             # or pretending that a review has taken place.

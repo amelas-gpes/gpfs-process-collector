@@ -26,7 +26,7 @@ const deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{reso
 const lost=()=>Object.assign(Error("The interviewer isn’t available right now. Try again in a moment."),{name:"TypeError"});
 
 function setup(session={}){
-  const nodes={};for(const id of ["knowledge-submit","knowledge-admin","submit-process-menu","submit-process-review","open-knowledge-admin","session-menu","session-menu-toggle","interview-settings"])nodes[id]=new E("div");
+  const nodes={};for(const id of ["knowledge-submit","submit-process-menu","submit-process-review","session-menu","session-menu-toggle","interview-settings"])nodes[id]=new E("div");
   const calls=[],notices=[],timers=new Map();let keys=0,timerId=0;
   const env={window:{addEventListener(){},removeEventListener(){}},document:{getElementById:id=>nodes[id],createElement:tag=>new E(tag)},console,Date,JSON,TextEncoder,
     setTimeout:(fn,ms)=>{timers.set(++timerId,{fn,ms});return timerId;},clearTimeout:id=>timers.delete(id),

@@ -22,7 +22,10 @@
     // Also true while a status reply is being handled (settling): its progress notice and the notes it
     // applies reach listeners before the next poll is scheduled, and must not read as "nothing running".
     get active(){return this.timer!==null||this.controllers.size>0||this.settling>0;}
-    notify(value){try{this.options.onStatus?.(value);}catch{/* Advisory status cannot alter interview state. */}}
+    notify(value){
+      global.CollectorRawTrace?.record("analysis.status",{state:value.state,revision:value.revision,kept:value.kept});
+      try{this.options.onStatus?.(value);}catch{/* Advisory status cannot alter interview state. */}
+    }
     stopPolling(){if(this.timer!==null)this.unlater(this.timer);this.timer=null;this.pollController?.abort();this.pollController=null;}
     reset(){this.epoch++;this.sequence++;this.stopPolling();for(const controller of this.controllers)controller.abort();this.controllers.clear();this.token=null;this.appliedRevision=null;this.checkpointRevision=null;this.notify({state:"idle"});}
     current(captured){return captured.epoch===this.epoch&&captured.generation===this.options.getGeneration()&&captured.sequence===this.sequence&&captured.key===sourceKey(this.options.getSnapshot());}
@@ -76,7 +79,9 @@
         const query = compact ? {conversation_token:this.token,revision:captured.revision,
           ...(snapshot.document_scope?{document_scope:snapshot.document_scope}:{})} : this.withToken(snapshot);
         const result=await this.send("/api/conversation/status",query,{signal:controller.signal});
-        if(controller.signal.aborted||!this.current(captured))return;
+        if(controller.signal.aborted||!this.current(captured)){
+          global.CollectorRawTrace?.record("analysis.poll_discarded",{revision:captured.revision,aborted:controller.signal.aborted});return;
+        }
         this.rememberToken(result); captured.retryWait=0; captured.retryCount=0;
         const checkpoint=result.checkpoint;
         if(checkpoint && checkpoint.capture && Array.isArray(checkpoint.turns) && checkpoint.revision &&
@@ -87,6 +92,7 @@
                Boolean(turn.document_event)===Boolean(actual.document_event) && turn.document_id===actual.document_id;
            }) && checkpoint.turns.filter(turn=>turn.role==="user"&&!turn.document_event).at(-1)?.id===checkpoint.through_turn_id){
           this.options.applyCapture(checkpoint.capture,{snapshot:{...snapshot,turns:checkpoint.turns},revision:checkpoint.revision,checkpoint:true});
+          global.CollectorRawTrace?.record("analysis.checkpoint_applied",{revision:checkpoint.revision,through_turn_id:checkpoint.through_turn_id});
           this.checkpointRevision=checkpoint.revision;
         }
         if(result.agent_team)this.notify({state:result.state,agent_team:result.agent_team});
@@ -99,6 +105,7 @@
           const appliedKey=JSON.stringify([result.revision,Boolean(result.workflow_capture)]);
           if(appliedKey!==this.appliedRevision){
             this.options.applyCapture({...(kept?{preserve_capture:true}:result.capture),...(result.workflow_capture?{workflow_capture:result.workflow_capture}:{})},{snapshot,revision:result.revision});this.appliedRevision=appliedKey;
+            global.CollectorRawTrace?.record("analysis.capture_applied",{revision:result.revision,kept,workflow:Boolean(result.workflow_capture)});
           }
           if(["queued","working"].includes(result.workflow_state)){this.scheduleProgress(captured);settled();if(this.timer!==null)this.notify({state:"working",revision:result.revision});return;}
           settled();

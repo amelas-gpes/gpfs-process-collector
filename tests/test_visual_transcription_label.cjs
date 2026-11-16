@@ -134,11 +134,10 @@ run(async()=>{
     assert.ok(await preview({...transcribed,origin:undefined,location:undefined,verified:false},true).then(box=>box.querySelector(".documents-source-origin")),"verified false alone is enough");
   });
 
-  await check("one sentence is used in the Assets preview, the source dialog, the export and Admin",async()=>{
+  await check("one sentence is used in the Assets preview, the source dialog and the export",async()=>{
     const count=(name,pattern)=>(web(name).match(pattern)||[]).length;
     assert.equal(count("app.js",/const AI_TRANSCRIPTION_NOTE="AI visual transcription is unverified; inspect the original before relying on it\.";/g),1);
     assert.equal(count("documents.js",/const AI_TRANSCRIPTION_NOTE = "AI visual transcription is unverified; inspect the original before relying on it\.";/g),1);
-    assert.ok(count("knowledge-ui.js",/"AI visual transcription is unverified; inspect the original before relying on it\."/g)>=1,"The Admin view's wording is the one reused");
     assert.match(web("style.css"),/\.excerpt-note\.excerpt-origin \{/);assert.match(web("documents.css"),/\.documents-source-origin \{/);
   });
 

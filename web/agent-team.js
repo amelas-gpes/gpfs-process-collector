@@ -110,6 +110,9 @@
         announcement.textContent=activeNames?`${activeNames} working.`:aggregate.textContent+".";
       }
       statusSignature=nextStatuses;
+      global.CollectorRawTrace?.record("team.rendered",{state:root.dataset.state,stale:snapshot.stale===true,
+        cancelled:snapshot.cancelled===true,roles:normalized.map(row=>({role:row.role,status:row.status,reason_code:row.reason_code}))},
+        {aggregate:aggregate.textContent});
       return true;
     }
     render({agents:[]});

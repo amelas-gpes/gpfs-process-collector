@@ -58,7 +58,7 @@ class StepDetailsTests(unittest.TestCase):
                 p.update(generated_by=[stage], app_version="1.2.3", app_build="dev+123")
                 p["draft"]["generated_by"] = [stage]
                 receipt = graph.submit(p)
-                saved = graph.admin_detail("submission", receipt["submission_id"], 1)["item"]
+                saved = graph._revision(receipt["submission_id"], 1)
                 self.assertEqual(saved["draft"]["steps"][0]["operating_details"], [self.detail])
                 self.assertEqual(saved["draft"]["steps"][0]["reviewed_fields"], ["description","actor"])
                 self.assertEqual(saved["generated_by"], [stage])

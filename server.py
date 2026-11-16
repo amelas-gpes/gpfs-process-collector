@@ -110,6 +110,7 @@ def local_module(name, filename):
     return sys.modules[name]
 
 
+raw_trace = local_module("raw_trace", "raw_trace.py")
 provider_usage = local_module("provider_usage", "provider_usage.py")
 documents = local_module("documents", "documents.py")
 gpfs_interview = local_module("gpfs_interview", "gpfs_interview.py")
@@ -2192,6 +2193,13 @@ def _claims_completion(sentence, offer=False, question=False):
 
 
 def question_rejection(text, limit=1200, single=False):
+    reason = _question_rejection(text, limit, single)
+    raw_trace.emit("interview.question.guard", {"limit": limit, "single": single, "reason": reason,
+                                               "content": {"candidate": text}})
+    return reason
+
+
+def _question_rejection(text, limit, single):
     """Why a proposed next question cannot be spoken: a metadata-only code, or "" when usable.
 
     A usable turn asks for something: one question, or a spoken request without a question
@@ -2349,8 +2357,8 @@ def load_settings():
     # Only explicit task-local settings are read; no credential store scanning.
     settings = {}
     allowed = {"OPENAI_API_KEY", "INTERVIEW_MODEL", "DRAFT_MODEL", "DRAFT_AUDIT_MODEL", "DRAFT_COVERAGE_MODEL", "WORKFLOW_AUDIT_MODEL", "TRANSCRIPTION_MODEL", "TRANSCRIPTION_KEYWORDS",
-               "COLLECTOR_DEPLOYMENT_MODE", "KNOWLEDGE_LOCAL_OWNER", "KNOWLEDGE_ADMIN_DELETE", "AGENT_INTERVIEW_MODEL", "COLLECTOR_MODEL_REASONING", "TRANSCRIPTION_LANGUAGE", "INTERVIEW_TOKEN_CAP", "DAILY_TOKEN_CAP",
-               "AGENT_COVERAGE_MODEL", "AGENT_PROCESS_MODEL", "AGENT_DOCUMENT_MODEL", "VOICE_MODE", "VOICE_PAUSE_MS"}
+               "COLLECTOR_DEPLOYMENT_MODE", "KNOWLEDGE_LOCAL_OWNER", "AGENT_INTERVIEW_MODEL", "COLLECTOR_MODEL_REASONING", "TRANSCRIPTION_LANGUAGE", "INTERVIEW_TOKEN_CAP", "DAILY_TOKEN_CAP",
+               "AGENT_COVERAGE_MODEL", "AGENT_PROCESS_MODEL", "AGENT_DOCUMENT_MODEL", "VOICE_MODE", "VOICE_PAUSE_MS", "RAW_TRACE_MODE"}
     for path in (APP_DIR / ".env.local",):
         if path.is_file() and not path.is_symlink():
             for number, line in enumerate(read_settings_text(path).splitlines(), 1):
@@ -3867,9 +3875,8 @@ class OpenAIClient:
                 "your choice, and Save for later or Remove stops further review. Selected file text also "
                 "accompanies later interview requests. After a file is saved for later or removed, "
                 "those requests carry only the excerpts the notes already cite. "
-                "The full interview and recordings are not saved automatically. Save the interview "
-                "to retain its transcript and local file references. The one exception is optional and off "
-                "unless you turn it on: with “Keep a recovery copy on this computer” on, one copy of the unsaved "
+                "Recordings are not saved automatically. Save a copy to reopen the full interview with its local "
+                "file references. With the optional “Keep a recovery copy on this computer” setting on, one copy of the unsaved "
                 "interview (transcript, notes, working map, draft, file references and the unsent answer; never "
                 "recordings) is written to this app's private work folder on this computer a few seconds after each "
                 "change. That copy stays on this computer. It is offered again when the app next "
@@ -3909,13 +3916,38 @@ class OpenAIClient:
             watchdog.join(timeout=1)
 
     @staticmethod
-    def _read_stream(response, on_text, check_active=None):
+    def _trace_response(result):
+        # The provider can echo the input envelope. The dispatch observation holds
+        # that input already. Keep the returned response identity, outputs and status.
+        return {key: result[key] for key in ("id", "created_at", "completed_at", "model", "status", "usage",
+                "incomplete_details", "error", "output", "output_text") if key in result}
+
+    @staticmethod
+    def _trace_live_request(body):
+        session = copy.deepcopy(body.get("session", {}))
+        if not isinstance(session, dict):
+            return {"content": {"omitted_fields": ["session"]}}
+        delegate = session.get("delegation", {})
+        backend = delegate.get("responses", {}) if isinstance(delegate, dict) else {}
+        # File excerpts are JSON appended to instruction text. Expose the exact
+        # string parts separately, so the common scrubber can recognize nested file fields.
+        for target, delimiter in ((session, "\nSUPPORTING DOCUMENT CONTEXT (UNTRUSTED, UNCONFIRMED)\n"),
+                (backend, "\nINITIAL SUPPORTING DOCUMENT CONTEXT (UNTRUSTED; latest live snapshots may supersede this)\n")):
+            instructions = target.get("instructions") if isinstance(target, dict) else None
+            if isinstance(instructions, str) and delimiter in instructions:
+                prefix, marker, encoded_files = instructions.rpartition(delimiter)
+                target["instructions"] = {"_trace": "joined_strings", "parts": [prefix + marker, encoded_files]}
+        return {"content": {"session": session}, "omitted_fields": ["transport.sdp"]}
+
+    @staticmethod
+    def _read_stream(response, on_text, check_active=None, request_id=None):
         """Collect Responses API server-sent events into the final response object.
 
         on_text receives the output text accumulated so far after each delta and
         returns True once it has seen what it needs; it is not called again.
         """
         pieces, pending, final, announced, total = [], [], None, False, 0
+        trace_streams = {}
 
         def dispatch():
             nonlocal final, announced
@@ -3924,11 +3956,35 @@ class OpenAIClient:
             raw = "\n".join(pending)
             pending.clear()
             if raw == "[DONE]":
+                raw_trace.emit("provider.stream.done", {"request_id": request_id})
                 return
             event = json.loads(raw)
             if not isinstance(event, dict):
                 raise ValueError("Unexpected stream event.")
             kind = event.get("type", "")
+            if raw_trace.active():
+                fields = {key: event[key] for key in ("type", "sequence_number", "output_index", "content_index") if key in event}
+                if kind in ("response.output_text.delta", "response.refusal.delta") and isinstance(event.get("delta"), str):
+                    # A credential or a protected JSON field can be split across deltas. Persist offsets
+                    # immediately; store the reassembled string through the content scrubber at completion.
+                    key = (kind, *(event.get(i) if type(event.get(i)) is int else None for i in ("output_index", "content_index")))
+                    stream = trace_streams.setdefault(key, {"length": 0, "pieces": []})
+                    fields.update(offset=stream["length"], characters=len(event["delta"]))
+                    stream["length"] += fields["characters"]
+                    if raw_trace.content_enabled():
+                        stream["pieces"].append(event["delta"])
+                elif kind in ("response.created", "response.in_progress", "response.completed", "response.failed",
+                              "response.incomplete") and isinstance(event.get("response"), dict):
+                    fields["content"] = OpenAIClient._trace_response(event["response"])
+                elif kind in ("response.output_item.added", "response.output_item.done"):
+                    fields["content"] = {"item": event.get("item")}
+                elif kind in ("response.content_part.added", "response.content_part.done"):
+                    fields["content"] = {"part": event.get("part")}
+                elif kind in ("response.output_text.done", "response.refusal.done", "error"):
+                    fields["content"] = {key: event[key] for key in ("text", "refusal", "code", "message", "error") if key in event}
+                else:
+                    fields["omitted_fields"] = [key for key in event if key not in fields]
+                raw_trace.emit("provider.stream.event", {"request_id": request_id, **fields})
             if kind == "response.output_text.delta" and isinstance(event.get("delta"), str):
                 pieces.append(event["delta"])
                 if not announced:
@@ -3959,6 +4015,11 @@ class OpenAIClient:
         dispatch()
         if final is None:
             raise ValueError("The stream ended before the response completed.")
+        for (kind, output_index, content_index), stream in trace_streams.items():
+            complete = final.get("status") == "completed" and raw_trace.content_enabled()
+            captured = {"text": "".join(stream["pieces"])} if complete else {"omitted_fields": ["text"]}
+            raw_trace.emit("provider.stream.buffer", {"request_id": request_id, "type": kind, "output_index": output_index,
+                "content_index": content_index, "characters": stream["length"], **captured})
         return final
 
     @staticmethod
@@ -4005,6 +4066,16 @@ class OpenAIClient:
         started = time.monotonic()
         metrics = {"request_id": uuid.uuid4().hex, "stage": stage, "timeout_seconds": timeout,
                    "outcome": "error", "status": 502}
+        tracing = raw_trace.active()
+        http_status = None
+
+        def trace_headers(status):
+            # urllib has received the response headers at this point. Its real status
+            # is independent of the app's later parse result or diagnostics category.
+            nonlocal http_status
+            http_status = status if type(status) is int else None
+            raw_trace.emit("provider.http.response_headers", {"request_id": metrics["request_id"], "stage": stage,
+                **({"http_status": http_status} if http_status is not None else {})})
         if isinstance(body, dict) and isinstance(body.get("instructions"), str):
             # Digest the fixed system instructions only. Never persist prompts or interview inputs.
             metrics["prompt_id"] = provider_usage.prompt_id(body["instructions"])
@@ -4045,26 +4116,44 @@ class OpenAIClient:
                                   headers={"Content-Type": content_type}, method="POST")
                 request.add_unredirected_header("Authorization", "Bearer " + self.key)
                 with slot(), ExitStack() as stack:
+                    if tracing:
+                        if path in ("responses", "realtime/client_secrets") and isinstance(body, dict):
+                            sent = {"content": body}
+                        elif path == "live/sessions" and isinstance(body, dict):
+                            sent = self._trace_live_request(body)
+                        else:
+                            sent = {"omitted_fields": ["body"]}
+                        raw_trace.emit("provider.request.dispatch", {"request_id": metrics["request_id"], "stage": stage,
+                            "path": path, "byte_count": len(data), "timeout_seconds": timeout, **sent})
                     response = stack.enter_context(urlopen(request, timeout=max(.01, deadline - time.monotonic())))
+                    if tracing:
+                        trace_headers(getattr(response, "status", None))
                     stack.enter_context(self._response_deadline(response, deadline, check_abort))
                     check_active()
                     if streaming:
                         try:
-                            raw = self._read_stream(response, on_text, check_active)
+                            raw = self._read_stream(response, on_text, check_active, metrics["request_id"])
                         except (ValueError, UnicodeError):
                             check_active()
                             metrics.update(error_category="invalid_response")
                             raise APIError("The AI service returned an unreadable response. Please try again.") from None
                     else:
                         raw = response.read(4 * 1024 * 1024 + 1)
+                        if tracing:
+                            raw_trace.emit("provider.http.body_read", {"request_id": metrics["request_id"], "bytes": len(raw)})
                         if len(raw) > 4 * 1024 * 1024:
                             raise APIError("The AI service returned more data than this operation can accept.")
                     check_active()
             except HTTPError as error:
                 code = ""
                 error_type = ""
+                if tracing:
+                    trace_headers(error.code)
                 try:
-                    details = json.loads(error.read(30000)).get("error", {})
+                    error_body = error.read(30000)
+                    if tracing:
+                        raw_trace.emit("provider.http.body_read", {"request_id": metrics["request_id"], "bytes": len(error_body)})
+                    details = json.loads(error_body).get("error", {})
                     code = details.get("code", "") or ""
                     error_type = details.get("type", "") or ""
                 except (ValueError, AttributeError, OSError, HTTPException):
@@ -4106,6 +4195,8 @@ class OpenAIClient:
                 else:
                     message = f"The AI service could not complete the request (HTTP {error.code}). Your session is retained; try again."
                 metrics.update(status=error.code, error_category=category, error_type="HTTPError")
+                raw_trace.emit("provider.http.error", {"request_id": metrics["request_id"], "stage": stage,
+                    "http_status": error.code, "category": category, "provider_code": code, "provider_type": error_type})
                 # A rate limit or a provider-side failure can pass by itself; nothing else here can.
                 transient = category == "rate_limit" or 500 <= error.code < 600
                 raise APIError(message, category=category, transient=transient) from None
@@ -4163,8 +4254,27 @@ class OpenAIClient:
             metrics.update(outcome="success", status=200)
             if path == "responses":
                 metrics.update(self._usage_metrics(result, body))
+            if not tracing:
+                return result
+            if path == "responses":
+                received = self._trace_response(result)
+            elif path == "audio/transcriptions":
+                # A dictated answer may be edited or discarded. Its committed turn
+                # records the submitted wording; provider transcription stays transient.
+                received = {"characters": len(result["text"])} if isinstance(result.get("text"), str) else {}
+            else:
+                # Live sessions return ICE credentials and playback returns a bearer credential in 'value'.
+                received = {key: result[key] for key in ("expires_at",) if key in result}
+            raw_trace.emit("provider.response.decoded", {"request_id": metrics["request_id"], "stage": stage,
+                "content": received, "omitted_fields": [key for key in result if key not in received]})
             return result
         finally:
+            if tracing:
+                observed = dict(metrics)
+                observed["diagnostic_status"] = observed.pop("status")
+                if http_status is not None:
+                    observed["http_status"] = http_status
+                raw_trace.emit("provider.request.finished", {**observed, "duration_ms": int((time.monotonic() - started) * 1000)})
             try:
                 self.usage.finish(metrics["request_id"], label, metrics)
             except sqlite3.Error:
@@ -4206,13 +4316,18 @@ class OpenAIClient:
                 "text": {"format": {"type": "json_schema", "name": name, "strict": True, "schema": response_schema}}}
         if self.reasoning_mode == "on" or (self.reasoning_mode == "auto" and effective_model.lower().startswith(("gpt-5", "gpt-6", "o1", "o3", "o4"))):
             body["reasoning"] = {"effort": reasoning_effort}
-        result = self.request("responses", body, **({"timeout": request_timeout} if request_timeout is not None else {}),
-                              **({"on_text": on_text} if on_text is not None else {}))
+        operation_id = uuid.uuid4().hex
+        raw_trace.emit("provider.structured.prepared", {"stage": name, "operation_id": operation_id})
+        with raw_trace.bind(operation_id=operation_id):
+            result = self.request("responses", body, **({"timeout": request_timeout} if request_timeout is not None else {}),
+                                  **({"on_text": on_text} if on_text is not None else {}))
         def unusable(category, message, reason=None):
             # The transport record for this call rightly says success, status 200. This second
             # record says why the response that arrived could not be used: a category, a
             # listed reason code and sizes only, never any of the response's text.
             report = getattr(self, "diagnostic_callback", None)
+            raw_trace.emit("provider.structured.rejected", {"stage": name, "category": category, "reason": reason},
+                           operation_id=operation_id)
             if report is not None:
                 try:
                     report("provider_response_unusable", stage=name, outcome="error",
@@ -4270,6 +4385,7 @@ class OpenAIClient:
                                                  **({"build_id": self.build_id} if getattr(self, "build_id", "") else {}),
                                                  "prompt_id": provider_usage.prompt_id(instructions),
                                                  "reasoning_effort": (body.get("reasoning") or {}).get("effort", "default")}])
+            raw_trace.emit("provider.structured.parsed", {"stage": name, "content": parsed}, operation_id=operation_id)
             return parsed
         except ValueError:
             raise unusable("invalid_json", UNUSABLE_RESULT_MESSAGE) from None
@@ -4767,9 +4883,13 @@ class OpenAIClient:
         parts.extend([f"--{boundary}\r\nContent-Disposition: form-data; name=\"file\"; filename=\"answer.{types[base_type]}\"\r\nContent-Type: {base_type}\r\n\r\n".encode(),
                  audio, f"\r\n--{boundary}--\r\n".encode()]
         )
+        raw_trace.emit("voice.transcription.prepared", {"media_type": base_type, "byte_count": len(audio),
+            "model": self.transcription_model, "language": self.transcription_language,
+            "content": {"keywords": self.transcription_keywords}, "omitted_fields": ["audio"]})
         result = self.request("audio/transcriptions", b"".join(parts), "multipart/form-data; boundary=" + boundary)
         text = result.get("text", "")
         def report(outcome, category):
+            raw_trace.emit("voice.transcription.result", {"outcome": outcome, "category": category})
             if self.diagnostic_callback:
                 try:
                     self.diagnostic_callback('transcription_result', stage='transcription',
@@ -4798,20 +4918,14 @@ def validated_browser_connect_sources(sources):
 
 
 class KnowledgeAuthorization:
-    """Server-owned administrative boundary, never a browser-supplied role.
-
-    A hosted deployment can later inject a trusted identity authorizer. The
-    prototype grants local-owner access only with both explicit server settings.
-    """
+    """Server-verified identities and permission to revise filed interviews."""
     def __init__(self, settings, trusted_authorizer=None):
         self.local_owner = (settings.get("COLLECTOR_DEPLOYMENT_MODE", "").lower() == "local"
                             and settings.get("KNOWLEDGE_LOCAL_OWNER", "").lower() == "true")
-        # Deleting a submitted process is off unless the owner of this computer turns it on. It is a
-        # further condition on an administrator, never a way to become one.
-        self.delete_enabled = settings.get("KNOWLEDGE_ADMIN_DELETE", "").lower() == "true"
         self.trusted_authorizer = trusted_authorizer
 
-    def admin(self, handler):
+    def revision_owner(self, handler):
+        """Honor the existing trusted role and the explicit loopback-owner setting."""
         if self.trusted_authorizer is not None:
             try:
                 identity = self.trusted_authorizer(handler, "knowledge.admin")
@@ -5128,7 +5242,7 @@ STORE_PROBLEMS = {
                   "is damaged and was not opened. Interviewing, the workflow map and drafts work without files. "
                   "Nothing was changed. " + _SET_ASIDE.format(name="documents.sqlite3")),
     "knowledge": ("Company knowledge is switched off: its saved database on this computer (knowledge.sqlite3) is "
-                  "damaged and was not opened, so Submit process and Admin are unavailable. Interviewing and drafts "
+                  "damaged and was not opened, so Submit process is unavailable. Interviewing and drafts "
                   "work, and Save copy keeps your interview. Nothing was changed. "
                   + _SET_ASIDE.format(name="knowledge.sqlite3")),
 }
@@ -5217,7 +5331,8 @@ class InterviewServer(ThreadingHTTPServer):
                  knowledge_settings=None, knowledge_authorizer=None, knowledge_analyzer=None):
         if address[0] != "127.0.0.1":
             raise ValueError("This prototype can only bind to 127.0.0.1.")
-        self.client = client if client is not None else OpenAIClient(load_settings())
+        settings = knowledge_settings if knowledge_settings is not None else load_settings()
+        self.client = client if client is not None else OpenAIClient(load_settings() if knowledge_settings is not None else settings)
         self.build_id = local_module('collector_runtime_build', 'runtime_build.py').build_id(APP_DIR)
         if isinstance(self.client, OpenAIClient):
             self.client.build_id = self.build_id
@@ -5241,6 +5356,10 @@ class InterviewServer(ThreadingHTTPServer):
         self._assets = {}
         self._assets_lock = threading.Lock()
         self.diagnostics_path = (Path(documents_root).parent if documents_root else APP_DIR / "work") / "server-lifecycle.jsonl"
+        self.trace = raw_trace.TraceStore(self.diagnostics_path.parent, settings)
+        self.trace.register_secret(self.csrf_token)
+        self.trace.register_secret(getattr(self.client, "key", None))
+        self.trace.emit("server.bound", {"port":self.server_port}, build=self.build_id)
         # Beside the other private stores, so every server on this work folder shares it.
         self.recovery = RecoveryStore(self.diagnostics_path.with_name("recovery"))
         try:
@@ -5274,20 +5393,20 @@ class InterviewServer(ThreadingHTTPServer):
             else:
                 self.documents_store.diagnostic = self.record_event
                 service = local_module("document_service", "document_service.py")
+                self.documents_store.trace = raw_trace
                 self.documents = service.DocumentService(self.documents_store,
-                    lambda context, record, chunks, phase: self.client.analyze_document(context, record, chunks, phase, self.documents_store))
-            self.knowledge_auth = KnowledgeAuthorization(knowledge_settings if knowledge_settings is not None else load_settings(), knowledge_authorizer)
+                    lambda context, record, chunks, phase: self.client.analyze_document(context, record, chunks, phase, self.documents_store),
+                    trace=raw_trace)
+            self.knowledge_auth = KnowledgeAuthorization(settings, knowledge_authorizer)
             graph = local_module("knowledge_graph", "knowledge_graph.py")
             if knowledge_analyzer is None and getattr(self.client, "key", None) and callable(getattr(self.client, "structured", None)):
                 adapter = local_module("knowledge_ai", "knowledge_ai.py")
                 knowledge_analyzer = adapter.build_analyzer(self.client)
             base = Path(knowledge_root) if knowledge_root else (Path(documents_root).parent / "knowledge" if documents_root else APP_DIR / "work" / "knowledge")
-            self.example_graph_path = base / "example" / "knowledge.sqlite3"
-            self.example_knowledge = None
-            self.example_graph_lock = threading.RLock()
-            self.knowledge = self._open_store("knowledge", base / "knowledge.sqlite3", lambda: graph.KnowledgeGraph(
-                base / "knowledge.sqlite3", analyzer=knowledge_analyzer, document_resolver=self.knowledge_document_source,
-                request_scope=getattr(self.client, "request_scope", None)))
+            with raw_trace.bind(self.trace, build=self.build_id):
+                self.knowledge = self._open_store("knowledge", base / "knowledge.sqlite3", lambda: graph.KnowledgeGraph(
+                    base / "knowledge.sqlite3", analyzer=knowledge_analyzer, document_resolver=self.knowledge_document_source,
+                    request_scope=getattr(self.client, "request_scope", None)))
             # A failed matching job writes its kind and exception class (no content) to the lifecycle log.
             self.knowledge.diagnostic = self.record_event
             if isinstance(self.client, OpenAIClient):
@@ -5386,6 +5505,8 @@ class InterviewServer(ThreadingHTTPServer):
             # A desktop release is named by its commit; a working tree has its build_id only.
             fields.setdefault("commit", getattr(self, "release", {}).get("release_commit", ""))
         record_diagnostic(self.diagnostics_path, event, port=self.server_port, **fields)
+        if hasattr(self, "trace"):
+            self.trace.emit("server." + event, fields, build=self.build_id)
 
     def linger_after(self, request, unread):
         """Mark a connection whose response was written with `unread` body bytes still to come."""
@@ -5466,45 +5587,6 @@ class InterviewServer(ThreadingHTTPServer):
         finally:
             self.connection_slots.release()
 
-    def example_graph(self):
-        """Separate local-only demonstration storage. It has no analyzer or resolver."""
-        with self.example_graph_lock:
-            if self.example_knowledge is None:
-                graph = local_module("knowledge_graph", "knowledge_graph.py")
-                self.example_knowledge = graph.KnowledgeGraph(self.example_graph_path, analyzer=None)
-            return self.example_knowledge
-
-    def seed_example(self):
-        """Load only the bundled fictional fixture; the client cannot supply content."""
-        path = APP_DIR / "Examples" / "Synthetic-reviewed-session.json"
-        try:
-            raw = path.read_bytes()
-            if len(raw) > MAX_JSON:
-                raise ValueError("The bundled example exceeds the size limit.")
-            fixture = json.loads(raw.decode("utf-8"))
-        except (OSError, UnicodeError, json.JSONDecodeError):
-            raise ValueError("The bundled synthetic example is unavailable.") from None
-        if not isinstance(fixture, dict) or fixture.get("synthetic_example") is not True:
-            raise ValueError("The bundled synthetic example is invalid.")
-        # Derive a stable idempotency key from the immutable bundled content.
-        # A changed example is deliberately a distinct sample rather than a
-        # silent rewrite of already reviewed evidence.
-        digest = hashlib.sha256(json.dumps(fixture, sort_keys=True, separators=(",", ":"),
-                                           ensure_ascii=False).encode("utf-8")).hexdigest()
-        fixture["submission_key"] = str(uuid.uuid5(uuid.NAMESPACE_URL, "collector-example:" + digest))
-        fixture["participant"] = "Fictional participant"
-        fixture["team"] = "Accounts Payable (fictional)"
-        fixture["department"] = "Finance (fictional)"
-        fixture["scope"] = "Fictional example"
-        graph = self.example_graph()
-        result = graph.submit(fixture)
-        # No provider or background analysis is run for this fixed sample.
-        with graph.lock, graph.db:
-            graph.db.execute("UPDATE jobs SET status='completed',error='' WHERE id=? AND status='pending'", (result["job_id"],))
-        result.pop("status_token", None)
-        result.update(status="completed", synthetic_example=True)
-        return result
-
     def validate_conversation_sources(self, payload):
         snapshot = payload.get('_conversation_document_snapshot')
         if not snapshot:
@@ -5538,17 +5620,19 @@ class InterviewServer(ThreadingHTTPServer):
             self._threads.join()
             if hasattr(self, "documents"):
                 self.documents.close()
-            if getattr(self, "example_knowledge", None):
-                self.example_knowledge.close()
             if graph is not None:
                 graph.close()
             super().server_close()
             self._closed_server = True
+            if hasattr(self, "trace"):
+                self.trace.emit("server.closed", {"port":self.server_port}, build=self.build_id)
+                self.trace.close()
 
 
 STATIC_FILES = {"/": ("index.html", "text/html; charset=utf-8"),
                  "/index.html": ("index.html", "text/html; charset=utf-8"),
                  "/theme.js": ("theme.js", "text/javascript; charset=utf-8"),
+                 "/raw-trace.js": ("raw-trace.js", "text/javascript; charset=utf-8"),
                  "/app.js": ("app.js", "text/javascript; charset=utf-8"),
                  "/workflow-exports.js": ("workflow-exports.js", "text/javascript; charset=utf-8"),
                  "/workflow-graph.js": ("workflow-graph.js", "text/javascript; charset=utf-8"),
@@ -5577,6 +5661,17 @@ STATIC_FILES = {"/": ("index.html", "text/html; charset=utf-8"),
                  "/assets/gpfs-logo.svg": ("assets/gpfs-logo.svg", "image/svg+xml"),
                  "/assets/gpfs-symbol.svg": ("assets/gpfs-symbol.svg", "image/svg+xml"),
                  "/style.css": ("style.css", "text/css; charset=utf-8")}
+
+
+TRACE_UUID = re.compile(r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
+TRACE_API_PATHS = {"/api/" + name for name in """
+config usage/check shutdown interview workflow draft transcribe voice-session live-session
+agent-team/interview agent-team/review agent-team/workflow agent-team/coverage agent-team/status agent-team/cancel
+conversation/turn conversation/status conversation/sync conversation/discard
+documents/session documents/upload documents/status documents/action documents/source documents/context
+knowledge/submit knowledge/status
+recovery/status recovery/setting recovery/load recovery/save recovery/discard
+""".split()}
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -5656,6 +5751,8 @@ class Handler(BaseHTTPRequestHandler):
             self.close_connection = True
             self.server.record_event("client_disconnected", status=status, error_type=type(error).__name__)
             return False
+        if getattr(self, "_traced_path", None) in STATIC_FILES:
+            raw_trace.emit("http.asset_write", {"path":self._traced_path, "status":status, "bytes":len(raw)})
         return True
 
     def _failed_request(self, stage, error, message):
@@ -5664,9 +5761,36 @@ class Handler(BaseHTTPRequestHandler):
                                  error_type=type(error).__name__, request_id=request_id)
         return self._json({"error": message, "request_id": request_id}, 500)
 
-    def _json(self, value, status=200):
-        raw = json.dumps(value, ensure_ascii=False).encode("utf-8")
-        return self._write_response(raw, "application/json; charset=utf-8", status)
+    def _json(self, value, status=200, *, ensure_ascii=False):
+        raw = json.dumps(value, ensure_ascii=ensure_ascii).encode("utf-8")
+        written = self._write_response(raw, "application/json; charset=utf-8", status)
+        if getattr(self, "_traced_path", None):
+            raw_trace.emit("http.response_write", {"path":self._traced_path, "status":status,
+                           "bytes":len(raw), "written":written, **self._trace_fields(value)})
+        return written
+
+    def _trace_fields(self, value):
+        # Recovery copies, capability responses and document bodies have their own retention boundary.
+        # Pick application fields explicitly: a restoration file can contain an unsent answer.
+        if not isinstance(value, dict):
+            return {}
+        route = self._traced_path
+        if route == "/api/transcribe":
+            return {"content_omitted":"transient_transcription"}
+        if route.startswith(("/api/recovery/", "/api/documents/", "/api/knowledge/")) or route == "/api/config":
+            keys = ("action", "enabled", "stored", "document_id", "submission_id", "revision", "job_id",
+                    "status", "base_revision", "latest_revision", "deleted", "scope_omitted", "code")
+        else:
+            keys = ("action", "turns", "context", "revision", "question", "request_review", "sync_required",
+                    "completion", "closure", "workflow", "draft", "memo_findings", "coverage", "summary",
+                    "focus", "parking_lot", "text", "status", "error", "code", "discarded", "capture_preserved")
+        return {"fields":{key:value[key] for key in keys if key in value}}
+
+    def _received_json(self, raw):
+        value = json.loads(raw.decode("utf-8"))
+        if getattr(self, "_traced_path", None):
+            raw_trace.emit("http.json_parsed", {"path":self._traced_path, "bytes":len(raw), **self._trace_fields(value)})
+        return value
 
     def _same_origin(self):
         port = self.server.server_port
@@ -5695,16 +5819,16 @@ class Handler(BaseHTTPRequestHandler):
         return bytes(raw)
 
     def _discard_rejected_body(self):
-        """Bound transport cleanup without interpreting an unauthorized body."""
+        """Bound transport cleanup without interpreting a rejected request."""
         self.close_connection = True
         if self.headers.get("Transfer-Encoding"):
             return
         try:
             size = int(self.headers.get("Content-Length", "0"))
             if 0 < size <= MAX_JSON:
-                # Unread POST bytes can reset a Windows socket before its 403
+                # Unread POST bytes can reset a Windows socket before its response
                 # reaches the browser. Never admit a large upload or let an
-                # unauthenticated slow sender retain this worker indefinitely.
+                # unrecognized or unauthorized request retain this worker indefinitely.
                 self._read_body(size, min(1.0, self.server.body_timeout))
         except (ValueError, OSError):
             # Missing bytes, a timeout or disconnect cannot authorize a request.
@@ -5741,7 +5865,37 @@ class Handler(BaseHTTPRequestHandler):
             except OSError:
                 pass
 
+    def _dispatch_observed(self, callback):
+        store = getattr(self.server, "trace", None)
+        if not isinstance(store, raw_trace.TraceStore) or not store.enabled:
+            return callback()
+        path = urlsplit(self.path).path
+        if path == "/api/trace/events":
+            return callback()
+        # Unknown paths, query strings and headers can contain arbitrary credentials.
+        label = path if path in STATIC_FILES or path in TRACE_API_PATHS else "unrecognized"
+        context = {"build":self.server.build_id, "operation_id":uuid.uuid4().hex}
+        if self._same_origin():
+            for header, field in (("X-Trace-Operation","operation_id"), ("X-Trace-Producer","tab_id"),
+                                  ("X-Trace-Interview","interview_id")):
+                value = self.headers.get(header, "")
+                if TRACE_UUID.fullmatch(value):
+                    context[field] = value
+            turn = self.headers.get("X-Trace-Turn", "")
+            if re.fullmatch(r"t[0-9]{1,8}", turn):
+                context["turn_id"] = turn
+        self._traced_path = label
+        try:
+            with raw_trace.bind(store, **context):
+                raw_trace.emit("http.received", {"path":label, "method":self.command})
+                return callback()
+        finally:
+            self._traced_path = None
+
     def do_GET(self):
+        return self._dispatch_observed(self._get)
+
+    def _get(self):
         if not self._same_origin():
             public_navigation = (self.path in ("/", "/index.html")
                                  and self.headers.get("Sec-Fetch-Mode") == "navigate"
@@ -5754,6 +5908,11 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/config":
             client = self.server.client
             config = dict(client.public_config())
+            config["raw_trace"] = {**self.server.trace.status(), "app_run_id":self.server.trace.run_id}
+            if self.server.trace.content:
+                config["data_notice"] = ("Developer tracing is enabled on this computer. It saves interview wording, "
+                    "model prompts, replies and application events in private local logs as you work. "
+                    + config.get("data_notice", ""))
             if isinstance(client, OpenAIClient):
                 config["usage"] = client.usage.summary(provider_usage.interview_id(self.headers.get("X-Interview-Id")))
             if time.monotonic() - self.server._last_build_check >= 5:
@@ -5774,18 +5933,14 @@ class Handler(BaseHTTPRequestHandler):
             # build, release_commit, release_staged_at: which code this is (Settings, saved files, exports).
             config.update(getattr(self.server, "release", {}))
             if hasattr(self.server, "knowledge_auth"):
-                config["revisions_available"] = bool(self.server.knowledge_auth.admin(self) or self.server.knowledge_auth.submitter(self))
-            # Why Assets, or Submit process and Admin, are off: a saved store was damaged at start-up.
+                auth = self.server.knowledge_auth
+                config["revisions_available"] = bool(auth.revision_owner(self) or auth.submitter(self))
+            # Why Assets or Submit process is off: a saved store was damaged at start-up.
             config.update({name + "_unavailable": problem for name, problem in storage_problems.items()})
             config['concurrent_interview'] = {'enabled': self.server.conversation is not None}
             # Whether the optional recovery copy is on and whether one is stored; never its content.
             config["recovery"] = self.server.recovery.public_state()
-            identity = self.server.knowledge_auth.admin(self)
             config["knowledge_submit_max_bytes"] = MAX_KNOWLEDGE_SUBMIT
-            config["knowledge_admin_enabled"] = bool(identity)
-            config["knowledge_admin_mode"] = "Local owner development mode" if identity == "local-owner" else ("Trusted administrator" if identity else "")
-            # Whether an administrator of this computer can delete a submitted process (the Submit dialog says which).
-            config["knowledge_delete_enabled"] = self.server.knowledge_auth.delete_enabled
             return self._json(config)
         files = STATIC_FILES
         if path not in files:
@@ -5874,6 +6029,9 @@ class Handler(BaseHTTPRequestHandler):
         return result
 
     def do_POST(self):
+        return self._dispatch_observed(self._post)
+
+    def _post(self):
         self._body_declared, self._body_received = self._declared_body(), 0
         token = self.headers.get("X-CSRF-Token", "")
         if not self._same_origin() or not token.isascii() or not secrets.compare_digest(token, self.server.csrf_token):
@@ -5888,6 +6046,8 @@ class Handler(BaseHTTPRequestHandler):
         if len(lengths) != 1 or not re.fullmatch(r"[0-9]{1,12}", lengths[0]):
             return self._json({"error": "Invalid Content-Length."}, 400)
         path = urlsplit(self.path).path
+        if path == "/api/trace/events":
+            return self._browser_trace(int(lengths[0]))
         label = provider_usage.interview_id(self.headers.get("X-Interview-Id"))
         provider_usage.active_interview.set(label)
         if path == "/api/usage/check" and isinstance(self.server.client, OpenAIClient):
@@ -5934,8 +6094,9 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json({"error": "This endpoint requires JSON."}, 415)
             if path == "/api/transcribe":
                 payload = raw
+                raw_trace.emit("http.audio_read", {"bytes":len(raw), "content_omitted":"recorded_audio"})
             else:
-                payload = json.loads(raw.decode("utf-8"))
+                payload = self._received_json(raw)
             if path == "/api/conversation/discard":
                 if not isinstance(payload, dict) or not payload or set(payload) - {"conversation_token", "document_scope"}:
                     raise ValueError("Provide the conversation or document workspace to stop.")
@@ -6162,16 +6323,48 @@ class Handler(BaseHTTPRequestHandler):
         except Exception as error:
             self._failed_request("interview_request", error, "The request could not be completed. Your browser session is retained.")
 
+    def _browser_trace(self, size):
+        if self.headers.get("Transfer-Encoding") or not 0 < size <= 262144:
+            return self._json({"error":"Trace batch exceeds its limit."}, 413)
+        if self.headers.get("Content-Type", "").split(";", 1)[0].strip() != "application/json":
+            return self._json({"error":"Trace batches require JSON."}, 415)
+        try:
+            batch = json.loads(self._read_body(size, self.server.body_timeout))
+            if not isinstance(batch, dict) or not isinstance(batch.get("producer_id"), str) or not TRACE_UUID.fullmatch(batch["producer_id"]):
+                raise ValueError
+            events = batch.get("events")
+            if not isinstance(events, list) or not 1 <= len(events) <= 64:
+                raise ValueError
+            valid = []
+            for row in events:
+                if not isinstance(row, dict) or set(row) - {"type", "seq", "at", "payload", "interview_id", "turn_id", "operation_id"}:
+                    raise ValueError
+                if (not isinstance(row.get("type"), str) or not re.fullmatch(r"[a-z][a-z0-9_.]{0,79}", row["type"])
+                        or type(row.get("seq")) is not int or not 1 <= row["seq"] <= 2**53-1
+                        or not isinstance(row.get("at"), str) or not re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z", row["at"])
+                        or not isinstance(row.get("payload"), dict)):
+                    raise ValueError
+                context = {"producer":"browser", "producer_id":batch["producer_id"], "source_sequence":row["seq"],
+                           "observed_at":row["at"], "build":self.server.build_id}
+                for key in ("operation_id", "interview_id", "turn_id"):
+                    value = row.get(key)
+                    if value is not None:
+                        if not isinstance(value, str) or not (re.fullmatch(r"[A-Za-z0-9_-]{1,80}", value) if key == "turn_id" else TRACE_UUID.fullmatch(value)):
+                            raise ValueError
+                        context[key] = value
+                valid.append((row, context))
+        except (ValueError, RecursionError, TimeoutError, UnicodeError):
+            return self._json({"error":"Invalid trace batch."}, 400)
+        accepted = 0
+        for row, context in valid:
+            if self.server.trace.emit("browser." + row["type"], row["payload"], **context):
+                accepted += 1
+        return self._json({"accepted":accepted, "received":len(valid)})
+
     def _knowledge(self, path):
-        routes = {"/api/knowledge/submit", "/api/knowledge/status", "/api/knowledge/admin/snapshot", "/api/knowledge/admin/example",
-                  "/api/knowledge/admin/browse", "/api/knowledge/admin/detail", "/api/knowledge/admin/history", "/api/knowledge/admin/graph",
-                  "/api/knowledge/admin/review", "/api/knowledge/admin/retry", "/api/knowledge/admin/delete",
-                  "/api/knowledge/admin/document-source", "/api/knowledge/admin/canonical-create",
-                  "/api/knowledge/admin/canonical-update"}
-        if path not in routes:
+        if path not in {"/api/knowledge/submit", "/api/knowledge/status"}:
+            self._discard_rejected_body()
             return self._json({"error": "Not found."}, 404)
-        principal = self.server.knowledge_auth.admin(self)
-        denied = path.startswith("/api/knowledge/admin/") and not principal
         # Set once a submission is known not to be a retry of a stored one. A refusal after that point
         # says not_saved when no record exists under its submission key, so the browser can release an
         # attempt it could not confirm earlier instead of offering to recover it for ever.
@@ -6195,226 +6388,133 @@ class Handler(BaseHTTPRequestHandler):
             if self.headers.get("Content-Type", "").split(";", 1)[0].strip() != "application/json":
                 return self._json({"error": "This endpoint requires JSON."}, 415)
             raw = self._read_body(size, self.server.body_timeout)
-            # Consume the already bounded, same-origin request body before a
-            # denial. Closing with unread POST bytes can reset Windows sockets
-            # before the browser receives the 403. No JSON or graph operation is
-            # processed until the authorization check succeeds.
-            if denied:
-                return self._json({"error": "Administrator access is unavailable."}, 403)
-            payload = json.loads(raw.decode("utf-8"))
+            payload = self._received_json(raw)
             if not isinstance(payload, dict):
                 raise ValueError("A knowledge request object is required.")
-            example_mode = payload.get("example", False)
-            if type(example_mode) is not bool:
-                raise ValueError("Choose either the example or the live store with a boolean example flag.")
-            example_marker = {"synthetic_example": True} if example_mode else {}
-            if path == "/api/knowledge/admin/example" or example_mode:
-                # Demo data is accessible only through explicitly configured
-                # localhost owner mode, never an untrusted browser role claim.
-                if not (principal == "local-owner" and self.server.knowledge_auth.local_owner):
-                    return self._json({"error": "The synthetic example is available only in local-owner development mode."}, 403)
-                if not path.startswith("/api/knowledge/admin/"):
-                    return self._json({"error": "The synthetic graph is administrative only."}, 403)
-                if path == "/api/knowledge/admin/example":
-                    return self._json(self.server.seed_example())
-                graph = self.server.example_graph()
-            else:
-                graph = self.server.knowledge
-            if path.endswith("/status"):
+            if payload.get("example", False) is not False or payload.get("synthetic_example") is True:
+                return self._json({"error": "The fictional example cannot be filed or tracked as a real submission."}, 400)
+            graph = self.server.knowledge
+            if not submitting:
                 submission_id = bounded_text(payload.get("submission_id", ""), "Submission ID", 100, True)
                 revision = payload.get("revision")
                 if not isinstance(revision, int) or isinstance(revision, bool) or revision < 1:
                     raise ValueError("Choose the submission revision.")
                 status_token = bounded_text(payload.get("status_token", ""), "Status token", 200, True)
                 return self._json(graph.status(submission_id, revision, status_token))
-            if path.endswith("/submit"):
-                if payload.get("synthetic_example") is True:
-                    return self._json({"error": "The fictional example is kept separate from real submissions. Open Admin while the example is active."}, 400)
-                payload = strip_knowledge_capabilities(payload)
-                # Client claims are never authenticated submitter identities.
-                for key in ("submitter", "authenticated_submitter", "principal", "reviewer", "role",
-                            "status_token", "knowledge_status_token", "knowledge_status", "intent_digest",
-                            "document_evidence", "_supporting_documents", "supporting_documents"):
-                    payload.pop(key, None)
-                # Keep unsent answers out of the submission. The document-scope
-                # capability is stored separately, not in public graph records.
-                payload.pop("unsent_answer", None)
-                payload.pop("document_scope", None)
-                # Which revision the submitting copy was filed as, and the newer one its submitter has
-                # confirmed it may replace. They guard the revision number and are not stored.
-                revisions = {}
-                for key in ("base_revision", "acknowledged_revision"):
-                    value = payload.pop(key, None)
-                    if value is not None and (not isinstance(value, int) or isinstance(value, bool) or value < 0):
-                        raise ValueError("Choose the revision this copy is based on.")
-                    revisions[key] = value
-                submitter = self.server.knowledge_auth.submitter(self)
-                process_id = payload.get("process_id")
-                if process_id:
-                    process_id = bounded_text(process_id, "Process ID", 100, True)
-                # Bind recovery to the sanitized original request, including its
-                # private document scope, before current file metadata can drift.
-                # The digest is server-owned and is never taken from JSON fields.
-                intent = dict(payload)
-                intent.pop("saved_at", None)
-                try:
-                    intent_digest = hashlib.sha256(json.dumps(intent,ensure_ascii=False,sort_keys=True,separators=(",",":"),allow_nan=False).encode("utf-8")).hexdigest()
-                except (TypeError, ValueError):
-                    raise ValueError("Submission must contain finite JSON data.") from None
-                # Recovery comes before the revision check: it returns only the receipt of this exact
-                # request (same key, same principal, same server-computed digest), so a submission that
-                # was stored always gets its receipt back, whatever has changed since.
-                recovered = graph.recover_submission(payload.get("submission_key"),intent_digest,principal=submitter)
-                if recovered is not None:
-                    return self._json(recovered,202)
-                submission_key = payload.get("submission_key")
-                unsaved = lambda: graph.submission_unsaved(submission_key)
-                if process_id and not (principal or (submitter and graph.can_revise(process_id, submitter))):
-                    return self._json({"error": "Revisions require a verified owner or administrator.", **self._not_saved(unsaved)}, 403)
-                supplied = payload.get("documents")
-                document_scope = None
-                document_evidence = []
-                cited_document_sources = set(prior_document_source_ids({"previous_capture": payload}))
-                hydrated_sources = set()
-                scope_files = {}
-                if supplied is not None:
-                    reading_files = True
-                    if not isinstance(supplied, dict) or not isinstance(supplied.get("documents", []), list):
-                        raise ValueError("Invalid document references.")
-                    requested = supplied.get("documents", [])
-                    if len(requested) > documents.MAX_FILES_PER_SCOPE:
-                        raise ValueError("Too many document references.")
-                    references = []
-                    if requested:
-                        document_scope = supplied.get("scope")
-                        for item in requested:
-                            if not isinstance(item, dict):
-                                raise ValueError("Invalid document reference.")
-                            document_id = bounded_text(item.get("id", ""), "Document ID", 100, True)
-                            try:
-                                record = self.server.documents_store.get(document_scope, document_id)
-                            except documents.UnknownDocumentScope:
-                                # A saved interview opened where its files are not: say so, and what to do.
-                                return self._json({"code": "document_scope_unavailable",
-                                                   "error": WORKSPACE_UNAVAILABLE_FOR_SUBMIT}, 403)
-                            # A file that was removed or saved for later is not one of this submission's
-                            # files: it gets no manifest entry, so company knowledge cannot read it for
-                            # matching, proposals or Admin. Citations an existing capture kept to it are
-                            # hydrated below as saved excerpts.
-                            if (record.get("archived") or record.get("status") not in ("ready", "partial")
-                                    or (record.get("analysis") or {}).get("disposition") in ("parked", "needs_reason")):
+            payload = strip_knowledge_capabilities(payload)
+            # Client claims are never authenticated submitter identities.
+            for key in ("submitter", "authenticated_submitter", "principal", "reviewer", "role",
+                        "status_token", "knowledge_status_token", "knowledge_status", "intent_digest",
+                        "document_evidence", "_supporting_documents", "supporting_documents"):
+                payload.pop(key, None)
+            # Keep unsent answers out of the submission. The document-scope
+            # capability is stored separately, not in public graph records.
+            payload.pop("unsent_answer", None)
+            payload.pop("document_scope", None)
+            # Which revision the submitting copy was filed as, and the newer one its submitter has
+            # confirmed it may replace. They guard the revision number and are not stored.
+            revisions = {}
+            for key in ("base_revision", "acknowledged_revision"):
+                value = payload.pop(key, None)
+                if value is not None and (not isinstance(value, int) or isinstance(value, bool) or value < 0):
+                    raise ValueError("Choose the revision this copy is based on.")
+                revisions[key] = value
+            submitter = self.server.knowledge_auth.submitter(self)
+            process_id = payload.get("process_id")
+            if process_id:
+                process_id = bounded_text(process_id, "Process ID", 100, True)
+            # Bind recovery to the sanitized original request, including its
+            # private document scope, before current file metadata can drift.
+            # The digest is server-owned and is never taken from JSON fields.
+            intent = dict(payload)
+            intent.pop("saved_at", None)
+            try:
+                intent_digest = hashlib.sha256(json.dumps(intent,ensure_ascii=False,sort_keys=True,separators=(",",":"),allow_nan=False).encode("utf-8")).hexdigest()
+            except (TypeError, ValueError):
+                raise ValueError("Submission must contain finite JSON data.") from None
+            # Recovery comes before the revision check: it returns only the receipt of this exact
+            # request (same key, same principal, same server-computed digest), so a submission that
+            # was stored always gets its receipt back, whatever has changed since.
+            recovered = graph.recover_submission(payload.get("submission_key"),intent_digest,principal=submitter)
+            if recovered is not None:
+                return self._json(recovered,202)
+            submission_key = payload.get("submission_key")
+            unsaved = lambda: graph.submission_unsaved(submission_key)
+            if process_id and not (self.server.knowledge_auth.revision_owner(self)
+                                   or (submitter and graph.can_revise(process_id, submitter))):
+                return self._json({"error": "Revisions require a verified owner or administrator.", **self._not_saved(unsaved)}, 403)
+            supplied = payload.get("documents")
+            document_scope = None
+            document_evidence = []
+            cited_document_sources = set(prior_document_source_ids({"previous_capture": payload}))
+            hydrated_sources = set()
+            scope_files = {}
+            if supplied is not None:
+                reading_files = True
+                if not isinstance(supplied, dict) or not isinstance(supplied.get("documents", []), list):
+                    raise ValueError("Invalid document references.")
+                requested = supplied.get("documents", [])
+                if len(requested) > documents.MAX_FILES_PER_SCOPE:
+                    raise ValueError("Too many document references.")
+                references = []
+                if requested:
+                    document_scope = supplied.get("scope")
+                    for item in requested:
+                        if not isinstance(item, dict):
+                            raise ValueError("Invalid document reference.")
+                        document_id = bounded_text(item.get("id", ""), "Document ID", 100, True)
+                        try:
+                            record = self.server.documents_store.get(document_scope, document_id)
+                        except documents.UnknownDocumentScope:
+                            # A saved interview opened where its files are not: say so, and what to do.
+                            return self._json({"code": "document_scope_unavailable",
+                                               "error": WORKSPACE_UNAVAILABLE_FOR_SUBMIT}, 403)
+                        # A file that was removed or saved for later is not one of this submission's
+                        # files: it gets no manifest entry, so company knowledge cannot read it for
+                        # matching or proposals. Citations an existing capture kept to it are
+                        # hydrated below as saved excerpts.
+                        if (record.get("archived") or record.get("status") not in ("ready", "partial")
+                                or (record.get("analysis") or {}).get("disposition") in ("parked", "needs_reason")):
+                            continue
+                        reference = {key: record[key] for key in ("id", "name", "kind", "size", "sha256") if key in record}
+                        sources = []
+                        for candidate in (record.get("analysis") or {}).get("sources", [])[:30]:
+                            if not isinstance(candidate, dict) or not isinstance(candidate.get("source_id"), str):
                                 continue
-                            reference = {key: record[key] for key in ("id", "name", "kind", "size", "sha256") if key in record}
-                            sources = []
-                            for candidate in (record.get("analysis") or {}).get("sources", [])[:30]:
-                                if not isinstance(candidate, dict) or not isinstance(candidate.get("source_id"), str):
-                                    continue
-                                try:
-                                    source = self.server.documents.source(document_scope, document_id, candidate["source_id"])
-                                except (PermissionError, ValueError):
-                                    continue
-                                sources.append({"source_id": source["id"], "label": source["label"]})
-                            cited = [source_id for source_id in cited_document_sources if source_id.startswith(document_id + "_")]
-                            excerpts = []
-                            for source_id in sorted(cited):
-                                try:
-                                    source = self.server.documents.source(document_scope, document_id, source_id)
-                                except PermissionError:
-                                    continue  # Not in the file as it is now; refused below with the parts that cite it.
-                                excerpts.append(source)
-                                if not any(item["source_id"] == source_id for item in sources):
-                                    sources.append({"source_id": source_id, "label": source["label"]})
-                            catalog = document_evidence_catalog({"documents": [{"id": document_id, "name": record["name"], "excerpts": excerpts}]})
-                            document_evidence.extend(catalog)
-                            hydrated_sources.update(source["id"] for source in catalog)
-                            reference["sources"] = sources
-                            references.append(reference)
-                    saved, retained_files, scope_files = retained_document_evidence(
-                        self.server.documents_store, supplied.get("scope"), cited_document_sources - hydrated_sources)
-                    if saved:
-                        document_scope = supplied.get("scope")
-                        document_evidence.extend(saved)
-                    payload["documents"] = {"documents": references, **({"retained": retained_files} if retained_files else {})}
-                    reading_files = False
-                check_document_citations(payload, document_evidence, scope_files,
-                                         (lambda: graph.filed_document_sources(process_id)) if process_id else None)
-                payload["filed_with"] = {"app_version": VERSION, "app_build": self.server.release["build"]}
-                return self._json(graph.submit(payload, principal=submitter, document_scope=document_scope,
-                                               intent_digest=intent_digest, document_evidence=document_evidence,
-                                               **{key: value for key, value in revisions.items()
-                                                  if process_id and value is not None}), 202)
-            if path.endswith("/snapshot"):
-                return self._json({"error":"This Admin view needs an update. Save your interview, then reload to use paged records and details."},409)
-            if path.endswith("/browse"):
-                result = graph.admin_browse(payload.get("section","overview"),payload.get("filters"),offset=payload.get("offset",0),limit=payload.get("limit",25))
-            elif path.endswith("/detail"):
-                result = graph.admin_detail(payload.get("kind"),payload.get("id"),revision=payload.get("revision"))
-            elif path.endswith("/history"):
-                result = graph.admin_history(payload.get("kind"),payload.get("id"),offset=payload.get("offset",0),limit=payload.get("limit",25))
-            elif path.endswith("/graph"):
-                result = graph.admin_graph(payload.get("filters"),payload.get("level","overview"),submission_id=payload.get("submission_id"))
-            else:
-                result = None
-            if result is not None:
-                if example_mode:
-                    result["synthetic_example"] = True
-                    result["analysis_limitations"] = ("Fictional demonstration data in separate local storage. "
-                        "No AI analysis was run; relationships are the reported example workflow.")
-                return self._json(result)
-            if path.endswith("/canonical-create"):
-                label = bounded_text(payload.get("label", ""), "Canonical label", 1000, True)
-                reason = bounded_text(payload.get("reason", ""), "Review reason", 3000, True)
-                entities = payload.get("entity_ids")
-                if not isinstance(entities, list) or not 2 <= len(entities) <= 100:
-                    raise ValueError("Choose between 2 and 100 entities.")
-                entity_ids = [bounded_text(item, "Entity ID", 100, True) for item in entities]
-                return self._json({**graph.canonical_create(label, entity_ids, principal, reason,bounded_result=True), **example_marker})
-            if path.endswith("/canonical-update"):
-                canonical_id = bounded_text(payload.get("canonical_id", ""), "Canonical ID", 100, True)
-                action = bounded_text(payload.get("action", ""), "Canonical action", 80, True)
-                value = bounded_text(payload.get("value", ""), "Canonical value", 1000, True)
-                reason = bounded_text(payload.get("reason", ""), "Review reason", 3000, True)
-                revision = payload.get("expected_revision")
-                if not isinstance(revision, int) or isinstance(revision, bool) or revision < 1:
-                    raise ValueError("Choose the canonical grouping revision you reviewed.")
-                return self._json({**graph.canonical_update(canonical_id, action, value, principal, reason, revision,bounded_result=True), **example_marker})
-            if path.endswith("/document-source"):
-                submission_id = bounded_text(payload.get("submission_id", ""), "Submission ID", 100, True)
-                revision = payload.get("revision")
-                if not isinstance(revision, int) or isinstance(revision, bool) or revision < 1:
-                    raise ValueError("Choose the submission revision.")
-                document_id = bounded_text(payload.get("document_id", ""), "Document ID", 100, True)
-                source_id = bounded_text(payload.get("source_id", ""), "Source ID", 200, True)
-                graph.document_scope(submission_id, revision, document_id)
-                return self._json({"source": graph.document_source(submission_id, revision, document_id, source_id), **example_marker})
-            if path.endswith("/delete"):
-                # Removes one submitted process with every revision (KnowledgeGraph.delete_submission).
-                # An administrator, the owner's switch, the latest revision as shown and a typed word.
-                if example_mode:
-                    raise ValueError("The fictional example is not deleted from here.")
-                if not self.server.knowledge_auth.delete_enabled:
-                    return self._json({"error": "Deleting a submitted process is not enabled on this computer."}, 403)
-                submission_id = bounded_text(payload.get("submission_id", ""), "Submission ID", 100, True)
-                revision = payload.get("expected_revision")
-                if not isinstance(revision, int) or isinstance(revision, bool) or revision < 1:
-                    raise ValueError("Choose the latest revision you reviewed.")
-                reason = bounded_text(payload.get("reason", ""), "Reason for the deletion", 3000, True)
-                if payload.get("confirm") != "DELETE":
-                    raise ValueError("Type DELETE to confirm that this process and every revision of it are removed.")
-                return self._json(graph.delete_submission(submission_id, principal, reason, revision))
-            if path.endswith("/review"):
-                proposal = bounded_text(payload.get("proposal_id", ""), "Proposal ID", 100, True)
-                action = bounded_text(payload.get("action", ""), "Review action", 80, True)
-                reason = bounded_text(payload.get("reason", ""), "Review reason", 3000)
-                revision = payload.get("expected_revision")
-                if not isinstance(revision, int) or isinstance(revision, bool) or revision < 1:
-                    raise ValueError("Choose the proposal revision you reviewed.")
-                side = payload.get("side")
-                if side is not None:
-                    side = bounded_text(side, "Review side", 40)
-                return self._json({**graph.review(proposal, action, principal, reason, revision, side=side,bounded_result=True), **example_marker})
-            job = bounded_text(payload.get("job_id", ""), "Job ID", 100, True)
-            return self._json({**graph.retry(job), **example_marker})
+                            try:
+                                source = self.server.documents.source(document_scope, document_id, candidate["source_id"])
+                            except (PermissionError, ValueError):
+                                continue
+                            sources.append({"source_id": source["id"], "label": source["label"]})
+                        cited = [source_id for source_id in cited_document_sources if source_id.startswith(document_id + "_")]
+                        excerpts = []
+                        for source_id in sorted(cited):
+                            try:
+                                source = self.server.documents.source(document_scope, document_id, source_id)
+                            except PermissionError:
+                                continue  # Not in the file as it is now; refused below with the parts that cite it.
+                            excerpts.append(source)
+                            if not any(item["source_id"] == source_id for item in sources):
+                                sources.append({"source_id": source_id, "label": source["label"]})
+                        catalog = document_evidence_catalog({"documents": [{"id": document_id, "name": record["name"], "excerpts": excerpts}]})
+                        document_evidence.extend(catalog)
+                        hydrated_sources.update(source["id"] for source in catalog)
+                        reference["sources"] = sources
+                        references.append(reference)
+                saved, retained_files, scope_files = retained_document_evidence(
+                    self.server.documents_store, supplied.get("scope"), cited_document_sources - hydrated_sources)
+                if saved:
+                    document_scope = supplied.get("scope")
+                    document_evidence.extend(saved)
+                payload["documents"] = {"documents": references, **({"retained": retained_files} if retained_files else {})}
+                reading_files = False
+            check_document_citations(payload, document_evidence, scope_files,
+                                     (lambda: graph.filed_document_sources(process_id)) if process_id else None)
+            payload["filed_with"] = {"app_version": VERSION, "app_build": self.server.release["build"]}
+            return self._json(graph.submit(payload, principal=submitter, document_scope=document_scope,
+                                           intent_digest=intent_digest, document_evidence=document_evidence,
+                                           **{key: value for key, value in revisions.items()
+                                              if process_id and value is not None}), 202)
         except DocumentCitationError as error:
             # A refusal the submitter can act on: which file, which steps or notes, and what to do.
             self._json({"error": str(error), "code": "document_citations_unavailable", "citations": error.citations,
@@ -6470,7 +6570,7 @@ class Handler(BaseHTTPRequestHandler):
                                             "this app opens. Nothing was stored."}, 413)
             if self.headers.get("Content-Type", "").split(";", 1)[0].strip() != "application/json":
                 return self._json({"error": "This endpoint requires JSON."}, 415)
-            payload = json.loads(self._read_body(size, self.server.body_timeout).decode("utf-8"))
+            payload = self._received_json(self._read_body(size, self.server.body_timeout))
             if not isinstance(payload, dict):
                 raise ValueError("A recovery request object is required.")
             if path.endswith("/status"):
@@ -6487,7 +6587,7 @@ class Handler(BaseHTTPRequestHandler):
                 if draft is None:
                     return self._json({"error": "No recovery copy is stored on this computer."}, 404)
                 # Escaped, so half of a character pair in the stored text reaches the page as it was sent.
-                return self._write_response(json.dumps({"draft": draft}).encode("ascii"), "application/json; charset=utf-8")
+                return self._json({"draft":draft}, ensure_ascii=True)
             draft_id = bounded_text(draft_id, "Recovery copy ID", 80, True)
             if path.endswith("/discard"):
                 return self._json(store.discard(draft_id))
@@ -6545,13 +6645,14 @@ class Handler(BaseHTTPRequestHandler):
                 service = self.server.documents
                 if upload:
                     scope = self.headers.get("X-Document-Scope", "")
+                    raw_trace.emit("document.upload_read", {"bytes":len(raw), "content_omitted":"file_original"})
                     if hasattr(service, "attribute_scope") and provider_usage.active_interview.get():
                         service.attribute_scope(scope, provider_usage.active_interview.get())
                     return self._json({"document": service.upload(scope, name, raw)}, 202)
             finally:
                 if upload_slot:
                     upload_slot.release()
-            payload = json.loads(raw.decode("utf-8"))
+            payload = self._received_json(raw)
             if not isinstance(payload, dict):
                 raise ValueError("A document request object is required.")
             scope = payload.get("scope")
@@ -6653,11 +6754,14 @@ def main():
         raise SystemExit("AI Process Collector could not start: " + reason) from None
     url = f"http://127.0.0.1:{server.server_port}/"
     print(f"AI Process Collector {VERSION}: {url}", flush=True)
-    # Says what is kept: interviews only when the person turned the recovery copy on in the page.
+    # Explain the storage modes selected for this listener.
     kept = ("The recovery copy option is on: one copy of an unsaved interview is kept privately on this computer "
             "until it is saved, discarded or seven days old."
             if server.recovery.enabled() is True else
             "Interviews are not saved automatically (the recovery copy option in Settings is off).")
+    if getattr(getattr(server, "trace", None), "content", False) is True:
+        kept = ("Developer event logs retain interview wording, model exchanges and application events. "
+                + ("The recovery copy option is on." if server.recovery.enabled() else "The recovery copy option is off."))
     print("Bound to this computer only. Documents persist privately on this computer. " + kept
           + " Save the interview separately to retain its transcript.", flush=True)
     # A provider key that was discarded leaves a trace outside the page too: one fixed
@@ -6680,6 +6784,8 @@ def main():
         raise
     finally:
         try:
+            if getattr(server, "trace", None):
+                server.trace.emit("server.serve_loop_ended", {"reason":exit_reason, "error_type":exit_error})
             server.server_close()
         except BaseException as error:
             exit_reason, exit_error = "server_close_exception", type(error).__name__

@@ -78,20 +78,20 @@ async function check(name,fn){
   assert.ok(page.$("interview-settings").contains(page.document.activeElement),"Focus stays inside the open dialog");
  });
  await check("a dialog that rebuilds its own content does not lose the notice it is showing",async()=>{
-  // Admin, Submit and the source excerpt replace all their children when they render again.
-  const page=await open({expose:EXPOSE+",clearState"});const admin=page.$("knowledge-admin"),toast=page.$("global-notice"),home=toast.parentNode;
-  admin.showModal();page.t.notice("The example could not be added to Admin.",true);
-  assert.ok(admin.contains(toast));
-  admin.replaceChildren(page.document.createElement("section"));
+  // Submit and the source excerpt replace all their children when they render again.
+  const page=await open({expose:EXPOSE+",clearState"});const submit=page.$("knowledge-submit"),toast=page.$("global-notice"),home=toast.parentNode;
+  submit.showModal();page.t.notice("The submission could not be saved.",true);
+  assert.ok(submit.contains(toast));
+  submit.replaceChildren(page.document.createElement("section"));
   assert.equal(page.document.getElementById("global-notice"),null,"The rebuild dropped the notice from the page");
   // Anything that runs before the page has put it back still finds it: another notice, Start over.
-  page.t.notice("Saved to Admin.");
-  assert.ok(admin.contains(toast),"The next notice is shown in the dialog again");assert.equal(page.text("notice-text"),"Saved to Admin.");assert.equal(page.shown("global-notice"),true);
-  admin.replaceChildren(page.document.createElement("section"));
+  page.t.notice("Submission saved.");
+  assert.ok(submit.contains(toast),"The next notice is shown in the dialog again");assert.equal(page.text("notice-text"),"Submission saved.");assert.equal(page.shown("global-notice"),true);
+  submit.replaceChildren(page.document.createElement("section"));
   assert.doesNotThrow(()=>page.t.clearState(),"Start over does not depend on finding the notice by its id");
-  page.t.notice("Something failed.",true);admin.replaceChildren(page.document.createElement("section"));await page.flush();
-  assert.ok(admin.contains(toast),"A notice that is on screen is put back when the dialog rebuilds");assert.equal(page.shown("global-notice"),true);
-  admin.close();assert.equal(toast.parentNode,home,"and goes home when the dialog closes");assert.equal(page.shown("global-notice"),true);
+  page.t.notice("Something failed.",true);submit.replaceChildren(page.document.createElement("section"));await page.flush();
+  assert.ok(submit.contains(toast),"A notice that is on screen is put back when the dialog rebuilds");assert.equal(page.shown("global-notice"),true);
+  submit.close();assert.equal(toast.parentNode,home,"and goes home when the dialog closes");assert.equal(page.shown("global-notice"),true);
  });
  await check("with no dialog open the notice stays where it lives",async()=>{
   const page=await open({expose:EXPOSE});const toast=page.$("global-notice"),home=toast.parentNode,after=toast.nextSibling;

@@ -4,6 +4,7 @@ Candidates were the 30 most recent submissions, filtered by scope afterwards: a 
 than 30 other-scope submissions was never compared and the job still said 'completed'.
 Temporary SQLite; the analyzer is injected, no provider or network.
 """
+import knowledge_rows as rows
 import tempfile
 import unittest
 from pathlib import Path
@@ -17,7 +18,7 @@ spec.loader.exec_module(knowledge_ai)
 
 
 def wait_pending(graph, job):
-    return next(row for row in graph.admin_snapshot()['jobs'] if row['id'] == job)
+    return next(row for row in rows.jobs(graph) if row['id'] == job)
 
 
 class CandidateSelectionTests(unittest.TestCase):
@@ -109,8 +110,6 @@ class CandidateSelectionTests(unittest.TestCase):
         self.assertEqual(set(self.scopes()), {'Fund A'})
         self.assertEqual(self.seen[0].omitted, 3)
         self.assertEqual((row['detail']['candidates'], row['detail']['candidates_omitted']), (8, 3))
-        browsed = next(item for item in self.graph.admin_browse('jobs')['items'] if item['id'] == row['id'])
-        self.assertEqual(browsed['detail']['candidates_omitted'], 3, 'Admin can see that the comparison was partial')
         # The real adapter tells the model: before, the count came from the already trimmed list and was always 0.
         sent = []
         class Client:

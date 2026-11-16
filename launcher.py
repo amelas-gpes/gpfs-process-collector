@@ -117,7 +117,7 @@ def run_foreground(port, open_browser):
         sys.argv = original
 
 
-def main():
+def main(observe=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--stop", action="store_true")
     parser.add_argument("--no-browser", action="store_true")
@@ -126,8 +126,14 @@ def main():
     args = parser.parse_args()
     if not 1 <= args.port <= 65535:
         parser.error("--port must be between 1 and 65535.")
+    if observe:
+        observe("launcher.invoked", {"port":args.port, "stop":args.stop, "foreground":args.foreground,
+                                     "open_browser":not args.no_browser})
     url = f"http://127.0.0.1:{args.port}/"
     current = settled(url)
+    if observe:
+        observe("launcher.probe_returned", {"port":args.port, "state":"occupied" if current is OCCUPIED
+                                           else "collector" if current else "no_listener_observed"})
     if current is OCCUPIED:
         # Starting a second server here, or reporting that none is running, would both be wrong.
         raise SystemExit(f"Port {args.port} is in use, but what is listening there did not answer as AI Process Collector. "
@@ -143,6 +149,8 @@ def main():
                           headers={"X-CSRF-Token": current["csrf_token"], "Content-Type": "application/json", "Origin": url[:-1]})
         with build_opener(ProxyHandler({})).open(request, timeout=5) as response:
             json.load(response)
+            if observe:
+                observe("launcher.shutdown_response", {"port":args.port, "status":response.status})
         if not exited(current.get("server_pid"), 10):
             raise SystemExit("Shutdown requested. The server is still finishing work. Try starting again once it has exited.")
         for _ in range(30):
@@ -154,6 +162,10 @@ def main():
         # The optional recovery copy (Settings in the page) is the only other place an unsaved session can be.
         recovery = current.get("recovery") if isinstance(current.get("recovery"), dict) else {}
         kept = recovery.get("enabled") is True or recovery.get("stored") is True
+        if (current.get("raw_trace") or {}).get("content") is True:
+            print("AI Process Collector stopped. Developer event logs remain in the private work folder."
+                  + (" The local recovery copy may also be available." if kept else ""))
+            return
         print("AI Process Collector stopped. Unsaved sessions remain only in any open browser tab"
               + (", and in the recovery copy on this computer if one was being kept." if kept else "."))
         return
@@ -165,6 +177,8 @@ def main():
         # Tool-launched background children can be stopped when their short-lived
         # launch job closes. Keep an explicitly managed session open instead;
         # ordinary desktop starts retain their existing hidden-child behavior.
+        if observe:
+            observe("launcher.foreground_start", {"port":args.port})
         return run_foreground(args.port, not args.no_browser)
     if not current:
         log_path = WORK_DIR / "voice-interviewer-server.log"
@@ -185,6 +199,8 @@ def main():
                                        cwd=APP_DIR, stdin=subprocess.DEVNULL, stdout=log, stderr=log,
                                        creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0,
                                        start_new_session=sys.platform != "win32")
+            if observe:
+                observe("launcher.child_created", {"port":args.port, "pid":process.pid})
         deadline = time.monotonic() + 45
         for _ in range(300):
             current = config(url)
@@ -215,8 +231,26 @@ def main():
     else:
         print("AI Process Collector is already running at " + url + ". Stop and start it to apply changes to settings.")
     if not args.no_browser:
-        webbrowser.open(url)
+        opened = webbrowser.open(url)
+        if observe:
+            observe("launcher.browser_open_returned", {"result":opened})
 
 
 if __name__ == "__main__":
-    main()
+    # Use the application's settings parser, including its .env.local precedence.
+    # Launcher tracing must not change how a settings error is diagnosed by the child.
+    trace = None
+    try:
+        launcher_spec = importlib.util.spec_from_file_location("collector_launcher_server", APP_DIR / "server.py")
+        app = importlib.util.module_from_spec(launcher_spec)
+        sys.modules[launcher_spec.name] = app
+        launcher_spec.loader.exec_module(app)
+        trace = app.raw_trace.TraceStore(WORK_DIR, app.load_settings())
+    except (OSError, ValueError, ImportError):
+        pass
+    try:
+        main(trace.emit if trace else None)
+    finally:
+        if trace:
+            trace.emit("launcher.leaving", {"exception_type":type(sys.exception()).__name__ if sys.exception() else None})
+            trace.close()

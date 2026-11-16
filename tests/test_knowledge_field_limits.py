@@ -4,6 +4,7 @@ The editor allows 6,000 characters for a step's Input and Output and for each In
 the store refused anything above 1,000 with 'Invalid text field.' and reported more than 400 turns as a
 missing participant statement. Temporary SQLite and the real route; no analyzer, provider or network.
 """
+import knowledge_rows as rows
 import json
 import tempfile
 import threading
@@ -34,13 +35,13 @@ class FieldLimitTests(unittest.TestCase):
         self.temp.cleanup()
 
     def entities(self):
-        return self.graph.admin_snapshot()['entities']
+        return rows.entities(self.graph)
 
     def refused(self, body, message):
         with self.assertRaises(ValueError) as caught:
             self.graph.submit(body)
         self.assertEqual(str(caught.exception), message)
-        self.assertEqual(self.graph.admin_snapshot()['submissions'], [], 'A refused submission stores nothing')
+        self.assertEqual(rows.submissions(self.graph), [], 'A refused submission stores nothing')
 
     def test_step_input_and_output_up_to_the_editor_limit_are_accepted(self):
         self.assertGreater(len(LONG), 1000)

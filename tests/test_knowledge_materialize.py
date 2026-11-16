@@ -1,4 +1,5 @@
 """Which map a submitted process graph is built from. Offline SQLite; no analyzer, network or provider."""
+import knowledge_rows as rows
 import importlib.util
 import tempfile
 import unittest
@@ -28,9 +29,9 @@ class MaterializeSourceTests(unittest.TestCase):
         self.temp=tempfile.TemporaryDirectory();self.graph=kg.KnowledgeGraph(Path(self.temp.name)/'graph.db')
     def tearDown(self): self.graph.close();self.temp.cleanup()
     def stored(self,payload):
-        receipt=self.graph.submit(payload);snapshot=self.graph.admin_snapshot()
-        entities=[e for e in snapshot['entities'] if e['submission_id']==receipt['submission_id'] and e['revision']==receipt['revision']]
-        edges=[e for e in snapshot['edges'] if e['submission_id']==receipt['submission_id'] and e['revision']==receipt['revision']]
+        receipt=self.graph.submit(payload)
+        entities=[e for e in rows.entities(self.graph) if e['submission_id']==receipt['submission_id'] and e['revision']==receipt['revision']]
+        edges=[e for e in rows.edges(self.graph) if e['submission_id']==receipt['submission_id'] and e['revision']==receipt['revision']]
         steps={e['label']:e['data'] for e in entities if e['type'] in ('step','decision')}
         basis={e['type']:e['data'] for e in entities if e['type'] in ('process','process_version')}
         routes=[e['evidence'] for e in edges if e['type']=='happens_after']
@@ -54,8 +55,8 @@ class MaterializeSourceTests(unittest.TestCase):
         self.assert_from_draft(steps,routes,objects)
         for kind in ('process','process_version'):
             self.assertEqual(basis[kind],{'source':'draft','draft_stale':True,'draft_edited':True})
-        detail=self.graph.admin_detail('submission',receipt['submission_id'],receipt['revision'])['item']
-        self.assertEqual(detail['graph_source'],'draft');self.assertIs(detail['draft_stale'],True)
+        detail=self.graph._revision(receipt['submission_id'],receipt['revision'])
+        self.assertIs(detail['draft_stale'],True)
 
     def test_current_draft_is_materialized_and_its_state_is_recorded(self):
         for edited in (False,True):
@@ -63,15 +64,14 @@ class MaterializeSourceTests(unittest.TestCase):
                 receipt,steps,basis,routes,objects=self.stored(submission(draft_edited=edited))
                 self.assert_from_draft(steps,routes,objects)
                 self.assertEqual(basis['process'],{'source':'draft','draft_stale':False,'draft_edited':edited})
-                self.assertEqual(self.graph.admin_detail('submission',receipt['submission_id'],1)['item']['graph_source'],'draft')
+
 
     def test_unedited_stale_draft_still_yields_the_newer_working_map_and_says_so(self):
         receipt,steps,basis,routes,objects=self.stored(submission(draft_stale=True))
         self.assert_from_working_map(steps,routes,objects)
         self.assertEqual(basis['process'],{'source':'workflow','draft_stale':True,'draft_edited':False})
         self.assertEqual(basis['process_version'],basis['process'])
-        detail=self.graph.admin_detail('submission',receipt['submission_id'],receipt['revision'])['item']
-        self.assertEqual(detail['graph_source'],'workflow')
+        detail=self.graph._revision(receipt['submission_id'],receipt['revision'])
         self.assertEqual(detail['draft']['steps'][0]['title'],'REVIEWER CORRECTED TITLE','The stored revision keeps the draft as submitted')
 
     def test_only_a_literal_true_counts_as_reviewer_edited(self):
@@ -88,7 +88,7 @@ class MaterializeSourceTests(unittest.TestCase):
                 receipt,steps,basis,routes,objects=self.stored(submission(draft_stale=True,workflow=working))
                 self.assert_from_draft(steps,routes,objects)
                 self.assertEqual(basis['process'],{'source':'draft','draft_stale':True,'draft_edited':False})
-                self.assertEqual(self.graph.admin_detail('submission',receipt['submission_id'],1)['item']['graph_source'],'draft')
+
 
     def test_reopened_and_resaved_file_keeps_the_reviewed_draft_in_the_graph(self):
         # Save copy, reopen under the earlier build (draft_stale becomes true), then Submit.
@@ -108,7 +108,7 @@ class MaterializeSourceTests(unittest.TestCase):
                 receipt,steps,basis,routes,objects=self.stored(submission(draft=draft))
                 self.assert_from_working_map(steps,routes,objects)
                 self.assertEqual(basis['process'],{'source':'workflow'})
-                self.assertEqual(self.graph.admin_detail('submission',receipt['submission_id'],1)['item']['graph_source'],'workflow')
+
 
 if __name__=='__main__':
     unittest.main()

@@ -26,7 +26,7 @@ const WAITING="Notes and the working map are still updating for your latest answ
 const MISSING=["Notes include 5 of 6 answers.","The working map includes 5 of 6 answers."];
 
 function setup(session={}){
-  const nodes={};for(const id of ["knowledge-submit","knowledge-admin","submit-process-menu","submit-process-review","open-knowledge-admin","session-menu","session-menu-toggle","interview-settings"])nodes[id]=new E("div");
+  const nodes={};for(const id of ["knowledge-submit","submit-process-menu","submit-process-review","session-menu","session-menu-toggle","interview-settings"])nodes[id]=new E("div");
   const calls=[],notices=[],timers=new Map();let keys=0,timerId=0;
   const env={window:{addEventListener(){},removeEventListener(){}},document:{getElementById:id=>nodes[id],createElement:tag=>new E(tag)},console,Date,JSON,
     setTimeout:(fn,ms)=>{timers.set(++timerId,{fn,ms});return timerId;},clearTimeout:id=>timers.delete(id),
@@ -259,7 +259,7 @@ await check("a reopened dialog says when the filed revision lacks newer answers"
 });
 
 await check("without a capture-state provider the dialog behaves as before",async()=>{
-  const nodes={};for(const id of ["knowledge-submit","knowledge-admin","submit-process-menu","submit-process-review","open-knowledge-admin","session-menu","session-menu-toggle","interview-settings"])nodes[id]=new E("div");
+  const nodes={};for(const id of ["knowledge-submit","submit-process-menu","submit-process-review","session-menu","session-menu-toggle","interview-settings"])nodes[id]=new E("div");
   const env={window:{addEventListener(){},removeEventListener(){}},document:{getElementById:id=>nodes[id],createElement:tag=>new E(tag)},console,Date,JSON,crypto:{randomUUID:()=>uuid(77).replace(/^0{8}/,"eeeeeeee")}};
   vm.runInNewContext(source,env,{filename:"knowledge-ui.js"});
   const sent=[];
@@ -399,7 +399,7 @@ await check("files that are no longer in use are named before their passages are
   assert.ok(line,"The dialog must say before submitting that passages of removed or saved-for-later files are stored");
   assert.match(line,/“returns-log\.csv” \(removed\)/);assert.match(line,/“salary-bands\.csv” \(saved for later\)/);
   assert.doesNotMatch(line,/policy\.pdf/,"A file in use is not listed");
-  assert.match(line,/stores those passages in company knowledge as saved excerpts, where administrators can read them/);
+  assert.match(line,/stores those passages in company knowledge as saved excerpts/);
   const choice=leaveOut(h);
   assert.ok(choice,"The submitter can leave those passages out");assert.equal(choice.type,"checkbox");assert.equal(choice.checked,false);
   await h.submit();
@@ -493,14 +493,14 @@ await check("files that can be filed as saved excerpts and files that cannot are
     document_evidence:[{id:"doc_old_p3_c1",document_id:"doc_old",name:"2024-procedure.pdf",retained_only:true,archived:true}]});h.open();
   const line=savedNotice(h);
   const [kept]=line.split(" This interview also cites ");
-  assert.match(kept,/^This interview cites passages of files that are no longer in use: .*\)\. Submitting stores those passages in company knowledge as saved excerpts, where administrators can read them\.$/);
+  assert.match(kept,/^This interview cites passages of files that are no longer in use: .*\)\. Submitting stores those passages in company knowledge as saved excerpts\.$/);
   assert.match(kept,/“returns-log\.csv” \(removed\)/);assert.match(kept,/“salary-bands\.csv” \(saved for later\)/);
   assert.match(line,/ This interview also cites passages of a file that is not among this interview’s files on this computer: “2024-procedure\.pdf”\. Those passages cannot be read here/);
   assert.equal(line.split("2024-procedure.pdf").length,2,"The unreadable file is named once, and not among the saved excerpts");
 });
 
 await check("without a file-workspace provider an unlisted file is not promised either",async()=>{
-  const nodes={};for(const id of ["knowledge-submit","knowledge-admin","submit-process-menu","submit-process-review","open-knowledge-admin","session-menu","session-menu-toggle","interview-settings"])nodes[id]=new E("div");
+  const nodes={};for(const id of ["knowledge-submit","submit-process-menu","submit-process-review","session-menu","session-menu-toggle","interview-settings"])nodes[id]=new E("div");
   const env={window:{addEventListener(){},removeEventListener(){}},document:{getElementById:id=>nodes[id],createElement:tag=>new E(tag)},console,Date,JSON,crypto:{randomUUID:()=>uuid(78).replace(/^0{8}/,"eeeeeeee")}};
   vm.runInNewContext(source,env,{filename:"knowledge-ui.js"});
   const controller=env.window.CollectorKnowledge.create({session:()=>({turns:[{id:"u1",role:"user",text:"An answer."}],...WITH_SAVED()}),notice(){},request:async()=>receipt(1)});

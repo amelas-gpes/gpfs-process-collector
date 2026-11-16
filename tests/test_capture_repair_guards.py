@@ -793,7 +793,10 @@ class CoordinatorRepairReviewTests(unittest.TestCase):
         findings, assessment = client.assess_coverage(client.findings, context, client.turns, {}, force=True,
                                                       allow_capture_repair=True, split=True, no_repair_topics=("checks", "risk"))
         calls = self.coverage_calls(client)
-        self.assertEqual(calls[-1], (["checks", "risk"], False, False), "One call for those sections, in the memo's order")
+        # Independent workers can dispatch in either order. The protected sections
+        # must still share exactly one call and keep the memo's order within it.
+        self.assertEqual([call for call in calls if "checks" in call[0] or "risk" in call[0]],
+                         [(["checks", "risk"], False, False)])
         self.assertEqual(len(calls), len(coverage.COVERAGE_REVIEW_GROUPS) + 1)
         self.assertEqual(sorted(key for topics, *_ in calls for key in topics), sorted(server.COVERAGE), "Every section exactly once")
         self.assertTrue(assessment["all_topics_covered"])

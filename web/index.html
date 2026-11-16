@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="/workflow-stage.css">
   <link rel="stylesheet" href="/component-library.css">
   <link rel="icon" href="/assets/gpfs-symbol.svg" type="image/svg+xml">
+  <script src="/raw-trace.js" defer></script>
   <script src="/workflow-exports.js" defer></script>
   <script src="/workflow-graph.js" defer></script>
   <script src="/workflow-components.js" defer></script>
@@ -72,6 +73,7 @@
             <button type="button" id="conversation-tab-workflow" role="tab" aria-selected="false" aria-controls="workflow-panel" tabindex="-1" data-conversation-view="workflow" data-icon="workflow">Workflow</button>
           </nav></div>
         </div>
+        <p id="developer-trace-notice" class="inline-error advisory" hidden>Developer content logging is on. This computer keeps a private trace of interview wording, prompts, model responses and app actions.</p>
         <section id="agent-team" class="agent-team" aria-label="Interview team"></section>
         <section id="document-intake-panel" class="document-intake-panel" aria-label="File review progress" hidden>
           <div class="document-intake-copy" role="status" aria-live="polite"><strong id="document-intake-title">Reading your files</strong><p id="document-intake-detail"></p></div>
@@ -302,7 +304,6 @@
     </form>
   </dialog>
 <dialog id="knowledge-submit" class="knowledge-dialog" aria-labelledby="knowledge-submit-title"></dialog>
-<dialog id="knowledge-admin" class="knowledge-dialog knowledge-admin" aria-labelledby="knowledge-admin-title"></dialog>
 <dialog id="interview-settings" class="interview-settings" aria-labelledby="settings-title">
   <header class="settings-heading"><h2 id="settings-title">Settings</h2><button type="button" class="button primary small" id="close-interview-settings">Done</button></header>
   <div class="settings-body">
@@ -356,6 +357,7 @@
         <p id="recovery-description">Off unless you turn it on. When it is on, one copy of the unsaved interview (transcript, notes, working map, draft and your unsent answer; never recordings) is written to this app’s private work folder a few seconds after each change, so a closed tab, a crash or a restart does not lose it. The copy stays on this computer. It is offered when the app next opens, and deleted after a confirmed Save copy, when you start over or open another interview, when you discard it, when you turn this off, and after seven days.</p>
         <p id="recovery-status" role="status"></p>
       </div>
+      <p id="recovery-trace-note" class="settings-fields" hidden>Developer content logging is active independently of recovery. Turning recovery off or discarding its copy leaves the local developer trace in place.</p>
       <p id="data-notice" class="settings-fields" tabindex="-1"></p>
       <p id="build-identity" class="settings-fields" hidden></p>
     </details>
@@ -371,7 +373,6 @@
         <p>Save copy downloads your interview. The Data handling section explains what stays on this computer and what goes to the AI service.</p>
       </div>
     </details>
-    <button type="button" id="open-knowledge-admin" class="text-button" data-icon="db" hidden>Company knowledge (admin)</button>
   </div>
 </dialog>
   <dialog id="memo-sheet" class="memo-sheet" aria-labelledby="memo-workspace-title"><button id="close-memo" class="dialog-close" aria-label="Close workspace"></button><div id="memo-sheet-body"></div></dialog>

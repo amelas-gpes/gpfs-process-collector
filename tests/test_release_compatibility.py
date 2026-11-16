@@ -1,5 +1,6 @@
 """Open frozen, fictional saves using the public store interfaces on this build."""
 
+import knowledge_rows as rows
 from contextlib import closing
 import hashlib
 from pathlib import Path
@@ -49,15 +50,15 @@ class ReleasedStores(unittest.TestCase):
                 restore_fixture(target, 'knowledge', version)
                 graph = knowledge_graph.KnowledgeGraph(target)
                 try:
-                    item = graph.admin_browse('submissions')['items'][0]
-                    original = graph.admin_detail('submission', item['submission_id'], 1)['item']
+                    item = rows.submissions(graph)[0]
+                    original = graph._revision(item['submission_id'], 1)
                     self.assertEqual(original['context']['process_name'], 'Compatibility test')
                     self.assertIn('fictional reviewer', original['turns'][0]['text'])
                     receipt = graph.submit({'process_id': item['process_id'], 'context': original['context'],
                                             'turns': original['turns'], 'draft': original['draft']}, base_revision=1)
                     self.assertEqual(receipt['revision'], 2)
                     self.assertEqual(graph.status(receipt['submission_id'], 2, receipt['status_token'])['status'], 'pending')
-                    self.assertEqual(graph.admin_detail('submission', item['submission_id'], 1)['item']['turns'], original['turns'])
+                    self.assertEqual(graph._revision(item['submission_id'], 1)['turns'], original['turns'])
                 finally:
                     graph.close()
 
@@ -76,7 +77,7 @@ class ReleasedStores(unittest.TestCase):
                 db.commit()
             graph = knowledge_graph.KnowledgeGraph(target)
             try:
-                self.assertEqual(graph.admin_browse('submissions')['page']['total'], 1)
+                self.assertEqual(len(rows.submissions(graph)), 1)
                 for table, columns in missing.items():
                     stored = {row[1] for row in graph.db.execute(f'PRAGMA table_info({table})')}
                     self.assertTrue(set(columns) <= stored)

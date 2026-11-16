@@ -1,11 +1,12 @@
 # Local HTTP interface
 
-The desktop window and browser use the same loopback HTTP service. GET `/api/config` returns capabilities, model aliases, build identity, available document types, local storage health and a per-server CSRF token. All POST routes require the current `X-CSRF-Token`, the matching localhost Host and a permitted Origin when present. State-changing requests require an explicit Content-Length. Readiness and administration are separate capabilities. The anonymous `X-Interview-Id` header attributes provider usage.
+The desktop window and browser use the same loopback HTTP service. GET `/api/config` returns capabilities, model aliases, build identity, available document types, local storage health and a per-server CSRF token. All POST routes require the current `X-CSRF-Token`, the matching localhost Host and a permitted Origin when present. State-changing requests require an explicit Content-Length. The anonymous `X-Interview-Id` header attributes provider usage.
 
 The interview snapshot contains `context` and `turns`. A turn carries a unique ID, role and text. A capture token, conversation token, review ticket, file scope or submission-status receipt is opaque. Keep it with its own interview. The service resolves source text from the local store and validates citations. A browser-supplied source label cannot grant access.
 
 | Method and path | Caller, input and result |
 | --- | --- |
+| POST `/api/trace/events` | The browser sends its tab UUID and 1–64 observations, with source sequence, timestamp, type, payload and optional correlation IDs. The 256 KiB batch limit, same-origin and CSRF checks apply. A 200 receipt gives `received` and `accepted` counts. Accepted means enqueued by the local writer. Per-run counters in `/api/config` report writes and detectable loss. [Trace schema and data boundaries](RAW_EVENT_TRACE.md). |
 | POST `/api/conversation/turn` | The interview sends a snapshot and action. Returns the immediate question or pause, a conversation token and capture progress. |
 | POST `/api/conversation/discard` | Stop queued analysis using the conversation token and pause file review using the document scope. Repeating a successful request is safe. |
 | POST `/api/conversation/status` | Poll the current conversation. Returns progress and available notes/map results for that revision. |
@@ -34,22 +35,10 @@ The interview snapshot contains `context` and `turns`. A turn carries a unique I
 | POST `/api/recovery/save` | Replace the local recovery copy for the interview ID with its validated session. |
 | POST `/api/recovery/load` | Retrieve the requested stored interview by its recovery ID. |
 | POST `/api/recovery/discard` | Discard the copy identified by the current recovery ID. |
-| POST `/api/knowledge/submit` | File a bounded snapshot as a new process or authorized revision. Returns an immutable revision and private status receipt. |
+| POST `/api/knowledge/submit` | File a bounded snapshot as a new process or authorized revision. Returns HTTP 202 with the filed revision number and private status receipt. |
 | POST `/api/knowledge/status` | Read the status associated with a valid submission, revision and receipt. |
-| POST `/api/knowledge/admin/browse` | Page through processes, entities, connections, canonical groups or jobs using bounded filters. |
-| POST `/api/knowledge/admin/detail` | Retrieve the requested item by kind and ID, with revision where applicable. |
-| POST `/api/knowledge/admin/history` | Read a page of changes or decisions for one item. |
-| POST `/api/knowledge/admin/graph` | Read a bounded graph with the selected filters and level of detail. |
-| POST `/api/knowledge/admin/snapshot` | Compatibility response for older cached clients. Returns 409 directing the client to refresh. |
-| POST `/api/knowledge/admin/example` | Open the isolated example knowledge workspace. |
-| POST `/api/knowledge/admin/review` | Record a review decision on a proposal at its expected review version, including reason when required. |
-| POST `/api/knowledge/admin/retry` | Retry an eligible matching job by ID. Returns its current job state. |
-| POST `/api/knowledge/admin/delete` | Delete the selected filed process under the local administrator's authority. |
-| POST `/api/knowledge/admin/document-source` | Read a referenced file excerpt belonging to the selected filed revision. |
-| POST `/api/knowledge/admin/canonical-create` | Create a canonical group from selected reported entities. |
-| POST `/api/knowledge/admin/canonical-update` | Update the selected canonical group with version checks. |
 | POST `/api/shutdown` | Local launcher requests orderly shutdown. The launcher verifies checkout and running process identity. |
 
 Successful operations normally return JSON with HTTP 200. Upload acceptance returns 202. Invalid shapes, stale state, unavailable services and oversized uploads return distinct errors. Common statuses include 400 for invalid inputs, 403 for rejected authorization, 404 for missing items, 409 for conflicting state, 413 for size, 415 for media type, 429 for local/provider limits and 503 for unavailable stores. Unexpected server failures return a correlation ID where available.
 
-Local-owner mode or a trusted server-side authorizer controls administration and revisions. A saved receipt permits its scoped status lookup. Example mode uses an isolated store. The current typed concurrent, document-analysis and agent-team flows depend on the built-in provider integration. A hosted adapter must implement and test the corresponding capabilities. [Admin pagination and response fields](ADMIN_API_CONTRACT.md) · [Data handling](DATA_HANDLING.md)
+Local-owner mode or a trusted server-side authorizer controls revision access. A saved receipt permits a status lookup for its specific filed revision. The typed concurrent, document-analysis and agent-team flows depend on the built-in provider integration. A hosted adapter must implement and test the corresponding capabilities. [Data handling](DATA_HANDLING.md)

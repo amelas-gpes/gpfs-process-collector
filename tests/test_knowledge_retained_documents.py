@@ -5,6 +5,7 @@ provenance, never reads those files again for matching or proposals, refuses the
 of a part of a new process, and says which file and which parts are affected when it refuses.
 Loopback HTTP and temporary SQLite only; the matching provider is a recording stand-in.
 """
+import knowledge_rows as rows
 import importlib.util
 import json
 import tempfile
@@ -99,10 +100,11 @@ class RetainedDocumentCase(unittest.TestCase):
         return body
 
     def detail(self, receipt):
-        return self.httpd.knowledge.admin_detail('submission', receipt['submission_id'], receipt['revision'])['item']
+        with self.httpd.knowledge.lock:
+            return self.httpd.knowledge._revision(receipt['submission_id'], receipt['revision'])
 
     def stored(self):
-        return self.httpd.knowledge.admin_browse('submissions')['items']
+        return rows.submissions(self.httpd.knowledge)
 
     def finished(self, receipt):
         for _ in range(1500):
@@ -114,7 +116,7 @@ class RetainedDocumentCase(unittest.TestCase):
 
     def dropped(self, receipt):
         """How many proposals of that job the validator refused (they are dropped, the job completes)."""
-        job = next(item for item in self.httpd.knowledge.admin_browse('jobs')['items'] if item['id'] == receipt['job_id'])
+        job = next(item for item in rows.jobs(self.httpd.knowledge) if item['id'] == receipt['job_id'])
         return job['detail'].get('proposals_dropped')
 
 
@@ -143,10 +145,6 @@ class RetainedCitationTests(RetainedDocumentCase):
         self.assertNotIn(self.scope, json.dumps(saved))
         # A step that rests on the saved excerpt alone is provenance for the existing capture in a revision.
         self.assertEqual(saved['draft']['steps'][1]['evidence_turns'], [source['id']])
-        # Admin cannot read the removed file through this revision.
-        status, _ = self.post('/api/knowledge/admin/document-source', {'submission_id': second['submission_id'], 'revision': 2,
-                                                                      'document_id': document_id, 'source_id': source['id']})
-        self.assertEqual(status, 403)
 
     def test_one_removed_file_citation_beside_an_answer_does_not_block_a_new_process(self):
         document_id, source = self.file()
@@ -155,8 +153,8 @@ class RetainedCitationTests(RetainedDocumentCase):
         self.assertEqual(status, 202, receipt)
         saved = self.detail(receipt)
         self.assertIs(saved['document_evidence'][0]['retained_only'], True)
-        step = next(item for item in self.httpd.knowledge.admin_browse('entities', {'type': 'step'})['items'] if item['label'] == 'Start')
-        self.assertEqual(self.httpd.knowledge.admin_detail('entity', step['id'])['item']['data']['source_kind'], 'mixed')
+        step = next(item for item in rows.entities(self.httpd.knowledge) if item['type'] == 'step' and item['label'] == 'Start')
+        self.assertEqual(step['data']['source_kind'], 'mixed')
 
     def test_new_process_resting_only_on_a_removed_file_is_refused_by_name_and_accepted_once_restored(self):
         document_id, source = self.file()
@@ -376,7 +374,7 @@ class ParkedFileTests(RetainedDocumentCase):
         self.assertEqual(len(self.matcher.sent), 1)
         self.assertEqual(self.matcher.sent[0]['candidates'][0]['document_excerpts'], [])
         self.assertNotIn('CONFIDENTIAL', json.dumps(self.matcher.sent))
-        self.assertEqual(self.httpd.knowledge.admin_browse('connections')['items'], [])
+        self.assertEqual(rows.proposals(self.httpd.knowledge), [])
 
     def test_file_parked_after_it_was_submitted_no_longer_feeds_matching_or_proposals(self):
         document_id, source = self.file('salary-bands.csv', b'grade,band\nDirector,CONFIDENTIAL 240000\nAnalyst,CONFIDENTIAL 70000\n')
@@ -388,21 +386,16 @@ class ParkedFileTests(RetainedDocumentCase):
         self.assertEqual(self.dropped(b), 1)
         self.assertEqual(self.matcher.sent[0]['candidates'][0]['document_excerpts'], [])
         self.assertNotIn('CONFIDENTIAL', json.dumps(self.matcher.sent))
-        self.assertEqual(self.httpd.knowledge.admin_browse('connections')['items'], [])
+        self.assertEqual(rows.proposals(self.httpd.knowledge), [])
 
-    def test_confirmed_file_evidence_goes_back_for_review_when_the_file_is_saved_for_later(self):
+    def test_active_file_evidence_can_support_a_matching_proposal(self):
         document_id, source = self.file('support.csv', b'field,value\nnav,approved\n')
         self.matcher.reply = self.proposal(document_id, source['id'], 'B2=approved')
         a, b = self.pair(document_id)
         self.assertEqual(self.finished(b)['status'], 'completed')
         self.assertIn('approved', json.dumps(self.matcher.sent[0]['candidates'][0]['document_excerpts']), 'An active file still feeds matching')
-        item = self.httpd.knowledge.admin_browse('connections')['items'][0]
-        confirmed = self.httpd.knowledge.review(item['id'], 'confirm', 'local-owner', 'Reviewed fixture', item['review_version'])
-        self.assertEqual(confirmed['status'], 'confirmed')
-        self.park(document_id)
-        changed = self.httpd.knowledge.admin_detail('proposal', item['id'])['item']
-        self.assertEqual(changed['status'], 'stale')
-        self.assertIn('Document source changed or became unavailable', changed['stale_reason'])
+        item = rows.proposals(self.httpd.knowledge)[0]
+        self.assertEqual(item['evidence'][0]['source_id'], source['id'])
 
     def test_company_knowledge_reads_a_file_only_while_the_interview_uses_it(self):
         document_id, source = self.file()
@@ -448,7 +441,7 @@ class RetainedCatalogGraphTests(unittest.TestCase):
     def test_saved_excerpt_is_stored_with_its_flags_beside_other_evidence(self):
         receipt = self.graph.submit(self.submission([self.SOURCE, 'u1']), document_scope='private-scope',
                                     document_evidence=[self.evidence(retained_only=True, archived=True, disposition='relevant')])
-        saved = self.graph.admin_detail('submission', receipt['submission_id'], 1)['item']
+        saved = self.graph._revision(receipt['submission_id'], 1)
         entry = saved['document_evidence'][0]
         self.assertEqual((entry['retained_only'], entry['archived'], entry['disposition']), (True, True, 'relevant'))
         self.assertEqual(entry['text'], 'A1=return | B1=reason')
@@ -461,13 +454,13 @@ class RetainedCatalogGraphTests(unittest.TestCase):
         for body, evidence in cases:
             with self.subTest(evidence=evidence), self.assertRaisesRegex(ValueError, 'unavailable or not authorized'):
                 self.graph.submit(body, document_scope='private-scope', document_evidence=[evidence])
-        self.assertEqual(self.graph.admin_browse('submissions')['items'], [])
+        self.assertEqual(rows.submissions(self.graph), [])
 
     def test_new_process_cannot_rest_on_a_saved_excerpt_alone_but_a_revision_may_keep_it(self):
         saved = self.evidence(retained_only=True, archived=True, disposition='relevant')
         with self.assertRaisesRegex(ValueError, 'new process cannot rest'):
             self.graph.submit(self.submission([self.SOURCE]), document_scope='private-scope', document_evidence=[saved])
-        self.assertEqual(self.graph.admin_browse('submissions')['items'], [])
+        self.assertEqual(rows.submissions(self.graph), [])
         # Revision 1 holds the passage, filed while the file was in use.
         first = self.graph.submit(self.submission([self.SOURCE, 'u1'], retained=False), document_scope='private-scope',
                                   document_evidence=[self.evidence()])
@@ -476,7 +469,7 @@ class RetainedCatalogGraphTests(unittest.TestCase):
         revision['process_id'] = first['process_id']
         second = self.graph.submit(revision, document_scope='private-scope', document_evidence=[saved])
         self.assertEqual(second['revision'], 2)
-        step = self.graph.admin_detail('submission', second['submission_id'], 2)['item']['draft']['steps'][0]
+        step = self.graph._revision(second['submission_id'], 2)['draft']['steps'][0]
         self.assertEqual(step['evidence_turns'], [self.SOURCE])
 
     def test_revision_may_keep_only_a_saved_excerpt_that_an_earlier_revision_of_the_same_process_holds(self):
@@ -508,7 +501,7 @@ class RetainedCatalogGraphTests(unittest.TestCase):
         elsewhere = self.graph.submit(payload('Returns audit', 'I audit the returns log each month.'))
         with self.assertRaisesRegex(ValueError, 'no earlier revision of this process holds'):
             self.graph.submit(revision_of(elsewhere, [self.SOURCE]), document_scope='private-scope', document_evidence=[saved])
-        self.assertEqual(sorted(item['revision'] for item in self.graph.admin_browse('submissions')['items']), [1, 1, 2, 3],
+        self.assertEqual(sorted(item['revision'] for item in rows.submissions(self.graph)), [1, 1, 2, 3],
                          'The three refused revisions stored nothing')
 
     def test_saved_excerpts_do_not_count_as_document_evidence_for_a_capture_without_answers(self):
@@ -531,8 +524,6 @@ class RetainedCatalogGraphTests(unittest.TestCase):
         self.assertEqual(self.graph._with_document_excerpts(record)['document_excerpts'], [])
         with self.assertRaises(ValueError):
             self.graph._document_source(receipt['submission_id'], 1, self.DOCUMENT, self.SOURCE)
-        with self.assertRaises(PermissionError):
-            self.graph.document_scope(receipt['submission_id'], 1, self.DOCUMENT)
         self.assertEqual(reads, [])
 
 

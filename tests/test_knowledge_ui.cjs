@@ -2,7 +2,6 @@
 // Bounded API / synthetic DOM regression only. No browser, audio, provider, or network calls.
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const all=root=>[root,...root.children.flatMap(all)],find=(root,pred)=>all(root).find(pred),findText=(root,t)=>find(root,e=>e._text===t);
-let queueClose=false;const closeQueue=[];
 class E{
  constructor(tag){this.tagName=tag.toUpperCase();this.children=[];this.listeners={};this.attributes={};this.dataset={};this.style={};this.hidden=false;this.open=false;this.value='';this._text='';this.disabled=false;}
  append(...children){for(const child of children){child.parentElement=this;this.children.push(child);}}
@@ -10,90 +9,38 @@ class E{
  set textContent(t){this._text=String(t);this.children=[];}get textContent(){return this._text+this.children.map(n=>n.textContent).join('');}get firstElementChild(){return this.children[0];}
  setAttribute(key,v){this.attributes[key]=String(v);}addEventListener(key,fn){(this.listeners[key]??=[]).push(fn);}
  async dispatch(key,extra={}){for(const fn of this.listeners[key]||[])await fn({preventDefault(){},target:this,...extra});}
- querySelectorAll(selector){return all(this).filter(e=>e!==this&&(selector==='[data-focus-key]'?e.dataset.focusKey!==undefined:selector==='[data-source-key]'?e.dataset.sourceKey!==undefined:selector==='[data-filter-toggle]'?e.dataset.filterToggle!==undefined:selector.startsWith('.')?e.className?.split(/\s+/).includes(selector.slice(1)):selector==='[aria-current="page"]'?e.attributes['aria-current']==='page':false));}
- querySelector(selector){return this.querySelectorAll(selector)[0]||null;}
- showModal(){this.open=true;}close(){this.open=false;if(queueClose)closeQueue.push(()=>this.dispatch('close'));else void this.dispatch('close');}focus(){this.focused=true;document.activeElement=this;}scrollIntoView(){this.scrolled=true;}
+ showModal(){this.open=true;}close(){this.open=false;void this.dispatch('close');}focus(){this.focused=true;document.activeElement=this;}scrollIntoView(){this.scrolled=true;}
 }
-const ids=['knowledge-submit','knowledge-admin','submit-process-menu','submit-process-review','open-knowledge-admin','session-menu','session-menu-toggle','interview-settings'],nodes={};
+const ids=['knowledge-submit','submit-process-menu','submit-process-review','session-menu','session-menu-toggle'],nodes={};
 const document={getElementById:id=>nodes[id]||Object.values(nodes).map(root=>find(root,e=>e.id===id)).find(Boolean),createElement:tag=>new E(tag)};
-let graphInput=null,graphSelect=null,graphCreations=0,graphUpdate=()=>Promise.resolve();
-const windowListeners=new Map();
-const window={addEventListener(type,fn){if(!windowListeners.has(type))windowListeners.set(type,new Set());windowListeners.get(type).add(fn);},removeEventListener(type,fn){windowListeners.get(type)?.delete(fn);},CollectorWorkflow:{create:(_,opts)=>{graphCreations++;return {update(g){graphInput=g;graphSelect=opts.onSelectStep;return graphUpdate(g);},destroy(){},zoom(){},fit(){}};}}};
+const window={};
 let keyNumber=0;const env={window,document,console,Date,JSON,crypto:{randomUUID:()=>`eeeeeeee-eeee-4eee-8eee-${String(++keyNumber).padStart(12,'0')}`}};
 vm.runInNewContext(fs.readFileSync('web/knowledge-ui.js','utf8'),env);
-const fixture=JSON.parse(fs.readFileSync('Examples/Synthetic-reviewed-session.json','utf8'));
 const uuid=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
-const sampleSubmission={...fixture,submission_id:uuid(1),revision:1,job_status:'completed',participant:'Fictional participant',team:'Operations',scope:'Fund A'};
-const sampleVersion={id:uuid(2),submission_id:uuid(1),revision:1,type:'process_version',label:fixture.context.process_name,latest:true,canonical_id:null};
-const stepIds=new Map(fixture.draft.steps.map((s,i)=>[s.id,uuid(10+i)]));
-const sampleSteps=fixture.draft.steps.map(s=>({id:stepIds.get(s.id),submission_id:uuid(1),revision:1,type:s.type==='decision'?'decision':'step',label:s.title,latest:true,canonical_id:null,data:s}));
-const sampleEdges=[...sampleSteps.map((s,i)=>({id:uuid(100+i),source:sampleVersion.id,target:s.id,type:'contains',status:'reported',submission_id:uuid(1),revision:1})),...fixture.draft.connections.map((e,i)=>({id:uuid(120+i),source:stepIds.get(e.to),target:stepIds.get(e.from),type:'happens_after',status:'reported',submission_id:uuid(1),revision:1,evidence:e}))];
-const entityMeta=item=>Object.fromEntries(Object.entries(item).filter(([key])=>key!=='data'));
-const submissionMeta=item=>({display_name:item.display_name,submission_id:item.submission_id,revision:item.revision,context:{process_name:item.context.process_name,process_owner:item.context.process_owner},team:item.team,scope:item.scope,job_status:item.job_status});
-const group={id:uuid(200),label:'Reviewed invoice activities',type:'step',status:'stale',stale_reason:'Source submission revised',review_version:7,member_count:61,alias_count:51,history_count:58,members:[],aliases:[],history:[]};
-const proposal={id:uuid(300),source_submission_id:uuid(1),source_revision:1,destination_submission_id:uuid(3),destination_revision:1,relationship_type:'hands_off_to',status:'proposed',review_version:4,scope:'Fund A',explanation:'Check the shared handoff.',inference:'Possible shared register',missing_evidence:['Receiver confirmation'],contradictions:[],history:[],history_count:57,evidence:[{type:'employee_reported',submission_id:uuid(1),revision:1,turn_id:'t004',quote:fixture.turns.find(t=>t.id==='t004').text},{type:'document_supported',submission_id:uuid(3),revision:1,document_id:'doc1',source_id:'pdf-p7',label:'Contract page 7',quote:'Synthetic document evidence',origin:'ai_visual_transcription',verified:false}]};
-const counts={processes:61,revisions:86,open_decisions:41,submissions:61,awaiting_review:41,confirmed_connections:17,processing_failures:12,entities:140,groups:61,jobs:57,connections:57};
-const page=(items,payload)=>({items:structuredClone(items.slice(payload.offset||0,(payload.offset||0)+(payload.limit||25))),page:{offset:payload.offset||0,limit:payload.limit||25,total:items.length,has_more:(payload.offset||0)+(payload.limit||25)<items.length}});
-function service(){
- const calls=[],notices=[],data={tooLarge:false,failBrowse:false,failHistory:false,failSource:false,failMutation:false,seedFailure:false,intercept:null};
- const submissions=[sampleSubmission,...Array.from({length:60},(_,i)=>({submission_id:uuid(400+i),revision:1,context:{process_name:'Process '+String(i+1).padStart(2,'0')},job_status:'completed',team:i===59?'Remote team':'Operations',scope:'Fund A',turns:[{id:'u1',role:'user',text:'Private full transcript '+i}],draft:{overview:'Detailed account '+i}}))];
- const entities=[...sampleSteps,...Array.from({length:58},(_,i)=>({id:uuid(600+i),submission_id:uuid(1),revision:1,type:'step',label:'Activity '+String(i+1).padStart(2,'0'),latest:true,canonical_id:null,data:{title:'Activity '+(i+1),evidence_turns:['t004']}})),{id:uuid(680),submission_id:uuid(1),revision:1,type:'system',label:'Ledger system',latest:true,canonical_id:null},{id:uuid(681),submission_id:uuid(1),revision:1,type:'step',label:'Already grouped',latest:true,canonical_id:group.id},{id:uuid(682),submission_id:uuid(1),revision:0,type:'step',label:'Earlier record',latest:false,canonical_id:null}];
- const members=Array.from({length:61},(_,i)=>({id:uuid(800+i),submission_id:uuid(1),revision:1,type:'step',label:'Group member '+i,latest:true}));
- const aliases=Array.from({length:51},(_,i)=>({alias:'Alias '+i})),history=Array.from({length:58},(_,i)=>({id:uuid(900+i),action:'edit',reviewer:'Local owner',reason:'Reviewed source '+i,review_version:i+1,created_at:'2026-11-03'}));
- const neighbors=Array.from({length:58},(_,i)=>({id:sampleEdges[i%sampleEdges.length].id,source:sampleSteps[0].id,target:sampleSteps[1].id,source_label:'Source '+i,target_label:'Target '+i,type:'before',status:'reported',submission_id:uuid(1),revision:1}));
- const jobs=Array.from({length:57},(_,i)=>({id:uuid(1000+i),submission_id:uuid(1),revision:1,status:'failed',attempts:1,error:'Synthetic processing failure '+i,process_name:'Invoice approval'}));
- async function request(path,payload){calls.push({path,payload:structuredClone(payload)});if(data.intercept){const result=data.intercept(path,payload);if(result!==undefined)return result;}
-  assert(!path.endsWith('/snapshot'),'Legacy whole-dataset reads are forbidden');
-  if(path.endsWith('/example')){if(data.seedFailure){data.seedFailure=false;throw Error('Example temporarily unavailable');}return {synthetic_example:true};}
-  if(path.endsWith('/browse')){if(data.failBrowse){data.failBrowse=false;throw Error('Synthetic browse unavailable');}let records=[];const f=payload.filters||{};
-   if(payload.section==='submissions')records=submissions.map(submissionMeta).filter(s=>!f.team||s.team?.toLowerCase().includes(f.team.toLowerCase()));
-   if(payload.section==='entities')records=entities.filter(e=>(!f.type||e.type===f.type)&&(!f.query||e.label.toLowerCase().includes(f.query.toLowerCase()))&&(!f.latest_only||e.latest)&&(!f.exclude_group_id||e.canonical_id!==f.exclude_group_id)).map(entityMeta);
-   if(payload.section==='groups')records=[group,...Array.from({length:60},(_,i)=>({...group,id:uuid(1100+i),label:'Other group '+i}))];
-   if(payload.section==='connections')records=Array.from({length:57},(_,i)=>({...proposal,id:i===0?proposal.id:uuid(1200+i),explanation:'Connection '+i,evidence:undefined,history:undefined}));
-   if(payload.section==='jobs')records=jobs;
-   return {...page(records,payload),section:payload.section,counts,analysis_limitations:'Reported accounts, not measurements.'};
-  }
-  if(path.endsWith('/detail')){
-   if(payload.kind==='submission'){const s=submissions.find(s=>s.submission_id===payload.id&&s.revision===payload.revision);if(!s)throw Error('Missing submission');return {kind:payload.kind,item:structuredClone(s),submissions:[structuredClone(s)],entities:[],edges:[],proposals:[]};}
-   let item;if(payload.kind==='entity')item=[sampleVersion,...entities,...members].find(e=>e.id===payload.id);if(payload.kind==='relationship')item=sampleEdges.find(e=>e.id===payload.id);if(payload.kind==='proposal')item=proposal;if(payload.kind==='group')item=group;if(!item)throw Error('Missing detail');
-   return {kind:payload.kind,item:structuredClone(item),submissions:[{...submissionMeta(sampleSubmission),turns:sampleSubmission.turns.filter(t=>t.id==='t004'),transcript_partial:true},{submission_id:uuid(3),revision:1,context:{process_name:'Receiving process'},turns:[],transcript_partial:true}],entities:[sampleVersion,...sampleSteps].map(entityMeta),edges:[],proposals:[]};
-  }
-  if(path.endsWith('/history')){if(data.failHistory){data.failHistory=false;throw Error('Synthetic history unavailable');}const records=payload.kind==='group_members'?members:payload.kind==='group_aliases'?aliases:['proposal','group'].includes(payload.kind)?history:neighbors;return {...page(records,payload),kind:payload.kind,id:payload.id};}
-  if(path.endsWith('/graph')){
-   if(data.tooLarge&&!payload.submission_id)return {entities:[],edges:[],proposals:[],submissions:[],too_large:true,counts:{nodes:182,connections:301},message:'Select a process or refine filters to show a complete graph.'};
-   const es=payload.level==='overview'?[sampleVersion]:payload.level==='steps'?[sampleVersion,...sampleSteps]:[sampleVersion,...sampleSteps,entities.at(-3)];const ids=new Set(es.map(e=>e.id)),edges=sampleEdges.filter(e=>ids.has(e.source)&&ids.has(e.target));return {entities:es.map(e=>({...entityMeta(e),data:{actor:e.data?.actor,system:e.data?.system,evidence_turns:e.data?.evidence_turns}})),edges,proposals:[],submissions:[submissionMeta(sampleSubmission)],too_large:false,counts:{nodes:es.length,connections:edges.length}};
-  }
-  if(path.endsWith('/document-source')){if(data.failSource){data.failSource=false;throw Error('Source temporarily unavailable');}return {source:{text:'Exact synthetic page source'}};}
-  if(['/review','/canonical-create','/canonical-update','/retry'].some(p=>path.endsWith(p))){if(data.failMutation){data.failMutation=false;throw Error('Synthetic conflict; refresh current record');}return {ok:true};}
-  throw Error('Unexpected request '+path);
- }
- return {request,calls,notices,data,entities,submissions};
-}
 function fresh(request,onSubmitted=()=>{}){
- if(nodes['knowledge-admin']?.open)nodes['knowledge-admin'].close();
- for(const id of ids)nodes[id]=new E(id.includes('settings')?'dialog':'div');graphInput=null;graphSelect=null;graphCreations=0;graphUpdate=()=>Promise.resolve();const session={saved_at:'first-save',context:{process_name:'First process'},turns:[{id:'u1',role:'user',text:'The original participant account.'}],documents:{documents:[]}},notices=[];
+ for(const id of ids)nodes[id]=new E(id==='knowledge-submit'?'dialog':'div');
+ const session={saved_at:'first-save',context:{process_name:'First process'},turns:[{id:'u1',role:'user',text:'The original participant account.'}],documents:{documents:[]}},notices=[];
  const controller=window.CollectorKnowledge.create({session:()=>structuredClone(session),notice:m=>notices.push(m),request,onSubmitted});controller.configure({revisions_available:true});return {controller,session,notices,form:()=>find(nodes['knowledge-submit'],e=>e.tagName==='FORM')};
 }
-const admin=()=>nodes['knowledge-admin'],settle=async()=>{await new Promise(r=>setImmediate(r));await new Promise(r=>setImmediate(r));};
-async function click(label,root=admin()){const control=find(root,e=>e.tagName==='BUTTON'&&e._text===label)||findText(root,label);assert(control,'Missing control '+label);await control.dispatch('click');await settle();return control;}
-async function openFirstRecord(){const heading=find(admin(),e=>e.className==='knowledge-card').firstElementChild;assert.equal(heading.tagName,'H3');await click(heading.textContent,heading);}
-async function aria(label,root=admin()){const control=find(root,e=>e.attributes['aria-label']===label);assert(control,'Missing control '+label);await control.dispatch('click');await settle();return control;}
-function input(name,root=admin()){const control=find(root,e=>e.name===name);assert(control,'Missing field '+name);return control;}
-async function type(name,v,root=admin()){const control=input(name,root);control.value=v;await control.dispatch('input');return control;}
-async function openAdmin(controller){controller.configure({knowledge_admin_enabled:true,knowledge_admin_mode:'Local owner development mode'});await nodes['open-knowledge-admin'].dispatch('click');await settle();}
+const settle=async()=>{await new Promise(r=>setImmediate(r));await new Promise(r=>setImmediate(r));};
+async function click(label,root){const control=find(root,e=>e.tagName==='BUTTON'&&e._text===label)||findText(root,label);assert(control,'Missing control '+label);await control.dispatch('click');await settle();return control;}
 const testReceipt=(revision=1,processId='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb')=>({submission_id:'cccccccc-cccc-4ccc-8ccc-cccccccccccc',process_id:processId,job_id:'dddddddd-dddd-4ddd-8ddd-dddddddddddd',revision,status:'pending',status_token:'a'.repeat(64)});
 let passes=0;
 (async()=>{
  {
-  const previous=sampleSubmission.display_name;
-  sampleSubmission.display_name="Fictional derived process name";
-  try {
-    const s=service(),f=fresh(s.request);
-    await openAdmin(f.controller);await click('Submissions');
-    assert.match(admin().textContent,/Fictional derived process name/);
-    await openFirstRecord();
-    assert.match(admin().textContent,/Fictional derived process name/);
-  } finally {if(previous===undefined)delete sampleSubmission.display_name;else sampleSubmission.display_name=previous;}
+  const html=fs.readFileSync('web/index.html','utf8');
+  assert.match(html,/id="interview-settings"/);
+  assert.doesNotMatch(html,/id="(?:open-)?knowledge-admin"/);
+  const calls=[],f=fresh(async path=>{calls.push(path);});
+  f.session.synthetic_example=true;
+  f.controller.configure({revisions_available:true});
+  await nodes['session-menu-toggle'].dispatch('click');
+  assert.equal(nodes['submit-process-menu'].textContent,'About this example');
+  await nodes['submit-process-menu'].dispatch('click');
+  assert.equal(nodes['knowledge-submit'].open,true);
+  assert.equal(f.form(),undefined);
+  assert.deepEqual(calls,[],'Opening the fictional example must not seed or submit it');
+  passes++;
  }
  {
   const submitted=[],receipt=testReceipt();
@@ -133,7 +80,7 @@ let passes=0;
   assert.deepEqual(submitted[0],submitted[2]);passes++;
  }
  {
-  let fail=true;const submitted=[];const f=fresh(async(path,payload)=>{submitted.push(structuredClone(payload));if(path.endsWith('/status'))return {...testReceipt(),status:'completed'};if(fail){fail=false;throw Error('Temporary error');}return testReceipt();});f.controller.configure({knowledge_admin_enabled:false});await nodes['open-knowledge-admin'].dispatch('click');assert.equal(submitted.length,0);f.session.unsent_answer='Do not submit';f.session.documents.scope='private-scope';f.controller.openSubmit();assert.match(nodes['knowledge-submit'].textContent,/bounded excerpts.*configured AI provider.*incur charges/);await f.form().dispatch('submit');assert.match(f.form().textContent,/Temporary error/);await f.form().dispatch('submit');assert.equal(submitted[0].unsent_answer,undefined);assert.equal(submitted[0].documents.scope,'private-scope');assert.deepEqual(submitted[0],submitted[1]);assert(!nodes['knowledge-submit'].textContent.includes('a'.repeat(64)));await click('Refresh status',nodes['knowledge-submit']);const receipt=f.controller.exportReceipt();assert.equal(receipt.status,'completed');f.controller.restore(receipt.process_id,{...receipt,job_id:'bad'});assert.equal(f.controller.exportReceipt(),null);f.controller.restore(receipt.process_id,receipt);assert.equal(f.controller.exportReceipt().revision,1);passes++;
+  let fail=true;const submitted=[];const f=fresh(async(path,payload)=>{submitted.push(structuredClone(payload));if(path.endsWith('/status'))return {...testReceipt(),status:'completed'};if(fail){fail=false;throw Error('Temporary error');}return testReceipt();});f.session.unsent_answer='Do not submit';f.session.documents.scope='private-scope';f.controller.openSubmit();assert.match(nodes['knowledge-submit'].textContent,/bounded excerpts.*configured AI provider.*incur charges/);await f.form().dispatch('submit');assert.match(f.form().textContent,/Temporary error/);await f.form().dispatch('submit');assert.equal(submitted[0].unsent_answer,undefined);assert.equal(submitted[0].documents.scope,'private-scope');assert.deepEqual(submitted[0],submitted[1]);assert(!nodes['knowledge-submit'].textContent.includes('a'.repeat(64)));await click('Refresh status',nodes['knowledge-submit']);const receipt=f.controller.exportReceipt();assert.equal(receipt.status,'completed');f.controller.restore(receipt.process_id,{...receipt,job_id:'bad'});assert.equal(f.controller.exportReceipt(),null);f.controller.restore(receipt.process_id,receipt);assert.equal(f.controller.exportReceipt().revision,1);passes++;
  }
  {
   const submitted=[];let complete;let saves=0;
@@ -164,90 +111,6 @@ let passes=0;
   nodes['knowledge-submit'].close();controller.openSubmit();assert.match(form().textContent,/Recover retries that exact captured snapshot/);assert.equal(find(form(),e=>e.name==='participant').value,'Original participant');
   await form().dispatch('submit');assert.deepEqual(submitted[1],submitted[0],'Lost-response recovery must resend the immutable original body and key, even after edits/background review');assert.equal(saves,1);assert.equal(controller.hasPending,false);
   controller.openSubmit();await form().dispatch('submit');assert.notEqual(submitted[2].submission_key,submitted[0].submission_key);assert.equal(submitted[2].process_id,testReceipt().process_id);assert.equal(submitted[2].turns.length,2,'New content is submitted only as an explicit subsequent revision');assert.equal(submitted[2].documents.documents.length,1);assert.equal(controller.exportReceipt().revision,2);assert.equal(all(nodes['knowledge-submit']).filter(e=>e.tagName==='H3'&&e._text==='Submission status').length,1,'A successful revision replaces the old status panel instead of leaving conflicting receipt controls');assert.doesNotMatch(nodes['knowledge-submit'].textContent,/Revision 1/);passes++;
- }
- {
-  const s=service(),f=fresh(s.request);await openAdmin(f.controller);assert.match(admin().textContent,/61Processes86Submitted revisions41Open review decisions17Confirmed connections12Processing failures/);assert.equal(s.calls.length,1);assert(s.calls[0].path.endsWith('/browse'));assert.equal(s.calls[0].payload.section,'overview');assert.equal(s.calls.filter(c=>c.path.endsWith('/detail')).length,0);assert.equal(find(admin(),e=>e.className==='knowledge-filters').hidden,true);passes++;
-  await click('Submissions');assert.match(admin().textContent,/1–25 of 61/);assert.equal(all(admin()).filter(e=>e.className==='knowledge-card').length,25);assert.doesNotMatch(admin().textContent,/Private full transcript/);assert.equal(s.calls.filter(c=>c.path.endsWith('/detail')).length,0);
-  await aria('Next submissions page');assert.match(admin().textContent,/26–50 of 61/);assert.equal(all(admin()).filter(e=>e.className==='knowledge-card').length,25);assert.doesNotMatch(admin().textContent,/Invoice approval/);assert.equal(s.calls.at(-1).payload.offset,25);await aria('Previous submissions page');await openFirstRecord();assert.equal(s.calls.filter(c=>c.path.endsWith('/detail')).at(-1).payload.kind,'submission');assert.match(admin().textContent,/Business summary/);assert.match(admin().textContent,/Detailed process steps/);assert.match(admin().textContent,/Controls and checks/);assert.match(admin().textContent,/No open questions recorded/);assert.equal(all(admin()).filter(e=>e.className==='knowledge-turn').length,26);assert(find(admin(),e=>e.tagName==='DD'&&e._text==='Accounts payable manager'));assert(find(admin(),e=>e.tagName==='DETAILS'&&e.className==='knowledge-technical'));await click('← Back');assert.match(admin().textContent,/1–25 of 61/);passes++;
-  await click('Filters');const team=input('team'),scope=input('scope');team.value=' Remote team ';scope.value='Fund A';await scope.dispatch('change');assert.equal(input('team'),team,'Typing filters does not replace fields');await click('Apply filters');assert.match(admin().textContent,/Process 60/);assert(!find(admin(),e=>e.className==='knowledge-pagination'));assert.equal(s.calls.at(-1).payload.filters.team,'Remote team');assert.equal(find(admin(),e=>e.className==='knowledge-filters').hidden,true);assert(find(admin(),e=>e.attributes['aria-label']==='Remove team filter: Remote team'));await click('Clear filters');assert.match(admin().textContent,/1–25 of 61/);passes++;
- }
- {
-  const s=service(),f=fresh(s.request);await openAdmin(f.controller);await click('Entities');assert.equal(s.calls.at(-1).payload.filters.latest_only,true);await type('entity_query','Activity 58');await click('Search entities');assert.match(admin().textContent,/Activity 58/);assert(!find(admin(),e=>e.className==='knowledge-pagination'));assert.equal(s.calls.at(-1).payload.filters.query,'Activity 58');await type('entity_query','Earlier');await click('Search entities');assert.match(admin().textContent,/No records match these filters/);assert(!find(admin(),e=>e.className==='knowledge-pagination'));const check=find(admin(),e=>e.type==='checkbox');check.checked=true;await check.dispatch('change');await settle();assert.equal(s.calls.at(-1).payload.filters.latest_only,false);assert.match(admin().textContent,/Earlier record/);passes++;
- }
- {
-  const s=service();s.data.failBrowse=true;const f=fresh(s.request);await openAdmin(f.controller);assert.match(admin().textContent,/Synthetic browse unavailable/);await click('Try again');assert.match(admin().textContent,/A view of reported work/);s.data.intercept=(path,payload)=>path.endsWith('/browse')&&payload.section==='submissions'?{items:Array.from({length:51},()=>({})),page:{offset:0,limit:25,total:51,has_more:true}}:undefined;await click('Submissions');assert.match(admin().textContent,/administrative page could not be verified/);s.data.intercept=null;await click('Try again');assert.match(admin().textContent,/1–25 of 61/);passes++;
- }
- {
-  const s=service(),f=fresh(s.request);await openAdmin(f.controller);await click('Connections');assert.match(admin().textContent,/1–25 of 57/);assert.doesNotMatch(admin().textContent,/Synthetic document evidence/);await openFirstRecord();assert.match(admin().textContent,/Synthetic document evidence/);assert.match(admin().textContent,/Document-supported/);assert.match(admin().textContent,/Contract page 7/);assert.match(admin().textContent,/unverified/);s.data.failSource=true;await click('Read exact document source');assert.match(admin().textContent,/Source temporarily unavailable/);await click('Read exact document source');assert.match(admin().textContent,/Exact synthetic page source/);assert.equal(s.calls.filter(c=>c.path.endsWith('/document-source')).at(-1).payload.source_id,'pdf-p7');
-  assert.match(admin().textContent,/1–25 of 58/);await aria('Next connection review history page');assert.match(admin().textContent,/26–50 of 58/);assert.match(admin().textContent,/Reviewed source 25/);assert.doesNotMatch(admin().textContent,/Reviewed source 0\b/);await aria('Next connection review history page');assert.match(admin().textContent,/51–58 of 58/);assert.equal(find(admin(),e=>e.attributes['aria-label']==='Next connection review history page').disabled,true);
-  const form=find(admin(),e=>e.tagName==='FORM'),reason=find(form,e=>e.tagName==='TEXTAREA'),side=find(form,e=>e.tagName==='SELECT');reason.value='Reviewed sending-side source';side.value='sender';s.data.failMutation=true;await click('Confirm',form);assert.match(admin().textContent,/Synthetic conflict/);assert.equal(findText(form,'Confirm').disabled,false);await click('Confirm',form);const call=s.calls.filter(c=>c.path.endsWith('/review')).at(-1);assert.equal(call.payload.expected_revision,4);assert.equal(call.payload.side,'sender');assert.equal(call.payload.reason,'Reviewed sending-side source');assert.equal(call.payload.reviewer,undefined);passes++;
- }
- {
-  const s=service(),f=fresh(s.request);await openAdmin(f.controller);await click('Entities');await click('Create reviewed group');await type('label','Invoice activities');await type('reason','Source records were compared');
-  let check=find(admin(),e=>e.attributes['aria-label']==='Select '+sampleSteps[0].label);check.checked=true;await check.dispatch('change');assert.match(admin().textContent,/1 selected/);assert(find(admin(),e=>e.attributes['aria-label']==='Select '+sampleSteps[0].label).focused,'Checkbox focus survives selection rerender');const onlyForm=find(admin(),e=>e.tagName==='FORM');await onlyForm.dispatch('submit');assert.match(onlyForm.textContent,/2–100 entities/);assert(!s.calls.some(c=>c.path.endsWith('/canonical-create')));await aria('Next entities page');assert.match(admin().textContent,/26–50 of 71/);assert.equal(input('label').value,'Invoice activities');check=find(admin(),e=>e.type==='checkbox'&&e.attributes['aria-label']?.startsWith('Select '));check.checked=true;await check.dispatch('change');assert.match(admin().textContent,/2 selected/);await aria('Next entities page');await type('entity_query','Ledger');await click('Search entities');assert.equal(find(admin(),e=>e.attributes['aria-label']==='Select Ledger system').disabled,true,'Cannot mix entity types');await type('entity_query','Already');await click('Search entities');assert.equal(find(admin(),e=>e.attributes['aria-label']==='Select Already grouped').disabled,true,'Cannot regroup a member already assigned');const form=find(admin(),e=>e.tagName==='FORM');await form.dispatch('submit');await settle();const call=s.calls.find(c=>c.path.endsWith('/canonical-create'));assert.equal(call.payload.entity_ids.length,2);assert.equal(call.payload.entity_ids[0],sampleSteps[0].id);assert.equal(call.payload.label,'Invoice activities');assert.equal(call.payload.reason,'Source records were compared');assert.match(admin().textContent,/Reviewed canonical groups/);passes++;
- }
- {
-  const s=service(),f=fresh(s.request);await openAdmin(f.controller);await click('Reviewed groups');assert.match(admin().textContent,/1–25 of 61/);await openFirstRecord();assert.match(admin().textContent,/Needs review · Source submission revised/);const historyCalls=s.calls.filter(c=>c.path.endsWith('/history'));assert.equal(historyCalls.length,3);assert.deepEqual(historyCalls.map(c=>c.payload.kind).sort(),['group','group_aliases','group_members']);assert.match(admin().textContent,/Group member 0/);assert.match(admin().textContent,/Alias 0/);await aria('Next members and source evidence page');assert.match(admin().textContent,/Group member 25/);assert.doesNotMatch(admin().textContent,/Group member 0\b/);assert.match(admin().textContent,/Alias 0/,'Independent aliases page is retained');await aria('Next reviewed aliases page');assert.match(admin().textContent,/Alias 25/);await aria('Next group review history page');assert.match(admin().textContent,/Reviewed source 25/);
-  await click('Remove member');assert(find(admin(),e=>e.tabIndex===-1&&e.attributes.role==='status'&&e._text.startsWith('Selected:')).focused,'Selected member confirmation receives focus');await type('reason','Obsolete source removed');let form=find(admin(),e=>e.tagName==='FORM');await form.dispatch('submit');await settle();let call=s.calls.filter(c=>c.path.endsWith('/canonical-update')).at(-1);assert.equal(call.payload.action,'remove_member');assert.equal(call.payload.value,uuid(825));assert.equal(call.payload.expected_revision,7);
-  await click('Remove alias');await type('reason','Alias is no longer appropriate');form=find(admin(),e=>e.tagName==='FORM');await form.dispatch('submit');await settle();call=s.calls.filter(c=>c.path.endsWith('/canonical-update')).at(-1);assert.equal(call.payload.action,'remove_alias');assert.equal(call.payload.value,'Alias 0');
-  form=find(admin(),e=>e.tagName==='FORM');let action=find(form,e=>e.tagName==='SELECT');action.value='add_alias';await action.dispatch('change');await type('alias','Payables workflow');await type('reason','Recognized business term');await form.dispatch('submit');await settle();call=s.calls.filter(c=>c.path.endsWith('/canonical-update')).at(-1);assert.equal(call.payload.action,'add_alias');assert.equal(call.payload.value,'Payables workflow');
-  form=find(admin(),e=>e.tagName==='FORM');action=find(form,e=>e.tagName==='SELECT');action.value='revalidate';await action.dispatch('change');await type('reason','Compared current source records');await form.dispatch('submit');await settle();call=s.calls.filter(c=>c.path.endsWith('/canonical-update')).at(-1);assert.equal(call.payload.action,'revalidate');assert.equal(call.payload.value,'reviewed');passes++;
-  await aria('Next eligible entities page');assert.equal(s.calls.filter(c=>c.path.endsWith('/browse')&&c.payload.filters?.exclude_group_id).at(-1).payload.offset,25);await click('Choose');await type('reason','Reviewed current evidence');form=find(admin(),e=>e.tagName==='FORM');await form.dispatch('submit');await settle();call=s.calls.filter(c=>c.path.endsWith('/canonical-update')).at(-1);assert.equal(call.payload.action,'add_member');assert.equal(call.payload.expected_revision,7);assert(call.payload.value);passes++;
- }
- {
-  const s=service(),f=fresh(s.request);await openAdmin(f.controller);await click('Graph');assert.equal(graphInput.steps.length,1);assert(s.calls.at(-1).path.endsWith('/graph'));await click('Process steps');assert.equal(graphInput.steps.length,11);assert.equal(graphInput.connections.length,14);assert(graphInput.connections.some(c=>c.label==='Registered'));assert.equal(graphInput.steps[0].actor,fixture.draft.steps[0].actor);assert.equal(graphInput.steps[0].system,fixture.draft.steps[0].system);assert.deepEqual(Array.from(graphInput.steps[0].evidence_turns),fixture.draft.steps[0].evidence_turns);assert.match(admin().textContent,/reported · contains/);assert.equal(s.calls.filter(c=>c.path.endsWith('/detail')).length,0);await graphSelect({id:'N1'});await settle();assert.match(admin().textContent,/Receive and register invoice/);assert.match(admin().textContent,/A supplier email to the shared AP mailbox starts a case/);assert(!find(admin(),e=>e.className==='knowledge-turn'),'Entity detail carries only cited source excerpts');await click('Open answer t004');assert.match(admin().textContent,/Interview transcript · 26 messages/);const turn=find(admin(),e=>e.id==='knowledge-turn-t004');assert(turn?.focused&&turn.scrolled);const reads=s.calls.filter(c=>c.path.endsWith('/detail')).length;await click('← Back to detail');assert.equal(s.calls.filter(c=>c.path.endsWith('/detail')).length,reads+1,'Back fetches current detail instead of retaining full accounts');assert.equal(findText(admin(),'Open answer t004').focused,true);passes++;
-  s.data.intercept=(path,payload)=>path.endsWith('/history')&&['entity_neighbors','downstream'].includes(payload.kind)?{...page(Array.from({length:56},(_,i)=>({id:sampleEdges[12].id,source:'s',target:'t',source_label:'Reported source '+i,target_label:'Reported target '+i,type:'before',status:'reported'})),payload),source_verification:'stored_status',analysis_limitations:'Connection status reflects the last source check. Open a connection to revalidate its evidence before relying on it.'}:undefined;
-  await click('Show affected connections');assert.match(admin().textContent,/not a measured impact/);assert.match(admin().textContent,/Connection status reflects the last source check/);assert.match(admin().textContent,/1–25 of 56/);await aria('Next affected connections page');assert.match(admin().textContent,/Reported target 25/);assert.doesNotMatch(admin().textContent,/Reported target 0\b/);assert.equal(s.calls.filter(c=>c.path.endsWith('/history')).at(-1).payload.kind,'downstream');passes++;
- }
- {
-  const s=service();s.data.tooLarge=true;const f=fresh(s.request);await openAdmin(f.controller);await click('Graph');assert.equal(graphCreations,0);assert.match(admin().textContent,/182 entities · 301 connections/);assert.match(admin().textContent,/No partial graph is displayed/);assert.match(admin().textContent,/1–25 of 61/);await aria('Next process choices page');assert.match(admin().textContent,/26–50 of 61/);assert.doesNotMatch(admin().textContent,/Invoice approval/);await click('Show process');assert.equal(graphCreations,1);const call=s.calls.filter(c=>c.path.endsWith('/graph')).at(-1);assert(call.payload.submission_id);assert.equal(call.payload.level,'overview');await click('Show all processes');assert.match(admin().textContent,/No partial graph is displayed/);passes++;
- }
- {
-  const s=service(),f=fresh(s.request);await openAdmin(f.controller);await click('Processing');await aria('Next jobs page');assert.match(admin().textContent,/26–50 of 57/);assert.doesNotMatch(admin().textContent,/Synthetic processing failure 0\b/);s.data.failMutation=true;await click('Retry');assert.match(admin().textContent,/Synthetic conflict/);await click('Retry');assert(s.calls.some(c=>c.path.endsWith('/retry')&&c.payload.job_id===uuid(1025)));assert.match(admin().textContent,/26–50 of 57/);passes++;
- }
- {
-  const s=service(),f=fresh(s.request);await openAdmin(f.controller);let complete;s.data.intercept=(path,payload)=>path.endsWith('/browse')&&payload.section==='submissions'?new Promise(resolve=>complete=resolve):undefined;const pending=findText(admin(),'Submissions').dispatch('click');await settle();assert.match(admin().textContent,/Loading company knowledge/);await click('Graph');const current=admin().textContent;complete({...page([],{}),section:'submissions',counts});await pending;await settle();assert.equal(admin().textContent,current,'A slower section read cannot replace the current graph');passes++;
- }
- {
-  const s=service(),f=fresh(s.request);await openAdmin(f.controller);await click('Submissions');const before=s.calls.length;f.session.synthetic_example=true;s.data.seedFailure=true;nodes['knowledge-admin'].close();f.controller.reset();f.controller.configure({knowledge_admin_enabled:false});f.controller.activateExample();await settle();assert.equal(s.calls.length,before);f.controller.configure({knowledge_admin_enabled:true,knowledge_admin_mode:'Local owner development mode'});await settle();assert(f.notices.some(n=>n.includes('could not be added')));await nodes['open-knowledge-admin'].dispatch('click');await settle();assert.match(admin().textContent,/EXAMPLE MODE/);assert.equal(s.calls.filter(c=>c.path.endsWith('/example')).length,2);assert.equal(s.calls.filter(c=>c.path.endsWith('/browse')).at(-1).payload.example,true);f.controller.openSubmit();assert.match(nodes['knowledge-submit'].textContent,/separate example graph/);assert(!f.form());await click('Connections');await openFirstRecord();const form=find(admin(),e=>e.tagName==='FORM');find(form,e=>e.tagName==='TEXTAREA').value='Fictional review';await click('Confirm',form);assert.equal(s.calls.filter(c=>c.path.endsWith('/review')).at(-1).payload.example,true);nodes['knowledge-admin'].close();f.session.synthetic_example=false;await nodes['open-knowledge-admin'].dispatch('click');await settle();assert.doesNotMatch(admin().textContent,/EXAMPLE MODE/);assert.equal(s.calls.filter(c=>c.path.endsWith('/browse')).at(-1).payload.example,undefined);passes++;
- }
- for(const operation of ['review','canonical-create','canonical-update']){
-  const s=service(),f=fresh(s.request);let complete;s.data.intercept=(path)=>path.endsWith('/'+operation)?new Promise(resolve=>complete=resolve):undefined;await openAdmin(f.controller);let pending;
-  if(operation==='review'){await click('Connections');await openFirstRecord();const form=find(admin(),e=>e.tagName==='FORM');find(form,e=>e.tagName==='TEXTAREA').value='Source review';pending=findText(form,'Confirm').dispatch('click');}
-  if(operation==='canonical-create'){await click('Entities');await click('Create reviewed group');await type('label','A group');await type('reason','Compared source records');for(let i=0;i<2;i++){const check=find(admin(),e=>e.attributes['aria-label']==='Select '+sampleSteps.filter(s=>s.type==='step')[i].label);check.checked=true;await check.dispatch('change');}pending=find(admin(),e=>e.tagName==='FORM').dispatch('submit');}
-  if(operation==='canonical-update'){await click('Reviewed groups');await openFirstRecord();const form=find(admin(),e=>e.tagName==='FORM'),action=find(form,e=>e.tagName==='SELECT');action.value='add_alias';await action.dispatch('change');await type('alias','Reviewed alias');await type('reason','Recorded business term');pending=form.dispatch('submit');}
-  assert.equal(typeof complete,'function');nodes['knowledge-admin'].close();f.controller.reset();f.session.synthetic_example=true;await nodes['open-knowledge-admin'].dispatch('click');await settle();await click('Submissions');await openFirstRecord();const calls=s.calls.length;complete({});await pending;await settle();assert.equal(s.calls.length,calls,'Old '+operation+' completion cannot trigger replacement-mode reads');assert.match(admin().textContent,/EXAMPLE MODE/);assert.match(admin().textContent,/Business summary/);assert.equal(s.calls.filter(c=>c.path.endsWith('/'+operation))[0].payload.example,undefined);passes++;
- }
- {
-  const s=service(),f=fresh(s.request);await openAdmin(f.controller);let complete;s.data.intercept=(path,payload)=>path.endsWith('/history')&&payload.kind==='proposal'?new Promise(resolve=>complete=resolve):undefined;await click('Connections');await openFirstRecord();assert.match(admin().textContent,/Loading connection review history/);await click('Submissions');await openFirstRecord();const current=admin().textContent;complete({...page([{action:'reject',reason:'STALE HISTORY LEAK'}],{}),kind:'proposal',id:proposal.id});await settle();assert.equal(admin().textContent,current);assert.doesNotMatch(admin().textContent,/STALE HISTORY LEAK/);passes++;
- }
- {
-  const s=service(),f=fresh(s.request);await openAdmin(f.controller);await click('Connections');await openFirstRecord();let complete;s.data.intercept=(path)=>path.endsWith('/document-source')?new Promise(resolve=>complete=resolve):undefined;const pending=findText(admin(),'Read exact document source').dispatch('click');await settle();await click('Submissions');await openFirstRecord();const current=admin().textContent;complete({source:{text:'STALE DOCUMENT LEAK'}});await pending;await settle();assert.equal(admin().textContent,current);assert.doesNotMatch(admin().textContent,/STALE DOCUMENT LEAK/);passes++;
- }
- {
-  const s=service(),f=fresh(s.request);await openAdmin(f.controller);await click('Graph');let reject;graphUpdate=()=>new Promise((_,fail)=>reject=fail);await click('Process steps');const oldSelect=graphSelect;await click('Submissions');await openFirstRecord();const current=admin().textContent;reject(Error('Delayed graph layout'));await settle();assert.equal(admin().textContent,current);oldSelect({id:'N1'});await settle();assert.equal(admin().textContent,current,'Detached graph controls cannot navigate a later view');passes++;
- }
- {
-  const s=service(),f=fresh(s.request),frames=[];env.requestAnimationFrame=fn=>frames.push(fn);await openAdmin(f.controller);await click('Graph');await click('Process steps');await graphSelect({id:'N1'});await settle();await click('Open answer t004');assert.equal(frames.length,1);const sourceTurn=find(admin(),e=>e.id==='knowledge-turn-t004');await click('← Back to detail');frames[0]();assert.equal(sourceTurn.focused,undefined,'Stale animation-frame source focus is discarded');delete env.requestAnimationFrame;passes++;
- }
- {
-  const s=service(),f=fresh(s.request);await openAdmin(f.controller);queueClose=true;f.controller.reset();assert.equal(nodes['interview-settings'].open,false);await closeQueue.shift()();assert.equal(nodes['interview-settings'].open,false,'Programmatic reset must not reopen settings on the queued native close event');await nodes['open-knowledge-admin'].dispatch('click');await settle();nodes['knowledge-admin'].close();await nodes['open-knowledge-admin'].dispatch('click');await settle();const content=admin().textContent;await closeQueue.shift()();assert.equal(admin().textContent,content,'A queued old close event must not clear the reopened Admin');assert.equal(admin().open,true);assert.equal(nodes['interview-settings'].open,false);nodes['knowledge-admin'].close();await closeQueue.shift()();assert.equal(nodes['interview-settings'].open,true,'User close restores Settings');queueClose=false;passes++;
- }
- {
-  const s=service(),f=fresh(s.request);const other={...sampleVersion,id:uuid(44),submission_id:uuid(45),label:'Earlier process'};s.data.intercept=(path)=>path.endsWith('/graph')?{entities:[sampleVersion,other],edges:[],proposals:[{...proposal,status:'confirmed',relationship_type:'happens_after',source_submission_id:uuid(1),source_revision:1,destination_submission_id:uuid(45),destination_revision:1}],submissions:[],too_large:false,counts:{nodes:2,connections:1}}:undefined;await openAdmin(f.controller);await click('Graph');assert.equal(graphInput.connections[0].from,'N2');assert.equal(graphInput.connections[0].to,'N1');assert.equal(graphInput.connections[0].label,'confirmed · before','Confirmed temporal claims share normalized forward direction');s.data.intercept=(path)=>path.endsWith('/graph')?{entities:[sampleVersion],edges:[],proposals:[{...proposal,status:'confirmed'}],submissions:[],too_large:false,counts:{nodes:1,connections:1}}:undefined;const made=graphCreations;await click('Refresh');assert.equal(graphCreations,made);assert.match(admin().textContent,/unresolved endpoint/,'Malformed complete graph cannot silently drop missing topology');passes++;
- }
- {
-  const s=service(),f=fresh(s.request);await openAdmin(f.controller);await click('Graph');const tabs=admin().querySelector('.knowledge-tabs'),current=tabs.querySelector('[aria-current="page"]');tabs.scrollWidth=760;tabs.clientWidth=340;tabs.offsetLeft=0;tabs.scrollLeft=0;current.offsetLeft=350;const focused=findText(admin(),'Choose process');focused.focus();const resize=[...windowListeners.get('resize')];assert.equal(resize.length,1,'Open Admin owns one resize listener');resize[0]();assert.equal(tabs.scrollLeft,342,'Shrinking to a narrow viewport exposes the active tab');assert.equal(document.activeElement,focused,'Responsive tab scrolling never moves content focus');await nodes['open-knowledge-admin'].dispatch('click');await settle();assert.equal(windowListeners.get('resize').size,1,'Reopening Admin cannot accumulate resize listeners');nodes['knowledge-admin'].close();assert.equal(windowListeners.get('resize').size,0,'Closing Admin removes its resize listener');tabs.scrollLeft=0;resize[0]();assert.equal(tabs.scrollLeft,0,'A late resize callback cannot alter a closed workspace');await nodes['open-knowledge-admin'].dispatch('click');await settle();queueClose=true;f.controller.reset();assert.equal(windowListeners.get('resize').size,0,'Reset detaches resize before native close delivery');await closeQueue.shift()();queueClose=false;passes++;
- }
- {
-  const s=service(),f=fresh(s.request);await openAdmin(f.controller);await click('Submissions');await openFirstRecord();assert(!find(admin(),e=>e.className?.split(/\s+/).includes('knowledge-provenance')),'An ordinary submission keeps its existing presentation');await click('← Back');
-  const sourceNames=['Synthetic workflow.docx','Synthetic verification.docx','<img src=x onerror="alert(1)">.docx'],digest='e'.repeat(64);
-  s.data.intercept=(path,payload)=>{if(!path.endsWith('/detail')||payload.kind!=='submission')return;const item={...structuredClone(sampleSubmission),capture_provenance:{method:'document_simulation',source_documents:sourceNames.map(filename=>({filename,sha256:digest})),participant_confirmed:false,process_owner_approved:false}};return {kind:'submission',item,submissions:[item],entities:[],edges:[],proposals:[]};};
-  await openFirstRecord();const provenance=find(admin(),e=>e.className?.split(/\s+/).includes('knowledge-provenance'));assert(provenance,'Document simulations show a provenance note');assert.equal(provenance.attributes.role,'note');assert(findText(provenance,'Document-derived simulation — not an employee statement'));assert.match(provenance.textContent,/No employee confirmation or process owner approval has been recorded/);assert.deepEqual(all(provenance).filter(e=>e.tagName==='LI').map(e=>e._text),sourceNames,'Source filenames are rendered literally as text');assert(!find(provenance,e=>e.tagName==='IMG'),'A supplied filename cannot create markup');assert.doesNotMatch(provenance.textContent,new RegExp(digest),'Technical hashes are not part of the prominent provenance note');passes++;
- }
- {
-  const s=service(),f=fresh(s.request);s.data.intercept=(path,payload)=>{if(!path.endsWith('/detail')||payload.kind!=='proposal')return;const item={...structuredClone(proposal),evidence:[{type:'simulated_document_account',submission_id:uuid(1),revision:1,turn_id:'t004',quote:'The written procedure describes a client release.'},...structuredClone(proposal.evidence)]};return {kind:'proposal',item,submissions:[structuredClone(sampleSubmission)],entities:[],edges:[],proposals:[]};};
-  await openAdmin(f.controller);await click('Connections');await openFirstRecord();const evidence=all(admin()).filter(e=>e.className==='knowledge-evidence-item');assert.deepEqual(evidence.map(article=>find(article,e=>e.tagName==='H4')._text),['Document-derived simulation — not an employee statement','Employee-reported statement','Document-supported'],'Simulation, employee and document evidence stay distinct');assert(findText(evidence[0],'The written procedure describes a client release.'));assert(findText(evidence[0],'Open answer t004'),'Simulation evidence retains source-turn navigation');assert(findText(evidence[2],'Read exact document source'),'Document evidence retains its exact-source action');passes++;
  }
  {
   const submitted=[],f=fresh(async(path,payload)=>{submitted.push(structuredClone(payload));return testReceipt();});
@@ -308,77 +171,5 @@ let passes=0;
   const f=fresh(async()=>{throw Object.assign(new Error('The local server is busy. Retry shortly.'),{status:503});});
   f.controller.openSubmit();await f.form().dispatch('submit');assert.match(f.form().textContent,/may already be saved/);assert.equal(f.controller.hasPending,true);passes++;
  }
- {
-  const s=service(),f=fresh(s.request),sourceId='doc_procedure_p7_c1',excerpt='Release only after review. <img src=x onerror="alert(1)">';
-  s.data.intercept=(path,payload)=>{if(!path.endsWith('/detail')||payload.kind!=='entity')return;return{kind:'entity',
-   item:{...structuredClone(sampleSteps[0]),data:{...structuredClone(sampleSteps[0].data),evidence_turns:[sourceId,'t004','doc_missing_p1']}},
-   submissions:[{...structuredClone(sampleSubmission),document_evidence:[{id:sourceId,document_id:'doc_procedure',name:'Procedure.pdf',label:'Procedure.pdf · page 7',text:excerpt,source_kind:'document',participant_confirmed:false,owner_review_required:true}]}],entities:[],edges:[],proposals:[]};};
-  await openAdmin(f.controller);await click('Graph');await click('Process steps');await graphSelect({id:'N2'});await settle();
-  const evidence=find(admin(),e=>e.className==='knowledge-block knowledge-source-evidence');assert(evidence);assert(findText(evidence,'Document-supported'));assert(findText(evidence,'Procedure.pdf · page 7'));assert(findText(evidence,'Read exact document excerpt'));assert(findText(evidence,excerpt),'The exact persisted excerpt remains readable without another source request');assert(findText(evidence,'Open answer t004'),'Participant navigation remains distinct');assert.doesNotMatch(evidence.textContent,/Answer doc_procedure/);assert.match(evidence.textContent,/Document source doc_missing_p1 is unavailable/);assert(!find(evidence,e=>e.tagName==='IMG'),'Document text is rendered literally');assert.equal(s.calls.filter(call=>call.path.endsWith('/document-source')).length,0);passes++;
- }
- {
-  const s=service(),f=fresh(s.request);await openAdmin(f.controller);
-  await click('Reviewed groups');await openFirstRecord();await aria('Next members and source evidence page');
-  await click('Group member 25');await click('Show affected connections');await aria('Next affected connections page');
-  await click('Source 25 → Target 25');await click('← Back');
-  assert.match(admin().textContent,/Potential downstream of Group member 25/);
-  assert.match(admin().textContent,/26–50 of 58/,'Return to the same page of the parent record');
-  await click('← Back');assert.match(admin().textContent,/Immediate upstream and downstream relationships/);
-  await click('← Back');assert.match(admin().textContent,/Group member 25/);
-  assert.match(admin().textContent,/26–50 of 61/);await click('← Back');assert.match(admin().textContent,/Reviewed canonical groups/);
-  passes++;
- }
- {
-  const s=service(),f=fresh(s.request);await openAdmin(f.controller);
-  await click('Connections');await openFirstRecord();
-  const form=()=>find(admin(),e=>e.tagName==='FORM');
-  const reason=()=>find(form(),e=>e.tagName==='TEXTAREA'),side=()=>find(form(),e=>e.tagName==='SELECT');
-  reason().value='Check the receiving team’s cited answer.';await reason().dispatch('input');
-  side().value='receiver';await side().dispatch('change');await click('Open answer t004');await click('← Back to detail');
-  assert.equal(reason().value,'Check the receiving team’s cited answer.');assert.equal(side().value,'receiver');
-  await click('Filters');assert.equal(reason().value,'Check the receiving team’s cited answer.');
-  let cancelled=false,discardAsked=0;window.confirm=()=>{discardAsked++;return false;};
-  await admin().dispatch('cancel',{preventDefault:()=>{cancelled=true;}});
-  await click('Done');assert(cancelled&&admin().open);assert.equal(discardAsked,2);
-  delete window.confirm;
-  assert.equal(s.calls.filter(c=>c.path.endsWith('/review')).length,0);
-  let release,reviewVersion=proposal.review_version;
-  s.data.intercept=(path,payload)=>{
-    if(path.endsWith('/review'))return new Promise(resolve=>{release=resolve;});
-    if(path.endsWith('/detail')&&payload.kind==='proposal')return {kind:'proposal',item:{...structuredClone(proposal),review_version:reviewVersion}};
-  };
-  const pending=findText(form(),'Confirm').dispatch('click');await settle();await click('Filters');
-  assert.equal(findText(form(),'Confirm').disabled,true,'Rerendering during a save must keep review actions disabled');
-  await click('Confirm',form());assert.equal(s.calls.filter(c=>c.path.endsWith('/review')).length,1);
-  release({ok:true});await pending;await settle();assert.equal(reason().value,'');assert.equal(side().value,'');
-  reason().value='Old revision';await reason().dispatch('input');reviewVersion++;await click('Refresh');
-  assert.equal(reason().value,'','A rationale must not carry into a revised connection');passes++;
- }
- {
-  const s=service(),f=fresh(s.request);let status='rejected',version=4;
-  s.data.intercept=(path,payload)=>{
-    if(path.endsWith('/detail')&&payload.kind==='proposal')return {item:{...proposal,status,review_version:version}};
-    if(path.endsWith('/review')){assert.equal(payload.action,'reopen');assert.equal(payload.reason,'A new source is available.');status='proposed';version++;return {status,review_version:version};}
-  };
-  await openAdmin(f.controller);await click('Connections');await openFirstRecord();
-  const form=find(admin(),e=>e.tagName==='FORM'),reason=find(form,e=>e.tagName==='TEXTAREA');
-  assert(findText(admin(),'Reopen for review'));assert(!findText(form,'Confirm'));
-  reason.value='A new source is available.';await reason.dispatch('input');await click('Reopen for review');
-  assert(findText(admin(),'Confirm'));passes++;
- }
- {
-  const s=service(),f=fresh(s.request);let stale=false;
-  s.data.intercept=(path,payload)=>{
-    if(path.endsWith('/review')){stale=true;throw Object.assign(Error('Stale proposals require new evidence and review.'),{status:400});}
-    if(stale&&path.endsWith('/detail')&&payload.kind==='proposal')return {kind:'proposal',item:{...structuredClone(proposal),status:'stale',stale_reason:'Sending process revised',review_version:5}};
-  };
-  await openAdmin(f.controller);await click('Connections');await openFirstRecord();
-  const form=find(admin(),e=>e.tagName==='FORM'),reason=find(form,e=>e.tagName==='TEXTAREA');
-  reason.value='Compare the filed source.';await reason.dispatch('input');await click('Confirm',form);
-  assert.match(admin().textContent,/Your review was not recorded.*Compare the filed source/);
-  assert.match(admin().textContent,/Sending process revised/);assert(!findText(admin(),'Confirm'));
-  assert(findText(admin(),'See current connections'));passes++;
- }
- assert(!fs.readFileSync('web/knowledge-ui.js','utf8').includes('/admin/snapshot'));
  console.log(JSON.stringify({tests_passed:passes,provider_calls:0,network_calls:0,real_browser:false}));
 })().catch(e=>{console.error(e);process.exitCode=1;});

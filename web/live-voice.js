@@ -4,6 +4,15 @@
 // Captions: https://developers.openai.com/api/docs/guides/live-conversations
 // This controller retains only text fragments in memory. The project API key stays on the server.
 (() => {
+  const trace = (...args) => window.CollectorRawTrace?.record(...args);
+  const channelEventId = value => typeof value === "string" && /^[A-Za-z0-9_-]{1,100}$/.test(value) ? value : undefined;
+  function sendEvent(op, packet) {
+    op.channel.send(JSON.stringify(packet));
+    const context = packet.type === "session.thinking.append";
+    trace("live.channel_sent", {event_type:packet.type, client_event_id:packet.event_id,
+      value_omitted:context ? "document_or_notes_context" : undefined, chars:packet.content?.length},
+      !context && packet.content !== undefined ? {text:packet.content} : undefined);
+  }
   // Live append content is limited to 500 tokens. UTF-8 bytes give a conservative
   // upper bound for byte-tokenized text, including non-Latin text and JSON escapes.
   const CONTEXT_CONTENT_BYTES = 480, CONTEXT_DOCUMENT_BYTES = 16384;
@@ -102,6 +111,17 @@
       window.document?.addEventListener?.("visibilitychange", this.visibility);
     }
     notify(name, value) {
+      if (name === "onTranscript") {
+        trace("live.caption", {caption_id:value.id, role:value.role, final:value.final,
+          start_ms:value.start_ms, end_ms:value.end_ms, fragments:value.fragments.length}, {text:value.text});
+      } else if (name === "onWithheld") {
+        trace("live.caption_withheld", {caption_id:value.id, start_ms:value.start_ms, end_ms:value.end_ms,
+          muted:value.muted, fragments:value.fragments, value_omitted:"transient_caption"});
+      } else if (name === "onStatus") trace("live.status", {state:value});
+      else if (name === "onContext" || name === "onGreeting") {
+        trace("live.command_receipt", {callback:name, state:value.status, acknowledged_chunks:value.acknowledged_chunks,
+          total_chunks:value.total_chunks, start_ms:value.start_ms, end_ms:value.end_ms});
+      }
       try {this.options[name]?.(value);}
       catch {
         // Consumer UI callbacks must not interrupt media cleanup or leave
@@ -181,6 +201,7 @@
           }});
         });
         peer.addEventListener("connectionstatechange", () => {
+          trace("live.connection_state", {state:peer.connectionState});
           if (!current()) return;
           if (["failed","closed"].includes(peer.connectionState)) {this.fail(op,"The live voice connection ended. Your transcript is retained; select Continue talking to reconnect.");return;}
           // Each outage gets its own recovery window. A stale timer from an
@@ -277,6 +298,10 @@
       let event;
       try {event = JSON.parse(data);} catch {return this.fail(op,"Live voice returned an unreadable event. Your transcript is retained.");}
       if (!event || typeof event !== "object" || Array.isArray(event)) return this.fail(op,"Live voice returned an unreadable event. Your transcript is retained.");
+      trace("live.channel_received", {event_type:/^[a-z][a-z0-9._]{0,79}$/.test(event.type) ? event.type : "unrecognized",
+        event_id:channelEventId(event.event_id), client_event_id:channelEventId(event.client_event_id ?? event.error?.client_event_id),
+        start_ms:event.start_ms, end_ms:event.end_ms, chars:typeof event.delta === "string" ? event.delta.length : undefined,
+        value_omitted: typeof event.delta === "string" ? "before_caption_gate" : undefined});
       if (event.type === "session.closed") {
         op.finalized = true;
         if (!op.closing) this.notify("onError","The live voice session ended. Your transcript is retained. Start talking again or continue by typing.");
@@ -550,8 +575,8 @@
       try {
         // Official Live opening flow: one commentary append after startup. Keep
         // the input audio track active; do not create a synthetic transcript.
-        op.channel.send(JSON.stringify({type:"session.commentary.append",event_id:op.greeting.event_id,
-          delegation_id:null,content:op.greeting.documentContext?DOCUMENT_OPENING_GREETING:OPENING_GREETING}));
+        sendEvent(op,{type:"session.commentary.append",event_id:op.greeting.event_id,
+          delegation_id:null,content:op.greeting.documentContext?DOCUMENT_OPENING_GREETING:OPENING_GREETING});
         if (op.greeting.status === "sent") this.notify("onGreeting",{...op.greeting});
       } catch {
         this.finishGreeting(op,"rejected","send_failed");
@@ -574,7 +599,7 @@
       op.stream?.getAudioTracks().forEach(track=>{track.enabled = !op.muted;});
       let sendFailed=false;
       if (op.ready && op.channel?.readyState === "open") {
-        try {op.channel.send(JSON.stringify({type:op.muted?"session.input_audio.mute":"session.input_audio.unmute",event_id:`mute_${++this.sequence}`}));}
+        try {sendEvent(op,{type:op.muted?"session.input_audio.mute":"session.input_audio.unmute",event_id:`mute_${++this.sequence}`});}
         catch {sendFailed=true;}
       }
       // Keep fail/cleanup outside the transport catch; consumer callback errors
@@ -609,8 +634,8 @@
         };
         op.commentary.set(event_id,{resolve:settle});
         try {
-          op.channel.send(JSON.stringify({type:"session.instructions.append",event_id,delegation_id:null,
-            content:`Say exactly this line now, once, word for word, then stop and listen: ${JSON.stringify(text)}`}));
+          sendEvent(op,{type:"session.instructions.append",event_id,delegation_id:null,
+            content:`Say exactly this line now, once, word for word, then stop and listen: ${JSON.stringify(text)}`});
           // Where the line falls on the session timeline, as nearly as this
           // side can tell: fragments that started earlier are late parts of
           // the answer before it.
@@ -735,7 +760,7 @@
             if (this.operation !== op || op.closing) return;
             const event_id = `context_${op.id}_${++this.sequence}`;
             op.context.pending.set(event_id,{record});
-            op.channel.send(JSON.stringify({type:"session.thinking.append",event_id,delegation_id:null,content}));
+            sendEvent(op,{type:"session.thinking.append",event_id,delegation_id:null,content});
           }
           if (record.status === "sent") this.notify("onContext",this.contextReceipt(record,"sent"));
         } catch {
@@ -767,6 +792,7 @@
     watchPlayback(op) {
       for (const type of ["playing","waiting","stalled","pause","ended","emptied","volumechange"]) {
         this.listenAudio(op,op.audio,type,() => {
+          trace("live.audio_callback", {event_type:type});
           if (type === "playing") {op.sound.playing = true;op.sound.buffering = false;}
           // A stalled fetch can coexist with buffered audio that is still playing.
           if (type === "waiting" || (type === "stalled" && op.audio.readyState < 3)) op.sound.buffering = true;
@@ -945,7 +971,7 @@
       this.publishAudio(op,true);
       if (!immediate && op.ready && op.channel?.readyState === "open") {
         this.setStatus("closing");
-        try {op.channel.send(JSON.stringify({type:"session.close"}));this.timer(op,()=>this.cleanup(op),4500);}
+        try {sendEvent(op,{type:"session.close"});this.timer(op,()=>this.cleanup(op),4500);}
         catch {this.cleanup(op);}
       } else this.cleanup(op);
       return op.stopPromise;

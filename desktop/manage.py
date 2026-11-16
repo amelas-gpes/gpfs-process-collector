@@ -698,6 +698,8 @@ def host(release, port, ready, served=None, rehearsal=None):
                     or config.get("build_id") != server.build_id
                     or config.get("csrf_token") != server.csrf_token):
                 raise DesktopError("Could not verify the desktop server.")
+            if getattr(server, "trace", None):
+                server.trace.emit("desktop.handshake_verified", {"port":server.server_port, "rehearsal":bool(rehearsal)})
             if rehearsal:
                 smoke(client, url)
                 ready.set()
@@ -710,6 +712,8 @@ def host(release, port, ready, served=None, rehearsal=None):
             ready.set()
             record("window-ready", release.name)
             print("READY " + url, file=protocol, flush=True)
+            if getattr(server, "trace", None):
+                server.trace.emit("desktop.ready_sent", {"port":server.server_port})
             if notice:
                 print(notice, file=protocol, flush=True)
             signal = threading.Timer(KNOWN_GOOD_AFTER, proven)
@@ -717,6 +721,8 @@ def host(release, port, ready, served=None, rehearsal=None):
             signal.start()
             try:
                 sys.stdin.buffer.read()
+                if getattr(server, "trace", None):
+                    server.trace.emit("desktop.host_input_ended", {"port":server.server_port})
             finally:
                 signal.cancel()  # Closed before then: opened, but not shown to work.
             # The window has closed. The build now stops accepting requests and waits for those

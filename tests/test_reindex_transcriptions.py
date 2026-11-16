@@ -3,6 +3,7 @@
 Real DocumentStore, DocumentService and KnowledgeGraph on temporary SQLite
 stores. The review callback is scripted: no provider or network access.
 """
+import knowledge_rows as rows
 import base64
 import hashlib
 import importlib.util
@@ -574,16 +575,16 @@ def submission(name, statement):
             'documents': {}, 'memo_findings': []}
 
 
-class ConfirmedConnectionTests(ReviewCase):
+class SubmittedConnectionTests(ReviewCase):
     def finished(self, graph, job):
         for _ in range(500):
-            row = next(item for item in graph.admin_snapshot()['jobs'] if item['id'] == job)
+            row = next(item for item in rows.jobs(graph) if item['id'] == job)
             if row['status'] not in ('pending', 'processing'):
                 return row['status']
             time.sleep(.01)
         self.fail('Knowledge job timed out')
 
-    def test_confirmed_connection_quoting_a_transcription_survives_a_failed_review_after_reindex(self):
+    def test_transcription_quoted_by_matching_survives_a_failed_review_after_reindex(self):
         document_id, source_id, _ = self.transcribed_png()
 
         def refuse(context, record, chunks, phase):
@@ -610,22 +611,14 @@ class ConfirmedConnectionTests(ReviewCase):
         self.assertEqual(self.finished(graph, graph.submit(first, document_scope=self.scope)['job_id']), 'completed')
         second = graph.submit(submission('Claim payment', 'We pay claims up to the carrier limit.'))
         self.assertEqual(self.finished(graph, second['job_id']), 'completed')
-        proposed = graph.admin_snapshot()['proposals'][0]
+        proposed = rows.proposals(graph)[0]
         self.assertEqual((proposed['evidence'][0]['type'], proposed['evidence'][0]['origin']),
                          ('document_supported', 'ai_visual_transcription'))
-        confirmed = graph.review(proposed['id'], 'confirm', 'owner', 'Checked against the rate card.', proposed['review_version'])
-        self.assertEqual(confirmed['status'], 'confirmed')
         # The store is opened by a newer build and the owner retries while the provider refuses.
         self.outdate(document_id)
         manager.action(self.scope, document_id, 'revisit')
         self.settle(document_id, 'error')
-        for read in (lambda: graph.admin_snapshot()['proposals'][0],
-                     lambda: graph.admin_detail('proposal', proposed['id'])['item']):
-            current = read()
-            self.assertEqual(current['status'], 'confirmed', current.get('stale_reason'))
-            self.assertEqual(current['review_version'], confirmed['review_version'])
-        self.assertEqual([entry['action'] for entry in graph.admin_snapshot()['proposals'][0]['history']], ['confirm'])
-        self.assertEqual(graph.admin_snapshot()['proposals'][0]['evidence'][0]['source_hash'], digest(TRANSCRIPTION))
+        self.assertEqual(rows.proposals(graph)[0]['evidence'][0]['source_hash'], digest(TRANSCRIPTION))
 
 
 if __name__ == '__main__':

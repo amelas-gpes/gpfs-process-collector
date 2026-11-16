@@ -520,6 +520,7 @@ class _DocumentReader:
 
 
 class DocumentStore:
+    trace = None
     @staticmethod
     def extraction_current(record):
         # A higher number was written by a newer build that shares this store. That index is
@@ -845,6 +846,17 @@ class DocumentStore:
             _, record = self._record(db, scope, document_id)
             record.update(json.loads(encoded), updated_at=time.time(), revision=record['revision'] + 1)
             db.execute('UPDATE documents SET record=? WHERE id=?', (json.dumps(record), document_id))
+        if self.trace:
+            recorded_changes = dict(changes)
+            analysis = recorded_changes.get("analysis")
+            if isinstance(analysis, dict):
+                review_fields = ("phase","version","cursor","intent_version","disposition","review_complete",
+                                 "reviewed_chunks","total_chunks","retry_required","review_stopped","review_requests")
+                recorded_changes["analysis"] = {k:analysis[k] for k in review_fields if k in analysis}
+                if set(analysis) - set(review_fields):
+                    recorded_changes["analysis"]["content_omitted"] = "document_review_content"
+            self.trace.emit("document.metadata_written", {"document_id":document_id, "revision":record["revision"],
+                                                         "changes":recorded_changes})
         return record
 
     def reserve_review_request(self,scope,document_id,generation):
@@ -870,6 +882,9 @@ class DocumentStore:
             _, record = self._record(db, scope, document_id)
             record.update(archived=bool(archived), updated_at=time.time(), revision=record['revision'] + 1)
             db.execute('UPDATE documents SET record=? WHERE id=?', (json.dumps(record), document_id))
+        if self.trace:
+            self.trace.emit("document.archived_changed", {"document_id":document_id, "revision":record["revision"],
+                                                         "archived":record["archived"]})
         return record
 
     def remove(self, scope, document_id):

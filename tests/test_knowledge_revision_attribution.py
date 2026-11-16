@@ -2,6 +2,7 @@
 
 Offline SQLite plus loopback HTTP round trips; no analyzer, provider or external network.
 """
+import knowledge_rows as rows
 import importlib.util
 import json
 import tempfile
@@ -36,7 +37,7 @@ class RevisionAttributionTests(unittest.TestCase):
         self.temp=tempfile.TemporaryDirectory();self.graph=kg.KnowledgeGraph(Path(self.temp.name)/'graph.db')
     def tearDown(self): self.graph.close();self.temp.cleanup()
     def detail(self,receipt):
-        return self.graph.admin_detail('submission',receipt['submission_id'],receipt['revision'])['item']
+        return self.graph._revision(receipt['submission_id'],receipt['revision'])
     def attribution(self,receipt):
         item=self.detail(receipt);return {key:item.get(key) for key in FIELDS}
 
@@ -45,15 +46,6 @@ class RevisionAttributionTests(unittest.TestCase):
         second=self.graph.submit(submission(2,process_id=first['process_id']))
         self.assertEqual(second['revision'],2)
         self.assertEqual(self.attribution(second),FIRST)
-        # The finding's symptom: the current revision dropped out of a team-filtered view.
-        current=self.graph.admin_browse('submissions',{'team':'Procurement','latest_only':True})['items']
-        self.assertEqual([(row['revision'],row['team']) for row in current],[(2,FIRST['team'])])
-        scoped=self.graph.admin_browse('submissions',{'scope':'Fund A','latest_only':True})['items']
-        self.assertEqual([row['revision'] for row in scoped],[2])
-        # The graph entities of the revision carry the team again.
-        teams=self.graph.admin_browse('entities',{'team':'Procurement','latest_only':True})['items']
-        self.assertTrue(any(row['revision']==2 for row in teams),teams)
-
     def test_inheritance_is_per_field_and_follows_the_latest_revision(self):
         first=self.graph.submit(submission(**FIRST))
         second=self.graph.submit(submission(2,process_id=first['process_id'],team='Vendor Master Data',scope=''))
@@ -68,7 +60,6 @@ class RevisionAttributionTests(unittest.TestCase):
         first=self.graph.submit(submission(**FIRST))
         second=self.graph.submit(submission(2,process_id=first['process_id'],participant='',team='',department='',scope=''))
         self.assertEqual(self.attribution(second),dict.fromkeys(FIELDS,''))
-        self.assertEqual(self.graph.admin_browse('submissions',{'team':'Procurement','latest_only':True})['items'],[])
         # None is not a value a browser sends; it is treated like an empty field, as before.
         third=self.graph.submit(submission(3,process_id=first['process_id'],team=None,scope='Fund B'))
         self.assertEqual(self.attribution(third),{'participant':'','team':'','department':'','scope':'Fund B'})
@@ -93,15 +84,8 @@ class RevisionAttributionTests(unittest.TestCase):
         for bad in ({'team':'x'*501},{'scope':7},{'participant':['Dana']}):
             with self.assertRaises(ValueError,msg=bad):
                 self.graph.submit(submission(2,process_id=first['process_id'],**bad))
-        self.assertEqual([row['revision'] for row in self.graph.admin_browse('submissions')['items']],[1])
+        self.assertEqual([row['revision'] for row in rows.submissions(self.graph)],[1])
 
-    def test_submissions_list_marks_revisions_that_a_later_one_replaced(self):
-        first=self.graph.submit(submission(**FIRST))
-        self.assertEqual([(row['revision'],row['latest']) for row in self.graph.admin_browse('submissions')['items']],[(1,True)])
-        self.graph.submit(submission(2,process_id=first['process_id']))
-        other=self.graph.submit(submission(context={'process_name':'Vendor Offboarding'}))
-        rows={(row['submission_id'],row['revision']):row['latest'] for row in self.graph.admin_browse('submissions')['items']}
-        self.assertEqual(rows,{(first['submission_id'],1):False,(first['submission_id'],2):True,(other['submission_id'],1):True})
 
 
 class RevisionAttributionHTTPTests(unittest.TestCase):
@@ -120,21 +104,16 @@ class RevisionAttributionHTTPTests(unittest.TestCase):
             with urlopen(request,timeout=5) as response: return response.status,json.loads(response.read())
         except HTTPError as error: return error.code,json.loads(error.read())
 
-    def test_revision_submitted_with_untouched_fields_stays_attributed_in_admin(self):
+    def test_revision_submitted_with_untouched_fields_retains_attribution(self):
         code,first=self.post('/api/knowledge/submit',submission(**FIRST))
         self.assertEqual(code,202,first)
         # What the browser sends for a revision whose form was not touched in a file saved before the fix.
         code,second=self.post('/api/knowledge/submit',submission(2,process_id=first['process_id']))
         self.assertEqual(code,202,second);self.assertEqual(second['revision'],2)
-        code,detail=self.post('/api/knowledge/admin/detail',{'kind':'submission','id':second['submission_id'],'revision':2})
-        self.assertEqual(code,200,detail)
-        self.assertEqual({key:detail['item'][key] for key in FIELDS},FIRST)
-        code,page=self.post('/api/knowledge/admin/browse',{'section':'submissions','filters':{'team':'Procurement'}})
-        self.assertEqual(code,200,page)
-        self.assertEqual(sorted((row['revision'],row['team'],row['latest']) for row in page['items']),
-                         [(1,FIRST['team'],False),(2,FIRST['team'],True)])
-        code,page=self.post('/api/knowledge/admin/browse',{'section':'submissions','filters':{'team':'Procurement','latest_only':True}})
-        self.assertEqual([row['revision'] for row in page['items']],[2])
+        with self.httpd.knowledge.lock:
+            for receipt in (first, second):
+                saved=self.httpd.knowledge._revision(receipt['submission_id'], receipt['revision'])
+                self.assertEqual({key:saved[key] for key in FIELDS},FIRST)
 
 
 if __name__=='__main__':

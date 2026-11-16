@@ -36,13 +36,17 @@ async function main() {
     const context = await browser.newContext({viewport:{width:1280, height:840}});
     const page = await context.newPage();
     const errors = [];
+    const adminRequests = [];
+    context.on("request", request => {
+      if (new URL(request.url()).pathname.startsWith("/api/knowledge/admin/")) adminRequests.push(request.url());
+    });
     page.on("pageerror", error => errors.push(error.message));
     await context.route("**/*", route => {
       const target = new URL(route.request().url());
       return target.protocol === "http:" && target.origin !== new URL(url).origin || target.protocol === "https:"
         ? route.abort() : route.continue();
     });
-    await page.goto(url, {waitUntil:"networkidle"});
+    await page.goto(url, {waitUntil:"domcontentloaded"});
     const navbarContext=page.getByRole("navigation",{name:"Workspace"}).getByRole("button",{name:"Context",exact:true});
     await navbarContext.focus();
     await page.keyboard.press("Enter");
@@ -51,6 +55,7 @@ async function main() {
     await page.waitForFunction(()=>document.activeElement===document.querySelector("#open-context")&&!document.querySelector("#interview-settings").open);
     await page.getByRole("button",{name:"More options",exact:true}).click();
     await page.getByRole("button",{name:"Settings",exact:true}).click();
+    assert.equal(await page.locator("#knowledge-admin, #open-knowledge-admin").count(), 0);
     const guide=page.locator("#interview-settings details#help-guide");
     await guide.locator("summary").focus();
     await page.keyboard.press("Enter");
@@ -83,7 +88,7 @@ async function main() {
         assert.equal(await page.locator("#session-menu").isVisible(), false);
       }
     }
-    await page.goto(url, {waitUntil:"networkidle"});
+    await page.goto(url, {waitUntil:"domcontentloaded"});
     await page.setViewportSize({width:1280, height:840});
     await page.locator("#type-instead").click();
     const reply = page.locator("#answer-text");
@@ -94,6 +99,21 @@ async function main() {
     await page.locator("#send-answer").click();
     await page.waitForFunction(() => !document.querySelector("#answer-text").disabled &&
       document.querySelector("#transcript").textContent.includes("fictional registrar"));
+    await page.locator("#session-menu-toggle").click();
+    await page.locator("#submit-process-menu").click();
+    const submission = page.locator("#knowledge-submit");
+    const [filed] = await Promise.all([
+      page.waitForResponse(response => response.url().endsWith("/api/knowledge/submit")),
+      submission.getByRole("button", {name:/^Submit (process|anyway)$/}).click()
+    ]);
+    assert.equal(filed.status(), 202);
+    const [status] = await Promise.all([
+      page.waitForResponse(response => response.url().endsWith("/api/knowledge/status")),
+      submission.getByRole("button", {name:"Refresh status"}).click()
+    ]);
+    assert.equal(status.status(), 200);
+    assert.equal((await status.json()).revision, 1);
+    await submission.getByRole("button", {name:"Close"}).click();
     await page.locator("#session-menu-toggle").click();
     const [download] = await Promise.all([
       page.waitForEvent("download"),
@@ -117,7 +137,7 @@ async function main() {
       buffer:Buffer.from(JSON.stringify({...saved,documents:{scope:workspace.scope,documents:[]}}))};
     const peer=await page.context().newPage();
     peer.on("pageerror",error=>errors.push(error.message));
-    await peer.goto(url,{waitUntil:"networkidle"});
+    await peer.goto(url,{waitUntil:"domcontentloaded"});
     for(const tab of [page,peer]){
       const restored=tab.waitForResponse(response=>response.url().endsWith("/api/documents/status"));
       await tab.locator("#session-file").setInputFiles(sharedCopy);
@@ -129,6 +149,7 @@ async function main() {
     assert.equal(await peer.locator("#document-intake-panel").isVisible(),false);
     assert.equal(await peer.locator("#resume-file-followup").isVisible(),true);
     await peer.close();
+    assert.deepEqual(adminRequests, []);
     assert.deepEqual(errors, []);
     process.stdout.write(JSON.stringify({browser:browser.version(), seed, navigationActions:36, typedSaveAndDiscard:true,sharedFileNotice:true, pageErrors:errors.length}) + "\n");
   } finally {

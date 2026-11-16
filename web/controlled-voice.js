@@ -91,8 +91,10 @@
     get microphoneHeld(){const op=this.operation;return Boolean(op&&this.current(op)&&op.ready&&op.processing&&!op.overlap&&!op.muted);}
     notify(name,value){try{this.options[name]?.(value);}catch{/* Display callbacks cannot bypass cleanup. */}}
     current(op){return this.operation===op&&!op.closing&&!op.controller.signal.aborted;}
-    setStatus(status){this.status=status;this.notify("onStatus",status);}
-    tracks(op,enabled){op.stream?.getAudioTracks().forEach(track=>{track.enabled=enabled;});}
+    setStatus(status){this.status=status;global.CollectorRawTrace?.record("reviewed.status",{state:status});this.notify("onStatus",status);}
+    tracks(op,enabled){op.stream?.getAudioTracks().forEach(track=>{
+      track.enabled=enabled;global.CollectorRawTrace?.record("reviewed.track_enabled",{enabled:track.enabled});
+    });}
     discardPendingAudio(){
       this.pendingAudio=null;if(this.pendingAudioTimer!==null)this.unlater(this.pendingAudioTimer);this.pendingAudioTimer=null;
       this.notify("onTranscriptionRecovery",{available:false});
@@ -486,21 +488,25 @@
     // (in this page session only) and read when voice is next started, if the interview has not
     // changed. Returns whether it was played to the end.
     async speakApproved(op,text,signal,{kind,basis=null}={}){
+      global.CollectorRawTrace?.record("reviewed.playback_requested",{kind},{text});
       const pending=basis===null?null:{text,kind,basis,started:false};this.unplayed=pending;
       this.setStatus("speaking");
       try{
         if(op.timing)op.timing.kind=kind;
         const playback=this.options.speak(text,{signal,preparation:op.speechPreparation,onPlaybackStart:()=>{
+          global.CollectorRawTrace?.record("reviewed.playback_started",{kind});
           if(pending)pending.started=true;
           // A review acknowledgement is filler, never meaningful-response latency.
           if(this.current(op)&&!signal.aborted&&op.timing&&kind!=="review_pending"&&op.timing.started===null)op.timing.started=this.now();
         }});
         if(!playback||typeof playback.then!=="function")throw new Error("Playback must report its completion");
         await playback;
+        global.CollectorRawTrace?.record("reviewed.playback_completed",{kind});
         if(op.timing&&kind!=="review_pending")op.timing.playbackEnd=this.now();
         if(this.unplayed===pending)this.unplayed=null;
         return true;
       }catch(cause){
+        global.CollectorRawTrace?.record("reviewed.playback_rejected",{kind,aborted:signal.aborted});
         // Stopped on purpose. What the participant heard begin is not read again.
         if(!this.current(op)||signal.aborted){if(pending?.started&&this.unplayed===pending)this.unplayed=null;return false;}
         // An acknowledgement that was not heard is on screen and is followed by the reviewed line.

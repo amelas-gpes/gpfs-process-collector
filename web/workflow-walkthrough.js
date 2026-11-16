@@ -38,7 +38,7 @@
 
   function create(root, {onDetails,onExit,renderEvidence,onSetDesign}) {
     const media = scope.matchMedia("(prefers-reduced-motion: reduce)");
-    let motionEnabled = !media.matches, visible = false, destroyed = false, generation = 0;
+    let motionEnabled = true, visible = false, destroyed = false, generation = 0;
     let fingerprint, graph = {steps:[],connections:[]}, selected = {}, steps = new Map(), edges = new Map(), options = [];
     const shell = el("section","ww-shell"), theater = el("dialog","ww-theater");
     shell.setAttribute("aria-label","Cinematic process map"); theater.setAttribute("aria-label","Expanded cinematic map");
@@ -66,12 +66,19 @@
     const stage = scope.CollectorWorkflowStage.create(scene,{
       onSelectStep: id => select(id ? {stepId:id} : {}),
       onSelectEdge: key => select(key ? {edgeKey:key} : {},Boolean(key)),
+      onInspect: () => inspector.querySelector("h4")?.focus({preventScroll:true}),
       onViewChange: view => { zoomLabel.textContent = Math.round(view.scale * 100) + "%"; }
     });
     picker.addEventListener("change",() => {
       const item = options[Number(picker.value)] || {};
       select(item,true);
       if (!item.stepId && !item.edgeKey) stage.fit();
+      else inspector.querySelector("h4")?.focus({preventScroll:true});
+    });
+    shell.addEventListener("keydown",event=>{
+      if(event.key!=="Escape" || inspector.hidden)return;
+      event.preventDefault(); event.stopPropagation();
+      select({}); picker.focus({preventScroll:true});
     });
     media.addEventListener("change",motionPreference);
     theater.addEventListener("close",leaveTheater);
@@ -87,13 +94,14 @@
       if (visible && !expand.hidden) expand.focus({preventScroll:true});
     }
     function syncMotion() {
-      const active = motionEnabled && !media.matches;
-      motion.disabled = media.matches || !graph.connections.length;
+      const large=graph.connections.length>24;
+      const active = motionEnabled && !media.matches && !large;
+      motion.disabled = large || media.matches || !graph.connections.length;
       motion.setAttribute("aria-pressed",String(active));
-      motion.title = media.matches ? "Reduced motion is enabled on this device" : "Animate direction along captured connections";
+      motion.title = large ? "Motion is paused on larger maps for readability" : media.matches ? "Reduced motion is enabled on this device" : "Animate direction along captured connections";
       stage.setMotion(active);
     }
-    function motionPreference() { motionEnabled = !media.matches; syncMotion(); }
+    function motionPreference() { syncMotion(); }
     function rebuildPicker() {
       const overview = el("option","","Whole process");
       options = [{}]; overview.value = "0"; picker.replaceChildren(overview);
@@ -142,7 +150,7 @@
           scope.CollectorWorkflowStage.createComponentPreview(art,{type:step.type,variant});
           const editable = onSetDesign && ["activity","document","data_store","subprocess"].includes(step.type || "activity");
           const design = el("button","ww-design-link",(variant?.label || typeLabel(step)) + (editable ? " · Change design" : ""));
-          design.type = "button";
+          design.type = "button"; design.disabled = !scope.CollectorComponentLibrary?.open;
           design.title = editable ? "Choose a design for this step" : "View this design in the component library";
           design.addEventListener("click",()=>scope.CollectorComponentLibrary.open({
             variant,appliedDesign,type:step.type,opener:design,returnFocus:picker,stepTitle:step.title,
@@ -151,21 +159,27 @@
           inspector.append(art,design);
         }
         if (step.description) inspector.append(el("p","ww-description",step.description));
+        const known = scope.CollectorWorkflow?.known || (value=>Boolean(value));
         const fields = el("dl","ww-fields");
         for (const [name,value] of [["Owner",step.actor],["System",step.system]]) {
-          if (value) fields.append(el("dt","",name),el("dd","",value));
+          if (known(value)) fields.append(el("dt","",name),el("dd","",value));
         }
         if (fields.childElementCount) inspector.append(fields);
-        const known = value => value && !/^(?:unknown|not established|not applicable|n\/?a)$/i.test(String(value).trim());
+
         const controls = Array.isArray(step.control_type) ? step.control_type.filter(value=>value!=="none_reported")
           .map(value=>value.replace(/^gpfs_/,"GPFS ").replaceAll("_"," ")).join(", ") : "";
         const recorded = [["Input",step.input],["Output",step.output],["Completion",step.completion_criteria],
-          ["Handoff",step.handoff],["Control",controls],["Entry method",step.entry_mode?.replaceAll("_"," ")],
+          ["Handoff note",step.handoff],["Control",controls],["Entry method",step.entry_mode?.replaceAll("_"," ")],
           ["Data source",step.data_origin],["Rule source",step.rule_source_ref]].filter(([,value])=>known(value));
-        if (recorded.length) {
+        if (recorded.length || step.operating_details?.length) {
           const more=el("details","ww-operating"), dl=el("dl","ww-fields");
           more.append(el("summary","","Operating details"),dl);
           for(const [label,value] of recorded) dl.append(el("dt","",label),el("dd","",value));
+          for(const row of step.operating_details||[]){
+            const fact=el("dd","",row.text);
+            if(renderEvidence)fact.append(renderEvidence(row.evidence_turns));
+            dl.append(el("dt","",row.field[0].toUpperCase()+row.field.slice(1)),fact);
+          }
           inspector.append(more);
         }
         inspector.append(control("Step details and sources","details",() => onDetails(step.id),true));
@@ -227,20 +241,35 @@
       const signature = JSON.stringify(data);
       if (signature === fingerprint) return;
       fingerprint = signature; graph = JSON.parse(signature); // The draft editor updates its graph in place.
+      const previousStep=steps.get(selected.stepId),previousEdge=edges.get(selected.edgeKey);
       steps = new Map(graph.steps.map(s => [s.id,s])); edges = new Map(graph.connections.map(e => [edgeKey(e),e]));
+      if(previousStep){
+        const same=steps.get(previousStep.id);
+        const sameWork=step=>step.title===previousStep.title && step.type===previousStep.type;
+        if(!same || !sameWork(same)){
+          const matches=graph.steps.filter(sameWork);
+          const cited=same?.type===previousStep.type && (same?.evidence_turns||[]).some(id=>previousStep.evidence_turns?.includes(id));
+          selected=matches.length===1?{stepId:matches[0].id}:cited?{stepId:same.id}:{};
+        }
+      }
+      if(previousEdge && !edges.has(selected.edgeKey)){
+        const matches=graph.connections.filter(edge=>edge.from===previousEdge.from && edge.to===previousEdge.to);
+        if(matches.length===1)selected={edgeKey:edgeKey(matches[0])};
+      }
       const empty = !graph.steps.length;
       processName.textContent = graph.title || "Process map";
       counts.textContent = count(graph.steps.length,"component") + " · " + count(graph.connections.length,"connection");
       syncMotion();
-      for (const item of [counts,zoomOut,zoomLabel,zoomIn,fit,library,navigation,workspace]) item.hidden = empty;
+      for (const item of [counts,zoomOut,zoomLabel,zoomIn,fit,navigation,workspace]) item.hidden = empty;
+      library.hidden = empty || !scope.CollectorComponentLibrary?.open;
       motion.hidden = !graph.connections.length;
       expand.hidden = empty && !theater.open;
       rebuildPicker(); refreshSelection(); void draw();
       if (empty) message.textContent = live ? "The map will appear when the interview captures its first step." : "This draft has no captured steps yet.";
     }
-    function setVisible(value) {
+    function setVisible(value,{pageHidden=false}={}) {
       visible = Boolean(value); stage.setVisible(visible);
-      if (!visible && theater.open) theater.close();
+      if (!visible && !pageHidden && theater.open) theater.close();
     }
     function destroy() {
       destroyed = true; visible = false; generation++;
@@ -248,7 +277,7 @@
       if (theater.open) theater.close();
       stage.destroy(); root.replaceChildren();
     }
-    return {update,setVisible,destroy};
+    return {update,setVisible,destroy,currentSelection:()=>({...selected}),restoreSelection:item=>select(item),isExpanded:()=>theater.open,openTheater(){if(!theater.open&&steps.size)toggleTheater();},closeTheater(){if(theater.open)theater.close();}};
   }
   if (scope.CollectorWorkflowStage?.create) scope.CollectorWalkthrough = {create};
 })(window);

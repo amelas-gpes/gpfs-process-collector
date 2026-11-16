@@ -16,7 +16,7 @@ Those are source-backed conventions, not verification of the live Azure environm
 
 | Area | Preserve from this prototype | Hosted implementation |
 | --- | --- | --- |
-| Interview domain | Eleven-topic foundation, one useful adaptive question, normal route before variants, parked tangents, explicit gaps, closure confirmation and adjustable advisory duration | Put rules, schemas and prompt versions in the application's domain/orchestration layer. Preserve evidence attribution and the separate draft audit. |
+| Interview domain | Sixteen-topic rubric, one useful adaptive question, normal route before variants, parked tangents, explicit gaps, closure confirmation and participant-controlled duration | Put rules, schemas and prompt versions in the application's domain/orchestration layer. Preserve evidence attribution and the separate draft audit. |
 | Review experience | Editable transcript, step and connection evidence, map/procedure/memo review, explicit save/export, stale-draft indication | Fit the supported React application shell. Preserve behavior rather than requiring the current vanilla JavaScript layout or Python host. |
 | AI services | Structured interview/draft, audio transcription, question playback | Separate Foundry adapters for text generation, transcription and speech. Each may use a different deployed model or service. |
 | Identity and access | Localhost-only development boundary | Use the managed-app Entra sign-in and server-side authorization patterns, including per-interview access. Browser sign-in alone does not authorize API access. |
@@ -25,7 +25,9 @@ Those are source-backed conventions, not verification of the live Azure environm
 
 The current Python `http.server` launcher is a local development convenience. It has no hosted authentication, multi-user isolation, durable session store or production lifecycle. Hosting is an integration task in the managed application stack, rather than exposing that local listener publicly.
 
-## Provider seam in version 0.2.1
+## Historical interface in version 0.2.1
+
+For current routes, authorization and provider dependencies, see [API contract](API_CONTRACT.md). The earlier interface below describes the original hosting proposal.
 
 The injected application client exposes interview, draft, transcription, voice-session creation, `public_config()` and `browser_connect_sources()`. HTTP routes obtain public readiness, provider attribution and voice capabilities from that client. A configured provider does not have to possess an OpenAI API key. Public metadata must contain no persistent credentials.
 
@@ -33,7 +35,7 @@ Speech configuration names its provider and transport, available voices and defa
 
 This is an initial separation, not a completed Azure integration or a fully extracted domain library. Prompt orchestration and the OpenAI implementation still share `server.py`; the hosting team can port or extract that logic into the supported backend without preserving this Python file organization.
 
-Current routes remain `/api/config`, `/api/interview`, `/api/transcribe`, `/api/draft` and `/api/voice-session`. Their domain output schemas and evidence validation are the useful compatibility baseline. The hosted API can version or rename routes with its UI; it must replace local-only CSRF/shutdown behavior with its own authenticated lifecycle.
+The 0.2.1 routes were `/api/config`, `/api/interview`, `/api/transcribe`, `/api/draft` and `/api/voice-session`. Their domain output schemas and evidence validation are the useful compatibility baseline. The hosted API can version or rename routes with its UI; it must replace local-only CSRF/shutdown behavior with its own authenticated lifecycle.
 
 ## Azure voice choice
 
@@ -45,7 +47,7 @@ Choose and test the actual service before implementing the Azure adapter:
 
 An endpoint substitution alone is insufficient. Authentication, deployment identifiers, structured output support, voice catalog, media formats, browser transport, timeouts and error handling must match the selected Azure services. Use managed identity for server access where supported; keep long-lived service credentials out of the browser. If a browser needs a direct media connection, issue a narrowly scoped short-lived session through the authorized backend, or negotiate through that backend.
 
-Interview state must outlive any media connection. Renewing a provider's timed audio session must not close the interview or lose transcript, edits or pending questions. The default meeting plan remains 60 minutes and may be extended. Voices are loaded from the selected adapter; the current ten OpenAI voices are not a universal list for every Azure service.
+Interview state must outlive any media connection. Renewing a provider's timed audio session must not close the interview or lose transcript, edits or pending questions. The participant controls meeting duration. There is no advisory timer. Voices are loaded from the selected adapter; the current ten OpenAI voices are not a universal list for every Azure service.
 
 The current browser and saved-session validation accept lowercase AI voice aliases. An Azure Speech adapter must map native names such as `en-US-AvaMultilingualNeural` to stable supported aliases, or deliberately extend both catalog and saved-session validation. Preserve the provider and voice selection when migrating saved interviews; do not silently reinterpret a voice under a different provider.
 

@@ -4,6 +4,48 @@ Vocabulary guides questions; it never establishes a client's practice or an
 approved GPFS standard. No provider, filesystem or runtime work occurs here.
 """
 import copy
+import re
+import unicodedata
+
+
+STEP_DETAIL_FIELDS = ("duration", "deadline", "frequency", "responsible", "accountable", "consulted", "informed", "system", "control", "exception")
+
+
+def validate_operating_details(steps, turns, documents, context, carried=()):
+    """Bind each optional fact to its own quoted sources and to the same process step."""
+    if not any(isinstance(step, dict) and "operating_details" in step for step in steps):
+        return
+    def normalize(value):
+        return " ".join(unicodedata.normalize("NFKC", value).casefold().split())
+
+    sources = {turn["id"]: [normalize(turn.get("text", ""))] for turn in turns
+               if turn.get("role") == "user" and not turn.get("document_event")}
+    sources["context"] = [normalize(value) for key, value in (context or {}).items()
+                          if key in ("process_name", "process_owner", "background") and isinstance(value, str) and value]
+    for document in documents or []:
+        if isinstance(document.get("text"), str):
+            sources[document["id"]] = [normalize(document["text"])]
+    for step in steps:
+        if not isinstance(step, dict):
+            raise ValueError("A process step must be an object.")
+        details = step.get("operating_details", [])
+        if not isinstance(details, list) or len(details) > 32:
+            raise ValueError("A step can contain up to 32 cited operating details.")
+        for row in details:
+            if not isinstance(row, dict) or set(row) != {"field", "text", "evidence_turns"} or row["field"] not in STEP_DETAIL_FIELDS:
+                raise ValueError("A step operating detail has an unsupported field.")
+            fact, refs = row["text"], row["evidence_turns"]
+            if not isinstance(fact, str) or not fact.strip() or len(fact) > 500 or not isinstance(refs, list) or not 1 <= len(refs) <= 15:
+                raise ValueError("A step operating detail needs short quoted text and its supporting source references.")
+            if any(not isinstance(ref, str) or ref not in step.get("evidence_turns", []) for ref in refs):
+                raise ValueError("An operating detail must cite evidence from its own step.")
+            passage = re.compile(r"(?<!\w)" + re.escape(normalize(fact)) + r"(?!\w)")
+            for ref in refs:
+                if ref not in sources and ref in carried:
+                    continue
+                if not any(passage.search(source) for source in sources.get(ref, [])):
+                    raise ValueError("The operating detail must quote the cited participant, context or document excerpt.")
+
 
 CONTEXT = """
 GPFS CONTEXT
@@ -144,7 +186,15 @@ CONNECTIONS = {"type": "array", "items": CONNECTION}
 TAG_OPERATION = {"anyOf": [obj({"op": {"type": "string", "enum": ["add", "replace", "remove"]},
     "target_id": TEXT, **branch["properties"]}) for branch in TAG["anyOf"]]}
 
-CAPTURE_POLICY = """
+RELATIONSHIP_POLICY = """
+Read each relationship from the interviewed process to its named counterpart. If Treasury receives
+this process's file, this process provides_input_to or hands_off_to Treasury. If Fund Accounting supplies
+this process's opening balance, this process consumes its output or happens_after its close.
+requires_approval_from names the approver. variant_of and subprocess_of name the base or parent.
+parallel_with and shares_calculation_with describe a peer. Never reverse a prior relationship without evidence.
+"""
+
+CAPTURE_POLICY = MODULES + RELATIONSHIP_POLICY + """
 BACKGROUND CLASSIFICATION
 Populate taxonomy from cited evidence, never ask participants to select taxonomy.
 Emit tag_operations with facet/value from the supplied controlled vocabulary and
@@ -153,8 +203,10 @@ Use other with a note for an unlisted value. No source means no tag. Add with an
 empty target_id; replace/remove only a supplied active tag ID with correction
 evidence. Empty operations retain existing tags. A correction must also retire
 contradicted tags. Never promote a client's normal practice to gold_standard.
-connections_out is the complete accumulated list of reported external process
-dependencies; preserve prior entries unless evidence corrects them. A name is
+connections_out adds or updates reported external process
+dependencies. Preserve prior entries unless a newer participant turn corrects them. Cite that turn in remove_connections
+and give the named target ID to withdraw an old relation. Remove a parked thread
+only in resolved_parking_lot with its exact text and the participant source that resolved it. A name is
 allowed when no submission ID exists. These are reported leads, not confirmed
 cross-submission graph links. Do not imply counterpart evidence was checked.
 Report active_modules as relevant module names; recap_due is scope_boundary,
@@ -165,19 +217,30 @@ def legacy_defaults(value, schema):
     """Upgrade only newly added empty/unknown fields, never invent business facts."""
     if not isinstance(value, dict):
         return
-    defaults = {"taxonomy": [], "connections_out": [], "tag_operations": [],
+    defaults = {"taxonomy": [], "connections_out": [], "tag_operations": [], "remove_connections": [], "resolved_parking_lot": [],
                 "active_modules": [], "recap_due": "none", "control_type": [],
                 "data_origin": "", "entry_mode": "unknown", "rule_source_ref": "",
-                "entity_scope": [], "parent_process": "", "variant_class": "unclassified",
+                "entity_scope": [], "parent_process": "", "operating_details": [], "variant_class": "unclassified",
                 "substantive_or_presentation": "unknown", "source": "", "standard_route_ref": ""}
     fields = set(schema.get("properties", {}))
+    if fields == {"needed", "edits"}:
+        value.setdefault("edits", [])
+    if "discard_step_removals" in fields and "remove_steps" in fields:
+        value.setdefault("remove_steps", [])
+    if fields == {"text", "sources", "basis", "quote"}:
+        value.setdefault("basis", "inferred")
+        value.setdefault("quote", "")
+    if "field_evidence" in fields and "route_support" in fields:
+        value.setdefault("field_evidence", [])
     allowed = set()
+    if {"op", "topic", "target_id", "evidence_turns", "support"} <= fields:
+        value.setdefault("support", [])
     if {"memo_findings", "question"} <= fields or "memo_summary" in fields:
         allowed.update(("taxonomy", "connections_out", "active_modules", "recap_due"))
     if {"fact_operations", "topic_states", "base_revision"} <= fields:
-        allowed.update(("tag_operations", "connections_out", "active_modules", "recap_due"))
+        allowed.update(("tag_operations", "connections_out", "active_modules", "recap_due", "remove_connections", "resolved_parking_lot"))
     if {"id", "actor", "system", "input", "output", "handoff", "completion_criteria"} <= fields:
-        allowed.update(("control_type", "data_origin", "entry_mode", "rule_source_ref", "entity_scope", "parent_process"))
+        allowed.update(("control_type", "data_origin", "entry_mode", "rule_source_ref", "entity_scope", "parent_process", "operating_details"))
     if {"applies_to", "difference", "reason", "cost", "charging", "removability", "boundary_reason"} <= fields:
         allowed.update(("variant_class", "substantive_or_presentation", "source", "standard_route_ref"))
     for key in fields & allowed:
@@ -201,6 +264,23 @@ def validate_metadata(value, valid_sources):
     for item in value.get("taxonomy", []):
         if item["value"] == "gold_standard" and len(set(item["evidence_turns"])) < 2:
             raise ValueError("A gold standard requires corroborating sources, not a single report.")
+
+def ground_classification(item, turns, documents):
+    """Keep the reported variation without assigning a standard uncorroborated by a file."""
+    field = "variant_class" if "variant_class" in item else "value"
+    if item.get(field) == "gold_standard":
+        users = {t["id"] for t in turns if t.get("role") == "user" and not t.get("document_event")}
+        docs = {d["id"] for d in documents or [] if not d.get("retained_only") and not d.get("provenance_only")}
+        if not isinstance(item.get("evidence_turns"), list) or not all(isinstance(ref, str) for ref in item["evidence_turns"]):
+            raise ValueError("Gold standard evidence must contain source identifiers.")
+        refs = set(item["evidence_turns"])
+        if not refs & users or not refs & docs:
+            item[field] = "unclassified"
+            if field == "value":
+                if not isinstance(item.get("note", ""), str):
+                    raise ValueError("A taxonomy note must be text.")
+                item["note"] = (item.get("note", "") + " Independent documentary corroboration was unavailable.").strip()
+
 
 def validate_corroboration(value, turns, documents):
     users = {t["id"] for t in turns if t.get("role") == "user" and not t.get("document_event")}

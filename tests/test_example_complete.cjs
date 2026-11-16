@@ -44,7 +44,8 @@ for(const finding of state.memo_findings){
 assert.equal(app.memoComplete(),true);checks++;
 assert(draft && draft.steps.length>=6,"A detailed process needs multiple steps");
 assert.deepEqual(JSON.parse(JSON.stringify(draft.memo_summary)),JSON.parse(JSON.stringify(state.memo_findings)));
-assert.equal(state.draftVersion,state.version,"The example must not open with a stale review");checks++;
+assert.equal(state.draftEvidence?.version,state.evidenceVersion,"The example must not open with a stale review");
+assert.doesNotMatch(app.markdown(),/interview has changed since this draft/i,"The example report must not carry a stale-draft warning");checks++;
 const ids=new Set(draft.steps.map(s=>s.id));assert.equal(ids.size,draft.steps.length);
 assert(new Set(draft.steps.map(s=>s.type)).size>=4,"The example should demonstrate several grounded diagram components");
 for(const [id,type] of Object.entries({S1:"data_store",S3:"end",S10:"document",S11:"end"}))assert.equal(draft.steps.find(step=>step.id===id).type,type);
@@ -75,10 +76,14 @@ assert(draft.controls.length>0);assert(draft.exceptions.length>0);checks++;
 assert.deepEqual(JSON.parse(JSON.stringify(conversationUI.workflow.steps)),JSON.parse(JSON.stringify(draft.steps)),"Live workflow and review must describe the same process");
 assert.deepEqual(JSON.parse(JSON.stringify(conversationUI.workflow.connections)),JSON.parse(JSON.stringify(draft.connections)));checks++;
 const markdown=app.markdown(),memo=app.memoMarkdown();
-for(const heading of ["## Business context","## Memo foundation","## Procedure","## Process connections","## Item lifecycles","## Variations and boundaries","## Exceptions","## Controls","## Interview evidence"])assert(markdown.includes(heading),`Export must include ${heading}`);
+const userMarkup="Quoted words\n===\n---\n~~~html\n    # new heading\n1. link &amp; <script>";
+const safe=app.escapeMarkdown(userMarkup);
+assert(!/^(?:===|---|~~~|    |1\.)/m.test(safe));
+assert(safe.includes("&amp;amp;"));assert(safe.includes("\\<script\\>"));checks++;
+for(const heading of ["## Business context","## Topic notes","## Procedure","## Step routes","## Item lifecycles","## Variations and boundaries","## Exceptions","## Controls","## Interview evidence"])assert(markdown.includes(heading),`Export must include ${heading}`);
 for(const turn of turns)assert(markdown.includes(app.escapeMarkdown(turn.text)),`Export must include complete turn ${turn.id}`);
 for(const step of draft.steps){assert(markdown.includes(app.escapeMarkdown(step.title)));for(const value of [step.actor,step.system,step.input,step.output,step.completion_criteria,step.handoff])assert(markdown.includes(app.escapeMarkdown(value)),`Export missing detail from ${step.id}`);}
-assert(memo.includes("Detailed business process and evidence"));
+assert(memo.includes("## Normal route"));assert(!memo.includes("## Interview evidence"));
 assert.equal(draft.open_questions.length,0,"The complete fictional example should have no remaining questions");
 assert(markdown.includes("No open questions recorded."));assert(markdown.includes("No topics parked."));
 assert(memo.includes("No open questions recorded; the process owner should still review the draft."));

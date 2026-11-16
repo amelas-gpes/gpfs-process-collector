@@ -324,3 +324,15 @@ test("visibility, motion preferences and destruction stop the corresponding stag
   assert.equal(h.root.childElementCount, 0);
   assert.equal(h.requestCount(), 0);
 });
+
+test("a live graph that reassigns step IDs retains the inspected work", async () => {
+  const h=setup(),data=structuredClone(invoice);
+  h.ui.update(data,{live:true});await flush();
+  const [first,second]=data.steps,oldId=first.id,newId=second.id;
+  h.ui.restoreSelection({stepId:oldId});
+  first.id=newId;second.id=oldId;
+  h.ui.update(data,{live:true});await flush();
+  assert.equal(h.ui.currentSelection().stepId,newId);
+  assert.equal(h.inspector().querySelector("h4").textContent,first.title);
+  h.ui.destroy();
+});

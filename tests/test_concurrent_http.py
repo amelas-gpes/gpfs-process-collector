@@ -28,13 +28,11 @@ class ConversationProvider(SyntheticTeamProvider):
 
 class ConcurrentHTTPTests(unittest.TestCase):
     def setUp(self):
-        local = Path(__file__).resolve().parents[1] / "work"
-        local.mkdir(exist_ok=True)
-        self.temporary = tempfile.TemporaryDirectory(prefix="conversation-http-", dir=local)
+        self.temporary = tempfile.TemporaryDirectory(prefix="conversation-http-")
         self.client = ConversationProvider()
         self.client.incomplete()
         self.httpd = server.InterviewServer(("127.0.0.1", 0), server.Handler, client=self.client,
-            documents_root=Path(self.temporary.name) / "documents")
+            documents_root=Path(self.temporary.name) / "documents", knowledge_settings={})
         self.worker = threading.Thread(target=self.httpd.serve_forever, kwargs={"poll_interval": .01}, daemon=True)
         self.worker.start()
         self.url = f"http://127.0.0.1:{self.httpd.server_port}"

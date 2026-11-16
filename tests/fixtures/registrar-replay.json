@@ -1,0 +1,261 @@
+{
+  "description": "Fictional workshop waiver provider replay. Captured application outputs, with transient request IDs and capabilities excluded. The source document was a two-row fictional register.",
+  "context": {
+    "process_name": "Fictional workshop waiver filing",
+    "process_owner": "Registrar",
+    "objective": "Record how workshop waivers are filed.",
+    "background": "Fictional museum exercise."
+  },
+  "turns": [
+    {
+      "id": "u1",
+      "role": "user",
+      "text": "I am the registrar. I prepare a waiver for each workshop."
+    },
+    {
+      "id": "a1",
+      "role": "assistant",
+      "text": "What do you do after preparing the waiver?"
+    },
+    {
+      "id": "u2",
+      "role": "user",
+      "text": "The instructor signs the waiver. Once the instructor signs, I file the signed waiver in the green binder. The instructor keeps the room schedule. We used to use a blue binder. Next year we may switch to digital filing."
+    }
+  ],
+  "document_source": "role,action,location\nregistrar,files signed waiver,green binder\ninstructor,keeps room schedule,studio",
+  "facts": [
+    {
+      "topic": "name",
+      "text": "The supplied context names the work “Fictional workshop waiver filing.”",
+      "evidence_turns": [
+        "context"
+      ],
+      "support": [
+        {
+          "source_id": "context",
+          "quote": "Fictional workshop waiver filing"
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "purpose",
+      "text": "The stated objective is to record how workshop waivers are filed.",
+      "evidence_turns": [
+        "context"
+      ],
+      "support": [
+        {
+          "source_id": "context",
+          "quote": "Record how workshop waivers are filed."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "accountable",
+      "text": "The participant identifies as the registrar and says they prepare and file the waivers.",
+      "evidence_turns": [
+        "u1",
+        "u2"
+      ],
+      "support": [
+        {
+          "source_id": "u1",
+          "quote": "I am the registrar. I prepare a waiver for each workshop."
+        },
+        {
+          "source_id": "u2",
+          "quote": "I file the signed waiver in the green binder."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "lifecycle",
+      "text": "The participant prepares a waiver for each workshop. After the instructor signs it, the participant files the signed waiver in the green binder; the instructor keeps the room schedule.",
+      "evidence_turns": [
+        "u1",
+        "u2"
+      ],
+      "support": [
+        {
+          "source_id": "u1",
+          "quote": "I prepare a waiver for each workshop."
+        },
+        {
+          "source_id": "u2",
+          "quote": "Once the instructor signs, I file the signed waiver in the green binder. The instructor keeps the room schedule."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "checks",
+      "text": "The account does not say whether anyone checks the waiver or signature, or what evidence of review or approval is retained beyond the signed waiver.",
+      "evidence_turns": [
+        "u2"
+      ],
+      "support": [
+        {
+          "source_id": "u2",
+          "quote": "Once the instructor signs, I file the signed waiver in the green binder."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "variations",
+      "text": "The participant says the team used to use a blue binder and may switch to digital filing next year; digital filing is a possible future change, not current practice.",
+      "evidence_turns": [
+        "u2"
+      ],
+      "support": [
+        {
+          "source_id": "u2",
+          "quote": "We used to use a blue binder. Next year we may switch to digital filing."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "materials",
+      "text": "The waiver is a working artifact, and the signed waiver is filed in the green binder. The instructor keeps the room schedule. No supporting materials were supplied for review.",
+      "evidence_turns": [
+        "u1",
+        "u2"
+      ],
+      "support": [
+        {
+          "source_id": "u1",
+          "quote": "I prepare a waiver for each workshop."
+        },
+        {
+          "source_id": "u2",
+          "quote": "I file the signed waiver in the green binder. The instructor keeps the room schedule."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "scope",
+      "text": "The described work concerns a waiver for each workshop; the participant has not specified broader applicability or whether this is a general procedure or a particular route.",
+      "evidence_turns": [
+        "u1"
+      ],
+      "support": [
+        {
+          "source_id": "u1",
+          "quote": "I prepare a waiver for each workshop."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "connections",
+      "text": "The instructor signs the waiver before the participant files it; the instructor separately keeps the room schedule. No further downstream consumer or handoff is described.",
+      "evidence_turns": [
+        "u2"
+      ],
+      "support": [
+        {
+          "source_id": "u2",
+          "quote": "Once the instructor signs, I file the signed waiver in the green binder. The instructor keeps the room schedule."
+        }
+      ],
+      "unverified": []
+    },
+    {
+      "topic": "data_systems",
+      "text": "The participant files signed waivers in a green binder. The participant says a blue binder was used previously; possible digital filing next year is not current practice.",
+      "evidence_turns": [
+        "u2"
+      ],
+      "support": [],
+      "unverified": [
+        "One or more cited sources lack a verified supporting passage."
+      ]
+    }
+  ],
+  "steps": [
+    {
+      "id": "S1",
+      "actor": "Registrar",
+      "title": "Prepare the waiver",
+      "evidence_turns": [
+        "u1"
+      ]
+    },
+    {
+      "id": "S2",
+      "actor": "Instructor",
+      "title": "Sign the waiver",
+      "evidence_turns": [
+        "u2"
+      ]
+    },
+    {
+      "id": "S3",
+      "actor": "Registrar",
+      "title": "File the signed waiver",
+      "evidence_turns": [
+        "u2"
+      ]
+    }
+  ],
+  "routes": [
+    {
+      "from": "S1",
+      "to": "S2",
+      "label": "Waiver prepared",
+      "evidence_turns": [
+        "u1",
+        "u2"
+      ]
+    },
+    {
+      "from": "S2",
+      "to": "S3",
+      "label": "Instructor has signed",
+      "evidence_turns": [
+        "u2"
+      ]
+    }
+  ],
+  "document_observations": [
+    "The register lists the registrar as filing signed waivers in the green binder; it separately lists the instructor as keeping the room schedule in the studio."
+  ],
+  "stages": [
+    {
+      "stage": "team_interview_capture",
+      "model": "gpt-6-luna",
+      "prompt_id": "ac910b2051aa9dee",
+      "reasoning_effort": "low"
+    },
+    {
+      "stage": "process_draft",
+      "model": "gpt-6.1-terra",
+      "prompt_id": "0dba11a4ee6ca1a3",
+      "reasoning_effort": "low"
+    },
+    {
+      "stage": "process_draft_audit",
+      "model": "gpt-6.1-terra",
+      "prompt_id": "96c819193e15b09b",
+      "reasoning_effort": "medium"
+    },
+    {
+      "stage": "document_context_review",
+      "model": "gpt-6.1-terra",
+      "prompt_id": "f3734c9a810502bb",
+      "reasoning_effort": "low"
+    },
+    {
+      "stage": "conversation_question",
+      "model": "gpt-6-luna",
+      "prompt_id": "a627e3fb6e85c951",
+      "reasoning_effort": "low"
+    }
+  ]
+}

@@ -33,7 +33,7 @@ def long_path(path):
 
 
 LOCAL = long_path(APP / ".local" / "document-experience")
-REPLAY = LOCAL / "fa17-replay.json"
+REPLAY = LOCAL / "reference-replay.json"
 KEY = "sk-synthetic-document-grounding-never-real"
 
 
@@ -56,7 +56,7 @@ def prepare_local_fixture(pdf_path, transcript_path, rubric_path):
     # file; do not include the final bad response we are trying to improve.
     while turns and turns[-1]["role"] == "assistant":
         turns.pop()
-    with tempfile.TemporaryDirectory(prefix="prepare-", dir=LOCAL) as directory:
+    with tempfile.TemporaryDirectory(prefix="prepare-", dir=long_path(tempfile.gettempdir())) as directory:
         store = server.documents.DocumentStore(Path(directory) / "documents")
         scope = store.create_scope()
         record = store.add(scope, pdf_path.name, raw_pdf)
@@ -155,8 +155,7 @@ class DocumentEvidenceBoundaryTests(unittest.TestCase):
 
 class DocumentGroundingHTTPTests(unittest.TestCase):
     def setUp(self):
-        LOCAL.mkdir(parents=True, exist_ok=True)
-        self.temporary = tempfile.TemporaryDirectory(prefix="http-regression-", dir=LOCAL)
+        self.temporary = tempfile.TemporaryDirectory(prefix="http-regression-", dir=long_path(tempfile.gettempdir()))
         self.client = GroundingProvider()
         # These cases pin the reviewed-turn routes; live voice routing is covered in test_live.
         self.client.voice_mode = "reviewed"
@@ -241,7 +240,7 @@ class DocumentGroundingHTTPTests(unittest.TestCase):
                 self.assertNotIn(forbidden, serialized)
 
 
-@unittest.skipUnless(REPLAY.exists(), "Private FA17 replay is absent; prepare it locally to exercise the supplied sources.")
+@unittest.skipUnless(REPLAY.exists(), "Private reference procedure replay is absent; prepare it locally to exercise the supplied sources.")
 class LocalDocumentExperienceTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -249,7 +248,7 @@ class LocalDocumentExperienceTests(unittest.TestCase):
         pdf = Path(cls.fixture["sources"]["pdf"]["path"])
         if not pdf.exists():
             raise unittest.SkipTest("The original private PDF is unavailable on this host.")
-        cls.temporary = tempfile.TemporaryDirectory(prefix="pdf-regression-", dir=LOCAL)
+        cls.temporary = tempfile.TemporaryDirectory(prefix="pdf-regression-", dir=long_path(tempfile.gettempdir()))
         cls.store = server.documents.DocumentStore(Path(cls.temporary.name) / "documents")
         cls.scope = cls.store.create_scope()
         cls.record = cls.store.add(cls.scope, pdf.name, pdf.read_bytes())
@@ -315,11 +314,11 @@ class LocalDocumentExperienceTests(unittest.TestCase):
 
 if __name__ == "__main__":
     if "--prepare-local-fixture" in sys.argv:
-        parser = argparse.ArgumentParser(description="Prepare a private FA17 replay; never calls a model.")
+        parser = argparse.ArgumentParser(description="Prepare a private reference procedure replay; never calls a model.")
         parser.add_argument("--prepare-local-fixture", action="store_true")
-        parser.add_argument("--pdf", type=Path, default=Path.home() / "Downloads" / "FA17_US_Payment_Execution.pdf")
-        parser.add_argument("--transcript", type=Path, default=Path.home() / "Downloads" / "Untitled-process-transcript.md")
-        parser.add_argument("--rubric", type=Path, default=LOCAL / "fa17-rubric.json")
+        parser.add_argument("--pdf", type=Path, required=True)
+        parser.add_argument("--transcript", type=Path, required=True)
+        parser.add_argument("--rubric", type=Path, default=LOCAL / "reference-rubric.json")
         arguments = parser.parse_args()
         print(prepare_local_fixture(arguments.pdf, arguments.transcript, arguments.rubric))
     else:

@@ -56,7 +56,10 @@
     }
     function display(record, moveToDetail = false) {
       selected = record?.key;
-      for (const tile of grid.querySelectorAll(".cl-tile")) tile.setAttribute("aria-pressed",String(tile.dataset.key===selected));
+      for (const tile of grid.querySelectorAll(".cl-tile")) {
+        tile.setAttribute("aria-pressed",String(tile.dataset.key===selected));
+        tile.tabIndex=tile.dataset.key===selected ? 0 : -1;
+      }
       detail.replaceChildren();
       detail.hidden = !record;
       if (!record) return;
@@ -112,6 +115,18 @@
       display(matches.find(record=>record.key===selected) || matches[0]);
       grid.scrollTop = 0;
     }
+    grid.addEventListener("keydown",event=>{
+      if(event.ctrlKey||event.metaKey||event.altKey)return;
+      const tiles=Array.from(grid.querySelectorAll(".cl-tile")),index=tiles.indexOf(event.target);
+      if(index<0)return;
+      const columns=Math.max(1,tiles.filter(tile=>tile.offsetTop===tiles[index].offsetTop).length);
+      const positions={ArrowLeft:index-1,ArrowRight:index+1,ArrowUp:index-columns,ArrowDown:index+columns,Home:0,End:tiles.length-1};
+      if(!Object.hasOwn(positions,event.key))return;
+      event.preventDefault();
+      const next=tiles[Math.min(tiles.length-1,Math.max(0,positions[event.key]))];
+      tiles.forEach(tile=>{tile.tabIndex=tile===next?0:-1;});
+      next.focus();
+    });
     search.addEventListener("input",filter); family.addEventListener("change",filter);
     dialog.addEventListener("close",()=>{
       observer?.disconnect();

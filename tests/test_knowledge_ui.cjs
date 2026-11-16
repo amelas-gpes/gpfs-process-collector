@@ -29,10 +29,10 @@ const stepIds=new Map(fixture.draft.steps.map((s,i)=>[s.id,uuid(10+i)]));
 const sampleSteps=fixture.draft.steps.map(s=>({id:stepIds.get(s.id),submission_id:uuid(1),revision:1,type:s.type==='decision'?'decision':'step',label:s.title,latest:true,canonical_id:null,data:s}));
 const sampleEdges=[...sampleSteps.map((s,i)=>({id:uuid(100+i),source:sampleVersion.id,target:s.id,type:'contains',status:'reported',submission_id:uuid(1),revision:1})),...fixture.draft.connections.map((e,i)=>({id:uuid(120+i),source:stepIds.get(e.to),target:stepIds.get(e.from),type:'happens_after',status:'reported',submission_id:uuid(1),revision:1,evidence:e}))];
 const entityMeta=item=>Object.fromEntries(Object.entries(item).filter(([key])=>key!=='data'));
-const submissionMeta=item=>({submission_id:item.submission_id,revision:item.revision,context:{process_name:item.context.process_name,process_owner:item.context.process_owner},team:item.team,scope:item.scope,job_status:item.job_status});
+const submissionMeta=item=>({display_name:item.display_name,submission_id:item.submission_id,revision:item.revision,context:{process_name:item.context.process_name,process_owner:item.context.process_owner},team:item.team,scope:item.scope,job_status:item.job_status});
 const group={id:uuid(200),label:'Reviewed invoice activities',type:'step',status:'stale',stale_reason:'Source submission revised',review_version:7,member_count:61,alias_count:51,history_count:58,members:[],aliases:[],history:[]};
 const proposal={id:uuid(300),source_submission_id:uuid(1),source_revision:1,destination_submission_id:uuid(3),destination_revision:1,relationship_type:'hands_off_to',status:'proposed',review_version:4,scope:'Fund A',explanation:'Check the shared handoff.',inference:'Possible shared register',missing_evidence:['Receiver confirmation'],contradictions:[],history:[],history_count:57,evidence:[{type:'employee_reported',submission_id:uuid(1),revision:1,turn_id:'t004',quote:fixture.turns.find(t=>t.id==='t004').text},{type:'document_supported',submission_id:uuid(3),revision:1,document_id:'doc1',source_id:'pdf-p7',label:'Contract page 7',quote:'Synthetic document evidence',origin:'ai_visual_transcription',verified:false}]};
-const counts={submissions:86,awaiting_review:41,confirmed_connections:17,processing_failures:12,entities:140,groups:61,jobs:57,connections:57};
+const counts={processes:61,revisions:86,open_decisions:41,submissions:61,awaiting_review:41,confirmed_connections:17,processing_failures:12,entities:140,groups:61,jobs:57,connections:57};
 const page=(items,payload)=>({items:structuredClone(items.slice(payload.offset||0,(payload.offset||0)+(payload.limit||25))),page:{offset:payload.offset||0,limit:payload.limit||25,total:items.length,has_more:(payload.offset||0)+(payload.limit||25)<items.length}});
 function service(){
  const calls=[],notices=[],data={tooLarge:false,failBrowse:false,failHistory:false,failSource:false,failMutation:false,seedFailure:false,intercept:null};
@@ -72,7 +72,7 @@ function service(){
 function fresh(request,onSubmitted=()=>{}){
  if(nodes['knowledge-admin']?.open)nodes['knowledge-admin'].close();
  for(const id of ids)nodes[id]=new E(id.includes('settings')?'dialog':'div');graphInput=null;graphSelect=null;graphCreations=0;graphUpdate=()=>Promise.resolve();const session={saved_at:'first-save',context:{process_name:'First process'},turns:[{id:'u1',role:'user',text:'The original participant account.'}],documents:{documents:[]}},notices=[];
- const controller=window.CollectorKnowledge.create({session:()=>structuredClone(session),notice:m=>notices.push(m),request,onSubmitted});return {controller,session,notices,form:()=>find(nodes['knowledge-submit'],e=>e.tagName==='FORM')};
+ const controller=window.CollectorKnowledge.create({session:()=>structuredClone(session),notice:m=>notices.push(m),request,onSubmitted});controller.configure({revisions_available:true});return {controller,session,notices,form:()=>find(nodes['knowledge-submit'],e=>e.tagName==='FORM')};
 }
 const admin=()=>nodes['knowledge-admin'],settle=async()=>{await new Promise(r=>setImmediate(r));await new Promise(r=>setImmediate(r));};
 async function click(label,root=admin()){const control=find(root,e=>e.tagName==='BUTTON'&&e._text===label)||findText(root,label);assert(control,'Missing control '+label);await control.dispatch('click');await settle();return control;}
@@ -84,6 +84,54 @@ async function openAdmin(controller){controller.configure({knowledge_admin_enabl
 const testReceipt=(revision=1,processId='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb')=>({submission_id:'cccccccc-cccc-4ccc-8ccc-cccccccccccc',process_id:processId,job_id:'dddddddd-dddd-4ddd-8ddd-dddddddddddd',revision,status:'pending',status_token:'a'.repeat(64)});
 let passes=0;
 (async()=>{
+ {
+  const previous=sampleSubmission.display_name;
+  sampleSubmission.display_name="Fictional derived process name";
+  try {
+    const s=service(),f=fresh(s.request);
+    await openAdmin(f.controller);await click('Submissions');
+    assert.match(admin().textContent,/Fictional derived process name/);
+    await openFirstRecord();
+    assert.match(admin().textContent,/Fictional derived process name/);
+  } finally {if(previous===undefined)delete sampleSubmission.display_name;else sampleSubmission.display_name=previous;}
+ }
+ {
+  const submitted=[],receipt=testReceipt();
+  const f=fresh(async(path,payload)=>{
+   if(path.endsWith('/status'))return testReceipt(); // The dialog reads the restored receipt's status when it opens.
+   submitted.push(structuredClone(payload));
+   if(payload.process_id)throw Object.assign(Error('Revisions require a verified owner or administrator.'),{status:403});
+   return testReceipt(1,uuid(44));
+  });
+  f.controller.restore(receipt.process_id,receipt);
+  f.controller.openSubmit();
+  await f.form().dispatch('submit');
+  assert.equal(f.controller.hasPending,false);
+  assert.doesNotMatch(f.form().textContent,/Recover previous submission/);
+  const choice=find(f.form(),e=>e.type==='checkbox');
+  assert.equal(choice.disabled,false);
+  choice.checked=true;
+  await f.form().dispatch('submit');
+  assert.equal(submitted[0].process_id,receipt.process_id);
+  assert.equal(submitted[1].process_id,undefined);
+  assert.notEqual(submitted[0].submission_key,submitted[1].submission_key);
+  assert.match(nodes['knowledge-submit'].textContent,/Process submitted/);passes++;
+ }
+ {
+  const submitted=[];
+  const f=fresh(async(path,payload)=>{
+   submitted.push(structuredClone(payload));
+   if(submitted.length===1)throw Error('Connection interrupted');
+   if(submitted.length===2)throw Object.assign(Error('Administrator access unavailable'),{status:403});
+   return testReceipt();
+  });
+  f.controller.openSubmit();
+  await f.form().dispatch('submit');await f.form().dispatch('submit');
+  assert.equal(f.controller.hasPending,true);
+  assert.match(f.form().textContent,/Recover previous submission/);
+  await f.form().dispatch('submit');
+  assert.deepEqual(submitted[0],submitted[2]);passes++;
+ }
  {
   let fail=true;const submitted=[];const f=fresh(async(path,payload)=>{submitted.push(structuredClone(payload));if(path.endsWith('/status'))return {...testReceipt(),status:'completed'};if(fail){fail=false;throw Error('Temporary error');}return testReceipt();});f.controller.configure({knowledge_admin_enabled:false});await nodes['open-knowledge-admin'].dispatch('click');assert.equal(submitted.length,0);f.session.unsent_answer='Do not submit';f.session.documents.scope='private-scope';f.controller.openSubmit();assert.match(nodes['knowledge-submit'].textContent,/bounded excerpts.*configured AI provider.*incur charges/);await f.form().dispatch('submit');assert.match(f.form().textContent,/Temporary error/);await f.form().dispatch('submit');assert.equal(submitted[0].unsent_answer,undefined);assert.equal(submitted[0].documents.scope,'private-scope');assert.deepEqual(submitted[0],submitted[1]);assert(!nodes['knowledge-submit'].textContent.includes('a'.repeat(64)));await click('Refresh status',nodes['knowledge-submit']);const receipt=f.controller.exportReceipt();assert.equal(receipt.status,'completed');f.controller.restore(receipt.process_id,{...receipt,job_id:'bad'});assert.equal(f.controller.exportReceipt(),null);f.controller.restore(receipt.process_id,receipt);assert.equal(f.controller.exportReceipt().revision,1);passes++;
  }
@@ -110,7 +158,7 @@ let passes=0;
  }
  {
   const submitted=[];let saves=0;
-  const {controller,session,form}=fresh(async(path,payload)=>{submitted.push(structuredClone(payload));if(submitted.length===1)throw Error('Response lost after save');return testReceipt(submitted.length===2?1:2);},()=>saves++);
+  const {controller,session,form}=fresh(async(path,payload)=>{if(path.endsWith('/status'))return testReceipt();submitted.push(structuredClone(payload));if(submitted.length===1)throw Error('Response lost after save');return testReceipt(submitted.length===2?1:2);},()=>saves++);
   controller.openSubmit();find(form(),e=>e.name==='participant').value='Original participant';await form().dispatch('submit');assert.equal(controller.hasPending,true);
   session.saved_at='later-save';session.turns.push({id:'u2',role:'user',text:'A later clarification.'});session.documents.documents.push({id:'doc1',analysis:{phase:'complete',summary:'Background result'}});
   nodes['knowledge-submit'].close();controller.openSubmit();assert.match(form().textContent,/Recover retries that exact captured snapshot/);assert.equal(find(form(),e=>e.name==='participant').value,'Original participant');
@@ -118,7 +166,7 @@ let passes=0;
   controller.openSubmit();await form().dispatch('submit');assert.notEqual(submitted[2].submission_key,submitted[0].submission_key);assert.equal(submitted[2].process_id,testReceipt().process_id);assert.equal(submitted[2].turns.length,2,'New content is submitted only as an explicit subsequent revision');assert.equal(submitted[2].documents.documents.length,1);assert.equal(controller.exportReceipt().revision,2);assert.equal(all(nodes['knowledge-submit']).filter(e=>e.tagName==='H3'&&e._text==='Submission status').length,1,'A successful revision replaces the old status panel instead of leaving conflicting receipt controls');assert.doesNotMatch(nodes['knowledge-submit'].textContent,/Revision 1/);passes++;
  }
  {
-  const s=service(),f=fresh(s.request);await openAdmin(f.controller);assert.match(admin().textContent,/86Submissions41Awaiting review17Confirmed connections12Processing failures/);assert.equal(s.calls.length,1);assert(s.calls[0].path.endsWith('/browse'));assert.equal(s.calls[0].payload.section,'overview');assert.equal(s.calls.filter(c=>c.path.endsWith('/detail')).length,0);assert.equal(find(admin(),e=>e.className==='knowledge-filters').hidden,true);passes++;
+  const s=service(),f=fresh(s.request);await openAdmin(f.controller);assert.match(admin().textContent,/61Processes86Submitted revisions41Open review decisions17Confirmed connections12Processing failures/);assert.equal(s.calls.length,1);assert(s.calls[0].path.endsWith('/browse'));assert.equal(s.calls[0].payload.section,'overview');assert.equal(s.calls.filter(c=>c.path.endsWith('/detail')).length,0);assert.equal(find(admin(),e=>e.className==='knowledge-filters').hidden,true);passes++;
   await click('Submissions');assert.match(admin().textContent,/1–25 of 61/);assert.equal(all(admin()).filter(e=>e.className==='knowledge-card').length,25);assert.doesNotMatch(admin().textContent,/Private full transcript/);assert.equal(s.calls.filter(c=>c.path.endsWith('/detail')).length,0);
   await aria('Next submissions page');assert.match(admin().textContent,/26–50 of 61/);assert.equal(all(admin()).filter(e=>e.className==='knowledge-card').length,25);assert.doesNotMatch(admin().textContent,/Invoice approval/);assert.equal(s.calls.at(-1).payload.offset,25);await aria('Previous submissions page');await openFirstRecord();assert.equal(s.calls.filter(c=>c.path.endsWith('/detail')).at(-1).payload.kind,'submission');assert.match(admin().textContent,/Business summary/);assert.match(admin().textContent,/Detailed process steps/);assert.match(admin().textContent,/Controls and checks/);assert.match(admin().textContent,/No open questions recorded/);assert.equal(all(admin()).filter(e=>e.className==='knowledge-turn').length,26);assert(find(admin(),e=>e.tagName==='DD'&&e._text==='Accounts payable manager'));assert(find(admin(),e=>e.tagName==='DETAILS'&&e.className==='knowledge-technical'));await click('← Back');assert.match(admin().textContent,/1–25 of 61/);passes++;
   await click('Filters');const team=input('team'),scope=input('scope');team.value=' Remote team ';scope.value='Fund A';await scope.dispatch('change');assert.equal(input('team'),team,'Typing filters does not replace fields');await click('Apply filters');assert.match(admin().textContent,/Process 60/);assert(!find(admin(),e=>e.className==='knowledge-pagination'));assert.equal(s.calls.at(-1).payload.filters.team,'Remote team');assert.equal(find(admin(),e=>e.className==='knowledge-filters').hidden,true);assert(find(admin(),e=>e.attributes['aria-label']==='Remove team filter: Remote team'));await click('Clear filters');assert.match(admin().textContent,/1–25 of 61/);passes++;
@@ -193,7 +241,7 @@ let passes=0;
  }
  {
   const s=service(),f=fresh(s.request);await openAdmin(f.controller);await click('Submissions');await openFirstRecord();assert(!find(admin(),e=>e.className?.split(/\s+/).includes('knowledge-provenance')),'An ordinary submission keeps its existing presentation');await click('← Back');
-  const sourceNames=['FA17_US_Payment_Execution.docx','FA17_US_Verbal_Confirmation_and_Callback_Verification.docx','<img src=x onerror="alert(1)">.docx'],digest='e'.repeat(64);
+  const sourceNames=['Synthetic workflow.docx','Synthetic verification.docx','<img src=x onerror="alert(1)">.docx'],digest='e'.repeat(64);
   s.data.intercept=(path,payload)=>{if(!path.endsWith('/detail')||payload.kind!=='submission')return;const item={...structuredClone(sampleSubmission),capture_provenance:{method:'document_simulation',source_documents:sourceNames.map(filename=>({filename,sha256:digest})),participant_confirmed:false,process_owner_approved:false}};return {kind:'submission',item,submissions:[item],entities:[],edges:[],proposals:[]};};
   await openFirstRecord();const provenance=find(admin(),e=>e.className?.split(/\s+/).includes('knowledge-provenance'));assert(provenance,'Document simulations show a provenance note');assert.equal(provenance.attributes.role,'note');assert(findText(provenance,'Document-derived simulation — not an employee statement'));assert.match(provenance.textContent,/No employee confirmation or process owner approval has been recorded/);assert.deepEqual(all(provenance).filter(e=>e.tagName==='LI').map(e=>e._text),sourceNames,'Source filenames are rendered literally as text');assert(!find(provenance,e=>e.tagName==='IMG'),'A supplied filename cannot create markup');assert.doesNotMatch(provenance.textContent,new RegExp(digest),'Technical hashes are not part of the prominent provenance note');passes++;
  }
@@ -215,6 +263,50 @@ let passes=0;
   f.controller.openSubmit();assert.equal(f.form(),undefined,'A saved excerpt without a local file scope cannot create a new documentary submission');
   f.session.documents={scope:'private-file-scope',documents:[{id:'doc_local',status:'ready',analysis:{disposition:'parked'}}]};f.controller.openSubmit();assert.equal(f.form(),undefined,'Parked files are not new submission evidence');
   f.session.documents.documents[0].analysis.disposition='relevant';f.controller.openSubmit();const form=f.form();assert(form);f.session.documents.documents=[];await form.dispatch('submit');assert.equal(requests,0);assert.match(form.textContent,/source is no longer available/,'An open form rechecks evidence before taking a fresh snapshot');passes++;
+ }
+ {
+  // http-boundary-3: the server rebuilds each file reference from its own store by ID, so a submission carries the
+  // workspace and the file IDs only, never the saved analysis and inventory of each file (up to 250 KB per file).
+  const submitted=[],f=fresh(async(path,payload)=>{submitted.push(structuredClone(payload));return testReceipt();});
+  const record=id=>({id,name:id+'.pdf',kind:'pdf',size:1200,sha256:'a'.repeat(64),status:'ready',analysis:{disposition:'relevant',phase:'complete',summary:'S'.repeat(200000),sources:[{source_id:id+'_p1'}]},inventory:'I'.repeat(50000)});
+  f.session.documents={scope:'private-file-scope',documents:[record('doc_a'),record('doc_b'),{name:'no id'},null],unavailable_workspaces:[{scope:'older-scope',documents:[record('doc_old')]}]};
+  f.controller.openSubmit();await f.form().dispatch('submit');assert.equal(submitted.length,1);
+  assert.deepEqual(submitted[0].documents,{scope:'private-file-scope',documents:[{id:'doc_a'},{id:'doc_b'}]});
+  assert(JSON.stringify(submitted[0]).length<5000,'Three files with long analyses no longer push a submission past the request limit');
+  assert.equal(f.session.documents.documents[0].analysis.summary.length,200000,'The interview itself keeps its file records');passes++;
+  // A session without a file workspace keeps the shape the server expects.
+  const plain=fresh(async(path,payload)=>{submitted.push(structuredClone(payload));return testReceipt();});
+  plain.controller.openSubmit();await plain.form().dispatch('submit');assert.deepEqual(submitted[1].documents,{documents:[]});passes++;
+ }
+ {
+  // A submission the server would refuse for its size is measured first: nothing is sent, the message says so,
+  // and it is never presented as a submission that "may already be saved".
+  let requests=0;const f=fresh(async()=>{requests++;throw new TypeError('Failed to fetch');});
+  f.session.turns=Array.from({length:70},(_,i)=>({id:'u'+i,role:'user',text:'x'.repeat(15000)}));
+  f.controller.openSubmit();const form=f.form();await form.dispatch('submit');
+  assert.equal(requests,0,'An oversized body is not sent');assert.equal(f.controller.hasPending,false);
+  assert.match(form.textContent,/too large to submit:.*company knowledge accepts 1,000 kB.*Nothing was sent/);
+  assert.doesNotMatch(form.textContent,/may already be saved|Recover previous submission/);
+  const send=find(form,e=>e.tagName==='BUTTON'&&e.type==='submit');assert.equal(send.textContent,'Submit process');assert.equal(send.disabled,false);
+  // Characters outside ASCII count by their encoded size: 250,000 two-byte letters are over the limit as well.
+  f.session.turns=[{id:'u1',role:'user',text:'é'.repeat(510000)}];await form.dispatch('submit');assert.equal(requests,0);assert.match(form.textContent,/too large to submit/);
+  // The limit is the server's when the configuration states it; a body inside it is sent.
+  f.controller.configure({knowledge_submit_max_bytes:2000000});await form.dispatch('submit');assert.equal(requests,1);passes++;
+  const small=fresh(async()=>{requests++;return testReceipt();});small.controller.configure({knowledge_submit_max_bytes:100});
+  small.controller.openSubmit();await small.form().dispatch('submit');assert.equal(requests,1);assert.match(small.form().textContent,/too large to submit/);
+  for(const odd of [0,-5,'600000',null,1.5]){small.controller.configure({knowledge_submit_max_bytes:odd});}
+  small.controller.openSubmit();await small.form().dispatch('submit');assert.equal(requests,2,'An unusable limit in the configuration leaves the built-in one');passes++;
+ }
+ {
+  // A switched-off store is a refusal, not an uncertain outcome: nothing was saved, so there is nothing to recover.
+  for(const code of ['knowledge_store_unavailable','document_store_unavailable']){
+   const f=fresh(async()=>{throw Object.assign(new Error('Company knowledge is switched off: its saved database is damaged.'),{status:503,code});});
+   f.controller.openSubmit();const form=f.form();await form.dispatch('submit');
+   assert.match(form.textContent,/Company knowledge is switched off/);assert.doesNotMatch(form.textContent,/may already be saved|Recover previous submission/);assert.equal(f.controller.hasPending,false);
+  }
+  // Any other failure without a clear refusal stays recoverable, as before.
+  const f=fresh(async()=>{throw Object.assign(new Error('The local server is busy. Retry shortly.'),{status:503});});
+  f.controller.openSubmit();await f.form().dispatch('submit');assert.match(f.form().textContent,/may already be saved/);assert.equal(f.controller.hasPending,true);passes++;
  }
  {
   const s=service(),f=fresh(s.request),sourceId='doc_procedure_p7_c1',excerpt='Release only after review. <img src=x onerror="alert(1)">';
@@ -245,6 +337,10 @@ let passes=0;
   side().value='receiver';await side().dispatch('change');await click('Open answer t004');await click('← Back to detail');
   assert.equal(reason().value,'Check the receiving team’s cited answer.');assert.equal(side().value,'receiver');
   await click('Filters');assert.equal(reason().value,'Check the receiving team’s cited answer.');
+  let cancelled=false,discardAsked=0;window.confirm=()=>{discardAsked++;return false;};
+  await admin().dispatch('cancel',{preventDefault:()=>{cancelled=true;}});
+  await click('Done');assert(cancelled&&admin().open);assert.equal(discardAsked,2);
+  delete window.confirm;
   assert.equal(s.calls.filter(c=>c.path.endsWith('/review')).length,0);
   let release,reviewVersion=proposal.review_version;
   s.data.intercept=(path,payload)=>{
@@ -257,6 +353,31 @@ let passes=0;
   release({ok:true});await pending;await settle();assert.equal(reason().value,'');assert.equal(side().value,'');
   reason().value='Old revision';await reason().dispatch('input');reviewVersion++;await click('Refresh');
   assert.equal(reason().value,'','A rationale must not carry into a revised connection');passes++;
+ }
+ {
+  const s=service(),f=fresh(s.request);let status='rejected',version=4;
+  s.data.intercept=(path,payload)=>{
+    if(path.endsWith('/detail')&&payload.kind==='proposal')return {item:{...proposal,status,review_version:version}};
+    if(path.endsWith('/review')){assert.equal(payload.action,'reopen');assert.equal(payload.reason,'A new source is available.');status='proposed';version++;return {status,review_version:version};}
+  };
+  await openAdmin(f.controller);await click('Connections');await openFirstRecord();
+  const form=find(admin(),e=>e.tagName==='FORM'),reason=find(form,e=>e.tagName==='TEXTAREA');
+  assert(findText(admin(),'Reopen for review'));assert(!findText(form,'Confirm'));
+  reason.value='A new source is available.';await reason.dispatch('input');await click('Reopen for review');
+  assert(findText(admin(),'Confirm'));passes++;
+ }
+ {
+  const s=service(),f=fresh(s.request);let stale=false;
+  s.data.intercept=(path,payload)=>{
+    if(path.endsWith('/review')){stale=true;throw Object.assign(Error('Stale proposals require new evidence and review.'),{status:400});}
+    if(stale&&path.endsWith('/detail')&&payload.kind==='proposal')return {kind:'proposal',item:{...structuredClone(proposal),status:'stale',stale_reason:'Sending process revised',review_version:5}};
+  };
+  await openAdmin(f.controller);await click('Connections');await openFirstRecord();
+  const form=find(admin(),e=>e.tagName==='FORM'),reason=find(form,e=>e.tagName==='TEXTAREA');
+  reason.value='Compare the filed source.';await reason.dispatch('input');await click('Confirm',form);
+  assert.match(admin().textContent,/Your review was not recorded.*Compare the filed source/);
+  assert.match(admin().textContent,/Sending process revised/);assert(!findText(admin(),'Confirm'));
+  assert(findText(admin(),'See current connections'));passes++;
  }
  assert(!fs.readFileSync('web/knowledge-ui.js','utf8').includes('/admin/snapshot'));
  console.log(JSON.stringify({tests_passed:passes,provider_calls:0,network_calls:0,real_browser:false}));

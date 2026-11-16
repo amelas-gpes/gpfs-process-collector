@@ -50,7 +50,7 @@ class EquipmentDiscussionTests(unittest.TestCase):
         discussion = next(row for row in facts.discussion(state) if row['key'] == 'trigger')
         self.assertEqual(trigger['status'], 'unknown')
         self.assertEqual(trigger['evidence_turns'], [])
-        self.assertEqual(discussion, {'key': 'trigger', 'discussed': False, 'evidence_turns': []})
+        self.assertEqual(discussion, {'key': 'trigger', 'discussed': False, 'participant_unavailable': False, 'evidence_turns': []})
 
     def test_model_absence_note_is_not_an_explored_topic(self):
         state = facts.empty_state()
@@ -58,7 +58,7 @@ class EquipmentDiscussionTests(unittest.TestCase):
         state = facts.apply_delta(state, delta, self.context, self.turns, [])
         self.assertEqual(state['topics']['risk']['status'], 'partial')
         row = next(row for row in facts.discussion(state) if row['key'] == 'risk')
-        self.assertEqual(row, {'key': 'risk', 'discussed': False, 'evidence_turns': []})
+        self.assertEqual(row, {'key': 'risk', 'discussed': False, 'participant_unavailable': False, 'evidence_turns': []})
 
     def test_changed_or_removed_testimony_cannot_keep_old_discussion_evidence(self):
         state = self.capture()
@@ -78,7 +78,7 @@ class EquipmentDiscussionTests(unittest.TestCase):
             {'name': 'partial', 'lifecycle': 'partial', 'variations': 'partial'}))
         result = client.coordinator.interview(payload)
         self.assertEqual(next(row for row in result['topic_discussion'] if row['key'] == 'variations'),
-                         {'key': 'variations', 'discussed': True, 'evidence_turns': ['u3']})
+                         {'key': 'variations', 'discussed': True, 'participant_unavailable': False, 'evidence_turns': ['u3']})
         self.assertFalse(result['coverage_verified'])
         self.assertFalse(result['completion']['complete'])
         self.assertFalse(result['completion']['ready_for_final_check'])

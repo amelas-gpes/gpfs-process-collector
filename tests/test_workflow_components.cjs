@@ -97,7 +97,7 @@ for (const [title, expected] of [
 // Topic mentions, plans, negation, reported actions and another step's effects do not authorize
 // a specialist image. In particular, an instruction file is not a released payment.
 for (const title of [
-  "Decide whether to release wires","Do not release the payment","Release the payment?","Before posting, check the date",
+  "Log in to the portal","Record retention review","Note holders meeting","Document review checklist","Tie a ribbon","Reconcile with the sponsor on the date","Decide whether to release wires","Do not release the payment","Release the payment?","Before posting, check the date",
   "How to calculate yield","Plan to migrate records","Review the plan to transfer securities","Await callback",
   "Prepare a payment release checklist","Prepare a wire report","Release a payment hold",
   "Send the payment to the reviewer","Release the payment for internal review",

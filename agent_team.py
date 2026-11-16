@@ -9,10 +9,11 @@ from datetime import datetime, timezone
 import hashlib
 import json
 import re
+from contextlib import nullcontext
 import threading
 import uuid
 
-from interview_coverage import TOPIC_DIMENSIONS, TOPIC_SCHEMA, apply_assessment, validate_capture_repairs
+from interview_coverage import context_has_evidence, TOPIC_DIMENSIONS, TOPIC_SCHEMA, apply_assessment, validate_capture_repairs
 
 
 ROLE_CONTRACTS = {
@@ -24,8 +25,11 @@ ROLE_CONTRACTS = {
         "label": "Coverage reviewer", "max_calls": 1, "max_output_tokens": 24000, "timeout_seconds": 120,
         "contract": "Independently test all sixteen topics against participant evidence. Return the validated public coverage assessment; never manufacture evidence.",
     },
+    # The second call is reserved for one case: the coverage review repaired a section
+    # after the concurrent process review had read the lead's text, so the process
+    # reviewer reads the repaired account once more before it can be shown as covered.
     "process_reviewer": {
-        "label": "Process reviewer", "max_calls": 1, "max_output_tokens": 8000, "timeout_seconds": 90,
+        "label": "Process reviewer", "max_calls": 2, "max_output_tokens": 8000, "timeout_seconds": 90,
         "contract": "Review the reported route, branches, handoffs and outputs for material unresolved blockers. Never mark topics complete or change evidence.",
     },
     "document_analyst": {
@@ -35,15 +39,76 @@ ROLE_CONTRACTS = {
 }
 CORE_ROLES = ("lead_interviewer", "coverage_reviewer", "process_reviewer")
 FINAL_CHECK_PREFIX = "Before we finish, is there anything else"
-# A plain closing reply to the final omissions check. Trailing qualifiers that
-# add nothing ("to add", "from me") are accepted; anything that continues the
-# sentence with new content ("…, unless", "…, but") is not a confirmation.
+# A closing reply to the final omissions check: a "no" with nothing in it about the
+# work, however it is hedged, softened or thanked for ("No, I think that's
+# everything", "Not that I can think of", "Um, no, nothing else, thanks"). The reply
+# is read as parts: fillers, then negatives and statements that nothing is missing,
+# then a closing courtesy. A "yes" is not a part, and neither is anything that goes
+# on to say something ("…, unless", "…, but", "that's it for the approval step"),
+# so a reply with either in it is not a confirmation.
+_CONFIRM_SEP = r"(?:\s*[,.!;:…—–-]+\s*|\s+)"
+_CONFIRM_FILLER = r"(?:u+[hm]+|e+r+m*|h+m+|m+|oh|ah|well|so|okay|ok|alright|all right|right|sorry)"
+# "Yeah, no" is a spoken "no"; a "yeah" before anything else is not.
+_CONFIRM_NEGATIVE = r"(?:(?:yeah|yep|yup),? )?(?:no|nope|nah)"
+_CONFIRM_HEDGE = r"i (?:think|believe|guess|suppose|reckon)"
+_CONFIRM_SCOPE = (r"(?: (?:to add|from me|(?:from|on) my (?:side|end)|for now|right now|at the moment|at this point|comes to mind"
+                  r"|(?:that )?i can think of|(?:that )?i(?:['’]?m| am) aware of|(?:that )?i know of))")
+_CONFIRM_STATEMENT = r"(?:(?:" + _CONFIRM_HEDGE + r" )?(?:" + "|".join((
+    r"(?:(?:there(?:['’]?s| is)|i(?:['’]?ve| have)(?: got)?|i can think of) )?nothing(?: (?:else|more|further|at all))?"
+    + _CONFIRM_SCOPE + r"{0,2}",
+    r"none" + _CONFIRM_SCOPE + r"?",
+    r"i (?:can['’]?t|cannot) think of anything(?: else| more)?(?: to add)?",
+    r"that(?:['’]?s| is| was| would be| should be| will be|['’]ll be)(?: (?:about|pretty much|basically|really|probably))?"
+    r" (?:all|everything|it)(?: i (?:have|['’]?ve got))?" + _CONFIRM_SCOPE + r"?",
+    r"(?:this|that|it) (?:(?:about|pretty much|just about) )?"
+    r"(?:captures my account|(?:covers|captures) (?:it|everything|it all|all of it))",
+    r"(?:(?:we|you|i)(?:['’]?ve| have)|we|you) (?:covered|got|captured|gone (?:through|over)|been (?:through|over))"
+    r" (?:everything|it all|all of it)",
+    r"(?:i )?(?:don['’]?t|do not) (?:think|believe) (?:so|there(?:['’]?s| is) anything(?: else| more)?(?: to add| missing)?"
+    r"|(?:we|i|you)(?:['’]?ve| have)? missed anything|anything(?:['’]?s| is) missing)",
+    r"not (?:that i can think of|that i(?:['’]?m| am) aware of|that i know of|that comes to mind|really|right now"
+    r"|at the moment|at this (?:point|time)|from me|from my (?:side|end)|for now|at all)",
+    r"(?:we(?:['’]re| are)|i(?:['’]?m| am)) (?:all )?(?:good|set|fine|happy)(?: with (?:that|this|it))?",
+    r"(?:(?:it|that)(?:['’]?s| is) )?all (?:good|set)", r"correct",
+)) + r")(?:,? " + _CONFIRM_HEDGE + r")?)"
+_CONFIRM_PART = r"(?:" + _CONFIRM_NEGATIVE + r"|" + _CONFIRM_STATEMENT + r")"
+_CONFIRM_COURTESY = r"(?:(?:thanks|thank you)(?: (?:very much|so much|a lot))?|cheers|sorry|(?:bye|goodbye)(?: bye)?)"
 FINAL_CONFIRMATION = re.compile(
-    r"\s*(?:(?:no|nope)[,.!]?\s*)?"
-    r"(?:nothing (?:else|more|further)(?: (?:to add|from me|comes to mind|(?:that )?i can think of))?|"
-    r"that(?:['’]s| is) (?:all|everything|it)(?: (?:from me|for now|(?:that )?i can think of))?|"
-    r"(?:this|that) (?:captures my account|covers (?:it|everything))|correct|no|nope)[.!]?"
-    r"(?:\s*(?:this|that) captures my account[.!]?)?\s*", re.I)
+    r"\s*(?:" + _CONFIRM_FILLER + _CONFIRM_SEP + r"){0,3}"
+    + _CONFIRM_PART + r"(?:" + _CONFIRM_SEP + _CONFIRM_PART + r"){0,5}"
+    r"(?:" + _CONFIRM_SEP + _CONFIRM_COURTESY + r"){0,3}[.!…]*\s*", re.I)
+# Said again when a reply to the final check neither confirms it nor adds anything.
+FINAL_CHECK_HINT = "Say “no” if nothing is missing, or tell me what to add."
+# Words of the conversation itself: yes and no, courtesies and goodbyes, first and
+# second person, "it" and "that", auxiliaries, verbs of thinking and saying, and the
+# small words that join them. None of them can name a thing, a person, an action,
+# an amount, a time or a condition of the work; any word that is not listed can.
+_CONVERSATIONAL = frozenset("""
+    no nope nah not yes yeah yep yup ok okay kay alright right sure fine well so oh ah hey hi hello
+    thanks thank cheers bye goodbye please sorry welcome pleasure appreciate appreciated
+    great good nice lovely perfect wonderful awesome excellent brilliant fantastic super cool helpful kind
+    clear correct wrong
+    much very lot lots really pretty quite just about basically honestly actually maybe perhaps probably too then though
+    i me my mine we us our ours you your yours it its that this there here
+    im ive id ill were weve youre youve youd youll thats theres whats lets
+    is am are was be been do does did dont doesnt didnt have had havent can cant cannot could couldnt
+    would wouldnt will wont should shouldnt isnt arent wasnt
+    think believe guess suppose reckon know mean say said see understand understood remember recall hear heard repeat
+    ask tell add need want like got get let wait hold talk talking speak speaking chat chatting sounds looks go going
+    all everything anything nothing something else more none any enough one thing things
+    done finished set complete covered captured missed missing ready
+    for of to from at on in with and or but if as than a an the what how why now today later soon
+    """.split())
+# Courtesies and requests for a moment whose nouns ("day", "time", "second") would
+# otherwise count as words about the work.
+_CONVERSATIONAL_FORMULA = re.compile(
+    r"\b(?:have a (?:very )?(?:good|nice|great|lovely|wonderful|pleasant) (?:day|evening|afternoon|morning|night|weekend|week|one)"
+    r"|good (?:day|evening|afternoon|morning|night)"
+    r"|(?:thanks|thank you)(?: (?:very|so) much| a lot)? for (?:all )?(?:your |the )?(?:time|help|patience)(?: today)?"
+    r"|(?:give me |just |wait |hold on )?(?:a|one) (?:second|sec|minute|moment)"
+    r"|no (?:problem|worries|idea)|take care)\b")
+_HESITATION = re.compile(r"m+|m*h+m+|u+[hm]+|e+r+m*|a+h+|o+h+|h+u+h+")
+_REPLY_WORD = re.compile(r"[^\W_]+(?:['’][^\W_]+)*")
 _SOURCE_ID = re.compile(r"^[A-Za-z0-9_-]{1,200}$")
 _MODEL_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,119}$")
 _REASONS = {"", "cancelled", "stale_revision", "call_budget_exhausted", "role_already_invoked",
@@ -111,8 +176,7 @@ class EvidenceLedger:
     @property
     def source_ids(self):
         data = self.snapshot
-        context_evidence = {"context"} if any(value for key, value in data["context"].items()
-                                             if key != "objective") else set()
+        context_evidence = {"context"} if context_has_evidence(data["context"]) else set()
         return self.participant_ids | self.document_ids | context_evidence
 
 
@@ -166,7 +230,7 @@ reconfirm it or list the superseded account as a current contradiction.
 Distinguish documented requirements or proposals
 from reported current practice. A document alone does not establish that its controls operate.
 
-Return only genuine unresolved findings, each with a stable concise ID, kind, material flag,
+Return only genuine unresolved findings, each with a stable unique ASCII ID of 1–80 letters, digits, underscores or hyphens, kind, material flag,
 specific detail, exact authorized evidence_turns and one focused question. A missing detail can
 cite the participant's adjacent description that leaves the route unclear; never fabricate a
 source for the missing fact. If no source establishes any process, keep findings empty and explain
@@ -207,9 +271,9 @@ def validate_process_review(review, ledger):
 
     def refs(value):
         if (not isinstance(value, list) or len(value) > 400 or any(not isinstance(item, str) for item in value)
-                or len(set(value)) != len(value) or not set(value) <= authorized):
-            raise ValueError("A process review cites duplicate, unauthorized or non-participant evidence.")
-        return list(value)
+                or not set(value) <= authorized):
+            raise ValueError("A process review cites unauthorized or non-participant evidence.")
+        return list(dict.fromkeys(value))
 
     summary = _text(review["summary"], "Process review summary")
     sources = refs(review["evidence_turns"])
@@ -236,6 +300,8 @@ def validate_process_review(review, ledger):
                          "question": _text(finding["question"], "Finding question", 1200)})
     # A caller cannot erase a material blocker by sending a contradictory flag.
     clear = review["no_material_blockers"] and not any(item["material"] for item in findings)
+    if clear and any(turn.get("role") == "user" for turn in ledger.snapshot["turns"]) and (not summary or not sources):
+        raise ValueError("A passing process review needs a summary and its authorized evidence.")
     return {"summary": summary, "evidence_turns": sources, "findings": findings,
             "next_question": _text(review["next_question"], "Process next question", 1200),
             "no_material_blockers": clear}
@@ -264,7 +330,7 @@ def validate_coverage_review(assessment, ledger):
         proposed.append({"key": entry["key"], "status": "captured" if topic["complete"] else "partial",
                          "answer": entry["explanation"], "evidence_turns": entry["evidence_turns"]})
     data = ledger.snapshot
-    _, checked = apply_assessment(proposed, {"topics": raw}, data["turns"], data["documents"])
+    _, checked = apply_assessment(proposed, {"topics": raw}, data["turns"], data["documents"], context=data["context"])
     if "capture_repairs" in assessment:
         checked["capture_repairs"] = copy.deepcopy(assessment["capture_repairs"])
         validate_capture_repairs(checked, ledger.participant_ids | (ledger.source_ids & {"context"}))
@@ -298,9 +364,11 @@ class TeamRun:
         if set(models or {}) - set(ROLE_CONTRACTS):
             raise ValueError("Unknown specialist model configuration.")
         self._lock = threading.RLock()
+        self.request_scope = nullcontext
         self._cancelled = self._stale = False
         self._provisional = ""
         self._events, self._results = [], {}
+        self.initial_reviews = {}
         self._used_calls = self._reserved_tokens = 0
         self._agents = {}
         for role in self.roles:
@@ -359,6 +427,12 @@ class TeamRun:
                 raise ValueError("Reused capture must start a fresh review attempt.")
             self._results["lead_interviewer"] = copy.deepcopy(results["lead_interviewer"])
             self._event("lead_interviewer", "completed", "prior_result_reused")
+            for role, review in previous.initial_reviews.items():
+                original = next(item for item in status["agents"] if item["role"] == role)
+                if original["status"] == "completed" and original["model"] == self._agents[role]["model"]:
+                    self.initial_reviews[role] = copy.deepcopy(review)
+                    self._results[role] = copy.deepcopy(review[1] if role == "coverage_reviewer" else review)
+                    self._event(role, "completed", "prior_result_reused")
 
     def _event(self, role, status, reason=""):
         row = self._agents[role]
@@ -412,7 +486,8 @@ class TeamRun:
             row["calls"] += 1
             self._event(role, "running")
         try:
-            result = callback()
+            with self.request_scope():
+                result = callback()
             if not isinstance(result, dict):
                 raise TeamBlockedError("invalid_result")
             result = json.loads(_json(result))
@@ -450,7 +525,7 @@ class TeamRun:
                       "idle" if all(state == "idle" for state in states) else "pending")
             return {"run_id": self.run_id, "revision": self.ledger.revision, "status": status,
                     "cancelled": self._cancelled, "stale": self._stale,
-                    "provisional_question": "" if self._cancelled or self._stale else self._provisional,
+                    "provisional_question": self._provisional if not self._cancelled and not self._stale and self._agents.get("lead_interviewer", {}).get("status") == "running" else "",
                     "agents": copy.deepcopy(list(self._agents.values())), "events": copy.deepcopy(self._events),
                     "budget": {"max_calls": self.max_calls, "used_calls": self._used_calls,
                                "reserved_max_output_tokens": self._reserved_tokens,
@@ -468,12 +543,42 @@ def explicit_final_confirmation(ledger):
     return bool(FINAL_CONFIRMATION.fullmatch(turns[-1]["text"]))
 
 
+def reply_adds_nothing(text):
+    """Whether a short reply says nothing about the work.
+
+    True for a courtesy, a goodbye, an acknowledgement, a hesitation, a question
+    back or an announcement that more is coming ("Thank you, bye.", "Okay.",
+    "Let me think.", "What do you mean?", "There is something else."), and for
+    every confirmation of the final check. Such a reply can be answered from the
+    capture it follows without a new review; it never confirms anything itself.
+    The rule is the vocabulary, not a list of sentences: every word must belong
+    to the conversation (see _CONVERSATIONAL). One word that could describe the
+    work ("Treasury signs too.", "Twice.", "She approves it."), a number, an
+    acronym or a long reply is content, and content is always analysed.
+    """
+    if not isinstance(text, str):
+        return False
+    if FINAL_CONFIRMATION.fullmatch(text):
+        return True
+    words = _REPLY_WORD.findall(text)
+    if len(words) > 20:
+        return False
+    # A word in capitals is a name ("IT", "the US"), unless the whole reply is typed that way.
+    if (any(len(word) > 1 and word.isupper() and word != "OK" for word in words)
+            and not (len(words) > 1 and text.isupper())):
+        return False
+    rest = _CONVERSATIONAL_FORMULA.sub(" ", " ".join(words).lower().replace("’", "'"))
+    return all(word.replace("'", "") in _CONVERSATIONAL or _HESITATION.fullmatch(word) for word in rest.split())
+
+
 def participant_has_more_to_add(ledger):
     """'Yes' answers the actual omissions question; it is not assent to close."""
     turns = [turn for turn in ledger.snapshot["turns"] if not turn.get("document_event")]
     return bool(len(turns) >= 2 and turns[-2]["role"] == "assistant" and turns[-1]["role"] == "user"
                 and turns[-2]["text"].startswith(FINAL_CHECK_PREFIX)
-                and re.fullmatch(r"\s*yes(?:[,.]?\s+(?:there is more|there is something else))?[.!]?\s*",
+                and re.fullmatch(r"\s*(?:(?:yes|yeah|yep|yup)|(?:(?:yes|yeah|yep|yup|actually|also)[,.]?\s+)?"
+                                 r"(?:there(?: is|['’]s) )?(?:one (?:more )?thing|something (?:else|more)|more)"
+                                 r"(?: to add)?)[.!]?\s*",
                                  turns[-1]["text"], re.I))
 
 

@@ -219,7 +219,7 @@ class DocumentStoreTests(unittest.TestCase):
         with patch.object(documents, 'MAX_FILES_PER_SCOPE', 1):
             self.add_csv()
             with self.assertRaises(documents.DocumentError):
-                self.add_csv()
+                self.add_csv(b'different file contents')
         record = self.add_csv(b'header\n' + b'z' * 30)
         with patch.object(documents, 'MAX_CELL_CHARS', 20):
             result = self.store.extract(self.scope, record['id'])
@@ -251,18 +251,25 @@ class DocumentStoreTests(unittest.TestCase):
 
     @unittest.skipUnless(importlib.util.find_spec('openpyxl'), 'Existing openpyxl runtime required')
     def test_all_fifty_tabs_and_rows_after_one_thousand_are_indexed(self):
-        record = self.store.add(self.scope, 'fifty-tabs.xlsx', workbook_bytes(sheets=50, rows=1205))
+        record = self.store.add(self.scope, 'fifty-tabs.xlsx', workbook_bytes(sheets=50, rows=3))
         result = self.store.extract(self.scope, record['id'])
         self.assertEqual(result['status'], 'ready', result.get('error'))
         self.assertEqual(result['inventory']['sheet_count'], 50)
-        self.assertEqual(result['inventory']['rows'], 50 * 1205)
-        self.assertTrue(all(sheet['rows'] == 1205 for sheet in result['inventory']['sheets']))
+        self.assertEqual(result['inventory']['rows'], 50 * 3)
+        self.assertTrue(all(sheet['rows'] == 3 for sheet in result['inventory']['sheets']))
         self.assertTrue(all(sheet['columns'] == 2 and sheet['header_sample'] for sheet in result['inventory']['sheets']))
         self.assertLessEqual(len(json.dumps(result['inventory']).encode()), documents.MAX_INVENTORY_BYTES)
         hits = self.store.search(self.scope, 'NeedleLastSheet')
         self.assertEqual(hits[0]['sheet'], 'Sheet50')
-        self.assertEqual(hits[0]['row_end'], 1205)
-        self.assertIn('A1205=NeedleLastSheet', hits[0]['text'])
+        self.assertEqual(hits[0]['row_end'], 3)
+        self.assertIn('A3=NeedleLastSheet', hits[0]['text'])
+
+    @unittest.skipUnless(importlib.util.find_spec('openpyxl'), 'Existing openpyxl runtime required')
+    def test_all_rows_of_a_long_sheet_are_indexed(self):
+        record=self.store.add(self.scope,'long.xlsx',workbook_bytes(sheets=1,rows=1205))
+        result=self.store.extract(self.scope,record['id'])
+        self.assertEqual(result['inventory']['sheets'][0]['rows'],1205)
+        self.assertIn('A1205=NeedleLastSheet',self.store.search(self.scope,'NeedleLastSheet')[0]['text'])
 
     @unittest.skipUnless(importlib.util.find_spec('openpyxl'), 'Existing openpyxl runtime required')
     def test_formulas_and_saved_values_are_flagged_and_never_executed(self):
@@ -322,12 +329,11 @@ class DocumentStoreTests(unittest.TestCase):
         record = self.store.add(self.scope, 'entity.xlsx', output.getvalue())
         self.assertIn('external entities', self.store.extract(self.scope, record['id'])['error'])
 
-    def test_legacy_xls_dependency_gap_is_explicit_and_original_is_kept(self):
-        record = self.store.add(self.scope, 'legacy.xls', b'not actually parsed without xlrd')
-        result = self.store.extract(self.scope, record['id'])
-        self.assertEqual(result['status'], 'error')
-        self.assertIn('original', result['error'].lower())
-        self.assertTrue(self.store.original_path(self.scope, record['id']).exists())
+    def test_legacy_xls_dependency_gap_is_explicit_before_a_slot_is_used(self):
+        with patch.object(documents.importlib.util, 'find_spec', return_value=None):
+            with self.assertRaisesRegex(documents.DocumentError, 'Save a copy as XLSX or CSV'):
+                self.store.add(self.scope, 'legacy.xls', b'not actually parsed without xlrd')
+        self.assertEqual(self.store.list(self.scope), [])
 
     @unittest.skipUnless(importlib.util.find_spec('PIL'), 'Existing Pillow runtime required')
     def test_png_verification_and_native_visual_text_are_scoped_and_searchable(self):

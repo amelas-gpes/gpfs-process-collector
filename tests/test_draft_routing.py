@@ -26,8 +26,11 @@ class DraftRoutingTests(unittest.TestCase):
         reviewed = fixture_draft_audit(draft, payload['turns'])
         reviewed['route_support'][1]['passages'] = [{'source_id':'u2','quote':'I return it to the clerk.'}]
         client = server.OpenAIClient({'OPENAI_API_KEY':'fictional'})
-        client.structured = Mock(side_effect=[copy.deepcopy(draft), reviewed])
+        # The fabricated quotation is asked about once more; repeating it still publishes nothing.
+        client.structured = Mock(side_effect=[copy.deepcopy(draft), reviewed,
+                                              {'route_support': reviewed['route_support'][1:]}])
         result = client.draft(payload)['draft']
+        self.assertEqual(client.structured.call_count, 3)
         self.assertEqual(result['connections'], [original])
         self.assertEqual(result['steps'], draft['steps'])
         self.assertNotIn('route_support', result)

@@ -374,7 +374,7 @@ class FactTransactionTests(unittest.TestCase):
         state = facts.empty_state()
         result = self.apply(state, transaction(state, [operation("accountable", "The procedure leaves the owner unconfirmed.", "doc_owner", kind="gap")],
                                               {"accountable": "partial"}, ["accountable"]))
-        self.assertTrue(result["topics"]["accountable"]["discussed"])
+        self.assertFalse(result["topics"]["accountable"]["discussed"])
         self.assertFalse(result["topics"]["accountable"]["participant_unavailable"])
 
     def test_document_only_detail_still_cannot_pass_existing_practice_gate(self):
@@ -460,8 +460,17 @@ class FactTransactionTests(unittest.TestCase):
         reviewed = facts.sync_review(state, capture, self.context, self.turns, [])
         after = self.apply(reviewed, transaction(reviewed))
         self.assertEqual(next(item["status"] for item in facts.findings(after) if item["key"] == "variations"), "not_applicable")
-        self.assertTrue(any(fact["kind"] == "not_applicable" and fact["origin"] == "coverage_repair"
-                            for fact in facts.model_state(after)["facts"]))
+        # A statement the repair keeps word for word stays the lead's own fact.
+        self.assertEqual([(fact["kind"], fact["origin"]) for fact in facts.model_state(after)["facts"]], [("not_applicable", "lead")])
+        reworded = "No client or fund differences apply: this is our only fund and route."
+        capture = {"memo_findings": [dict(item, answer=reworded) if item["key"] == "variations" else item
+                                     for item in facts.findings(state)],
+                   "coverage_assessment": {"capture_repairs": [{"key": "variations", "answer": reworded, "evidence_turns": ["u_na"]}]}}
+        reviewed = facts.sync_review(state, capture, self.context, self.turns, [])
+        after = self.apply(reviewed, transaction(reviewed))
+        self.assertEqual(next(item["status"] for item in facts.findings(after) if item["key"] == "variations"), "not_applicable")
+        self.assertEqual([(fact["kind"], fact["origin"]) for fact in facts.model_state(after)["facts"]],
+                         [("not_applicable", "coverage_repair")])
 
 
 class FactCoordinatorTests(unittest.TestCase):
@@ -705,7 +714,10 @@ class FactCoordinatorTests(unittest.TestCase):
         self.assertEqual(next(item["answer"] for item in second["memo_findings"] if item["key"] == "completion"),
                          "Treasury acceptance finishes the AP work.")
         self.assertNotIn("fact_state", second)
-        self.assertNotIn("fact_", json.dumps(second))
+        self.assertNotRegex(json.dumps(second), r"fact_[a-f0-9]{32}")
+        self.assertTrue(second["fact_provenance"])
+        self.assertRegex(second["fact_provenance"][0]["history_ref"], r"^[0-9a-f]{16}$")
+        self.assertIn("T", second["fact_provenance"][0]["recorded_at"])
         self.assertFalse(second["completion"]["complete"])
 
     def test_review_repair_is_carried_into_next_single_call_without_legacy_overwrite(self):

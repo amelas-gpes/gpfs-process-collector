@@ -56,7 +56,7 @@
 .ws-edge[data-emphasis="related"] .ws-road { stroke: #536a86; stroke-width: 3.1; }
 .ws-world[data-inspecting] .ws-edge:not([data-emphasis]):not(:hover):not(:focus-visible) { opacity:.27; }
 .ws-world[data-inspecting] .ws-node:not([data-emphasis]):not(:hover):not(:focus-visible) { opacity:.53; }
-.ws-world[data-inspecting] .ws-edge:not([data-emphasis]) .ws-signal { visibility:hidden; }
+.ws-world[data-inspecting] .ws-edge:not([data-emphasis]) .ws-signal { display:none; animation:none; }
 .ws-edge:is(:hover,:focus-visible,[data-emphasis="selected"]) .ws-route-label rect { fill:#fbecd9; stroke:#995226; stroke-width:1.8; }
 .ws-edge:is(:hover,:focus-visible,[data-emphasis="selected"]) .ws-route-label text { fill:#342e28; }
 .ws-instruments { position:absolute; width:0; height:0; overflow:hidden; pointer-events:none; }
@@ -64,3 +64,5 @@
 @media (prefers-reduced-motion: reduce) {
   .workflow-stage.ws-moving .ws-signal { opacity: 0; animation: none; }
 }
+
+.ws-node:focus-visible .ws-tile, .ws-edge:focus-visible .ws-road { stroke:var(--focus,#005a9c) !important; stroke-width:4; stroke-dasharray:7 3; }

@@ -223,7 +223,7 @@ class DocumentFollowupTests(unittest.TestCase):
 
 class DocumentFollowupHTTPTests(unittest.TestCase):
     def setUp(self):
-        local = Path(__file__).resolve().parents[1] / ".local" / "document-followup-tests"
+        local = Path(tempfile.gettempdir())
         if sys.platform == "win32" and not str(local).startswith("\\\\?\\"):
             # Deep fixture paths exceed MAX_PATH from a nested checkout; an
             # extended-length root lets them be created and cleaned up.

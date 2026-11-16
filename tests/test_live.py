@@ -2,6 +2,8 @@
 import copy
 import io
 import json
+from pathlib import Path
+import tempfile
 import threading
 import unittest
 import urllib.error
@@ -62,6 +64,16 @@ class LiveContractTests(unittest.TestCase):
         self.assertEqual(body['session']['input'][1]['content'][0]['type'], 'input_text')
         self.assertNotIn(KEY, json.dumps(result))
 
+    def test_empty_interview_opens_with_one_developer_greeting(self):
+        payload = live_payload()
+        payload["turns"] = []
+        self.client.live_session(payload)
+        history = self.client.request.call_args.args[1]["session"]["input"]
+        self.assertEqual(len(history), 1)
+        self.assertEqual(history[0]["role"], "developer")
+        self.assertEqual(history[0]["content"][0]["type"], "input_text")
+        self.assertIn("Greet", history[0]["content"][0]["text"])
+
     def test_live_and_backend_share_question_selection_without_an_extra_request(self):
         self.client.live_session(live_payload())
         self.client.request.assert_called_once()
@@ -88,14 +100,27 @@ class LiveContractTests(unittest.TestCase):
         self.client.request.assert_not_called()
 
     def test_resuming_never_silently_drops_history(self):
-        payload = live_payload()
-        payload['turns'] = [{'id': f'u{i}', 'role': 'user', 'text': 'A reported action.'} for i in range(129)]
-        with self.assertRaisesRegex(ValueError, 'too long'):
-            self.client.live_session(payload)
-        payload['turns'] = [{'id': f'u{i}', 'role': 'user', 'text': 'x' * 5000} for i in range(2)]
-        with self.assertRaisesRegex(ValueError, 'too long'):
-            self.client.live_session(payload)
-        self.client.request.assert_not_called()
+        # A transcript beyond the Live history limits used to be refused. It now
+        # resumes with a bounded history: the first message says what is omitted
+        # and the response tells the browser (see test_live_resume.py).
+        for turns in ([{'id': f'u{i}', 'role': 'user', 'text': 'A reported action.'} for i in range(129)],
+                      [{'id': f'u{i}', 'role': 'user', 'text': 'x' * 5000} for i in range(2)]):
+            with self.subTest(turns=len(turns)):
+                self.client.request.reset_mock()
+                payload = live_payload()
+                payload['turns'] = turns
+                result = self.client.live_session(payload)
+                self.client.request.assert_called_once()
+                history = self.client.request.call_args.args[1]['session']['input']
+                kept = len(history) - 1
+                self.assertEqual(history[0]['role'], 'developer')
+                self.assertIn(f'{kept} of {len(turns)} turns', history[0]['content'][0]['text'])
+                self.assertEqual([item['content'][0]['text'] for item in history[1:]],
+                                 [turn['text'] for turn in turns[len(turns) - kept:]])
+                self.assertLessEqual(len(history), 128)
+                self.assertLessEqual(sum(len(item['content'][0]['text'].encode()) for item in history), 7800)
+                self.assertEqual(result['history'], {'condensed': True, 'included_turns': kept, 'total_turns': len(turns),
+                                                     'summary_included': False, 'latest_turn_clipped': False})
 
     def test_invalid_upstream_connection_is_recoverable(self):
         for response in ({}, {'transport': None}, {'transport': {'sdp': 'not-sdp'}, 'session': {'id': 'x'}},
@@ -241,7 +266,8 @@ class LiveContractTests(unittest.TestCase):
                                     'source_quote': 'manager approval is a separate process', 'evidence_turns': ['u3']}]
         revised['memo_findings'][5].update(answer='Only invoice logging is in scope.', evidence_turns=['u3'])
         payload = interview_payload()
-        self.client.structured = Mock(side_effect=[first, fixture_workflow_audit(first, payload['turns']), revised])
+        self.client.structured = Mock(side_effect=[first, fixture_workflow_audit(first, payload['turns']), revised,
+                                                  fixture_workflow_audit(revised, payload['turns'])])
         old = self.client.workflow(payload)
         payload['previous_capture'] = {key: copy.deepcopy(old[key])
                                        for key in ('workflow', 'memo_findings', 'summary', 'focus', 'parking_lot')}
@@ -251,7 +277,7 @@ class LiveContractTests(unittest.TestCase):
         self.assertEqual(len(new['workflow']['steps']), 1)
         self.assertEqual(new['memo_findings'][5]['evidence_turns'], ['u3'])
         self.assertEqual(new['memo_findings'][5]['answer'], 'Only invoice logging is in scope.')
-        self.assertEqual(self.client.structured.call_count, 3)
+        self.assertEqual(self.client.structured.call_count, 4)
 
     def test_live_access_denied_has_actionable_error_without_key(self):
         error = urllib.error.HTTPError('https://api.openai.com/v1/live/sessions', 403, 'Forbidden', {}, io.BytesIO(b'{}'))
@@ -275,7 +301,7 @@ class LiveContractTests(unittest.TestCase):
                     if isinstance(node, dict):
                         evidence = node.get('properties', {}).get('evidence_turns')
                         if evidence:
-                            seen.append(evidence['items'])
+                            seen.append((evidence['items'], 'source_quote' in node['properties']))
                         for value in node.values():
                             evidence_items(value)
                     elif isinstance(node, list):
@@ -284,8 +310,8 @@ class LiveContractTests(unittest.TestCase):
 
                 evidence_items(schema)
                 self.assertTrue(seen)
-                for item in seen:
-                    self.assertEqual(item, {'type': 'string', 'enum': ['context', 'u1', 'u2']})
+                for item, correction in seen:
+                    self.assertEqual(item, {'type': 'string', 'enum': ['u1', 'u2'] if correction else ['context', 'u1', 'u2']})
 
     def test_evidence_constraints_do_not_mutate_or_leak_between_shared_schemas(self):
         self.client.request.return_value = {'output': [{'content': [{'type': 'output_text', 'text': '{}'}]}]}
@@ -367,7 +393,7 @@ class LiveContractTests(unittest.TestCase):
                         if isinstance(node, dict):
                             for name, field in node.get('properties', {}).items():
                                 if name == 'evidence_turns':
-                                    evidence.append(field['items'])
+                                    evidence.append((field['items'], 'source_quote' in node['properties']))
                                 elif name in ordinary:
                                     plain.append(name)
                                     self.assertEqual(field['items'], {'type': 'string'},
@@ -382,14 +408,14 @@ class LiveContractTests(unittest.TestCase):
                     self.assertTrue(plain)
                     self.assertTrue(evidence)
                     expected = {'context'} | {turn['id'] for turn in payload['turns']}
-                    for item in evidence:
-                        if '$ref' in item:
-                            definition = schema['$defs'][item['$ref'].split('/')[-1]]
-                            chunks = definition.get('anyOf', [definition])
-                            actual = set().union(*(set(chunk['enum']) for chunk in chunks))
-                        else:
-                            actual = set(item['enum'])
-                        self.assertEqual(actual, expected)
+                    def enum_values(node):
+                        if '$ref' in node:
+                            return enum_values(schema['$defs'][node['$ref'].split('/')[-1]])
+                        if 'anyOf' in node:
+                            return set().union(*(enum_values(branch) for branch in node['anyOf']))
+                        return set(node['enum'])
+                    for item, participant_only in evidence:
+                        self.assertEqual(enum_values(item), expected - {'context'} if participant_only else expected)
 
 
 class LiveHTTPTests(unittest.TestCase):
@@ -397,7 +423,9 @@ class LiveHTTPTests(unittest.TestCase):
     def setUpClass(cls):
         cls.client = server.OpenAIClient({'OPENAI_API_KEY': KEY})
         cls.client.request = Mock()
-        cls.httpd = server.InterviewServer(('127.0.0.1', 0), server.Handler, client=cls.client)
+        root = Path(cls.enterClassContext(tempfile.TemporaryDirectory()))
+        cls.httpd = server.InterviewServer(('127.0.0.1', 0), server.Handler, client=cls.client,
+                                           documents_root=root / 'documents', knowledge_settings={})
         cls.worker = threading.Thread(target=cls.httpd.serve_forever, kwargs={'poll_interval': .01}, daemon=True)
         cls.worker.start()
         cls.url = f'http://127.0.0.1:{cls.httpd.server_port}'

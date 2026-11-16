@@ -42,6 +42,34 @@ def complex_map():
 
 
 class WorkflowComponentTests(unittest.TestCase):
+    def test_alternatives_do_not_become_all_prerequisites_or_parallel_work_alternatives(self):
+        for split, join, expected in (("decision", "parallel_join", "alternative outcomes"),
+                                      ("parallel_split", "merge", "all parallel branches")):
+            with self.subTest(split=split):
+                nodes = [component("s", "Classify", split), component("a","Path A","activity"),
+                         component("b","Path B","activity"), component("j","Continue",join)]
+                links = [edge("s","a","Accepted"), edge("s","b","Declined"), edge("a","j"), edge("b","j")]
+                questions = server.workflow_structure_questions(nodes, links)
+                self.assertTrue(any(expected in text for text in questions), questions)
+
+    def test_sixty_step_branching_map_keeps_parallel_routes_and_a_reported_retry(self):
+        nodes = [component("s","Start","start"), component("fork","Prepare both","parallel_split")]
+        links = [edge("s","fork")]
+        for branch in ("A", "B"):
+            last = "fork"
+            for number in range(28):
+                identity = f"{branch}{number}"
+                nodes.append(component(identity, identity, "activity"))
+                links.append(edge(last, identity, "Begin " + branch if number == 0 else "Then"))
+                last = identity
+            links.append(edge(last,"join","Complete " + branch))
+        nodes.extend([component("join","Both prepared","parallel_join"),component("end","Released","end")])
+        links.extend([edge("join","end","Release"),edge("A8","A6","Correction")])
+        graph = {"title":"Branching stress case", "steps":nodes, "connections":links, "open_questions":[]}
+        checked = server.validate_workflow(graph, TURNS)
+        self.assertEqual(len(checked["steps"]),60)
+        self.assertEqual(checked["connections"],links)
+        self.assertFalse(any("alternative outcomes" in text for text in checked["open_questions"]))
     def test_separate_connected_fragments_are_visible_in_live_and_draft_routing_questions(self):
         nodes = [component(n, n, 'activity') for n in ('A', 'B', 'C', 'D')]
         links = [edge('A', 'B'), edge('C', 'D')]
@@ -220,7 +248,8 @@ class WorkflowComponentTests(unittest.TestCase):
         result = server.validate_workflow(candidate, TURNS)
         self.assertEqual(result['connections'], before['connections'])
         self.assertEqual(result['steps'], before['steps'])
-        self.assertEqual(len(result['open_questions']), 2)
+        self.assertEqual(len(result['open_questions']), 3)
+        self.assertTrue(any('ends the loop' in q for q in result['open_questions']))
 
     def test_unknown_component_type_is_rejected_instead_of_silently_downgraded(self):
         candidate = complex_map()

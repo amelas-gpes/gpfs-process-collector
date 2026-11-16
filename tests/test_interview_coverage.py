@@ -119,7 +119,10 @@ class CoverageAssessmentTests(unittest.TestCase):
         actual = next(item for item in revised if item["key"] == "lifecycle")
         self.assertEqual(actual["answer"], topic(assessment, "lifecycle")["explanation"])
         self.assertEqual(actual["status"], "captured")
-        self.assertEqual(public["capture_repairs"], [{"key": "lifecycle", "answer": actual["answer"], "evidence_turns": actual["evidence_turns"]}])
+        # The published repair also records the answer and citations it replaced.
+        self.assertEqual(public["capture_repairs"], [{"key": "lifecycle", "answer": actual["answer"], "evidence_turns": actual["evidence_turns"],
+                                                      "previous_answer": "The analyst registers and sends invoices to Treasury.",
+                                                      "previous_evidence_turns": ["u_lifecycle"]}])
         self.assertTrue(public["all_topics_covered"])
         self.assertEqual(findings[5]["answer"], "The analyst registers and sends invoices to Treasury.")
 
@@ -133,7 +136,7 @@ class CoverageAssessmentTests(unittest.TestCase):
         self.assertEqual(repaired["answer"], local["explanation"])
         self.assertEqual(repaired["evidence_turns"], ["u_lifecycle", "u_rework"])
         self.assertEqual(public["capture_repairs"][0]["evidence_turns"], repaired["evidence_turns"])
-        self.assertEqual(set(coverage.CAPTURE_REPAIR_SCHEMA["properties"]), {"needed"})
+        self.assertEqual(set(coverage.CAPTURE_REPAIR_SCHEMA["properties"]), {"needed","edits"})
 
     def test_malformed_duplicate_repair_prose_is_not_converted_into_participant_gap(self):
         findings, assessment, turns = self.repair_fixture()
@@ -177,6 +180,11 @@ class CoverageAssessmentTests(unittest.TestCase):
             findings, assessment, turns = self.repair_fixture()
             turns.append({"id": "a1", "role": "assistant", "text": "The manager may release it."})
             topic(assessment, "lifecycle")["evidence_turns"] = [source]
+            if source == "doc_policy":
+                revised, public = coverage.apply_repair_assessment(findings, assessment, turns, [{"id": source}])
+                self.assertFalse(public["capture_repairs"])
+                self.assertEqual(revised[5]["status"], "partial")
+                continue
             with self.assertRaises(ValueError):
                 coverage.apply_repair_assessment(findings, assessment, turns, [{"id": "doc_policy"}])
 
@@ -203,7 +211,7 @@ class CoverageAssessmentTests(unittest.TestCase):
             self.assertFalse(public["capture_repairs"])
             self.assertEqual(revised[5]["status"], "partial")
 
-    def test_repair_mode_instructions_distinguish_omission_from_missing_fact(self):
+    def test_repair_policy_includes_rules_for_omissions_and_missing_testimony(self):
         self.assertIn("do not silently repair", coverage.AUDIT_INSTRUCTIONS)
         self.assertNotIn("do not silently repair", coverage.REPAIR_AUDIT_INSTRUCTIONS)
         self.assertIn("Unsupported substitutions and missing testimony remain gaps", coverage.REPAIR_AUDIT_INSTRUCTIONS)

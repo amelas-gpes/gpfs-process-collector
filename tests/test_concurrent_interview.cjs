@@ -47,6 +47,24 @@ await test("sync cancels advisory polling and waits for current capture",async()
 await test("background failure preserves conversation and stops automatic retries",async()=>{
  const h=setup(url=>url.endsWith("/turn")?question:Promise.reject(Error("Analysis unavailable")));await h.controller.turn(h.snapshot);await h.tick();assert.equal(h.applied.length,0);assert.equal(h.statuses.at(-1).state,"error");assert.equal(h.timers.size,0);assert.equal(h.snapshot.turns.length,1);
 });
+await test("temporary status failure retries, terminal expired session resets its token",async()=>{
+ let attempt=0;
+ const h=setup(url=>url.endsWith("/turn")?question:++attempt===1?Promise.reject(Object.assign(new Error("Busy"),{status:503})):
+  Promise.reject(Object.assign(new Error("Expired"),{status:409,code:"conversation_expired"})));
+ await h.controller.turn(h.snapshot);await h.tick();
+ assert.equal(h.statuses.at(-1).state,"reconnecting");assert.equal(h.timers.size,1);
+ await h.tick();assert.equal(h.timers.size,0);assert.equal(h.controller.token,null);assert.equal(h.statuses.at(-1).state,"error");
+});
+await test("matching older checkpoint is published once, revised source is rejected",async()=>{
+ for(const changed of [false,true]){
+  const h=setup(url=>url.endsWith("/turn")?question:{state:"working",conversation_token:"session-one",checkpoint:{
+    capture:{summary:"Earlier notes"},turns:[{...h.snapshot.turns[0],...(changed?{text:"Rewritten"}:{})}],revision:"r0",through_turn_id:"u1"}});
+  h.snapshot.turns.push({id:"u2",role:"user",text:"Another answer"});
+  await h.controller.turn(h.snapshot);await h.tick();await h.tick();assert.equal(h.applied.length,changed?0:1);
+  if(!changed)assert.equal(h.applied[0].meta.snapshot.turns.length,1);
+  assert.equal(h.statuses.at(-1).state,"working");h.controller.reset();
+ }
+});
 await test("new turns reuse capability and supersede old poll",async()=>{
  const old=deferred(),h=setup(url=>url.endsWith("/turn")?question:old.promise);await h.controller.turn(h.snapshot);await h.tick();h.snapshot.turns.push({id:"u2",role:"user",text:"Another answer"});await h.controller.turn(h.snapshot);assert.equal(h.calls[1].options.signal.aborted,true);assert.equal(h.calls[2].data.conversation_token,"session-one");assert.equal(h.timers.size,1);old.resolve({state:"ready",revision:"r1",conversation_token:"session-one",capture:{summary:"Old"}});await flush();assert.equal(h.applied.length,0);
 });

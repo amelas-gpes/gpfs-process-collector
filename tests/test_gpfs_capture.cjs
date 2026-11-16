@@ -1,6 +1,9 @@
 "use strict";
 // New metadata crosses the actual app normalizers and exports; no providers.
-const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path"),vm=require("node:vm");
+const strict=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path"),vm=require("node:vm");
+// Every assertion that returns is counted, so the summary reports what actually ran.
+let checks=0;const counted=check=>(...args)=>{const result=check(...args);checks++;return result;};
+const assert=new Proxy(counted(strict),{get:(_,name)=>typeof strict[name]==="function"?counted(strict[name]):strict[name]});
 const source=fs.readFileSync(path.join(__dirname,"../web/app.js"),"utf8");
 const context={console,window:{},document:{getElementById:()=>({value:""})},fetch:()=>{throw Error("No network in metadata tests");},setTimeout:()=>0,clearTimeout:()=>{},AbortController};
 const hook=`
@@ -30,4 +33,4 @@ assert.equal(JSON.stringify(restored.taxonomy),JSON.stringify(saved.draft.taxono
 assert.equal(JSON.stringify(restored.connections_out),JSON.stringify(saved.draft.connections_out));
 const markdown=app.markdown(),memo=app.memoMarkdown();
 for(const text of ["## Classification","## Connected processes","Scope and entity context","Business rules and lineage","Data and systems","Volume and effort"]){assert(markdown.includes(text),text);assert(memo.includes(text),text);}
-console.log(JSON.stringify({checks_passed:13,provider_calls:0,network_calls:0}));
+console.log(JSON.stringify({checks_passed:checks,provider_calls:0,network_calls:0}));

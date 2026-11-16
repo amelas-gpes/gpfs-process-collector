@@ -13,8 +13,9 @@ from test_server import server
 
 
 class FakeGraph:
-    def __init__(self, path, analyzer=None, document_resolver=None):
+    def __init__(self, path, analyzer=None, document_resolver=None, request_scope=None):
         self.calls = []
+        self.document_resolver = document_resolver
     def recover_submission(self, key, intent_digest, principal=None):
         return None
     def submit(self, payload, principal=None, document_scope=None, intent_digest=None, document_evidence=None):
@@ -43,6 +44,11 @@ class FakeGraph:
         if (submission_id, revision, document_id) != ('owned', 1, 'doc-1'):
             raise PermissionError('Not available')
         return 'scope-secret'
+    def document_source(self, submission_id, revision, document_id, source_id):
+        scope = self.document_scope(submission_id, revision, document_id)
+        if source_id != 'page-1':
+            raise ValueError('Document source is not in this submission revision.')
+        return self.document_resolver(scope, document_id, source_id)
     def review(self, *args, **kwargs):
         self.calls.append(('review', args, kwargs))
         return {'id': args[0], 'state': args[1]}
@@ -55,6 +61,9 @@ class FakeGraph:
     def canonical_update(self, canonical_id, action, value, reviewer, reason, expected_revision, bounded_result=False):
         self.calls.append(('canonical_update', canonical_id, action, value, reviewer, reason, expected_revision))
         return {'id': canonical_id, 'review_version': expected_revision + 1}
+    def stop_scheduling(self):
+        pass
+
     def close(self):
         pass
 
@@ -188,6 +197,8 @@ class KnowledgeAPITests(unittest.TestCase):
         httpd = self.serve()
         scope = httpd.documents_store.create_scope()
         record = httpd.documents_store.add(scope, 'actual.csv', b'column\nvalue\n')
+        httpd.documents_store.extract(scope,record['id'])
+        httpd.documents_store.update(scope,record['id'],{'analysis':{'phase':'complete','disposition':'relevant'}})
         payload = {'documents': {'scope': scope, 'documents': [{'id': record['id'], 'name': 'forged.csv', 'sources': [{'source_id':'forged'}]}]}}
         self.assertEqual(self.request(httpd, '/api/knowledge/submit', payload)[0], 202)
         _, received, _, private_scope = httpd.knowledge.calls[-1]
@@ -201,12 +212,13 @@ class KnowledgeAPITests(unittest.TestCase):
     def test_document_source_read_requires_admin_and_exact_revision_reference(self):
         httpd = self.serve({'COLLECTOR_DEPLOYMENT_MODE':'local', 'KNOWLEDGE_LOCAL_OWNER':'true'})
         request = {'submission_id':'owned', 'revision':1, 'document_id':'doc-1', 'source_id':'page-1'}
-        with patch.object(httpd.documents, 'source', return_value={'id':'page-1', 'text':'fixture'}) as source:
+        with patch.object(httpd.knowledge, 'document_resolver', return_value={'id':'page-1', 'text':'fixture'}) as source:
             status, result = self.request(httpd, '/api/knowledge/admin/document-source', request)
             self.assertEqual(status, 200)
             self.assertEqual(result['source']['text'], 'fixture')
             self.assertNotIn('scope-secret', json.dumps(result))
             source.assert_called_once_with('scope-secret', 'doc-1', 'page-1')
+            self.assertEqual(self.request(httpd, '/api/knowledge/admin/document-source', {**request, 'source_id':'unlisted'})[0], 400)
             request['document_id'] = 'other-document'
             self.assertEqual(self.request(httpd, '/api/knowledge/admin/document-source', request)[0], 403)
             source.assert_called_once()
@@ -304,6 +316,25 @@ class KnowledgeRealHTTPTests(unittest.TestCase):
         worker.start()
         self.instances.append((httpd, worker))
         return httpd
+
+    def test_original_submitter_can_continue_after_admin_revises(self):
+        from test_knowledge_graph import payload
+        employee=self.serve_real(lambda h,c: 'original-owner' if c=='knowledge.submit' else None)
+        admin=self.serve_real(lambda h,c: 'admin-editor')
+        original=payload('Publishing','We publish approved NAV.')
+        status,first=self.request(employee,'/api/knowledge/submit',original)
+        self.assertEqual(status,202,first)
+        correction={**original,'process_id':first['process_id']}
+        correction['turns']=[{'id':'u1','role':'user','text':'Publication follows final sign-off.'}]
+        status,second=self.request(admin,'/api/knowledge/submit',correction)
+        self.assertEqual(status,202,second)
+        follow_up={**correction,'turns':correction['turns']+[{'id':'u2','role':'user','text':'The controller signs off.'}]}
+        status,third=self.request(employee,'/api/knowledge/submit',follow_up)
+        self.assertEqual(status,202,third)
+        self.assertEqual(third['revision'],3)
+        rows=self.page_items(admin,'submissions')
+        self.assertEqual({r['revision']:r['submitter'] for r in rows},
+                         {1:'original-owner',2:'admin-editor',3:'original-owner'})
 
     def test_document_simulation_roundtrips_in_real_admin_without_verified_employee_identity(self):
         from test_knowledge_graph import payload,simulation_provenance
@@ -482,7 +513,7 @@ class KnowledgeRealHTTPTests(unittest.TestCase):
         admin.documents_store.archive(scope, document['id'])
         changed = self.snapshot(admin)['proposals'][0]
         self.assertEqual(changed['status'], 'stale')
-        self.assertEqual(changed['history'][-1]['action'], 'stale')
+        self.assertEqual(changed['history'][0]['action'], 'stale')
 
     def test_saved_attempt_recovers_before_document_drift_or_archive_hydration(self):
         import copy
@@ -505,11 +536,11 @@ class KnowledgeRealHTTPTests(unittest.TestCase):
         retry=copy.deepcopy(attempt);retry['saved_at']='later time';retry['knowledge_status']['status_token']='different-ignored-status';retry['intent_digest']='forged-browser-claim'
         with patch.object(httpd.documents_store,'get',side_effect=AssertionError('Recovery must precede mutable hydration')):
             status,recovered=self.request(httpd,'/api/knowledge/submit',retry)
-        self.assertEqual(status,202,recovered);self.assertEqual(recovered,first)
+        self.assertEqual(status,202,recovered);self.assertEqual(recovered,{**first,'status':recovered['status']})
         httpd.documents_store.archive(scope,document['id'])
         with patch.object(httpd.documents_store,'get',side_effect=AssertionError('Archived file must not block exact receipt recovery')):
             status,recovered=self.request(httpd,'/api/knowledge/submit',retry)
-        self.assertEqual(status,202,recovered);self.assertEqual(recovered,first)
+        self.assertEqual(status,202,recovered);self.assertEqual(recovered,{**first,'status':recovered['status']})
         changed=copy.deepcopy(retry);changed['turns'][0]['text']='A different account.'
         self.assertEqual(self.request(httpd,'/api/knowledge/submit',changed)[0],400)
         changed=copy.deepcopy(retry);changed['documents']['scope']='different-scope'
@@ -524,7 +555,7 @@ class KnowledgeRealHTTPTests(unittest.TestCase):
             running.shutdown();running.server_close();worker.join(timeout=3)
         self.instances.clear()
         reopened=self.serve_real(authorizer,lambda current,candidates:[])
-        self.assertEqual(self.request(reopened,'/api/knowledge/submit',retry),(202,first),'Raw-intent recovery survives restart with the original document archived.')
+        self.assertEqual(self.request(reopened,'/api/knowledge/submit',retry),(202,{**first,'status':'completed'}),'Raw-intent recovery survives restart with the original document archived.')
 
 
 if __name__ == "__main__":

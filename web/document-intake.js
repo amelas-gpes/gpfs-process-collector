@@ -7,14 +7,14 @@
     constructor(hooks) {this.hooks=hooks;this.sequence=0;this.snapshot={documents:[],uploading:0,mutating:0,uploadErrors:[]};this.reset();}
     get active() {return !["idle","ready"].includes(this.phase);}
     reset() {this.run?.abort();this.cycle?.abort();this.sequence++;this.run=null;this.cycle=null;this.phase="idle";this.error="";this.retryAvailable=false;this.batches=new Set();this.names=new Set();this.ids=new Set();this.signature="";this.intentSignature="";this.failedIntent=null;this.hooks.onStatus?.(this);}
-    begin({batchId,names=[],documentId}={}) {
+    begin({batchId,names=[],documentId,resumed=false}={}) {
       if(!this.active){
         this.cycle=new AbortController();this.names=new Set();this.ids=new Set();this.batches=new Set();
         this.originalIds=new Set(this.snapshot.documents.map(file=>file.id));
         this.oldErrors=new Set((this.snapshot.uploadErrors||[]).map(error=>JSON.stringify(error)));
         this.phase="uploading";this.error="";
         this.hooks.onStatus?.(this);
-        this.beginArgs={names,signal:this.cycle.signal};this.pause(false);
+        this.beginArgs={names,...(resumed?{resumed:true}:{}),...(documentId?{documentId}:{}),signal:this.cycle.signal};this.pause(false);
       }
       if(batchId)this.batches.add(batchId);
       names.forEach(name=>this.names.add(name));if(documentId)this.ids.add(documentId);
@@ -38,7 +38,8 @@
       this.intentSignature=JSON.stringify([snapshot.scope,snapshot.generation,snapshot.documents
         .map(file=>[file.id,file.archived===true,file.analysis?.intent_version||0,file.analysis?.disposition||""])
         .sort((a,b)=>a[0].localeCompare(b[0]))]);
-      const signature=JSON.stringify([snapshot.scope,snapshot.generation,snapshot.uploading,snapshot.mutating,snapshot.connectionError,snapshot.uploadErrors,
+      const signature=JSON.stringify([snapshot.scope,snapshot.generation,snapshot.uploading,snapshot.mutating,
+        (snapshot.uploadErrors||[]).filter(error=>!this.oldErrors?.has(JSON.stringify(error))),
         snapshot.documents.map(file=>[file.id,file.archived,file.status,file.chunk_count,file.analysis?.intent_version,file.analysis?.version,file.analysis?.phase,file.analysis?.disposition,file.analysis?.error])]);
       if(signature!==this.signature){this.signature=signature;if(this.active)this.invalidate();}
       if(this.active)this.pump();
@@ -49,7 +50,8 @@
     async pump() {
       if(!this.active||this.run||this.failedIntent===this.intentSignature)return;
       const state=this.snapshot;
-      if(this.batches.size||state.uploading||state.mutating){this.setPhase("uploading");return;}
+      if(this.batches.size||state.uploading){this.setPhase("uploading");return;}
+      if(state.mutating){this.setPhase("reviewing");return;}
       if(state.connectionError){this.setPhase("error","Couldn’t check file status. Your interview is still available in this tab.",true);return;}
       const relevant=state.documents.filter(file=>!file.archived&&file.analysis?.disposition!=="parked");
       const newErrors=(state.uploadErrors||[]).filter(error=>!this.oldErrors.has(JSON.stringify(error)));
@@ -57,14 +59,16 @@
       if(newErrors.length||failed.length){this.setPhase("error","Check the file issue in Assets. Your interview is still available in this tab.");return;}
       // phase complete is terminal even when extraction/review coverage is partial.
       // review_complete=false describes coverage, not a still-running job.
-      const waiting=relevant.filter(file=>!["error"].includes(file.status)&&file.analysis?.phase!=="error"&&file.analysis?.phase!=="complete");
+      const waiting=relevant.filter(file=>!file.analysis?.review_stopped&&!["error"].includes(file.status)&&file.analysis?.phase!=="error"&&file.analysis?.phase!=="complete");
       if(waiting.length){this.setPhase("reviewing");return;}
       const available=relevant.filter(file=>["ready","partial"].includes(file.status)&&file.analysis?.phase==="complete"&&Number(file.chunk_count)>0);
       const run=new AbortController(),sequence=this.sequence;this.run=run;
       const valid=()=>this.active&&this.run===run&&this.sequence===sequence&&!run.signal.aborted;
       try {
         await this.paused;if(!valid())return;
-        if(!available.some(file=>this.ids.has(file.id)||!this.originalIds.has(file.id))){this.hooks.onEmpty?.();if(valid())this.setPhase("ready");return;}
+        if(!available.some(file=>this.ids.has(file.id)||!this.originalIds.has(file.id))){const own=state.documents.filter(file=>this.ids.has(file.id)||!this.originalIds.has(file.id));
+          const reason=!own.length?"empty":own.every(file=>file.archived||file.analysis?.disposition==="parked")?"parked":own.some(file=>file.analysis?.review_stopped)?"paused":"unreadable";
+          this.hooks.onEmpty?.({reason});if(valid())this.setPhase("ready");return;}
         this.setPhase("baseline");
         const baseline=await this.hooks.buildBaseline({signal:run.signal,documents:available});if(!valid())return;
         this.setPhase("question");

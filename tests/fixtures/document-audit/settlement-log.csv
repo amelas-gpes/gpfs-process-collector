@@ -1,0 +1,3 @@
+Case;Action;Control
+FIC-001;Log a dépôt;Two-person check
+FIC-002;Reject incomplete request;Notify the owner

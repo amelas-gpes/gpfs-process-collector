@@ -79,6 +79,60 @@ await check("background workflow names the process without changing source ident
  h.node("answer-text").value="I would like to talk about how I set up my drone.";await h.t.sendAnswer({preventDefault(){}});const source=JSON.stringify(h.t.snapshot().context),turns=h.t.state.turns.length;
  await h.timer(650);assert.equal(h.node("process-name").value,"Drone setup");assert.equal(h.t.state.derivedProcessTitle,"Drone setup");assert.equal(JSON.stringify(h.t.snapshot().context),source);assert.equal(h.t.state.turns.length,turns);assert.equal(h.t.transcriptObject().process.name,"Drone setup");assert.equal(h.t.sessionObject().derived_process_title,"Drone setup");assert.equal(h.t.sessionObject().context.process_name,"");
 });
+// The server attaches the same excerpt catalog to the notes and to the map of
+// one result. Repeated IDs across those two lists are one source, not an error.
+const sharedEvidence=()=>[{id:"doc_abc123_p1",document_id:"doc_abc123",name:"returns-procedure.pdf",label:"Page 1",text:"Credits above $400 need the Finance Controller's approval."},
+ {id:"doc_abc123_p2",document_id:"doc_abc123",name:"returns-procedure.pdf",label:"Page 2",text:"The Returns Clerk logs each return in the register."}];
+const citedFindings=()=>[{key:"checks",status:"partial",answer:"The Finance Controller approves credits above $400.",evidence_turns:["doc_abc123_p1"]}];
+const citedWorkflow=()=>({workflow:{title:"Customer returns",steps:[{id:"s1",title:"Log the return",type:"activity",evidence_turns:["doc_abc123_p2"]},{id:"s2",title:"Obtain credit approval",type:"activity",evidence_turns:["doc_abc123_p1"]}],
+ connections:[{from:"s1",to:"s2",label:"",evidence_turns:["doc_abc123_p2"]}],open_questions:[]},document_evidence:sharedEvidence()});
+await check("invalid background map keeps valid notes and offers a map-only retry",async()=>{
+ const h=concurrentSetup(),notes=readyCapture("Independent notes").capture;
+ const previous={title:"Prior accepted workflow",steps:[],connections:[],open_questions:[]};
+ h.t.conversationUI.workflow=previous;notes.workflow_capture={workflow:{title:"Invalid",steps:"invalid"}};
+ h.t.applyBackgroundCapture(notes,h.t.snapshot());
+ assert.equal(h.t.state.summary,"Independent notes");assert.equal(h.t.conversationUI.workflow,previous);
+ assert.equal(h.node("retry-workflow").dataset.mapOnly,"true");assert.equal(h.node("retry-workflow").hidden,false);
+ const questions=Array.from({length:500},(_,i)=>"Clarify item "+i);
+ notes.workflow_capture={workflow:{title:"Historical workflow",steps:[],connections:[],open_questions:questions}};
+ h.t.applyBackgroundCapture(notes,h.t.snapshot());assert.equal(h.t.conversationUI.workflow.open_questions.length,500);
+});
+await check("background notes and map carrying the same document excerpts both apply",async()=>{
+ const h=concurrentSetup(),result=readyCapture("Notes citing a reference file");result.capture.document_evidence=sharedEvidence();result.capture.memo_findings=citedFindings();
+ result.workflow_state="ready";result.workflow_capture=citedWorkflow();
+ h.route(url=>url==="/api/conversation/turn"?response(fast()):url==="/api/conversation/status"?response(result):Promise.reject(Error(url)));
+ h.node("answer-text").value="After logging the return I inspect the goods.";await h.t.sendAnswer({preventDefault(){}});await h.timer(650);
+ assert.equal(h.t.state.summary,"Notes citing a reference file");assert.equal(h.t.state.documentEvidence.map(source=>source.id).join(),"doc_abc123_p1,doc_abc123_p2");
+ assert.equal(h.t.state.memo_findings.find(finding=>finding.key==="checks").evidence_turns.join(),"doc_abc123_p1");
+ assert.equal(h.t.conversationUI.workflow.steps.map(step=>step.evidence_turns.join()).join(),"doc_abc123_p2,doc_abc123_p1");
+ assert.equal(h.node("workflow-status").textContent,"Updated through the latest answer");
+ assert.match(h.node("analysis-status").textContent,/^Notes caught up/);assert.doesNotMatch(h.node("analysis-status").textContent,/need attention/);
+});
+await check("wrap up applies a synchronized result whose notes and map cite the same document excerpts",async()=>{
+ const h=concurrentSetup(),question="Which exception still needs explaining?";h.t.state.turns.push({id:"t002",role:"user",text:"The clerk reviews it."});
+ h.route(url=>url==="/api/conversation/sync"?response({...approved(question),conversation_token:"session-one",revision:"r1",sync_required:false,summary:"Synchronized notes",
+  memo_findings:citedFindings(),document_evidence:sharedEvidence(),workflow_capture:citedWorkflow()}):Promise.reject(Error(url)));
+ await h.t.finalCheck();
+ assert.equal(h.notices.filter(item=>item.error).map(item=>item.message).join(),"");assert.equal(h.calls[0].url,"/api/conversation/sync");
+ assert.equal(h.t.state.turns.at(-1).text,question);assert.equal(h.t.state.summary,"Synchronized notes");
+ assert.equal(h.t.state.documentEvidence.map(source=>source.id).join(),"doc_abc123_p1,doc_abc123_p2");
+ assert.equal(h.t.conversationUI.workflow.connections[0].evidence_turns.join(),"doc_abc123_p2");assert.equal(h.node("workflow-status").textContent,"Updated through the latest answer");
+ // A later result that repeats an already saved excerpt updates it in place.
+ const again=readyCapture("Later notes");again.capture.document_evidence=sharedEvidence().slice(0,1);again.capture.memo_findings=citedFindings();
+ h.t.applyBackgroundCapture(again.capture,h.t.snapshot());assert.equal(h.t.state.summary,"Later notes");assert.equal(h.t.state.documentEvidence.length,2);
+});
+await check("merging document excerpts still rejects a malformed citation",async()=>{
+ for(const bad of [[null],[{document_id:"doc_abc123",text:"No identifier."}],[{id:"doc_other_p1",document_id:"doc_abc123",text:"Wrong file."}],
+   [{id:"doc_abc123_p1",document_id:"doc_abc123",text:"  "}],[sharedEvidence()[0],{id:"doc_abc123_p1",document_id:"doc_abc123",text:""}],"doc_abc123_p1"]){
+  const h=concurrentSetup(),result=readyCapture("Must not apply");result.capture.document_evidence=bad;
+  assert.throws(()=>h.t.applyBackgroundCapture(result.capture,h.t.snapshot()),/saved document citation is invalid/);assert.equal(h.t.state.summary,"");assert.equal(h.t.state.documentEvidence.length,0);
+ }
+ // A result whose excerpt list is not a list at all is refused as before.
+ const h=concurrentSetup();h.t.state.turns.push({id:"t002",role:"user",text:"The clerk reviews it."});
+ h.route(url=>url==="/api/conversation/sync"?response({...approved("What happens next?"),conversation_token:"session-one",revision:"r1",sync_required:false,document_evidence:{0:sharedEvidence()[0]}}):Promise.reject(Error(url)));
+ await h.t.finalCheck();assert.match(h.notices.filter(item=>item.error).map(item=>item.message).join(),/document evidence is invalid/);
+ assert.equal(h.t.state.turns.at(-1).id,"t002");assert.equal(h.t.state.documentEvidence.length,0);
+});
 await check("automatic title refinement cannot stale an in-flight fast question",async()=>{
  const h=concurrentSetup(),question=deferred();h.t.state.context.process_name="";h.t.state.turns.push({id:"u1",role:"user",text:"I set up my drone."});h.route(()=>question.promise);
  const pending=h.t.request("/api/interview",{...h.t.snapshot(),action:"answer"});await flush();h.t.applyProcessTitle("Drone setup");question.resolve(response(fast()));const result=await pending;

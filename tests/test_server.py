@@ -6,6 +6,7 @@ Run with the existing Python runtime; these tests never send model requests.
 import copy
 import errno
 from html.parser import HTMLParser
+import http.client
 import importlib.util
 import io
 import json
@@ -26,6 +27,11 @@ spec = importlib.util.spec_from_file_location("voice_interviewer_server", APP / 
 server = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = server
 spec.loader.exec_module(server)
+
+
+def coverage_topic_properties(schema):
+    item = schema["properties"]["topics"]["items"]
+    return [branch["properties"] for branch in item.get("anyOf", [item])]
 
 
 def interview_payload():
@@ -727,7 +733,7 @@ class HTTPResourceLifecycleTests(unittest.TestCase):
         BoundedServer.max_connections = max_connections
         BoundedServer.header_timeout = header_timeout
         httpd = BoundedServer(("127.0.0.1", 0), handler or server.Handler, client=client,
-                              documents_root=Path(temporary.name) / "documents")
+                              documents_root=Path(temporary.name) / "documents", knowledge_settings={})
         worker = threading.Thread(target=httpd.serve_forever, kwargs={"poll_interval": .01}, daemon=True)
         worker.start()
 
@@ -861,7 +867,9 @@ class HTTPBoundaryTests(unittest.TestCase):
         cls.test_key = "sk-test-sentinel-not-a-real-credential"
         cls.client = server.OpenAIClient({"OPENAI_API_KEY": cls.test_key})
         cls.client.request = Mock()
-        cls.httpd = server.InterviewServer(("127.0.0.1", 0), server.Handler, client=cls.client)
+        root = Path(cls.enterClassContext(tempfile.TemporaryDirectory()))
+        cls.httpd = server.InterviewServer(("127.0.0.1", 0), server.Handler, client=cls.client,
+                                           documents_root=root / "documents", knowledge_settings={})
         cls.url = f"http://127.0.0.1:{cls.httpd.server_port}"
         cls.worker = threading.Thread(target=cls.httpd.serve_forever, kwargs={"poll_interval": 0.01}, daemon=True)
         cls.worker.start()
@@ -905,7 +913,7 @@ class HTTPBoundaryTests(unittest.TestCase):
                     for f in self.mock_interview["memo_findings"] if f["status"] != "unknown"])
         elif name == "process_coverage_assessment":
             result = incomplete_assessment(json.loads(body["input"][0]["content"])["candidate_findings"])
-            if 'capture_repair' in body['text']['format']['schema']['properties']['topics']['items']['properties']:
+            if 'capture_repair' in coverage_topic_properties(body['text']['format']['schema'])[0]:
                 for topic in result['topics']:
                     topic['capture_repair'] = {'needed': False}
         elif name == "process_specialist_review":
@@ -991,13 +999,14 @@ class HTTPBoundaryTests(unittest.TestCase):
         self.assertEqual(status, 200)
         scripts = Scripts()
         scripts.feed(html.decode("utf-8"))
-        self.assertIn("/document-intake.js", scripts.paths)
+        self.assertIn("/document-intake.js", [path.partition("?")[0] for path in scripts.paths])
         for path in scripts.paths:
             with self.subTest(script=path):
                 status, headers, content = self.request(path)
                 self.assertEqual(status, 200)
                 self.assertIn("javascript", headers["Content-Type"])
-                self.assertEqual(content, (APP / "web" / path.lstrip("/")).read_bytes())
+                self.assertIn("immutable", headers["Cache-Control"])
+                self.assertEqual(content, (APP / "web" / path.partition("?")[0].lstrip("/")).read_bytes())
         self.client.request.assert_not_called()
 
     def test_json_media_type_and_valid_json_are_required(self):
@@ -1009,7 +1018,11 @@ class HTTPBoundaryTests(unittest.TestCase):
         self.client.request.assert_not_called()
 
     def test_oversized_request_is_rejected_before_read_or_model_call(self):
-        status, _, _ = self.request("/api/interview", b"{}", headers={"Content-Length": str(server.MAX_JSON + 1)})
+        # An interview route admits a full transcript in any script (see
+        # test_request_size_parity.py); a small-body route keeps MAX_JSON.
+        status, _, _ = self.request("/api/interview", b"{}", headers={"Content-Length": str(server.MAX_SNAPSHOT_JSON + 1)})
+        self.assertEqual(status, 413)
+        status, _, _ = self.request("/api/agent-team/status", b"{}", headers={"Content-Length": str(server.MAX_JSON + 1)})
         self.assertEqual(status, 413)
         self.client.request.assert_not_called()
 
@@ -1069,6 +1082,40 @@ class HTTPBoundaryTests(unittest.TestCase):
         self.assertEqual(json.loads(raw)["error"], "A controlled upstream test failure.")
         self.assertNotIn(self.test_key.encode(), raw)
 
+    def test_key_supplied_with_a_trailing_line_break_is_not_echoed(self):
+        # A real client. The stand-in applies the HTTP library's own header check
+        # (the one that prints a refused header in full), then refuses the connection.
+        def refuse(request, timeout=None):
+            connection = http.client.HTTPConnection("api.openai.com")
+            connection.putrequest(request.get_method(), request.selector)
+            for name, value in request.header_items():
+                connection.putheader(name, value)
+            raise urllib.error.URLError(ConnectionRefusedError("synthetic refusal"))
+
+        client = server.OpenAIClient({"OPENAI_API_KEY": self.test_key + "\r\n"})
+        root = Path(self.enterContext(tempfile.TemporaryDirectory()))
+        httpd = server.InterviewServer(("127.0.0.1", 0), server.Handler, client=client,
+                                       documents_root=root / "documents", knowledge_settings={})
+        worker = threading.Thread(target=httpd.serve_forever, kwargs={"poll_interval": 0.01}, daemon=True)
+        worker.start()
+        try:
+            request = urllib.request.Request(
+                f"http://127.0.0.1:{httpd.server_port}/api/voice-session", data=b'{"voice": "marin"}',
+                headers={"Content-Type": "application/json", "X-CSRF-Token": httpd.csrf_token})
+            with patch.object(server, "urlopen", side_effect=refuse) as network:
+                with self.assertRaises(urllib.error.HTTPError) as caught:
+                    urllib.request.urlopen(request, timeout=3)
+            raw = caught.exception.read()
+        finally:
+            httpd.shutdown()
+            httpd.server_close()
+            worker.join(timeout=3)
+        network.assert_called_once()
+        self.assertNotIn(self.test_key.encode(), raw)
+        self.assertNotIn(b"header", raw.lower())
+        self.assertEqual(caught.exception.code, 502)
+        self.assertIn("connection to OpenAI was interrupted", json.loads(raw)["error"])
+
     def test_close_action_reviews_open_sections_without_claiming_final_completeness(self):
         payload = interview_payload()
         payload["action"] = "close"
@@ -1080,7 +1127,8 @@ class HTTPBoundaryTests(unittest.TestCase):
         result = json.loads(raw)
         self.assertEqual(result["closure"], {"asked": False, "confirmed": False})
         self.assertFalse(result["question"].startswith(server.FINAL_CHECK_PREFIX))
-        self.assertIn("?", result["question"])
+        self.assertTrue(result["question"].startswith(server.PARTIAL_CHECK_PREFIX))
+        self.assertIn("partial draft", result["question"].lower())
         self.assertNotEqual(result["question"], repetitive_gap)
         self.assertFalse(result["completion"]["complete"])
         sent = json.loads(self.client.request.call_args.args[1]["input"][0]["content"])
@@ -1095,7 +1143,8 @@ class HTTPBoundaryTests(unittest.TestCase):
         self.assertEqual(status, 200)
         result = json.loads(raw)
         self.assertFalse(result["question"].startswith(server.FINAL_CHECK_PREFIX))
-        self.assertIn("?", result["question"])
+        self.assertTrue(result["question"].startswith(server.PARTIAL_CHECK_PREFIX))
+        self.assertIn("partial draft", result["question"].lower())
         self.assertEqual(result["closure"], {"asked": False, "confirmed": False})
 
     def test_prior_final_check_reply_cannot_close_an_incomplete_account(self):

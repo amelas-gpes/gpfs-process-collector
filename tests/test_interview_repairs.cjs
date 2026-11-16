@@ -8,14 +8,17 @@ const out={exports:{}};
 vm.runInNewContext(harness,{require,__dirname,module:out,console,Buffer,Blob,DataView,Uint8Array,Float32Array,TextEncoder,Date,JSON,AbortController,DOMException});
 const {setup,response,flush}=out.exports;
 let passed=0;async function check(name,fn){try{await fn();passed++;}catch(e){e.message=name+': '+e.message;throw e;}}
+// "Discussed" is said on each topic of the Notes list (its third part is the state text); the page keeps
+// one counter, the captured figure, and no longer a separate "N of 16 topics discussed" line.
+const discussed=h=>h.node('coverage-list').children.filter(topic=>/^Discussed/.test(topic.children[2].textContent)).length;
 (async()=>{
-await check('discussed topics are counted separately from fully captured topics',async()=>{
+await check('a discussed topic is labelled on the topic and does not move the captured figure',async()=>{
  const h=setup();h.t.state.config.concurrent_interview={enabled:true};h.t.state.turns=[{id:'u1',role:'user',text:'I use the spare when equipment is missing.'}];
  h.t.state.memo_findings=[{key:'variations',status:'partial',answer:'Spare route.',evidence_turns:['u1']}];
  h.t.rememberDiscussion({topic_discussion:[{key:'variations',discussed:true,evidence_turns:['u1']}]},h.t.snapshot());h.t.renderCoverage();
- assert.equal(h.node('discussion-progress').textContent,'1 of 16 topics discussed');assert.equal(h.node('coverage-count').textContent,'0 / 16');
- assert.equal(h.node('coverage-progress').style.width,'0%','A discussed topic does not fill the fully captured meter');
- assert.equal(h.node('coverage-summary').textContent,'Topics fully captured');assert.match(h.node('analysis-through').textContent,/all 1 saved answers/);
+ assert.equal(discussed(h),1);assert.equal(h.node('coverage-list').children.length,16);assert.equal(h.node('coverage-count').textContent,'0 / 16');
+ assert.equal(h.node('coverage-progress').style.width,'0%','A discussed topic does not fill the captured meter');
+ assert.equal(h.node('coverage-summary').textContent,'','Nothing to add under the bar');assert.match(h.node('analysis-through').textContent,/all 1 saved answers/);
 });
 await check('progress states exactly how far the notes have caught up',async()=>{
  const h=setup();h.t.state.config.concurrent_interview={enabled:true};h.t.state.turns=[{id:'u1',role:'user',text:'First detail.'}];
@@ -26,7 +29,7 @@ await check('progress states exactly how far the notes have caught up',async()=>
 await check('unsupported discussion metadata does not manufacture progress',async()=>{
  const h=setup();h.t.state.turns=[{id:'u1',role:'user',text:'Detail.'}];
  h.t.rememberDiscussion({topic_discussion:[{key:'risks',discussed:true,evidence_turns:['made-up']}]},h.t.snapshot());h.t.renderCoverage();
- assert.equal(h.node('discussion-progress').textContent,'0 of 16 topics discussed');
+ assert.equal(discussed(h),0);assert.equal(h.node('coverage-list').children.length,16);
 });
 await check('no speech keeps listening and exposes retained recording retry',async()=>{
  const h=setup();h.t.state.turns=[{id:'a1',role:'assistant',text:'What happens next?'}];

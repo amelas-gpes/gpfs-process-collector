@@ -1,5 +1,9 @@
 // Focused offline coverage checks; does not start voice or contact a provider.
-const assert = require('node:assert/strict');
+const strict = require('node:assert/strict');
+// Every assertion that returns is counted, so the summary reports what actually ran.
+let passed = 0;
+const counted = check => (...args) => { const result = check(...args); passed++; return result; };
+const assert = new Proxy(counted(strict), {get: (_, name) => typeof strict[name] === 'function' ? counted(strict[name]) : strict[name]});
 const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
@@ -54,4 +58,4 @@ assert.match(scope.workflowGapSummary(flow), /Resolve exception \(S3\)/);
 flow.connections.push({from:'S2',to:'S3'});
 assert.equal(scope.workflowGapSummary(flow), '');
 assert.equal(scope.workflowGapSummary({steps:[{id:'S1'}],connections:[]}), '');
-console.log(JSON.stringify({tests_passed: 16, provider_calls: 0, voice_tests: 0}));
+console.log(JSON.stringify({tests_passed: passed, provider_calls: 0, voice_tests: 0}));

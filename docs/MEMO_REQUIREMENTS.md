@@ -1,8 +1,8 @@
 # Memo requirements and acceptance criteria
 
-This document translates a September 2026 process-capture memorandum into requirements for AI Process Collector. The organization-specific branding is intentionally omitted. The original source is retained locally; its SHA-256 is `7ad850f29c6eab8e5224aa423321c9d507c5af1c7ed2535498e65db697407622`.
+This document translates a September 2026 process-capture memorandum into requirements for AI Process Collector. The original memorandum stays local. The application uses the GPFS assets documented in GPFS_ASSET.md. The original source is retained locally; its SHA-256 is `7ad850f29c6eab8e5224aa423321c9d507c5af1c7ed2535498e65db697407622`.
 
-The memo defines the process-capture foundation. The user separately requested a voice interviewer, adaptive follow-up questions, an editable process map and detailed procedure, a flexible meeting length with a 60-minute planning default, and selectable voices that sound more natural. Those additions are identified below; they must not turn the memo's honest first-pass capture into an invented future-state SOP.
+The memo defines the process-capture foundation. The user separately requested a voice interviewer, adaptive follow-up questions, an editable process map and detailed procedure, an interview whose duration the participant controls, and selectable voices that sound more natural. Those additions are identified below; they must not turn the memo's honest first-pass capture into an invented future-state SOP.
 
 `FOUNDATION.md` is the standing interview policy loaded for interview and draft-generation requests. This requirements document is the review and acceptance reference. It is not evidence that every conversational requirement has been demonstrated reliably.
 
@@ -23,6 +23,18 @@ Every capture must contain an answer or an explicit gap for each topic. `UNKNOWN
 | M09 · `pain_points` | Manual work, time-consuming activities, errors, rekeying and workarounds. | Preserve the participant's actual account. Mark rough effort as an estimate; do not infer measured savings or an approved improvement. |
 | M10 · `risk` | The consequence if the work goes wrong. | Capture the stated effect on money, investors, clients, deadlines, regulation or internal operations. Do not invent a consequence or risk rating. |
 | M11 · `materials` | Existing checklists, procedures, templates, sample outputs, screenshots, tickets and training notes. | Retain supplied locations or references. Distinguish material mentioned from material actually provided or reviewed. |
+
+### Five additional GPFS topics
+
+| ID / schema key | Required capture | Acceptance scenario |
+| --- | --- | --- |
+| M12 · `scope` | Include the stated entities and teams, period and process boundaries. | A participant names two funds in scope. Preserve both and flag any unstated exclusions. |
+| M13 · `rules` | Capture who set a material rule, its source and treatment of exceptions. | A threshold comes from a template. Cite its source and leave its owner open if unknown. |
+| M14 · `connections` | Identify named upstream or downstream work and its handoff. | A reviewer refers to another process. Keep the link as a lead until its identity is confirmed. |
+| M15 · `data_systems` | Record inputs, source systems, entry and resulting records. | Preserve a distinction between a file's origin, manual entry and the system that receives it. |
+| M16 · `volume` | Record frequency, range, effort and the basis of any estimate. | When volume varies across periods, preserve the stated range and qualifiers. |
+
+Completion considers all sixteen topics. A participant may stop with unresolved topics and retain the partial interview.
 
 ## 2. Memo-wide rules
 
@@ -46,7 +58,7 @@ Apply the source memo's three boundary tests in this order:
 2. Does it change the person or role accountable for the result?
 3. Does it change what counts as finished?
 
-If any answer is yes, flag **POSSIBLY SEPARATE WORK** and identify the changed boundary. Do not make the final classification. If all three answers are no, the work can be captured as a variation. If a boundary is unknown, retain the uncertainty and ask who or what could clarify it.
+If any answer is yes, flag **POSSIBLY SEPARATE WORK** and identify the changed boundary. Do not make the final classification. If all three answers are no, the work can be captured as a variation. If a boundary is unknown, retain the uncertainty and record any resolver or source the participant volunteers.
 
 | Situation | Required treatment |
 | --- | --- |
@@ -76,7 +88,7 @@ For **each variation**, retain all six source fields, including explicit unknown
 | U01 | Voice interview with an editable text alternative. | Ask questions aloud using the selected natural AI or installed computer voice when available. Record answers only after a user action; allow correction of the transcription before submission and allow typed answers. |
 | U02 | Adaptive, natural elicitation. | Use each response to choose the next useful question. Distinguish a named step from an explained mechanism: deepen one useful missing condition, check, readiness signal or handoff before moving on when a reader would otherwise have to guess. Keep curiosity aligned with the eleven topics; do not invent alternatives, repeat answered or explicitly unavailable details, pursue trivia or ask several unrelated questions in one turn. |
 | U03 | Return to the foundation instead of following endless tangents. | Maintain memo coverage, the normal route, specific step gaps and a parking list. After an explicit unknown, seek a clarifying person/material or record the gap and move on. Do not continue probing the same unknown indefinitely. |
-| U04 | Flexible meeting duration. | Default the plan to 60 minutes, permit adjustment and continuation, and never use elapsed time as evidence of completion or as an automatic cutoff. Disclose separate technical context limits and preserve a continuation path. |
+| U04 | Flexible meeting duration. | Continue until the participant chooses to stop or confirms the final check. Version 0.9.0 retired the advisory timer. Disclose separate technical context limits and preserve a continuation path. |
 | U05 | Clear process map and detailed procedure for review. | Show the known sequence, decisions, branches, responsibilities and locations. For each step include action, input, output, completion criterion and handoff where established. Name missing necessary detail so a reader does not silently fill it in. |
 | U06 | Reach an explicit closing point. | Recap the account and gaps, invite corrections and ask a final omissions question. Follow up on additions. Mark confirmation pending until a participant replies; do not equate topic coverage, elapsed time or draft readiness with confirmation. Honour an explicit request to stop with gaps retained. |
 | U07 | Save, restore and export the reviewable capture. | Preserve the interview and edits through an explicit session save/open operation. Export the concise memo separately from the full procedure appendix and map. Do not silently replace reviewed edits when regenerating. |
@@ -105,7 +117,7 @@ The implementation pointers below describe the prototype, not a production guara
 | Adaptive elicitation and tangent control | Interview instructions, `focus`, `parking_lot`, memo findings and live question display. | Fictional live calls demonstrated follow-up questions. An observed repeated-unknown question led to stronger instructions; broad reliability has not been established. |
 | Normal route, branches and variations | Draft schema, six variation fields, boundary flag, lifecycle records and editable graph. | Source/reference and graph-integrity tests pass. A separate model audit checks a candidate against the interview, but semantic correctness is not guaranteed. |
 | Clear, grounded steps and connections | Explicit step fields, per-step/per-connection evidence, `validate_draft`, source navigation and draft audit. | Tests reject fabricated/non-participant IDs, duplicate nodes and dangling edges. Live review found and corrected unsupported route/control/variation inferences; residual sender/location inference risks remain documented. |
-| Advisory meeting length | Planned and elapsed timing metadata; frontend timer and pause/resume. | Automated requests beyond the planned length are accepted. A fictional live request at 75 elapsed minutes with a 60-minute plan continued. Time is not a completion condition. |
+| Advisory meeting length | Historical pre-0.9.0 evidence. Current acceptance checks that pause, resume and completion use interview state. | Automated requests beyond the planned length are accepted. A fictional live request at 75 elapsed minutes with a 60-minute plan continued. Time is not a completion condition. |
 | Final omissions check and reply ordering | `server.py`: `FINAL_CHECK_PREFIX`, `enforce_closure`; frontend Final completeness check action. | Automated tests require a real assistant check and a later participant reply before confirmation can remain true. A live fictional confirmation flow passed. Interpreting the meaning of the reply remains model-assisted. |
 | Draft review, save/restore and exports | Editable review screen; JSON session save/open; memo/procedure Markdown and map SVG exports. | Browser checks exercised map editing, exports and session restoration. There is no automatic session persistence. |
 | Voice interaction and selectable playback | Browser recording, API transcription, `OpenAIClient.voice_session`, ten AI choices with Marin default, Preview voice, installed English computer voices and saved `voice_choice`. | The 61 Python tests include 12 voice API/security checks; 8 Node checks cover mocked Realtime/media behavior. Live Marin and Cedar generation returned the requested sample with matching transcripts (about 5.65/6.05 seconds). A browser preview reached Speaking for Cedar and completed without console warnings/errors; the selector switched back to Marin. Physical listening, microphone capture, subjective voice quality and a full human interview remain unverified. |

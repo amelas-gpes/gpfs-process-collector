@@ -17,11 +17,96 @@ and workflow are separate background products; only matching current revisions
 can be published. Global worker limits keep this separate from the foreground
 HTTP slots needed for transcription, questions and voice credentials.
 
+Background notes and maps continue from what the conversation last published;
+they are not rebuilt from nothing on every answer. Each background capture is
+given the capability of the session's own last capture, never one the browser
+sent, marked for the Coordinator as ledger-only. The lead then receives the
+private fact ledger and returns changes to it, so a fact that a later answer does
+not restate stays in the notes, and an ordinary answer runs on the lead model.
+The marker removes every other use of that capability: background work cannot
+confirm a final check, replay a stored capture or hold a review. It joins the
+capture family of the ledger it continues, so a review prepared before a newer
+answer fails closed, as it does when the newer answer arrives with the browser's
+own capability. Each background map is given the five baseline fields of the
+session's last published map (map, memo, summary, focus and parked items) while
+the transcript that map was drawn from is still the beginning of the current
+one: untouched steps keep their IDs, titles and owners, and accepted routes are
+not reviewed again. The rebuild that Wrap up makes after a fast question
+continues the same ledger. When Wrap up carries a capability the browser holds
+(from a file follow-up, an earlier Wrap up or a review), that capability keeps
+its full meaning for what may be confirmed or reviewed; the server names its
+session's own last capture beside it, and the Coordinator continues the more
+recently published ledger of the two, so an older capture in the browser does
+not replace the conversation's latest notes.
+
+Continuity never becomes a new way to fail. An edited earlier answer, a
+capability that expired after thirty idle minutes or a restart start again from
+the transcript. A baseline map that no longer validates against the request's
+sources (a replaced file) is dropped and the map is drawn from the empty
+baseline. When the application refuses what a model returned for the continued
+ledger or map (a topic at the ledger's size bound, a removal of a step the map
+does not hold, a revision that leaves an accepted handoff unverified), that
+attempt fails as before and the next attempt starts from the transcript or the
+empty baseline, as every attempt did before this continuity existed; the
+published notes and map stay on screen meanwhile. A provider failure leaves the ledger and the baseline
+in use. With reference files, the document selection of a new answer first
+reads what the session's ledger and map cite, whether or not the browser has
+applied those results yet.
+
 The fast interviewer reads the conversation and chooses one neutral next
 question. It does not wait for notes or workflow. Background capture may propose
 a question internally, but that question is never added to the transcript or
 played. Background coverage is provisional and cannot set readiness or completion.
 The Notes panel reports working, caught-up, synchronization and failure states.
+
+A fast reply is asked as written when it asks for something: one question, or a
+short spoken request such as "Talk me through ..." as its last sentence, optionally
+after a brief answer. Process vocabulary ("round up", "wrap up the month-end close",
+"anything else you attach") is not closing language, and a brief answer may use the
+same words about the work ("I have what I need on the trigger.", "Feel free to
+estimate.", "You can review the draft notice in the portal."). A reply is not spoken,
+and never fails the turn, when it closes or offers to close the whole interview in
+the recognised wordings, when a statement in it says that the interview, its record
+or the participant is finished, or points to the draft ("Consider this interview
+complete", "We're done", "I'll draft it now", "Go ahead and create the draft"), when
+a question in it asks whether the interview is complete or what was left out ("So
+we're done?", "Is there anything we have not covered?"), when its only request hands
+the next move back ("Tell me when you are ready"), when anything but a short
+courtesy ("Take your time.") follows its last question, or when it asks nothing.
+
+The typed path and the agent team's Coordinator share this one check
+(`server.question_rejection`); the team path differs only in keeping one question
+per turn. Its rules are constructions, not phrases. A completion wording is a claim
+about the interview when it is the main clause of a statement and nothing ties it
+to the work. It is asked as written when it is tied to an event in the work ("So
+this call is closed once the funds arrive."), has the work as its object ("You are
+finished with the first pass."), restates the answer after "So", "Right," or
+"Understood," ("So the draft is ready. Describe who reviews it."), or is asked about
+rather than asserted ("Do you check that the documentation is complete before
+release?", "Describe how you know you are done."). The interviewer's own claims
+("we're done", "I have everything I need") and the interview's own names ("your
+account", "this interview") are never read as the work, and a question that offers
+the next step ("Shall I draft it?", "Would you like to review it?") removes the
+benefit of the doubt from the statement before it. "Tell me when you normally send
+the notice." asks about the work; "Tell me when you would like to continue." does
+not. Doubtful wordings are replaced: a replaced question costs one turn of quality,
+a spoken closing tells the participant the interview is over. A closing remark in
+other words that comes before the question or request is still spoken.
+
+The participant then gets a follow-up question from the same single
+provider call: a topic question when the stored capture already reflects every
+answer and still has a section the participant can answer, otherwise a neutral
+question that is never the one just asked. When that capture has nothing left to
+ask and the reply was a closing, the turn returns `sync_required` exactly as it
+does when the fast interviewer requests a review, so the coordinator decides.
+These checks recognise English wording and are a guard on speech only; completion
+is decided by the coordinator's own gate, never by them. The local diagnostics log
+records `question_rejected` with a stage (`fast_question`, `team_question` or
+`review_question`) and a reason code (`wrap_up_match`, `closing_statement` for a
+statement or a request that closes or defers, `completion_speech` for a question
+about completion or omissions, `no_question_mark`, `empty`, `too_long`, and on the
+team path `several_questions`), never the wording. The team path keeps one question
+per turn: a lead or reviewer reply with two question marks is replaced.
 
 ## Source and completion boundaries
 
@@ -40,6 +125,27 @@ The Notes panel reports working, caught-up, synchronization and failure states.
 - A failed background operation preserves the conversation and prior displayed
   notes. Wrap up explicitly retries failed capture once; there is no automatic
   paid retry loop. Workflow failure is advisory and does not authorize completion.
+- A request to stop or pause is answered once and is never a capture. Coordinator's
+  pause reply carries no notes, so the background worker settles that revision
+  without replacing the session's capture, the status poll reports
+  `capture_preserved` with no `capture`, and the browser keeps its notes, summary,
+  coverage and classifications. The Notes panel then says through which answer the
+  notes go instead of claiming every saved answer. An explicit Wrap up after the
+  request captures the whole account rather than repeating the pause reply; the
+  status poll then publishes that capture and no longer reports
+  `capture_preserved`. Skip after the request asks the next question without a
+  capture: the trailing pause reply adds no participant evidence, so the revision
+  stays settled and the answer that follows is analysed as usual. An answer whose
+  analysis was still running when the stop arrived is finished and paid for but
+  not applied (the newest snapshot wins); Wrap up or the analysis of the next
+  answer covers it.
+- After the final check and after the completion line every reply goes to
+  Coordinator with the capture token (`sync_required`), which answers a reply that
+  adds nothing without a provider call and without a map (see AGENT_TEAM.md). A
+  request to stop in reply to the final check gets the pause reply here and the
+  review stays in place: Wrap up afterwards asks the same final check again. After
+  the completion line a request to stop is a goodbye; it is not answered with the
+  pause reply and the completed account is kept.
 
 Existing draft generation reads the complete current transcript and performs its
 own evidence/coverage audits. A draft remains a review artifact, not a declaration

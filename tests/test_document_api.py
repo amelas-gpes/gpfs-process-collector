@@ -101,16 +101,34 @@ class DocumentHTTPTests(unittest.TestCase):
         return json.loads(raw)['document']
 
     def ready(self, scope, identity):
-        end = time.monotonic() + 3
+        # The test exercises the resulting document, not the time taken by
+        # the background worker and local SQLite transactions on a busy host.
+        end = time.monotonic() + 15
+        phase = None
         while time.monotonic() < end:
             record = self.httpd.documents_store.get(scope, identity)
-            if (record.get('analysis') or {}).get('phase') == 'complete':
+            phase = (record.get('analysis') or {}).get('phase')
+            if phase == 'complete':
                 return record
-            time.sleep(.01)
-        self.fail('Synthetic background review did not complete.')
+            if record.get('status') == 'error' or phase == 'error':
+                self.fail('Synthetic background review reported an error.')
+            time.sleep(.05)
+        self.fail(f'Synthetic background review did not complete. Last phase: {phase!r}.')
+
+    def test_context_endpoint_selects_only_scoped_sources(self):
+        scope = self.session()
+        record = self.upload(scope)
+        self.ready(scope, record['id'])
+        code, headers, raw = self.request('/api/documents/context', {'scope': scope, 'query': 'ReferenceNeedle'})
+        self.assertEqual(code, 200)
+        self.assertEqual(headers['Cache-Control'], 'no-store')
+        catalog = json.loads(raw)['document_evidence']
+        self.assertTrue(catalog)
+        self.assertTrue(all(row['document_id'] == record['id'] for row in catalog))
+        self.assertNotIn(scope, raw.decode())
 
     def test_every_document_endpoint_requires_current_csrf_and_same_origin(self):
-        for endpoint in ('session', 'upload', 'status', 'action', 'source'):
+        for endpoint in ('session', 'upload', 'status', 'action', 'source', 'context'):
             for kwargs in ({'csrf': False}, {'headers': {'Origin': 'https://other.example'}},
                            {'headers': {'Host': 'attacker.example'}}):
                 with self.subTest(endpoint=endpoint, kwargs=kwargs):
@@ -151,6 +169,10 @@ class DocumentHTTPTests(unittest.TestCase):
             ('/api/documents/status', {'scope': 'unknown', 'context': {}})):
             status, _, raw = self.request(path, payload)
             self.assertEqual(status, 403)
+            if path.endswith('/status'):
+                self.assertEqual(json.loads(raw).get('code'), 'document_scope_unavailable')
+            else:
+                self.assertNotIn('code', json.loads(raw))
             self.assertNotIn('ReferenceNeedle', raw.decode())
         status, _, raw = self.request('/api/documents/status', {'scope': other, 'context': {}})
         self.assertEqual(status, 200)
@@ -207,6 +229,72 @@ class DocumentHTTPTests(unittest.TestCase):
         self.assertNotIn('FORGED_PRIVATE_FACT', json.dumps(sent))
         self.assertNotIn(scope, json.dumps(sent))
         self.assertNotIn(KEY, json.dumps(sent))
+
+    def test_forged_held_wording_is_discarded_at_the_http_boundary(self):
+        # _held_wording is advice the server derives from its own previous capture for
+        # the lead's instructions. A browser cannot supply it.
+        received = []
+        interview = self.client.coordinator.interview
+        self.client.coordinator.interview = lambda value: (received.append(json.loads(json.dumps(value))), interview(value))[1]
+        payload = interview_payload()
+        payload['_held_wording'] = [{'topic': 'checks', 'wording': 'FORGED_WORDING'}]
+        status, _, raw = self.request('/api/interview', payload)
+        self.assertEqual(status, 200, raw)
+        self.assertEqual(len(received), 1)
+        self.assertNotIn('_held_wording', received[0])
+        self.assertNotIn('FORGED_WORDING', json.dumps([call.args[1] for call in self.client.request.call_args_list]))
+
+    def test_files_beyond_six_reach_the_provider_and_the_browser_is_told_what_was_read(self):
+        def sent_documents():
+            body = next(call.args[1] for call in reversed(self.client.request.call_args_list)
+                        if call.args[1]['text']['format']['name'] == 'process_interview')
+            support = json.loads(body['input'][0]['content'])['supporting_documents']
+            return [document['id'] for document in support['documents']], support['omitted_documents']
+
+        scope = self.session()
+        # No word of these files occurs in the answers, so the six further files are the newest.
+        records = [self.upload(scope, f'reference-{index:02d}.csv', f'ledgerfield,catalogue\nledgerfield,Needle{index:02d}\n'.encode())
+                   for index in range(1, 15)]
+        for record in records:
+            self.ready(scope, record['id'])
+        ids = [record['id'] for record in records]
+        cited = [self.httpd.documents_store.chunks(scope, identity)['chunks'][0]['id'] for identity in ids[:6]]
+        payload = interview_payload()
+        payload.update(document_scope=scope, document_source_ids=cited)
+        # Six cited files no longer keep the newest uploads away from the model.
+        status, _, raw = self.request('/api/interview', payload)
+        self.assertEqual(status, 200, raw)
+        sent, omitted = sent_documents()
+        self.assertEqual(set(sent), {*ids[:6], *ids[8:]})
+        self.assertEqual(omitted, 2)
+        reading = json.loads(raw)['document_reading']
+        self.assertEqual(reading['omitted_documents'], 2)
+        self.assertEqual({item['id'] for item in reading['documents']}, set(sent))
+        for item in reading['documents']:
+            self.assertEqual((item['included_chunks'], item['total_chunks']), (1, 1))
+        self.assertNotIn('Needle', json.dumps(reading))
+        # The browser names the two files it has not received yet; they are read as well.
+        payload['document_required_ids'] = [ids[6], ids[7], 'doc_unknown', 'not-a-document']
+        status, _, raw = self.request('/api/interview', payload)
+        self.assertEqual(status, 200, raw)
+        sent, omitted = sent_documents()
+        self.assertEqual((set(sent), omitted), (set(ids), 0))
+        reading = json.loads(raw)['document_reading']
+        self.assertEqual((len(reading['documents']), reading['omitted_documents']), (14, 0))
+        status, _, raw = self.request('/api/documents/context', {'scope': scope, 'query': 'An ordinary answer.',
+                                                                 'document_source_ids': cited, 'document_required_ids': [ids[6]]})
+        self.assertEqual(status, 200, raw)
+        self.assertEqual({item['id'] for item in json.loads(raw)['documents']}, {*ids[:7], *ids[8:]})
+        calls = self.client.request.call_count
+        for invalid in ('doc_one', ['doc_x'] * 21):
+            payload['document_required_ids'] = invalid
+            status, _, raw = self.request('/api/interview', payload)
+            self.assertEqual(status, 400, raw)
+        self.assertEqual(self.client.request.call_count, calls)
+        # A request without a file scope carries no reading disclosure.
+        status, _, raw = self.request('/api/interview', interview_payload())
+        self.assertEqual(status, 200, raw)
+        self.assertNotIn('document_reading', json.loads(raw))
 
     def test_long_interview_answer_with_document_scope_does_not_exceed_retrieval_query_bound(self):
         scope = self.session()

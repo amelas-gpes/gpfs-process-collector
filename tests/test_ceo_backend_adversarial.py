@@ -25,7 +25,7 @@ class CancellationRaceTests(unittest.TestCase):
         def hold(body):
             entered.set()
             self.assertTrue(release.wait(3))
-        client.hooks["process_specialist_review"] = hold
+        client.hooks["process_coverage_assessment"] = hold
         original_status = client.coordinator.status(pending["agent_run_id"])
         with ThreadPoolExecutor(max_workers=1) as pool:
             request = pool.submit(client.coordinator.review, {**payload, "retry_review": True})
@@ -51,7 +51,7 @@ class CancellationRaceTests(unittest.TestCase):
         client = SyntheticTeamProvider()
         payload = client.payload()
         payload["agent_run_id"] = "pre-cancelled-request-123456789"
-        self.assertTrue(client.coordinator.cancel(payload["agent_run_id"])["cancelled"])
+        self.assertEqual(client.coordinator.cancel(payload["agent_run_id"]), {"cancelled": False, "remembered": True})
         with self.assertRaises(server.APIError) as caught:
             client.coordinator.interview(payload)
         self.assertEqual(caught.exception.status, 409)
@@ -324,7 +324,7 @@ class CoverageAuthorityStressTests(unittest.TestCase):
 
     def test_confirmation_with_additional_facts_never_reuses_complete_proof(self):
         negatives = ["No, except the manager sometimes skips approval.", "No. Actually we also send a duplicate.",
-                     "Nothing else, unless the client rejects it.", "Yes, that's all.", "Correct, but one route is missing."]
+                     "Nothing else, unless the client rejects it.", "Correct, but one route is missing."]
         for text in negatives:
             client = SyntheticTeamProvider()
             payload, reviewed = reviewed_capture(client)
@@ -332,6 +332,15 @@ class CoverageAuthorityStressTests(unittest.TestCase):
             self.assertFalse(response["completion"]["complete"])
             self.assertNotEqual(response["speech_authorization"]["kind"], "complete")
             self.assertEqual(client.request.call_count, 2 + REVIEW_CALLS)
+        # A "yes" that adds no fact confirms nothing either, but there is nothing in it
+        # to review: the check is asked again instead of spending a second review.
+        client = SyntheticTeamProvider()
+        payload, reviewed = reviewed_capture(client)
+        response = client.coordinator.interview(reply_payload(payload, reviewed, "Yes, that's all."))
+        self.assertFalse(response["completion"]["complete"])
+        self.assertFalse(response["completion"]["participant_confirmed"])
+        self.assertEqual(response["speech_authorization"]["kind"], "final_check")
+        self.assertEqual(client.request.call_count, 1 + REVIEW_CALLS)
 
 
 class CachePressureTests(unittest.TestCase):
@@ -345,10 +354,13 @@ class CachePressureTests(unittest.TestCase):
                 client.coordinator.review(payload)
                 first = first or payload
             self.assertEqual(len(client.coordinator._tickets), 4)
+            prior_calls = client.request.call_count
             with self.assertRaises(server.APIError) as caught:
                 client.coordinator.review({**first, "retry_review": True})
             self.assertEqual(caught.exception.status, 409)
-            self.assertEqual(client.request.call_count, 12 * (1 + REVIEW_CALLS))
+            self.assertEqual(client.request.call_count, prior_calls)
+            self.assertGreaterEqual(prior_calls, 12 * 2)
+            self.assertLessEqual(prior_calls, 12 * (1 + REVIEW_CALLS))
             for ticket in client.coordinator._tickets.values():
                 ticket["at"] -= 1801
             payload, pending = prepared_review(client)

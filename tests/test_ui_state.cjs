@@ -42,10 +42,19 @@ document.body=new Element("body");roots.push(document.body);
 document.createElement=tag=>new Element(tag);
 document.createElementNS=(_,tag)=>new Element(tag);
 document.createTextNode=text=>{const node=new Element("#text");node.textContent=text;return node;};
-document.getElementById=id=>walk(document.body).find(node=>node.id===id)||null;
+const idCache=new Map();
+document.getElementById=id=>{
+ const cached=idCache.get(id);
+ if(cached?.id===id && cached.isConnected)return cached;
+ const node=walk(document.body).find(candidate=>candidate.id===id)||null;
+ if(node)idCache.set(id,node);else idCache.delete(id);
+ return node;
+};
 document.querySelectorAll=selector=>walk(document.body).filter(node=>matches(node,selector));
 document.querySelector=selector=>document.querySelectorAll(selector)[0]||null;
-function mount(id,tag="div",parent=document.body){const node=new Element(tag);node.id=id;parent.append(node);return node;}
+const pageHTML=fs.readFileSync(path.join(__dirname,"..","web","index.html"),"utf8");
+const elementTags=new Map([...pageHTML.matchAll(/<(\w+)[^>]*?\sid="([^"]+)"[^>]*>/g)].map(match=>[match[2],match[1]]));
+function mount(id,tag="div",parent=document.body){const node=new Element(elementTags.get(id)||tag);node.id=id;parent.append(node);return node;}
 const interview=mount("interview-view"),review=mount("review-view"),current=mount("current-question","div",interview),history=mount("conversation-history","div",interview),scroll=mount("conversation-scroll","div",history);
 mount("transcript","div",scroll);mount("transcript-dock-host","div",scroll);mount("history-count","span",history);
 for(const id of ["coverage-list","coverage-count","coverage-progress","working-summary","summary-text","parking-panel","parking-count","parking-list","notice-text","global-notice","live-status","answer-text"])mount(id,"div",interview);
@@ -66,7 +75,7 @@ for(const name of ["voice","transcript","workflow"]){
  const button=mount("conversation-tab-"+name,"button",interview);button.dataset.conversationView=name;
 }
 for(const id of ["workflow-status","retry-workflow","retry-question","speak-questions","live-workflow","stop-speaking","voice-status","session-menu","session-menu-toggle","memo-focus","memo-next","coverage-mobile-count","coverage-summary","coverage-update-status","presence-status","session-presence","session-status","stop-live","mute-live"])mount(id,"div",interview);
-for(const id of ["process-owner","objective","background","meeting-minutes"])mount(id,"input",contextDetails);
+for(const id of ["process-owner","objective","background"])mount(id,"input",contextDetails);
 let providerCalls=0,serializations=0;
 let timerId=0;const timers=new Map();
 const localSetTimeout=(fn,delay)=>{const id=++timerId;timers.set(id,{fn,delay});return id;};
@@ -77,8 +86,9 @@ const exportBindings=appSource.split("\n").filter(line=>/\$\("(?:export-working-
 const titleBinding=appSource.match(/\$\("process-name"\)\.addEventListener\("input",\(\)=>\{[\s\S]*?\n    \}\);/)?.[0]||"";
 const liveBindings=appSource.split("\n").filter(line=>/\$\("(?:stop-live|mute-live)"\)\.addEventListener/.test(line)).join("\n");
 const source=appSource
+ .replace("  init();","  window.__editorTests={bindContextFields,bindDraftFields};\n  init();")
  .replace("  init();","  window.__sidebarTests={mapProjection,workflowGapSummary,openConnectionEditor,selectWorkflowMode,syncWorkflowVisibility,exportSession,generateDraft,memoUI,selectMemoSection,memoTabKey,initMemoTabs,openDocumentAssets,updateAssetCount,placeConversationDock,setTranscriptFind,setTranscriptExport,initTranscriptTools,updateConversationControls,exerciseControls:updateControls,appendDocumentMessage,realRequest:request,createIntake:()=>documentIntake=createDocumentIntake(),setIntake:value=>{documentIntake=value;}};\n  init();")
- .replace(/  init\(\);\s*\}\)\(\);\s*$/,"  updateControls=()=>{updatePresence();}; window.__downloads=[]; download=(...args)=>window.__downloads.push(args); "+exportBindings+titleBinding+liveBindings+" window.__uiTests={normalizeDocumentEvidence,normalizeFindings,boundedVoiceDocuments,sourceCaption,scrollToElement,dismissInlineError,dismissNotice,placeMemo,resolveDocumentPurpose,skipQuestion,getPendingDocumentReason:()=>pendingDocumentReason,readingUI,refreshReadingSearch,moveReadingSearch,returnToSource,renderCoverage,state,renderTranscript,showFoundationTopic,initFoundationDialog,closeFoundationTopic,jumpToTurn,jumpToReview,tab,initReviewTabs,selectReviewSection,reviewTabKey,renderMap,renderWorkingMap,workflowCanvases,showWorkflowStep,renderWorkflowLegend,retryWorkflowLayout,ensureWorkflowAssets,renderSteps,updateWorkflowNavigation,updateCanvasControls,zoomMap,fitMapToWidth,conversationUI,selectConversationView,conversationTabKey,receiveLiveCaption,scheduleWorkflow,refreshWorkflow,clearState,sendAnswer,retryQuestion,setMemoSheet,setInterviewSettings,notice,applyInterview,markdown,memoMarkdown,normalizeDraft,ensureConversation,applyProcessTitle,documentContext,onDocumentEvent,snapshot,sessionObject,importSession,presenceState,updatePresence,startLiveConversation,setPresenceFake:value=>{gpfsPresence=value;},setDocumentController:value=>{documentController=value;},renderReport:typeof renderReport==='function'?renderReport:null,setRequest:fn=>{request=fn;}};\n})();");
+ .replace(/  init\(\);\s*\}\)\(\);\s*$/,"  updateControls=()=>{updatePresence();}; window.__downloads=[]; download=(...args)=>window.__downloads.push(args); "+exportBindings+titleBinding+liveBindings+" window.__uiTests={rememberTurn,finalCheck,startRecording,startInterview,generateDraft,normalizeDocumentEvidence,normalizeFindings,sourceCaption,scrollToElement,dismissInlineError,dismissNotice,placeMemo,resolveDocumentPurpose,skipQuestion,getPendingDocumentReason:()=>pendingDocumentReason,readingUI,refreshReadingSearch,moveReadingSearch,returnToSource,renderCoverage,state,renderTranscript,showFoundationTopic,initFoundationDialog,closeFoundationTopic,jumpToTurn,jumpToReview,tab,initReviewTabs,selectReviewSection,reviewTabKey,renderMap,renderWorkingMap,workflowCanvases,showWorkflowStep,renderWorkflowLegend,retryWorkflowLayout,ensureWorkflowAssets,renderSteps,updateWorkflowNavigation,updateCanvasControls,zoomMap,fitMapToWidth,conversationUI,selectConversationView,conversationTabKey,receiveLiveCaption,scheduleWorkflow,refreshWorkflow,clearState,sendAnswer,retryQuestion,setMemoSheet,setInterviewSettings,notice,applyInterview,markdown,memoMarkdown,normalizeDraft,ensureConversation,applyProcessTitle,documentContext,onDocumentEvent,snapshot,sessionObject,importSession,presenceState,updatePresence,startLiveConversation,setPresenceFake:value=>{gpfsPresence=value;},setDocumentController:value=>{documentController=value;},renderReport:typeof renderReport==='function'?renderReport:null,setRequest:fn=>{request=fn;}};\n})();");
 context.TextEncoder=TextEncoder;vm.createContext(context);vm.runInContext(source,context,{filename:"app.js"});
 const t=context.window.__uiTests;if(!t)throw Error("UI test seam was not installed");Object.assign(t,context.window.__sidebarTests);t.initFoundationDialog();t.initReviewTabs();
 let passes=0;
@@ -110,8 +120,8 @@ assert.equal(new Set(walk(document.body).filter(node=>node.id.startsWith("turn-"
  t.closeFoundationTopic();assert.equal(document.activeElement,button);passes++;
 }
 {
- setup.open=false;contextDetails.open=false;t.jumpToTurn("context");assert.equal(setup.open,true);assert.equal(contextDetails.open,true);assert.equal(settings.open,true);t.setInterviewSettings(false,false);
- lifecycle.open=false;t.jumpToReview("review-lifecycles");assert.equal(lifecycle.open,true);assert.equal(document.activeElement,lifecycle);assert.equal(providerCalls,0);passes++;
+ setup.open=false;contextDetails.open=false;t.jumpToTurn("context");assert.equal(setup.tagName,"SECTION");assert.equal(contextDetails.open,true);assert.equal(settings.open,true);t.setInterviewSettings(false,false);
+ lifecycle.open=false;t.jumpToReview("review-lifecycles");assert.equal(lifecycle.hidden,false);assert.equal(document.activeElement,lifecycle);assert.equal(providerCalls,0);passes++;
 }
 {
  const manual=mount("draft-title","input",document.getElementById("review-procedure"));manual.value="Manually reviewed title";
@@ -136,6 +146,13 @@ assert.equal(new Set(walk(document.body).filter(node=>node.id.startsWith("turn-"
  for(const expected of [t.state.draft.steps[0].title,t.state.draft.steps[0].actor,t.state.draft.steps[0].system,t.state.draft.connections[0].label])assert(mapViewport.textContent.includes(expected),"Fallback must retain full reported text without truncation");
  assert.match(fallback.children[0].textContent,/→ S2 · Review/);assert.equal(fallback.children[1].querySelector(".workflow-fallback-routes"),null,"Fallback must not invent a next step for an unconnected component");
  t.zoomMap(.25);t.fitMapToWidth();assert.equal(document.getElementById("map-fit").disabled,true);assert.equal(document.getElementById("export-map").disabled,true);assert.equal(JSON.stringify(t.state.draft),originalDraft);assert.equal(providerCalls,0);passes++;
+}
+
+{
+ const statements=["review_pending","complete","pause","acknowledgement"].map((kind,i)=>t.rememberTurn({id:"line"+i,role:"assistant",text:"Recorded interviewer statement."},"interviewer",kind));
+ t.state.turns=[turns[0],...statements,turns[2]];
+ for(const line of statements)assert.equal(t.sourceCaption(line.id),"Interviewer");
+ assert.equal(t.sourceCaption(turns[2].id),"Question 2");t.state.turns=turns;passes++;
 }
 
 // New reading/navigation behaviors are exercised without starting the app's voice paths.
@@ -215,7 +232,7 @@ assert.equal(new Set(walk(document.body).filter(node=>node.id.startsWith("turn-"
  const text=mount("report-test-text","p",report),evidence=mount("report-test-source","p",report),link=mount("report-test-link","button",evidence);
  text.textContent="Invoice <123>\ninvoICE";link.textContent="Invoice source";
  search.value="invoice";t.refreshReadingSearch("report",false);
- assert.equal(t.readingUI.report.matches.length,2);assert.equal(evidence.firstElementChild,link);
+ assert.equal(t.readingUI.report.matches.length,3,"Search includes the source button and keeps it interactive");assert.equal(evidence.firstElementChild,link);
  t.moveReadingSearch("report",1);assert.equal(t.readingUI.report.matches[1].classList.contains("current-match"),true);
  search.value="";t.refreshReadingSearch("report",false);
  assert.equal(text.textContent,"Invoice <123>\ninvoICE");assert.equal(text.querySelector("mark"),null);
@@ -316,11 +333,31 @@ assert.equal(new Set(walk(document.body).filter(node=>node.id.startsWith("turn-"
  t.state.turns=priorTurns;t.selectConversationView(priorView);t.renderTranscript();passes++;
 }
 
+// A plain run covers both blocks below. Each starts from the page state the checks above leave,
+// so the usability block runs first in a process of its own (this file again, with the flag) and
+// the main block then runs here. --usability-only alone still runs only that block.
+if(!process.argv.includes("--usability-only")){
+ const usability=require("node:child_process").spawnSync(process.execPath,[__filename,"--usability-only"],{stdio:"inherit",timeout:300000});
+ if(usability.status!==0){console.error("test_ui_state.cjs: the usability block failed; run it alone with --usability-only");process.exitCode=1;}
+}
 if(process.argv.includes("--usability-only")){
  (async()=>{
   review.hidden=false;interview.hidden=true;t.selectReviewSection("review-procedure");t.jumpToTurn("t002");t.returnToSource();
   assert.equal(document.activeElement.id,"review-tab-procedure","Returning to review restores visible keyboard focus");passes++;
-  mount("settings-source-return","button");t.jumpToTurn("context");assert.equal(settings.open,true);assert.equal(document.getElementById("settings-source-return").hidden,false);t.returnToSource();assert.equal(settings.open,false);assert.equal(document.activeElement.id,"review-tab-procedure");passes++;
+  mount("settings-source-return","button");const sourceBack=mount("back-to-source","button");
+  const noBack=()=>{for(const id of ["source-return","settings-source-return"])assert.equal(document.getElementById(id).hidden,true,id);};
+  t.tab("interview");t.selectConversationView("voice");memoBody.append(document.getElementById("memo-rail"));t.setMemoSheet(true);
+  t.state.memo_findings=[{key:"trigger",status:"captured",answer:"An email starts it.",evidence_turns:["t002"]}];
+  t.showFoundationTopic("trigger",document.querySelector('[data-foundation-topic="trigger"]'));
+  dialog.querySelector(".evidence-link").dispatch("click");assert.equal(sourceBack.textContent,"Back to note");t.returnToSource();
+  assert.equal(dialog.open,true);assert.equal(memoSheet.open,true);assert.equal(document.activeElement,dialog.querySelector(".evidence-link"));noBack();
+  t.closeFoundationTopic(false);t.setMemoSheet(false,false);t.tab("review");t.selectReviewSection("review-map");
+  const step=t.state.draft.steps[0];step.evidence_turns=["t002"];t.state.draft.connections[0].evidence_turns=["t002"];
+  t.showWorkflowStep(step,"process-map");const all=stepDialog.querySelectorAll(".evidence-link");assert(all.length>=2);all[1].dispatch("click");
+  assert.equal(sourceBack.textContent,"Back to step "+step.id);t.jumpToTurn("unavailable");t.returnToSource();
+  assert.equal(stepDialog.open,true);assert.equal(document.activeElement,stepDialog.querySelectorAll(".evidence-link")[1]);noBack();
+  stepDialog.close();t.selectReviewSection("review-procedure");passes++;
+  t.jumpToTurn("context");assert.equal(settings.open,true);assert.equal(document.getElementById("settings-source-return").hidden,false);t.returnToSource();assert.equal(settings.open,false);assert.equal(document.activeElement.id,"review-tab-procedure");passes++;
   {
    let finishRead,requests=0;t.state.started=true;t.state.busy=false;t.state.dirty=false;t.state.turns=[{id:"t001",role:"assistant",text:"What starts the work?"}];
    const oldTurns=JSON.stringify(t.state.turns);document.getElementById("answer-text").value="An unsent answer to preserve.";
@@ -472,7 +509,7 @@ if(process.argv.includes("--usability-only")){
   checkpoint();t.state.turns=[{id:"t002",role:"user",text:"Receive the paper invoice."}];t.state.context={process_name:"Invoices"};
   t.conversationUI.workflow=graph("Retained flow");t.conversationUI.applied=-1;const prior=t.conversationUI.workflow;
   t.setRequest(async()=>{throw new Error("Temporary failure");});await t.refreshWorkflow();
-  assert.equal(t.conversationUI.workflow,prior,"Failure must retain the previous graph");assert.equal(document.getElementById("retry-workflow").hidden,false);assert.match(document.getElementById("workflow-status").textContent,/safe/);passes++;
+  assert.equal(t.conversationUI.workflow,prior,"Failure must retain the previous graph");assert.equal(document.getElementById("retry-workflow").hidden,false);assert.match(document.getElementById("workflow-status").textContent,/conversation is still here/);passes++;
  }
  {
   checkpoint();t.state.draft={title:"Owner-edited draft",steps:[{id:"manual",title:"Manual review step"}],connections:[]};t.state.draftEdited=true;
@@ -522,7 +559,7 @@ if(process.argv.includes("--usability-only")){
   assert.equal(prevented,true);assert.equal(t.state.busy,false);assert.equal(t.state.turns.length,2);
   assert.equal(t.state.turns[1].role,"user");assert.equal(t.state.turns[1].text,"A paper invoice arrives by post.");assert.equal(t.state.turns[1].id,"t002");
   assert.equal(document.getElementById("answer-text").value,"","Accepted answers must not remain as unsent duplicates after next-question failure");assert.equal(document.getElementById("retry-question").hidden,false);
-  assert.match(document.getElementById("notice-text").textContent,/answer is saved/);assert.equal(calls.length,1);assert.equal(workflowTimers().length,1,"Accepted evidence must schedule a workflow update even if the next question fails");
+  assert.match(document.getElementById("notice-text").textContent,/answer is still here/);assert.doesNotMatch(document.getElementById("notice-text").textContent,/is saved|\bsafe\b/);assert.match(document.getElementById("notice-text").textContent,/Not saved yet — use Save copy\.$/);assert.equal(calls.length,1);assert.equal(workflowTimers().length,1,"Accepted evidence must schedule a workflow update even if the next question fails");
   const [timerId,timer]=workflowTimers()[0];timers.delete(timerId);await timer.fn();
   assert.equal(calls[1].url,"/api/workflow");assert.equal(calls[1].payload.turns.filter(turn=>turn.role==="user").length,1);assert.equal(calls[1].payload.turns[1].text,"A paper invoice arrives by post.");
   assert.equal(t.conversationUI.workflow.title,"Paper invoice flow");passes++;
@@ -619,7 +656,8 @@ if(process.argv.includes("--usability-only")){
  {
   checkpoint();t.renderTranscript();const oldTopic=document.querySelector('[data-foundation-topic="trigger"]');oldTopic.focus();
   t.receiveLiveCaption({id:"focus-retained",role:"user",text:"Then an analyst logs the invoice.",final:false});
-  assert.notEqual(document.activeElement,oldTopic);assert.equal(document.activeElement.dataset.foundationTopic,"trigger");assert.equal(document.activeElement.isConnected,true,"Live transcript updates must preserve keyboard focus on a replacement memo topic button");
+  // The topic buttons are updated in place (a replaced button loses the click that was being made on it).
+  assert.equal(document.activeElement,oldTopic,"A live transcript update must not replace the memo topic button that has focus");assert.equal(document.activeElement.dataset.foundationTopic,"trigger");assert.equal(document.activeElement.isConnected,true,"Live transcript updates must preserve keyboard focus on the memo topic button");
   t.showFoundationTopic("trigger",document.activeElement);const modalFocus=document.activeElement;
   t.receiveLiveCaption({id:"focus-retained",role:"user",text:"Then an analyst logs the invoice in a register.",final:false});
   assert.equal(document.activeElement,modalFocus,"Live rail updates must never steal focus from the open topic dialog");t.closeFoundationTopic();passes++;
@@ -684,13 +722,14 @@ if(process.argv.includes("--usability-only")){
   t.setRequest(async()=>{throw new Error("Private provider diagnostic must not appear in the UI");});
   await t.refreshWorkflow();assert.equal(t.conversationUI.workflow,prior);
   assert.equal(document.getElementById("global-notice").hidden,false,"Background failure must be visible while staying in Voice");
-  assert.match(document.getElementById("notice-text").textContent,/diagram and notes.*haven’t updated.*transcript.*safe/i);
+  assert.match(document.getElementById("notice-text").textContent,/diagram and notes.*haven’t updated.*transcript.*still here/i);
   assert.equal(document.getElementById("notice-text").textContent.includes("Private provider"),false);
-  const firstNotice=[...timers.entries()].find(([,timer])=>timer.delay===3000);
-  await t.refreshWorkflow();assert.equal([...timers.entries()].find(([,timer])=>timer.delay===3000)[0],firstNotice[0],"Repeated failures must not spam or extend the notification");
+  // A notice of this length stays longer than three seconds, so its dismissal is found by what it does.
+  const firstNotice=[...timers.entries()].find(([,timer])=>timer.fn.name==="dismissNotice");assert.ok(firstNotice[1].delay>3000,"A three-sentence notice is given more than three seconds");
+  await t.refreshWorkflow();assert.equal([...timers.entries()].find(([,timer])=>timer.fn.name==="dismissNotice")[0],firstNotice[0],"Repeated failures must not spam or extend the notification");
   t.setRequest(async()=>memoResult("Recovered map"));await t.refreshWorkflow();assert.equal(t.conversationUI.flowErrorNotified,false);
   t.conversationUI.revision++;t.setRequest(async()=>{throw new Error("Another outage");});await t.refreshWorkflow();
-  assert.notEqual([...timers.entries()].find(([,timer])=>timer.delay===3000)[0],firstNotice[0],"A new failure after recovery may notify again");passes++;
+  assert.notEqual([...timers.entries()].find(([,timer])=>timer.fn.name==="dismissNotice")[0],firstNotice[0],"A new failure after recovery may notify again");passes++;
  }
  for(const incomplete of ["partial","unknown","missing"]){
   checkpoint();document.getElementById("global-notice").hidden=true;t.state.turns=[{id:"t002",role:"user",text:"Reported process facts."}];
@@ -703,8 +742,8 @@ if(process.argv.includes("--usability-only")){
   const findings=completeFindings();findings[7].status="not_applicable";findings[7].answer="The participant explicitly reported that variations do not apply.";
   t.applyInterview(interviewResult(findings));assert.equal(document.getElementById("global-notice").hidden,false,"All eleven full-circle topics may surface readiness, including explicit not-applicable findings");
   assert.match(document.getElementById("notice-text").textContent,/captured|enough detail|review|draft/i);
-  const firstReadyTimer=[...timers.entries()].find(([,timer])=>timer.delay===3000)?.[0];t.applyInterview(interviewResult(findings));
-  assert.equal([...timers.entries()].find(([,timer])=>timer.delay===3000)?.[0],firstReadyTimer,"Repeated complete snapshots must not keep re-announcing readiness");
+  const firstReadyTimer=[...timers.entries()].find(([,timer])=>timer.fn.name==="dismissNotice")?.[0];assert.ok(firstReadyTimer,"The readiness notice has a dismissal pending");t.applyInterview(interviewResult(findings));
+  assert.equal([...timers.entries()].find(([,timer])=>timer.fn.name==="dismissNotice")?.[0],firstReadyTimer,"Repeated complete snapshots must not keep re-announcing readiness");
   findings[3].status="partial";t.applyInterview(interviewResult(findings));assert.equal(document.getElementById("global-notice").hidden,true,"A correction that reopens a topic must withdraw a currently visible readiness notice");passes++;
  }
  {
@@ -720,10 +759,10 @@ if(process.argv.includes("--usability-only")){
    steps:[{id:"S1",title:"Receive *invoice*",actor:"Analyst sentinel",system:"Mailbox sentinel",description:"Reported step description sentinel",input:"Step input sentinel",output:"Step output sentinel",completion_criteria:"Completion criteria sentinel",handoff:"Next handoff sentinel",evidence_turns:["t002"]},{id:"S2",title:"Approve invoice",actor:"Manager",system:"Queue",description:"Approval step",input:"Pending invoice",output:"Approved invoice",completion_criteria:"Approval recorded",handoff:"Treasury",evidence_turns:["t002"]}],
    connections:[{from:"S1",to:"S2",label:"Decision route sentinel",evidence_turns:["t002"]}],lifecycle_items:[{item:"Lifecycle item sentinel",stages:["Lifecycle stage sentinel"],locations:["Lifecycle location sentinel"],handoffs:["Lifecycle handoff sentinel"],evidence_turns:["t002"]}],
    variations:[{applies_to:"Variation scope sentinel",difference:"Variation difference sentinel",reason:"Variation reason sentinel",cost:"Variation cost sentinel",charging:"Variation charging sentinel",removability:"Variation removability sentinel",boundary:"possibly_separate_work",boundary_reason:"Variation boundary reason sentinel",evidence_turns:["t002"]}],exceptions:["Exception sentinel"],controls:["Control sentinel"],open_questions:["Question one","Question two","Question three","Question four","Question five","Sixth open question sentinel"],validation_notes:["Validation note sentinel"]},t.state.turns);
-  t.state.draftVersion=t.state.version-1;const before=JSON.stringify(t.state),procedure=t.markdown(),memo=t.memoMarkdown();
+  t.state.draftEvidence=null;const before=JSON.stringify(t.state),procedure=t.markdown(),memo=t.memoMarkdown();
   for(const value of ["Accountable owner sentinel","Interview objective sentinel","Existing materials sentinel","Overview sentinel","Trigger sentinel","Input sentinel","Output sentinel","Analyst sentinel","Mailbox sentinel","Reported step description sentinel","Step input sentinel","Step output sentinel","Completion criteria sentinel","Next handoff sentinel","Decision route sentinel","Lifecycle item sentinel","Lifecycle stage sentinel","Lifecycle location sentinel","Lifecycle handoff sentinel","Variation scope sentinel","Variation difference sentinel","Variation reason sentinel","Variation cost sentinel","Variation charging sentinel","Variation removability sentinel","Variation boundary reason sentinel","Exception sentinel","Control sentinel","Sixth open question sentinel","Validation note sentinel","Parked topic sentinel","Participant evidence sentinel","Interviewer question sentinel"]){assert.ok(procedure.includes(value),`Complete Markdown export omitted: ${value}`);}
   for(const key of memoKeys)assert.ok(procedure.includes(`Reported ${key.replaceAll("_","\\_")} detail.`),`Missing memo topic ${key}`);
-  assert.ok(memo.includes("Sixth open question sentinel"),"Standalone memo export must include every open question rather than truncate after five");
+  assert.ok(!memo.includes("Sixth open question sentinel"));assert.match(memo,/1 more open questions? (?:is|are) in the complete report/);
   assert.match(procedure,/new answers|changed|stale/i,"The export must disclose that the review draft predates newer conversation");
   assert.doesNotMatch(procedure,/Planned interview:|Elapsed active time:/,"Timing must not reappear in the user-facing export");
   assert.ok(procedure.includes("\\*invoice\\*"),"Reported Markdown characters must remain literal");assert.equal(JSON.stringify(t.state),before,"Export must not mutate accepted answers or reviewer edits");passes++;
@@ -762,7 +801,22 @@ if(process.argv.includes("--usability-only")){
  {
   checkpoint();document.getElementById("global-notice").hidden=true;const made=fakeWorkflow(),data=graph("Retained process");
   t.renderMap(document.getElementById("live-workflow"),data);made[0].requests[0].reject(new Error("Current layout failed"));await nextMicrotask();
-  assert.equal(document.getElementById("global-notice").hidden,false);assert.match(document.getElementById("notice-text").textContent,/process is safe/);assert.match(document.getElementById("workflow-status").textContent,/Couldn’t/);assert.equal(data.steps[0].id,"S1");finishCanvases();passes++;
+  assert.equal(document.getElementById("global-notice").hidden,false);assert.match(document.getElementById("notice-text").textContent,/process is still here/);assert.match(document.getElementById("workflow-status").textContent,/Couldn’t/);assert.equal(data.steps[0].id,"S1");finishCanvases();passes++;
+ }
+ {
+  // What a map update did to the followed path is shown in the path bar, which is a status region.
+  checkpoint();const made=fakeWorkflow();
+  for(const [id,tag] of [["workflow-navigation","div"],["workflow-step-select","select"],["workflow-follow","button"],["workflow-path-previous","select"],["workflow-path-next","select"],["workflow-path-status","output"]])if(!document.getElementById(id))mount(id,tag);
+  t.renderMap(document.getElementById("live-workflow"),graph("Followed map"));const canvas=made[0],bar=document.getElementById("workflow-path-status");
+  const path=(following,notice)=>({following,current:following?{id:"S1",title:"Receive request",type:"activity"}:null,trail:following?["S1"]:[],next:[],previous:[],notice});
+  const view=info=>canvas.options.onViewChange({scale:1,hasGraph:true,updating:false,...info});
+  view({path:path(true,"")});assert.equal(bar.textContent,"Receive request");
+  view({path:path(true,"The map changed. Follow path restarts at this step. Receive request. No reported next step.")});
+  assert.equal(bar.textContent,"The map changed. Follow path restarts at this step. Receive request. No reported next step.");
+  view({path:path(false,"The map changed. Follow path was reset.")});
+  assert.equal(bar.textContent,"The map changed. Follow path was reset.","Leaving Follow path because of an update must not just blank the path bar");
+  assert.equal(document.getElementById("workflow-follow").textContent,"Follow path");
+  view({path:path(false,"")});assert.equal(bar.textContent,"");finishCanvases();passes++;
  }
  {
   checkpoint();const made=fakeWorkflow(),liveRoot=document.getElementById("live-workflow");t.state.turns=[{id:"t002",role:"user",text:"Reported evidence"}];
@@ -869,7 +923,21 @@ if(process.argv.includes("--usability-only")){
   t.clearState();assert.equal(docs.resets,3);assert.equal(t.state.turns.length,0);assert.equal(docs.saved.documents.length,0);t.setDocumentController(null);passes++;
  }
  {
-  checkpoint();t.clearState();t.ensureConversation();t.state.turns=[{id:"t002",role:"user",text:"Participant facts remain separate."}];t.state.draft=t.normalizeDraft({title:"Reported process",steps:[],connections:[],memo_summary:[]},t.state.turns);t.state.draftVersion=t.state.version;
+  // Opening a saved interview puts its excerpts in place before its file list is restored. A file the
+  // interviewer has read must then be reported as read, not left labelled "Not yet read in this interview".
+  checkpoint();t.clearState();t.ensureConversation();const reports=[];
+  const docs=fakeDocuments({scope:"scope_PRIVATE_REFERENCE",documents:[fileRecord({chunk_count:2}),fileRecord({id:"doc_ref2",name:"Unread.csv",chunk_count:1})]});
+  docs.setReading=report=>reports.push(JSON.parse(JSON.stringify(report)));t.setDocumentController(docs);
+  t.state.turns=[{id:"t002",role:"user",text:"An actual participant answer."}];
+  t.state.documentEvidence=[{id:"doc_ref1_p1_c1",document_id:"doc_ref1",name:"Reference.pdf",label:"Page 1",location:{page:1},text:"A documented rule."}];
+  t.state.memo_findings=[{key:"name",status:"partial",answer:"A documented rule.",evidence_turns:["doc_ref1_p1_c1"]}];
+  const saved=JSON.stringify(t.sessionObject());t.state.dirty=false;await t.importSession({size:saved.length,text:async()=>saved});
+  assert.equal(docs.restores.length,1);assert.equal(t.state.documentEvidence.length,1);
+  assert.equal(JSON.stringify(reports.at(-1)),JSON.stringify({read:["doc_ref1"],omitted:0,sent:null}));
+  t.setDocumentController(null);passes++;
+ }
+ {
+  checkpoint();t.clearState();t.ensureConversation();t.state.turns=[{id:"t002",role:"user",text:"Participant facts remain separate."}];t.state.draft=t.normalizeDraft({title:"Reported process",steps:[],connections:[],memo_summary:[]},t.state.turns);
   const docs=fakeDocuments();t.setDocumentController(docs);const before=JSON.stringify(t.state),report=document.getElementById("report-content");t.renderReport();const exported=t.markdown();
   for(const value of ["Reference.pdf","Unconfirmed document summary sentinel","Unconfirmed document observation sentinel","A visual appendix could not be interpreted.","Formula values were not recalculated.","Reference.pdf · Page1","Reference.pdf · Page2","Does the reported process use this approval?"]){assert.ok(report.textContent.includes(value),`Report file appendix omitted ${value}`);assert.ok(exported.includes(value),`Markdown file appendix omitted ${value}`);}
   assert.ok(report.textContent.includes("not participant-confirmed process facts"));assert.ok(exported.includes("unconfirmed reference material"));assert.equal(report.textContent.includes("scope_PRIVATE_REFERENCE"),false);assert.equal(exported.includes("scope_PRIVATE_REFERENCE"),false,"Export must not disclose the local document capability token");assert.equal(JSON.stringify(t.state),before);t.setDocumentController(null);passes++;
@@ -1008,11 +1076,6 @@ if(process.argv.includes("--usability-only")){
   const before=JSON.stringify(t.state);assert.throws(()=>t.normalizeDocumentEvidence([{...evidence,id:"t001"}]),/invalid/);assert.equal(JSON.stringify(t.state),before);
   t.setDocumentController(null);t.clearState();assert.equal(t.state.documentEvidence.length,0);passes++;
  }
- {
-  const excerpt={id:"doc_example_page1_c0",text:"Exact whole paragraph. ".repeat(350)};
-  const input={documents:[{id:"doc_example",name:"SOP.pdf",summary:"Overview",review:{review_complete:true},context_coverage:{complete_text:true,total_chunks:3},excerpts:[excerpt,{...excerpt,id:"doc_example_page2_c0"},{...excerpt,id:"doc_example_page3_c0"}]}]};
-  const result=t.boundedVoiceDocuments(input,"doc_example");assert.ok(Buffer.byteLength(JSON.stringify(result))<15000);assert.equal(result.documents[0].context_coverage.complete_text,false);assert.ok(result.documents[0].excerpts.length>0);assert.equal(result.documents[0].excerpts[0].text,excerpt.text,"Live source excerpts are never silently clipped");passes++;
- }
  // Rich component semantics survive imports, edits and both workflow views.
  {
   const types=["activity","decision","merge","start","end","parallel_split","parallel_join","wait","subprocess","document","data_store"];
@@ -1120,6 +1183,12 @@ if(process.argv.includes("--usability-only")){
    t.selectConversationView(view);assert.equal(liveControls.parentElement,view==="transcript"?liveHeader:dockRow);assert.equal(document.activeElement,mute);assert.equal(t.conversationUI.live,live);assert.equal(input.value,"Keep this unsent clarification.");
   }
   mute.dispatch("placement-check");assert.equal(muteEvents,1);assert.equal(walk(document.body).filter(node=>node.id==="live-controls").length,1,"View changes move the original live controls and preserve their listeners");assert.equal(requests.length,1);passes++;
+  // live-voice-reviewed-10: while reviewed voice itself holds the microphone closed, the control says so.
+  t.conversationUI.muted=false;t.exerciseControls();assert.equal(mute.textContent,"Mute mic");assert.equal(mute.title,"");
+  live.microphoneHeld=true;t.conversationUI.status="speaking";t.exerciseControls();assert.equal(mute.textContent,"Mic paused while I speak");assert.match(mute.title,/reopens at Listening/);
+  t.conversationUI.status="processing";t.exerciseControls();assert.equal(mute.textContent,"Mic paused while I think");
+  t.conversationUI.muted=true;t.exerciseControls();assert.equal(mute.textContent,"Unmute mic","A microphone the participant muted reads as muted, whatever the app is doing");assert.equal(mute.title,"");t.conversationUI.muted=false;
+  live.microphoneHeld=false;t.conversationUI.status="listening";t.exerciseControls();assert.equal(mute.textContent,"Mute mic");assert.equal(mute.title,"");passes++;
   await t.sendAnswer({preventDefault(){}});assert.equal(requests.length,1);assert.equal(input.value,"Keep this unsent clarification.");
   document.getElementById("stop-live").focus();
   t.conversationUI.live.active=false;t.conversationUI.live.connected=false;t.conversationUI.status="closing";t.exerciseControls();assert.equal(composer.hidden,true);assert.equal(document.getElementById("stop-live").disabled,true);assert.equal(liveControls.parentElement,liveHeader,"Final transcript save keeps the voice status in the header");
@@ -1159,7 +1228,9 @@ if(process.argv.includes("--usability-only")){
   t.onDocumentEvent({type:"upload_started",batchId:"batch-b",names:["Appendix.pdf"]});
   t.exerciseControls();
   assert.equal(stopCount,1,"Overlapping file batches pause the voice session only once");assert.equal(appendCount,0);
-  assert.equal(t.state.turns.filter(turn=>turn.document_event).length,1,"One intake acknowledgement covers the upload transaction");
+  assert.equal(t.state.turns.filter(turn=>turn.document_event).length,0,"A pending upload has no file acknowledgement");
+  t.onDocumentEvent({type:"received",document:{id:"file_pending",name:"Payment SOP.pdf"}});
+  assert.equal(t.state.turns.filter(turn=>turn.document_event).length,1,"One accepted file triggers the intake acknowledgement");
   assert.match(t.state.turns.at(-1).text,/Thanks for sharing.*moment to digest/);assert.equal(intake.phase,"uploading");
   assert.equal(document.getElementById("document-intake-panel").hidden,false);assert.equal(current.hidden,true);
   for(const id of ["start-live","send-answer","record-answer","skip-question","final-check","generate-draft","regenerate-draft","retry-question"])assert.equal(document.getElementById(id).disabled,true,`${id} is gated during file intake`);
@@ -1263,8 +1334,8 @@ if(process.argv.includes("--usability-only")){
   await t.importSession({size:raw.length,text:async()=>raw});
   assert.equal(review.hidden,false,"A saved draft without a pending reply still opens in Review");
   assert.equal(calls,0);assert.equal(workflowTimers().length,0,"Opening a file must not schedule automatic provider analysis");assert.equal(JSON.stringify(saved),raw,"The supplied source remains unchanged");assert.equal(t.state.closure.confirmed,false);assert.equal(t.state.coverageNeedsReview,true);
-  assert.equal(t.state.memo_findings.every(item=>item.status==="partial"),true);assert.equal(t.state.draft.memo_summary.every(item=>item.status==="partial"),true);assert.equal(t.state.coverage.every(item=>item.status!=="covered"),true);assert.equal(document.getElementById("coverage-count").textContent,"0 / 16");
-  assert.deepEqual(JSON.parse(JSON.stringify(t.state.memo_findings.map(({key,answer,evidence_turns})=>({key,answer,evidence_turns})))),findings.map(({key,answer,evidence_turns})=>({key,answer,evidence_turns})));assert.notEqual(t.state.draftVersion,t.state.version);
+  assert.equal(t.state.memo_findings.every(item=>item.status==="partial"),true);assert.deepEqual(Array.from(t.state.draft.memo_summary,row=>row.status),Array.from(saved.draft.memo_summary,row=>row.status));assert.equal(t.state.coverage.every(item=>item.status!=="covered"),true);assert.equal(document.getElementById("coverage-count").textContent,"0 / 16");
+  assert.deepEqual(JSON.parse(JSON.stringify(t.state.memo_findings.map(({key,answer,evidence_turns})=>({key,answer,evidence_turns})))),findings.map(({key,answer,evidence_turns})=>({key,answer,evidence_turns})));assert.equal(t.sessionObject().draft_stale,true,"A saved draft with no draft_stale flag reopens as out of date");
   assert.match(document.getElementById("notice-text").textContent,/provisional.*Recheck coverage/);assert.equal(document.getElementById("retry-workflow").hidden,false);assert.equal(document.getElementById("retry-workflow").textContent,"Recheck coverage");passes++;
   t.setRequest(async(_path,_payload,options)=>{calls++;assert.equal(options.timeout,330000);return {workflow:graph("Reviewed process"),memo_findings:findings,coverage:[],summary:"Preserve the reported account.",focus:"",parking_lot:[],coverage_assessment:{all_topics_covered:true,topics:[]}};});
   await t.refreshWorkflow();assert.equal(calls,1);assert.equal(t.state.coverageNeedsReview,false);assert.equal(document.getElementById("coverage-count").textContent,"16 / 16");assert.equal(t.state.closure.confirmed,false,"Rechecking topic coverage cannot manufacture a new participant confirmation");assert.equal(document.getElementById("retry-workflow").dataset.coverageRecheck,undefined);t.clearState();passes++;
@@ -1294,7 +1365,7 @@ if(process.argv.includes("--usability-only")){
   const assessment={all_topics_covered:true,topics:keys.map(key=>({key,gaps:[],next_question:"",complete:true}))};
   t.state.turns=[{id:"t002",role:"user",text:"A participant account."}];t.state.memo_findings=findings;
   const updates=[];let speech=0,stops=0;
-  const live={active:false,connected:false,async start(){this.active=true;this.connected=true;},stop(){stops++;this.active=false;this.connected=false;},sendText(){speech++;},appendContext(content,options){updates.push({text:content,raw:content,options});return Promise.resolve({status:"acknowledged"});}};
+  const live={active:false,connected:false,async start(){this.active=true;this.connected=true;},stop(){stops++;this.active=false;this.connected=false;},appendContext(content,options){updates.push({text:content,raw:content,options});return Promise.resolve({status:"acknowledged"});}};
   t.conversationUI.live=live;const beforeStart=JSON.stringify(t.state.turns);await t.startLiveConversation();
   assert.equal(updates.length,0,"Saved findings without a current accepted checkpoint send no live update");
   assert.equal(JSON.stringify(t.state.turns),beforeStart);passes++;
@@ -1324,7 +1395,8 @@ if(process.argv.includes("--usability-only")){
  {
   checkpoint();t.state.config={api_configured:true,agent_team:{enabled:true},speech:{enabled:false}};t.state.started=true;t.state.context={process_name:"Review test"};
   t.state.turns=[{id:"t002",role:"user",text:"A definite reported process account."}];t.state.memo_findings=["name","purpose","trigger","completion","accountable","lifecycle","checks","variations","pain_points","risk","materials","scope","rules","connections","data_systems","volume"].map(key=>({key,status:"captured",answer:"A definite reported detail.",evidence_turns:["t002"]}));
-  t.state.coverageVerified=false;t.renderCoverage();assert.equal(document.getElementById("coverage-count").textContent,"0 / 16");assert.match(document.getElementById("coverage-summary").textContent,/16 captured.*awaiting review/);assert.match(document.getElementById("memo-next").textContent,/awaiting.*review/);
+  // The headline counts captured topics before the review (tests/test_coverage_headline.cjs); "covered" on a topic still waits for it.
+  t.state.coverageVerified=false;t.renderCoverage();assert.equal(document.getElementById("coverage-count").textContent,"16 / 16");assert.equal(document.getElementById("coverage-summary").textContent,"","The line under the bar does not repeat the figure");assert.match(document.getElementById("memo-next").textContent,/awaiting.*review/);
   const topic=document.querySelector('[data-foundation-topic="name"]');assert.equal(topic.classList.contains("covered"),false);assert.match(topic.querySelector(".coverage-state").textContent,/awaiting review/);t.showFoundationTopic("name",topic);assert.match(document.getElementById("foundation-topic-status").textContent,/awaiting review/);t.closeFoundationTopic(false);
   t.state.coverageVerified=true;t.renderCoverage();assert.equal(document.getElementById("coverage-count").textContent,"16 / 16");assert.equal(document.querySelector('[data-foundation-topic="name"]').classList.contains("covered"),true);passes++;
   t.state.captureToken="opaque-server-capability";assert.equal(t.snapshot().capture_token,"opaque-server-capability");assert.ok(!JSON.stringify(t.sessionObject()).includes("opaque-server-capability"),"Server review capabilities must not be persisted in saved files");passes++;
@@ -1335,7 +1407,12 @@ if(process.argv.includes("--usability-only")){
   checkpoint();t.state.example=true;t.conversationUI.applied=-1;let exampleCalls=0;t.setRequest(async()=>{exampleCalls++;return memoResult("Explicit fictional refresh");});
   for(const view of ["workflow","transcript","voice","workflow"])t.selectConversationView(view);
   assert.equal(workflowTimers().length,0,"Built-in or reopened synthetic examples must not schedule provider work when browsing views");assert.equal(exampleCalls,0);passes++;
-  await t.refreshWorkflow();assert.equal(exampleCalls,1,"An explicit refresh remains available in example mode");assert.equal(t.conversationUI.workflow.title,"Explicit fictional refresh");t.state.example=false;passes++;
+  const original=JSON.stringify([t.state.context,t.state.turns,t.state.draft,t.conversationUI.workflow]);
+  for(const action of [()=>t.sendAnswer(null,"This is a real answer."),t.skipQuestion,t.finalCheck,t.generateDraft,t.startLiveConversation,t.startRecording,t.retryQuestion,t.refreshWorkflow])await action();
+  t.onDocumentEvent({type:"upload_started",name:"unrelated.csv"});
+  assert.equal(exampleCalls,0,"Example interview, notes, map and voice controls must stay offline");
+  assert.equal(JSON.stringify([t.state.context,t.state.turns,t.state.draft,t.conversationUI.workflow]),original);assert.equal(t.state.example,true);
+  t.state.example=false;passes++;
  }
  {
   // Advisory pre-check of provisional topics: display-only, bound to the exact captured answer.
@@ -1350,8 +1427,9 @@ if(process.argv.includes("--usability-only")){
   await settle();await settle();
   assert.equal(t.state.advisory.trigger.complete,true);
   let item=document.querySelector('[data-foundation-topic="trigger"]');assert.match(item.querySelector(".coverage-state").textContent,/pre-checked/);
-  assert.equal(item.classList.contains("covered"),false,"An advisory check never counts as official coverage");assert.equal(document.getElementById("coverage-count").textContent,"0 / 16");
-  assert.match(document.getElementById("coverage-summary").textContent,/1 captured · awaiting review · 1 pre-checked/);
+  assert.equal(item.classList.contains("covered"),false,"An advisory check never counts as official coverage");assert.equal(item.querySelector(".coverage-dot").textContent,"·","A pre-checked topic gets a dot, never the tick of a reviewed one");
+  assert.equal(document.getElementById("coverage-count").textContent,"1 / 16","The headline counts the captured topic; it is not a count of reviewed topics");
+  assert.equal(document.getElementById("coverage-summary").textContent,"1 pre-checked");
   t.showFoundationTopic("trigger",item);assert.match(document.getElementById("foundation-topic-status").textContent,/pre-checked/);t.closeFoundationTopic(false);
   // Topics already pre-checked for the same answer are not checked again; a changed answer loses its mark.
   t.applyInterview(reply("Who logs it?",[{key:"trigger",status:"captured",answer:"An email starts the work.",evidence_turns:["t002"]}]));
@@ -1401,8 +1479,8 @@ if(process.argv.includes("--usability-only")){
   assert.equal(said.join("|"),[ack,finalCheck].join("|"),"Both authorized lines are given to GPT-Live in order");
   assert.equal(t.state.turns.slice(-2).map(turn=>turn.text).join("|"),[ack,finalCheck].join("|"),"Authorized lines are the assistant's turns");
   assert.equal(calls.filter(call=>call.url==="/api/agent-team/review").length,1);assert.equal(t.state.coverageVerified,true);assert.equal(t.state.closure.asked,true);
-  const before=t.state.turns.length;callbacks.onTranscript({id:"c5",role:"assistant",text:"Before we finish, is there anything else we missed?",final:true});
-  assert.equal(t.state.turns.length,before,"The caption of GPT-Live reading the authorized line is not added again");
+  const before=t.state.turns.length;callbacks.onTranscript({id:"c5",role:"assistant",text:"Before we finish, is there anything else",final:false,authorized:"say_final_check"});callbacks.onTranscript({id:"c5",role:"assistant",text:"Before we finish, is there anything else we missed?",final:true});
+  assert.equal(t.state.turns.length,before,"The caption the transport tagged as GPT-Live reading the authorized line is not added, on any later emission");
   answer=url=>url==="/api/interview"?reply("Thank you. All eleven sections are captured and you have confirmed the account.","complete",{coverage_verified:true,no_new_run:true}):{};
   callbacks.onTranscript({id:"c6",role:"user",text:"No, nothing else to add.",final:true});
   await runCaptureTimer();
@@ -1530,7 +1608,7 @@ if(process.argv.includes("--usability-only")){
   t.tab("interview");t.selectConversationView("workflow");t.selectWorkflowMode("live-workflow","walkthrough");
   const live=players["workflow-walkthrough"];assert.equal(live.actions.onSetDesign,undefined);assert.equal(live.graph.component_designs,undefined);
   player=reviewPlayer();t.selectReviewSection("review-procedure");
-  const type=control("Type of step M0");type.value="document";type.dispatch("change");assert.equal(save().presentation.component_designs.M0,"invoice");
+  const type=control("Step type · Type of step M0");type.value="document";type.dispatch("change");assert.equal(save().presentation.component_designs.M0,"invoice");
   type.value="decision";type.dispatch("change");type.value="activity";type.dispatch("change");
   assert.equal(save().presentation.component_designs.M0,undefined,"Changing to a structural type removes the override permanently");
   const remove=control("Remove step M3");context.confirm=()=>false;remove.dispatch("click");
@@ -1541,7 +1619,9 @@ if(process.argv.includes("--usability-only")){
   context.confirm=()=>false;await t.generateDraft();assert.equal(save().presentation.component_designs.M0,"invoice");
   assert.equal(modelCalls,0);
   context.confirm=()=>true;
-  t.setRequest(async(url,payload)=>{modelCalls++;assert.equal(url,"/api/draft");assert.equal(payload.presentation,undefined);assert.equal(payload.component_designs,undefined);return {draft:input};});
+  await t.generateDraft();assert.equal(modelCalls,0,"The example never regenerates through the provider");
+  await open({...saved,synthetic_example:false});
+  t.setRequest(async(url,payload)=>{modelCalls++;assert.equal(url,"/api/draft");assert.ok(payload.previous_capture.workflow.steps.length);assert.equal(payload.presentation,undefined);assert.equal(payload.component_designs,undefined);return {draft:input};});
   await t.generateDraft();assert.equal(modelCalls,1);assert.equal(save().presentation,undefined,"A regenerated draft may reuse step IDs for different work");
   await open(base);player=reviewPlayer();assert.equal(player.graph.component_designs,undefined,"Old saved sessions automatically use the catalog");
   player.actions.onSetDesign("M1","invoice");t.clearState();assert.equal(save().presentation,undefined);
@@ -1591,6 +1671,88 @@ if(process.argv.includes("--usability-only")){
   const previous=t.state.draft.connections.at(-1);previous.evidence_turns=["t002"];
   t.openConnectionEditor(previous);label.value="Pending approval";form.oninput({target:label});keep.checked=true;submit();
   assert.deepEqual(Array.from(t.state.draft.connections.at(-1).evidence_turns),["t002"]);passes++;
+ }
+ {
+  checkpoint();t.clearState();
+  t.state.config={api_configured:true,agent_team:{enabled:true}};
+  t.state.started=true;t.state.context={process_name:"Corrections",objective:"Interview"};
+  t.state.turns=[{id:"t001",role:"user",text:"The first account."}];
+  t.state.closure={asked:true,confirmed:true};t.state.coverageVerified=true;
+  document.getElementById("answer-text").value="Correction: the reviewer also checks the date.";
+  t.setRequest(async()=>{throw Error("Offline interviewer");});
+  await t.sendAnswer({preventDefault(){}});
+  assert.equal(t.state.turns.at(-1).text,"Correction: the reviewer also checks the date.");
+  assert.equal(t.sessionObject().closure.confirmed,false,"Saving after an offline correction cannot confirm the new account");
+  passes++;
+ }
+ {
+  checkpoint();t.clearState();
+  const open=async saved=>{const raw=JSON.stringify(saved);await t.importSession({size:raw.length,text:async()=>raw});};
+  const variation={applies_to:"QA route",standard_route_ref:"S1",evidence_turns:[]};
+  await open({schema_version:1,context:{process_name:"Route editing",objective:"QA"},turns:[],draft_stale:false,
+    draft:{steps:[{id:"S1",title:"Original"},{id:"S2",title:"Remaining"}],variations:[variation]}});
+  const control=label=>walk(document.body).find(node=>node.getAttribute("aria-label")===label);
+  assert.equal(control("Parent process for step S2").maxLength,500);
+  assert.equal(control("Rule source for step S2").tagName,"SELECT");
+  assert.equal(t.sessionObject().draft_stale,false);
+  assert.equal(t.state.coverageNeedsReview,false,"A saved draft with no answers has no interview topics to recheck");
+  context.window.__editorTests.bindContextFields();
+  const owner=document.getElementById("process-owner");
+  owner.value="Updated reviewer";owner.dispatch("input");
+  assert.equal(t.sessionObject().context.process_owner,"Updated reviewer");
+  assert.equal(t.documentContext().context.process_owner,"Updated reviewer");
+  passes++;
+  context.window.__editorTests.bindDraftFields();
+  const inputs=document.getElementById("draft-inputs");
+  inputs.value="First\nSecond";inputs.dispatch("input");
+  inputs.value=Array(101).fill("Another input").join("\n");inputs.dispatch("input");
+  assert.equal(inputs.value,"First\nSecond");
+  inputs.value="a".repeat(6001);inputs.dispatch("input");
+  assert.equal(inputs.value,"First\nSecond");
+  assert.deepEqual(Array.from(t.state.draft.inputs),["First","Second"]);
+  passes++;
+  const status=control("Review status for purpose");
+  status.value="captured";status.dispatch("change");
+  // A draft status is the draft's own (its coverage review or its reviewer), never the interview's pending review.
+  assert.match(status.closest("details").textContent,/02 · PurposeCovered/);assert.doesNotMatch(status.closest("details").textContent,/awaiting review/);
+  passes++;
+  const list=control("Standard route step for variation 1");
+  assert.equal(list.tagName,"SELECT");assert.equal(list.value,"S1");
+  control("Remove step S1").dispatch("click");
+  assert.equal(t.state.draft.variations[0].standard_route_ref,"");
+  assert.equal(control("Standard route step for variation 1").children.some(option=>option.value==="S1"),false);
+  const updated=control("Standard route step for variation 1");
+  updated.value="S2";updated.dispatch("change");
+  const saved=t.sessionObject();
+  await open(saved);assert.equal(t.state.draft.steps[0].id,"S2");
+  assert.equal(t.state.draft.variations[0].standard_route_ref,"S2");
+  passes++;
+  await open({schema_version:1,context:{objective:"QA"},turns:[{id:"u1",role:"user",text:"An initial answer."}],
+    process_name_manual:false,derived_process_title:"Saved display title"});
+  assert.equal(t.state.derivedProcessTitle,"Saved display title");
+  assert.equal(t.state.dirty,false,"Restoring a saved inferred title must not prompt to discard an unchanged interview");
+  passes++;
+ }
+ {
+  checkpoint();t.clearState();t.state.config={api_configured:true};t.state.started=true;
+  t.state.context={process_name:"Long interview",objective:"QA boundary"};
+  t.state.turns=Array.from({length:65},(_,index)=>({id:"long"+index,role:"user",text:"x".repeat(6000)}));
+  t.state.turns.push({id:"partial",role:"user",text:"x".repeat(3100)});
+  document.getElementById("answer-text").value="y".repeat(6000);
+  // An ordinary answer may no longer use the last 1,200 characters, which are kept for the closing lines
+  // (tests/test_interview_limit.cjs). The reply to the final check is the answer that may go up to the limit.
+  t.state.closure={asked:true,confirmed:false};
+  t.setRequest(async()=>({question:"z".repeat(901),coverage:[],memo_findings:[]}));
+  await t.sendAnswer({preventDefault(){}});
+  assert.equal(t.state.turns.at(-1).text,"y".repeat(6000));
+  assert.match(document.getElementById("notice-text").textContent,/interview is full/);
+  const saved=JSON.stringify(t.sessionObject());
+  await t.importSession({size:saved.length,text:async()=>saved});
+  assert.equal(t.state.turns.length,67);
+  t.applyInterview({question:"z".repeat(900),coverage:[],memo_findings:[]});
+  assert.equal(t.state.turns.reduce((chars,turn)=>chars+turn.text.length,0),400000);
+  assert.throws(()=>t.applyInterview({question:"?",preserve_capture:true}),/interview is full/);
+  passes++;
  }
  checkpoint();console.log(JSON.stringify({tests_passed:passes,provider_calls:providerCalls,network_calls:0,real_browser:false}));
 })().catch(error=>{console.error(error);process.exitCode=1;});

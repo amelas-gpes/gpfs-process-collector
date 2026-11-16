@@ -35,6 +35,14 @@ space expand before layout, including for long identifiers and Unicode text. No 
 condition is silently shortened with an ellipsis. Concise titles are encouraged during extraction;
 full operating detail remains in the step dialog and evidence references. Unestablished owner/system
 fields remain explicit in details without filling every shape with repeated placeholder text.
+A box is as wide as its longest line needs, up to the full width at which text wraps; decisions and
+gateways keep their fixed diamond.
+
+An arrow carries a caption in Diagram when it states a condition: every arrow out of a decision, and
+every arrow out of a step that has more than one way out (including the branches of a parallel
+split). The only way out of any other step is drawn as a plain arrow. Its recorded wording is not
+discarded: it remains in the arrow's tooltip, in the exported SVG's arrow description and under
+**Reported next steps** in the step dialog. Cinematic keeps its own captions.
 
 Diagram places steps according to their reported connections. The order in which steps were listed
 breaks ties between available steps. Rework and self-loops use separate return ports so the main
@@ -42,14 +50,43 @@ handoff remains visible. Both horizontal and vertical orientations are available
 misses the port at either end, the text fallback shows the reported connections.
 New canvases on narrow screens start vertically unless an orientation was explicitly supplied.
 
+A process of eight or more steps whose single strip is much longer than the canvas can be folded
+into rows (columns when vertical) aimed at the shape of the canvas. The strip is always calculated
+first. The folded layout replaces it only when every arrow is still attached to its steps, nothing
+overlaps or passes through another box or caption, it has no more crossings than the strip, and
+**Fit** would show the whole map at least 15% larger; otherwise the strip is shown. A map with more
+than 1.5 connections per step is not folded. Because the panel changes shape after the first drawing
+and when the reply box opens or the map is expanded, the fold is decided again once the canvas has
+kept a new shape for a moment; the map is redrawn only when that makes the whole map larger. Folding
+makes a long map larger at **Fit**, but not reading size: use the opening view, **Step**, **Follow
+path** or **Expand** to read.
+
+Layout runs in a background worker shared by Diagram and Cinematic, so the page stays responsive.
+A layout that is replaced by a newer map is stopped, and one that runs longer than eight seconds is
+stopped and reported as a failed layout (see **Retry diagram** below). Maps with more than 60
+connections use a faster, slightly less compact placement. Where the browser cannot start the
+worker, layout runs in the page as before.
+
 Large maps open at a readable starting point. Use **Fit** for the whole map, **Step** to locate an
 action, **Follow path** to examine reported routes, and **Expand** for more room. Following a parallel
 branch inspects that branch; it does not select one branch for execution or imply the others are
 optional. The step dialog lists outgoing routes and their source references. **Diagram key** explains
 only the components present in that map. Pan, zoom, orientation and selection do not call the model.
 
+Panning by wheel, drag, arrow keys or the minimap stops while part of the map is still in view. At
+that edge the mouse wheel scrolls the page instead; Ctrl or Cmd with the wheel always zooms the map.
+
+When a new answer changes the map, the view stays on the steps the reader was looking at: a selected
+step holds the view only while it is on screen, and an update never leaves an empty canvas. While
+**Follow path** is on, the path is kept on the same steps even if the update gave them other
+numbers. If the followed step was removed, the route behind it changed or the step now reads
+differently, the path bar and the screen-reader status say so (“The map changed. Follow path was
+reset.”, “… Follow path restarts at this step. …”, or the step's new title).
+
 Keyboard users can Tab to steps, select with Enter/Space, move between steps with arrow keys, use
-plus/minus to zoom, 0/Home for overview, F to follow a path, and Escape to leave path mode. SVG export
+plus/minus to zoom, 0/Home for overview, F to follow a path, and Escape to leave path mode. A step
+that takes keyboard focus off screen is brought into view at the current zoom, in Diagram, the Admin
+graph and Cinematic; a click never moves the map. SVG export
 includes the complete diagram and every route, independent of the current zoom or path highlighting.
 Dragging or pinching can begin on a component as well as the background. A short tap still opens
 details. Fit includes every supported component even in an 80-step map; selecting a step restores
@@ -96,6 +133,16 @@ The supported map limit remains 80 components and 150 connections. A very large 
 needs pan/zoom or path navigation; fitting it all into a phone screen cannot preserve reading size.
 Subprocesses are collapsed representations, not interactive nested diagrams. Actor labels identify
 responsibility; the map does not claim to provide formal swimlanes or a workflow execution engine.
+
+### Step details and role assignments
+
+A cited step can record duration, deadline, frequency, systems used, controls, exceptions and
+responsible, accountable, consulted or informed roles. Open its details to see the quoted wording and
+source. A step can name several systems or several people in a role when the account supports each one.
+The owner report and Markdown procedure preserve the individual citations. The Markdown role assignment
+table lists only steps with an explicit assignment. A blank role has no recorded assignment.
+Historical saves can omit all of these details. The map keeps its route layout when multiple roles
+share a step, and the quoted assignments remain available in the step inspector.
 
 ## Regression scenarios
 

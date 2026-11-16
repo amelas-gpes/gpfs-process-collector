@@ -36,7 +36,8 @@ class KnowledgeExampleTests(unittest.TestCase):
         except HTTPError as error:return error.code,json.loads(error.read())
     def wait(self,graph,job):
         for _ in range(200):
-            row=graph.db.execute('SELECT status FROM jobs WHERE id=?',(job,)).fetchone()
+            with graph.lock:  # The worker runs this same statement on this connection; share it only under the store's lock.
+                row=graph.db.execute('SELECT status FROM jobs WHERE id=?',(job,)).fetchone()
             if row['status'] not in ('pending','processing'):return
             time.sleep(.01)
         self.fail('Timed out waiting for fixture job.')

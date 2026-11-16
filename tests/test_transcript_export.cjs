@@ -102,6 +102,9 @@ check("memo capture and participant confirmation remain separate",() => {
   assert.equal(data.memo.topics.find(t=>t.key==="trigger").status,"captured","Unrelated uncertainty must not erase the source-supported trigger");
   const risk=assessed.find(finding=>finding.key==="risk");risk.answer="Failure probably delays the next team.";risk.status="captured";
   app.state.memo_findings=app.normalizeFindings(assessed,app.state.turns);data=app.transcriptObject();
+  assert.equal(data.memo.topics.find(t=>t.key==="risk").status,"captured","A hedged consequence is an ordinary risk statement, as on the server");
+  risk.answer="We do not know what a failure delays.";
+  app.state.memo_findings=app.normalizeFindings(assessed,app.state.turns);data=app.transcriptObject();
   assert.equal(data.memo.topics.find(t=>t.key==="risk").status,"partial","An uncertain topic answer cannot export as covered despite its supplied status");
   assert.equal(data.memo.closure.confirmed,true,"A reported confirmation must not erase unresolved evidence");
 });
@@ -111,13 +114,16 @@ check("current notes and stale draft questions are carried without truncation",(
   app.state.summary="Latest working summary";app.state.focus="Clarify who accepts the handoff";
   app.state.parking_lot=["Out-of-scope billing","Separate payment process"];
   app.state.draft={open_questions:Array.from({length:50},(_,i)=>"Draft open question "+(i+1))};
-  app.state.version=10;app.state.draftVersion=9;
+  // The draft was built before the latest participant evidence (one answer earlier).
+  app.state.evidenceVersion=10;app.state.draftEvidence={version:9,documents:'[""]'};
   const data=app.transcriptObject();
   assert.equal(data.interview_notes.working_summary,app.state.summary);assert.equal(data.interview_notes.current_focus,app.state.focus);
   assert.deepEqual(plain(data.interview_notes.parked_topics),app.state.parking_lot);
   assert.deepEqual(plain(data.interview_notes.draft_open_questions),app.state.draft.open_questions);
   assert.equal(data.interview_notes.draft_questions_may_be_stale,true);
   const md=app.transcriptMarkdown(data);assert.match(md,/predates|stale/i);assert.ok(md.includes("Draft open question 50"));
+  app.state.draftEvidence.version=10;app.state.version=99;
+  assert.equal(app.transcriptObject().interview_notes.draft_questions_may_be_stale,false,"Only participant evidence, not the general change counter, dates a draft");
 });
 
 check("share formats exclude private restore state and arbitrary fields",() => {

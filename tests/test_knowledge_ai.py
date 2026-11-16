@@ -25,7 +25,7 @@ class FakeClient:
 class AdapterTests(unittest.TestCase):
     def test_nonempty_scope_schema_requires_exact_current_scope_without_mutating_global_schema(self):
         before=deepcopy(mod.SCHEMA)
-        current=account(0);current['scope']='US FA17 documented process; pending owner review'
+        current=account(0);current['scope']='Synthetic documented process; pending owner review'
         other=account(1);other['scope']=current['scope'].upper()
         client=FakeClient();analyze=mod.build_analyzer(client)
         analyze(current,[other])
@@ -42,7 +42,7 @@ class AdapterTests(unittest.TestCase):
         analyze(current,[other])
         second_schema=client.calls[1][2]
         self.assertEqual(second_schema['properties']['proposals']['items']['properties']['scope']['enum'],['','Another exact scope'])
-        self.assertEqual(first_scope['enum'],['','US FA17 documented process; pending owner review'])
+        self.assertEqual(first_scope['enum'],['','Synthetic documented process; pending owner review'])
         self.assertIsNot(first_schema,second_schema)
         self.assertEqual(mod.SCHEMA,before)
     def test_empty_current_scope_enum_uses_only_exact_selected_candidate_scopes(self):

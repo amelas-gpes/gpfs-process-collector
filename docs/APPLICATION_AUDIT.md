@@ -50,3 +50,5 @@ The final offline run passed 368 checks with no failures or skips among executed
 Voice-specific suites, real provider calls, physical audio, full screen-reader certification, production hosting/identity, actual company-data scale and operational disaster recovery are outside this validation. Those limits remain explicit rather than being represented as passes. Offset pages can move under concurrent writes, and source status is checked on selected reads/actions rather than continuously. A chosen full submission may still contain its complete allowed transcript; the browser does not accumulate all submissions.
 
 Commands, exact results, browser evidence and delivery status for each batch belong in [build verification](BUILD_VERIFICATION.md).
+
+Transcript and report search compare Unicode-normalized, case-folded text. Highlighting uses original grapheme boundaries. The report includes visible field labels, status text and citation controls.

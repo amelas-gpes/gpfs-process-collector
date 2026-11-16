@@ -283,13 +283,20 @@ class CompletionPermitTests(unittest.TestCase):
         data = ledger.snapshot
         for answer in ("No, that's everything.", "No, that covers it.", "That covers everything.",
                        "No, nothing else to add.", "Nope, that's it.", "That's everything from me.",
-                       "Nothing more comes to mind.", "No, nothing else I can think of."):
+                       "Nothing more comes to mind.", "No, nothing else I can think of.",
+                       # Hedged and courteous negatives (server-validation-2); the wider
+                       # lists are in tests/test_final_confirmation.py.
+                       "No, I think that's everything.", "No, I think that's it.", "No, nothing.", "Nothing.",
+                       "No thanks.", "No, thank you.", "Nope, we're good.", "No, I don't think so.",
+                       "Not that I can think of.", "That's all, thank you.", "No, nothing else. Thanks!"):
             data["turns"][-1]["text"] = answer
             self.assertTrue(team_module.explicit_final_confirmation(
                 team_module.build_evidence_ledger(data["context"], data["turns"])), answer)
         for answer in ("No, that covers it. Actually, there is another exception.",
                        "Nothing else, unless the client rejects it.", "Yes, that's all.",
-                       "Correct, but one route is missing.", "That's it for the approval step."):
+                       "Correct, but one route is missing.", "That's it for the approval step.",
+                       "No, I think the controller also signs it.", "No thanks, just add the wire step.",
+                       "Not really, but the bank confirms receipt.", "Thank you."):
             data["turns"][-1]["text"] = answer
             self.assertFalse(team_module.explicit_final_confirmation(
                 team_module.build_evidence_ledger(data["context"], data["turns"])), answer)

@@ -137,6 +137,32 @@ class AdminPagesTests(unittest.TestCase):
         self.assertEqual(self.graph.admin_browse('overview',{})['counts']['processing_failures'],1)
         self.assertEqual(self.graph.admin_browse('entities',{'submission_id':old['submission_id'],'revision':2})['page']['total'],0)
 
+    def test_inferred_process_name_survives_admin_browsing_search_and_detail(self):
+        record=payload()
+        record['context']['process_name']=''
+        record.update(derived_process_title='Quarterly invoice approval',process_name_manual=False)
+        receipt=self.submit(record)
+        sid=receipt['submission_id']
+        for section in ('submissions','jobs'):
+            row=self.graph.admin_browse(section,{'query':'QUARTERLY INVOICE'})['items'][0]
+            self.assertEqual(row['submission_id'],sid)
+            self.assertEqual(row.get('display_name') or row.get('process_name'),'Quarterly invoice approval')
+        item=self.graph.admin_detail('submission',sid,1)['item']
+        self.assertEqual(item['display_name'],'Quarterly invoice approval')
+        self.assertEqual(item['context']['process_name'],'')
+        source=self.graph.admin_detail('entity',self.entity(receipt,'step'))['submissions'][0]
+        self.assertEqual(source['display_name'],item['display_name'])
+        other=self.submit(payload('Manual title'))
+        self.proposal(receipt,other)
+        connection=self.graph.admin_browse('connections')['items'][0]
+        self.assertEqual((connection['source_name'],connection['destination_name']),
+                         ('Quarterly invoice approval','Manual title'))
+        legacy=payload()
+        legacy['context']['process_name']=''
+        legacy['draft']['title']='Legacy map title'
+        self.submit(legacy)
+        self.assertEqual(self.graph.admin_browse('submissions',{'query':'Legacy map'})['items'][0]['display_name'],'Legacy map title')
+
     def test_connection_filter_applies_to_exact_endpoint_revisions(self):
         a=self.submit(payload('Sender','Match','Old system'));b=self.submit(payload('Receiver','Match','Old system'))
         pid=self.proposal(a,b)
@@ -179,7 +205,7 @@ class AdminPagesTests(unittest.TestCase):
         self.assertEqual(detail['item']['history'],[]);self.assertEqual(detail['item']['history_count'],703)
         self.assertEqual(set(result),{'id','status','review_version'})
         self.assertEqual(len(history),704);self.assertEqual(last['page']['total'],704)
-        self.assertEqual(history[-1]['action'],'confirm')
+        self.assertEqual(history[0]['action'],'confirm')
         self.assertEqual([x['turns'][0]['id'] for x in detail['submissions']],['u0','u0'])
 
     def test_internal_relationship_detail_keeps_route_condition_and_cited_answers(self):
@@ -209,9 +235,9 @@ class AdminPagesTests(unittest.TestCase):
         p=payload();p['draft']['steps']=[{'id':'s'+str(i),'title':'Step '+str(i),'evidence_turns':['u0']} for i in range(20)]
         p['draft']['connections']=[{'from':'s'+str(i//20),'to':'s'+str(i%20),'evidence_turns':['u0']} for i in range(150)]
         receipt=self.submit(p);graph=self.graph.admin_graph({},'steps',receipt['submission_id'])
-        self.assertTrue(graph['too_large']);self.assertEqual(graph['counts'],{'nodes':21,'connections':170})
-        self.assertEqual(graph['edges'],[]);self.assertEqual(graph['entities'],[])
-        self.assertIn('150 connections',graph['message'])
+        self.assertFalse(graph['too_large'])
+        self.assertEqual(graph['counts'],{'nodes':20,'connections':150})
+        self.assertTrue(all(x['type']=='happens_after' for x in graph['edges']))
 
     def test_selected_graph_preserves_confirmed_cross_process_context_without_importing_other_steps(self):
         a=self.submit(payload('Sender'));b=self.submit(payload('Receiver'));pid=self.proposal(a,b)

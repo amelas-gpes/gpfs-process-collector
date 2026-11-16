@@ -15,8 +15,6 @@
   isolation:isolate;
   display:grid;
   place-items:center;
-  flex:0 1 auto;
-  width:clamp(140px,20vw,216px);
   max-width:100%;
   min-height:0;
   pointer-events:none;
@@ -54,7 +52,6 @@
   height:auto;
   max-height:228px;
   overflow:visible;
-  flex:0 1 auto;
   pointer-events:auto;
   cursor:pointer;
   touch-action:manipulation;
@@ -62,7 +59,7 @@
   transform-origin:50% 55%;
 }
 /* A slow breath while waiting or listening; speech drives its own choreography. */
-.gpfs-presence:is([data-mode="idle"],[data-mode="ended"],[data-mode="listening"],[data-mode="muted"]) .gpfs-symbol { animation:gpfs-breathe 6.4s ease-in-out infinite; }
+.gpfs-presence:is([data-mode="idle"],[data-mode="ended"],[data-mode="listening"],[data-mode="muted"]) .gpfs-symbol { animation:gpfs-breathe 6.4s ease-in-out 3; }
 /* A tap briefly brightens the glow; alternating names restart it on every tap. */
 .gpfs-presence[data-boop="a"]::before { animation:gpfs-flare-a .9s cubic-bezier(.2,.8,.2,1); }
 .gpfs-presence[data-boop="b"]::before { animation:gpfs-flare-b .9s cubic-bezier(.2,.8,.2,1); }
@@ -86,19 +83,15 @@
 }
 
 @media(max-width:700px) {
-  .gpfs-presence { width:clamp(124px,38vw,180px); }
   .gpfs-symbol { max-height:190px; }
 }
 @media(max-height:700px) and (min-width:701px) {
-  .gpfs-presence { width:164px; }
   .gpfs-symbol { max-height:172px; }
 }
 @media(max-height:600px) and (max-width:700px) {
-  .gpfs-presence { width:104px; }
   .gpfs-symbol { max-height:112px; }
 }
 @media(max-height:540px) and (min-width:600px) {
-  .gpfs-presence { width:110px; flex:0 0 110px; }
   .gpfs-symbol { max-height:112px; }
 }
 @media(prefers-reduced-motion:reduce) {

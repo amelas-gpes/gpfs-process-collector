@@ -108,7 +108,7 @@ class HTTPDiagnosticTests(unittest.TestCase):
                 return super()._write_response(raw, mime, status, **options)
 
         self.httpd = server.InterviewServer(("127.0.0.1", 0), AbortOneResponse, client=self.client,
-                                            documents_root=Path(self.temporary.name) / "documents")
+                                            documents_root=Path(self.temporary.name) / "documents", knowledge_settings={})
         self.httpd.aborted_once = False
         self.worker = threading.Thread(target=self.httpd.serve_forever,
                                        kwargs={"poll_interval": .01}, daemon=True)
@@ -136,6 +136,9 @@ class HTTPDiagnosticTests(unittest.TestCase):
 
     def events(self):
         return [json.loads(line) for line in self.httpd.diagnostics_path.read_text().splitlines()]
+
+    def test_listen_queue_covers_the_configured_connection_capacity(self):
+        self.assertGreaterEqual(self.httpd.request_queue_size, self.httpd.max_connections)
 
     def test_aborted_response_leaves_server_and_next_workflow_healthy(self):
         payload = interview_payload()

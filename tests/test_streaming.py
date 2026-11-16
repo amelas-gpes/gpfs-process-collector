@@ -57,10 +57,21 @@ class StreamParsingTests(unittest.TestCase):
         self.assertEqual(server.OpenAIClient._read_stream(FakeResponse(lines), observe), FINAL)
         self.assertEqual(calls, ["a"])
 
-    def test_stream_errors_and_missing_completion_are_unreadable_responses(self):
-        for lines in (sse([delta("a"), {"type": "error", "message": "boom"}]), sse([delta("a")])):
-            with self.assertRaises(ValueError):
-                server.OpenAIClient._read_stream(FakeResponse(lines), lambda _: False)
+    def test_a_missing_completion_is_an_unreadable_response(self):
+        with self.assertRaises(ValueError):
+            server.OpenAIClient._read_stream(FakeResponse(sse([delta("a")])), lambda _: False)
+
+    def test_a_stream_error_event_is_a_failed_response_with_its_code_only(self):
+        # The provider gave up; that is not a stream this client failed to read (provider-client-5).
+        for event, code in (({"type": "error", "message": "boom"}, None),
+                            ({"type": "error", "code": "rate_limit_exceeded", "message": "boom"}, "rate_limit_exceeded"),
+                            ({"type": "error", "error": {"code": "server_error", "message": "boom"}}, "server_error")):
+            final = server.OpenAIClient._read_stream(FakeResponse(sse([delta("a"), event])), lambda _: False)
+            self.assertEqual(final, {"status": "failed", "error": {"code": code}})
+        # A terminal event that already describes the failure is not replaced by the bare error event.
+        failed = {"status": "failed", "error": {"code": "server_error"}, "usage": {"output_tokens": 3}}
+        lines = sse([{"type": "response.failed", "response": failed}, {"type": "error", "code": "rate_limit_exceeded"}])
+        self.assertEqual(server.OpenAIClient._read_stream(FakeResponse(lines), lambda _: False), failed)
 
     def test_request_streams_only_when_an_observer_is_supplied(self):
         client = server.OpenAIClient({"OPENAI_API_KEY": "sk-synthetic-stream-never-real"})
@@ -101,8 +112,8 @@ class ProvisionalQuestionTests(unittest.TestCase):
         self.streamed(client, ['{"question": "What st', '{"question": "What starts the intake?", "base_revision'])
         result = client.coordinator.interview(client.payload())
         status = client.coordinator.status(result["agent_run_id"])
-        self.assertEqual(status["provisional_question"], "What starts the intake?")
-        self.assertEqual(result["agent_team"]["provisional_question"], "What starts the intake?")
+        self.assertEqual(status["provisional_question"], "")
+        self.assertEqual(result["agent_team"]["provisional_question"], "")
         self.assertNotEqual(result["question"], "What starts the intake?", "The accepted capture decides the final question")
 
     def test_closing_language_is_never_shown_provisionally(self):

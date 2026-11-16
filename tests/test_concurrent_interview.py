@@ -7,21 +7,23 @@ import time
 import types
 import unittest
 
+from test_server import server
+
 SPEC = importlib.util.spec_from_file_location("concurrent_interview", Path(__file__).resolve().parents[1] / "concurrent_interview.py")
 module = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(module)
 
 
-class APIError(Exception):
-    def __init__(self, message, status=502):
-        super().__init__(message)
-        self.status = status
+APIError = server.APIError
 
 
 class API:
+    document_reading_summary = staticmethod(server.document_reading_summary)
     APIError = APIError
-    import re
-    WRAP_UP_LANGUAGE = re.compile(r"all done|finished|complete", re.I)
+    # The real closing-language and question checks: a stand-in pattern hid their effect on this path.
+    question_rejection = staticmethod(server.question_rejection)
+    record_question_rejection = staticmethod(server.record_question_rejection)
+    next_uncovered_question = staticmethod(server.next_uncovered_question)
 
     @staticmethod
     def validate_payload(payload):
@@ -30,7 +32,7 @@ class API:
         return payload["context"], payload["turns"]
 
     @staticmethod
-    def participant_requested_stop(turns):
+    def participant_requested_stop(turns, action="answer"):
         return bool(turns and turns[-1].get("text") == "Please pause.")
 
     @staticmethod
@@ -93,6 +95,48 @@ class FakeClient:
 
 
 class ConcurrentContracts(unittest.TestCase):
+    def test_discard_cancels_active_jobs_and_drops_the_queued_revision(self):
+        gate = threading.Event()
+        client = FakeClient(gate)
+        client.graph_gate = gate
+        cancelled = []
+        client.coordinator.cancel = cancelled.append
+        service = self.service(client)
+        self.addCleanup(gate.set)
+        initial = service.turn(payload())
+        token = initial["conversation_token"]
+        session = service._sessions[token]
+        wait_for(lambda: client.captures and client.graphs)
+        newer = {**payload(), "conversation_token": token}
+        newer["turns"] = [*newer["turns"], {"id": "added", "role": "user", "text": "Another fictional step."}]
+        service.turn(newer)
+        service.discard(token)
+        service.discard(token)
+        gate.set()
+        wait_for(lambda: not session["running"] and not session["graph_running"])
+        self.assertNotIn(token, service._sessions)
+        self.assertEqual(len(client.captures), 1)
+        self.assertEqual(len(client.graphs), 1)
+        self.assertIn(client.captures[0]["agent_run_id"], cancelled)
+        self.assertIn(client.graphs[0]["agent_run_id"], cancelled)
+        with self.assertRaises(APIError):
+            service._queue(session, newer)
+
+    def test_compact_status_checks_revision_scope_and_server_owned_sources(self):
+        validated = []
+        service = self.service(validate_sources=lambda snapshot: validated.append(snapshot.copy()) or True)
+        original = {**payload(), "document_scope": "private-scope"}
+        result = service.turn(original)
+        query = {key: result[key] for key in ("conversation_token", "revision")}
+        query["document_scope"] = original["document_scope"]
+        self.assertEqual(service.status_for_revision(query)["revision"], result["revision"])
+        self.assertEqual(validated[-1]["turns"], original["turns"])
+        for field, wrong, status in (("conversation_token", "a"*64, 409), ("revision", "old", 409),
+                                     ("document_scope", "other-scope", 403)):
+            with self.subTest(field=field), self.assertRaises(server.APIError) as caught:
+                service.status_for_revision({**query, field: wrong})
+            self.assertEqual(caught.exception.status, status)
+
     def service(self, client=None, **kwargs):
         instance = module.ConcurrentInterview(client or FakeClient(), API, **kwargs)
         self.addCleanup(instance.close)
@@ -108,7 +152,7 @@ class ConcurrentContracts(unittest.TestCase):
         self.assertEqual(response["question"], client.question)
         self.assertTrue(response["preserve_capture"])
         self.assertFalse(response["completion"]["complete"])
-        self.assertEqual(client.graphs, [])
+        wait_for(lambda: len(client.graphs) == 1)
         self.assertEqual(service.status({**payload(), "conversation_token": response["conversation_token"]})["state"], "working")
 
     def test_team_status_uses_actual_server_owned_capture_and_workflow_runs(self):
@@ -129,6 +173,7 @@ class ConcurrentContracts(unittest.TestCase):
         wait_for(lambda: len(client.graphs) == 1)
         graph_id = client.graphs[0]["agent_run_id"]
         self.assertNotEqual(graph_id, capture_id)
+        wait_for(lambda: service.status(snapshot)["state"] == "ready")
         self.assertEqual(service.status(snapshot)["agent_team"]["run_id"], graph_id)
         graph_gate.set()
 
@@ -147,8 +192,8 @@ class ConcurrentContracts(unittest.TestCase):
         wait_for(lambda: service.status(third).get("capture", {}).get("marker") == "Corrected latest answer")
         self.assertEqual([item["turns"][-1]["text"] for item in client.captures], ["First answer", "Corrected latest answer"])
         self.assertNotIn("capture", service.status(second))
-        wait_for(lambda: len(client.graphs) == 1)
-        self.assertEqual(len(client.graphs), 1)
+        wait_for(lambda: service.status(third)["workflow_state"] == "ready")
+        self.assertEqual(client.graphs[-1]["turns"][-1]["text"], "Corrected latest answer")
 
     def test_slow_obsolete_workflow_does_not_delay_next_capture(self):
         gate = threading.Event()
@@ -189,6 +234,24 @@ class ConcurrentContracts(unittest.TestCase):
         self.assertEqual(service.retrieval_basis(later), {"query": "original query", "source_ids": ["chunk1"]})
         self.assertIsNone(service.retrieval_basis({**later, "document_scope": "other-scope"}))
         self.assertIsNone(service.retrieval_basis({**later, "document_revision": "replaced-file"}))
+
+    def test_pinned_retrieval_selection_keeps_the_files_it_asked_for(self):
+        service = self.service()
+        options = {"required_documents": ["doc_unread"]}
+        original = {**payload(), "document_scope": "private-scope", "document_revision": "one",
+                    "_conversation_document_snapshot": ("private-scope", "original query", ["chunk1"], {}, "binding", options)}
+        response = service.turn(original)
+        later = {**original, "conversation_token": response["conversation_token"], "document_required_ids": []}
+        later["turns"] = copy.deepcopy(original["turns"]) + [{"id": "a2", "role": "assistant", "text": response["question"]}]
+        basis = service.retrieval_basis(later)
+        self.assertEqual(basis, {"query": "original query", "source_ids": ["chunk1"], "options": options})
+        basis["options"]["required_documents"].append("doc_changed")
+        self.assertEqual(service.retrieval_basis(later)["options"], options)
+        plain = {**original, "_conversation_document_snapshot": ("private-scope", "original query", ["chunk1"], {}, "binding", {})}
+        plain.pop("conversation_token", None)
+        response = service.turn(plain)
+        self.assertEqual(service.retrieval_basis({**plain, "conversation_token": response["conversation_token"]}),
+                         {"query": "original query", "source_ids": ["chunk1"]})
 
     def test_sync_waits_for_current_capture_and_preserves_authoritative_question(self):
         gate = threading.Event()
@@ -314,9 +377,72 @@ class ConcurrentContracts(unittest.TestCase):
 
     def test_question_cannot_announce_completion(self):
         client = FakeClient()
-        client.question = "Are we all done?"
-        with self.assertRaises(APIError):
-            self.service(client).turn(payload())
+        client.question = "Is there anything else you would like to add before we finish?"
+        result = self.service(client).turn(payload())
+        # Closing wording is still never spoken, but it no longer fails the turn:
+        # the participant gets a neutral question from the single provider call.
+        self.assertEqual(result["question"], "What happens next in this work?")
+        self.assertEqual(result["speech_authorization"]["text"], result["question"])
+        self.assertEqual(result["speech_authorization"]["kind"], "question")
+        self.assertFalse(result["sync_required"])
+        self.assertFalse(result["completion"]["complete"])
+        self.assertEqual(len(client.questions), 1)
+
+    def real_stop_service(self, client):
+        # The stub above recognises one fixed sentence. These cases run the turn
+        # path against the application's actual stop detector.
+        from test_server import server
+
+        class RealStopAPI(API):
+            participant_requested_stop = staticmethod(server.participant_requested_stop)
+        instance = module.ConcurrentInterview(client, RealStopAPI)
+        self.addCleanup(instance.close)
+        return instance, server
+
+    def test_real_stop_detector_pauses_natural_requests_without_a_question_call(self):
+        for text in ("Sorry, I need to stop now.", "I'd like to stop here.", "Okay, let's stop here.",
+                     "I have to go, can we stop?", "I need to stop now.\nI have another meeting.",
+                     # A firm request with an everyday reason, whatever the punctuation
+                     "I need to stop now because I'm not feeling well.", "I need to stop now, my boss is calling.",
+                     "Please stop, I need a break.", "Can we stop here and continue tomorrow?"):
+            with self.subTest(text=text):
+                client = FakeClient()
+                service, server = self.real_stop_service(client)
+                response = service.turn(payload(text))
+                self.assertEqual(response["speech_authorization"]["kind"], "pause")
+                self.assertIn(response["question"], server.STOP_ACKNOWLEDGEMENTS)
+                self.assertFalse(response["sync_required"])
+                self.assertEqual(client.questions, [])
+
+    def test_real_stop_detector_lets_process_answers_reach_the_interviewer(self):
+        for text in ("I'm done with this when the bank confirms receipt of the wire.",
+                     "I need to stop and check the source file before I release anything.",
+                     "Stop and escalate to the fund controller.", "Pause. Let me think about the order.",
+                     "Let's finish. The last step is filing.", "We're done with that.", "Stop the call.",
+                     "We need to stop now. The custodian cut-off is 4 pm."):
+            with self.subTest(text=text):
+                client = FakeClient()
+                service, _ = self.real_stop_service(client)
+                response = service.turn(payload(text))
+                self.assertEqual(response["speech_authorization"]["kind"], "question")
+                self.assertEqual(response["question"], client.question)
+                self.assertEqual(len(client.questions), 1)
+
+    def test_real_stop_detector_answers_a_stop_once(self):
+        client = FakeClient()
+        service, server = self.real_stop_service(client)
+        stopped = payload("I need to stop now.")
+        first = service.turn(stopped)
+        self.assertEqual(first["speech_authorization"]["kind"], "pause")
+        acknowledged = {**stopped, "conversation_token": first["conversation_token"]}
+        acknowledged["turns"] = stopped["turns"] + [{"id": "a2", "role": "assistant", "text": first["question"]}]
+        for action in ("answer", "skip"):
+            with self.subTest(action=action):
+                again = service.turn({**acknowledged, "action": action})
+                self.assertEqual(again["speech_authorization"]["kind"], "question")
+        self.assertEqual(len(client.questions), 2)
+        # Wrap up after the acknowledged stop asks for synchronization, not another pause.
+        self.assertTrue(service.turn({**acknowledged, "action": "close"})["sync_required"])
 
     def test_invalid_or_missing_capability_reveals_no_capture(self):
         service = self.service()

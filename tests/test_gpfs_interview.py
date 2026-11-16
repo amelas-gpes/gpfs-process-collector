@@ -24,7 +24,7 @@ class GPFSContractTests(unittest.TestCase):
         self.assertEqual(expected, set(server.FINDING["properties"]["key"]["enum"]))
         self.assertEqual(expected, {k for group in server.interview_coverage.COVERAGE_REVIEW_GROUPS for k in group})
 
-    def test_live_keeps_shared_selection_and_compact_coverage_without_the_review_table(self):
+    def test_live_policy_includes_shared_selection_and_compact_coverage(self):
         self.assertIn(server.QUESTION_SELECTION_POLICY, server.LIVE_INSTRUCTIONS)
         self.assertNotIn(server.interview_coverage.TOPIC_RUBRIC, server.LIVE_INSTRUCTIONS)
         self.assertIn("NATURAL DISCOVERY AND COVERAGE",server.LIVE_INSTRUCTIONS)

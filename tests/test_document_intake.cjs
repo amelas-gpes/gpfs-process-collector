@@ -17,12 +17,42 @@ function setup(overrides={}) {
   buildBaseline:input=>{events.push("baseline");calls.baseline.push(input);return overrides.baseline?overrides.baseline(input):Promise.resolve({revision:calls.baseline.length,summary:"Accepted source baseline"});},
   askFollowup:input=>{events.push("question");calls.question.push(input);return overrides.question?overrides.question(input):Promise.resolve({question:"Who owns the remaining handoff?"});},
   onComplete:(result,documents)=>{events.push("complete");calls.complete.push({result,documents});overrides.complete?.(result,documents);},
-  onEmpty:()=>{events.push("empty");calls.empty.push(true);overrides.empty?.();}};
+  onEmpty:outcome=>{events.push("empty");calls.empty.push(outcome);overrides.empty?.(outcome);}};
  const intake=new Intake(hooks);intake.observe(state([]));return{intake,events,calls,phases};
 }
 const results=[];
 async function check(name,run){try{await run();results.push({name,passed:true});}catch(error){results.push({name,passed:false,error:error.stack||String(error)});}}
 (async()=>{
+ await check("a sampled file with its review paused releases the interview",async()=>{
+   const h=setup();h.intake.begin({batchId:"new"});h.intake.observe(state([file("one",{analysis:{phase:"deep",review_stopped:true}})]));h.intake.settle("new");await tick();
+   assert.equal(h.intake.phase,"ready");assert.equal(h.calls.empty[0].reason,"paused");assert.equal(h.calls.baseline.length,0);
+ });
+ await check("a transient status outage preserves the already verified in-flight capture",async()=>{
+   for(const stage of ["baseline","question"]){
+     const pending=deferred(),h=setup({[stage]:()=>pending.promise});
+     h.intake.begin({batchId:"first"});h.intake.observe(state([file()]));h.intake.settle("first");await tick();
+     assert.equal(h.calls[stage].length,1);h.intake.observe(state([file()],{connectionError:"Status unavailable"}));await tick();
+     assert.equal(h.calls[stage][0].signal.aborted,false);assert.equal(h.calls[stage].length,1);
+     pending.resolve(stage==="baseline"?{revision:"verified"}:{question:"Current question?"});await tick();
+     assert.equal(h.calls.complete.length,1);assert.equal(h.intake.phase,"ready");
+   }
+ });
+ await check("a poll outage or dismissal of a previous error never restarts a baseline or question",async()=>{
+  const old={name:"old.pdf",message:"Old upload failed"};
+  const baseline=deferred(),question=deferred(),h=setup({baseline:()=>baseline.promise,question:()=>question.promise});
+  h.intake.observe(state([],{uploadErrors:[old]}));h.intake.begin({batchId:"first"});
+  h.intake.observe(state([file()],{uploadErrors:[old]}));h.intake.settle("first");await tick();
+  for(const connectionError of ["Offline",""])h.intake.observe(state([file()],{connectionError}));
+  assert.equal(h.calls.baseline.length,1);assert.equal(h.calls.baseline[0].signal.aborted,false);
+  baseline.resolve({});await tick();
+  for(const connectionError of ["Offline",""])h.intake.observe(state([file()],{connectionError}));
+  assert.equal(h.calls.question[0].signal.aborted,false);question.resolve({question:"Ready?"});await tick();
+  assert.equal(h.intake.phase,"ready");
+ });
+ await check("file action without an upload waits at the review stage",async()=>{
+  const h=setup();h.intake.begin({documentId:"doc_one"});h.intake.observe(state([file()],{mutating:1}));
+  assert.equal(h.intake.phase,"reviewing");assert.equal(h.calls.baseline.length,0);
+ });
  await check("upload pauses synchronously and requires settled counters",async()=>{
   const h=setup();h.intake.begin({batchId:"batch_one",names:["Procedure.pdf"]});
   assert.deepEqual(h.events,["pause"]);assert.equal(h.intake.active,true);assert.equal(h.intake.phase,"uploading");

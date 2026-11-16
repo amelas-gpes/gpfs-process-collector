@@ -198,7 +198,7 @@ class CuriosityPolicyContractTests(unittest.TestCase):
                 self.assertNotIn("coverage", audited)
                 self.assertNotIn("ready_for_draft", audited)
 
-    def test_named_action_does_not_answer_its_unexplained_mechanism(self):
+    def test_question_policy_includes_guidance_on_unexplained_mechanisms(self):
         self.assertTrue(server.CURIOSITY_POLICY.strip())
         policy = server.CURIOSITY_POLICY.lower()
         self.assertIn("mechanism", policy)

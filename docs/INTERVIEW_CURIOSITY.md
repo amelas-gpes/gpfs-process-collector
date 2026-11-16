@@ -29,12 +29,11 @@ a participant to guess after both a detail and its resolving source are unavaila
 or declined question takes precedence. Documentary simulations are questioned as documentary
 accounts, without demanding firsthand transactions or claiming employee confirmation.
 
-The shared `CURIOSITY_POLICY` reaches initial interview generation, the question-only audit, the
-direct voice instructions and their delegated backend. The standing foundation mirrors this rule.
-Voice instructions also retain a concise guide to all eleven topics. The question audit uses
-medium reasoning to compare a candidate with a useful unexplained local detail; novelty alone is
-not sufficient. Its output can change only the next question, not findings, evidence, coverage,
-readiness or closure. Provider/model selection and workflow-correction safeguards remain unchanged.
+Typed and reviewed-voice questions receive the shared questioning, curiosity, correction and selection
+policies. Direct Live voice uses its compact conversation policy, selection guidance and a guide to
+the sixteen topics. The separate lead captures facts using a notes-only contract on ordinary
+Live and concurrent turns. Document follow-ups use the question-bearing capture contract.
+The legacy question-audit path remains available for adapters.
 
 Validation combines offline wiring/mutation checks with actual model responses to fictional cases.
 Questions are reviewed for the information they seek, relevance, neutrality, novelty and respect

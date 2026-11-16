@@ -1,12 +1,699 @@
 {
+  "capture_repairs": {
+    "memo": [],
+    "draft": []
+  },
+  "taxonomy": [
+    {
+      "facet": "entity_type",
+      "value": "enterprise",
+      "note": "Internal AP work",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "facet": "process_level",
+      "value": "subprocess",
+      "note": "Part of procure-to-pay",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "facet": "functional_area",
+      "value": "internal_operations",
+      "note": "Invoice approval and Treasury handoff",
+      "evidence_turns": [
+        "t002"
+      ]
+    }
+  ],
+  "connections_out": [
+    {
+      "relationship_type": "subprocess_of",
+      "counterpart": "Procure-to-pay",
+      "condition": "Invoice approval through Treasury acceptance",
+      "evidence_turns": [
+        "t002"
+      ]
+    },
+    {
+      "relationship_type": "provides_input_to",
+      "counterpart": "Treasury payment execution",
+      "condition": "Approved package accepted in Treasury queue",
+      "evidence_turns": [
+        "t014",
+        "t026"
+      ]
+    }
+  ],
+  "document_evidence": [],
+  "workflow": {
+    "title": "Invoice approval and payment handoff — current-state procedure",
+    "overview": "Fictional current-state process from supplier email through duplicate closure or Treasury acceptance. Treasury executes payment separately.",
+    "trigger": "Supplier invoice email arrives in the shared AP mailbox.",
+    "inputs": [
+      "Supplier invoice email and invoice",
+      "Purchase order",
+      "Receiving record",
+      "Approval matrix"
+    ],
+    "outputs": [
+      "Duplicate case closed with supplier notice",
+      "Approved package accepted by Treasury with AP case marked Handed off"
+    ],
+    "steps": [
+      {
+        "id": "S1",
+        "title": "Receive and register invoice",
+        "type": "data_store",
+        "actor": "AP analyst",
+        "system": "Shared AP mailbox, invoice folder and invoice register",
+        "description": "Save the supplier invoice and record its identifying details by 10 a.m. each business day.",
+        "input": "Supplier invoice email and attachment",
+        "output": "Invoice filed and register entry marked Received",
+        "completion_criteria": "Supplier, invoice number, amount and receipt date are recorded and the file is saved",
+        "handoff": "AP analyst moves the registered invoice to the duplicate check",
+        "control_type": [],
+        "data_origin": "",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "",
+        "evidence_turns": [
+          "t004"
+        ]
+      },
+      {
+        "id": "S2",
+        "title": "Is this a duplicate invoice?",
+        "type": "decision",
+        "actor": "AP analyst",
+        "system": "Invoice register",
+        "description": "Search for an earlier entry with the same supplier and invoice number.",
+        "input": "Received invoice and supplier/invoice number",
+        "output": "Duplicate or new classification",
+        "completion_criteria": "Register search establishes whether a matching earlier entry exists",
+        "handoff": "Duplicate goes to closure; new invoice goes to the three-way match",
+        "control_type": [],
+        "data_origin": "",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "",
+        "evidence_turns": [
+          "t006"
+        ]
+      },
+      {
+        "id": "S3",
+        "title": "Close duplicate case",
+        "type": "end",
+        "actor": "AP analyst",
+        "system": "Invoice register and supplier email",
+        "description": "Link the new and earlier entries, notify the supplier and close the new case.",
+        "input": "Duplicate classification and earlier register entry",
+        "output": "Linked entry, supplier notice and Duplicate closed status",
+        "completion_criteria": "Entries are linked, notice sent and new case marked Duplicate closed",
+        "handoff": "Case ends; supplier receives the duplicate notice",
+        "control_type": [],
+        "data_origin": "",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "",
+        "evidence_turns": [
+          "t006"
+        ]
+      },
+      {
+        "id": "S4",
+        "title": "Do invoice, order and receipt match?",
+        "type": "decision",
+        "actor": "AP analyst",
+        "system": "Purchasing system, receiving register and invoice register",
+        "description": "Compare supplier, amount and line items on the invoice, purchase order and receiving record.",
+        "input": "New or corrected invoice, purchase order and receiving record",
+        "output": "Match or mismatch decision",
+        "completion_criteria": "All three records are compared and the outcome recorded for routing",
+        "handoff": "Match goes to value decision; mismatch goes to buyer correction",
+        "control_type": [],
+        "data_origin": "",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "",
+        "evidence_turns": [
+          "t008"
+        ]
+      },
+      {
+        "id": "S5",
+        "title": "Resolve mismatch and release hold",
+        "type": "activity",
+        "actor": "AP analyst and buyer; AP manager for escalation",
+        "system": "Invoice register and exception log",
+        "description": "Record the difference, follow up daily and receive corrected material; escalate after two business days and use the assigned backup buyer when required.",
+        "input": "Mismatch details, invoice, purchase order and receiving record",
+        "output": "Corrected invoice or receiving record and documented exception resolution",
+        "completion_criteria": "Buyer returns corrected material and the resolution is recorded in the exception log",
+        "handoff": "Buyer returns corrected material to AP, which repeats the match before releasing the hold",
+        "control_type": [],
+        "data_origin": "",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "",
+        "evidence_turns": [
+          "t008",
+          "t018"
+        ]
+      },
+      {
+        "id": "S6",
+        "title": "Does the value require controller review?",
+        "type": "decision",
+        "actor": "AP analyst",
+        "system": "Invoice register and approval matrix",
+        "description": "Route matched invoices by the $50,000 value threshold.",
+        "input": "Matched invoice and recorded amount",
+        "output": "Standard or high-value route",
+        "completion_criteria": "Amount is compared with the threshold",
+        "handoff": "Below $50,000 goes to manager; $50,000 or above goes to controller",
+        "control_type": [],
+        "data_origin": "",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "",
+        "evidence_turns": [
+          "t010",
+          "t024"
+        ]
+      },
+      {
+        "id": "S7",
+        "title": "Review high-value invoice",
+        "type": "decision",
+        "actor": "Controller",
+        "system": "Approval register and invoice folder",
+        "description": "Review the matched high-value package and record an approval or rejection.",
+        "input": "Matched invoice package of $50,000 or more",
+        "output": "Controller approval or rejection recorded",
+        "completion_criteria": "Controller records the decision in the approval register",
+        "handoff": "Approval goes to the manager; rejection goes to AP correction",
+        "control_type": [],
+        "data_origin": "",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "",
+        "evidence_turns": [
+          "t010"
+        ]
+      },
+      {
+        "id": "S8",
+        "title": "Approve or reject invoice",
+        "type": "decision",
+        "actor": "Department manager",
+        "system": "Approval portal and invoice folder",
+        "description": "Review the matched invoice and purchase order and record the decision.",
+        "input": "Matched invoice and purchase order, with controller approval for high-value items",
+        "output": "Manager approval or rejection in the portal",
+        "completion_criteria": "Manager records Approve or Reject",
+        "handoff": "Approval goes to AP for package handoff; rejection goes to correction",
+        "control_type": [],
+        "data_origin": "",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "",
+        "evidence_turns": [
+          "t010",
+          "t012"
+        ]
+      },
+      {
+        "id": "S9",
+        "title": "Correct a rejected invoice",
+        "type": "activity",
+        "actor": "AP analyst and buyer",
+        "system": "Exception log and supplier or receiving communications",
+        "description": "Record the rejection, send the reason to the buyer and obtain corrected documents for another match.",
+        "input": "Controller or manager rejection and its reason",
+        "output": "Correction required status, documented reason and corrected documents",
+        "completion_criteria": "Reason is logged and corrected documents are returned to AP",
+        "handoff": "Buyer returns the correction to AP for matching and a fresh approval route",
+        "control_type": [],
+        "data_origin": "",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "",
+        "evidence_turns": [
+          "t012"
+        ]
+      },
+      {
+        "id": "S10",
+        "title": "Save approvals and send package",
+        "type": "document",
+        "actor": "AP analyst",
+        "system": "Invoice folder, invoice register and Treasury queue",
+        "description": "File approval evidence, mark the invoice ready and send the package link to Treasury.",
+        "input": "Manager approval, controller approval when required, invoice and purchase order",
+        "output": "Filed package, Ready for Treasury status and queue handoff",
+        "completion_criteria": "Required decisions are filed and the package link is sent in the Treasury queue",
+        "handoff": "Treasury analyst receives the package link for acceptance",
+        "control_type": [],
+        "data_origin": "",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "",
+        "evidence_turns": [
+          "t014",
+          "t016"
+        ]
+      },
+      {
+        "id": "S11",
+        "title": "Accept handoff and close case",
+        "type": "end",
+        "actor": "Treasury analyst and AP analyst",
+        "system": "Treasury queue and invoice register",
+        "description": "Treasury opens the package link and records acceptance; AP closes its case.",
+        "input": "Treasury queue package link and register entry",
+        "output": "Treasury Accepted receipt and AP Handed off status",
+        "completion_criteria": "Treasury records Accepted and AP marks the case Handed off",
+        "handoff": "AP case closes; Treasury proceeds with its separate payment process",
+        "control_type": [],
+        "data_origin": "",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "",
+        "evidence_turns": [
+          "t014",
+          "t026"
+        ]
+      }
+    ],
+    "connections": [
+      {
+        "from": "S1",
+        "to": "S2",
+        "label": "Registered",
+        "evidence_turns": [
+          "t004",
+          "t006"
+        ]
+      },
+      {
+        "from": "S2",
+        "to": "S3",
+        "label": "Duplicate",
+        "evidence_turns": [
+          "t006"
+        ]
+      },
+      {
+        "from": "S2",
+        "to": "S4",
+        "label": "New",
+        "evidence_turns": [
+          "t006",
+          "t008"
+        ]
+      },
+      {
+        "from": "S4",
+        "to": "S5",
+        "label": "Mismatch",
+        "evidence_turns": [
+          "t008"
+        ]
+      },
+      {
+        "from": "S5",
+        "to": "S4",
+        "label": "Corrected; recheck",
+        "evidence_turns": [
+          "t008",
+          "t018"
+        ]
+      },
+      {
+        "from": "S4",
+        "to": "S6",
+        "label": "Match",
+        "evidence_turns": [
+          "t008",
+          "t010"
+        ]
+      },
+      {
+        "from": "S6",
+        "to": "S7",
+        "label": "$50,000 or more",
+        "evidence_turns": [
+          "t010"
+        ]
+      },
+      {
+        "from": "S6",
+        "to": "S8",
+        "label": "Below $50,000",
+        "evidence_turns": [
+          "t010"
+        ]
+      },
+      {
+        "from": "S7",
+        "to": "S8",
+        "label": "Controller approves",
+        "evidence_turns": [
+          "t010"
+        ]
+      },
+      {
+        "from": "S7",
+        "to": "S9",
+        "label": "Controller rejects",
+        "evidence_turns": [
+          "t010",
+          "t012"
+        ]
+      },
+      {
+        "from": "S8",
+        "to": "S9",
+        "label": "Manager rejects",
+        "evidence_turns": [
+          "t012"
+        ]
+      },
+      {
+        "from": "S9",
+        "to": "S4",
+        "label": "Corrected; recheck",
+        "evidence_turns": [
+          "t012"
+        ]
+      },
+      {
+        "from": "S8",
+        "to": "S10",
+        "label": "Manager approves",
+        "evidence_turns": [
+          "t012",
+          "t014"
+        ]
+      },
+      {
+        "from": "S10",
+        "to": "S11",
+        "label": "Package sent to Treasury",
+        "evidence_turns": [
+          "t014"
+        ]
+      }
+    ],
+    "exceptions": [
+      "Duplicates are linked, notified and closed without entering the payment route.",
+      "Mismatches and rejected invoices return to the buyer for correction and to AP for a repeated match.",
+      "Open corrections are followed up daily and escalated to the AP manager after two business days."
+    ],
+    "controls": [
+      "Search the register for a duplicate supplier and invoice number.",
+      "Match the invoice to the purchase order and receiving record before approval.",
+      "Controller reviews invoices at or above $50,000; department manager approves every payment package.",
+      "Retain approval and Treasury-acceptance evidence; AP preparation and manager approval are separate roles."
+    ],
+    "open_questions": [],
+    "validation_notes": [
+      "Synthetic example — all people, tools, amounts and process details are fictional.",
+      "This participant account is complete for the fictional scope and remains subject to process-owner review."
+    ],
+    "memo_summary": [
+      {
+        "key": "name",
+        "status": "captured",
+        "answer": "Invoice approval and payment handoff, also AP invoice sign-off; from supplier email through Treasury acceptance. Treasury payment execution is separate.",
+        "evidence_turns": [
+          "t002",
+          "t026"
+        ]
+      },
+      {
+        "key": "purpose",
+        "status": "captured",
+        "answer": "Provide Treasury with accurate, authorized supplier invoices while preventing duplicate payments.",
+        "evidence_turns": [
+          "t002"
+        ]
+      },
+      {
+        "key": "trigger",
+        "status": "captured",
+        "answer": "A supplier email to the shared AP mailbox starts a case; the analyst logs invoices by 10 a.m. each business day.",
+        "evidence_turns": [
+          "t004"
+        ]
+      },
+      {
+        "key": "completion",
+        "status": "captured",
+        "answer": "A duplicate closes when linked, notified and marked Duplicate closed. An approved case closes when Treasury records Accepted and AP marks it Handed off.",
+        "evidence_turns": [
+          "t006",
+          "t014"
+        ]
+      },
+      {
+        "key": "accountable",
+        "status": "captured",
+        "answer": "The accounts payable manager is accountable for the end-to-end result through Treasury acceptance.",
+        "evidence_turns": [
+          "t002"
+        ]
+      },
+      {
+        "key": "lifecycle",
+        "status": "captured",
+        "answer": "Invoices move through received, duplicate check, match or hold/rework, value and approval decisions, ready for Treasury, accepted and handed off; a duplicate closes separately. Records pass among AP, buyer, controller, manager and Treasury.",
+        "evidence_turns": [
+          "t004",
+          "t006",
+          "t008",
+          "t010",
+          "t012",
+          "t014"
+        ]
+      },
+      {
+        "key": "checks",
+        "status": "captured",
+        "answer": "Duplicate search, three-way match, high-value controller review, manager approval and retained decision/acceptance evidence; preparation and approval are performed by separate roles.",
+        "evidence_turns": [
+          "t016"
+        ]
+      },
+      {
+        "key": "variations",
+        "status": "captured",
+        "answer": "Invoices of $50,000 or more receive a controller review before manager approval; lower-value invoices go directly to the manager. The variation adds one business day and no separate charge.",
+        "evidence_turns": [
+          "t010"
+        ]
+      },
+      {
+        "key": "pain_points",
+        "status": "captured",
+        "answer": "Manual copying and follow-up take about fifteen minutes of staff effort per invoice; waiting for corrections delays cases.",
+        "evidence_turns": [
+          "t020"
+        ]
+      },
+      {
+        "key": "risk",
+        "status": "captured",
+        "answer": "Duplicate payment risks cash loss and recovery work; inaccurate or unauthorized payment can cause supplier disputes; delays can delay payment.",
+        "evidence_turns": [
+          "t022"
+        ]
+      },
+      {
+        "key": "materials",
+        "status": "captured",
+        "answer": "AP procedure, invoice and exception templates, approval matrix, purchase order, receiving register, portal decisions and Treasury queue receipts; the AP manager maintains the procedure and templates.",
+        "evidence_turns": [
+          "t024"
+        ]
+      },
+      {
+        "key": "scope",
+        "status": "captured",
+        "answer": "Enterprise internal AP work, a subprocess of procure-to-pay; team practice from the AP checklist, with amount-based approval branches. It is not presented as a certified GPFS-wide standard.",
+        "evidence_turns": [
+          "t002",
+          "t010"
+        ]
+      },
+      {
+        "key": "rules",
+        "status": "captured",
+        "answer": "The approval matrix governs amount-based routing; the AP manager interprets it and records conflict decisions in the exception log. The AP templates do not perform an economic calculation.",
+        "evidence_turns": [
+          "t010",
+          "t024"
+        ]
+      },
+      {
+        "key": "connections",
+        "status": "captured",
+        "answer": "Supplier invoicing supplies the input. Treasury payment execution uses the approved package after acceptance. No embedded or parallel work or shared calculations are reported.",
+        "evidence_turns": [
+          "t002",
+          "t014",
+          "t024"
+        ]
+      },
+      {
+        "key": "data_systems",
+        "status": "captured",
+        "answer": "The invoice register records intake. Supplier emails supply invoice data and the purchasing system supplies orders. AP manually copies identifying fields; templates hold no economic calculation. Files live in the AP folder.",
+        "evidence_turns": [
+          "t004",
+          "t024"
+        ]
+      },
+      {
+        "key": "volume",
+        "status": "captured",
+        "answer": "Participant estimates 30 invoices daily, 60 at month end and one in ten needing correction. Manual copying and chasing take most effort, about fifteen minutes per invoice.",
+        "evidence_turns": [
+          "t020"
+        ]
+      }
+    ],
+    "variations": [
+      {
+        "applies_to": "Invoices of $50,000 or more",
+        "difference": "Controller reviews the matched package before manager approval; lower-value items go directly to the manager.",
+        "reason": "The approval matrix requires controller review at the threshold.",
+        "cost": "One extra business day of staff effort.",
+        "charging": "Included in the existing AP service; no separate charge.",
+        "removability": "Mandatory for high-value invoices under the approval matrix.",
+        "boundary": "variation",
+        "boundary_reason": "Both routes share the same intake, matching, manager approval and Treasury handoff.",
+        "variant_class": "unclassified",
+        "substantive_or_presentation": "unknown",
+        "source": "",
+        "standard_route_ref": "",
+        "evidence_turns": [
+          "t010"
+        ]
+      }
+    ],
+    "lifecycle_items": [
+      {
+        "item": "Supplier invoice case",
+        "stages": [
+          "Received and registered",
+          "Duplicate closed or matched",
+          "Hold and corrected when mismatched",
+          "Value-routed and approved",
+          "Ready for Treasury",
+          "Treasury accepted and AP handed off"
+        ],
+        "locations": [
+          "Shared AP mailbox",
+          "Invoice folder",
+          "Invoice register",
+          "Purchasing system",
+          "Receiving register",
+          "Exception log",
+          "Approval register and portal",
+          "Treasury queue"
+        ],
+        "handoffs": [
+          "Supplier to AP",
+          "AP to buyer for corrections and back to AP",
+          "AP to controller for high-value review",
+          "AP to department manager",
+          "AP to Treasury"
+        ],
+        "evidence_turns": [
+          "t004",
+          "t006",
+          "t008",
+          "t010",
+          "t012",
+          "t014"
+        ]
+      }
+    ],
+    "taxonomy": [
+      {
+        "facet": "entity_type",
+        "value": "enterprise",
+        "note": "Internal AP work",
+        "evidence_turns": [
+          "t002"
+        ]
+      },
+      {
+        "facet": "process_level",
+        "value": "subprocess",
+        "note": "Part of procure-to-pay",
+        "evidence_turns": [
+          "t002"
+        ]
+      },
+      {
+        "facet": "functional_area",
+        "value": "internal_operations",
+        "note": "Invoice approval and Treasury handoff",
+        "evidence_turns": [
+          "t002"
+        ]
+      }
+    ],
+    "connections_out": [
+      {
+        "relationship_type": "subprocess_of",
+        "counterpart": "Procure-to-pay",
+        "condition": "Invoice approval through Treasury acceptance",
+        "evidence_turns": [
+          "t002"
+        ]
+      },
+      {
+        "relationship_type": "provides_input_to",
+        "counterpart": "Treasury payment execution",
+        "condition": "Approved package accepted in Treasury queue",
+        "evidence_turns": [
+          "t014",
+          "t026"
+        ]
+      }
+    ]
+  },
   "schema_version": 1,
+  "saved_at": "2026-11-15T00:00:00.000Z",
   "context": {
     "process_name": "Invoice approval and payment handoff",
     "process_owner": "Accounts payable manager",
     "objective": "Document invoice intake, checks, decisions, exceptions and handoff to Treasury.",
     "background": "Synthetic example only. All names, roles, systems, amounts and process details are fictional."
   },
-  "process_name_manual": true,
+  "process_name_manual": false,
+  "derived_process_title": "",
+  "documents": null,
+  "document_questions_handled": [],
   "turns": [
     {
       "id": "t001",
@@ -16,7 +703,7 @@
     {
       "id": "t002",
       "role": "user",
-      "text": "This is invoice approval and payment handoff, also called AP invoice sign-off. The accounts payable manager is accountable from supplier receipt through Treasury's acceptance of the approved payment package. Treasury's payment execution is a separate process. The purpose is to send accurate, authorized supplier invoices to Treasury without paying the same invoice twice."
+      "text": "This is invoice approval and payment handoff, also called AP invoice sign-off. The accounts payable manager is accountable from supplier receipt through Treasury's acceptance of the approved payment package. Treasury's payment execution is a separate process. The purpose is to send accurate, authorized supplier invoices to Treasury without paying the same invoice twice. This is enterprise AP work, not a fund calculation. It serves our internal company and is one subprocess of procure-to-pay. The AP manager describes the team procedure based on the AP checklist; this account does not certify a GPFS-wide gold standard."
     },
     {
       "id": "t003",
@@ -106,7 +793,7 @@
     {
       "id": "t020",
       "role": "user",
-      "text": "The analyst copies invoice details from email into the register and follows up on exceptions manually. These activities consume about fifteen minutes of staff effort per invoice and are the main reported friction. Waiting for corrected documents is the main source of delay; the team tracks overdue cases in the exception log."
+      "text": "The analyst copies invoice details from email into the register and follows up on exceptions manually. These activities consume about fifteen minutes of staff effort per invoice and are the main reported friction. Waiting for corrected documents is the main source of delay; the team tracks overdue cases in the exception log. We estimate 30 invoices each day, rising to 60 at month end. Roughly one in ten needs correction. Copying invoice fields and chasing corrections take the most active effort; these are estimates."
     },
     {
       "id": "t021",
@@ -126,7 +813,7 @@
     {
       "id": "t024",
       "role": "user",
-      "text": "The AP operating procedure describes the steps and escalation. The invoice register template, exception log template, approval matrix, purchase order, receiving register, portal decision record and Treasury queue receipt document the work. The AP manager maintains the procedure and templates."
+      "text": "The AP operating procedure describes the steps and escalation. The invoice register template, exception log template, approval matrix, purchase order, receiving register, portal decision record and Treasury queue receipt document the work. The AP manager maintains the procedure and templates. The AP manager interprets the approval matrix and records any conflict decision in the exception log. The matrix governs approval routing. The invoice register is our final intake record. Supplier emails provide invoices and the purchasing system supplies purchase orders. AP manually copies identifying fields into the register; the templates do not calculate an economic amount. The files are stored in the AP folder. There are no embedded or parallel processes or shared calculations in this account."
     },
     {
       "id": "t025",
@@ -142,7 +829,7 @@
   "coverage": [
     {
       "key": "name",
-      "label": "Name / scope",
+      "label": "Name and scope",
       "status": "covered"
     },
     {
@@ -152,27 +839,27 @@
     },
     {
       "key": "trigger",
-      "label": "Trigger",
+      "label": "Starting point",
       "status": "covered"
     },
     {
       "key": "completion",
-      "label": "Completion",
+      "label": "End point",
       "status": "covered"
     },
     {
       "key": "accountable",
-      "label": "Accountable owner",
+      "label": "Owner",
       "status": "covered"
     },
     {
       "key": "lifecycle",
-      "label": "Work lifecycle",
+      "label": "Flow of work",
       "status": "covered"
     },
     {
       "key": "checks",
-      "label": "Checks / controls",
+      "label": "Checks and controls",
       "status": "covered"
     },
     {
@@ -187,12 +874,37 @@
     },
     {
       "key": "risk",
-      "label": "Risk / impact",
+      "label": "Risks",
       "status": "covered"
     },
     {
       "key": "materials",
-      "label": "Existing materials",
+      "label": "Documents",
+      "status": "covered"
+    },
+    {
+      "key": "scope",
+      "label": "Scope and entities",
+      "status": "covered"
+    },
+    {
+      "key": "rules",
+      "label": "Rules and sources",
+      "status": "covered"
+    },
+    {
+      "key": "connections",
+      "label": "Connected processes",
+      "status": "covered"
+    },
+    {
+      "key": "data_systems",
+      "label": "Data and systems",
+      "status": "covered"
+    },
+    {
+      "key": "volume",
+      "label": "Volume and effort",
       "status": "covered"
     }
   ],
@@ -292,6 +1004,51 @@
       "evidence_turns": [
         "t024"
       ]
+    },
+    {
+      "key": "scope",
+      "status": "captured",
+      "answer": "Enterprise internal AP work, a subprocess of procure-to-pay; team practice from the AP checklist, with amount-based approval branches. It is not presented as a certified GPFS-wide standard.",
+      "evidence_turns": [
+        "t002",
+        "t010"
+      ]
+    },
+    {
+      "key": "rules",
+      "status": "captured",
+      "answer": "The approval matrix governs amount-based routing; the AP manager interprets it and records conflict decisions in the exception log. The AP templates do not perform an economic calculation.",
+      "evidence_turns": [
+        "t010",
+        "t024"
+      ]
+    },
+    {
+      "key": "connections",
+      "status": "captured",
+      "answer": "Supplier invoicing supplies the input. Treasury payment execution uses the approved package after acceptance. No embedded or parallel work or shared calculations are reported.",
+      "evidence_turns": [
+        "t002",
+        "t014",
+        "t024"
+      ]
+    },
+    {
+      "key": "data_systems",
+      "status": "captured",
+      "answer": "The invoice register records intake. Supplier emails supply invoice data and the purchasing system supplies orders. AP manually copies identifying fields; templates hold no economic calculation. Files live in the AP folder.",
+      "evidence_turns": [
+        "t004",
+        "t024"
+      ]
+    },
+    {
+      "key": "volume",
+      "status": "captured",
+      "answer": "Participant estimates 30 invoices daily, 60 at month end and one in ten needing correction. Manual copying and chasing take most effort, about fifteen minutes per invoice.",
+      "evidence_turns": [
+        "t020"
+      ]
     }
   ],
   "focus": "Complete account ready for process-owner review",
@@ -314,156 +1071,6 @@
       "Duplicate case closed with supplier notice",
       "Approved package accepted by Treasury with AP case marked Handed off"
     ],
-    "memo_summary": [
-      {
-        "key": "name",
-        "status": "captured",
-        "answer": "Invoice approval and payment handoff, also AP invoice sign-off; from supplier email through Treasury acceptance. Treasury payment execution is separate.",
-        "evidence_turns": [
-          "t002",
-          "t026"
-        ]
-      },
-      {
-        "key": "purpose",
-        "status": "captured",
-        "answer": "Provide Treasury with accurate, authorized supplier invoices while preventing duplicate payments.",
-        "evidence_turns": [
-          "t002"
-        ]
-      },
-      {
-        "key": "trigger",
-        "status": "captured",
-        "answer": "A supplier email to the shared AP mailbox starts a case; the analyst logs invoices by 10 a.m. each business day.",
-        "evidence_turns": [
-          "t004"
-        ]
-      },
-      {
-        "key": "completion",
-        "status": "captured",
-        "answer": "A duplicate closes when linked, notified and marked Duplicate closed. An approved case closes when Treasury records Accepted and AP marks it Handed off.",
-        "evidence_turns": [
-          "t006",
-          "t014"
-        ]
-      },
-      {
-        "key": "accountable",
-        "status": "captured",
-        "answer": "The accounts payable manager is accountable for the end-to-end result through Treasury acceptance.",
-        "evidence_turns": [
-          "t002"
-        ]
-      },
-      {
-        "key": "lifecycle",
-        "status": "captured",
-        "answer": "Invoices move through received, duplicate check, match or hold/rework, value and approval decisions, ready for Treasury, accepted and handed off; a duplicate closes separately. Records pass among AP, buyer, controller, manager and Treasury.",
-        "evidence_turns": [
-          "t004",
-          "t006",
-          "t008",
-          "t010",
-          "t012",
-          "t014"
-        ]
-      },
-      {
-        "key": "checks",
-        "status": "captured",
-        "answer": "Duplicate search, three-way match, high-value controller review, manager approval and retained decision/acceptance evidence; preparation and approval are performed by separate roles.",
-        "evidence_turns": [
-          "t016"
-        ]
-      },
-      {
-        "key": "variations",
-        "status": "captured",
-        "answer": "Invoices of $50,000 or more receive a controller review before manager approval; lower-value invoices go directly to the manager. The variation adds one business day and no separate charge.",
-        "evidence_turns": [
-          "t010"
-        ]
-      },
-      {
-        "key": "pain_points",
-        "status": "captured",
-        "answer": "Manual copying and follow-up take about fifteen minutes of staff effort per invoice; waiting for corrections delays cases.",
-        "evidence_turns": [
-          "t020"
-        ]
-      },
-      {
-        "key": "risk",
-        "status": "captured",
-        "answer": "Duplicate payment risks cash loss and recovery work; inaccurate or unauthorized payment can cause supplier disputes; delays can delay payment.",
-        "evidence_turns": [
-          "t022"
-        ]
-      },
-      {
-        "key": "materials",
-        "status": "captured",
-        "answer": "AP procedure, invoice and exception templates, approval matrix, purchase order, receiving register, portal decisions and Treasury queue receipts; the AP manager maintains the procedure and templates.",
-        "evidence_turns": [
-          "t024"
-        ]
-      }
-    ],
-    "lifecycle_items": [
-      {
-        "item": "Supplier invoice case",
-        "stages": [
-          "Received and registered",
-          "Duplicate closed or matched",
-          "Hold and corrected when mismatched",
-          "Value-routed and approved",
-          "Ready for Treasury",
-          "Treasury accepted and AP handed off"
-        ],
-        "locations": [
-          "Shared AP mailbox",
-          "Invoice folder",
-          "Invoice register",
-          "Purchasing system",
-          "Receiving register",
-          "Exception log",
-          "Approval register and portal",
-          "Treasury queue"
-        ],
-        "handoffs": [
-          "Supplier to AP",
-          "AP to buyer for corrections and back to AP",
-          "AP to controller for high-value review",
-          "AP to department manager",
-          "AP to Treasury"
-        ],
-        "evidence_turns": [
-          "t004",
-          "t006",
-          "t008",
-          "t010",
-          "t012",
-          "t014"
-        ]
-      }
-    ],
-    "variations": [
-      {
-        "applies_to": "Invoices of $50,000 or more",
-        "difference": "Controller reviews the matched package before manager approval; lower-value items go directly to the manager.",
-        "reason": "The approval matrix requires controller review at the threshold.",
-        "cost": "One extra business day of staff effort.",
-        "charging": "Included in the existing AP service; no separate charge.",
-        "removability": "Mandatory for high-value invoices under the approval matrix.",
-        "boundary": "variation",
-        "boundary_reason": "Both routes share the same intake, matching, manager approval and Treasury handoff.",
-        "evidence_turns": [
-          "t010"
-        ]
-      }
-    ],
     "steps": [
       {
         "id": "S1",
@@ -476,6 +1083,12 @@
         "output": "Invoice filed and register entry marked Received",
         "completion_criteria": "Supplier, invoice number, amount and receipt date are recorded and the file is saved",
         "handoff": "AP analyst moves the registered invoice to the duplicate check",
+        "control_type": [],
+        "data_origin": "",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "",
         "evidence_turns": [
           "t004"
         ]
@@ -491,6 +1104,12 @@
         "output": "Duplicate or new classification",
         "completion_criteria": "Register search establishes whether a matching earlier entry exists",
         "handoff": "Duplicate goes to closure; new invoice goes to the three-way match",
+        "control_type": [],
+        "data_origin": "",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "",
         "evidence_turns": [
           "t006"
         ]
@@ -506,6 +1125,12 @@
         "output": "Linked entry, supplier notice and Duplicate closed status",
         "completion_criteria": "Entries are linked, notice sent and new case marked Duplicate closed",
         "handoff": "Case ends; supplier receives the duplicate notice",
+        "control_type": [],
+        "data_origin": "",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "",
         "evidence_turns": [
           "t006"
         ]
@@ -521,6 +1146,12 @@
         "output": "Match or mismatch decision",
         "completion_criteria": "All three records are compared and the outcome recorded for routing",
         "handoff": "Match goes to value decision; mismatch goes to buyer correction",
+        "control_type": [],
+        "data_origin": "",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "",
         "evidence_turns": [
           "t008"
         ]
@@ -536,6 +1167,12 @@
         "output": "Corrected invoice or receiving record and documented exception resolution",
         "completion_criteria": "Buyer returns corrected material and the resolution is recorded in the exception log",
         "handoff": "Buyer returns corrected material to AP, which repeats the match before releasing the hold",
+        "control_type": [],
+        "data_origin": "",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "",
         "evidence_turns": [
           "t008",
           "t018"
@@ -552,6 +1189,12 @@
         "output": "Standard or high-value route",
         "completion_criteria": "Amount is compared with the threshold",
         "handoff": "Below $50,000 goes to manager; $50,000 or above goes to controller",
+        "control_type": [],
+        "data_origin": "",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "",
         "evidence_turns": [
           "t010",
           "t024"
@@ -568,6 +1211,12 @@
         "output": "Controller approval or rejection recorded",
         "completion_criteria": "Controller records the decision in the approval register",
         "handoff": "Approval goes to the manager; rejection goes to AP correction",
+        "control_type": [],
+        "data_origin": "",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "",
         "evidence_turns": [
           "t010"
         ]
@@ -583,6 +1232,12 @@
         "output": "Manager approval or rejection in the portal",
         "completion_criteria": "Manager records Approve or Reject",
         "handoff": "Approval goes to AP for package handoff; rejection goes to correction",
+        "control_type": [],
+        "data_origin": "",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "",
         "evidence_turns": [
           "t010",
           "t012"
@@ -599,6 +1254,12 @@
         "output": "Correction required status, documented reason and corrected documents",
         "completion_criteria": "Reason is logged and corrected documents are returned to AP",
         "handoff": "Buyer returns the correction to AP for matching and a fresh approval route",
+        "control_type": [],
+        "data_origin": "",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "",
         "evidence_turns": [
           "t012"
         ]
@@ -614,6 +1275,12 @@
         "output": "Filed package, Ready for Treasury status and queue handoff",
         "completion_criteria": "Required decisions are filed and the package link is sent in the Treasury queue",
         "handoff": "Treasury analyst receives the package link for acceptance",
+        "control_type": [],
+        "data_origin": "",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "",
         "evidence_turns": [
           "t014",
           "t016"
@@ -630,6 +1297,12 @@
         "output": "Treasury Accepted receipt and AP Handed off status",
         "completion_criteria": "Treasury records Accepted and AP marks the case Handed off",
         "handoff": "AP case closes; Treasury proceeds with its separate payment process",
+        "control_type": [],
+        "data_origin": "",
+        "entry_mode": "unknown",
+        "rule_source_ref": "",
+        "entity_scope": [],
+        "parent_process": "",
         "evidence_turns": [
           "t014",
           "t026"
@@ -771,21 +1444,6 @@
     "validation_notes": [
       "Synthetic example — all people, tools, amounts and process details are fictional.",
       "This participant account is complete for the fictional scope and remains subject to process-owner review."
-    ]
-  },
-  "workflow": {
-    "title": "Invoice approval and payment handoff — current-state procedure",
-    "overview": "Fictional current-state process from supplier email through duplicate closure or Treasury acceptance. Treasury executes payment separately.",
-    "trigger": "Supplier invoice email arrives in the shared AP mailbox.",
-    "inputs": [
-      "Supplier invoice email and invoice",
-      "Purchase order",
-      "Receiving record",
-      "Approval matrix"
-    ],
-    "outputs": [
-      "Duplicate case closed with supplier notice",
-      "Approved package accepted by Treasury with AP case marked Handed off"
     ],
     "memo_summary": [
       {
@@ -882,6 +1540,70 @@
         "evidence_turns": [
           "t024"
         ]
+      },
+      {
+        "key": "scope",
+        "status": "captured",
+        "answer": "Enterprise internal AP work, a subprocess of procure-to-pay; team practice from the AP checklist, with amount-based approval branches. It is not presented as a certified GPFS-wide standard.",
+        "evidence_turns": [
+          "t002",
+          "t010"
+        ]
+      },
+      {
+        "key": "rules",
+        "status": "captured",
+        "answer": "The approval matrix governs amount-based routing; the AP manager interprets it and records conflict decisions in the exception log. The AP templates do not perform an economic calculation.",
+        "evidence_turns": [
+          "t010",
+          "t024"
+        ]
+      },
+      {
+        "key": "connections",
+        "status": "captured",
+        "answer": "Supplier invoicing supplies the input. Treasury payment execution uses the approved package after acceptance. No embedded or parallel work or shared calculations are reported.",
+        "evidence_turns": [
+          "t002",
+          "t014",
+          "t024"
+        ]
+      },
+      {
+        "key": "data_systems",
+        "status": "captured",
+        "answer": "The invoice register records intake. Supplier emails supply invoice data and the purchasing system supplies orders. AP manually copies identifying fields; templates hold no economic calculation. Files live in the AP folder.",
+        "evidence_turns": [
+          "t004",
+          "t024"
+        ]
+      },
+      {
+        "key": "volume",
+        "status": "captured",
+        "answer": "Participant estimates 30 invoices daily, 60 at month end and one in ten needing correction. Manual copying and chasing take most effort, about fifteen minutes per invoice.",
+        "evidence_turns": [
+          "t020"
+        ]
+      }
+    ],
+    "variations": [
+      {
+        "applies_to": "Invoices of $50,000 or more",
+        "difference": "Controller reviews the matched package before manager approval; lower-value items go directly to the manager.",
+        "reason": "The approval matrix requires controller review at the threshold.",
+        "cost": "One extra business day of staff effort.",
+        "charging": "Included in the existing AP service; no separate charge.",
+        "removability": "Mandatory for high-value invoices under the approval matrix.",
+        "boundary": "variation",
+        "boundary_reason": "Both routes share the same intake, matching, manager approval and Treasury handoff.",
+        "variant_class": "unclassified",
+        "substantive_or_presentation": "unknown",
+        "source": "",
+        "standard_route_ref": "",
+        "evidence_turns": [
+          "t010"
+        ]
       }
     ],
     "lifecycle_items": [
@@ -922,332 +1644,62 @@
         ]
       }
     ],
-    "variations": [
+    "taxonomy": [
       {
-        "applies_to": "Invoices of $50,000 or more",
-        "difference": "Controller reviews the matched package before manager approval; lower-value items go directly to the manager.",
-        "reason": "The approval matrix requires controller review at the threshold.",
-        "cost": "One extra business day of staff effort.",
-        "charging": "Included in the existing AP service; no separate charge.",
-        "removability": "Mandatory for high-value invoices under the approval matrix.",
-        "boundary": "variation",
-        "boundary_reason": "Both routes share the same intake, matching, manager approval and Treasury handoff.",
+        "facet": "entity_type",
+        "value": "enterprise",
+        "note": "Internal AP work",
         "evidence_turns": [
-          "t010"
+          "t002"
+        ]
+      },
+      {
+        "facet": "process_level",
+        "value": "subprocess",
+        "note": "Part of procure-to-pay",
+        "evidence_turns": [
+          "t002"
+        ]
+      },
+      {
+        "facet": "functional_area",
+        "value": "internal_operations",
+        "note": "Invoice approval and Treasury handoff",
+        "evidence_turns": [
+          "t002"
         ]
       }
     ],
-    "steps": [
+    "connections_out": [
       {
-        "id": "S1",
-        "title": "Receive and register invoice",
-        "type": "data_store",
-        "actor": "AP analyst",
-        "system": "Shared AP mailbox, invoice folder and invoice register",
-        "description": "Save the supplier invoice and record its identifying details by 10 a.m. each business day.",
-        "input": "Supplier invoice email and attachment",
-        "output": "Invoice filed and register entry marked Received",
-        "completion_criteria": "Supplier, invoice number, amount and receipt date are recorded and the file is saved",
-        "handoff": "AP analyst moves the registered invoice to the duplicate check",
+        "relationship_type": "subprocess_of",
+        "counterpart": "Procure-to-pay",
+        "condition": "Invoice approval through Treasury acceptance",
         "evidence_turns": [
-          "t004"
+          "t002"
         ]
       },
       {
-        "id": "S2",
-        "title": "Is this a duplicate invoice?",
-        "type": "decision",
-        "actor": "AP analyst",
-        "system": "Invoice register",
-        "description": "Search for an earlier entry with the same supplier and invoice number.",
-        "input": "Received invoice and supplier/invoice number",
-        "output": "Duplicate or new classification",
-        "completion_criteria": "Register search establishes whether a matching earlier entry exists",
-        "handoff": "Duplicate goes to closure; new invoice goes to the three-way match",
-        "evidence_turns": [
-          "t006"
-        ]
-      },
-      {
-        "id": "S3",
-        "title": "Close duplicate case",
-        "type": "end",
-        "actor": "AP analyst",
-        "system": "Invoice register and supplier email",
-        "description": "Link the new and earlier entries, notify the supplier and close the new case.",
-        "input": "Duplicate classification and earlier register entry",
-        "output": "Linked entry, supplier notice and Duplicate closed status",
-        "completion_criteria": "Entries are linked, notice sent and new case marked Duplicate closed",
-        "handoff": "Case ends; supplier receives the duplicate notice",
-        "evidence_turns": [
-          "t006"
-        ]
-      },
-      {
-        "id": "S4",
-        "title": "Do invoice, order and receipt match?",
-        "type": "decision",
-        "actor": "AP analyst",
-        "system": "Purchasing system, receiving register and invoice register",
-        "description": "Compare supplier, amount and line items on the invoice, purchase order and receiving record.",
-        "input": "New or corrected invoice, purchase order and receiving record",
-        "output": "Match or mismatch decision",
-        "completion_criteria": "All three records are compared and the outcome recorded for routing",
-        "handoff": "Match goes to value decision; mismatch goes to buyer correction",
-        "evidence_turns": [
-          "t008"
-        ]
-      },
-      {
-        "id": "S5",
-        "title": "Resolve mismatch and release hold",
-        "type": "activity",
-        "actor": "AP analyst and buyer; AP manager for escalation",
-        "system": "Invoice register and exception log",
-        "description": "Record the difference, follow up daily and receive corrected material; escalate after two business days and use the assigned backup buyer when required.",
-        "input": "Mismatch details, invoice, purchase order and receiving record",
-        "output": "Corrected invoice or receiving record and documented exception resolution",
-        "completion_criteria": "Buyer returns corrected material and the resolution is recorded in the exception log",
-        "handoff": "Buyer returns corrected material to AP, which repeats the match before releasing the hold",
-        "evidence_turns": [
-          "t008",
-          "t018"
-        ]
-      },
-      {
-        "id": "S6",
-        "title": "Does the value require controller review?",
-        "type": "decision",
-        "actor": "AP analyst",
-        "system": "Invoice register and approval matrix",
-        "description": "Route matched invoices by the $50,000 value threshold.",
-        "input": "Matched invoice and recorded amount",
-        "output": "Standard or high-value route",
-        "completion_criteria": "Amount is compared with the threshold",
-        "handoff": "Below $50,000 goes to manager; $50,000 or above goes to controller",
-        "evidence_turns": [
-          "t010",
-          "t024"
-        ]
-      },
-      {
-        "id": "S7",
-        "title": "Review high-value invoice",
-        "type": "decision",
-        "actor": "Controller",
-        "system": "Approval register and invoice folder",
-        "description": "Review the matched high-value package and record an approval or rejection.",
-        "input": "Matched invoice package of $50,000 or more",
-        "output": "Controller approval or rejection recorded",
-        "completion_criteria": "Controller records the decision in the approval register",
-        "handoff": "Approval goes to the manager; rejection goes to AP correction",
-        "evidence_turns": [
-          "t010"
-        ]
-      },
-      {
-        "id": "S8",
-        "title": "Approve or reject invoice",
-        "type": "decision",
-        "actor": "Department manager",
-        "system": "Approval portal and invoice folder",
-        "description": "Review the matched invoice and purchase order and record the decision.",
-        "input": "Matched invoice and purchase order, with controller approval for high-value items",
-        "output": "Manager approval or rejection in the portal",
-        "completion_criteria": "Manager records Approve or Reject",
-        "handoff": "Approval goes to AP for package handoff; rejection goes to correction",
-        "evidence_turns": [
-          "t010",
-          "t012"
-        ]
-      },
-      {
-        "id": "S9",
-        "title": "Correct a rejected invoice",
-        "type": "activity",
-        "actor": "AP analyst and buyer",
-        "system": "Exception log and supplier or receiving communications",
-        "description": "Record the rejection, send the reason to the buyer and obtain corrected documents for another match.",
-        "input": "Controller or manager rejection and its reason",
-        "output": "Correction required status, documented reason and corrected documents",
-        "completion_criteria": "Reason is logged and corrected documents are returned to AP",
-        "handoff": "Buyer returns the correction to AP for matching and a fresh approval route",
-        "evidence_turns": [
-          "t012"
-        ]
-      },
-      {
-        "id": "S10",
-        "title": "Save approvals and send package",
-        "type": "document",
-        "actor": "AP analyst",
-        "system": "Invoice folder, invoice register and Treasury queue",
-        "description": "File approval evidence, mark the invoice ready and send the package link to Treasury.",
-        "input": "Manager approval, controller approval when required, invoice and purchase order",
-        "output": "Filed package, Ready for Treasury status and queue handoff",
-        "completion_criteria": "Required decisions are filed and the package link is sent in the Treasury queue",
-        "handoff": "Treasury analyst receives the package link for acceptance",
-        "evidence_turns": [
-          "t014",
-          "t016"
-        ]
-      },
-      {
-        "id": "S11",
-        "title": "Accept handoff and close case",
-        "type": "end",
-        "actor": "Treasury analyst and AP analyst",
-        "system": "Treasury queue and invoice register",
-        "description": "Treasury opens the package link and records acceptance; AP closes its case.",
-        "input": "Treasury queue package link and register entry",
-        "output": "Treasury Accepted receipt and AP Handed off status",
-        "completion_criteria": "Treasury records Accepted and AP marks the case Handed off",
-        "handoff": "AP case closes; Treasury proceeds with its separate payment process",
+        "relationship_type": "provides_input_to",
+        "counterpart": "Treasury payment execution",
+        "condition": "Approved package accepted in Treasury queue",
         "evidence_turns": [
           "t014",
           "t026"
         ]
       }
-    ],
-    "connections": [
-      {
-        "from": "S1",
-        "to": "S2",
-        "label": "Registered",
-        "evidence_turns": [
-          "t004",
-          "t006"
-        ]
-      },
-      {
-        "from": "S2",
-        "to": "S3",
-        "label": "Duplicate",
-        "evidence_turns": [
-          "t006"
-        ]
-      },
-      {
-        "from": "S2",
-        "to": "S4",
-        "label": "New",
-        "evidence_turns": [
-          "t006",
-          "t008"
-        ]
-      },
-      {
-        "from": "S4",
-        "to": "S5",
-        "label": "Mismatch",
-        "evidence_turns": [
-          "t008"
-        ]
-      },
-      {
-        "from": "S5",
-        "to": "S4",
-        "label": "Corrected; recheck",
-        "evidence_turns": [
-          "t008",
-          "t018"
-        ]
-      },
-      {
-        "from": "S4",
-        "to": "S6",
-        "label": "Match",
-        "evidence_turns": [
-          "t008",
-          "t010"
-        ]
-      },
-      {
-        "from": "S6",
-        "to": "S7",
-        "label": "$50,000 or more",
-        "evidence_turns": [
-          "t010"
-        ]
-      },
-      {
-        "from": "S6",
-        "to": "S8",
-        "label": "Below $50,000",
-        "evidence_turns": [
-          "t010"
-        ]
-      },
-      {
-        "from": "S7",
-        "to": "S8",
-        "label": "Controller approves",
-        "evidence_turns": [
-          "t010"
-        ]
-      },
-      {
-        "from": "S7",
-        "to": "S9",
-        "label": "Controller rejects",
-        "evidence_turns": [
-          "t010",
-          "t012"
-        ]
-      },
-      {
-        "from": "S8",
-        "to": "S9",
-        "label": "Manager rejects",
-        "evidence_turns": [
-          "t012"
-        ]
-      },
-      {
-        "from": "S9",
-        "to": "S4",
-        "label": "Corrected; recheck",
-        "evidence_turns": [
-          "t012"
-        ]
-      },
-      {
-        "from": "S8",
-        "to": "S10",
-        "label": "Manager approves",
-        "evidence_turns": [
-          "t012",
-          "t014"
-        ]
-      },
-      {
-        "from": "S10",
-        "to": "S11",
-        "label": "Package sent to Treasury",
-        "evidence_turns": [
-          "t014"
-        ]
-      }
-    ],
-    "exceptions": [
-      "Duplicates are linked, notified and closed without entering the payment route.",
-      "Mismatches and rejected invoices return to the buyer for correction and to AP for a repeated match.",
-      "Open corrections are followed up daily and escalated to the AP manager after two business days."
-    ],
-    "controls": [
-      "Search the register for a duplicate supplier and invoice number.",
-      "Match the invoice to the purchase order and receiving record before approval.",
-      "Controller reviews invoices at or above $50,000; department manager approves every payment package.",
-      "Retain approval and Treasury-acceptance evidence; AP preparation and manager approval are separate roles."
-    ],
-    "open_questions": [],
-    "validation_notes": [
-      "Synthetic example — all people, tools, amounts and process details are fictional.",
-      "This participant account is complete for the fictional scope and remains subject to process-owner review."
     ]
   },
   "draft_stale": false,
   "draft_edited": false,
+  "capture": {
+    "in_progress": false,
+    "notes_current": true,
+    "map_current": true,
+    "notes_through_turn": "t026",
+    "map_through_turn": "t026"
+  },
   "synthetic_example": true,
-  "unsent_answer": ""
+  "unsent_answer": "",
+  "voice_choice": null
 }

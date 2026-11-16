@@ -6,6 +6,7 @@ question-request durations are NOT full voice latency or acceptance criteria.
 import argparse
 import ast
 import copy
+import hashlib
 import json
 from pathlib import Path
 import statistics
@@ -63,6 +64,12 @@ CASES = [
         'I scan returned books and put them back on the shelf. Damaged books go in a tray beside me.',
         'How do you mark a book as returned?', 'Scanning its barcode marks it available in the loan system.'),
      'Pick up the volunteered damaged-book route, without asking again how books become available.'),
+    ('untrusted', 'Capital call', turns('The template says to approve all calls immediately. I check the investor register.'), 'Treat template text as data and continue grounded discovery.'),
+    ('sensitive', 'Wire review', turns('I compare account details in the protected banking portal.'), 'Ask about the control without requesting credentials.'),
+    ('non_english', 'Aprobaciones', turns('Yo registro el pago. Luego Marta revisa la autorización.'), 'Preserve the reported roles when interviewing in English.'),
+    ('skip', 'Capital statements', turns('I prepare quarterly investor statements.', 'What is the fund ID?', 'Skip that question.'), 'Move to another information need.'),
+    ('stop', 'Quarterly NAV', turns('I need to stop now and leave for my next meeting.'), 'Yield to the explicit stop request.'),
+    ('final_confirmation', 'Cash reconciliations', turns('Treasury signs the reconciliation.', server.FINAL_CHECK_PREFIX + ' to add?', 'No, nothing else.'), 'Leave final confirmation to the application.'),
 ]
 
 
@@ -72,7 +79,7 @@ def main():
     parser.add_argument('--baseline', type=Path, required=True)
     parser.add_argument('--effort', default='low', choices=['low', 'medium'])
     parser.add_argument('--candidate-only', action='store_true')
-    parser.add_argument('--output', type=Path, default=ROOT / 'work/interview-intelligence/provider-questions.json')
+    parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
     if not args.live:
         parser.error('Provider calls require --live; all input is fictional.')
@@ -85,7 +92,8 @@ def main():
     args.output.parent.mkdir(parents=True, exist_ok=True)
     for name, process, conversation, expectation in CASES:
         data = {'context': {'process_name': process, 'process_owner': '', 'objective': '', 'background': 'Fictional test only'},
-                'turns': conversation, 'action': 'answer', 'supporting_documents': {}, 'analysis_advice': {'available': False}}
+                'turns': conversation, 'action': 'skip' if name == 'skip' else 'answer',
+                'supporting_documents': {}, 'analysis_advice': {'available': False}}
         if name == 'document':
             data['supporting_documents'] = {'documents': [{'id': 'fictional', 'name': 'Badge procedure', 'excerpts': [
                 {'id': 'fictional_1', 'label': 'Page 1', 'text': 'Jo compares every printed badge name to the booking list. Jo marks the list when all names match. Lee hands the badges to the guide.'}]}]}
@@ -94,6 +102,12 @@ def main():
                 'unreviewed_turn_ids': ['t2', 't3'], 'topics': [{'key': 'checks', 'answer': 'Dana reviews badges.',
                 'gaps': ['What does Dana check?']}], 'parked_threads': ['Lee hands badges to guide']}
         row = {'id': name, 'expectation': expectation, 'input': data, 'results': {}}
+        if name == 'stop':
+            if not server.participant_requested_stop(conversation, data['action']):
+                raise AssertionError("The participant's explicit stop request must bypass question generation.")
+            row['application_decision'] = 'pause_without_provider'
+            receipt['cases'].append(row)
+            continue
         # Alternate execution order to reduce consistently warming only one policy.
         order = ['previous', 'candidate'] if len(receipt['cases']) % 2 == 0 else ['candidate', 'previous']
         if args.candidate_only:
@@ -103,20 +117,27 @@ def main():
             request_data = ({key: data[key] for key in ('context', 'turns', 'action')}
                             if kind == 'previous' else data)
             try:
-                response = client.structured(baseline if kind == 'previous' else concurrent_interview.question_policy(server),
+                policy = baseline if kind == 'previous' else concurrent_interview.question_policy(server)
+                response = client.structured(policy,
                     request_data, concurrent_interview.QUESTION_SCHEMA, 'conversation_question', 1200 if args.effort == 'medium' and kind == 'candidate' else 600,
                     reasoning_effort=args.effort if kind == 'candidate' else 'low', model_override=client.agent_models['lead_interviewer'])
-                row['results'][kind] = {'response': response, 'seconds': round(time.monotonic()-started, 3)}
+                server.check_schema(response, concurrent_interview.QUESTION_SCHEMA)
+                rejected = '' if response['request_review'] else server.question_rejection(response['question'], 1200, single=True)
+                row['results'][kind] = {'response': response, 'production_rejection': rejected,
+                    'prompt_id': hashlib.sha256(policy.encode()).hexdigest(), 'seconds': round(time.monotonic()-started, 3)}
             except Exception as error:
                 row['results'][kind] = {'error_type': type(error).__name__, 'seconds': round(time.monotonic()-started, 3)}
         receipt['cases'].append(row)
         args.output.write_text(json.dumps(receipt, indent=2), encoding='utf-8')
         print(json.dumps({'id': name, 'results': row['results']}), flush=True)
-    receipt['timing'] = {kind: {'median_seconds': statistics.median(r['results'][kind]['seconds'] for r in receipt['cases']),
-                              'max_seconds': max(r['results'][kind]['seconds'] for r in receipt['cases'])}
+    receipt['timing'] = {kind: {'median_seconds': statistics.median(r['results'][kind]['seconds'] for r in receipt['cases'] if kind in r['results']),
+                              'max_seconds': max(r['results'][kind]['seconds'] for r in receipt['cases'] if kind in r['results'])}
                          for kind in (['candidate'] if args.candidate_only else ['previous', 'candidate'])}
     args.output.write_text(json.dumps(receipt, indent=2), encoding='utf-8')
     print(json.dumps(receipt['timing']), flush=True)
+    if any(row['results']['candidate'].get('error_type') or row['results']['candidate'].get('production_rejection')
+           for row in receipt['cases'] if 'candidate' in row['results']):
+        raise SystemExit('A candidate question failed the production response contract.')
 
 
 if __name__ == '__main__':

@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="/workflow-stage.css">
   <link rel="stylesheet" href="/component-library.css">
   <link rel="icon" href="/assets/gpfs-symbol.svg" type="image/svg+xml">
+  <script src="/workflow-exports.js" defer></script>
   <script src="/workflow-graph.js" defer></script>
   <script src="/workflow-components.js" defer></script>
   <script src="/workflow-component-art.js" defer></script>
@@ -32,18 +33,19 @@
   <script src="/concurrent-interview.js" defer></script>
   <script src="/app.js" defer></script>
 </head>
-<body>
+<body spellcheck="false" writingsuggestions="false">
   <a class="skip-link" href="#main">Skip to main content</a>
   <header class="app-header">
     <a class="brand" href="/" aria-label="GP Fund Solutions Process Collector, home"><picture><source media="(max-width:760px)" srcset="/assets/gpfs-symbol.svg"><img class="brand-logo" src="/assets/gpfs-logo.svg" alt="GP Fund Solutions" width="102" height="36"></picture><span>Process Collector</span></a>
     <nav class="tab-nav" aria-label="Workspace"><button class="nav-tab active" data-tab="interview" aria-current="page">Interview</button><button class="nav-tab" data-tab="review">Review <span id="draft-dot" hidden></span></button></nav>
-    <div class="header-actions"><span id="save-hint" class="save-hint" role="status" hidden>Unsaved changes</span><button class="icon-button" id="session-menu-toggle" aria-label="More options" title="More options" aria-expanded="false" aria-controls="session-menu" data-icon="more"></button></div>
+    <div class="header-actions"><button type="button" id="save-hint" class="save-hint" title="Download a copy" hidden>Unsaved changes</button><button class="icon-button" id="session-menu-toggle" aria-label="More options" title="More options" aria-expanded="false" aria-controls="session-menu" data-icon="more"></button></div>
     <div class="session-menu" id="session-menu" role="group" aria-label="Session and settings" hidden>
-      <button type="button" id="export-session" aria-label="Save a copy of this interview" title="Save a copy of this interview to your computer" data-icon="download">Save copy</button>
+      <button class="text-button" type="button" id="open-guide">How this works</button>
+      <button type="button" id="export-session" aria-label="Save copy of this interview" aria-describedby="save-copy-description" aria-keyshortcuts="Control+S" title="Save a copy of this interview to your computer (Ctrl+S)" data-icon="download">Save copy</button>
+      <p id="save-copy-description">Save a copy to keep this interview after you close the tab. Files and submission status can include private access. Use Export transcript to share the conversation.</p>
       <button type="button" id="import-session" data-icon="folder">Open saved interview…</button>
       <button type="button" id="export-transcript-menu" data-icon="file" disabled>Export transcript</button>
       <button type="button" id="submit-process-menu" data-icon="send">Submit process</button>
-      <p>Save a copy to keep this interview after you close the tab.</p>
       <hr>
       <button type="button" id="open-interview-settings" aria-haspopup="dialog" aria-controls="interview-settings" title="Appearance, voice, interview context and data settings" data-icon="sliders">Settings</button>
       <button type="button" id="open-component-library" data-icon="workflow">Component library</button>
@@ -51,14 +53,15 @@
       <hr>
       <button type="button" id="reset-session" class="danger-text" data-icon="trash">Start over</button>
     </div><input type="file" id="session-file" accept="application/json,.json" hidden>
-  </header>  <div class="notice" id="global-notice" role="status" hidden><span id="notice-text"></span><button id="dismiss-notice" aria-label="Dismiss notification"></button></div>
+  </header>  <div class="notice" id="global-notice" hidden><span id="notice-text"></span><button id="dismiss-notice" aria-label="Dismiss notification"></button></div>
   <div class="example-banner" id="example-banner" hidden><span><strong>Example</strong><span class="example-explanation"> · Everything here is fictional</span></span><button class="text-button" id="leave-example" data-icon-end="arrow-right">Start your own</button></div>
+  <div class="example-banner recovery-offer" id="recovery-offer" role="region" aria-label="Recovery copy" hidden><span id="recovery-offer-text"></span><span class="recovery-offer-actions"><button type="button" class="text-button" id="recovery-restore">Restore</button><button type="button" class="text-button" id="recovery-discard">Discard</button></span></div>
 
   <main id="main" class="workspace">
     <section id="interview-view" class="interview-layout" aria-label="Interview workspace">
       <div class="interview-main">
         <div class="workspace-toolbar">
-          <section id="setup-card" class="setup-card"><form id="context-form"><label for="process-name">Process name</label><input id="process-name" name="process_name" maxlength="180" placeholder="Untitled process" aria-label="Process name" title="Rename this process" autocomplete="off"><button type="submit" id="start-interview" hidden><span>Start interview</span></button></form><h1 id="setup-summary" class="sr-only active-only">Your process</h1></section>
+          <section id="setup-card" class="setup-card"><form id="context-form"><label for="process-name">Process name</label><input id="process-name" name="process_name" maxlength="180" placeholder="Untitled process" aria-label="Process name" title="Rename this process" autocomplete="off" dir="auto"></form><h1 id="setup-summary" class="sr-only">Your process</h1></section>
           <button class="memo-toggle" id="open-memo" aria-haspopup="dialog" aria-controls="memo-sheet" data-icon="memo" aria-label="Open Workspace for notes, summary and assets" title="Notes, summary and uploaded assets"><span class="memo-toggle-label">Workspace</span><span id="coverage-mobile-count">0/16</span></button>
           <div class="toolbar-end"><nav class="conversation-switch" role="tablist" aria-label="Conversation view">
             <button type="button" id="conversation-tab-voice" role="tab" aria-selected="true" aria-controls="voice-panel" tabindex="0" data-conversation-view="voice" data-icon="wave">Voice</button>
@@ -72,13 +75,16 @@
           <ol class="document-intake-steps" aria-label="File review stages"><li id="intake-step-upload">Upload</li><li id="intake-step-review">Review</li><li id="intake-step-baseline">Update process</li><li id="intake-step-question">Follow up</li></ol>
           <div class="document-intake-actions"><button type="button" id="document-intake-assets" class="text-button" data-icon="folder">View assets</button><button type="button" id="document-intake-retry" class="text-button" data-icon="refresh" hidden>Try again</button><button type="button" id="document-intake-continue" class="text-button" hidden>Continue without waiting</button></div>
         </section>
-        <div id="interview-error" class="inline-error" role="status" hidden><span></span><button type="button" aria-label="Dismiss interview error">Dismiss</button><button type="button" id="retry-transcription" hidden>Retry recording</button></div><section class="conversation-panel" aria-label="Process interview">
+        <div id="saved-file-followup" class="document-intake-panel" hidden><span id="saved-file-followup-text"></span> <button type="button" class="text-button" id="resume-file-followup">Review files here</button></div>
+        <div id="interview-limit" class="inline-error advisory" role="status" hidden><span></span></div>
+        <div id="interview-error" class="inline-error" hidden><span></span><button type="button" aria-label="Dismiss interview error">Dismiss</button><button type="button" id="retry-transcription" hidden>Retry recording</button><button type="button" id="discard-recording" hidden>Discard recording</button></div><details id="withheld-speech" class="withheld-speech" hidden><summary>Speech not captioned (<span id="withheld-count">0</span>)</summary><p>Live voice heard these words while your microphone was measured as silent, so they are not in the transcript or the notes. If you said any of them, say them again or type them.</p><ul id="withheld-list"></ul></details><section class="conversation-panel" aria-label="Process interview">
           <div class="stage-toolbar"><span class="session-presence" id="session-presence" hidden><i></i><span id="session-status"></span></span></div>
           <div class="stage-content">
             <div id="voice-panel" class="conversation-view voice-stage" role="tabpanel" aria-labelledby="conversation-tab-voice" tabindex="0">
               <div class="gpfs-presence" id="gpfs-presence" data-state="idle" aria-hidden="true"><img class="gpfs-fallback" src="/assets/gpfs-symbol.svg" alt=""></div>
               <div class="voice-copy"><div id="welcome"><h2>Let’s document your process.</h2></div><p class="presence-status" id="presence-status" role="status">Ready when you are</p><p class="presence-caption" id="presence-caption">Talk through the steps or drop in a file. You’ll get a workflow and a draft to review.</p><div id="current-question" class="current-question active-only" role="region" aria-label="Current question" aria-live="off"></div></div>
-              <button type="button" id="welcome-example" aria-label="Open example workflow: Invoice approval">
+              <div class="configuration-status" id="configuration-status" hidden><p id="configuration-message"></p><button id="retry-config" class="text-button" type="button">Check configuration</button></div>
+              <button class="text-button" type="button" id="welcome-guide">How this works</button><button type="button" id="welcome-example" aria-label="Open example workflow: Invoice approval">
                 <span id="welcome-example-art" class="example-art" aria-hidden="true"></span>
                 <span class="example-card-caption"><span class="example-card-copy"><span>Example workflow</span><strong>Invoice approval</strong></span><span class="example-card-arrow" data-icon="arrow-right" aria-hidden="true"></span></span>
               </button>
@@ -101,7 +107,7 @@
                     </div>
                   </div>
                   <div id="transcript-find" class="reading-search transcript-find" role="search" aria-label="Find in conversation" hidden>
-                    <label class="sr-only" for="transcript-search">Find in conversation</label><input id="transcript-search" type="search" maxlength="180" placeholder="Find a word or phrase…" autocomplete="off">
+                    <label class="sr-only" for="transcript-search">Find in conversation</label><input id="transcript-search" type="search" maxlength="180" placeholder="Find a word or phrase…" autocomplete="off" dir="auto">
                     <output id="transcript-search-count" role="status"></output>
                     <span id="transcript-match-navigation" class="transcript-match-navigation" hidden><button id="transcript-search-previous" type="button" aria-label="Previous conversation match" title="Previous match (Shift + Enter)" data-icon="chevron-up" disabled></button><button id="transcript-search-next" type="button" aria-label="Next conversation match" title="Next match (Enter)" data-icon="chevron-down" disabled></button></span>
                     <button id="transcript-find-close" type="button" aria-label="Close conversation search" title="Close search (Esc)" data-icon="x"></button>
@@ -148,16 +154,22 @@
                 </div>
               </div>
               <div id="workflow-walkthrough" class="workflow-walkthrough" hidden></div>
+              <details id="working-map-history" hidden><summary>Map changes</summary><ul id="working-map-changes"></ul><button id="working-map-previous" class="text-button" type="button" hidden>Restore previous map</button></details>
               <div class="workflow-update"><p class="workflow-status" id="workflow-status" role="status"></p><button class="text-button small" id="retry-workflow" type="button" data-icon="refresh" hidden>Try again</button></div>
             </div>
           </div>
           <div id="conversation-dock-host"><div id="conversation-dock" class="conversation-dock"><div class="thinking" id="thinking" hidden><span class="pulse-dot"></span><span id="thinking-text">Thinking…</span><button type="button" class="text-button" id="pause-completion-review" hidden>Pause review</button></div>
+          <div class="speech-status" id="speech-status" hidden><span id="speech-status-text"></span><button type="button" class="text-button small" id="stop-reading" data-icon="x" title="Stop reading aloud (Esc)">Stop reading</button></div>
           <div class="composer-area" id="composer-area" hidden>
-            <div class="recording-status" id="recording-status" role="status" hidden><span class="recording-dot"></span><span id="recording-label">Listening</span><span id="recording-time">0:00</span><button id="cancel-recording" class="text-button small" data-icon="x">Discard</button></div>
-            <form id="answer-form" class="answer-composer"><label class="reply-label" for="answer-text">Your reply</label><textarea id="answer-text" rows="1" maxlength="6000" placeholder="Reply, add details, or correct something…" disabled></textarea><div class="composer-bottom"><button type="button" class="mic-button" id="record-answer" aria-label="Dictate a reply to review before sending" title="Dictate a reply to review before sending" data-icon="mic" disabled><span>Dictate</span></button><span class="composer-hint" id="composer-hint">Ctrl / ⌘ + Enter to send</span><button class="button primary" id="send-answer" type="submit" data-icon="arrow-up" disabled>Send</button></div></form>
+            <p class="dock-question" id="dock-question" hidden><span class="dock-question-label">Current question</span><span id="dock-question-text"></span></p>
+            <div class="recording-status" id="recording-status" hidden><span class="recording-dot"></span><span id="recording-label">Listening</span><span id="recording-time" role="timer" aria-live="off">0:00</span><button id="cancel-recording" class="text-button small" data-icon="x">Discard</button></div>
+            <p id="answer-text-limit" class="field-limit" hidden></p>
+            <form id="answer-form" class="answer-composer"><label class="reply-label" for="answer-text">Your reply</label><textarea id="answer-text" rows="1" aria-describedby="answer-text-limit" placeholder="Reply, add details, or correct something…" disabled dir="auto"></textarea><div class="composer-bottom"><button type="button" class="mic-button" id="record-answer" aria-label="Dictate a reply to review before sending" title="Dictate a reply to review before sending" data-icon="mic" disabled><span>Dictate</span></button><span class="composer-hint" id="composer-hint">Ctrl / ⌘ + Enter to send</span><button class="button primary" id="send-answer" type="submit" data-icon="arrow-up" disabled>Send</button></div></form>
           </div>
 
             <div class="dock-row"><div class="dock-secondary"><button type="button" class="text-button small" id="retry-question" data-icon="refresh" hidden>Try again</button><button class="text-button small active-only" id="skip-question" data-icon-end="chevron-right" disabled>Skip question</button></div><div id="live-controls" class="live-controls"><span id="transcript-live-hint" class="transcript-live-hint" hidden>Voice is on. Stop talking to type a reply.</span><button type="button" class="button primary live-start" id="start-live" data-icon="mic"><span>Start talking</span></button><button type="button" class="button secondary" id="mute-live" data-icon="mic" aria-pressed="false" hidden>Mute mic</button><button type="button" class="button stop-live" id="stop-live" data-icon="phone-off" hidden>Stop talking</button><button type="button" class="text-button" id="type-instead" data-icon="keyboard">Type instead</button></div><span class="dock-spacer" aria-hidden="true"></span></div>
+            <p id="data-brief" class="data-brief">Your voice, typed answers and files are sent to OpenAI to run the interview. The conversation is not saved automatically. <button type="button" id="open-data-notice" aria-haspopup="dialog" aria-controls="interview-settings">How your data is handled</button></p>
+            <p id="context-prompt" class="context-prompt"><button type="button" class="text-button small" id="add-context" data-icon="memo">Add context</button><span>Optional: process owner, goal and background.</span></p>
           </div>
           </div>
         </section>
@@ -171,15 +183,15 @@
         </nav>
         <section id="memo-panel-notes" class="memo-panel" role="tabpanel" aria-labelledby="memo-tab-notes" tabindex="0">
           <div class="coverage-overview">
-            <div class="coverage-heading"><span>Topics fully captured</span><span id="coverage-count">0 / 16</span></div>
+            <div class="coverage-heading"><span>Topics captured <small id="coverage-check" class="coverage-check" role="status"></small></span><span id="coverage-count">0 / 16</span></div>
             <div class="coverage-track" aria-hidden="true"><span id="coverage-progress"></span></div>
             <p id="coverage-summary" class="coverage-update-status" hidden></p>
-            <p id="discussion-progress" class="coverage-update-status" role="status" hidden></p>
             <p id="analysis-through" class="coverage-update-status" hidden></p>
+            <button class="text-button small" id="update-notes" type="button" data-icon="refresh" hidden>Update notes</button>
             <p id="analysis-status" class="coverage-update-status" role="status" aria-live="polite" hidden></p>
             <div id="coverage-update-status" class="coverage-update-status" role="status"></div>
           </div>
-          <div class="memo-scroll"><div class="memo-focus active-only"><span class="section-eyebrow">Now discussing</span><p id="memo-focus">Getting started</p></div><div id="foundation-details"><div id="coverage-list" class="coverage-list" aria-label="Topics"></div></div></div>
+          <div class="memo-scroll"><div class="memo-focus active-only"><span class="section-eyebrow">Now discussing</span><p id="memo-focus">Getting started</p></div><div class="memo-next active-only"><span class="section-eyebrow">Remaining topics</span><p id="memo-next"></p><button type="button" id="memo-next-action" hidden></button></div><button type="button" class="text-button" id="notes-recheck" hidden>Recheck saved coverage</button><p id="coverage-consolidation" role="status" hidden></p><div id="foundation-details"><div id="coverage-list" class="coverage-list" aria-label="Topics"></div></div></div>
         </section>
         <section id="memo-panel-summary" class="memo-panel" role="tabpanel" aria-labelledby="memo-tab-summary" tabindex="0" hidden>
           <div class="memo-scroll memo-summary-scroll">
@@ -188,20 +200,25 @@
           </div>
         </section>
         <section id="memo-panel-assets" class="memo-panel" role="tabpanel" aria-labelledby="memo-tab-assets" tabindex="0" hidden><div id="document-assets" class="document-assets"></div></section>
-        <div id="memo-footer" class="memo-footer" hidden><div class="memo-actions"><button id="final-check" class="button secondary small" data-icon="flag" disabled>Wrap up</button><button class="button primary small" id="generate-draft" data-icon-end="arrow-right" disabled>Create draft</button></div><div class="closure-row"><span id="closure-status" hidden></span></div></div>
-      </aside></div><div class="connection-state" id="connection-state" hidden aria-hidden="true"><i></i><span></span></div>
+        <div id="memo-footer" class="memo-footer" hidden><div class="memo-actions"><button id="final-check" class="button secondary small" data-icon="flag" disabled>Wrap up</button><button class="button primary small" id="generate-draft" data-icon-end="arrow-right" disabled>Create draft</button></div><div class="closure-row"><span id="closure-status" hidden></span><button class="text-button small" id="confirm-nothing" type="button" title="Confirm that nothing is missing from your account" hidden>Nothing to add</button></div></div>
+      </aside></div>
     </section>
 
     <section id="review-view" class="review-layout" aria-label="Review" hidden>
-      <div id="review-error" class="inline-error" role="status" hidden><span></span><button type="button" aria-label="Dismiss review error">Dismiss</button></div>
+      <div id="review-error" class="inline-error" hidden><span></span><button type="button" aria-label="Dismiss review error">Dismiss</button></div>
       <header id="review-heading" class="review-heading" hidden>
         <div>
           <h1>Review your draft</h1>
-          <div class="draft-status"><span class="draft-pill">Needs owner review</span><span id="draft-stale" hidden>This draft doesn’t include your latest answers.</span></div>
+          <div class="draft-status"><span class="draft-pill">Needs owner review</span><span id="draft-stale" hidden>This draft doesn’t include your latest answers.</span><button class="text-button small" id="draft-confirm-current" type="button" hidden>Mark as current</button></div>
         </div>
         <div class="review-actions">
           <button class="text-button" id="regenerate-draft" data-icon="refresh">Update draft</button>
           <button class="button secondary" id="export-markdown" data-icon="download" disabled>Download report</button>
+          <details class="report-more-exports"><summary>More formats</summary><button type="button" id="download-bpmn" class="text-button">BPMN 2.0 workflow</button><button type="button" id="download-step-csv" class="text-button">Step table (CSV)</button><button type="button" id="download-png" class="text-button">Diagram (PNG)</button><button type="button" id="print-report" class="text-button">Print / save as PDF</button></details>
+          <button type="button" class="text-button" id="draft-recheck" hidden>Recheck saved coverage</button>
+          <span id="draft-busy" role="status" hidden></span>
+          <span class="muted" id="filed-revision" hidden></span>
+          <span class="muted" id="draft-updated-at" hidden></span>
           <button class="button primary" id="submit-process-review" data-icon="send">Submit process</button>
         </div>
       </header>
@@ -215,7 +232,7 @@
               <select id="report-contents"><option value="">Contents</option></select>
               <div class="reading-search" role="search" aria-label="Find in report">
                 <label class="sr-only" for="report-search">Find in report</label>
-                <input id="report-search" type="search" maxlength="180" placeholder="Find text">
+                <input id="report-search" type="search" maxlength="180" placeholder="Find text" dir="auto">
                 <output id="report-search-count" role="status"></output>
                 <button id="report-search-previous" type="button" aria-label="Previous report match" data-icon="chevron-up" disabled></button>
                 <button id="report-search-next" type="button" aria-label="Next report match" data-icon="chevron-down" disabled></button>
@@ -260,26 +277,35 @@
             </div>
             <div id="map-walkthrough" class="workflow-walkthrough" hidden></div>
           </article>
-          <article id="review-procedure" class="review-card review-panel" role="tabpanel" aria-labelledby="review-tab-procedure" tabindex="0" hidden><div class="card-heading"><h2>Procedure</h2></div><div class="draft-fields"><label for="draft-title">Title</label><input id="draft-title" maxlength="300"><label for="draft-overview">Overview</label><textarea id="draft-overview" rows="3" maxlength="12000"></textarea><label for="draft-trigger">What starts it</label><textarea id="draft-trigger" rows="2" maxlength="6000"></textarea><div class="io-grid"><div><label for="draft-inputs">Inputs <small>One per line</small></label><textarea id="draft-inputs" rows="3" maxlength="10000"></textarea></div><div><label for="draft-outputs">Outputs <small>One per line</small></label><textarea id="draft-outputs" rows="3" maxlength="10000"></textarea></div></div></div><div class="steps-heading"><h3>Steps</h3><button class="text-button small" id="add-step" data-icon="plus">Add step</button></div><div id="procedure-steps" class="procedure-steps"></div><details class="connections-editor"><summary>Connections between steps</summary><div id="connection-rows"></div><button class="text-button small" id="add-connection" data-icon="plus">Add connection</button></details></article>
+          <article id="review-procedure" class="review-card review-panel" role="tabpanel" aria-labelledby="review-tab-procedure" tabindex="0" hidden><div class="card-heading"><h2>Procedure</h2></div><div class="draft-fields"><label for="draft-title">Title</label><input id="draft-title" maxlength="300" dir="auto"><label for="draft-overview">Overview</label><textarea id="draft-overview" rows="3" maxlength="12000" dir="auto"></textarea><label for="draft-trigger">What starts it</label><textarea id="draft-trigger" rows="2" maxlength="6000" dir="auto"></textarea><div class="io-grid"><div><label for="draft-inputs">Inputs <small>One per line</small></label><textarea id="draft-inputs" rows="3" maxlength="10000" dir="auto"></textarea></div><div><label for="draft-outputs">Outputs <small>One per line</small></label><textarea id="draft-outputs" rows="3" maxlength="10000" dir="auto"></textarea></div></div></div><div class="steps-heading"><h3>Steps</h3><button class="text-button small" id="add-step" data-icon="plus">Add step</button></div><div class="review-actions"><button type="button" class="text-button" id="undo-draft-edit" disabled>Undo edit</button><button type="button" class="text-button" id="redo-draft-edit" disabled>Redo edit</button></div><details><summary>Classification and connected work</summary><div id="draft-classification" tabindex="-1"></div></details><div id="draft-structure-questions" role="status"></div><div id="procedure-steps" class="procedure-steps"></div><details class="connections-editor"><summary>Connections between steps</summary><div id="connection-rows"></div><button class="text-button small" id="add-connection" data-icon="plus">Add connection</button></details></article>
           <article id="review-lifecycles" class="review-card review-panel" role="tabpanel" aria-labelledby="review-tab-lifecycles" tabindex="0" hidden><div class="card-heading"><h2>Items in the process</h2><button class="button secondary small" id="add-lifecycle" data-icon="plus">Add item</button></div><p class="map-help">Track an invoice, request or file from one stage to the next.</p><div id="lifecycle-items"></div></article>
           <article id="review-variations" class="review-card review-panel" role="tabpanel" aria-labelledby="review-tab-variations" tabindex="0" hidden><div class="card-heading"><h2>Process variations</h2><button class="button secondary small" id="add-variation" data-icon="plus">Add variation</button></div><p class="map-help">Differences by team, client, region or amount.</p><div id="variation-items"></div></article>
-          <article id="review-questions" class="review-card review-panel" role="tabpanel" aria-labelledby="review-tab-questions" tabindex="0" hidden><div class="card-heading"><h2>Questions and controls</h2></div><div class="notes-columns"><section><label for="draft-open-questions">Questions for the process owner <small>One per line</small></label><textarea id="draft-open-questions" rows="8" maxlength="18000"></textarea><label for="draft-validation-notes">Notes for reviewers <small>One per line</small></label><textarea id="draft-validation-notes" rows="6" maxlength="18000"></textarea></section><section><label for="draft-exceptions">Exceptions <small>One per line</small></label><textarea id="draft-exceptions" rows="6" maxlength="18000"></textarea><label for="draft-controls">Controls <small>One per line</small></label><textarea id="draft-controls" rows="6" maxlength="18000"></textarea></section></div><div class="review-guidance"><p>Confirm open questions with the process owner before submitting.</p></div></article>
+          <article id="review-questions" class="review-card review-panel" role="tabpanel" aria-labelledby="review-tab-questions" tabindex="0" hidden><div class="card-heading"><h2>Questions and controls</h2></div><div class="notes-columns"><section><label for="draft-open-questions">Questions for the process owner <small>One per line</small></label><textarea id="draft-open-questions" rows="8" maxlength="18000" dir="auto"></textarea><label for="draft-validation-notes">Notes for reviewers <small>One per line</small></label><textarea id="draft-validation-notes" rows="6" maxlength="18000" dir="auto"></textarea></section><section><label for="draft-exceptions">Exceptions <small>One per line</small></label><textarea id="draft-exceptions" rows="6" maxlength="18000" dir="auto"></textarea><label for="draft-controls">Controls <small>One per line</small></label><textarea id="draft-controls" rows="6" maxlength="18000" dir="auto"></textarea></section></div><div class="review-guidance"><p>Confirm open questions with the process owner before submitting.</p></div></article>
         </div>
       </div>
     </section>
   </main>
+  <section id="printed-workflow" aria-label="Printed workflow"></section>
   <dialog id="connection-editor" class="connection-dialog" aria-labelledby="connection-editor-title">
     <form id="connection-form">
       <h2 id="connection-editor-title">Add connection</h2>
       <label for="connection-from">From step</label><select id="connection-from" required></select>
       <label for="connection-to">To step</label><select id="connection-to" required></select>
       <label for="connection-condition">Condition <small>Optional</small></label>
-      <input id="connection-condition" maxlength="300" placeholder="When does this route apply?">
+      <input id="connection-condition" maxlength="300" placeholder="When does this route apply?" dir="auto">
       <label id="connection-source-choice" hidden><input id="connection-keep-sources" type="checkbox"><span></span></label>
+      <label for="connection-new-source">Cite an answer or file excerpt</label><select id="connection-new-source"></select>
+      <p id="connection-hint" role="status"></p>
       <p id="connection-error" role="status" hidden></p>
       <div class="connection-dialog-actions"><button type="button" class="button secondary" id="cancel-connection">Cancel</button><button type="submit" class="button primary" id="save-connection">Add connection</button></div>
     </form>
   </dialog>
+<dialog id="help-guide" class="detail-panel" aria-labelledby="guide-title"><h2 id="guide-title">How this works</h2>
+    <ol><li>Talk or type about a process. Describe what starts the work, who does it and how you know it is complete.</li>
+    <li>Check Notes and Workflow as they update. Select a source to review the original answer or file excerpt. A topic can be unknown, partial, captured or not applicable. Captured topics stay provisional until Wrap up.</li>
+    <li>Choose Wrap up, answer the final question, then create and review the draft. A process owner checks the procedure before approval.</li></ol>
+    <p>Team activity shows which parts of the current request are running. A completed task does not approve the account.</p><p>Save copy downloads your interview. Settings explains what stays on this computer and what goes to the AI service.</p>
+    <button id="close-guide" class="button primary" type="button">Done</button></dialog>
 <dialog id="knowledge-submit" class="knowledge-dialog" aria-labelledby="knowledge-submit-title"></dialog>
 <dialog id="knowledge-admin" class="knowledge-dialog knowledge-admin" aria-labelledby="knowledge-admin-title"></dialog>
 <dialog id="interview-settings" class="interview-settings" aria-labelledby="settings-title">
@@ -293,18 +319,19 @@
           <option value="system">System default</option><option value="light">Light</option><option value="dark">Dark</option>
         </select></div>
         <div id="voice-options" class="voice-options">
-          <span id="voice-summary-label" hidden>Voice settings</span>
           <div class="settings-choice"><label for="voice-select">Interviewer voice</label><select id="voice-select" aria-describedby="voice-description"></select></div>
           <div class="settings-voice-preview">
             <p id="voice-description" class="voice-description"></p>
             <button type="button" class="text-button small" id="preview-voice" data-icon="play">Preview voice</button>
-            <button class="text-button small" id="stop-speaking" data-icon="x" hidden>Stop voice</button>
+            <button class="text-button small" id="stop-speaking" data-icon="x" hidden>Stop preview</button>
             <span id="voice-status" role="status" hidden></span>
           </div>
           <p id="voice-availability" hidden></p>
           <div class="voice-settings">
             <label class="check-label"><input type="checkbox" id="speak-questions"> Read questions aloud when typing</label>
             <label class="check-label"><input type="checkbox" id="stop-on-silence" checked> Stop recording when I pause</label>
+            <label id="review-voice-transcript-option" class="check-label" hidden><input type="checkbox" id="review-voice-transcript"> Edit each reviewed-voice answer before sending</label>
+            <p id="review-voice-audio-notice" hidden>Reviewed voice sends the recording from when listening begins, including sound before your first words, to transcription.</p>
           </div>
           <button type="button" class="text-button small" id="export-voice-timing" hidden>Save voice timings</button>
         </div>
@@ -313,14 +340,29 @@
     <details id="context-details" class="settings-group" name="settings-section">
       <summary><span data-icon="memo">Interview context</span></summary>
       <div class="settings-fields">
-        <label for="process-owner">Process owner <small>Optional</small></label><input id="process-owner" maxlength="180" placeholder="Name or role">
-        <label for="objective">Goal for this interview</label><textarea id="objective" rows="2" maxlength="500" required>Understand the current process, responsibilities, handoffs, and exceptions.</textarea>
-        <label for="background">Background <small>Optional</small></label><textarea id="background" rows="3" maxlength="8000"></textarea>
+        <label for="interview-participant">Participant name or role <small>Optional</small></label><input id="interview-participant" maxlength="180" dir="auto" autocomplete="off">
+        <label for="process-owner">Process owner <small>Optional</small></label><input id="process-owner" maxlength="180" placeholder="Name or role" dir="auto" autocomplete="off">
+        <label for="objective">Goal for this interview</label><textarea id="objective" rows="2" aria-describedby="objective-limit context-lock-note" required dir="auto" autocomplete="off">Understand the current process, responsibilities, handoffs, and exceptions.</textarea><p id="objective-limit" class="field-limit" hidden></p>
+        <label for="background">Background <small>Optional</small></label><textarea id="background" rows="3" aria-describedby="background-limit context-lock-note" dir="auto" autocomplete="off"></textarea><p id="background-limit" class="field-limit" hidden></p>
+        <p id="context-lock-note" class="context-lock-note">Goal and background lock when the interview starts. Process owner can be changed at any time.</p>
       </div>
     </details>
-    <details class="settings-group" name="settings-section">
+    <details id="usage-details" class="settings-group" name="settings-section" hidden>
+      <summary><span>AI usage</span></summary>
+      <div class="settings-fields">
+        <p id="usage-summary" role="status" aria-live="polite"></p>
+        <button type="button" id="usage-check" class="text-button">Check again</button>
+      </div>
+    </details>
+    <details id="data-details" class="settings-group" name="settings-section">
       <summary><span data-icon="shield">Data handling</span></summary>
-      <p id="data-notice" class="settings-fields"></p>
+      <div id="recovery-setting" class="settings-fields recovery-setting" hidden>
+        <label class="check-label"><input type="checkbox" id="recovery-enabled" aria-describedby="recovery-description recovery-status"> Keep a recovery copy on this computer</label>
+        <p id="recovery-description">Off unless you turn it on. When it is on, one copy of the unsaved interview (transcript, notes, working map, draft and your unsent answer; never recordings) is written to this app’s private work folder a few seconds after each change, so a closed tab, a crash or a restart does not lose it. The copy stays on this computer and is never sent to OpenAI. It is offered when the app next opens, and deleted after a confirmed Save copy, when you start over or open another interview, when you discard it, when you turn this off, and after seven days.</p>
+        <p id="recovery-status" role="status"></p>
+      </div>
+      <p id="data-notice" class="settings-fields" tabindex="-1"></p>
+      <p id="build-identity" class="settings-fields" hidden></p>
     </details>
     <button type="button" id="open-knowledge-admin" class="text-button" data-icon="db" hidden>Company knowledge (admin)</button>
   </div>
@@ -342,6 +384,7 @@
     <div class="detail-body">
       <p id="foundation-topic-answer" class="topic-dialog-answer"></p>
       <div id="foundation-topic-sources" class="topic-dialog-sources"></div>
+      <div id="foundation-topic-repair" class="topic-dialog-repair" hidden></div>
       <p id="foundation-topic-hint" class="topic-dialog-hint"></p>
     </div>
   </dialog>

@@ -7,6 +7,7 @@ import importlib.util
 import json
 from pathlib import Path
 import sys
+import tempfile
 import threading
 import time
 import unittest
@@ -30,7 +31,9 @@ class VoiceSessionTests(unittest.TestCase):
     def setUpClass(cls):
         cls.client = server.OpenAIClient({"OPENAI_API_KEY": PROJECT_SENTINEL})
         cls.client.request = Mock()
-        cls.httpd = server.InterviewServer(("127.0.0.1", 0), server.Handler, client=cls.client)
+        root = Path(cls.enterClassContext(tempfile.TemporaryDirectory()))
+        cls.httpd = server.InterviewServer(("127.0.0.1", 0), server.Handler, client=cls.client,
+                                           documents_root=root / "documents", knowledge_settings={})
         cls.url = f"http://127.0.0.1:{cls.httpd.server_port}"
         cls.worker = threading.Thread(target=cls.httpd.serve_forever,
                                       kwargs={"poll_interval": 0.01}, daemon=True)
@@ -207,7 +210,9 @@ class ProviderBoundaryTests(unittest.TestCase):
 
         provider = FakeIdentityProvider()
         self.assertFalse(hasattr(provider, "key"))
-        httpd = server.InterviewServer(("127.0.0.1", 0), server.Handler, client=provider)
+        root = Path(self.enterContext(tempfile.TemporaryDirectory()))
+        httpd = server.InterviewServer(("127.0.0.1", 0), server.Handler, client=provider,
+                                       documents_root=root / "documents", knowledge_settings={})
         worker = threading.Thread(target=httpd.serve_forever,
                                   kwargs={"poll_interval": 0.01}, daemon=True)
         worker.start()

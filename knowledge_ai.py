@@ -57,6 +57,14 @@ absence from this input does not imply absence from the full submission. Return 
 """
 
 
+# The instructions allow MAX_PROPOSALS proposals. One proposal with a quote from each side is roughly 350
+# to 500 output tokens, and a reasoning model spends part of the limit before it writes, so the earlier
+# limit of 6,000 could cut a full answer short; a cut answer fails the whole job and is paid for again on
+# Retry. The limit is an upper bound, not a target. Estimated, not measured against the provider.
+MAX_PROPOSALS = 20
+OUTPUT_TOKEN_LIMIT = 12000
+
+
 def _excerpt(record):
     turns = []
     declared = record.get("capture_provenance")
@@ -64,7 +72,19 @@ def _excerpt(record):
     # Keep the beginning and end when there are many answers and disclose the bound.
     all_turns = [t for t in record.get("turns", []) if isinstance(t, dict)
                  and t.get("role") == "user" and not t.get("document_event") and isinstance(t.get("text"), str)]
-    selected = all_turns if len(all_turns) <= 12 else all_turns[:6] + all_turns[-6:]
+    submitted = record.get('draft') or record.get('workflow') or {}
+    steps = submitted.get('steps',[]) if isinstance(submitted,dict) else []
+    cited = {ref for step in steps if isinstance(step,dict) for ref in step.get('evidence_turns',[]) if isinstance(ref,str)}
+    positions = {0,len(all_turns)-1} if all_turns else set()
+    for i,t in enumerate(all_turns):
+        if t.get('id') in cited and len(positions)<8: positions.add(i)
+    for i in range(12):
+        if len(positions)>=12 or not all_turns: break
+        positions.add(round((len(all_turns)-1)*i/11))
+    for i in range(len(all_turns)):
+        if len(positions)>=12: break
+        positions.add(i)
+    selected = [all_turns[i] for i in sorted(positions)]
     for turn in selected:
         turns.append({"id": turn.get("id", ""), "text": turn["text"][:1600],
                       "evidence_type": "simulated_document_account" if simulated else "employee_reported",
@@ -79,7 +99,9 @@ def _excerpt(record):
     result = {"submission_id": record["submission_id"], "process_id": record["process_id"],
             "revision": record["revision"], "scope": record.get("scope", ""),
             "team": record.get("team", ""), "department": record.get("department", ""),
-            "process_name": context.get("process_name", ""), "participant_turns": turns,
+            "process_name": (record.get("derived_process_title") if record.get("process_name_manual") is False else None) or context.get("process_name") or submitted.get("title",""),
+            "workflow_steps": [{"title": str(step.get("title",""))[:180], "input":str(step.get("input",""))[:200], "output":str(step.get("output",""))[:200]} for step in steps[:12] if isinstance(step,dict)],
+            "participant_turns": turns,
             "turns_omitted": max(0, len(all_turns) - len(selected)), "document_excerpts": doc_excerpts}
     if simulated:
         if declared.get("participant_confirmed") is not False or declared.get("process_owner_approved") is not False:
@@ -110,7 +132,9 @@ def build_analyzer(client):
         selected = compatible[:8]
         payload = {"submission": _excerpt(submission),
                    "candidates": [_excerpt(candidate) for candidate in selected],
-                   "candidates_omitted": max(0, len(candidates) - len(selected)),
+                   # The store hands over at most eight candidates and says how many compatible ones it
+                   # left out (Candidates.omitted in knowledge_graph.py); without that this was always 0.
+                   "candidates_omitted": max(0, len(candidates) - len(selected)) + max(0, int(getattr(candidates, "omitted", 0) or 0)),
                    "coverage_notice": "This is a partial bounded sample, not a full-company review."}
         # Scope is an exact source identifier, not a generated description. Keep
         # each request schema isolated so another analysis cannot change its enum.
@@ -125,8 +149,8 @@ def build_analyzer(client):
         # rather than adding an enum to that aliased dictionary.
         response_schema["properties"]["proposals"]["items"]["properties"]["scope"] = {
             "type": "string", "enum": list(dict.fromkeys(allowed_scopes))}
-        result = client.structured(INSTRUCTIONS, payload, response_schema, "knowledge_connection_proposals", 6000)
-        if not isinstance(result, dict) or not isinstance(result.get("proposals"), list) or len(result["proposals"]) > 20:
+        result = client.structured(INSTRUCTIONS, payload, response_schema, "knowledge_connection_proposals", OUTPUT_TOKEN_LIMIT)
+        if not isinstance(result, dict) or not isinstance(result.get("proposals"), list) or len(result["proposals"]) > MAX_PROPOSALS:
             raise ValueError("Knowledge analysis returned invalid proposals.")
         return result["proposals"]
     return analyze

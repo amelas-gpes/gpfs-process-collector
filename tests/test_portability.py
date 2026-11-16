@@ -111,23 +111,20 @@ class RepositoryPortabilityTests(unittest.TestCase):
     def test_foreground_launch_keeps_the_owned_server_in_the_managed_session(self):
         with patch.object(sys, "argv", ["launcher.py", "--no-browser", "--foreground", "--port", "8783"]), \
              patch.object(launcher, "config", return_value=None), \
-             patch.object(launcher.subprocess, "call", return_value=0) as run, \
+             patch.object(launcher, "run_foreground") as run, \
              patch.object(launcher.subprocess, "Popen") as detach:
-            with self.assertRaises(SystemExit) as result:
-                launcher.main()
-            self.assertEqual(result.exception.code, 0)
-            run.assert_called_once_with([sys.executable, "-I", "-B", str(launcher.APP_DIR / "server.py"),
-                                         "--port", "8783"], cwd=launcher.APP_DIR)
+            launcher.main()
+            run.assert_called_once_with(8783, False)
             detach.assert_not_called()
 
     def test_foreground_launch_propagates_server_failure(self):
         with patch.object(sys, "argv", ["launcher.py", "--foreground"]), \
              patch.object(launcher, "config", return_value=None), \
-             patch.object(launcher.subprocess, "call", return_value=7) as run:
+             patch.object(launcher, "run_foreground", side_effect=SystemExit(7)) as run:
             with self.assertRaises(SystemExit) as result:
                 launcher.main()
             self.assertEqual(result.exception.code, 7)
-            self.assertIn("--open", run.call_args.args[0])
+            run.assert_called_once_with(8774, True)
 
     def test_launcher_reports_when_shutdown_does_not_complete(self):
         response = MagicMock()
@@ -187,7 +184,7 @@ class RepositoryPortabilityTests(unittest.TestCase):
                  patch.object(launcher,'config',return_value=current), \
                  patch.object(launcher._build_module,'build_id',return_value='new-source'), \
                  patch.object(launcher.subprocess,'Popen') as spawn,patch.object(launcher,'build_opener') as network:
-                with self.assertRaisesRegex(SystemExit,'older app build'):
+                with self.assertRaisesRegex(SystemExit,'different app build'):
                     launcher.main()
                 spawn.assert_not_called();network.assert_not_called()
 

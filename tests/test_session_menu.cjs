@@ -41,8 +41,10 @@ const openMenu=()=>{toggle.focus();toggle.click();assert.equal(menu.hidden,false
 {
  openMenu();nodes.get("export-session").focus();t.state.context={process_name:"Menu regression"};t.state.dirty=true;outside.value="Unsent text stays in the saved interview";
  const originalTurns=t.state.turns;nodes.get("export-session").click();
- assert.equal(downloads.length,1);assert.equal(downloads[0][1],"Menu-regression-session.json");const saved=JSON.parse(downloads[0][0]);assert.equal(saved.unsent_answer,outside.value);assert.equal(t.state.turns,originalTurns);assert.equal(t.state.dirty,false);
- assert.equal(menu.hidden,true);assert.equal(document.activeElement,toggle);assert.equal(nodes.get("save-hint").hidden,true);checks++;
+ assert.equal(downloads.length,1);assert.match(downloads[0][1],/^Menu-regression-session-\d{8}T\d{6}Z\.json$/);const saved=JSON.parse(downloads[0][0]);assert.equal(saved.unsent_answer,outside.value);assert.equal(t.state.turns,originalTurns);
+ // A download cannot report whether a file was written: no "Saved", and the unsaved state stays.
+ assert.equal(t.state.dirty,true);assert.equal(notices.length,1);assert.match(notices[0][0],/^Download started\./);assert.doesNotMatch(notices[0][0],/\bsaved\b/i);
+ assert.equal(menu.hidden,true);assert.equal(document.activeElement,toggle);assert.equal(nodes.get("save-hint").hidden,false);assert.match(nodes.get("save-hint").textContent,/^Last copy downloaded /);checks++;
 }
 {
  openMenu();nodes.get("open-interview-settings").focus();document.dispatch("keydown",{key:"Escape"});assert.equal(menu.hidden,true);assert.equal(document.activeElement,toggle);

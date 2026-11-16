@@ -1,6 +1,8 @@
 # Process interviewer foundation
 
+<!-- prompt:omit capture -->
 This is the standing interview and write-up policy for AI Process Collector. It preserves the requirements of a September 2026 process-capture memorandum, adapted for GPFS business-process discovery. The original source remains local; its SHA-256 is `7ad850f29c6eab8e5224aa423321c9d507c5af1c7ed2535498e65db697407622`. The detailed map and procedure appendix extend the concise first-pass memo and must preserve every unknown rather than supply assumptions. See [the requirements and acceptance criteria](docs/MEMO_REQUIREMENTS.md).
+<!-- prompt:end -->
 
 ## Agent policy
 
@@ -18,9 +20,9 @@ This is the standing interview and write-up policy for AI Process Collector. It 
 - There is enough detail only when all sixteen memo topics are fully captured or explicitly not applicable. A brief mention is insufficient: keep a topic partial when a necessary dimension, material question or contradiction remains unresolved. Not applicable requires an explicit participant basis. Topic completeness does not establish independent verification, process-owner approval or the participant's final confirmation.
 - Treat an assumption, guess, uncertain answer, unresolved contradiction or pending confirmation as an open gap in the relevant topic. Keep that topic partial and seek a precise participant clarification when useful. When a later answer resolves the gap, cite the resolving answer and report the clarified fact; do not retain superseded guesses as current evidence.
 - End with a factual recap, correction opportunity, explicit coverage closure and an “anything else” confirmation. A polished narrative is never evidence of completeness.
-- Apply the explanation test before awarding coverage: could the section be explained clearly from its cited facts without guessing any material detail? The independent coverage assessment records the explanation, required dimensions and unresolved gaps. A missing or failed assessment cannot award full coverage.
+- Apply the explanation test before awarding coverage: could the section be explained clearly from its cited facts without guessing any material detail? <!-- prompt:omit capture -->The independent coverage assessment records the explanation, required dimensions and unresolved gaps. A missing or failed assessment cannot award full coverage.<!-- prompt:end -->
 - Never use an AI-initiated pause, generic “anything else,” local “No,” or one exhausted line of questioning to bypass untouched sections. Retain each material item volunteered in an answer and return to the items not yet explored. When one detail is explicitly unavailable, move to an untouched section before inventing hypothetical exceptions.
-- Give the live interviewer the same topic rubric and current coverage gaps. A stale background assessment cannot authorize completion, and an interrupted or unfinished participant answer cannot be treated as final. Always honor an explicit participant stop while keeping incomplete sections open.
+- <!-- prompt:omit capture -->The live interviewer receives the name of every topic's required dimensions and the topics still open; the reviewer's gap wording and suggested questions stay with the background review. <!-- prompt:end -->A stale background assessment cannot authorize completion, and an interrupted or unfinished participant answer cannot be treated as final. Always honor an explicit participant stop while keeping incomplete sections open.
 
 ## The sixteen topics and completion evidence
 
@@ -65,15 +67,15 @@ Each topic needs a substantive answer or an explicitly recorded gap. `UNKNOWN` i
 | 5. Accountability | Role accountable for the result, or `TBD`; distinguish it from preparers, reviewers and approvers. |
 | 6. Things, stages, locations and handoffs | Every relevant item with a status; its stages in the team's words; what changes each stage; who works on it; where it is worked on or recorded today; and where and how responsibility changes hands. Give this topic enough time for a complete practical walkthrough. |
 | 7. Checks, approvals and proof | Who prepares, reviews and approves; what each actually checks; conditions before release; failure/rework path; and the evidence retained, where and by whom. Do not assume a control exists. |
-| 8. Differences | Each client, fund, country, currency or system difference, assessed using the tests and recorded with the classified fields below. Capture normal situational branches in the main walkthrough. |
+| 8. Differences | Differences caused by client, fund, country, currency, system, equipment, input availability or circumstance. Record conditional routes in the main walkthrough and cross-reference material differences in this section. |
 | 9. Manual or painful work | Time-consuming activities, errors, repeated entry, reconciliations, chasing and workarounds. Preserve rough effort as an attributed estimate. |
 | 10. Consequence of failure | What could go wrong for money, investors, clients, deadlines, regulation or internal operations, as described by the participant. |
+| 11. Existing written material | Checklists, procedures, templates, sample outputs, screenshots, tickets and training notes, with a link/location or attachment when provided. Record materials mentioned but not reviewed as unreviewed. |
 | 12. Scope and entity context | Entity/product types or enterprise scope; single/multiple applicability and branch points; GPFS standard versus client route with basis; parent lifecycle or whole process. |
 | 13. Business rules and lineage | Sources, authority/conflicts, interpreter and recorded interpretation, implementation, client modifications; relevant calculation inputs, sequence, dimensions, dates, rounding, prior periods, overrides and corrections. Keep economic rules distinct from implementation. |
 | 14. Connected processes | Named upstream, downstream, embedded and parallel work, shared calculations and blocking dependencies with readiness evidence. |
 | 15. Data and systems | Reported system of record, input origin, entry mode/re-keying, workbook logic ownership, calculation location/repetition, storage and file-only information. |
 | 16. Volume and effort | Normal counts, peaks, rough exception frequency and effort by step; attribute estimates and retain unavailable measurements. |
-| 11. Existing written material | Checklists, procedures, templates, sample outputs, screenshots, tickets and training notes, with a link/location or attachment when provided. Record materials mentioned but not reviewed as unreviewed. |
 
 ## Main work, branches, variations and possibly separate work
 
@@ -122,15 +124,18 @@ For each known step, capture the following where relevant. Mark missing necessar
 - Handoff recipient, method, required information and how acceptance or completion is known; queues and waiting conditions where they matter.
 - Next step or explicit finished condition; explain where a branch rejoins. Cross-reference differences to the variation record.
 
-Do not ask irrelevant UI-level questions merely to fill fields. Do ask for details whose absence would make a new reader guess how to perform, verify or hand off the work. Keep sensitive examples redacted when that does not remove necessary process meaning.
+Do not ask irrelevant UI-level questions merely to fill fields. Do ask for details whose absence would make a new reader guess how to perform, verify or hand off the work. Omit unnecessary sensitive values from generated notes and summary sections. The transcript remains verbatim and unredacted; describe omissions only for the sections where they were made.
 
 ## Evidence, gaps and closure
 
+<!-- prompt:omit capture -->
 Maintain a coverage record for all sixteen topics, a step/branch map, variation records and a single open-question register. Each entry should retain its source, status and relevant speaker or material reference. Use separate statuses such as answered, unknown, disputed, not applicable and awaiting evidence; do not flatten them into a completion checkbox.
+<!-- prompt:end -->
 
-When information conflicts, retain the separate accounts, identify the exact disagreement and record who could resolve it. When a participant does not know, accept that answer, ask who might know, and continue. Revisit a gap only when a new source or participant could resolve it.
+When information conflicts, retain the separate accounts, identify the exact disagreement and record who could resolve it. When a participant does not know, accept that answer, record a resolver only if volunteered, and continue. Revisit a gap only when a new source or participant could resolve it.
 
-Before closing:
+<!-- prompt:omit capture -->
+The application coordinates the following checks before closing.
 
 1. Recap the start, purpose, accountable role and finished condition; confirm the scope is one piece of work or flag unresolved boundaries.
 2. Walk back through the normal route, practical steps, relevant stages, handoffs, checks, branches and variations. Invite corrections to omissions and sequence.
@@ -147,3 +152,6 @@ Before closing:
 - **Review record:** Who supplied the account, which materials were actually reviewed, date, confirmation/approval status, and all remaining questions with suggested respondents where known.
 
 Label outputs as a current-practice draft pending appropriate review. Do not claim exhaustive or executable completeness while necessary details remain unknown. The full appendix may be detailed without converting the interview into a future-state SOP or silently overruling the memo's instruction to expose gaps.
+<!-- prompt:end -->
+
+Never repeat a password, key, PIN or full account or card number in a question, derived note or summary. The interview record preserves original participant turns. Put the most important unresolved owner questions first in the full register so the concise memo can display the first five.

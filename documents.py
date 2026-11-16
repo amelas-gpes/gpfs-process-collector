@@ -6,11 +6,12 @@ formulas, embedded PDF actions, external links or uploaded code are executed.
 """
 from __future__ import annotations
 
+import codecs
 import csv
 from contextlib import contextmanager, ExitStack
 import hashlib
+import importlib.util
 import io
-import itertools
 import json
 import os
 from pathlib import Path
@@ -22,6 +23,7 @@ import sys
 import threading
 import time
 import warnings
+import unicodedata
 import zipfile
 from xml.etree import ElementTree
 
@@ -42,7 +44,28 @@ MAX_PDF_PAGE_BYTES = 16 * 1024 * 1024
 MAX_PDF_CONTENT_BYTES = 128 * 1024 * 1024
 MAX_IMAGE_PIXELS = 40_000_000
 MAX_INVENTORY_BYTES = 50 * 1024
-EXTRACTION_VERSION = 2  # Includes mixed visual coverage and decoded PDF bounds.
+MAX_CONTEXT_BYTES = 32 * 1024
+EXTRACTION_VERSION = 3  # PDF annotations, delimited text, and narrower spreadsheet source ranges.
+# The layouts of documents.sqlite3 this build opens: the oldest it upgrades in place, and the
+# one it writes. SQLite keeps the number in the file (PRAGMA user_version; 0 in a store from
+# before it was recorded). Raise the second number with any change an older build would
+# misread. Keep this line a plain literal: desktop/manage.py reads it from an unpacked build
+# without running it, so that the window never gives newer data to an older build.
+STORE_FORMATS = (0, 3)
+# Format 2: the full-text table indexes `scope`, so a search matches inside one interview
+# instead of matching every interview's text and discarding most of it; and chunk_map, an
+# ordinary table kept in step with it, finds sections by scope, file and section ID. FTS5
+# can only look rows up by MATCH or rowid: a WHERE on its other columns reads every section
+# ever stored. A build that knows only format 1 would leave chunk_map out of step.
+CHUNKS_TABLE = ("CREATE VIRTUAL TABLE {name} USING fts5(id UNINDEXED, document_id UNINDEXED, scope, "
+                "label, text, location UNINDEXED, tokenize='unicode61')")
+# One section by its place in chunk_map; the join order is fixed so that FTS5 is only ever asked for a rowid.
+CHUNK_JOIN = ' FROM chunk_map{index} CROSS JOIN chunks ON chunks.rowid=chunk_map.chunk_rowid WHERE '
+CHUNK_ROWS = 'SELECT chunk_map.ordinal AS position,chunks.*' + CHUNK_JOIN.format(index='')
+REINDEX_NOTICE = ('Process Collector was updated since this file was indexed, and its saved index predates the current completeness '
+                  'checks. It does not count as a full review until the file has been re-indexed.')
+# The sentence earlier builds wrote, which a later action may have saved with the record.
+REINDEX_NOTICES = (REINDEX_NOTICE, 'Saved extraction predates the current completeness checks. Revisit this file to re-index it before claiming a full review.')
 INITIAL_SUMMARY_NOTE = ('Written from the initial review selection. Later review may have changed coverage; '
                         'current review status and limitations are shown separately.')
 SUPPORTED_TYPES = {'.pdf': 'application/pdf', '.png': 'image/png',
@@ -51,12 +74,63 @@ SUPPORTED_TYPES = {'.pdf': 'application/pdf', '.png': 'image/png',
                    '.csv': 'text/csv', '.xls': 'application/vnd.ms-excel'}
 
 
+# The reader each kind of file is parsed with: (what the kind is called, module, package to install).
+# CSV needs none. Readers are imported only when a file of their kind is read, so an interpreter
+# without one starts normally; unavailable_readers() and extract() say which one is missing.
+READERS = {'pdf': ('PDF', 'pypdf', 'pypdf'), 'png': ('PNG image', 'PIL', 'Pillow'),
+           'xlsx': ('Excel workbook', 'openpyxl', 'openpyxl'), 'xlsm': ('Excel workbook', 'openpyxl', 'openpyxl')}
+
+
+def missing_reader_message(kind, module=None):
+    """Fixed wording for a file kind whose reader this interpreter lacks; never a parser's own text."""
+    name, expected, package = READERS[kind]
+    other = module and module != expected and re.fullmatch(r'[A-Za-z0-9_]{1,60}', module)
+    return (f'This computer cannot read {name} files: the Python that runs Process Collector has no usable {package} package'
+            + (f' (module {module} is missing)' if other else '') + '. Install the packages listed in requirements-documents.txt into '
+            "that Python's own site-packages, then restart the app and retry. The app starts Python in isolated mode, "
+            'which ignores packages installed for your user account only. The original is retained.')
+
+
+def unavailable_readers():
+    """The file kinds this interpreter cannot read, each with its message. Nothing is imported."""
+    missing = {}
+    for kind, (_, module, _) in READERS.items():
+        try:
+            found = importlib.util.find_spec(module) is not None
+        except (ImportError, ValueError):
+            found = False
+        if not found:
+            missing[kind] = missing_reader_message(kind)
+    return missing
+
+
 class DocumentError(ValueError):
     """A safe user-facing upload/extraction failure."""
 
 
+class UnknownDocumentScope(PermissionError):
+    """The saved interview has no matching document workspace in this store."""
+
+
 class ExtractionError(DocumentError):
     pass
+
+
+class StoreFormatError(RuntimeError):
+    """The saved store has a layout this build does not open. Nothing in it was changed."""
+
+
+def store_format(db, formats, contents):
+    """The format number a store holds, after refusing one outside what this build opens."""
+    stored = db.execute('PRAGMA user_version').fetchone()[0]
+    if not formats[0] <= stored <= formats[1]:
+        raise StoreFormatError(
+            f'The saved {contents} on this computer use store format {stored}, and this build of Process Collector '
+            f'opens formats {formats[0]} to {formats[1]}. '
+            + ('They were written by a newer build: open them with that build, or update this one.'
+               if stored > formats[1] else 'They are too old for this build to upgrade.')
+            + ' Nothing was changed.')
+    return stored
 
 
 LONG_PATH_THRESHOLD = 200
@@ -138,16 +212,51 @@ def _context(value):
             if 'id' in turn and (not isinstance(turn['id'], str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,80}', turn['id'])):
                 raise DocumentError('Document context contains an invalid turn ID.')
             clean['turns'].append({key: turn[key] for key in ('id', 'role', 'text') if key in turn})
-    if len(json.dumps(clean).encode()) > 32 * 1024:
+    if context_bytes(clean) > MAX_CONTEXT_BYTES:
         raise DocumentError('Document context exceeds its 32 KiB allowance.')
     return clean
 
 
-def _inventory_budget(inventory):
-    """Keep every unit/count; shorten preview samples only, with an explicit flag."""
+def context_bytes(context):
+    """The size an upload context is held to: its JSON text in UTF-8.
+
+    Not the ASCII-escaped form the record is written in, where every character
+    outside ASCII costs six bytes or twelve: an interview in Russian, Greek or
+    Chinese must not have a sixth of the allowance of one in English.
+    """
+    return len(json.dumps(context, ensure_ascii=False).encode('utf-8', 'surrogatepass'))
+
+
+INVENTORY_LIMIT_MESSAGE = ('This file has more pages or sheets than its 50 KiB inventory can list, even without preview samples. '
+                           'Split it into smaller files and add those. Nothing was indexed, and no unit or source content was silently omitted.')
+TRANSCRIPTION_LIMIT_MESSAGE = ('The visual readings of this file no longer fit its 64 MiB text or 50,000-section index, so this reading was not stored. '
+                               'Split the file into smaller files and add those; retrying the review will stop at the same place.')
+SAMPLES_SHORTENED ='Preview samples were shortened to keep inventory under 50 KiB. All unit names/counts and full indexed content are retained.'
+SAMPLES_OMITTED = 'Preview samples were left out to keep inventory under 50 KiB. All unit names/counts and full indexed content are retained.'
+
+
+def _inventory_budget(inventory, strict=True):
+    """Keep every unit/count; shorten preview samples only, with an explicit flag.
+
+    A PDF of MAX_PDF_PAGES pages fits by construction: when samples shortened to
+    nothing are not enough, the sample fields themselves are left out, and what
+    remains for each page is its number, its character count and whether it
+    needs visual reading. Room is kept for 'visual_transcribed_units' to name
+    every page that awaits a visual reading, so recording those readings later
+    cannot run out of space. With strict=False an inventory that still does
+    not fit is returned as it is: a reading that was paid for is never refused
+    over the size of this listing.
+    """
     units = inventory.get('page_inventory', inventory.get('sheets', []))
+    recorded = set(map(str, inventory.get('visual_transcribed_units', [])))
+    awaited = [unit for unit in inventory.get('vision_pages', []) if str(unit) not in recorded]
+    limit = MAX_INVENTORY_BYTES - 512 - (len(json.dumps(awaited)) + 32 if awaited else 0)
+
+    def fits():
+        return len(json.dumps(inventory, ensure_ascii=False).encode('utf-8', 'surrogatepass')) <= limit
+
     changed = False
-    while len(json.dumps(inventory, ensure_ascii=False).encode()) > MAX_INVENTORY_BYTES - 512:
+    while not fits():
         reduced = False
         for unit in units:
             for key in ('sample', 'header_sample'):
@@ -156,10 +265,33 @@ def _inventory_budget(inventory):
                     unit['sample_truncated'] = True
                     reduced = changed = True
         if not reduced:
-            raise ExtractionError('Full document inventory exceeds 50 KiB; no units or source content were silently omitted.')
-    if changed:
-        inventory['summary_limitations'] = ['Preview samples were shortened to keep inventory under 50 KiB. All unit names/counts and full indexed content are retained.']
+            break
+    if not fits():
+        for unit in units:
+            for key in ('sample', 'header_sample', 'sample_truncated', 'header_sample_truncated'):
+                unit.pop(key, None)
+        if strict and not fits():
+            raise ExtractionError(INVENTORY_LIMIT_MESSAGE)
+        # The notes below fit in the 512 bytes held back above.
+        inventory.update(samples_omitted=True, summary_limitations=[SAMPLES_OMITTED])
+    elif changed:
+        inventory['summary_limitations'] = [SAMPLES_SHORTENED]
     return inventory
+
+
+def _text_parts(text):
+    start = 0
+    while start < len(text):
+        end = min(start + MAX_CHUNK_CHARS, len(text))
+        if end < len(text):
+            middle = start + MAX_CHUNK_CHARS // 2
+            for separator in (' | ', '\n', ' '):
+                boundary = text.rfind(separator, middle, end)
+                if boundary >= middle:
+                    end = boundary + len(separator)
+                    break
+        yield text[start:end]
+        start = end
 
 
 class _Chunks:
@@ -171,14 +303,110 @@ class _Chunks:
     def add(self, source, label, text, location):
         if not isinstance(text, str):
             raise ExtractionError('Extracted document text was invalid.')
+        if not text.strip():
+            return
         # Split all content rather than dropping the tail of a long page/row.
-        for index in range(0, max(1, len(text)), MAX_CHUNK_CHARS):
-            part = text[index:index + MAX_CHUNK_CHARS]
+        for index, part in enumerate(_text_parts(text), 1):
+            if not part.strip():
+                continue
             self.characters += len(part.encode('utf-8'))
             if self.characters > MAX_INDEX_BYTES or len(self.items) >= MAX_CHUNKS:
                 raise ExtractionError('Document exceeds the 64 MiB text or 50,000-chunk indexing limit; no partial index was published.')
-            chunk_id = f'{self.document["id"]}_{source}_c{index // MAX_CHUNK_CHARS + 1}'
+            chunk_id = f'{self.document["id"]}_{source}_c{index}'
             self.items.append({'id': chunk_id, 'label': label, 'text': part, 'location': location})
+
+
+def _transcribed_coverage(inventory, coverage):
+    """Count every unit in inventory['visual_transcribed_units'] as read, once."""
+    reviewed = inventory['visual_transcribed_units']
+    # A mixed page has native text and a separate visual source, but is
+    # still one unit. Visual transcription must not count it twice.
+    coverage['indexed_units'] = inventory.get('text_only_pages', inventory.get('text_pages', 0)) + len(reviewed)
+    coverage['visual_pending_units'] = len(set(inventory.get('vision_pages', ['image'] if inventory.get('images') else [])) - set(reviewed))
+    coverage['limitations'] = [entry for entry in coverage['limitations'] if 'native visual review' not in entry]
+    unresolved = [page for page in inventory.get('vision_pages', []) if page not in reviewed]
+    if unresolved:
+        coverage['limitations'].append(f'{len(unresolved)} pages still require native visual review.')
+    coverage['limitations'].append('AI visual transcriptions are searchable but have not been independently verified.')
+    coverage['limitations'] = list(dict.fromkeys(coverage['limitations']))
+
+
+def _carry_transcriptions(saved, chunks, inventory, coverage):
+    """Keep stored AI visual transcriptions where a re-index finds only a placeholder again.
+
+    The parser cannot reproduce a transcription: it came from a paid review, and
+    notes and confirmed company connections cite its exact text. Only
+    record_extracted_text replaces one, when a new reading actually arrives.
+    Returns each kept source ID with the placeholder sentence the parser wrote
+    for it now, and the content digest of each kept unit. The review that asks
+    for a new reading presents that sentence, not the stored transcription.
+    """
+    transcribed = {row['id']: row['text'] for row in saved
+                   if json.loads(row['location']).get('origin') == 'ai_visual_transcription'}
+    kept, digests, units, items = {}, {}, [], []
+    for item in chunks.items:
+        if not item['location'].get('requires_vision') or item['id'] not in transcribed:
+            items.append(item)  # Text the parser now reads itself replaces an earlier transcription.
+            continue
+        parts = [transcribed[item['id']]]
+        while f'{item["id"]}_v{len(parts) + 1}' in transcribed:
+            parts.append(transcribed[f'{item["id"]}_v{len(parts) + 1}'])
+        location = {**item['location'], 'requires_vision': False, 'origin': 'ai_visual_transcription', 'verified': False}
+        chunks.characters += sum(len(part.encode('utf-8')) for part in parts) - len(item['text'].encode('utf-8'))
+        items.append({**item, 'text': parts[0], 'location': location})
+        items.extend({'id': f'{item["id"]}_v{index}', 'label': item['label'], 'text': part, 'location': location}
+                     for index, part in enumerate(parts[1:], 2))
+        unit = location.get('page', 'image')
+        if unit not in units:
+            units.append(unit)
+        digests[str(unit)] = hashlib.sha256(''.join(parts).encode('utf-8')).hexdigest()
+        kept[item['id']] = item['text']
+    if kept:
+        if chunks.characters > MAX_INDEX_BYTES or len(items) > MAX_CHUNKS:
+            raise ExtractionError('Document exceeds the 64 MiB text or 50,000-chunk indexing limit; no partial index was published.')
+        chunks.items = items
+        inventory['visual_transcribed_units'] = units
+        _transcribed_coverage(inventory, coverage)
+    return kept, digests
+
+
+def reread_placeholder(record, source_id):
+    """The parser's sentence for a kept source that still awaits its new reading, else None.
+
+    A scan repeats one sentence on every page, so the record holds each distinct
+    sentence once (visual_reread_basis) and each pending source only its position.
+    A record written before that holds the sentence itself.
+    """
+    value = (record.get('visual_reread_pending') or {}).get(source_id)
+    if isinstance(value, str):
+        return value
+    sentences = (record.get('visual_reread_basis') or {}).get('placeholders') or []
+    return sentences[value] if type(value) is int and 0 <= value < len(sentences) else None
+
+
+def unread_view(record, unit):
+    """Inventory and coverage as the request for a new reading of one kept unit shows them.
+
+    The stored record counts a kept transcription as read: it is searchable and
+    citable. The request that asks for its new reading supplies the parser's
+    placeholder with the page or image, so the file-level figures in that same
+    request describe the unit as not yet read, as the parser alone left it.
+    Nothing is stored; the record is not changed.
+    """
+    inventory, coverage = (json.loads(json.dumps(record.get(key) or {})) for key in ('inventory', 'coverage'))
+    reviewed = inventory.get('visual_transcribed_units')
+    parsed = (record.get('visual_reread_basis') or {}).get('limitations')
+    if not isinstance(reviewed, list) or unit not in reviewed or not isinstance(parsed, list):
+        return inventory, coverage
+    reviewed.remove(unit)
+    coverage['limitations'] = list(parsed)
+    if reviewed:
+        _transcribed_coverage(inventory, coverage)
+    else:
+        del inventory['visual_transcribed_units']
+        coverage['visual_pending_units'] = len(inventory.get('vision_pages', ['image'] if inventory.get('images') else []))
+        coverage['indexed_units'] = inventory.get('text_only_pages', inventory.get('text_pages', 0))
+    return inventory, coverage
 
 
 def _chunk(row, record):
@@ -190,8 +418,31 @@ def _chunk(row, record):
 
 class _DocumentReader:
     """Read chunks using one authorized scope and its matching file records."""
-    def __init__(self, db, digest, records):
-        self.db, self.digest, self.records = db, digest, records
+    def __init__(self, db, digest, records, state=None):
+        # state: a digest of every stored record of the scope as this snapshot read it. A file's
+        # sections only ever change together with its record, so equal states read equal content.
+        self.db, self.digest, self.records, self.state = db, digest, records, state
+        # Where each chunk this reader returned sits in the index, for neighbours().
+        self._positions = {}
+
+    def _read(self, row, record):
+        self._positions[row['id']] = row['position']
+        return _chunk(row, record)
+
+    def neighbours(self, document_id, source_id, span=1):
+        """The chunks next to one chunk of a file: the following ones first, then the preceding ones.
+
+        Only for a chunk this reader returned from search() or chunk_rows(); otherwise nothing.
+        A matching passage is usually continued, or introduced, by the text beside it.
+        """
+        position, record = self._positions.get(source_id), self.records.get(document_id)
+        if position is None or record is None:
+            return []
+        after = self.db.execute(CHUNK_ROWS + 'chunk_map.scope=? AND chunk_map.document_id=? '
+                                'AND chunk_map.ordinal>? ORDER BY chunk_map.ordinal LIMIT ?', (self.digest, document_id, position, span)).fetchall()
+        before = self.db.execute(CHUNK_ROWS + 'chunk_map.scope=? AND chunk_map.document_id=? '
+                                 'AND chunk_map.ordinal<? ORDER BY chunk_map.ordinal DESC LIMIT ?', (self.digest, document_id, position, span)).fetchall()
+        return [self._read(row, record) for row in (*after, *before)]
 
     def prior_sources(self, source_ids):
         if not isinstance(source_ids, (list, tuple, set)) or len(source_ids) > 500:
@@ -202,21 +453,21 @@ class _DocumentReader:
         if not requested:
             return []
         placeholders = ','.join('?' for _ in requested)
-        rows = self.db.execute(f'SELECT * FROM chunks WHERE scope=? AND id IN ({placeholders})',
-                               (self.digest, *requested))
-        found = {row['id']: _chunk(row, self.records[row['document_id']]) for row in rows
+        rows = self.db.execute('SELECT chunk_map.ordinal AS position,chunks.*' + CHUNK_JOIN.format(index=' INDEXED BY chunk_map_id')
+                               + f'chunk_map.scope=? AND chunk_map.id IN ({placeholders})', (self.digest, *requested))
+        found = {row['id']: self._read(row, self.records[row['document_id']]) for row in rows
                  if row['document_id'] in self.records and row['id'].startswith(row['document_id'] + '_')}
         # The caller's citation order decides which excerpts survive the context budget.
         return [found[source_id] for source_id in requested if source_id in found]
 
     def chunk_rows(self, document_id, offset, limit):
         record = self.records[document_id]
-        rows = self.db.execute('SELECT * FROM chunks WHERE scope=? AND document_id=? ORDER BY rowid LIMIT ? OFFSET ?',
-                               (self.digest, document_id, limit, offset))
-        return [_chunk(row, record) for row in rows]
+        rows = self.db.execute(CHUNK_ROWS + 'chunk_map.scope=? AND chunk_map.document_id=? '
+                               'ORDER BY chunk_map.ordinal LIMIT ? OFFSET ?', (self.digest, document_id, limit, offset))
+        return [self._read(row, record) for row in rows]
 
     def chunks(self, document_id, offset=0, limit=100):
-        total = self.db.execute('SELECT count(*) FROM chunks WHERE scope=? AND document_id=?',
+        total = self.db.execute('SELECT count(*) FROM chunk_map WHERE scope=? AND document_id=?',
                                 (self.digest, document_id)).fetchone()[0]
         chunks = self.chunk_rows(document_id, offset, limit)
         end = offset + len(chunks)
@@ -234,21 +485,48 @@ class _DocumentReader:
             return []
         parameters = [self.digest, *records]
         where = 'scope=? AND document_id IN (' + ','.join('?' for _ in records) + ')'
-        tokens = re.findall(r'\w+', query, re.UNICODE)[:40]
+        normalized = unicodedata.normalize('NFKC', query).casefold()
+        # Keep combining marks attached to the preceding letters (e.g. Devanagari), including in lookups of legacy rows.
+        tokens = ''.join(ch if ch.isalnum() or unicodedata.category(ch).startswith('M') else ' ' for ch in normalized).split()[:40]
         if tokens:
-            expression = ' OR '.join('"' + token[:100] + '"' for token in tokens)
-            sql = 'SELECT *,bm25(chunks) AS rank FROM chunks WHERE chunks MATCH ? AND ' + where + ' ORDER BY rank LIMIT ?'
+            # The words of an ordinary answer match most sections of every interview. Matching
+            # inside this interview's scope keeps the work to its own files; the words themselves
+            # are looked for in label and text only, and only those two columns are ranked.
+            expression = ('scope : "' + self.digest + '" AND text : ('
+                          + ' OR '.join('"' + token[:100] + '"' for token in tokens) + ')')
+            sql = ('SELECT (SELECT ordinal FROM chunk_map WHERE chunk_map.scope=chunks.scope AND chunk_map.document_id=chunks.document_id AND chunk_map.id=chunks.id) AS position,*,bm25(chunks, 0, 0, 0, 1, 1, 0) AS rank FROM chunks WHERE chunks MATCH ? AND '
+                   + where + ' ORDER BY rank LIMIT ?')
             parameters = [expression, *parameters, limit]
         else:
-            sql = 'SELECT * FROM chunks WHERE ' + where + ' ORDER BY rowid LIMIT ?'
+            sql = (CHUNK_ROWS + 'chunk_map.scope=? AND chunk_map.document_id IN (' + ','.join('?' for _ in records)
+                   + ') ORDER BY chunk_map.ordinal LIMIT ?')
             parameters.append(limit)
-        return [_chunk(row, records[row['document_id']]) for row in self.db.execute(sql, parameters)]
+        hits = [self._read(row, records[row['document_id']]) for row in self.db.execute(sql, parameters)]
+        if tokens and (not hits or not normalized.isascii()):
+            words = tuple(dict.fromkeys(word[:100] for word in tokens))
+            exact = {word:re.compile(r'(?<!\w)'+re.escape(word)+r'(?!\w)') for word in words if word.isascii()}
+            def score(body):
+                if body.isascii(): return 0  # Native FTS already handled this section's word boundaries.
+                body = unicodedata.normalize('NFKC', body).casefold()
+                return sum(bool(exact[word].search(body)) if word in exact else word in body for word in words)
+            self.db.create_function('document_match',1,score,deterministic=True)
+            sql = (CHUNK_ROWS + 'chunk_map.scope=? AND chunk_map.document_id IN (' + ','.join('?' for _ in records)
+                   + ') AND document_match(chunks.text)>0 ORDER BY document_match(chunks.text) DESC, chunk_map.chunk_rowid LIMIT ?')
+            matches = [self._read(row,records[row['document_id']]) for row in self.db.execute(sql,[self.digest,*records,limit])]
+            unique = {}
+            for chunk in [*hits,*matches]: unique.setdefault(chunk['id'],chunk)
+            return list(unique.values())[:limit]
+        return hits
 
 
 class DocumentStore:
     @staticmethod
     def extraction_current(record):
-        return record.get('extraction_version') == EXTRACTION_VERSION
+        # A higher number was written by a newer build that shares this store. That index is
+        # not out of date: do not call it older than this build's checks, hide its coverage,
+        # or re-extract it with this build's older parser.
+        version = record.get('extraction_version')
+        return type(version) is int and version >= EXTRACTION_VERSION
 
     @staticmethod
     def _read_record(record):
@@ -262,18 +540,32 @@ class DocumentStore:
                                   'summary_at_review_version': None}
         # Conservative read projection, not a bulk migration. Old exact chunks
         # remain available as provenance, but old parser capabilities cannot
-        # authorize full coverage. Revisit explicitly reindexes the original.
+        # authorize full coverage. check_extraction compares the saved index
+        # with what the current parser reads, on this computer and at no cost;
+        # only when they differ does Revisit have to re-index the original.
+        version = record.get('extraction_version')
+        # Stated on every read, never trusted from a saved copy of this projection.
+        record.pop('indexed_by_newer_build', None)
+        if type(version) is int and version > EXTRACTION_VERSION:
+            record['indexed_by_newer_build'] = True
+        checked = record.pop('reindex_check', None)
         if record.get('status') in ('ready', 'partial', 'error') and not DocumentStore.extraction_current(record):
-            notice = 'Saved extraction predates the current completeness checks. Revisit this file to re-index it before claiming a full review.'
             record['extraction_needs_reindex'] = True
             if record['status'] != 'error':
                 record['status'] = 'partial'
+                # 'pending' until this build has compared the index; then why the comparison did not settle it.
+                settled = (isinstance(checked, dict) and checked.get('extraction_version') == EXTRACTION_VERSION
+                           and checked.get('outcome') in ('changed', 'failed'))
+                record['reindex_check'] = checked if settled else {'outcome': 'pending'}
             coverage = record.get('coverage') or {}
             record['coverage'] = {**coverage, 'indexed_units': 0,
-                                  'limitations': list(dict.fromkeys([*coverage.get('limitations', []), notice]))}
+                                  'limitations': list(dict.fromkeys([*(entry for entry in coverage.get('limitations', [])
+                                                                       if entry not in REINDEX_NOTICES), REINDEX_NOTICE]))}
+            # Its own phase, not 'error': nothing failed, the application was updated. An error the
+            # review itself recorded stays as it is and does not stand in for this explanation.
             analysis = record.get('analysis') or {}
-            record['analysis'] = {**analysis, 'phase': 'error', 'review_complete': False,
-                                  'error': analysis.get('error') or notice}
+            record['analysis'] = {**analysis, 'phase': 'reindex_required', 'review_complete': False,
+                                  **({'error': None} if analysis.get('error') in REINDEX_NOTICES else {})}
         return record
 
     def __init__(self, root):
@@ -281,19 +573,96 @@ class DocumentStore:
         self.db_path = self.root / 'documents.sqlite3'
         if self.db_path.is_symlink():
             raise DocumentError('Document database cannot be a symbolic link.')
+        self._interaction = threading.local()
         self._locks_guard = threading.Lock()
         self._locks = {}
+        self.diagnostic = None  # Set by the server to its bounded local event log.
+        # Before any statement that creates or changes anything in the file.
+        probe = sqlite3.connect(_long_path(self.db_path), timeout=30)
+        try:
+            stored = store_format(probe, STORE_FORMATS, 'documents')
+        finally:
+            probe.close()
         with self._db() as db:
-            db.executescript('''
-                CREATE TABLE IF NOT EXISTS scopes (scope TEXT PRIMARY KEY, created REAL NOT NULL);
-                CREATE TABLE IF NOT EXISTS documents (
-                    id TEXT PRIMARY KEY, scope TEXT NOT NULL, record TEXT NOT NULL);
-                CREATE INDEX IF NOT EXISTS document_scope ON documents(scope);
-                CREATE VIRTUAL TABLE IF NOT EXISTS chunks USING fts5(
-                    id UNINDEXED, document_id UNINDEXED, scope UNINDEXED,
-                    label, text, location UNINDEXED, tokenize='unicode61');
-            ''')
+            # One transaction: another build or window may open the same file at this moment, and
+            # a store is either wholly at its earlier format or wholly at this one.
+            db.execute('BEGIN IMMEDIATE')
+            stored = store_format(db, STORE_FORMATS, 'documents')
+            for statement in ('CREATE TABLE IF NOT EXISTS scopes (scope TEXT PRIMARY KEY, created REAL NOT NULL)',
+                              'CREATE TABLE IF NOT EXISTS documents (id TEXT PRIMARY KEY, scope TEXT NOT NULL, record TEXT NOT NULL)',
+                              'CREATE INDEX IF NOT EXISTS document_scope ON documents(scope)'):
+                db.execute(statement)
+            earlier = bool(db.execute("SELECT 1 FROM sqlite_master WHERE name='chunks'").fetchone()) and stored < 2
+            if earlier:
+                # Formats 0 and 1 kept `scope` unindexed. Rebuild the full-text table once, row for
+                # row and with the same rowids, then describe it in chunk_map.
+                db.execute(CHUNKS_TABLE.format(name='chunks_scoped'))
+                db.execute('INSERT INTO chunks_scoped(rowid,id,document_id,scope,label,text,location) '
+                           'SELECT rowid,id,document_id,scope,label,text,location FROM chunks')
+                db.execute('DROP TABLE chunks')
+                db.execute('ALTER TABLE chunks_scoped RENAME TO chunks')
+                db.execute('DROP TABLE IF EXISTS chunk_map')
+            elif not db.execute("SELECT 1 FROM sqlite_master WHERE name='chunks'").fetchone():
+                db.execute(CHUNKS_TABLE.format(name='chunks'))
+            for statement in ('CREATE TABLE IF NOT EXISTS chunk_map (scope TEXT NOT NULL, document_id TEXT NOT NULL, id TEXT NOT NULL, '
+                              'chunk_rowid INTEGER NOT NULL, PRIMARY KEY (scope, document_id, id)) WITHOUT ROWID',
+                              'CREATE INDEX IF NOT EXISTS chunk_map_id ON chunk_map(scope, id)',
+                              # The order of a file's sections, and so every paged read of them.
+                              'CREATE INDEX IF NOT EXISTS chunk_map_order ON chunk_map(scope, document_id, chunk_rowid)'):
+                db.execute(statement)
+            if earlier:
+                db.execute('INSERT OR IGNORE INTO chunk_map SELECT scope, document_id, id, rowid FROM chunks ORDER BY rowid')
+            if 'ordinal' not in {row[1] for row in db.execute('PRAGMA table_info(chunk_map)')}:
+                db.execute('ALTER TABLE chunk_map ADD COLUMN ordinal INTEGER')
+                db.execute('UPDATE chunk_map SET ordinal=chunk_rowid*256')
+                for row in db.execute("SELECT scope,document_id,id FROM chunk_map WHERE id GLOB '*_v[0-9]*'").fetchall():
+                    parent, suffix = row['id'].rsplit('_v',1)
+                    if suffix.isdecimal() and 1<int(suffix)<256:
+                        db.execute('UPDATE chunk_map SET ordinal=COALESCE((SELECT ordinal+? FROM chunk_map WHERE scope=? AND document_id=? AND id=?),ordinal) WHERE scope=? AND document_id=? AND id=?',
+                                   (int(suffix)-1,row['scope'],row['document_id'],parent,row['scope'],row['document_id'],row['id']))
+            db.execute('CREATE INDEX IF NOT EXISTS chunk_map_ordinal ON chunk_map(scope,document_id,ordinal)')
+            if stored != STORE_FORMATS[1]:
+                db.execute('PRAGMA user_version=%d' % STORE_FORMATS[1])
         self._permissions()
+
+        self._clean_orphaned_originals()
+
+    def _clean_orphaned_originals(self):
+        # add() holds this writer lock from before creating its folder through the INSERT.
+        with self._db() as db:
+            db.execute('BEGIN IMMEDIATE')
+            for directory in self.root.iterdir():
+                if not re.fullmatch(r'[0-9a-f]{64}',directory.name) or directory.is_symlink() or directory.is_junction() or not directory.is_dir(): continue
+                for child in directory.iterdir():
+                    if not re.fullmatch(r'doc_[0-9a-f]{24}',child.name) or child.is_symlink() or child.is_junction() or not child.is_dir(): continue
+                    if db.execute('SELECT 1 FROM documents WHERE scope=? AND id=?',(directory.name,child.name)).fetchone(): continue
+                    self._remove_original_files(child)
+
+    @staticmethod
+    def _remove_original_files(directory):
+        for file in directory.iterdir():
+            if (file.name in {'original'+suffix for suffix in SUPPORTED_TYPES} or re.fullmatch(r'\.pending-[0-9a-f]{24}',file.name)) and not file.is_symlink():
+                file.unlink(missing_ok=True)
+        if not any(directory.iterdir()): directory.rmdir()
+
+    @contextmanager
+    def review_lease(self, scope, document_id):
+        # Scope authorization precedes any use of the ID in a filesystem path. The OS releases the lock on process exit.
+        record = self.get(scope, document_id)
+        lockfile = self.root / (record['id'] + '.review.lock')
+        with open(_long_path(lockfile), 'a+b') as stream:
+            stream.seek(0)
+            try:
+                if os.name == 'nt':
+                    import msvcrt
+                    msvcrt.locking(stream.fileno(), msvcrt.LK_NBLCK, 1)
+                else:
+                    import fcntl
+                    fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except (BlockingIOError, PermissionError):
+                yield False
+            else:
+                yield True
 
     def _permissions(self):
         for path in _long_path(self.root).glob('documents.sqlite3*'):
@@ -314,12 +683,25 @@ class DocumentStore:
                     time.sleep(0.02)
 
     @contextmanager
+    def interactive_write(self):
+        self._interaction.active = True
+        try:
+            yield
+        except sqlite3.OperationalError as error:
+            if getattr(error,'sqlite_errorcode',0) & 255 in (sqlite3.SQLITE_BUSY, sqlite3.SQLITE_LOCKED):
+                raise DocumentError('The document index is being saved. Retry the file action in a moment.') from None
+            raise
+        finally:
+            self._interaction.active = False
+
+    @contextmanager
     def _db(self):
-        db = sqlite3.connect(_long_path(self.db_path), timeout=30)
+        db = sqlite3.connect(_long_path(self.db_path), timeout=.3 if getattr(self._interaction,'active',False) else 30)
         try:
             db.row_factory = sqlite3.Row
             db.execute('PRAGMA journal_mode=WAL')
             db.execute('PRAGMA synchronous=FULL')
+            db.execute('PRAGMA secure_delete=ON')
             # SQLite WAL/SHM contain private document text too.
             self._permissions()
             yield db
@@ -333,15 +715,22 @@ class DocumentStore:
 
     @staticmethod
     def _scope_hash(token):
+        if isinstance(token,str) and getattr(type(token),'document_scope_digest',False) and re.fullmatch(r'sha256:[0-9a-f]{64}',token):
+            return token[7:]
         if not isinstance(token, str) or not re.fullmatch(r'[A-Za-z0-9_-]{40,100}', token):
-            raise PermissionError('Unknown document scope.')
+            raise UnknownDocumentScope('Unknown document scope.')
         return hashlib.sha256(token.encode()).hexdigest()
 
     def _authorize(self, db, scope):
         digest = self._scope_hash(scope)
         if not db.execute('SELECT 1 FROM scopes WHERE scope=?', (digest,)).fetchone():
-            raise PermissionError('Unknown document scope.')
+            raise UnknownDocumentScope('Unknown document scope.')
         return digest
+
+    def revoke_scope(self, scope):
+        with self._db() as db:
+            digest = self._authorize(db, scope)
+            db.execute('DELETE FROM scopes WHERE scope=?',(digest,))
 
     def create_scope(self):
         token = secrets.token_urlsafe(32)
@@ -367,7 +756,12 @@ class DocumentStore:
             raise DocumentError('Supported files are PDF, PNG, XLSX, XLSM, CSV and legacy XLS when xlrd is installed.')
         if not isinstance(data, bytes) or not data or len(data) > MAX_FILE_BYTES:
             raise DocumentError('Each document must contain 1 byte to 64 MiB.')
+        if suffix == '.png' and len(data) >= 24 and data.startswith(b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR'):
+            if int.from_bytes(data[16:20], 'big') * int.from_bytes(data[20:24], 'big') > MAX_IMAGE_PIXELS:
+                raise DocumentError('This image exceeds 40 million pixels. Resize the image before uploading it.')
         attachment_context = _context(context)
+        if suffix == '.xls' and importlib.util.find_spec('xlrd') is None:
+            raise DocumentError('Legacy XLS requires xlrd. Save a copy as XLSX or CSV and attach that copy.')
         now = time.time()
         document_id = 'doc_' + secrets.token_hex(12)
         record = {'id': document_id, 'name': filename, 'filename': filename, 'kind': suffix[1:],
@@ -377,15 +771,38 @@ class DocumentStore:
                   'inventory': {}, 'coverage': {'indexed_units': 0, 'total_units': 0, 'limitations': []},
                   'chunk_count': 0, 'error': None, 'analysis': {}, 'revision': 0,
                   'extraction_version': EXTRACTION_VERSION, 'extraction_needs_reindex': False}
-        with self._db() as db:
-            db.execute('BEGIN IMMEDIATE')
-            digest = self._authorize(db, scope)
-            count = db.execute('SELECT count(*) FROM documents WHERE scope=?', (digest,)).fetchone()[0]
-            if count >= MAX_FILES_PER_SCOPE:
-                raise DocumentError('This interview already has 20 documents, including archived originals.')
-            directory = _private_dir(_private_dir(self.root / digest) / document_id)
-            _atomic_write(directory / ('original' + suffix), data)
-            db.execute('INSERT INTO documents VALUES (?,?,?)', (document_id, digest, json.dumps(record)))
+        original = None
+        try:
+            with self._db() as db:
+                db.execute('BEGIN IMMEDIATE')
+                digest = self._authorize(db, scope)
+                found = db.execute("SELECT record FROM documents WHERE scope=? AND "
+                                   "json_extract(record,'$.sha256')=? AND json_extract(record,'$.kind')=? "
+                                   "ORDER BY json_extract(record,'$.archived') LIMIT 1",
+                                   (digest, record['sha256'], record['kind'])).fetchone()
+                if found:
+                    existing = json.loads(found['record'])
+                    restored = existing['archived']
+                    if restored:
+                        existing.update(archived=False, updated_at=now, revision=existing['revision'] + 1)
+                        db.execute('UPDATE documents SET record=? WHERE id=?', (json.dumps(existing), existing['id']))
+                    return {**self._read_record(existing), 'duplicate_upload': True, 'restored_upload': restored}
+                count = db.execute('SELECT count(*) FROM documents WHERE scope=?', (digest,)).fetchone()[0]
+                if count >= MAX_FILES_PER_SCOPE:
+                    raise DocumentError('This interview already has 20 documents, including archived originals.')
+                directory = _private_dir(_private_dir(self.root / digest) / document_id)
+                original = directory / ('original' + suffix)
+                _atomic_write(original, data)
+                db.execute('INSERT INTO documents VALUES (?,?,?)', (document_id, digest, json.dumps(record)))
+        except BaseException:
+            if original is not None:
+                # The commit can fail after the original is written. Check before removing its only copy.
+                with self._db() as check:
+                    saved = check.execute('SELECT 1 FROM documents WHERE id=?', (document_id,)).fetchone()
+                if not saved:
+                    _long_path(original).unlink(missing_ok=True)
+                    _long_path(original.parent).rmdir()
+            raise
         return record
 
     def _records(self, db, digest):
@@ -403,8 +820,10 @@ class DocumentStore:
         with self._db() as db:
             db.execute('BEGIN')
             digest = self._authorize(db, scope)
-            records = {record['id']: record for record in self._records(db, digest)}
-            yield _DocumentReader(db, digest, records)
+            rows = db.execute('SELECT record FROM documents WHERE scope=? ORDER BY rowid', (digest,)).fetchall()
+            records = {record['id']: record for record in (self._read_record(json.loads(row[0])) for row in rows)}
+            state = hashlib.sha256('\n'.join([str(EXTRACTION_VERSION), *(row[0] for row in rows)]).encode('utf-8', 'surrogatepass')).hexdigest()
+            yield _DocumentReader(db, digest, records, state)
 
     def get(self, scope, document_id):
         with self._db() as db:
@@ -412,7 +831,7 @@ class DocumentStore:
 
     def update(self, scope, document_id, changes):
         """Trusted orchestration metadata only; never pass an HTTP request dict here."""
-        allowed = {'analysis', 'analysis_status', 'analysis_error', 'notes', 'status', 'error'}
+        allowed = {'analysis', 'analysis_status', 'analysis_error', 'notes', 'status', 'error', 'error_code', 'retryable'}
         if not isinstance(changes, dict) or not set(changes) <= allowed:
             raise DocumentError('Unsupported document metadata update.')
         try:
@@ -428,6 +847,23 @@ class DocumentStore:
             db.execute('UPDATE documents SET record=? WHERE id=?', (json.dumps(record), document_id))
         return record
 
+    def reserve_review_request(self,scope,document_id,generation):
+        with self._db() as db:
+            db.execute('BEGIN IMMEDIATE')
+            digest,record=self._record(db,scope,document_id)
+            analysis=record.setdefault('analysis',{})
+            if record['archived'] or analysis.get('intent_version',0)!=generation or analysis.get('review_stopped'): return False
+            count=analysis.get('request_count',0)
+            scope_count=db.execute("SELECT SUM(COALESCE(json_extract(record,'$.analysis.request_count'),0)) FROM documents WHERE scope=?",(digest,)).fetchone()[0] or 0
+            allowed=count < analysis.get('request_limit',64) and (scope_count<256 or count < analysis.get('authorized_through',0))
+            if allowed:
+                analysis['request_count']=count+1
+            else:
+                analysis.update(phase='complete',review_stopped=True,review_complete=False,
+                                acknowledgement='The background review reached its request limit. Select Continue review to authorize up to 64 more requests.')
+            db.execute('UPDATE documents SET record=? WHERE scope=? AND id=?',(json.dumps(record),digest,document_id))
+            return allowed
+
     def archive(self, scope, document_id, archived=True):
         with self._db() as db:
             db.execute('BEGIN IMMEDIATE')
@@ -438,6 +874,24 @@ class DocumentStore:
 
     def remove(self, scope, document_id):
         return self.archive(scope, document_id)
+
+    def purge(self, scope, document_id, *, failed_only=False):
+        with self._db() as db:
+            db.execute('BEGIN IMMEDIATE')
+            digest, record = self._record(db,scope,document_id)
+            if failed_only:
+                if record['status'] != 'error' or record.get('chunk_count',0) or db.execute('SELECT 1 FROM chunk_map WHERE document_id=? LIMIT 1',(document_id,)).fetchone():
+                    raise DocumentError('Only a failed upload without any indexed text can be discarded.')
+            elif not record['archived']:
+                raise DocumentError('Remove the file from the interview before deleting it permanently.')
+            directory = self.root / digest / record['id']
+            if directory.is_symlink() or directory.is_junction() or directory.parent.is_symlink() or directory.parent.is_junction():
+                raise DocumentError('Document storage cannot use a linked directory.')
+            self._delete_chunks(db,digest,document_id)
+            db.execute('DELETE FROM documents WHERE id=? AND scope=?',(document_id,digest))
+            db.commit()
+            if directory.exists(): self._remove_original_files(directory)
+        return {'id':document_id, 'purged':True}
 
     def pending(self, scope):
         return [record for record in self.list(scope) if record['status'] in ('pending', 'indexing')]
@@ -451,14 +905,43 @@ class DocumentStore:
             digest, record = self._record(db, scope, document_id)
             return _DocumentReader(db, digest, {document_id: record}).chunks(document_id, offset, limit)
 
+    def text_size(self, scope, document_id):
+        """Characters of indexed text in one file: what a full review of it has to send."""
+        with self._db() as db:
+            digest, _ = self._record(db, scope, document_id)
+            return db.execute('SELECT coalesce(sum(length(chunks.text)),0)' + CHUNK_JOIN.format(index='')
+                              + 'chunk_map.scope=? AND chunk_map.document_id=?',
+                              (digest, document_id)).fetchone()[0]
+
     def source(self, scope, document_id, source_id):
         with self._db() as db:
             digest, record = self._record(db, scope, document_id)
-            row = db.execute('SELECT * FROM chunks WHERE scope=? AND document_id=? AND id=?',
+            row = db.execute(CHUNK_ROWS + 'chunk_map.scope=? AND chunk_map.document_id=? AND chunk_map.id=?',
                              (digest, document_id, source_id)).fetchone()
             if not row:
                 raise PermissionError('Document source is not available in this interview.')
             return _chunk(row, record)
+
+    @staticmethod
+    def _insert_chunk(db, digest, document_id, identity, label, text, location):
+        """Add one section to the full-text table and to chunk_map, in the caller's transaction."""
+        rowid = db.execute('INSERT INTO chunks(id,document_id,scope,label,text,location) VALUES (?,?,?,?,?,?)',
+                           (identity, document_id, digest, label, text, json.dumps(location))).lastrowid
+        ordinal = rowid * 256
+        parent, separator, suffix = identity.rpartition('_v')
+        if separator and suffix.isdecimal() and 1<int(suffix)<256:
+            source = db.execute('SELECT ordinal FROM chunk_map WHERE scope=? AND document_id=? AND id=?',(digest,document_id,parent)).fetchone()
+            if source: ordinal=source[0]+int(suffix)-1
+        db.execute('INSERT INTO chunk_map(scope,document_id,id,chunk_rowid,ordinal) VALUES (?,?,?,?,?)', (digest, document_id, identity, rowid,ordinal))
+
+    @staticmethod
+    def _delete_chunks(db, digest, document_id, identity=None):
+        """Remove one section of a file, or all of them, from both tables."""
+        where, values = 'scope=? AND document_id=?', [digest, document_id]
+        if identity is not None:
+            where, values = where + ' AND id=?', [*values, identity]
+        db.execute(f'DELETE FROM chunks WHERE rowid IN (SELECT chunk_rowid FROM chunk_map WHERE {where})', values)
+        db.execute(f'DELETE FROM chunk_map WHERE {where}', values)
 
     def record_extracted_text(self, scope, document_id, source_id, text):
         if not isinstance(text, str) or not text.strip() or len(text) > 100000:
@@ -468,7 +951,8 @@ class DocumentStore:
         with self._db() as db:
             db.execute('BEGIN IMMEDIATE')
             digest, record = self._record(db, scope, document_id)
-            row = db.execute('SELECT * FROM chunks WHERE scope=? AND document_id=? AND id=?',
+            row = db.execute('SELECT chunk_map.chunk_rowid,chunks.*' + CHUNK_JOIN.format(index='')
+                             + 'chunk_map.scope=? AND chunk_map.document_id=? AND chunk_map.id=?',
                              (digest, document_id, source_id)).fetchone()
             if not row:
                 raise PermissionError('Document source is not available in this interview.')
@@ -476,20 +960,19 @@ class DocumentStore:
             if not location.get('requires_vision') and location.get('origin') != 'ai_visual_transcription':
                 raise DocumentError('Only an explicitly visual source may receive a visual transcription.')
             location.update(requires_vision=False, origin='ai_visual_transcription', verified=False)
-            parts = [text[index:index + MAX_CHUNK_CHARS] for index in range(0, len(text), MAX_CHUNK_CHARS)]
-            old = db.execute('SELECT id,text FROM chunks WHERE scope=? AND document_id=?', (digest, document_id)).fetchall()
+            parts = list(_text_parts(text))
+            old = db.execute('SELECT chunks.id,chunks.text' + CHUNK_JOIN.format(index='')
+                             + 'chunk_map.scope=? AND chunk_map.document_id=?', (digest, document_id)).fetchall()
             replaced = {source_id} | {item['id'] for item in old if item['id'].startswith(source_id + '_v')}
             remaining_bytes = sum(len(item['text'].encode()) for item in old if item['id'] not in replaced)
             if remaining_bytes + len(text.encode()) > MAX_INDEX_BYTES or len(old) - len(replaced) + len(parts) > MAX_CHUNKS:
-                raise DocumentError('Visual transcription exceeds the document indexing limits.')
-            db.execute('UPDATE chunks SET text=?,location=? WHERE scope=? AND document_id=? AND id=?',
-                       (parts[0], json.dumps(location), digest, document_id, source_id))
+                raise ExtractionError(TRANSCRIPTION_LIMIT_MESSAGE)
+            db.execute('UPDATE chunks SET text=?,location=? WHERE rowid=?', (parts[0], json.dumps(location), row['chunk_rowid']))
             for item in old:
                 if item['id'] != source_id and item['id'] in replaced:
-                    db.execute('DELETE FROM chunks WHERE scope=? AND document_id=? AND id=?', (digest, document_id, item['id']))
+                    self._delete_chunks(db, digest, document_id, item['id'])
             for index, part in enumerate(parts[1:], 2):
-                db.execute('INSERT INTO chunks VALUES (?,?,?,?,?,?)',
-                           (f'{source_id}_v{index}', document_id, digest, row['label'], part, json.dumps(location)))
+                self._insert_chunk(db, digest, document_id, f'{source_id}_v{index}', row['label'], part, location)
             inventory = record['inventory']
             reviewed = inventory.setdefault('visual_transcribed_units', [])
             unit = location.get('page', 'image')
@@ -499,17 +982,17 @@ class DocumentStore:
             # also detects a later correction without using mutable review
             # progress/version counters as a source identity.
             record.setdefault('visual_transcription_hashes', {})[str(unit)] = hashlib.sha256(text.encode('utf-8')).hexdigest()
-            coverage = record['coverage']
-            # A mixed page has native text and a separate visual source, but is
-            # still one unit. Visual transcription must not count it twice.
-            coverage['indexed_units'] = inventory.get('text_only_pages', inventory.get('text_pages', 0)) + len(reviewed)
-            coverage['limitations'] = [entry for entry in coverage['limitations'] if 'native visual review' not in entry]
-            unresolved = [page for page in inventory.get('vision_pages', []) if page not in reviewed]
-            if unresolved:
-                coverage['limitations'].append(f'{len(unresolved)} pages still require native visual review.')
-            coverage['limitations'].append('AI visual transcriptions are searchable but have not been independently verified.')
-            coverage['limitations'] = list(dict.fromkeys(coverage['limitations']))
-            record['inventory'] = _inventory_budget(inventory)
+            # This reading has arrived, so the source no longer awaits one.
+            pending = record.pop('visual_reread_pending', {})
+            pending.pop(source_id, None)
+            if pending:
+                record['visual_reread_pending'] = pending
+            else:
+                record.pop('visual_reread_basis', None)
+            _transcribed_coverage(inventory, record['coverage'])
+            # Never refused here: extraction kept room for every reading, and an
+            # inventory from before it did gives up its preview samples instead.
+            record['inventory'] = _inventory_budget(inventory, strict=False)
             record.update(status='partial', chunk_count=len(old) - len(replaced) + len(parts),
                           updated_at=time.time(), revision=record['revision'] + 1)
             db.execute('UPDATE documents SET record=? WHERE id=?', (json.dumps(record), document_id))
@@ -543,24 +1026,142 @@ class DocumentStore:
                 extractor = {'pdf': _pdf, 'png': _png, 'xlsx': _workbook, 'xlsm': _workbook,
                              'csv': _csv, 'xls': _legacy_xls}[record['kind']]
                 inventory, coverage = extractor(path, record, chunks)
-                inventory = _inventory_budget(inventory)
-                status = 'partial' if coverage['limitations'] else 'ready'
                 with self._db() as db:
                     db.execute('BEGIN IMMEDIATE')
                     digest, current = self._record(db, scope, document_id)
-                    db.execute('DELETE FROM chunks WHERE document_id=? AND scope=?', (document_id, digest))
-                    db.executemany('INSERT INTO chunks VALUES (?,?,?,?,?,?)',
-                                   [(item['id'], document_id, digest, item['label'], item['text'], json.dumps(item['location'])) for item in chunks.items])
+                    # Read what a paid review wrote before this index is replaced.
+                    saved = db.execute('SELECT chunks.id,chunks.text,chunks.location' + CHUNK_JOIN.format(index='')
+                                       + "chunk_map.scope=? AND chunk_map.document_id=? AND chunks.location LIKE '%ai_visual_transcription%'",
+                                       (digest, document_id)).fetchall()
+                    parsed_limitations = list(coverage['limitations'])
+                    kept, digests = _carry_transcriptions(saved, chunks, inventory, coverage)
+                    inventory = _inventory_budget(inventory)
+                    status = 'partial' if coverage['limitations'] else 'ready'
+                    self._delete_chunks(db, digest, document_id)
+                    for item in chunks.items:
+                        self._insert_chunk(db, digest, document_id, item['id'], item['label'], item['text'], item['location'])
                     current.update(status=status, inventory=inventory, coverage=coverage,
-                                   visual_transcription_hashes={},
+                                   visual_transcription_hashes=digests,
                                    chunk_count=len(chunks.items), error=None, extraction_version=EXTRACTION_VERSION,
                                    extraction_needs_reindex=False, updated_at=time.time(), revision=current['revision'] + 1)
+                    # The next review is offered each kept source as a visual
+                    # source again, under the placeholder sentence saved here;
+                    # until that reading arrives the source stays as stored.
+                    # Each distinct sentence is saved once, with what the parser
+                    # alone said about coverage; a pending source holds only its
+                    # sentence's position, so a long scan stays a small record.
+                    current.pop('visual_reread_pending', None)
+                    current.pop('visual_reread_basis', None)
+                    if kept:
+                        sentences = list(dict.fromkeys(kept.values()))
+                        current['visual_reread_pending'] = {source: sentences.index(text) for source, text in kept.items()}
+                        current['visual_reread_basis'] = {'placeholders': sentences, 'limitations': parsed_limitations}
                     db.execute('UPDATE documents SET record=? WHERE id=?', (json.dumps(current), document_id))
                 return current
+            except ImportError as error:
+                # The selected Python lacks a reader. That is not a damaged file: name the package,
+                # as _legacy_xls does for xlrd, and leave a diagnostic that names the module.
+                module = (getattr(error, 'name', None) or '').split('.')[0] or None
+                if record['kind'] not in READERS:
+                    return self.update(scope, document_id, {'status': 'error', 'error': 'The document could not be safely decoded. Its original is retained.'})
+                self._diagnose('dependency_missing', reason=module or READERS[record['kind']][1], stage=record['kind'], error_type='ImportError')
+                return self.update(scope, document_id, {'status': 'error', 'error_code':'dependency_missing', 'retryable':False,
+                                                      'error': missing_reader_message(record['kind'], module)})
+            except (OSError, sqlite3.Error) as error:
+                self._diagnose('document_storage_unavailable', stage='publish', error_type=type(error).__name__)
+                return self.update(scope, document_id, {'status':'error', 'error_code':'storage_unavailable', 'retryable':True,
+                    'error':'Local storage could not publish the index. Check free disk space and access, then select Retry review.'})
             except Exception as error:
                 # Parser messages can contain source text; publish only controlled diagnostics.
                 message = str(error) if isinstance(error, DocumentError) else 'The document could not be safely decoded. Its original is retained.'
-                return self.update(scope, document_id, {'status': 'error', 'error': message})
+                return self.update(scope, document_id, {'status': 'error', 'error_code':'invalid_file', 'retryable':False, 'error': message})
+
+    def _diagnose(self, event, **fields):
+        """Report an operational fact (never file content) to whoever started the store, if anyone listens."""
+        if callable(self.diagnostic):
+            try:
+                self.diagnostic(event, **fields)
+            except Exception:
+                pass  # A diagnostic must never make a file operation fail.
+
+    def check_extraction(self, scope, document_id):
+        """Compare an index made by an earlier version with what this version reads. Local and free.
+
+        The original is parsed again in memory. When that gives the very
+        sections that are stored (the same IDs, labels, text and locations,
+        with stored AI transcriptions kept in place), the saved index is
+        current after all: the record takes the new inventory, coverage and
+        version, and keeps its review. Whether that review is complete is
+        decided again from the new coverage, because a newer version may count
+        as unread what an older one counted as read. No section is rewritten
+        and no provider request is made. When the sections differ, or the
+        original cannot be read, index and review stay as they are and the
+        record says so: only an explicit re-index and review brings it up to date.
+        """
+        self.get(scope, document_id)  # Authorize before retaining any worker lock.
+        with self._locks_guard:
+            lock = self._locks.setdefault(document_id, threading.Lock())
+        with lock:
+            before = self.get(scope, document_id)
+            if (before['archived'] or not before.get('extraction_needs_reindex')
+                    or (before.get('reindex_check') or {}).get('outcome') != 'pending'):
+                return before
+            chunks, outcome = _Chunks(before), 'changed'
+            try:
+                path = _long_path(self.original_path(scope, document_id))
+                extractor = {'pdf': _pdf, 'png': _png, 'xlsx': _workbook, 'xlsm': _workbook,
+                             'csv': _csv, 'xls': _legacy_xls}[before['kind']]
+                inventory, coverage = extractor(path, before, chunks)
+            except Exception:
+                outcome = 'failed'
+            with self._db() as db:
+                db.execute('BEGIN IMMEDIATE')
+                digest = self._authorize(db, scope)
+                row = db.execute('SELECT record FROM documents WHERE id=? AND scope=?', (document_id, digest)).fetchone()
+                current = json.loads(row['record']) if row else None
+                # An action taken while the file was being read (Revisit, Remove) decides instead.
+                if not current or current.get('revision') != before['revision'] or self._read_record(dict(current)).get('status') != before['status']:
+                    return self.get(scope, document_id) if current else before
+                same = False
+                if outcome != 'failed':
+                    saved = db.execute('SELECT chunks.id,chunks.label,chunks.text,chunks.location' + CHUNK_JOIN.format(index='')
+                                       + 'chunk_map.scope=? AND chunk_map.document_id=?', (digest, document_id)).fetchall()
+                    try:
+                        _, digests = _carry_transcriptions(saved, chunks, inventory, coverage)
+                        inventory = _inventory_budget(inventory)
+                        same = ({row['id']: (row['label'], row['text'], json.loads(row['location'])) for row in saved}
+                                == {item['id']: (item['label'], item['text'], item['location']) for item in chunks.items})
+                    except DocumentError:
+                        outcome = 'failed'
+                if same:
+                    analysis = current.get('analysis') or {}
+                    if analysis:
+                        total, cursor, units = len(saved), analysis.get('cursor', 0), coverage.get('total_units', 0)
+                        if analysis.get('phase') == 'reindex_required' or analysis.get('error') in REINDEX_NOTICES:
+                            # An earlier action saved the cautious projection with the record.
+                            if analysis.get('error') in REINDEX_NOTICES:
+                                analysis['error'] = None
+                            analysis['phase'] = ('error' if analysis.get('error') or analysis.get('retry_required')
+                                                 else 'complete' if total and cursor >= total
+                                                 else 'deep' if analysis.get('summary') else 'quick')
+                        analysis['limitations'] = [entry for entry in analysis.get('limitations', []) if entry not in REINDEX_NOTICES]
+                        analysis.update(total_chunks=total, version=analysis.get('version', 0) + 1,
+                                        review_complete=bool(analysis.get('phase') == 'complete' and total and cursor >= total
+                                                             and analysis.get('reviewed_chunks', cursor) >= total
+                                                             and not current.get('visual_reread_pending')
+                                                             and not analysis.get('review_stopped')
+                                                             and units > 0 and coverage.get('indexed_units', 0) >= units
+                                                             and not analysis.get('limit_indicator', False)))
+                    current.update(status='partial' if coverage['limitations'] else 'ready', inventory=inventory, coverage=coverage,
+                                   visual_transcription_hashes=current.get('visual_transcription_hashes') or digests,
+                                   chunk_count=len(saved), error=None, extraction_version=EXTRACTION_VERSION,
+                                   extraction_needs_reindex=False, analysis=analysis)
+                    current.pop('reindex_check', None)
+                else:
+                    current['reindex_check'] = {'extraction_version': EXTRACTION_VERSION, 'outcome': outcome}
+                current.update(updated_at=time.time(), revision=current['revision'] + 1)
+                db.execute('UPDATE documents SET record=? WHERE id=?', (json.dumps(current), document_id))
+            return self._read_record(current)
 
     def search(self, scope, query, ids=None, limit=12):
         if not isinstance(query, str) or len(query) > 2000 or not isinstance(limit, int) or isinstance(limit, bool) or not 1 <= limit <= 100:
@@ -575,22 +1176,62 @@ class DocumentStore:
         if record['kind'] != 'pdf' or not isinstance(page_number, int) or isinstance(page_number, bool):
             raise DocumentError('Choose a PDF page by its one-based number.')
         reader = PdfReader(_long_path(self.original_path(scope, document_id)))
-        if reader.is_encrypted:
-            raise DocumentError('Encrypted PDFs must be unlocked before upload.')
+        _open_pdf(reader)
         if not 1 <= page_number <= min(len(reader.pages), MAX_PDF_PAGES):
             raise DocumentError('That PDF page is unavailable.')
         writer = PdfWriter()
         writer.add_page(reader.pages[page_number - 1])
         output = io.BytesIO()
         writer.write(output)
+        if output.tell() > MAX_PDF_PAGE_BYTES:
+            raise DocumentError('This single PDF page exceeds the 16 MiB review limit. Export the page separately and attach it.')
         return output.getvalue()
+
+
+def _open_pdf(reader):
+    if reader.is_encrypted:
+        try:
+            if reader.decrypt(''):
+                return
+        except Exception:
+            pass
+        raise ExtractionError('Encrypted PDF requires a password to open. Upload an unlocked copy.')
+
+
+def _pdf_annotation_text(page):
+    lines, unread = [], False
+    for reference in page.get('/Annots', ()):
+        try:
+            annotation = reference.get_object()
+            if annotation.get('/Subtype') == '/Widget':
+                field = annotation
+                if '/V' not in field and field.get('/Parent'):
+                    field = field['/Parent'].get_object()
+                if '/V' in field:
+                    lines.append(f"Form field {field.get('/T', '')}: {field['/V']}")
+                elif '/AP' in annotation:
+                    unread = True
+            elif annotation.get('/Contents'):
+                lines.append('Annotation: ' + str(annotation['/Contents']))
+        except (ValueError, KeyError, AttributeError, TypeError):
+            unread = True
+    return lines, unread
 
 
 def _pdf(path, record, chunks):
     from pypdf import PdfReader
+    from pypdf.errors import LimitReachedError
     reader = PdfReader(path)
-    if reader.is_encrypted:
-        raise ExtractionError('Encrypted PDFs must be unlocked before upload; no pages were indexed.')
+    _open_pdf(reader)
+    deadline = time.monotonic() + 45
+    operations = 0
+    exhausted = False
+    def bound(*_):
+        nonlocal operations, exhausted
+        operations += 1
+        if exhausted or operations > 2_000_000 or (operations % 128 == 0 and time.monotonic() > deadline):
+            exhausted = True
+            raise ExtractionError('PDF content expands beyond the extraction budget; no partial index was published.')
     count = len(reader.pages)
     if not 1 <= count <= MAX_PDF_PAGES:
         raise ExtractionError('PDF page count exceeds the 500-page limit or is empty; no partial index was published.')
@@ -604,13 +1245,28 @@ def _pdf(path, record, chunks):
             content_bytes += length
             if length > MAX_PDF_PAGE_BYTES or content_bytes > MAX_PDF_CONTENT_BYTES:
                 raise ExtractionError('PDF decoded content exceeds 16 MiB per page or 128 MiB total; no partial index was published.')
-            text = page.extract_text() or ''
+            text = page.extract_text(visitor_operand_before=bound) or ''
+            if exhausted or time.monotonic() > deadline:
+                raise ExtractionError('PDF content expands beyond the extraction budget; no partial index was published.')
+            annotations, unread_annotations = _pdf_annotation_text(page)
+            text = '\n'.join([text, *annotations]) if annotations else text
+            suspect = sum(char == '\ufffd' or unicodedata.category(char) in ('Cs', 'Co') or
+                          (unicodedata.category(char) == 'Cc' and not char.isspace()) for char in text)
+            if suspect and suspect * 20 >= max(1, len(text.strip())):
+                raise ValueError('Unreliable PDF character mapping')
+            if suspect:
+                text = re.sub(r'[\ud800-\udfff]', '\ufffd', text)
             # Text extraction does not read image pixels, diagram geometry or
             # painted form contents. Detect paint operations without decoding
             # image pixels; decorative and meaningful graphics are both honest
             # review requirements until inspected.
             paints = {b'Do', b'INLINE IMAGE', b'S', b's', b'f', b'F', b'f*', b'B', b'B*', b'b', b'b*', b'sh'}
-            visual = bool(contents is not None and any(operator in paints for _, operator in contents.operations))
+            operators = [op for _, op in contents.operations] if contents is not None else []
+            visual = (unread_annotations or b're' in operators and any(op in paints for op in operators)
+                      or any(op in paints - {b'S', b's'} for op in operators)
+                      or sum(op in (b'S', b's') for op in operators) > 1)
+        except LimitReachedError:
+            raise ExtractionError('PDF decoded content exceeds 16 MiB per page or 128 MiB total; no partial index was published.') from None
         except DocumentError:
             raise
         except Exception:
@@ -645,7 +1301,8 @@ def _pdf(path, record, chunks):
         limitations.append(f'{len(mixed)} pages contain native text plus graphics; text is preserved separately, but graphics and layout still require native visual review.')
     return ({'pages': count, 'page_inventory': page_inventory, 'text_pages': indexed, 'text_only_pages': indexed - len(mixed),
              'mixed_visual_pages': mixed, 'vision_pages': sorted(missing + failures + mixed), 'failed_pages': failures,
-             'requires_vision': bool(missing or failures or mixed)}, {'indexed_units': indexed - len(mixed), 'total_units': count, 'limitations': limitations})
+             'requires_vision': bool(missing or failures or mixed)}, {'indexed_units': indexed - len(mixed), 'total_units': count, 'text_indexed_units': indexed,
+              'visual_pending_units': len(missing)+len(failures)+len(mixed), 'unit':'pages', 'limitations': limitations})
 
 
 def _png(path, record, chunks):
@@ -663,7 +1320,7 @@ def _png(path, record, chunks):
                f'PNG image {width} by {height} pixels. Image contents require native visual review; no OCR was performed.',
                {'image': True, 'requires_vision': True, 'origin': 'visual_placeholder'})
     return ({'images': 1, 'width': width, 'height': height, 'requires_vision': True},
-            {'indexed_units': 0, 'total_units': 1, 'limitations': ['Image contents require native visual review; no OCR was performed.']})
+            {'indexed_units': 0, 'total_units': 1, 'visual_pending_units': 1, 'limitations': ['Image contents require native visual review; no OCR was performed.']})
 
 
 def _zip_check(path):
@@ -680,7 +1337,7 @@ def _zip_check(path):
                     raise ExtractionError('Workbook ZIP exceeds encryption, compression-ratio or inflated-size safety limits.')
                 if item.filename.startswith('/') or '..' in Path(item.filename).parts:
                     raise ExtractionError('Workbook ZIP contains an unsafe member name.')
-                if item.filename.lower().endswith(('.xml', '.rels')):
+                if not item.is_dir():
                     tail = b''
                     with archive.open(item) as stream:
                         while block := stream.read(65536):
@@ -732,6 +1389,7 @@ def _row_chunks(record, chunks, sheet_index, sheet_name, rows):
     columns, header_sample, header_truncated = 0, '', False
     serial = 0
     buffer_chars = 0
+    buffer_lengths = []
 
     def flush():
         nonlocal buffer, buffer_chars, start, end, high_col, serial
@@ -740,8 +1398,10 @@ def _row_chunks(record, chunks, sheet_index, sheet_name, rows):
             area = f'A{start}:{get_column_letter(max(1, high_col))}{end}'
             chunks.add(f's{sheet_index}_r{start}_{end}_b{serial}', f'{record["name"]} · {sheet_name}!{area}',
                        '\n'.join(buffer), {'sheet': sheet_name, 'sheet_index': sheet_index, 'range': area,
-                                            'row_start': start, 'row_end': end})
+                                            'row_start': start, 'row_end': end, 'header_sample': header_sample,
+                                            'cell_lengths': list(buffer_lengths)})
             buffer, buffer_chars, start, end, high_col = [], 0, None, None, 0
+            buffer_lengths.clear()
 
     for row_number, row in rows:
         if row_number > MAX_ROWS:
@@ -767,14 +1427,49 @@ def _row_chunks(record, chunks, sheet_index, sheet_name, rows):
         columns = max(columns, max(item[0] for item in row))
         if not header_sample:
             header_sample, header_truncated = line[:180], len(line) > 180
-        if buffer and (buffer_chars + len(line) > MAX_CHUNK_CHARS or row_number - start >= 200):
+        if len(line) > MAX_CHUNK_CHARS:
+            flush()
+            group, group_length = [], 0
+            def emit_cells():
+                nonlocal serial
+                if not group:
+                    return
+                first, last = group[0][0], group[-1][0]
+                area = f'{first}:{last}' if first != last else first
+                serial += 1
+                source = f's{sheet_index}_wide_{first}_{last}_b{serial}'
+                body = ' | '.join(rendered for _, rendered in group)
+                caption = f'{record["name"]} · {sheet_name}!{area}'
+                location = {'sheet': sheet_name, 'sheet_index': sheet_index, 'range': area,
+                            'row_start': row_number, 'row_end': row_number, 'header_sample': header_sample,
+                            'cell_lengths': [len(rendered) for _, rendered in group]}
+                if len(group) == 1 and len(body) > MAX_CHUNK_CHARS:
+                    # Keep the address on every continuation of a single oversized cell.
+                    prefix = first + '='
+                    value = body[len(prefix):]
+                    width = MAX_CHUNK_CHARS - len(prefix)
+                    for part, offset in enumerate(range(0, len(value), width), 1):
+                        chunks.add(f'{source}_part{part}', f'{caption} · part {part}',
+                                   prefix + value[offset:offset+width],
+                                   {**location, 'cell_part': part, 'cell_lengths': [len(prefix) + len(value[offset:offset+width])]})
+                else:
+                    chunks.add(source, caption, body, location)
+            for rendered in values:
+                address = rendered.split('=', 1)[0]
+                if group and group_length + 3 + len(rendered) > MAX_CHUNK_CHARS:
+                    emit_cells()
+                    group, group_length = [], 0
+                group_length += (3 if group else 0) + len(rendered)
+                group.append((address, rendered))
+            emit_cells()
+            continue
+        if buffer and (buffer_chars + 1 + len(line) > MAX_CHUNK_CHARS or row_number - start >= 50):
             flush()
         start = row_number if start is None else start
         end, high_col = row_number, max(high_col, max(item[0] for item in row))
         buffer_chars += len(line) + (1 if buffer else 0)
         buffer.append(line)
-        if len(line) > MAX_CHUNK_CHARS:
-            flush()
+        buffer_lengths.extend(len(rendered) for rendered in values)
     flush()
     return {'name': sheet_name, 'index': sheet_index, 'rows': count, 'columns': columns,
             'header_sample': header_sample, 'header_sample_truncated': header_truncated, 'populated_cells': cells,
@@ -783,13 +1478,37 @@ def _row_chunks(record, chunks, sheet_index, sheet_name, rows):
 
 def _workbook(path, record, chunks):
     from openpyxl import load_workbook
+    from openpyxl.worksheet._reader import WorkSheetParser, FORMULA_TAG
+    from openpyxl.styles.numbers import BUILTIN_FORMATS, BUILTIN_FORMATS_MAX_SIZE
     _zip_check(path)
     with ExitStack() as cleanup:
         archive = cleanup.enter_context(zipfile.ZipFile(path))
         book = load_workbook(path, read_only=True, data_only=False, keep_links=False, keep_vba=False)
         cleanup.callback(book.close)
-        cached = load_workbook(path, read_only=True, data_only=True, keep_links=False, keep_vba=False)
-        cleanup.callback(cached.close)
+        remaining = MAX_CELLS
+        deadline = time.monotonic() + 90
+
+        class SparseParser(WorkSheetParser):
+            def parse_row(self, element):
+                nonlocal remaining
+                if time.monotonic() > deadline:
+                    raise ExtractionError('Workbook processing exceeded 90 seconds. Split the workbook and attach smaller copies.')
+                remaining -= len(element)
+                if remaining < 0:
+                    raise ExtractionError('Workbook exceeds two million stored cells; no partial index was published.')
+                return super().parse_row(element)
+
+            def parse_cell(self, element):
+                previous = self.col_counter
+                cell = super().parse_cell(element)
+                if element.find(FORMULA_TAG) is not None:
+                    self.data_only = True
+                    self.col_counter = previous
+                    try: cell['cached'] = super().parse_cell(element)['value']
+                    finally: self.data_only = False
+                return cell
+        if not book.sheetnames:
+            raise ExtractionError('No worksheets could be read. Save a copy as Excel Workbook (.xlsx) and attach it.')
         if len(book.sheetnames) > MAX_SHEETS:
             raise ExtractionError('Workbook exceeds 100 sheets; no partial index was published.')
         inventory = []
@@ -801,24 +1520,33 @@ def _workbook(path, record, chunks):
                                   'populated_cells': 0, 'formula_cells': 0, 'formulas_without_cached_values': 0,
                                   'requires_vision': True, 'visibility': sheet.sheet_state})
                 continue
-            cache_sheet = cached[sheet.title]
-            sheet.reset_dimensions()
-            cache_sheet.reset_dimensions()
-
             def rows():
-                for number, pair in enumerate(itertools.zip_longest(sheet.iter_rows(), cache_sheet.iter_rows()), 1):
-                    raw, values = pair
-                    if raw is None or values is None:
-                        raise ExtractionError('Formula and cached-value row inventories do not agree.')
-                    row = []
-                    for column, cell in enumerate(raw, 1):
-                        if cell.value is None:
-                            continue
-                        formula = cell.value if cell.data_type == 'f' else None
-                        row.append((column, cell.value, formula, values[column - 1].value if column <= len(values) else None))
-                    yield number, row
+                with sheet._get_source() as stream:
+                    parser = SparseParser(stream, sheet._shared_strings, False, book.epoch, book._date_formats, book._timedelta_formats)
+                    last_row = 0
+                    for number, cells in parser.parse():
+                        if number <= last_row or not 1 <= number <= MAX_ROWS:
+                            raise ExtractionError('Worksheet rows repeat or are out of order. Save a repaired copy and attach it.')
+                        last_row = number
+                        row, last_col = [], 0
+                        for cell in cells:
+                            col, raw = cell['column'], cell['value']
+                            if cell['row'] != number or col <= last_col or col > 16384:
+                                raise ExtractionError('Worksheet cells repeat or are out of order. Save a repaired copy and attach it.')
+                            last_col = col
+                            if raw is None: continue
+                            formula = raw if cell['data_type'] == 'f' else None
+                            if not formula and cell['style_id'] and isinstance(raw,(int,float)) and not isinstance(raw,bool):
+                                fmt_id = book._cell_styles[cell['style_id']].numFmtId
+                                fmt = (BUILTIN_FORMATS.get(fmt_id) if fmt_id < BUILTIN_FORMATS_MAX_SIZE
+                                       else book._number_formats[fmt_id-BUILTIN_FORMATS_MAX_SIZE])
+                                if fmt and fmt != 'General': raw = f'{raw} [Excel format: {fmt[:100]}]'
+                            row.append((col, raw, formula, cell.get('cached')))
+                        yield number, row
+            first_chunk = len(chunks.items)
             item = _row_chunks(record, chunks, index, sheet.title, rows())
             item['visibility'] = sheet.sheet_state
+            for chunk in chunks.items[first_chunk:]: chunk['location']['visibility'] = sheet.sheet_state
             # openpyxl's read-only cell stream intentionally omits worksheet
             # drawings. Preserve their presence rather than claiming the tab
             # was fully read just because its cells were indexed.
@@ -833,6 +1561,25 @@ def _workbook(path, record, chunks):
                 graphics = sorted({relation.get('Type', '').rsplit('/', 1)[-1] for relation in relations
                                    if relation.get('Type', '').rsplit('/', 1)[-1] in
                                    {'drawing', 'vmlDrawing', 'image', 'chart', 'oleObject', 'control', 'ctrlProp', 'diagramData', 'diagramLayout'}})
+                comments = 0
+                for relation in relations:
+                    if relation.get('Type','').rsplit('/',1)[-1] != 'comments' or relation.get('TargetMode') == 'External': continue
+                    import posixpath
+                    target = relation.get('Target','')
+                    path_name = posixpath.normpath(target.lstrip('/') if target.startswith('/') else posixpath.join(str(source_path.parent),target))
+                    if path_name.startswith('../') or path_name not in archive.namelist(): continue
+                    with archive.open(path_name) as notes:
+                        for _, note in ElementTree.iterparse(notes,events=('end',)):
+                            if note.tag.rsplit('}',1)[-1]!='comment': continue
+                            address = note.get('ref','')
+                            if not re.fullmatch(r'[A-Z]{1,3}[1-9]\d{0,6}',address): continue
+                            value = ''.join(part.text or '' for part in note.iter() if part.tag.rsplit('}',1)[-1]=='t')
+                            if value.strip():
+                                comments += 1
+                                chunks.add(f's{index}_comment{comments}',f'{record["name"]} · {sheet.title}!{address} comment',value,
+                                           {'sheet':sheet.title,'sheet_index':index,'cell':address,'visibility':sheet.sheet_state,'origin':'cell_comment'})
+                            note.clear()
+                if comments: item['comment_count']=comments
                 if graphics:
                     item.update(requires_vision=True, unread_visual_parts=graphics)
             inventory.append(item)
@@ -857,22 +1604,41 @@ def _workbook(path, record, chunks):
 
 
 def _csv(path, record, chunks):
-    raw = path.read_bytes()
+    error = ('CSV must be UTF-8 or BOM-marked UTF-16/32. In Excel, choose Save As > CSV UTF-8 '
+             '(Comma delimited), or attach an XLSX copy.')
+    with path.open('rb') as raw:
+        head = raw.read(4096)
+    if head.startswith((codecs.BOM_UTF32_LE, codecs.BOM_UTF32_BE)):
+        encoding = 'utf-32'
+    elif head.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
+        encoding = 'utf-16'
+    elif b'\x00' in head:
+        raise ExtractionError(error)
+    else:
+        encoding = 'utf-8-sig'
     try:
-        text = raw.decode('utf-16') if raw.startswith((b'\xff\xfe', b'\xfe\xff')) else raw.decode('utf-8-sig')
+        with path.open('r', encoding=encoding, newline='') as stream:
+            sample = stream.read(16384)
+            stream.seek(0)
+            try:
+                delimiter = csv.Sniffer().sniff(sample, delimiters=',;\t').delimiter
+            except csv.Error:
+                delimiter = ','
+            reader = csv.reader(stream, delimiter=delimiter, strict=True)
+            def rows():
+                for number, row in enumerate(reader, 1):
+                    if any('\x00' in value for value in row):
+                        raise ExtractionError(error)
+                    yield number, [(column, value, None, None) for column, value in enumerate(row, 1) if value]
+            item = _row_chunks(record, chunks, 1, 'CSV', rows())
     except UnicodeError:
-        raise ExtractionError('CSV must be UTF-8 or BOM-marked UTF-16; no lossy decoding was performed.') from None
-    # Reject malformed quoting rather than silently merging cells/rows and
-    # publishing the resulting interpretation as a complete index.
-    reader = csv.reader(io.StringIO(text, newline=''), strict=True)
-    def rows():
-        try:
-            for number, row in enumerate(reader, 1):
-                yield number, [(column, value, None, None) for column, value in enumerate(row, 1) if value]
-        except csv.Error:
-            raise ExtractionError('CSV has an invalid or oversized field; no partial index was published.') from None
-    item = _row_chunks(record, chunks, 1, 'CSV', rows())
-    return ({'sheets': [item], 'sheet_count': 1, 'rows': item['rows'], 'formula_policy': 'CSV cells are literal text; formulas are never executed.'},
+        raise ExtractionError(error) from None
+    except csv.Error:
+        raise ExtractionError('CSV has an invalid or oversized field; no partial index was published.') from None
+    if not item['populated_cells']:
+        raise ExtractionError('CSV has no populated cells to index.')
+    return ({'sheets': [item], 'sheet_count': 1, 'rows': item['rows'], 'delimiter': delimiter,
+             'formula_policy': 'CSV cells are literal text; formulas are never executed.'},
             {'indexed_units': item['rows'], 'total_units': item['rows'], 'limitations': []})
 
 
@@ -881,20 +1647,31 @@ def _legacy_xls(path, record, chunks):
         import xlrd
     except ImportError:
         raise ExtractionError('Legacy XLS requires xlrd, which is not installed. Save a copy as XLSX or CSV and upload that copy; the original is retained.') from None
-    book = xlrd.open_workbook(path, on_demand=True)
+    if not str(getattr(xlrd, '__version__', '')).startswith('2.'):
+        raise ExtractionError('Legacy XLS requires xlrd 2.x. Save a copy as XLSX or CSV and attach it.')
+    with path.open('rb') as source:
+        if source.read(8) != bytes.fromhex('D0CF11E0A1B11AE1'):
+            raise ExtractionError('Legacy XLS must be an OLE binary workbook. Save as XLSX or CSV and attach it.')
+    book = xlrd.open_workbook(str(path), on_demand=True, ragged_rows=True)
     try:
         if book.nsheets > MAX_SHEETS:
             raise ExtractionError('Workbook exceeds 100 sheets.')
-        sheets = []
+        sheets, remaining = [], MAX_CELLS
         for index in range(book.nsheets):
             sheet = book.sheet_by_index(index)
-            rows = ((number + 1, [(column + 1, sheet.cell_value(number, column), None, None)
-                                  for column in range(sheet.ncols) if sheet.cell_value(number, column) != ''])
-                    for number in range(sheet.nrows))
-            sheets.append(_row_chunks(record, chunks, index + 1, sheet.name, rows))
+            def rows():
+                nonlocal remaining
+                for number in range(sheet.nrows):
+                    row = sheet.row_values(number)
+                    remaining -= len(row)
+                    if remaining < 0: raise ExtractionError('Workbook exceeds two million stored cells.')
+                    yield number + 1, [(col, value, None, None) for col,value in enumerate(row,1) if value != '']
+            item = _row_chunks(record, chunks, index + 1, sheet.name, rows())
+            item.update(visibility={0:'visible',1:'hidden',2:'veryHidden'}.get(sheet.visibility,'unknown'), formula_cells=None)
+            sheets.append(item)
         return ({'sheets': sheets, 'sheet_count': len(sheets), 'rows': sum(item['rows'] for item in sheets),
                  'formula_policy': 'Saved legacy cell results only; formula provenance may be unavailable.'},
                 {'indexed_units': len(sheets), 'total_units': len(sheets),
-                 'limitations': ['Legacy XLS exposes saved cell results; formulas/macros were not executed.']})
+                 'limitations': ['Legacy XLS exposes saved cell results. Formula counts, chart and image contents, and macros are unavailable.']})
     finally:
         book.release_resources()

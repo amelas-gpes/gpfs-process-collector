@@ -91,8 +91,11 @@ class WorkflowUpdateTests(unittest.TestCase):
             with self.subTest(passages=passages):
                 reviewed = audit(route_support=[{'from':'S4', 'to':'S5', 'label':'Ready', 'passages':passages}])
                 client = self.client(None)
-                client.structured.side_effect = [candidate, reviewed]
+                # Passages that cannot be verified are asked about once more; a reviewer that
+                # repeats them still publishes nothing. No passage at all is not asked again.
+                client.structured.side_effect = [candidate, reviewed, {'route_support': reviewed['route_support']}]
                 result = client.workflow(original)['workflow']
+                self.assertEqual(client.structured.call_count, 3 if passages else 2)
                 self.assertEqual(result['connections'], original['previous_capture']['workflow']['connections'])
                 self.assertIn('S5', [item['id'] for item in result['steps']])
                 self.assertTrue(any('Discuss the budget' in q and 'handoff or prerequisite' in q for q in result['open_questions']))
@@ -153,7 +156,7 @@ class WorkflowUpdateTests(unittest.TestCase):
         self.assertIn(server.WORKFLOW_SOURCE_AUDIT_POLICY, client.structured.call_args_list[0].args[0])
         self.assertNotIn(server.CURIOSITY_POLICY, instructions, 'Evidence review must not inherit interviewing instructions')
         self.assertIn('read ALL supplied source scope/exclusion statements', instructions)
-        self.assertIn('known senior signoff must be represented in the workflow', instructions)
+        self.assertIn('Represent a required check and its reported role in the workflow', instructions)
         self.assertIn('Preserve explicit participant corrections and reported current-practice deviations', instructions)
         self.assertIn('retain both accounts and their', instructions)
         self.assertIn('preserve unrelated accepted facts and routes', instructions)
@@ -212,7 +215,10 @@ class WorkflowUpdateTests(unittest.TestCase):
         self.assertEqual(caught.exception.status, 504)
         self.assertEqual(original, before, 'A timed-out audit must leave transcript, files and accepted capture unchanged')
         self.assertEqual(network.call_count, 2, 'No automatic paid retry or bypass of the audit')
-        self.assertEqual([call.kwargs['timeout'] for call in network.call_args_list], [120, 240])
+        first, audit = [call.kwargs['timeout'] for call in network.call_args_list]
+        self.assertEqual(first, 120)
+        self.assertGreater(audit, 235)
+        self.assertLessEqual(audit, 240)
         sent = [json.loads(call.args[0].data) for call in network.call_args_list]
         self.assertEqual([body['text']['format']['name'] for body in sent],
                          ['working_process_map', 'working_process_map_audit'])

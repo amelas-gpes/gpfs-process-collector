@@ -1,3 +1,15 @@
+# Release validation
+
+## Version 0.30.0
+
+The release review covered 752 findings from the November 12 audit. The backend checks cover source attribution, capture, workflows, file parsing, storage, submitted revisions and desktop update approval. Compatibility tests reopen fictional interviews exported by versions 0.25.1, 0.26.1, 0.29.0 and 0.30.0.
+
+On Windows, Edge and Chrome exercised a typed answer, a real Save copy download, Start over and two tabs sharing a file workspace. A longer Chrome journey used a scripted provider to attach a file, finish an interview, generate and edit the draft, inspect the submitted revision in Admin, reopen the saved interview and submit again.
+
+Separate live checks used fictional inputs with the hosted provider for interview capture, coverage, file review, workflow, draft generation, matching and voice. The browser voice check used synthetic microphone audio. The private reference replay was unavailable on the validation machine.
+
+The earlier entries below describe the named prototype builds. See the [changelog](CHANGELOG.md) for release changes.
+
 # Prototype validation · November 2, 2026
 
 ## Version 0.2.0 voice upgrade
@@ -56,7 +68,7 @@ The prototype uses the [Responses API's structured output format](https://develo
 
 ## Publication copy
 
-The repository copy keeps environment-file lookup and runtime logs inside its own directory, provides interpreter-configurable launch scripts, and uses generic branding. The original local installation is preserved. Local account setup records, credentials and host inventory receipts are excluded. Tests were rerun against this publication copy. No automatic installation or CI download workflow is included.
+The repository copy keeps environment-file lookup and runtime logs inside its own directory, provides interpreter-configurable launch scripts, and uses generic branding. The original local installation is preserved. Local account setup records, credentials and host inventory receipts are excluded. Tests were rerun against this publication copy. No automatic installation or CI download workflow is included. (That statement predates the optional Windows desktop app added in November 2026, which downloads builds of this application from GitHub and runs one only after approval in its window; see [docs/DESKTOP.md](docs/DESKTOP.md).)
 
 ## 0.2.1 provider interface and Azure direction
 

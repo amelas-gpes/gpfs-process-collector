@@ -190,7 +190,7 @@
   action("variance_analysis", "analyze|analyse|investigate|explain|classify|resolve|quantify", "(?:(?:material|balance|receipt|cash|recorded|period|unexpected|expected versus received) )?(?:variances?|balance movements?|differences)", ["variance analysis", "analytical review of balances"]);
   action("variance_analysis", "perform", "analytical review of (?:balances|accruals|movements)");
   // A leading reconciliation verb denotes the comparison itself, not whatever is mentioned after it.
-  action("reconciliation", "reconcile|tie out|tie", "(?:[a-z0-9]+)", ["reconciliation", "account reconciliation", "cash reconciliation", "tie out"]);
+  action("reconciliation", "reconcile|tie out", "(?:[a-z0-9]+)", ["reconciliation", "account reconciliation", "cash reconciliation", "tie out"]);
   action("cash_application", "match|apply|allocate|link", "(?:(?:bank|investor|cash|customer|incoming|unidentified) )?(?:receipts?|cash receipts?|received funds|receipts? to (?:an? |the )?investor)", ["cash application", "receipt matching"]);
   action("cash_application", "apply", "(?:cash|payments?|bank credits?) (?:to|against) (?:a |an |the )?(?:invoice|receivable|investor|outstanding)");
   action("cash_application", "compare", "(?:each )?receipt to (?:the )?expected amount");
@@ -311,8 +311,12 @@
         if (!result) continue;
         if (id === "wire_release" && /\b(?:for (?:client |manager |bank |internal )?(?:review|approval|verification)|to (?:the |a )?(?:reviewer|approver|approval queue|review queue)|for (?:a |an )?(?:test|dry run))\b/.test(candidate)) continue;
         const broadVerb = id === "reconciliation" || id === "record_update";
-        if (broadVerb && /^(?:whether|if|how|to|why|what|for|that|then|before|after)$/.test(result[0].split(" ").at(-1))) continue;
-        if (broadVerb || continuation.test(candidate.slice(result[0].length))) return byId.get(id);
+        if (broadVerb && /^(?:whether|if|how|to|why|what|for|that|then|before|after|in|into|out|off|on|up|with|review|retention|price|holders|breaker)$/.test(result[0].split(" ").at(-1))) continue;
+        if (id==="reconciliation" && /^reconcile with .+ on\b/.test(candidate))continue;
+        if (id==="record_update" && /^\s+(?:review|retention|price|holders|breaker)\b/.test(candidate.slice(result[0].length)))continue;
+        if (id==="record_update" && /\b(?:in|into|on) (?:the |a )?(?:register|tracker|log|checklist|ledger)\b/.test(candidate))return byId.get(id);
+        if (id==="record_update" && /^\s+(?:status|details?|amount|transactions?|entry|entries|adjustments?|dates?|changes?|balances?|records?|log|tracker|register|number|approval|decision|outcome|results?|notes?)\b/.test(candidate.slice(result[0].length)))return byId.get(id);
+        if (id==="reconciliation" || continuation.test(candidate.slice(result[0].length))) return byId.get(id);
       }
     }
     return null;

@@ -82,10 +82,12 @@
         if(!visible&&card.item.contains(doc.activeElement))summary.focus();
         card.item.hidden=!visible;if(!visible)continue;
         const config=ROLES[role],status=row.status;
-        card.details.dataset.status=status;
-        card.badge.textContent=BADGES[status];
+        const historical=["cancelled","stale_revision"].includes(row.reason_code);
+        card.details.dataset.status=historical?"idle":status;
+        const blocked={cancelled:"Cancelled",stale_revision:"Superseded",call_budget_exhausted:"Not run",role_already_invoked:"Not run"};
+        card.badge.textContent=status==="blocked"?(blocked[row.reason_code]||BADGES.blocked):BADGES[status];
         const suppliedLabel=safeText(row.label,180);
-        const label=suppliedLabel&&suppliedLabel!==config.name?suppliedLabel:status==="running"?config.running:status==="completed"?config.completed:status==="error"?"Review did not finish":"";
+        const label=suppliedLabel&&suppliedLabel!==config.name?suppliedLabel:status==="running"?config.running:status==="completed"?config.completed:status==="error"?(role==="lead_interviewer"?"Interviewer response did not finish":"Review did not finish"):"";
         card.activity.textContent=label;
         card.activity.hidden=!label;
         card.detail.textContent=REASONS[row.reason_code]||safeText(row.detail,600);
@@ -93,10 +95,10 @@
         card.caveat.hidden=status!=="completed"||role==="lead_interviewer";
       }
       const working=normalized.filter(row=>row.status==="running"),waiting=normalized.filter(row=>["pending","queued"].includes(row.status));
-      const attention=normalized.some(row=>["error","blocked"].includes(row.status));
+      const attention=normalized.some(row=>["error","blocked"].includes(row.status)&&!["cancelled","stale_revision","role_already_invoked"].includes(row.reason_code));
       aggregate.textContent=snapshot.stale?"Earlier context":snapshot.cancelled?"Run cancelled":working.length?`${working.length} ${working.length===1?"agent":"agents"} working`:attention?"Needs attention":waiting.length?"Reviews queued":normalized.some(row=>row.status==="completed")?"Latest updates ready":"Standing by";
-      root.dataset.state=snapshot.stale||snapshot.cancelled?"blocked":working.length?"running":attention?"attention":waiting.length?"queued":"idle";
-      const completed=events.filter(event=>event.status==="completed").slice(-3).reverse();
+      root.dataset.state=snapshot.stale||snapshot.cancelled?"idle":working.length?"running":attention?"attention":waiting.length?"queued":"idle";
+      const completed=events.filter(event=>event.status==="completed").filter((item,index,rows)=>index===0||item.role!==rows[index-1].role||item.label!==rows[index-1].label).slice(-3).reverse();
       recentList.replaceChildren(...completed.map(event=>{
         const item=make("li","agent-team-result"),role=make("span","agent-team-result-role",ROLES[event.role].name);
         const suppliedLabel=safeText(event.label,180),result=make("span","agent-team-result-text",suppliedLabel&&suppliedLabel!==ROLES[event.role].name?suppliedLabel:ROLES[event.role].completed);

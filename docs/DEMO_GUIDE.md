@@ -1,6 +1,6 @@
 # Demonstration and recovery guide
 
-Use fictional information. Before replacing an open interview, choose **More options → Save copy**. Recorded answers remain in the page; download a copy to retain them independently.
+Use fictional information. Before replacing an open interview, choose **More options → Save copy** (or press Ctrl+S). Recorded answers remain in the page; save a copy to retain them independently. Nothing else keeps an interview unless **Settings → Data handling → Keep a recovery copy on this computer** is on; that option is off by default.
 
 ## A short walkthrough
 
@@ -8,7 +8,7 @@ Use fictional information. Before replacing an open interview, choose **More opt
 2. **Interview → Transcript.** Read an answer and follow-up; use **Find**. Open a topic in **Workspace → Notes** to show its answer, topic guidance and sources. On a narrow screen, open **Workspace** first.
 3. **Workflow → a step → a source.** Select a diagram step, follow its reported next step, and open a cited answer. **Back to step** returns to that citation. Use the step selector or **Follow path** to explore a handoff. **Map tools** contains zoom, **Fit entire map**, orientation, and the diagram key.
 4. **Review.** Open the example with **Open draft**. Explore **Report**, **Notes**, **Workflow**, **Steps**, **Items**, **Variations** and **Open questions**. Edit the example under **Steps**; point out **Needs owner review**. In a real interview, **Create draft** becomes available in Workspace and Review after an answer or file provides source material. **Update draft** replaces manual edits after confirmation.
-5. **Save and export.** **Save copy** downloads the restorable interview. **Transcript → Export** offers Markdown or JSON. In Review, use **Download report** for Markdown, **Download notes** for the memo, or **Workflow → Map tools → Download map (SVG)**.
+5. **Save and export.** **Save copy** writes the restorable interview. Where the browser offers a system Save dialog (Chrome and Edge), choose a location; **Saved** appears only after the file is written. Otherwise a download starts and the header shows **Last copy downloaded** with the time. **Transcript → Export** offers Markdown or JSON. In Review, use **Download report** for Markdown, **Download notes** for the memo, or **Workflow → Map tools → Download map (SVG)**.
 6. **Optional live segment.** Choose **Start your own → Type instead** for a fictional exchange. Use **Start talking** after the device checks below. Stop when useful; do not invent details to reach completion.
 
 ## Explain what the team and topic states mean
@@ -29,6 +29,8 @@ When the candidate account is ready, one acknowledgement precedes the completion
 | A file needs attention | In **Assets**, use **Retry upload**, **Retry review**, **Retry source** or **Retry action**, as offered. **Continue without waiting** returns to the interview with file work unresolved. |
 | A file needs a purpose or is for later | Enter what to look for and choose **Review now**, or **Save for later**. **Revisit this file** brings a parked file back for review. |
 | Facts or sources change | Add the correction and inspect its source. Adding, removing or revisiting files changes the evidence basis. Continue interviewing or use **Recheck coverage** when offered. Earlier completion does not apply automatically. An **Initial overview** preserves earlier reading; current review counts and limitations are shown separately. |
+| The tab, the browser or the computer closed with unsaved work | With **Keep a recovery copy on this computer** on, reopen the app: a banner names the stored interview and offers **Restore** or **Discard**. Restored coverage and closure are provisional, as for a reopened file, and the interview is still unsaved. With the option off (the default) the unsaved work is gone; the header cue, for example **Unsaved for 40 min · never saved**, is the reminder to save. |
+| A copy may not have been written | Cancelling the system Save dialog leaves **Unsaved changes** in place and saves nothing. A download is reported as **Download started**, never as saved, because it can be cancelled or blocked: check the file in your Downloads folder. Until a save is confirmed, the app keeps asking before the interview is replaced or the tab or window is closed. |
 | Reopening saved work | **More options → Open saved interview…** accepts a Save copy file. Answers and sources remain, but previous coverage/closure is provisional until rechecked. Opening alone does not request a model response. |
 
 ## Hands-on device check before a voice demonstration

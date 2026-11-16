@@ -6,7 +6,7 @@ const shared={require,__dirname,console,Buffer,Blob,DataView,Uint8Array,Float32A
 const exported=(source,tail)=>{const module={exports:{}};vm.runInNewContext(source+tail,{...shared,module});return module.exports;};
 const voice=exported(fs.readFileSync(path.join(__dirname,"test_live_voice.cjs"),"utf8").split("(async()=>{")[0],"\nmodule.exports={setup};");
 let source=fs.readFileSync(path.join(__dirname,"test_agent_experience.cjs"),"utf8").split("let passed=0;")[0];
-source=source.replace("setTeam:value=>","runLiveCapture,applyLiveCapture,liveSnapshot,syncLiveCoverage,refreshWorkflow,getCapturedThrough:()=>liveCapturedThrough,setTeam:value=>");
+source=source.replace("setTeam:value=>","presenceState,runLiveCapture,applyLiveCapture,liveSnapshot,syncLiveCoverage,refreshWorkflow,getCapturedThrough:()=>liveCapturedThrough,setTeam:value=>");
 const app=exported(source,"\nmodule.exports={setup,approved,response,flush};");
 const captureCalls=h=>h.calls.filter(c=>c.url==="/api/agent-team/interview");
 function fixture(){
@@ -20,6 +20,13 @@ function fixture(){
 let passed=0;
 async function check(name,fn){await fn();passed++;console.log("PASS "+name);}
 (async()=>{
+ await check("GPT-Live playback displays Speaking while reviewed playback can still be preparing",async()=>{
+  const h=fixture();
+  h.t.conversationUI.status="speaking";
+  assert.equal(h.t.presenceState(),"speaking");
+  h.t.state.config.agent_team.voice_mode="reviewed_turns";
+  assert.equal(h.t.presenceState(),"processing");
+ });
  await check("listening cues and delayed fragments keep one participant answer",async()=>{
   const h=voice.setup();await h.api.start();
   h.event({type:"session.input_transcript.delta",event_id:"u1",delta:"We",start_ms:100,end_ms:300});

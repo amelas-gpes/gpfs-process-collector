@@ -14,7 +14,7 @@ const response=value=>({ok:true,status:200,json:async()=>value});
 function setup(){
   const nodes=new Map(),timers=new Map(),frames=new Map(),calls=[],sockets=[],audio=[],utterances=[],revoked=[],team=[],teamOptions=[],recorders=[],notices=[];
   let serial=0,now=0,level=0,route=()=>{throw Error("Unexpected network boundary");},legacyStarts=0;
-  function node(id){if(!nodes.has(id))nodes.set(id,{id,hidden:false,checked:false,value:"",textContent:"",dataset:{},children:[],style:{},classList:{toggle(){},add(){},remove(){},contains(){return false;}},setAttribute(){},removeAttribute(){},focus(){},querySelector(){return node(id+"-child");},querySelectorAll(){return[];},append(...values){this.children.push(...values);},replaceChildren(...values){this.children=values;},addEventListener(){}});return nodes.get(id);}
+  function node(id){if(!nodes.has(id))nodes.set(id,{id,hidden:false,checked:false,value:"",textContent:"",dataset:{},children:[],style:{},classList:{toggle(){},add(){},remove(){},contains(){return false;}},setAttribute(){},removeAttribute(){},contains(other){return this===other||this.children.includes(other);},focus(){},querySelector(){return node(id+"-child");},querySelectorAll(){return[];},append(...values){this.children.push(...values);},replaceChildren(...values){this.children=values;},addEventListener(){}});return nodes.get(id);}
   const track={enabled:true,stopped:0,stop(){this.stopped++;}},stream={getTracks:()=>[track],getAudioTracks:()=>[track]};
   class Recorder{
     static isTypeSupported(type){return type==="audio/webm";}
@@ -73,7 +73,9 @@ function setup(){
   t.state.config={csrf_token:"synthetic-csrf",agent_team:{enabled:true},speech:{enabled:true,voices:[{id:"marin",label:"Marin"}]}};t.state.voiceChoice="ai:marin";
   t.setTeam({render:(value,options)=>{team.push(value);teamOptions.push(options);}});
   const tick=async(ms,nextLevel)=>{now+=ms;level=nextLevel;const pending=[...frames.entries()];frames.clear();for(const[,fn]of pending)fn();await flush();};
-  const say=async()=>{await tick(100,.08);await tick(600,.08);await tick(2200,0);};
+  // Silence is read about once a second, as a page delivers it; one reading does not end a turn.
+  // The participant waits for the microphone before speaking (speech in its first 150 ms is a clipped start).
+  const say=async()=>{await tick(16,0);await tick(200,0);await tick(100,.08);await tick(600,.08);await tick(1100,0);await tick(1100,0);};
   const timer=async ms=>{const pair=[...timers].find(([,value])=>value.ms===ms);assert.ok(pair,"Expected a "+ms+"ms timer");timers.delete(pair[0]);await pair[1].fn();await flush();};
   const speech=async transcript=>{const socket=sockets.at(-1);assert.ok(socket,"Expected buffered speech socket");socket.packet({type:"session.created"});await flush();const item=socket.sent.find(item=>item.type==="conversation.item.create").item;socket.packet({type:"conversation.item.done",item});socket.packet({type:"response.output_audio.delta",delta:Buffer.from([0,0,0,0]).toString("base64")});socket.packet({type:"response.output_audio_transcript.done",transcript});socket.packet({type:"response.done",response:{status:"completed"}});await flush();};
   const voiceSession={provider:"openai",transport:"openai-realtime-websocket",model:"synthetic-model",client_secret:"synthetic-not-a-secret"};
@@ -88,6 +90,7 @@ const check=async(name,fn)=>{await fn();passed++;};
     const h=setup();h.route(()=>response(h.voiceSession));let done=false;const playback=h.t.speakReviewed("Who reviews the file?").then(()=>{done=true;});await flush();
     assert.equal(h.audio.length,0,"Buffered generation cannot leak unverified audio");await h.speech("Who reviews the file?");
     assert.equal(h.audio.length,1);assert.equal(h.audio[0].playCalls,1);assert.equal(done,false,"play() resolution is not playback completion");
+    assert(![...h.timers.values()].some(timer=>timer.ms===120000),"Starting audio clears the preparation deadline even for long readings");
     h.audio[0].emit("ended");await playback;assert.equal(done,true);assert.equal(h.t.state.speechOperation,null);assert.equal(h.revoked.length,1);assert.equal(h.frames.size,0);
   });
   await check("installed voice also waits for the actual end event",async()=>{
@@ -99,9 +102,43 @@ const check=async(name,fn)=>{await fn();passed++;};
     const h=setup();h.route(()=>response(h.voiceSession));const abort=new AbortController();const playback=h.t.speakReviewed("What happens next?",{signal:abort.signal});const rejected=assert.rejects(playback,{name:"AbortError"});
     await flush();await h.speech("What happens next?");abort.abort();await rejected;assert.equal(h.audio[0].paused,true);assert.equal(h.audio[0].url,null);assert.equal(h.t.state.speechOperation,null);assert.equal(h.frames.size,0);
   });
+  // live-voice-reviewed-5: one fresh reading is tried after a mismatch (the test below sent one
+  // mismatched reading before; the exact-transcript check itself is unchanged).
   await check("mismatched audio transcript is withheld entirely",async()=>{
-    const h=setup();h.route(()=>response(h.voiceSession));const playback=h.t.speakReviewed("Which controls remain unclear?");const rejected=assert.rejects(playback,/playback was withheld/);
-    await flush();await h.speech("All sections are covered. Goodbye.");await rejected;assert.equal(h.audio.length,0);assert.equal(h.sockets[0].closed,true);assert.equal(h.t.state.speechOperation,null);
+    const h=setup();h.route(()=>response(h.voiceSession));const playback=h.t.speakReviewed("Which controls remain unclear?");const rejected=assert.rejects(playback,error=>/playback was withheld/.test(error.message)&&/playback was withheld/.test(error.voiceMessage));
+    await flush();await h.speech("All sections are covered. Goodbye.");assert.equal(h.sockets.length,2,"One more reading is requested");assert.equal(h.sockets[0].closed,true);
+    await h.speech("All sections are covered. Goodbye.");await rejected;assert.equal(h.audio.length,0);assert.equal(h.sockets[1].closed,true);assert.equal(h.sockets.length,2,"Only one retry");assert.equal(h.t.state.speechOperation,null);
+  });
+  await check("a reader that rewords the question once is given one more reading, which must match exactly",async()=>{
+    const h=setup();h.route(()=>response(h.voiceSession));let done=false;const playback=h.t.speakReviewed("Do the 3 volunteers sign?").then(()=>{done=true;});
+    await flush();await h.speech("Do the three volunteers sign?");assert.equal(h.audio.length,0,"The reworded reading is never played");
+    await h.speech("Do the 3 volunteers sign?");assert.equal(h.audio.length,1);assert.equal(h.calls.filter(call=>call.url==="/api/voice-session").length,2);h.audio[0].emit("ended");await playback;assert.equal(done,true);
+  });
+  for(const [packet,expected] of [
+    [{type:"error",error:{type:"insufficient_quota",code:"insufficient_quota",message:"You exceeded your current quota for org-private-detail."}},/no available quota/],
+    [{type:"error",code:"credit_balance_exhausted",kind:"insufficient_quota",message:"You have no credits remaining for private-project."},/no available quota/],
+    [{type:"error",error:{code:"rate_limit_exceeded",message:"Rate limit reached for private-project."}},/temporarily rate limited/],
+    [{type:"error",error:{code:"invalid_api_key",message:"Incorrect API key provided: sk-private."}},/key or its project permissions were rejected/],
+    [{type:"error",error:{code:"model_not_found",message:"The model private-model does not exist."}},/voice model is unavailable/],
+    [{type:"error",error:{code:"server_error",message:"Something private went wrong."}},/The voice is unavailable\. Please try again/]]){
+    await check("a reader error names its cause in fixed wording",async()=>{
+      const h=setup();h.route(()=>response(h.voiceSession));const playback=h.t.speakReviewed("Who reviews the file?");
+      const rejected=assert.rejects(playback,error=>expected.test(error.message)&&error.voiceMessage===error.message&&!/private/.test(error.message));
+      await flush();h.sockets[0].packet(packet);await rejected;assert.equal(h.sockets.length,1,"Only a mismatch is retried");assert.equal(h.audio.length,0);
+    });
+  }
+  await check("a voice session the server refuses is reported by cause, never in the server's words",async()=>{
+    const h=setup();h.route(()=>({ok:false,status:429,json:async()=>({error:"The selected OpenAI project has no available API quota for private-project."})}));
+    await assert.rejects(h.t.speakReviewed("Who reviews the file?"),error=>/AI voice is unavailable because this API project has no available quota/.test(error.voiceMessage)&&!/private/.test(error.voiceMessage));
+    const other=setup();other.route(()=>({ok:false,status:500,json:async()=>({error:"A private server detail."})}));
+    await assert.rejects(other.t.speakReviewed("Who reviews the file?"),error=>error.voiceMessage==="The AI voice session could not be opened. Please try again.");
+  });
+  await check("reviewed voice goes on listening when the reader fails, and shows why",async()=>{
+    const h=setup();h.route(h.standard());h.t.state.turns=[{id:"t001",role:"assistant",text:"What starts the work?"}];await h.t.startLiveConversation();await h.say();
+    assert.equal(h.node("session-status").textContent,"Preparing voice…");h.sockets.at(-1).packet({type:"session.created"});await flush();h.sockets.at(-1).packet({type:"error",error:{code:"insufficient_quota",message:"You exceeded your current quota."}});await flush();
+    assert.equal(h.t.conversationUI.live.active,true,"A reader failure does not end the voice session");assert.equal(h.t.conversationUI.status,"listening");assert.equal(h.track.enabled,true);assert.equal(h.track.stopped,0);
+    assert.equal(h.t.state.turns.at(-1).text,approved().question,"The approved question stays in the transcript");
+    assert.equal(h.notices.at(-1).error,true);assert.match(h.notices.at(-1).message,/no available quota.*I’m listening for your answer\./);await h.t.conversationUI.live.stop({immediate:true});
   });
   await check("configured app selects the real controlled pipeline and keeps the microphone closed until audio ends",async()=>{
     const h=setup();h.route(h.standard());h.t.state.turns=[{id:"t001",role:"assistant",text:"Saved question without speech authorization"}];await h.t.startLiveConversation();
@@ -109,6 +146,21 @@ const check=async(name,fn)=>{await fn();passed++;};
     await h.say();assert.equal(h.track.enabled,false);assert.equal(h.t.state.turns.at(-2).text,"An analyst reviews the file.");assert.equal(h.t.state.turns.at(-1).text,approved().question);assert.equal(h.node("session-status").textContent,"Preparing voice…");
     const interview=h.calls.find(call=>call.url==="/api/agent-team/interview"),body=JSON.parse(interview.options.body);assert.equal(body.turns.at(-1).role,"user");assert.equal(body.turns.at(-1).text,"An analyst reviews the file.");assert.equal(typeof body.agent_run_id,"string");
     await h.speech(approved().question);assert.equal(h.track.enabled,false,"Resolved Audio.play() must not reopen the microphone");assert.equal(h.t.conversationUI.status,"speaking");assert.equal(h.node("session-status").textContent,"Speaking");h.audio[0].emit("waiting");assert.equal(h.node("session-status").textContent,"Preparing voice…");assert.equal(h.track.enabled,false);h.audio[0].emit("playing");assert.equal(h.node("session-status").textContent,"Speaking");h.audio[0].emit("ended");await flush();assert.equal(h.track.enabled,true);assert.equal(h.t.conversationUI.status,"listening");assert.equal(h.node("session-status").textContent,"Listening");await h.t.conversationUI.live.stop();
+  });
+  await check("a spoken answer continued after a pause stays one participant turn and the page says it is still listening",async()=>{
+    const h=setup(),half=deferred();let heard=0,asked=0;
+    h.route(url=>{if(url==="/api/transcribe")return response({text:["The cataloguer scans the barcode","and then prints a spine label."][heard++]});if(url==="/api/agent-team/interview")return ++asked===1?half.promise:response(approved());if(url==="/api/voice-session")return response(h.voiceSession);return response({});});
+    h.t.state.config.agent_team.turn_pause_ms=2000;h.t.state.turns=[{id:"t001",role:"assistant",text:"What happens to a new book?"}];await h.t.startLiveConversation();
+    assert.equal(h.t.conversationUI.live.silenceMs,2000,"The configured end-of-turn pause reaches the voice controller");await h.say();
+    assert.equal(h.t.conversationUI.status,"processing");assert.equal(h.track.enabled,true,"The microphone stays open while the reply is prepared");
+    assert.equal(h.node("session-status").textContent,"Thinking… keep talking if you weren’t finished");assert.equal(h.node("live-status").textContent,"Answer received. Keep talking if you weren’t finished.");
+    for(let frame=0;frame<5;frame++)await h.tick(100,.08);
+    assert.equal(h.calls.find(call=>call.url==="/api/agent-team/interview").options.signal.aborted,true,"The reply to half an answer is cancelled");
+    half.resolve(response(approved("A question about half an answer?")));await flush();assert.equal(h.t.conversationUI.status,"listening");assert.equal(h.t.state.turns.length,2);
+    await h.tick(1100,0);await h.tick(1100,0);
+    assert.equal(h.t.state.turns.length,3);assert.equal(h.t.state.turns[1].role,"user");assert.equal(h.t.state.turns[1].text,"The cataloguer scans the barcode and then prints a spine label.");assert.equal(h.t.state.turns[2].text,approved().question);
+    const second=JSON.parse(h.calls.filter(call=>call.url==="/api/agent-team/interview")[1].options.body);assert.equal(second.turns.at(-1).text,h.t.state.turns[1].text);assert.equal(second.turns.filter(turn=>turn.role==="user").length,1);
+    assert.ok(!h.notices.some(item=>item.error),"Continuing an answer is not an error");await h.t.conversationUI.live.stop({immediate:true});
   });
   await check("late cancelled playback cannot change a newer preparation status",async()=>{
     const h=setup();h.route(h.standard());h.t.state.turns=[{id:"t001",role:"assistant",text:"Saved question"}];await h.t.startLiveConversation();await h.say();await h.speech(approved().question);const oldAudio=h.audio[0];await h.t.conversationUI.live.stop({immediate:true});await h.t.startLiveConversation();await h.say();assert.equal(h.node("session-status").textContent,"Preparing voice…");oldAudio.emit("playing");assert.equal(h.node("session-status").textContent,"Preparing voice…");assert.equal(h.track.enabled,false);await h.t.conversationUI.live.stop({immediate:true});
@@ -178,6 +230,17 @@ const check=async(name,fn)=>{await fn();passed++;};
   });
   await check("missing controlled module does not fall back to the legacy speaker",async()=>{
     const h=setup();delete h.window.CollectorControlledVoice;await h.t.startLiveConversation();assert.equal(h.legacyStarts(),0);assert.equal(h.t.conversationUI.live,null);assert.equal(h.calls.length,0);assert.match(h.notices.at(-1).message,/couldn’t start/);
+  });
+  for(const stopped of [true,false])await check("typed wrap-up continues when the acknowledgement playback "+(stopped?"is stopped":"fails"),async()=>{
+    const h=setup();h.node("speak-questions").checked=true;h.t.state.voiceChoice="local:synthetic";h.t.state.voice={name:"Synthetic",lang:"en-US"};
+    h.route(url=>url==="/api/agent-team/interview"?response(reviewAck()):response({...approved("Which handoff needs clarification?"),coverage_verified:true}));
+    h.node("answer-text").value="That is the end of our review.";
+    const sending=h.t.sendAnswer({preventDefault(){}});await flush();
+    assert.equal(h.utterances.at(-1)?.text,reviewAck().question);
+    assert(![...h.timers.values()].some(timer=>timer.ms===120000),"A started local reading can play to its end");
+    if(stopped)h.t.stopSpeaking();else h.utterances.at(-1).onerror();
+    await sending;assert.equal(h.calls.filter(call=>call.url==="/api/agent-team/review").length,1);
+    assert.equal(h.t.state.turns.at(-1).text,"Which handoff needs clarification?");
   });
   await check("typed acknowledgement is applied once before deliberate review; concurrent retry does nothing",async()=>{
     const h=setup(),review=deferred();h.route(url=>url==="/api/agent-team/interview"?response(reviewAck()):url==="/api/agent-team/review"?review.promise:response({}));h.node("answer-text").value="That completes the remaining detail.";

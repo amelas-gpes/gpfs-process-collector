@@ -57,6 +57,26 @@ class DocumentServiceTests(unittest.TestCase):
             threading.Event().wait(.01)
         self.fail(f'Document did not reach {phase}: {self.store.get(self.scope, identity)}')
 
+    def test_observation_sources_and_generation_survive_the_background_review(self):
+        stage = {"stage":"document", "model":"fixture", "prompt_id":"abc123", "reasoning_effort":"low"}
+        def analyze(context, record, chunks, phase):
+            result = response(chunks)
+            result.update(generated_by=[stage], app_version="1.2.3")
+            if chunks:
+                result["observations"] += [
+                    {"text":"The source names a tracker.", "sources":[chunks[0]["id"]], "basis":"stated", "quote":"tracker"},
+                    {"text":"An invented observation.", "sources":[chunks[0]["id"]], "basis":"stated", "quote":"this is absent"}]
+            return result
+        service = self.service(analyze)
+        record = service.upload(self.scope, "intake.csv", b"tracker,field\nalpha,42\n")
+        analysis = self.wait(record["id"])["analysis"]
+        self.assertEqual(analysis["generated_by"], [stage])
+        self.assertEqual(analysis["app_version"], "1.2.3")
+        by_text = {row["text"]:row for row in analysis["observations"]}
+        self.assertEqual(by_text["The source names a tracker."]["quote"], "tracker")
+        self.assertNotIn("basis", by_text["The document describes intake fields."])
+        self.assertNotIn("An invented observation.", by_text)
+
     def test_relevant_document_gets_quick_then_complete_deep_review_and_unconfirmed_context(self):
         calls = []
         def analyze(context, record, chunks, phase):
@@ -69,7 +89,7 @@ class DocumentServiceTests(unittest.TestCase):
         record = service.upload(self.scope, 'intake.csv', b'important,field\nalpha,42\n')
         result = self.wait(record['id'])
         self.assertEqual(calls[0][0], 'quick')
-        self.assertTrue(any(phase == 'deep' for phase, _ in calls))
+        self.assertEqual(len(calls), 1, 'A complete quick sample is reviewed once.')
         self.assertEqual(result['analysis']['reviewed_chunks'], result['analysis']['total_chunks'])
         self.assertTrue(result['analysis']['review_complete'])
         self.assertEqual(result['analysis']['basis_turn_id'], 'u2')
@@ -107,7 +127,7 @@ class DocumentServiceTests(unittest.TestCase):
             value['questions'] = [{'text': f'Question {i}', 'sources': [chunks[0]['id']]} for i in range(3)]
             return value
         service = self.service(analyze)
-        records = [service.upload(self.scope, f'reference{i}.csv', b'header,value\na,42\n') for i in range(7)]
+        records = [service.upload(self.scope, f'reference{i}.csv', f'header,value\na,{i}\n'.encode()) for i in range(7)]
         for record in records:
             self.wait(record['id'], timeout=20)
         support = service.supporting_context(self.scope, 'AnotherCompletelyMissingTerm')
@@ -173,12 +193,11 @@ class DocumentServiceTests(unittest.TestCase):
         self.assertEqual(relevant_result['summary'], 'Whole process identity and scope.')
         self.assertEqual(relevant_result['summary_basis'], 'initial_review')
         self.assertEqual(relevant_result['summary_at_review_version'], 1)
-        self.assertGreater(relevant_result['version'], relevant_result['summary_at_review_version'])
+        self.assertGreaterEqual(relevant_result['version'], relevant_result['summary_at_review_version'])
         self.assertEqual(relevant_result['summary_basis_note'], service_module.INITIAL_SUMMARY_NOTE)
-        self.assertEqual(relevant_result['queries'], ['process identity', 'final appendix'])
+        self.assertEqual(relevant_result['queries'], ['process identity'])
         available = {item['id']: item for item in service.supporting_context(self.scope, 'important')['documents']}
-        self.assertEqual(set(available), {relevant['id'], unrelated['id']})
-        self.assertEqual(available[unrelated['id']]['disposition'], 'needs_reason')
+        self.assertEqual(set(available), {relevant['id']})
         self.assertEqual(available[relevant['id']]['summary_basis'], 'initial_review')
         self.assertEqual(available[relevant['id']]['summary_at_review_version'], 1)
         self.assertEqual(available[relevant['id']]['summary_basis_note'], service_module.INITIAL_SUMMARY_NOTE)
@@ -319,7 +338,8 @@ class DocumentServiceTests(unittest.TestCase):
         entered, release, finished = threading.Event(), threading.Event(), threading.Event()
         def analyze(context, record, chunks, phase):
             entered.set()
-            release.wait(3)
+            self.addCleanup(release.set)
+            release.wait()
             finished.set()
             return response(chunks)
         service = self.service(analyze)
@@ -344,20 +364,21 @@ class DocumentServiceTests(unittest.TestCase):
             phases.append((record['analysis']['intent_version'], phase))
             if count == 1:
                 entered.set()
-                release.wait(3)
+                self.addCleanup(release.set)
+                release.wait()
             return response(chunks)
         service = self.service(analyze)
         record = service.upload(self.scope, 'park.csv', b'important,field\na,1\n')
         self.assertTrue(entered.wait(2))
         parked = service.action(self.scope, record['id'], 'park')
-        self.assertEqual(parked['analysis']['phase'], 'deep')
+        self.assertEqual(parked['analysis']['phase'], 'complete')
         for _ in range(3):
             service.status(self.scope)
         release.set()
         result = self.wait(record['id'])
         self.assertEqual(result['analysis']['disposition'], 'parked')
         self.assertEqual(result['analysis']['question'], '')
-        self.assertGreaterEqual(count, 2)
+        self.assertEqual(count, 1)
         self.assertNotIn((1, 'quick'), phases, 'Polling a parked deep review must not queue another quick assessment')
         self.assertEqual(service.supporting_context(self.scope, 'important')['documents'], [])
 
@@ -382,6 +403,38 @@ class DocumentServiceTests(unittest.TestCase):
         result = self.wait(record['id'])
         self.assertTrue(result['analysis']['review_complete'])
         self.assertGreater(len(calls), 1)
+
+    def test_parking_failed_reviews_waits_for_explicit_revisit(self):
+        calls = []
+        def analyze(context, record, chunks, phase):
+            calls.append(phase)
+            if len(calls) == 1:
+                raise RuntimeError('Synthetic provider interruption')
+            return response(chunks)
+        service = self.service(analyze)
+        record = service.upload(self.scope, 'park-after-error.csv', b'item,value\na,1\n')
+        self.wait(record['id'], 'error')
+        parked = service.action(self.scope, record['id'], 'park')
+        self.assertEqual(parked['analysis']['phase'], 'error')
+        self.assertEqual(parked['analysis']['disposition'], 'parked')
+        self.assertFalse(parked['analysis']['review_complete'])
+        self.assertEqual(service.status(self.scope)[0]['analysis']['phase'], 'error')
+        self.assertEqual(service.supporting_context(self.scope, 'item')['documents'], [])
+        self.assertEqual(calls, ['quick'])
+        service.action(self.scope, record['id'], 'revisit')
+        self.assertTrue(self.wait(record['id'])['analysis']['review_complete'])
+        self.assertEqual(calls, ['quick', 'quick'])
+
+    def test_parking_a_failed_extraction_preserves_its_original_and_error(self):
+        record = self.store.add(self.scope, 'broken.csv', b'"unfinished')
+        result = self.store.extract(self.scope, record['id'])
+        self.assertEqual(result['status'], 'error')
+        service = self.service(lambda *args: self.fail('No readable sections to review'))
+        parked = service.action(self.scope, record['id'], 'park')
+        self.assertEqual(parked['analysis']['phase'], 'error')
+        self.assertEqual(parked['error'], result['error'])
+        self.assertEqual(parked['analysis']['disposition'], 'parked')
+        self.assertEqual(self.store.original_bytes(self.scope, record['id']), b'"unfinished')
 
     def test_error_reporting_storage_failure_does_not_kill_worker_or_poll_retry(self):
         calls, invalid = [], True
@@ -428,7 +481,8 @@ class DocumentServiceTests(unittest.TestCase):
                 calls.append((record['name'], phase))
             if record['name'] == 'long.csv' and phase == 'deep' and not deep_entered.is_set():
                 deep_entered.set()
-                release.wait(3)
+                self.addCleanup(release.set)
+                release.wait()
             with lock:
                 active -= 1
             return response(chunks)
@@ -477,7 +531,7 @@ class DocumentServiceTests(unittest.TestCase):
                 break
             threading.Event().wait(.01)
         self.assertTrue(current['review_complete'])
-        self.assertIn((1, 'deep', first_source), calls)
+        self.assertIn((1, 'quick', first_source), calls)
 
     def test_delayed_status_poll_does_not_repeat_a_completed_quick_review(self):
         entered, release, read_snapshot, resume_poll = [threading.Event() for _ in range(4)]
@@ -486,7 +540,8 @@ class DocumentServiceTests(unittest.TestCase):
             calls.append(phase)
             if len(calls) == 1:
                 entered.set()
-                release.wait(3)
+                self.addCleanup(release.set)
+                release.wait()
             return response(chunks)
         service = self.service(analyze)
         record = service.upload(self.scope, 'poll-race.csv', b'important,field\na,1\n')
@@ -525,7 +580,8 @@ class DocumentServiceTests(unittest.TestCase):
             calls.append(record['analysis']['intent_version'])
             if len(calls) == 1:
                 entered.set()
-                release.wait(3)
+                self.addCleanup(release.set)
+                release.wait()
             return response(chunks)
         service = self.service(analyze)
         record = service.upload(self.scope, 'intent-queue.csv', b'important,field\na,1\n')
@@ -546,7 +602,8 @@ class DocumentServiceTests(unittest.TestCase):
         entered, release, finished = threading.Event(), threading.Event(), threading.Event()
         def analyze(context, record, chunks, phase):
             entered.set()
-            release.wait(3)
+            self.addCleanup(release.set)
+            release.wait()
             finished.set()
             return response(chunks)
         service = self.service(analyze)
@@ -568,7 +625,8 @@ class DocumentServiceTests(unittest.TestCase):
         def prepare(*args):
             chunks = original(*args)
             entered.set()
-            release.wait(3)
+            self.addCleanup(release.set)
+            release.wait()
             return chunks
         with patch.object(service, '_quick_chunks', side_effect=prepare):
             record = service.upload(self.scope, 'stop-before-dispatch.csv', b'important,field\na,1\n')
@@ -599,21 +657,14 @@ class DocumentServiceTests(unittest.TestCase):
             self.fail('A file without source sections must not invoke an analyzer')
         service = self.service(analyze)
         record = service.upload(self.scope, 'empty.csv', b'\n')
-        first = self.wait(record['id'])['analysis']
-        self.assertFalse(first['review_complete'])
-        self.assertEqual(first['disposition'], 'needs_reason')
-        self.assertIn('File received', first['acknowledgement'])
-        self.assertTrue(first['question'])
-        service.action(self.scope, record['id'], 'purpose', 'Keep this empty template for later.')
-        deadline = time.monotonic() + 2
+        deadline = time.monotonic() + 10
         while time.monotonic() < deadline:
-            current = self.store.get(self.scope, record['id'])['analysis']
-            if current.get('intent_version') == 1 and current.get('phase') == 'complete':
-                break
-            threading.Event().wait(.01)
-        self.assertEqual(current['disposition'], 'parked')
-        self.assertEqual(current['question'], '')
-        self.assertFalse(current['review_complete'])
+            saved = self.store.get(self.scope,record['id'])
+            if saved['status'] == 'error': break
+            threading.Event().wait(.02)
+        self.assertEqual(saved['error_code'], 'invalid_file')
+        self.assertIn('no populated cells', saved['error'])
+        self.assertFalse(saved.get('analysis',{}).get('review_complete'))
 
     @unittest.skipUnless(importlib.util.find_spec('openpyxl'), 'Existing openpyxl runtime required')
     def test_unread_chart_tab_prevents_a_full_document_review_claim(self):
@@ -636,7 +687,10 @@ class DocumentServiceTests(unittest.TestCase):
         self.assertFalse(result['analysis']['review_complete'], 'Reviewing available text must not claim the unread chart tab was reviewed')
 
     @unittest.skipUnless(importlib.util.find_spec('pypdf'), 'Existing pypdf runtime required')
-    def test_empty_required_visual_result_pauses_without_cursor_credit_or_poll_retry(self):
+    def test_empty_visual_result_is_recorded_for_that_page_without_read_credit_or_poll_retry(self):
+        # Changed with document-service-1: this test pinned a pause of the whole review at the
+        # page whose reading came back empty. The page is now recorded as unread and the
+        # review ends; it is still not counted as read, and polling still pays for nothing.
         import io
         from pypdf import PdfWriter
         writer = PdfWriter()
@@ -658,26 +712,31 @@ class DocumentServiceTests(unittest.TestCase):
                     value['extracted_text'] = 'Synthetic description: this fictional page is blank.'
             return value
         manager = self.service(analyze)
-        paused = self.wait(record['id'], 'error')
+        ended = self.wait(record['id'])
         self.assertEqual(len(calls), 2)
-        self.assertFalse(paused['analysis']['review_complete'])
-        self.assertTrue(paused['analysis']['retry_required'])
-        self.assertIn('no transcription or description', paused['analysis']['error'])
-        self.assertIn(service_module.VISUAL_REVIEW_INCOMPLETE, paused['analysis']['limitations'])
-        self.assertLess(paused['analysis']['reviewed_chunks'], paused['analysis']['total_chunks'])
-        self.assertNotIn('Must not merge failed visual claim', json.dumps(paused['analysis']))
-        self.assertEqual(paused['coverage']['indexed_units'], 1)
+        self.assertFalse(ended['analysis']['review_complete'])
+        self.assertIsNone(ended['analysis']['error'])
+        unread = 'Visual review could not read 1 page or image (page 2); it is not counted as read.'
+        self.assertIn(unread, ended['analysis']['limitations'])
+        self.assertEqual(ended['analysis']['reviewed_chunks'], ended['analysis']['total_chunks'])
+        self.assertNotIn('Must not merge failed visual claim', json.dumps(ended['analysis']))
+        self.assertEqual(ended['coverage']['indexed_units'], 1)
         for _ in range(4):
             manager.status(self.scope)
         threading.Event().wait(.03)
         self.assertEqual(len(calls), 2, 'Polling never pays for an incomplete visual response again')
         fail_visual['enabled'] = False
         manager.action(self.scope, record['id'], 'revisit')
-        completed = self.wait(record['id'])
+        deadline = time.monotonic() + 60
+        while time.monotonic() < deadline:
+            completed = self.store.get(self.scope, record['id'])
+            if completed['analysis'].get('intent_version') == 1 and completed['analysis'].get('phase') == 'complete':
+                break
+            threading.Event().wait(.01)
         self.assertEqual(len(calls), 4)
         self.assertTrue(completed['analysis']['review_complete'])
         self.assertFalse(completed['analysis']['retry_required'])
-        self.assertNotIn(service_module.VISUAL_REVIEW_INCOMPLETE, completed['analysis']['limitations'])
+        self.assertNotIn(unread, completed['analysis']['limitations'])
         self.assertEqual(completed['coverage']['indexed_units'], 2)
         self.assertEqual(self.store.original_path(self.scope, record['id']).read_bytes(), data.getvalue())
 

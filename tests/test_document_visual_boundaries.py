@@ -70,17 +70,38 @@ class VisualBoundaryTests(unittest.TestCase):
         return encoded
 
     def test_legacy_records_lose_coverage_without_startup_retries_or_database_migration(self):
+        # Revised with gap-upgrade-1. Reading a record still writes nothing and still projects it
+        # cautiously, and a status poll still never starts a paid review. What a poll now does start is
+        # one local comparison of the saved index with what the current parser reads. This file's index
+        # is one the current parser does not reproduce, so it stays held back and its record keeps
+        # everything it had; tests/test_document_reindex_check.py covers the index that is unchanged.
         record = self.extract('legacy.csv', b'stage\nFictionalIntake\n')
         self.assertEqual(record['extraction_version'], documents.EXTRACTION_VERSION)
         encoded = self.legacy(record)
+        with self.store._db() as db:
+            db.execute("UPDATE chunks SET label='Label written by an earlier parser' WHERE document_id=?", (record['id'],))
+        for _ in range(3):
+            read = self.store.get(self.scope, record['id'])
+            self.assertTrue(read['extraction_needs_reindex'])
+            self.assertEqual(read['analysis']['phase'], 'reindex_required')
+        with self.store._db() as db:
+            self.assertEqual(db.execute('SELECT record FROM documents WHERE id=?', (record['id'],)).fetchone()[0], encoded,
+                             'Conservative read projection must not bulk-write private stored records')
         calls = []
         manager = service.DocumentService(self.store, lambda *args: calls.append(args))
         try:
-            for _ in range(3):
+            deadline = time.monotonic() + 15
+            while True:
                 records = manager.status(self.scope, {})
                 self.assertTrue(records[0]['extraction_needs_reindex'])
                 self.assertFalse(records[0]['analysis']['review_complete'])
                 self.assertEqual(records[0]['coverage']['indexed_units'], 0)
+                if records[0]['reindex_check']['outcome'] != 'pending' or time.monotonic() > deadline:
+                    break
+                threading.Event().wait(.01)
+            self.assertEqual(records[0]['reindex_check']['outcome'], 'changed')
+            for _ in range(3):
+                manager.status(self.scope, {})
             threading.Event().wait(.05)
             self.assertEqual(calls, [], 'Startup/status cannot silently retry paid legacy review')
             context = manager.supporting_context(self.scope, 'FictionalIntake')
@@ -88,8 +109,14 @@ class VisualBoundaryTests(unittest.TestCase):
             self.assertTrue(context['documents'][0]['extraction_needs_reindex'])
             self.assertFalse(context['documents'][0]['review']['review_complete'])
             with self.store._db() as db:
-                self.assertEqual(db.execute('SELECT record FROM documents WHERE id=?', (record['id'],)).fetchone()[0], encoded,
-                                 'Conservative read projection must not bulk-write private stored records')
+                stored = json.loads(db.execute('SELECT record FROM documents WHERE id=?', (record['id'],)).fetchone()[0])
+            # The comparison recorded its outcome, once, and changed nothing else of the stored record.
+            self.assertEqual(stored.pop('reindex_check'), {'extraction_version': documents.EXTRACTION_VERSION, 'outcome': 'changed'})
+            self.assertEqual(stored.pop('revision'), json.loads(encoded)['revision'] + 1)
+            before = json.loads(encoded)
+            for key in ('revision', 'updated_at'):
+                before.pop(key), stored.pop(key, None)
+            self.assertEqual(stored, before)
         finally:
             manager.close()
             manager._worker.join(timeout=2)
@@ -117,7 +144,7 @@ class VisualBoundaryTests(unittest.TestCase):
             self.assertEqual(current['extraction_version'], documents.EXTRACTION_VERSION)
             self.assertFalse(current['extraction_needs_reindex'])
             self.assertTrue(current['analysis']['review_complete'])
-            self.assertEqual(calls, ['quick', 'deep'])
+            self.assertEqual(calls, ['quick'])
             self.assertEqual(self.store.source(self.scope, record['id'], source['id'])['text'], source['text'])
             self.assertEqual(self.store.original_path(self.scope, record['id']).read_bytes(), original)
             after = manager.supporting_context(self.scope, 'FictionalIntake', [source['id']])

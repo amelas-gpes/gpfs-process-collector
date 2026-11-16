@@ -5,8 +5,8 @@
   const COPPER = "#dc6e2c", FELDSPAR = "#d28c79", BERMUDA = "#6c809a";
   const names = {
     activity: "Activity", start: "Start", end: "End", decision: "Decision",
-    parallel_split: "Parallel split", parallel_join: "Join all", merge: "Merge",
-    wait: "Wait", document: "Document", data_store: "Data store", subprocess: "Subprocess"
+    parallel_split: "Parallel split", parallel_join: "Parallel join", merge: "Merge alternatives",
+    wait: "Wait", document: "Document", data_store: "Stored data", subprocess: "Subprocess"
   };
   let serial = 0;
 
@@ -244,7 +244,7 @@
     const {step, width, height} = node, type = Object.hasOwn(names, step.type) ? step.type : "activity";
     const typeLabel = scope.CollectorWorkflow?.types?.[type]?.label || names[type];
     const caption=[step.id,step.title,typeLabel,variant?.label,step.actor].filter(Boolean);
-    const g = add(layer, "g", {class:"ws-node", "data-step-id":node.id, "data-step-type":type, tabindex:0,
+    const g = add(layer, "g", {class:"ws-node", "data-step-id":node.id, "data-step-type":type, tabindex:-1,
       role:"button", "aria-label":caption.join(". "),
       "aria-pressed":"false",transform:"translate("+node.x+" "+node.y+")"});
     if(variant)g.setAttribute("data-component-id",variant.id);
@@ -282,7 +282,7 @@
   function drawRoute(layer, edge, index, prefix, decision) {
     const source = edge.edge;
     const name = [source.from+" → "+source.to, source.label].filter(Boolean).join(" · ");
-    const g = add(layer,"g",{class:"ws-edge","data-edge-key":edge.key,tabindex:0,role:"button",
+    const g = add(layer,"g",{class:"ws-edge","data-edge-key":edge.key,tabindex:-1,role:"button",
       "aria-label":"Connection "+name,"aria-pressed":"false"});
     g.style.setProperty("--ws-route-color", decision ? "#955132" : "#576b80");
     g.style.setProperty("--ws-delay", (-index * .61 % 4.6) + "s");
@@ -327,7 +327,7 @@
     const world = add(svg,"g",{class:"ws-world"});
     const pointers = new Map(), listeners = [];
     const motionQuery = win.matchMedia?.("(prefers-reduced-motion: reduce)");
-    let visible = true, moving = true, dead = false, version = 0, layout = null;
+    let inViewport=true,visible = true, moving = true, dead = false, version = 0, layout = null;
     let geometryKey,appearanceKey,layoutAspect;
     let nodes = new Map(), routes = new Map(), nodeElements = new Map(), routeElements = new Map();
     let current = {}, fitted = true, moved = false, origin, camera = {x:0,y:0,scale:1};
@@ -414,7 +414,7 @@
       else options.onSelectEdge?.(target.edgeKey);
     }
     function refreshMotion() {
-      host.classList.toggle("ws-moving",moving && visible && !doc.hidden && !motionQuery?.matches);
+      host.classList.toggle("ws-moving",moving && visible && inViewport && !doc.hidden && !motionQuery?.matches && !doc.querySelector?.("dialog[open]:not(.ww-theater)") && (!layout||layout.edges.length<=22));
     }
     function setVisible(value) {
       visible=Boolean(value);
@@ -471,7 +471,7 @@
         camera.x+=replacement.x+replacement.width/2-anchor.x-anchor.width/2;
         camera.y+=replacement.y+replacement.height/2-anchor.y-anchor.height/2;
       }
-      if(fitted)fit(); else paintCamera();
+      refreshMotion();if(fitted)fit(); else paintCamera();
       if(focused){
         const restored=nodeElements.get(focused.stepId)||routeElements.get(focused.edgeKey);
         (restored||svg).focus({preventScroll:true});
@@ -480,8 +480,9 @@
     }
 
     function keydown(event) {
+      if(event.ctrlKey||event.metaKey||event.altKey)return;
       const key=event.key, target=readTarget(event.target);
-      if ((key==="Enter" || key===" ") && target) activate(target);
+      if ((key==="Enter" || key===" ") && target) { activate(target); options.onInspect?.(); }
       else if(key==="+" || key==="=")zoom(1.35);
       else if(key==="-")zoom(1/1.35);
       else if(key==="Home" || key==="0")fit();
@@ -536,9 +537,15 @@
     });
     listen(svg,"wheel",event=>{
       if(!layout)return;
+      if(!(event.ctrlKey||event.metaKey)){
+        if(fitted)return;
+        const previous={...camera},unit=event.deltaMode===1?16:1;
+        camera.x+=(Number(event.deltaX)||0)*unit/camera.scale;camera.y+=(Number(event.deltaY)||0)*unit/camera.scale;
+        paintCamera();if(previous.x!==camera.x||previous.y!==camera.y)event.preventDefault();return;
+      }
       event.preventDefault();
       const delta=event.deltaY*(event.deltaMode===1?16:1);
-      zoom(Math.exp(-Math.max(-120,Math.min(120,delta))*.007),point(event));
+      zoom(Math.exp(-Math.max(-120,Math.min(120,delta))*.004),point(event));
     },{passive:false});
     listen(svg,"keydown",keydown);
     listen(svg,"focusin",event=>{
@@ -546,19 +553,30 @@
       const target=readTarget(event.target), view=size();
       const node=nodes.get(target?.stepId), route=routes.get(target?.edgeKey);
       const box=node || (route && routeBounds(route,nodes));
-      if(!box)return;
-      const x=box.x+box.width/2,y=box.y+box.height/2;
-      if(Math.abs(x-camera.x)*camera.scale>view.width*.48 || Math.abs(y-camera.y)*camera.scale>view.height*.46){
-        camera.x=x;camera.y=y;paintCamera();
-      }
+      if(!box || !view.width || !view.height)return;
+      // Tab can land on a component or connection that is off screen. A click focuses it too,
+      // and then the map must not move under the pointer.
+      let keyboard=false;
+      try{keyboard=event.target.matches(":focus-visible");}catch{/* Without :focus-visible the view stays as it is. */}
+      if(!keyboard)return;
+      // The smallest move that shows all of it at the current zoom, or its middle when it is larger than the view.
+      const margin=14/camera.scale;
+      const along=(start,length,span,middle)=>length+2*margin>span ? start+length/2
+        : Math.max(start+length+margin-span/2,Math.min(start-margin+span/2,middle));
+      const x=along(box.x,box.width,view.width/camera.scale,camera.x),y=along(box.y,box.height,view.height/camera.scale,camera.y);
+      if(x!==camera.x || y!==camera.y){camera.x=x;camera.y=y;paintCamera();}
     });
+    const viewport=win.IntersectionObserver?new win.IntersectionObserver(entries=>{inViewport=entries.at(-1)?.isIntersecting!==false;refreshMotion();}):null;
+    viewport?.observe(host);
+    const dialogs=win.MutationObserver?new win.MutationObserver(refreshMotion):null;
+    dialogs?.observe(doc.documentElement,{subtree:true,attributes:true,attributeFilter:["open"]});
     listen(doc,"visibilitychange",refreshMotion);
     if(motionQuery)listen(motionQuery,"change",refreshMotion);
     const observer=win.ResizeObserver ? new win.ResizeObserver(()=>{if(fitted)fit();else paintCamera();}) : null;
     observer?.observe(host);
     refreshMotion();
     return {update,select,zoom,fit,setVisible,setMotion,destroy(){
-      dead=true;version++;observer?.disconnect();listeners.forEach(remove=>remove());pointers.clear();
+      dead=true;version++;observer?.disconnect();viewport?.disconnect();dialogs?.disconnect();listeners.forEach(remove=>remove());pointers.clear();
       host.classList.remove("workflow-stage","ws-moving");host.replaceChildren();
     }};
   }

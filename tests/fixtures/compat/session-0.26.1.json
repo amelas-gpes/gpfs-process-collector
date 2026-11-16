@@ -1,0 +1,145 @@
+{
+  "taxonomy": [],
+  "connections_out": [],
+  "document_evidence": [],
+  "workflow": null,
+  "schema_version": 1,
+  "saved_at": "2026-11-16T04:26:12.050Z",
+  "context": {
+    "process_name": "Compatibility test",
+    "process_owner": "Fictional reviewer",
+    "objective": "Record the test sequence",
+    "background": "",
+    "meeting_minutes": 15
+  },
+  "process_name_manual": true,
+  "derived_process_title": "",
+  "documents": null,
+  "document_questions_handled": [],
+  "turns": [
+    {
+      "id": "t001",
+      "role": "assistant",
+      "text": "How is the test started?"
+    },
+    {
+      "id": "t002",
+      "role": "user",
+      "text": "I record a fictional ticket in the test register."
+    }
+  ],
+  "coverage": [],
+  "summary": "Fictional ticket recorded",
+  "memo_findings": [
+    {
+      "key": "name",
+      "status": "unknown",
+      "answer": "",
+      "evidence_turns": []
+    },
+    {
+      "key": "purpose",
+      "status": "unknown",
+      "answer": "",
+      "evidence_turns": []
+    },
+    {
+      "key": "trigger",
+      "status": "unknown",
+      "answer": "",
+      "evidence_turns": []
+    },
+    {
+      "key": "completion",
+      "status": "unknown",
+      "answer": "",
+      "evidence_turns": []
+    },
+    {
+      "key": "accountable",
+      "status": "unknown",
+      "answer": "",
+      "evidence_turns": []
+    },
+    {
+      "key": "lifecycle",
+      "status": "unknown",
+      "answer": "",
+      "evidence_turns": []
+    },
+    {
+      "key": "checks",
+      "status": "unknown",
+      "answer": "",
+      "evidence_turns": []
+    },
+    {
+      "key": "variations",
+      "status": "unknown",
+      "answer": "",
+      "evidence_turns": []
+    },
+    {
+      "key": "pain_points",
+      "status": "unknown",
+      "answer": "",
+      "evidence_turns": []
+    },
+    {
+      "key": "risk",
+      "status": "unknown",
+      "answer": "",
+      "evidence_turns": []
+    },
+    {
+      "key": "materials",
+      "status": "unknown",
+      "answer": "",
+      "evidence_turns": []
+    },
+    {
+      "key": "scope",
+      "status": "unknown",
+      "answer": "",
+      "evidence_turns": []
+    },
+    {
+      "key": "rules",
+      "status": "unknown",
+      "answer": "",
+      "evidence_turns": []
+    },
+    {
+      "key": "connections",
+      "status": "unknown",
+      "answer": "",
+      "evidence_turns": []
+    },
+    {
+      "key": "data_systems",
+      "status": "unknown",
+      "answer": "",
+      "evidence_turns": []
+    },
+    {
+      "key": "volume",
+      "status": "unknown",
+      "answer": "",
+      "evidence_turns": []
+    }
+  ],
+  "focus": "",
+  "parking_lot": [],
+  "closure": {
+    "asked": false,
+    "confirmed": false
+  },
+  "draft": null,
+  "draft_stale": false,
+  "draft_edited": false,
+  "synthetic_example": false,
+  "unsent_answer": "",
+  "voice_choice": null,
+  "knowledge_process_id": null,
+  "knowledge_status": null
+}

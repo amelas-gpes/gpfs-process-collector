@@ -18,7 +18,7 @@ Retrieved on 2026-11-02 from the official site:
 f7a6179bbe98c6477ff443a646e1253273305460231e888b1f83ef114425002b
 ```
 
-Its original viewBox is `0 0 129.92136 45.69322`. The source contains 22 vector elements: 17 company-lettering elements and five symbol paths. The original full lockup is retained only as source provenance; its lettering is not rendered by the app. `web/assets/gpfs-symbol.svg` contains only the original final five paths in a `0 0 42 46` viewBox, preserving their geometry, colors and four original diamond transforms. The header and initial fallback use this symbol-only asset. `web/gpfs-presence.js` embeds only those same five paths. Wrapper groups provide movement without reshaping the source path data, and the live symbol has additional viewBox room for movement.
+Its original viewBox is `0 0 129.92136 45.69322`. The source contains 22 vector elements: 17 company-lettering elements and five symbol paths. The original full lockup is retained only as source provenance; the wider header uses the separate official lockup asset. `web/assets/gpfs-symbol.svg` contains only the original final five paths in a `0 0 42 46` viewBox, preserving their geometry, colors and four original diamond transforms. The initial fallback and narrow header use the symbol. The wider header uses the official lockup. `web/gpfs-presence.js` embeds only those same five paths. Wrapper groups provide movement without reshaping the source path data, and the live symbol has additional viewBox room for movement.
 
 Verified colors:
 

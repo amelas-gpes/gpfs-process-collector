@@ -11,7 +11,7 @@ class Events {
  emit(type,event={}){for(const fn of [...(this.listeners[type]||[])])fn(event);}
 }
 function setup({permission,request,autoStarted=true,metering=false,floatMeter=true,playbackReject=false}={}){
- const peers=[],channels=[],tracks=[],statuses=[],captions=[],errors=[],payloads=[],contexts=[],greetings=[],audioFrames=[],levels=[],audios=[],streams=[],analysers=[];
+ const peers=[],channels=[],tracks=[],statuses=[],captions=[],errors=[],payloads=[],contexts=[],greetings=[],audioFrames=[],audios=[],streams=[],analysers=[];
  const raf=new Map(),audioTimers=new Map();let now=0,nextFrame=0,nextTimer=0;
  function stream(){const track=Object.assign(new Events(),{enabled:true,muted:false,readyState:"live",stopped:false,stop(){this.stopped=true;this.readyState="ended";this.emit("ended");}});tracks.push(track);const s={level:0,getTracks:()=>[track],getAudioTracks:()=>[track]};streams.push(s);return s;}
  class Peer extends Events{
@@ -48,16 +48,28 @@ function setup({permission,request,autoStarted=true,metering=false,floatMeter=tr
  const clearTimer=id=>{if(!audioTimers.delete(id))clearTimeout(id);};
  const ctx={window,navigator:{mediaDevices:{getUserMedia:()=>permission?permission():Promise.resolve(stream())}},AbortController,DOMException,setTimeout:setTimer,clearTimeout:clearTimer,Uint8Array,Float32Array,TextEncoder,console};
  vm.createContext(ctx);vm.runInContext(source,ctx);
- const api=new window.CollectorLiveVoice({request:async(...args)=>{payloads.push(args);return request?request(...args):{sdp:"v=0\r\no=remote",model:"gpt-live-1"};},onStatus:s=>statuses.push(s),onTranscript:c=>captions.push(c),onError:e=>errors.push(e),onContext:c=>contexts.push(c),onGreeting:g=>greetings.push(g),onAudioFrame:f=>audioFrames.push(f),onLevel:l=>levels.push(l)});
+ const api=new window.CollectorLiveVoice({request:async(...args)=>{payloads.push(args);return request?request(...args):{sdp:"v=0\r\no=remote",model:"gpt-live-1"};},onStatus:s=>statuses.push(s),onTranscript:c=>captions.push(c),onError:e=>errors.push(e),onContext:c=>contexts.push(c),onGreeting:g=>greetings.push(g),onAudioFrame:f=>audioFrames.push(f)});
  const event=value=>channels.at(-1).emit("message",{data:JSON.stringify(value)});
  const step=(ms=16)=>{now+=ms;const callbacks=[...raf.values()];raf.clear();for(const fn of callbacks)fn(now);for(const [id,timer]of [...audioTimers])if(timer.due<=now){audioTimers.delete(id);timer.fn();}};
  const remote=(level=0)=>{const s=stream();s.level=level;peers.at(-1).emit("track",{track:s.getAudioTracks()[0],streams:[s]});return s;};
- return{api,peers,channels,tracks,statuses,captions,errors,payloads,contexts,greetings,stream,event,window,audioFrames,levels,audios,streams,analysers,raf,audioTimers,step,remote,document};
+ return{api,peers,channels,tracks,statuses,captions,errors,payloads,contexts,greetings,stream,event,window,audioFrames,audios,streams,analysers,raf,audioTimers,step,remote,document};
 }
 function acknowledge(h,events=h.channels.at(-1).sent.filter(e=>e.type==="session.thinking.append")){
  events.forEach((event,i)=>h.event({type:"session.thinking.appended",client_event_id:event.event_id,start_ms:i*100,end_ms:(i+1)*100}));
 }
 (async()=>{
+ {
+  const h=setup();await h.api.start();h.tracks[0].emit("ended");await tick();
+  assert.equal(h.api.active,false);assert.match(h.errors.at(-1),/microphone disconnected/i);passes++;
+ }
+ {
+  const h=setup();await h.api.start();
+  h.event({type:"session.closed"});
+  assert.equal(h.api.active,false);
+  assert.match(h.errors.at(-1),/session ended/i);
+  await h.api.start();const stopping=h.api.stop();h.event({type:"session.closed"});await stopping;
+  assert.equal(h.errors.length,1,"An intentional stop should finish without a disconnect warning");passes++;
+ }
  {
   const h=setup();assert.equal(h.tracks.length,0,"Construction must not request microphone permission");
   assert.equal(await h.api.start({context:{process_name:"Invoices"},turns:[{id:"t1",role:"user",text:"Receive invoice"}]}),true);
@@ -118,7 +130,7 @@ function acknowledge(h,events=h.channels.at(-1).sent.filter(e=>e.type==="session
   h.streams[0].level=.05;h.step(16);h.step(16);assert.equal(h.audioFrames.at(-1).inputActive,true);
   h.event({type:"session.input_transcript.delta",event_id:"g3",delta:"An email starts it.",start_ms:70,end_ms:300});
   assert.equal(h.captions.at(-1).text,"An email starts it.","Speech over measured microphone energy is kept");
-  h.streams[0].level=0;for(let i=0;i<20;i++)h.step(16);assert.equal(h.audioFrames.at(-1).inputActive,false);
+  h.streams[0].level=0;for(let i=0;i<280;i++)h.step(16);assert.equal(h.audioFrames.at(-1).inputActive,false); // the meter has to have measured the fragment's moment: the clock passes 2800 + 1500 ms
   h.event({type:"session.input_transcript.delta",event_id:"g4",delta:" a close-up",start_ms:2600,end_ms:2800});
   assert.equal(h.captions.at(-1).text,"An email starts it.","A later silent-window fragment is dropped");
   h.event({type:"session.input_transcript.delta",event_id:"g5",delta:" Then we approve it.",delta_without_timing:true});
@@ -137,15 +149,17 @@ function acknowledge(h,events=h.channels.at(-1).sent.filter(e=>e.type==="session
   assert.equal(assistant[0].text,"I see.");assert.equal(participantCaptions.reduce((total,c)=>total+c.fragments.length,0),2);
   const count=h.captions.length;h.event({type:"session.input_transcript.delta",event_id:"c",delta:" arrives by email.",start_ms:510,end_ms:1000});assert.equal(h.captions.length,count,"Repeated event IDs are ignored");
   h.event({type:"session.input_transcript.delta",event_id:"d",delta:"Then we approve it.",start_ms:4500,end_ms:5500});
-  assert.equal(h.captions.at(-1).id,user.at(-1).id,"A pause without a substantive new question may continue the same answer");
+  assert.equal(h.captions.at(-1).id,user.at(-1).id,"After only a listening cue, a pause continues the same answer");assert.equal(h.captions.at(-1).text,"The invoice arrives by email. Then we approve it.","Parts of one answer never run together");
+  h.event({type:"session.output_transcript.delta",event_id:"e",delta:"That covers approval.",start_ms:6000,end_ms:7000});h.event({type:"session.input_transcript.delta",event_id:"f",delta:"Payment runs on Friday.",start_ms:9000,end_ms:10500});
+  const order=[];for(const caption of h.captions)if(!order.includes(caption.id))order.push(caption.id);
+  assert.deepEqual(order.map(id=>h.captions.filter(c=>c.id===id).at(-1)).map(c=>c.role+": "+c.text),["user: The invoice arrives by email. Then we approve it.","assistant: I see.","assistant: That covers approval.","user: Payment runs on Friday."],"Any interviewer line other than a cue ends the answer: later speech is a new caption below it, in order");
   await h.api.stop({immediate:true});assert.equal(h.captions.at(-1).final,true);passes++;
  }
  {
   const h=setup();await h.api.start();assert.equal(h.api.setMuted(true),true);
   assert.equal(h.tracks[0].enabled,false);assert.equal(h.channels[0].sent.at(-1).type,"session.input_audio.mute");
   assert.equal(h.api.setMuted(false),true);assert.equal(h.tracks[0].enabled,true);assert.equal(h.channels[0].sent.at(-1).type,"session.input_audio.unmute");
-  assert.equal(h.api.sendText("It arrives by email."),true);assert.equal(h.channels[0].sent.at(-1).type,"session.thinking.append");
-  await h.api.stop({immediate:true});assert.equal(h.api.sendText("After closing"),false);passes++;
+  await h.api.stop({immediate:true});passes++;
  }
  {
   let resolvePermission;const promise=new Promise(resolve=>resolvePermission=resolve);
@@ -200,7 +214,7 @@ function acknowledge(h,events=h.channels.at(-1).sent.filter(e=>e.type==="session
   h.event({type:"session.thinking.appended",client_event_id:sent[0].event_id,start_ms:300,end_ms:600});
   const result=await pending;assert.equal(result.status,"acknowledged");assert.equal(result.start_ms,300);assert.equal(result.end_ms,600);
   assert.equal(h.captions.length,0,"Reference documents must never become participant transcripts");
-  assert.equal(h.api.connected,true);assert.equal(h.tracks[0].stopped,false);assert.deepEqual(h.statuses,["connecting","listening"]);
+  assert.equal(h.api.connected,true);assert.equal(h.tracks[0].stopped,false);assert.deepEqual(h.statuses,["permission","connecting","listening"]);
   await h.api.stop({immediate:true});passes++;
  }
  {
@@ -363,7 +377,7 @@ function acknowledge(h,events=h.channels.at(-1).sent.filter(e=>e.type==="session
   h.event({type:"session.commentary.appended",client_event_id:"another_request",start_ms:0,end_ms:100});assert.equal(h.greetings.at(-1).status,"sent");
   h.event({type:"session.commentary.appended",client_event_id:greeting.event_id,start_ms:100,end_ms:200});
   assert.equal(h.greetings.at(-1).status,"acknowledged");assert.equal(h.greetings.at(-1).start_ms,100);assert.equal(h.greetings.at(-1).end_ms,200);
-  assert.equal(h.captions.length,0,"An acknowledgment is not evidence of spoken or played words");assert.deepEqual(h.statuses,["connecting","listening"]);
+  assert.equal(h.captions.length,0,"An acknowledgment is not evidence of spoken or played words");assert.deepEqual(h.statuses,["permission","connecting","listening"]);
   h.event({type:"session.commentary.appended",client_event_id:greeting.event_id,start_ms:100,end_ms:200});assert.equal(h.greetings.length,2);
   const doc=h.api.appendContext("The tracker records a review date.",{id:"after_greeting"});
   assert.ok(sent.slice(1).every(e=>e.type==="session.thinking.append"),"Later documents never request speech");acknowledge(h);assert.equal((await doc).status,"acknowledged");
@@ -417,7 +431,7 @@ function acknowledge(h,events=h.channels.at(-1).sent.filter(e=>e.type==="session
   const h=setup();await h.api.start();const greeting=h.channels[0].sent[0],stopping=h.api.stop();
   assert.equal(h.greetings.at(-1).status,"cancelled");assert.equal(h.greetings.at(-1).reason,"session_stopped");
   h.event({type:"error",error:{client_event_id:greeting.event_id}});assert.equal(h.errors.length,0);assert.equal(h.peers[0].closed,false);
-  h.event({type:"session.output_transcript.delta",event_id:"opening_tail",delta:"How your work gets done.",start_ms:0,end_ms:100});assert.equal(h.captions.at(-1).text,"How your work gets done.");
+  h.event({type:"session.output_transcript.delta",event_id:"opening_tail",delta:"How your work gets done.",start_ms:0,end_ms:100});assert.equal(h.captions.some(c=>c.text==="How your work gets done."),false,"Muted, late output cannot become interview evidence");
   h.event({type:"session.closed"});assert.equal((await stopping).finalized,true);assert.equal(h.peers[0].closed,true);passes++;
  }
  {
@@ -438,7 +452,6 @@ function acknowledge(h,events=h.channels.at(-1).sent.filter(e=>e.type==="session
   const h=setup({metering:true});await h.api.start();const output=h.remote(.09);await tick();h.streams[0].level=.025;h.step(35);
   const f=h.audioFrames.at(-1);assert.deepEqual(Object.keys(f).sort(),["connected","input","inputActive","muted","output","outputActive","playbackActive"].sort());
   assert.ok(f.input>0&&f.output>f.input,"Microphone and output have independent amplitudes");assert.equal(f.inputActive,true);assert.equal(f.outputActive,true);assert.equal(f.playbackActive,true);assert.equal(f.connected,true);assert.equal(h.statuses.at(-1),"speaking");
-  assert.equal(h.levels.at(-1),Math.max(f.input,f.output),"Legacy level remains a compatible combined envelope");
   output.level=0;h.streams[0].level=0;await h.api.stop({immediate:true});passes++;
  }
  {

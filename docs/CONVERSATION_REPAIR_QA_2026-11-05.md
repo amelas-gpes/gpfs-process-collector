@@ -29,6 +29,21 @@ cues and pauses preserve the participant's answer; an actual question or informa
 separates the next answer. Microphone activity holds quiet caption checkpoints.
 Punctuation-only deltas remain attached to their source.
 
+> Revised 13 November 2026 (audit finding voice-frontend-4). Requiring a recognised
+> question or request left too much above the line it answered: speech after an
+> application-issued statement, after "Give me an example", or after a question the
+> participant interrupted was added to the previous answer, sometimes with the words
+> run together. The boundary is now: listening cues and brief acknowledgements
+> ("Mm-hmm", "I see", "Go ahead", "Got it, thanks", "Good to know") and pauses
+> preserve the participant's answer; any other interviewer line, and any line the
+> application issues, separates the next answer. Fragments that started before the
+> line still attach to the earlier answer, and punctuation-only deltas remain
+> attached to their source whatever the interviewer has said since. A part that
+> follows a pause is joined with a space, and so is a new sentence or clause that the
+> transcriber sends without one ("email." + "Then"), with or without timestamps;
+> decimals, initials and parts of a word are joined as sent, and text in a script
+> written without spaces gains none.
+
 Capture requests retain detached source snapshots. A response must still match
 the exact participant text, generation, live instance, context and document revision
 before it changes notes, progress or completion. A stale response schedules catch-up.
@@ -96,7 +111,9 @@ This run exposed further known-role/sequence repetition, an acknowledgement with
 no next question, and answer splits after "Go ahead", "Got it, thanks" and "Good
 to know". The final policy explicitly reuses overview facts, stays in the interviewer
 role and follows a finished substantive answer with one useful missing detail.
-The caption boundary now requires a question or information request. Replaying
+The caption boundary now requires a question or information request (revised on
+13 November 2026, see the note above: those three phrases still do not split an
+answer, but any other interviewer line does). Replaying
 all three sustained recordings through the final caption controller preserved
 every participant word and kept the documentation/attachment qualification in one
 answer. The third recording's fifteen fragmented user captions became ten logical

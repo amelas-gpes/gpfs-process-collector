@@ -1,0 +1,25 @@
+name: Verify Process Collector
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  offline:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Python syntax
+        shell: pwsh
+        run: python -I -B -m compileall -q -x '[/\\](work|\.local|\.git)[/\\]' .
+      - name: Run dependency-free backend regressions
+        shell: pwsh
+        run: |
+          foreach ($suite in 'test_capture_facts.py','test_interview_coverage.py','test_workflow_components.py','test_provider_usage_metrics.py','test_release_boundaries.py') {
+            python -I -B -m unittest discover -s tests -p $suite
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+      - name: Run all frontend suites offline
+        shell: pwsh
+        run: node tests/run_all.cjs

@@ -2,6 +2,12 @@
 
 Event files live in the active workspace’s `work/raw-trace` directory. The server writes observations as the interview runs, including work that finishes after a participant leaves. A developer can read the JSONL directly. Each line is one observation from its named producer.
 
+## View logs in Settings
+
+Open **More options → Settings → Application logs**. The viewer loads up to 100 recent entries across saved sessions; choose **Current session** to limit it to this server run. Use **Refresh** to read new entries and **Search loaded entries** to filter the loaded window. Expand an entry for its timestamp, event, correlation identifiers and recorded details. Logging status, storage interruptions and shortened previews are shown here. Reading logs does not change the files or switch logging modes.
+
+The reader scans at most eight recent files and 8 MiB per request, limits its response to 1 MiB, and shortens individual previews above 32 KiB. Full records remain in the JSONL files. An unfinished final line is skipped until it is complete. Requests require the app's same-origin and current request-token checks. Logs and private settings stay outside Git.
+
 ## Open the live server’s file
 
 From the canonical checkout, run the following in PowerShell. The filter uses the listener’s run ID so the launcher’s separate file does not get selected. A desktop installation uses its own work folder.
@@ -13,7 +19,7 @@ $traceFile = Get-ChildItem -LiteralPath .\work\raw-trace -Filter "*$traceRun*.js
 Get-Content -LiteralPath $traceFile.FullName -Tail 20 -Wait
 ```
 
-The server reads the mode at launch. `RAW_TRACE_MODE` in the local environment or `.env.local` takes precedence over a single ASCII value in `work/raw-trace-mode.txt`. The values are `content`, `metadata` and `off`. A fresh checkout defaults to metadata. Content mode retains permitted text verbatim and displays a notice before the interview. Choose it for interviews authorized for local developer capture. Reading these files requires access to the local filesystem. No upload, AI evaluation or training job is part of recording.
+The server reads the mode at launch. `RAW_TRACE_MODE` in the local environment or `.env.local` takes precedence over a single ASCII value in `work/raw-trace-mode.txt`. The values are `content`, `metadata` and `off`. A fresh checkout defaults to metadata. Content mode retains permitted text verbatim. Logging information is in Settings; there is no welcome-screen logging banner. Choose content mode for interviews authorized for local capture. No upload, AI evaluation or training job is part of recording.
 
 ## Row format
 

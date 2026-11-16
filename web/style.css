@@ -740,6 +740,17 @@ dialog[open] > .notice { top: 12px; }
 .settings-group[open] summary::after { rotate: 180deg; }
 .settings-group summary:hover { color: var(--accent-strong); }
 .settings-fields { padding: 0 3px 18px; }
+.log-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.log-controls label { margin: 0; }
+.log-controls select { flex: 1; min-width: 150px; }
+.log-entries { max-height: 430px; overflow: auto; overscroll-behavior: contain; }
+.log-entry { min-width: 0; border-top: 1px solid var(--line); }
+.log-entry summary { position: relative; display: grid; justify-content: start; gap: 3px; padding: 12px 24px 12px 3px; }
+.settings-group .log-entry > summary::after { position: absolute; right: 4px; top: calc(50% - 7px); rotate: 0deg; }
+.settings-group .log-entry[open] > summary::after { rotate: 180deg; }
+.log-entry summary span { color: var(--muted); font: 400 var(--text-sm)/1.4 var(--font); }
+.log-entry strong { overflow-wrap: anywhere; font-size: var(--text-sm); }
+.log-entry pre { max-height: 300px; margin: 0 0 12px; padding: 12px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-sm); font-size: 12px; }
 .settings-fields > label { margin: 12px 0 5px; }
 .settings-fields > label:first-child { margin-top: 0; }
 .settings-choice { display: grid; grid-template-columns: minmax(0, 1fr) minmax(140px, 55%); align-items: center; gap: 10px; }

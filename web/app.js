@@ -7,9 +7,6 @@
   function configureTrace(config) {
     window.CollectorRawTrace?.configure(config.raw_trace, () => state.config?.csrf_token,
       () => state.interviewId || (state.started && !state.importing ? interviewIdentity() : null));
-    const notice = $("developer-trace-notice");
-    if (notice) notice.hidden = !(config.raw_trace?.enabled && config.raw_trace.content);
-    if ($("recovery-trace-note")) $("recovery-trace-note").hidden = notice?.hidden !== false;
     rawTrace("settings.theme_observed",{mode:$("theme-select")?.value,state:document.documentElement?.dataset?.theme});
   }
   function traceTurn(type, turn, metadata) {
@@ -952,7 +949,6 @@
     try{
       applyRecoveryStatus(await recoveryTask(()=>recoveryCall("setting",{enabled:Boolean(on)})));
       notice(recovery.enabled?"Recovery copy on. One copy of the unsaved interview is kept on this computer until you save it, start over, discard it or seven days pass.":
-        state.config?.raw_trace?.content?"Recovery copy off. Developer content logging is still on.":
         "Recovery copy off. No unsaved interview is being kept for recovery.");
     }catch(error){renderRecovery();notice(`The setting was not changed. ${error.message}`,true);}
   }

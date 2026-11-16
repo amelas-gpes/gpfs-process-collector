@@ -42,7 +42,7 @@ class NoProviderRedirect(HTTPRedirectHandler):
 
 
 urlopen = build_opener(NoProviderRedirect()).open
-VERSION = "0.30.1"
+VERSION = "0.30.2"
 APP_DIR = Path(__file__).resolve().parent
 WEB_DIR = APP_DIR / "web"
 DIAGNOSTIC_MAX_BYTES = 1024 * 1024
@@ -5633,6 +5633,7 @@ STATIC_FILES = {"/": ("index.html", "text/html; charset=utf-8"),
                  "/index.html": ("index.html", "text/html; charset=utf-8"),
                  "/theme.js": ("theme.js", "text/javascript; charset=utf-8"),
                  "/raw-trace.js": ("raw-trace.js", "text/javascript; charset=utf-8"),
+                 "/log-viewer.js": ("log-viewer.js", "text/javascript; charset=utf-8"),
                  "/app.js": ("app.js", "text/javascript; charset=utf-8"),
                  "/workflow-exports.js": ("workflow-exports.js", "text/javascript; charset=utf-8"),
                  "/workflow-graph.js": ("workflow-graph.js", "text/javascript; charset=utf-8"),
@@ -5870,7 +5871,7 @@ class Handler(BaseHTTPRequestHandler):
         if not isinstance(store, raw_trace.TraceStore) or not store.enabled:
             return callback()
         path = urlsplit(self.path).path
-        if path == "/api/trace/events":
+        if path in ("/api/trace/events", "/api/trace/logs"):
             return callback()
         # Unknown paths, query strings and headers can contain arbitrary credentials.
         label = path if path in STATIC_FILES or path in TRACE_API_PATHS else "unrecognized"
@@ -5910,7 +5911,7 @@ class Handler(BaseHTTPRequestHandler):
             config = dict(client.public_config())
             config["raw_trace"] = {**self.server.trace.status(), "app_run_id":self.server.trace.run_id}
             if self.server.trace.content:
-                config["data_notice"] = ("Developer tracing is enabled on this computer. It saves interview wording, "
+                config["data_notice"] = ("Application logging is enabled on this computer. It saves interview wording, "
                     "model prompts, replies and application events in private local logs as you work. "
                     + config.get("data_notice", ""))
             if isinstance(client, OpenAIClient):
@@ -5942,6 +5943,17 @@ class Handler(BaseHTTPRequestHandler):
             config["recovery"] = self.server.recovery.public_state()
             config["knowledge_submit_max_bytes"] = MAX_KNOWLEDGE_SUBMIT
             return self._json(config)
+        if path == "/api/trace/logs":
+            token = self.headers.get("X-CSRF-Token", "")
+            if not token.isascii() or not secrets.compare_digest(token, self.server.csrf_token):
+                return self._json({"error": TOKEN_REJECTED_MESSAGE, "code": "request_token_rejected"}, 403)
+            query = urlsplit(self.path).query
+            if query not in ("scope=all", "scope=current"):
+                return self._json({"error": "Choose recent sessions or the current session."}, 400)
+            try:
+                return self._json(self.server.trace.recent_events(current_run=query == "scope=current"))
+            except OSError:
+                return self._json({"error": "The local logs could not be read. Try again."}, 503)
         files = STATIC_FILES
         if path not in files:
             return self._json({"error": "Not found."}, 404)

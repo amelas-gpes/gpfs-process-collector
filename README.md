@@ -2,7 +2,7 @@
 
 Capture how a process works through a typed or spoken interview. Review the evidence-linked memo, map and procedure, then save a copy or file a revision in local company knowledge.
 
-**Version 0.30.1** puts **Context** in the top navigation. Open **More options → Settings** for **How this works** and **Data handling**. [Release notes](CHANGELOG.md) · [Desktop update guide](docs/DESKTOP.md)
+**Version 0.30.2** adds **Application logs** in **More options → Settings**, with searchable recent activity and expandable entries. Settings also contains **How this works** and **Data handling**. [Release notes](CHANGELOG.md) · [Desktop update guide](docs/DESKTOP.md)
 
 [Run locally](#run-locally) · [Windows desktop app](#desktop-app-windows) · [Data handling and deletion](docs/DATA_HANDLING.md) · [Provider usage](docs/PROVIDER_USAGE.md)
 

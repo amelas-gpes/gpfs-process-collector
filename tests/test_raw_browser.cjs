@@ -55,7 +55,6 @@ async function main() {
     page.t.selectConversationView("transcript");
     assert.equal(page.state.turns[0].text,answer);
     assert.equal(page.state.turns[1].text,"Who reads that invoice next?");
-    assert.equal(page.$("developer-trace-notice").hidden, run === b);
     await run.flush();
     const {records, requests} = run;
     const dispatched = records.find(row=>row.type==="http.dispatched" && row.payload.path==="/api/interview");

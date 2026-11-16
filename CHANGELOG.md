@@ -7,6 +7,11 @@ identify the code that is running: Settings > Data handling, saved interviews an
 exports also carry the build (a desktop release's commit, or `dev+` and a source hash for a
 working tree). See [docs/DESKTOP.md](docs/DESKTOP.md#which-build-is-running).
 
+## 0.30.2 · November 16, 2026
+
+- Removed the developer content logging banner from the interview screen. Logging information lives in Settings.
+- Added **Settings → Application logs** to inspect recent or current-session events, search loaded entries, expand recorded details and refresh the view. Log reads are bounded and protected by the app's request token; private log files remain local.
+
 ## 0.30.1 · November 16, 2026
 
 - Open **Context** from the top navigation to edit interview details. **How this works** is now in **Settings**.

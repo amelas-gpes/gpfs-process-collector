@@ -4,6 +4,7 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from datetime import datetime, timezone
 from functools import wraps
+import heapq
 import json
 import math
 import os
@@ -325,6 +326,83 @@ class TraceStore:
         if isinstance(value, str) and len(value.strip()) >= 8:
             with self._cv:
                 self._secrets = (*self._secrets, value.strip())
+
+    def recent_events(self, *, current_run=False, limit=100):
+        """Bounded, read-only tail of saved observations, including earlier runs.
+
+        Never follow links, load arbitrary paths, wait for the writer or alter the
+        stored records. An active writer's incomplete final line is ignored.
+        """
+        if _has_link(self.directory):
+            raise OSError("unsafe trace directory")
+        result = {"events": [], "status": self.status(), "limited": False, "clipped": 0}
+        if not self.directory.exists():
+            return result
+        pattern = re.compile(r"\d{8}T\d{12}Z-([0-9a-f-]{36})(?:\.part\d{8})?\.jsonl\Z")
+        def candidates():
+            with os.scandir(self.directory) as entries:
+                for entry in entries:
+                    match = pattern.fullmatch(entry.name)
+                    if match and (not current_run or match[1] == self.run_id):
+                        yield entry.name
+        # A bounded recent window avoids reading an entire growing archive.
+        names = heapq.nlargest(9, candidates())
+        result["limited"] = len(names) > 8
+        budget, collected = 8 * 1024 * 1024, []
+        for name in names[:8]:
+            path = self.directory / name
+            try:
+                if _has_link(path) or not path.is_file():
+                    continue
+                with path.open("rb") as source:
+                    size = source.seek(0, os.SEEK_END)
+                    allowance = min(budget, 1024 * 1024)
+                    start = max(0, size - allowance)
+                    source.seek(start)
+                    raw = source.read(min(size, allowance))
+                budget -= len(raw)
+                if start:
+                    raw = raw.partition(b"\n")[2]
+                    result["limited"] = True
+                lines = raw.split(b"\n")[:-1]
+                found = 0
+                for line in reversed(lines):
+                    try:
+                        row = json.loads(line)
+                    except (ValueError, UnicodeError, RecursionError):
+                        continue
+                    if not isinstance(row, dict) or not isinstance(row.get("type"), str):
+                        continue
+                    if current_run and row.get("app_run_id") != self.run_id:
+                        continue
+                    encoded = json.dumps(row, ensure_ascii=True)
+                    if len(encoded) > 32768:
+                        row = {key: row[key] for key in ("sequence", "type", "app_run_id", "producer", "recorded_at", "observed_at") if key in row}
+                        row["viewer_excerpt"] = encoded[:32768]
+                        row["viewer_truncated"] = True
+                        result["clipped"] += 1
+                        encoded = json.dumps(row, ensure_ascii=True)
+                    if found >= limit:
+                        result["limited"] = True
+                        break
+                    collected.append((row, len(encoded)))
+                    found += 1
+            except FileNotFoundError:
+                continue  # Another local process may remove an old, finished run.
+            if budget <= 0:
+                result["limited"] = True
+                break
+        # Runs may overlap. Merge their tails by receipt time, rather than the
+        # start timestamp in each filename, retaining duplicates as observations.
+        collected.sort(key=lambda item: (str(item[0].get("recorded_at", "")), item[0].get("sequence", 0)), reverse=True)
+        response_bytes = 0
+        for row, size in collected:
+            if len(result["events"]) >= limit or response_bytes + size > 1024 * 1024:
+                result["limited"] = True
+                break
+            result["events"].append(row)
+            response_bytes += size
+        return result
 
     def emit(self, event_type, payload=None, **context):
         if not self.enabled or self._closed:

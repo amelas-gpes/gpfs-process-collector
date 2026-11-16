@@ -134,7 +134,7 @@
 
   // Wrap same-origin app APIs only. Preserve external/Request-object fetch semantics.
   w.fetch = async function(input, init) {
-    if (!enabled || typeof input !== "string" || !/^\/api\/[a-z0-9/-]+$/.test(input) || input === "/api/trace/events") return send(input, init);
+    if (!enabled || typeof input !== "string" || !/^\/api\/[a-z0-9/-]+$/.test(input) || input.startsWith("/api/trace/")) return send(input, init);
     let options = init, refs;
     try {
       const operation = globalThis.crypto.randomUUID(), identity = interview?.() || null;

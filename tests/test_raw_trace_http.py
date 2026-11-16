@@ -47,7 +47,7 @@ class RawTraceHTTPTests(unittest.TestCase):
                 with urlopen(base + "/api/config", timeout=4) as response:
                     config = json.load(response)
                 self.assertTrue(config["raw_trace"]["content"])
-                self.assertIn("Developer tracing is enabled", config["data_notice"])
+                self.assertIn("Application logging is enabled", config["data_notice"])
             finally:
                 httpd.shutdown()
                 worker.join()

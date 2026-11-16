@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="/component-library.css">
   <link rel="icon" href="/assets/gpfs-symbol.svg" type="image/svg+xml">
   <script src="/raw-trace.js" defer></script>
+  <script src="/log-viewer.js" defer></script>
   <script src="/workflow-exports.js" defer></script>
   <script src="/workflow-graph.js" defer></script>
   <script src="/workflow-components.js" defer></script>
@@ -73,7 +74,6 @@
             <button type="button" id="conversation-tab-workflow" role="tab" aria-selected="false" aria-controls="workflow-panel" tabindex="-1" data-conversation-view="workflow" data-icon="workflow">Workflow</button>
           </nav></div>
         </div>
-        <p id="developer-trace-notice" class="inline-error advisory" hidden>Developer content logging is on. This computer keeps a private trace of interview wording, prompts, model responses and app actions.</p>
         <section id="agent-team" class="agent-team" aria-label="Interview team"></section>
         <section id="document-intake-panel" class="document-intake-panel" aria-label="File review progress" hidden>
           <div class="document-intake-copy" role="status" aria-live="polite"><strong id="document-intake-title">Reading your files</strong><p id="document-intake-detail"></p></div>
@@ -357,9 +357,24 @@
         <p id="recovery-description">Off unless you turn it on. When it is on, one copy of the unsaved interview (transcript, notes, working map, draft and your unsent answer; never recordings) is written to this app’s private work folder a few seconds after each change, so a closed tab, a crash or a restart does not lose it. The copy stays on this computer. It is offered when the app next opens, and deleted after a confirmed Save copy, when you start over or open another interview, when you discard it, when you turn this off, and after seven days.</p>
         <p id="recovery-status" role="status"></p>
       </div>
-      <p id="recovery-trace-note" class="settings-fields" hidden>Developer content logging is active independently of recovery. Turning recovery off or discarding its copy leaves the local developer trace in place.</p>
       <p id="data-notice" class="settings-fields" tabindex="-1"></p>
       <p id="build-identity" class="settings-fields" hidden></p>
+    </details>
+    <details id="logs-details" class="settings-group" name="settings-section">
+      <summary><span>Application logs</span></summary>
+      <div class="settings-fields">
+        <p>View activity saved on this computer. Entries may include interview wording and AI exchanges. Recovery copies are managed separately under Data handling.</p>
+        <div class="log-controls">
+          <label for="logs-scope">Show</label>
+          <select id="logs-scope"><option value="all">Recent sessions</option><option value="current">Current session</option></select>
+          <button type="button" id="logs-refresh" class="text-button">Refresh</button>
+        </div>
+        <label for="logs-search">Search loaded entries</label>
+        <input id="logs-search" type="search" placeholder="Event, wording or session" autocomplete="off">
+        <p id="logs-status" role="status" aria-live="polite"></p>
+        <p id="logs-count"></p>
+        <div id="logs-entries" class="log-entries" aria-label="Saved log entries"></div>
+      </div>
     </details>
     <details id="help-guide" class="settings-group" name="settings-section">
       <summary><span>How this works</span></summary>

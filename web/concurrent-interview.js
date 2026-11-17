@@ -170,7 +170,15 @@
           if(result.workflow_state==="error"){this.notify({state:"error",scope:"workflow",revision:result.revision,message:result.workflow_error||"Notes updated, but the workflow could not update. Wrap up retries the analysis."});return;}
           this.notify({state:"ready",revision:result.revision,...(kept?{kept:true}:{})});return;
         }
-        if(result.state==="error"){settled();this.notify({state:"error",revision:result.revision,message:result.error||"Background notes could not update. Your conversation is retained."});return;}
+        if(result.state==="error"){
+          // The notes failed and say so once. The map of this answer may still be waiting for its
+          // source check: the page keeps fetching the map, quietly, so that its line does not stay
+          // on "check pending" after the check has finished.
+          if(mapKey&&mapCheck==="working")this.scheduleProgress(captured,true);
+          settled();
+          if(!captured.notesFailed){captured.notesFailed=true;this.notify({state:"error",revision:result.revision,message:result.error||"Background notes could not update. Your conversation is retained."});}
+          return;
+        }
         if(!["queued","working"].includes(result.state))throw new Error("Background analysis returned an invalid state.");
         this.scheduleProgress(captured);settled();if(this.timer!==null)this.notify({state:result.state,revision:result.revision});
       }catch(error){

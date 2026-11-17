@@ -49,6 +49,18 @@ A loopback server stands in for the provider and holds its answer back for five 
 
 Thirteen final maps of the stress run that have no file evidence and validate against their own transcripts (`A-T01`, `B-T01`, `C-T01`, `C-T07`, `C-T11`, `STRESS-T06`, `STRESS-T09`, `T03`, `T04`, `T09`, `T13`, `V02`, `V04`) were used as material. For each, at four cut points, the difference between an earlier state and the full map reproduces the full map when applied; a removed step or route needs its quotation; and draws made during a check are carried onto a checked map that corrected one step and took another off. The eight file cases could not be used: their document excerpts are not in the run folder.
 
+## In a browser
+
+`tests/browser/typed-map.cjs` plays three typed answers in the real page, in headless Chromium, against a synthetic provider that takes 0.4 s to draw a map and 3 s to check it. It is optional and not part of `tests/run_all.cjs`, because it needs Playwright and a browser.
+
+| After | The Workflow line showed, in order |
+| --- | --- |
+| the first answer | “Updating the map for your latest answer…”, “Updated through the latest answer · check pending”, “Updated through the latest answer” |
+| the second answer, watched for 1.8 s | “Updating the map for your latest answer…”, “Updated through the latest answer · check pending” |
+| the third answer | the same three lines as after the first |
+
+The diagram then showed the three reported steps between an implied start and an implied end, with no page errors. The same run found that the page stopped asking once the notes of an answer had failed, so a map whose check finished afterwards stayed on “check pending”; the page now keeps fetching the map in that case. Saved maps from the stress run were also drawn in Chromium with and without the picture: no boxes overlapped and a layout took 60 to 300 ms.
+
 ## Not verified, and how to verify it
 
 1. **Timings with the AI service.** Replay `T01`, `T02`, `T07`, `T11`, `V01` and `V03` at 45 s pacing with the [harness](../../harness/README.md) and compare with the stress run: time to the first diagram, the wait after each answer, and the final diagram. `stages.py` now also has `worker.workflow.checkpoint`, `worker.workflow.check_started`, `check_finished`, `check_error`, `check_discarded` and `worker.workflow.checked` to read.

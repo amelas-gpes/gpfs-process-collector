@@ -106,6 +106,17 @@ await test("a checked map released by wrap up needs no further poll",async()=>{
  const h=setup(url=>url.endsWith("/sync")?{...question,workflow_state:"ready",workflow_pending:false,workflow_capture:map("Checked"),workflow_checked:true,workflow_version:2}:{});
  await h.controller.sync(h.snapshot);assert.equal(h.timers.size,0);assert.equal(h.statuses.at(-1).state,"ready");assert.equal(h.statuses.at(-1).workflow,undefined);
 });
+await test("when the notes fail the map is still fetched until its check has finished, and the failure is said once",async()=>{
+ const failed={...base,state:"error",error:"The provider timed out. Your answers are retained.",workflow_state:"ready",workflow_capture:map("Drawn"),workflow_checked:false,workflow_check_state:"working",workflow_version:1};
+ const h=setup(scripted([failed,failed,{...failed,workflow_capture:map("Checked"),workflow_checked:true,workflow_check_state:undefined,workflow_version:2}]));
+ await h.controller.turn(h.snapshot);await h.tick();
+ assert.equal(h.workflows.length,1);assert.equal(h.workflows[0].meta.check,"working");
+ const errors=()=>h.statuses.filter(status=>status.state==="error").length;
+ assert.equal(errors(),1);assert.equal(h.timers.size,1,"The map's check is still awaited");
+ await h.tick();assert.equal(errors(),1,"The failure of the notes is not announced again");assert.equal(h.workflows.length,1);
+ await h.tick();assert.equal(h.workflows.length,2);assert.equal(h.workflows[1].capture.workflow.title,"Checked");assert.equal(h.workflows[1].meta.check,"");
+ assert.equal(h.timers.size,0);assert.equal(errors(),1);assert.equal(h.statuses.at(-1).state,"error","The notes are still reported as failed");
+});
 await test("a server that does not say whether the map was checked is treated as before",async()=>{
  const h=setup(scripted([{...base,state:"ready",capture:{summary:"Notes"},workflow_state:"ready",workflow_capture:map("Plain")}]));
  await h.controller.turn(h.snapshot);await h.tick();

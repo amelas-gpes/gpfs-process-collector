@@ -474,16 +474,18 @@ class MapFairnessTests(unittest.TestCase):
 
 
 class MapLatencyTests(unittest.TestCase):
-    """The pacing of the stress run, scaled down about five hundred times.
+    """The pacing of the stress run, scaled down about a hundred and fifty times.
 
     There a participant answered every 45 s, a draw took 41 s and its check 112 s; the diagram
-    was there before the next answer for 7 of 139 answers. Here an answer comes every 90 ms and
-    a check takes 220 ms. The draw takes 60 ms in the first case (two thirds of the interval,
-    where the run's was nine tenths, to leave room for a loaded machine) and 140 ms in the
-    second: slower than the answers, as a draw with the full instructions may well be.
+    was there before the next answer for 7 of 139 answers. Here an answer comes every 300 ms and
+    a check takes 700 ms. The draw takes 120 ms in the first case and 450 ms in the second:
+    slower than the answers, as a draw with the full instructions may well be. The intervals
+    are this long so that a loaded machine, which starts a thread tens of milliseconds late,
+    still keeps the pace: at 90 ms an answer these cases failed two runs in six with every
+    processor busy.
     """
-    ANSWER, DRAW, CHECK = .09, .06, .22
-    SLOW_DRAW = .14
+    ANSWER, DRAW, CHECK = .3, .12, .7
+    SLOW_DRAW = .45
 
     def test_a_draw_slower_than_the_answers_still_keeps_a_map_on_screen_that_trails_by_an_answer_or_two(self):
         client = LaneClient()
@@ -566,7 +568,7 @@ class MapLatencyTests(unittest.TestCase):
         self.assertTrue(all(wait is not None for wait in waits),
                         f"A map was not there before the next answer: {waits}")
         # A check never stands in front of a draw: the wait is the draw, not the draw and the check.
-        self.assertLess(max(waits), self.DRAW + self.ANSWER * .8)
+        self.assertLess(max(waits), self.DRAW + self.ANSWER * .5)
         self.assertEqual([step["id"] for step in service.status(final)["workflow_capture"]["workflow"]["steps"]],
                          [f"S_u{number}" for number in range(1, 7)])
         # Checks reviewed differences, not the whole map each time: only the first had no checked map before it.

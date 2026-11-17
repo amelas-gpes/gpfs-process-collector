@@ -531,5 +531,30 @@ class LiveHTTPTests(unittest.TestCase):
         self.client.request.assert_not_called()
 
 
+class LiveTurnPolicyTests(unittest.TestCase):
+    """Findings 9 and 10 of docs/testing/runs/2026-11-17-stress."""
+
+    def session(self):
+        client = server.OpenAIClient({'OPENAI_API_KEY': KEY})
+        client.request = Mock(return_value={'session': {'id': 'live_fictional_policy'}, 'transport': {'sdp': SDP}})
+        client.live_session(live_payload())
+        return client.request.call_args.args[1]['session']
+
+    def test_the_live_interviewer_is_told_to_ask_one_question_and_leave_a_stated_unknown_alone(self):
+        # It once asked three questions in one turn about a step the speaker had said they did not know.
+        instructions = self.session()['instructions']
+        self.assertIn('Ask one question per turn.', instructions)
+        self.assertIn('A detail they say they do not know or cannot confirm\nis recorded as unknown: never ask for it again, however worded.',
+                      instructions)
+        self.assertIn('Ask one question per turn.', server.LIVE_TURN_POLICY)
+
+    def test_the_session_request_carries_no_transcription_setting_the_provider_has_not_documented(self):
+        # Reviewed voice sends spelling hints to the transcription endpoint. For a Live session no such
+        # setting is documented, and a field the provider refuses would stop voice from starting at all.
+        session = self.session()
+        self.assertEqual(sorted(session), ['audio', 'delegation', 'input', 'instructions', 'model', 'store'])
+        self.assertEqual(session['audio'], {'output': {'voice': 'marin'}})
+
+
 if __name__ == '__main__':
     unittest.main()

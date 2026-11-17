@@ -14,7 +14,7 @@ Status: in progress. Evidence: [the November 17 stress run](../testing/runs/2026
 | Phase 2, the map as a view of the ledger | Partly. The check is off the path between an answer and the diagram, reviews differences and is carried under later draws. A cause this brief missed is fixed: the background draw had lost the routing, component and step-detail policies (section 4.4 describes the symptom). Graph operations from the notes capture are not built; measure the audit's rewriting again first. |
 | Phase 3, a presentation layer | Not started. |
 | Phase 4, push and a job runner | Partly. Jobs are taken one at a time, the oldest first, and a cancelled request is released. Pushed updates and streamed output are not built. |
-| Phase 5, Live voice orchestrated by the server | Not started beyond Phase 1.5. |
+| Phase 5, Live voice orchestrated by the server | Not started beyond Phase 1.5. The Live instructions now say one question per turn and no second request for a stated unknown. Transcription hints for Live sessions are not sent: the provider documents `prompt` and `keywords` for transcription sessions, not for a `gpt-live-1` session, and an undocumented field could stop voice from starting. Feeding stated unknowns to the Live model earlier needs a voice test. |
 | Phase 6, files | Not started. |
 | Phase 7, notes speed | Not started; it is the owner's decision. |
 

@@ -20,6 +20,8 @@ The workflow diagram keeps up with a typed interview. This is the first part of 
 - **Questions do not queue behind background work.** `COLLECTOR_PROVIDER_SLOTS` (default 6, was a fixed 4) requests run at once, and notes and maps leave two of them free for questions, transcription and voice.
 - **At Wrap up a map built answer by answer is compared once with a map of the whole account** and replaced only when that one carries clearly more: it cites an answer the other never cites, or has more than about a seventh more steps.
 - **In Live voice the map starts from a finished caption**, as the notes do. It started one second after the first words, from part of a sentence. (Finding 5)
+- **The Live interviewer is told to ask one question per turn and to leave a detail alone once the speaker has said they do not know it.** This is wording in its instructions; no voice session was run to confirm the effect. (Finding 9)
+- Not changed: spelling hints for Live voice captions (finding 10). Reviewed voice sends `TRANSCRIPTION_KEYWORDS` to the transcription endpoint; no such setting is documented for a Live session, and a field the provider refuses would stop voice from starting.
 - The status reply of a conversation says whether its map was checked (`workflow_checked`, `workflow_check_state`, `workflow_version`) and can carry the map through an earlier answer (`workflow_checkpoint`). [HTTP interface](docs/API_CONTRACT.md)
 
 Testing material reorganized; no change to the app.

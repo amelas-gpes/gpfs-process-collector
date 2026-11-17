@@ -27,7 +27,8 @@ def drawn_map(turns, previous=None):
     steps = copy.deepcopy(previous["workflow"]["steps"]) if previous else []
     known = {step["id"] for step in steps}
     for turn in turns:
-        if turn["role"] == "user" and "S_" + turn["id"] not in known:
+        # An answer that describes no step (an owner, a volume, a risk) changes nothing on the map.
+        if turn["role"] == "user" and "S_" + turn["id"] not in known and not turn["text"].startswith("No step:"):
             steps.append({"id": "S_" + turn["id"], "title": turn["text"], "evidence_turns": [turn["id"]]})
     return {"workflow": {"title": "Invoices", "steps": steps, "connections": [], "open_questions": []},
             "memo_findings": [], "summary": "", "focus": "", "parking_lot": []}
@@ -301,6 +302,27 @@ class MapLaneTests(unittest.TestCase):
         wait_for(lambda: service.status(three).get("workflow_checked") is True)
         self.assertNotIn("previous_capture", team.checks[-1]["work"],
                          "The difference that was refused would be refused again: the whole map is checked")
+
+    def test_an_answer_that_changes_nothing_on_the_map_needs_no_second_check(self):
+        service, team = self.service()
+        first = service.turn(answers("The clerk receives the invoice."))
+        token = first["conversation_token"]
+        one = {**answers("The clerk receives the invoice."), "conversation_token": token}
+        wait_for(lambda: service.status(one).get("workflow_checked") is True)
+        two = {**answers("The clerk receives the invoice.", "No step: about forty invoices arrive each week."), "conversation_token": token}
+        service.turn(two)
+        wait_for(lambda: service.status(two).get("workflow_checked") is True)
+        status = service.status(two)
+        self.assertEqual(self.step_ids(status["workflow_capture"]), ["S_u1"])
+        self.assertNotIn("workflow_check_state", status)
+        self.assertEqual((len(team.draws), len(team.checks)), (2, 1), "A map that did not change was sent for review again")
+        # The next answer that does add a step is checked from the checked map as before.
+        three = {**two, "turns": [*two["turns"], {"id": "a2", "role": "assistant", "text": "What happens after that?"},
+                                  {"id": "u3", "role": "user", "text": "The manager approves it."}]}
+        service.turn(three)
+        wait_for(lambda: service.status(three).get("workflow_checked") is True)
+        self.assertEqual(len(team.checks), 2)
+        self.assertEqual(self.step_ids(team.checks[1]["work"]["previous_capture"]), ["S_u1"])
 
     def test_a_failed_draw_leaves_the_earlier_map_and_reports_the_error(self):
         service, team = self.service()

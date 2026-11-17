@@ -688,8 +688,11 @@ class ConcurrentInterview:
         """Whether Wrap up's second look is waiting, running or about to be queued. Caller holds the lock."""
         pending = session["graph_pending"]
         return bool(session.get("graph_second_look") or (pending and pending[5])
+                    # Wanted, and about to be queued: when the map of this revision has been drawn
+                    # (it is being drawn now, or is there and Wrap up is in the act of asking).
                     or (session["reconcile_wanted"] is not None and session["reconcile_wanted"] == session["revision"]
                         and session["workflow_incremental"] and session["workflow_state"] != "error"
+                        and (session["graph_running"] or session["workflow_revision"] == session["revision"])
                         and self._checks_separately()))
 
     def _draw(self, work):
@@ -822,7 +825,16 @@ class ConcurrentInterview:
             work.update(previous_capture=copy.deepcopy(session["checked"]), _session_baseline=True)
         try:
             drawn = self._baseline_form(session["workflow_capture"])
+            unchanged = bool(session["checked"]) and self.api.same_map(session["checked"]["workflow"], drawn["workflow"])
         except (KeyError, TypeError):
+            return
+        if unchanged:
+            # The answer changed no step and no route (it was about an owner, a risk, a volume):
+            # the map is the one that was checked, and there is nothing to send for review.
+            session.update(workflow_checked=True, workflow_corrections=[], check_failed_version=None)
+            session["workflow_version"] += 1
+            raw_trace.emit("worker.workflow.checked", {"revision": session["workflow_revision"],
+                                                       "version": session["workflow_version"], "unchanged": True})
             return
         corrections = [copy.deepcopy(row) for _version, row in session["workflow_corrections"]]
         session.update(check_running=True, check_state="working", check_error=None, check_error_code=None,

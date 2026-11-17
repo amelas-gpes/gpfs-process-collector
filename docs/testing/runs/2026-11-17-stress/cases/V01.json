@@ -1,0 +1,699 @@
+{
+ "case": "V01",
+ "port": 8792,
+ "interview_id": "b4afc1202f234e95a26aac90c1536b1a",
+ "context": {
+  "process_name": "Payment Execution & Callback Verification Controls",
+  "process_owner": "",
+  "objective": "Document how we carry out Payment Execution & Callback Verification Controls, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "So it starts whenever an outgoing payment is proposed. It's not on a calendar. It's every single payment. The payment preparer opens it in the payments log, records the payee, amount, purpose, entity, requested value date, and the payment folder reference, and sets the status. Then the preparer works out whether the bank instructions are new or changed. If they are, a callback is required, and urgency doesn't remove that. Before we start, we also need an approved obligation, like an approved invoice or deal support. Otherwise the payment can't be entered or released."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "How does the preparer carry out the required callback and verify the bank instructions?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "Actually, the preparer doesn't do the callback. A separate callback performer does, and that person has to be different from both the initiator and the reviewer. They get the phone number from an independent approved source, never from the instruction email, then call the known contact and confirm the contact's name and relationship to the counterparty. For a European payment they verify the IBAN and SWIFT code; for a U.S. payment the ABA routing number. They record performer, contact, relationship, date and time on the callback checklist. Keep only masked bank details and compare the payee name with the account holder name."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What happens to the payment if the callback cannot be completed or the details do not match?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "Then the payment stops. If the callback performer can't reach the known contact, we don't release, and we keep a record of the attempted contact. If the details are inconsistent or the payee name doesn't match the account holder, we stop and escalate and keep a mismatch record. Same thing if there's no independent number or no eligible independent performer; it stays blocked, and email isn't a substitute. Nothing continues until it's resolved and documented. Who exactly owns that escalation and the threshold? I don't know. That isn't confirmed. Once the callback's fine, the preparer and reviewer go on to the payment checks."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "Once the callback is cleared, what do the preparer and reviewer check before the payment can proceed?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "So first, and this actually comes before the callback. The preparer confirms the approval path. U.S. payments need client approval before release, and European payments follow our regulated approval sequence. Then the preparer and reviewer compare the invoice or payment documents with the amount, payee, purpose, and entity, check it isn\u2019t a duplicate, and run Exiger screening for sanctions and high-risk countries. A potential high-risk country match goes to two signatory approvers. UK construction industry scheme supplier verification is done where it applies. We don\u2019t release while a screening result or possible duplicate is unresolved."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "Who actually releases the payment once those checks and required approvals are complete?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "Well, before release, there's the funding step. The preparer, with treasury, saves a bank statement screenshot of the balance, confirms there's enough for the payment and known pending obligations, confirms the bank cutoff and value date, and arranges FX if needed. If funds are short, the status goes to insufficient funds and it's routed to treasury or the fund team. Then the preparer enters the payment in the bank platform and sets the status to payment input for review. Signatory one approves, then an independent signatory two approves, plus the two-signatory approvals if there was a high-risk hit. Nobody approves their own payment, and it's never released on one signature."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "After the required signatory approvals, who releases the payment and how is that release carried out?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "It's released in the bank platform once both signatories have approved. Scheduled or release hours, not minutes, before the bank cutoff. The exact lead time I don't know. If the cutoff's at risk, we reschedule or escalate. We don't skip checks. After that, the preparer and treasury monitor the status and update the payments log from in progress to settled, or pending query or not paid by GPFS. Next day we check for a return or rejection, investigate, and verify changed details again before resubmitting. Finally, the preparer files the records in the digital binder, and an assistant fund controller or higher signs off that they are complete. That's the end."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "What are the main consequences if a payment error or control failure gets through?"
+  },
+  {
+   "id": "t014",
+   "role": "assistant",
+   "text": "This capture still has open sections. 13 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794919210.901,
+   "turn": 0,
+   "seconds": 0.024,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794919219.518,
+   "turn": 1,
+   "seconds": 2.346,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 33.7,
+   "audio_bytes": 1080026,
+   "wer": 0.0,
+   "spoken": "So it starts whenever an outgoing payment is proposed, it's not on a calendar, it's every single payment. The payment preparer opens it in the Payments Log, records the payee, amount, purpose, entity, requested value date and the payment folder reference, and sets the status. Then the preparer works out whether the bank instructions are new or changed. If they are, a callback is required, and urgency doesn't remove that. Before we start we also need an approved obligation, like an approved invoice or deal support, otherwise the payment can't be entered or released.",
+   "heard": "So it starts whenever an outgoing payment is proposed. It's not on a calendar. It's every single payment. The payment preparer opens it in the payments log, records the payee, amount, purpose, entity, requested value date, and the payment folder reference, and sets the status. Then the preparer works out whether the bank instructions are new or changed. If they are, a callback is required, and urgency doesn't remove that. Before we start, we also need an approved obligation, like an approved invoice or deal support. Otherwise the payment can't be entered or released."
+  },
+  {
+   "kind": "question",
+   "at": 1794919221.37,
+   "turn": 2,
+   "seconds": 1.848,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919234.152,
+   "turn": 3,
+   "seconds": 14.63
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919261.817,
+   "turn": 3,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 42.29
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794919271.05,
+   "turn": 3,
+   "seconds": 2.104,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 35.6,
+   "audio_bytes": 1140412,
+   "wer": 0.02,
+   "spoken": "Actually the preparer doesn't do the callback. A separate callback performer does, and that person has to be different from both the initiator and the reviewer. They get the phone number from an independent approved source, never from the instruction email, then call the known contact and confirm the contact's name and relationship to the counterparty. For a European payment they verify the IBAN and SWIFT code, for a US payment the ABA routing number. They record performer, contact, relationship, date and time on the Callback Checklist, keep only masked bank details, and compare the payee name with the account holder name.",
+   "heard": "Actually, the preparer doesn't do the callback. A separate callback performer does, and that person has to be different from both the initiator and the reviewer. They get the phone number from an independent approved source, never from the instruction email, then call the known contact and confirm the contact's name and relationship to the counterparty. For a European payment they verify the IBAN and SWIFT code; for a U.S. payment the ABA routing number. They record performer, contact, relationship, date and time on the callback checklist. Keep only masked bank details and compare the payee name with the account holder name."
+  },
+  {
+   "kind": "question",
+   "at": 1794919273.595,
+   "turn": 4,
+   "seconds": 2.54,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919309.374,
+   "turn": 5,
+   "seconds": 38.32
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919313.971,
+   "turn": 5,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 42.92
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794919323.453,
+   "turn": 5,
+   "seconds": 2.59,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 36.7,
+   "audio_bytes": 1175666,
+   "wer": 0.0,
+   "spoken": "Then the payment stops. If the callback performer can't reach the known contact, we don't release, and we keep a record of the attempted contact. If the details are inconsistent or the payee name doesn't match the account holder, we stop and escalate, and keep a mismatch record. Same thing if there's no independent number or no eligible independent performer, it stays blocked, and email isn't a substitute. Nothing continues until it's resolved and documented. Who exactly owns that escalation and the threshold, I don't know, that isn't confirmed. Once the callback's fine, the preparer and reviewer go on to the payment checks.",
+   "heard": "Then the payment stops. If the callback performer can't reach the known contact, we don't release, and we keep a record of the attempted contact. If the details are inconsistent or the payee name doesn't match the account holder, we stop and escalate and keep a mismatch record. Same thing if there's no independent number or no eligible independent performer; it stays blocked, and email isn't a substitute. Nothing continues until it's resolved and documented. Who exactly owns that escalation and the threshold? I don't know. That isn't confirmed. Once the callback's fine, the preparer and reviewer go on to the payment checks."
+  },
+  {
+   "kind": "question",
+   "at": 1794919325.428,
+   "turn": 6,
+   "seconds": 1.971,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919344.289,
+   "turn": 7,
+   "seconds": 20.83
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919365.835,
+   "turn": 7,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 42.38
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794919374.884,
+   "turn": 7,
+   "seconds": 1.951,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 37.6,
+   "audio_bytes": 1203666,
+   "wer": 0.071,
+   "spoken": "So first, and this actually comes before the callback, the preparer confirms the approval path. US payments need client approval before release, and European payments follow our regulated approval sequence. Then the preparer and reviewer compare the invoice or payment documents with the amount, payee, purpose and entity, check it isn't a duplicate, and run Exiger screening for sanctions and high risk countries. A potential high risk country match goes to two Signatory A approvers. UK Construction Industry Scheme supplier verification is done where it applies. We don't release while a screening result or possible duplicate is unresolved.",
+   "heard": "So first, and this actually comes before the callback. The preparer confirms the approval path. U.S. payments need client approval before release, and European payments follow our regulated approval sequence. Then the preparer and reviewer compare the invoice or payment documents with the amount, payee, purpose, and entity, check it isn\u2019t a duplicate, and run Exiger screening for sanctions and high-risk countries. A potential high-risk country match goes to two signatory approvers. UK construction industry scheme supplier verification is done where it applies. We don\u2019t release while a screening result or possible duplicate is unresolved."
+  },
+  {
+   "kind": "question",
+   "at": 1794919377.997,
+   "turn": 8,
+   "seconds": 3.108,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919404.136,
+   "turn": 9,
+   "seconds": 29.25
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919418.027,
+   "turn": 9,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 43.14
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794919427.66,
+   "turn": 9,
+   "seconds": 1.795,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 38.9,
+   "audio_bytes": 1245786,
+   "wer": 0.027,
+   "spoken": "Well before release there's the funding step. The preparer, with Treasury, saves a bank statement screenshot of the balance, confirms there's enough for the payment and known pending obligations, confirms the bank cutoff and value date, and arranges FX if needed. If funds are short, the status goes to Insufficient Funds and it's routed to Treasury or the fund team. Then the preparer enters the payment in the bank platform and sets the status to Payment Input for Review. Signatory 1 approves, then an independent Signatory 2 approves, plus the two Signatory A approvals if there was a high risk hit. Nobody approves their own payment, and it's never released on one signature.",
+   "heard": "Well, before release, there's the funding step. The preparer, with treasury, saves a bank statement screenshot of the balance, confirms there's enough for the payment and known pending obligations, confirms the bank cutoff and value date, and arranges FX if needed. If funds are short, the status goes to insufficient funds and it's routed to treasury or the fund team. Then the preparer enters the payment in the bank platform and sets the status to payment input for review. Signatory one approves, then an independent signatory two approves, plus the two-signatory approvals if there was a high-risk hit. Nobody approves their own payment, and it's never released on one signature."
+  },
+  {
+   "kind": "question",
+   "at": 1794919429.98,
+   "turn": 10,
+   "seconds": 2.315,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919458.055,
+   "turn": 11,
+   "seconds": 30.39
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919470.389,
+   "turn": 11,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 42.72
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794919480.473,
+   "turn": 11,
+   "seconds": 2.526,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 38.8,
+   "audio_bytes": 1241184,
+   "wer": 0.027,
+   "spoken": "It's released in the bank platform once both signatories have approved, scheduled or released hours, not minutes, before the bank cutoff. The exact lead time I don't know. If the cutoff's at risk we reschedule or escalate, we don't skip checks. After that the preparer and Treasury monitor the status and update the Payments Log from In Progress to Settled, or Pending Query or Not Paid by GPFS. Next day we check for a return or rejection, investigate, and verify changed details again before resubmitting. Finally the preparer files the records in the digital binder, and an Assistant Fund Controller or higher signs off that they're complete. That's the end.",
+   "heard": "It's released in the bank platform once both signatories have approved. Scheduled or release hours, not minutes, before the bank cutoff. The exact lead time I don't know. If the cutoff's at risk, we reschedule or escalate. We don't skip checks. After that, the preparer and treasury monitor the status and update the payments log from in progress to settled, or pending query or not paid by GPFS. Next day we check for a return or rejection, investigate, and verify changed details again before resubmitting. Finally, the preparer files the records in the digital binder, and an assistant fund controller or higher signs off that they are complete. That's the end."
+  },
+  {
+   "kind": "question",
+   "at": 1794919483.61,
+   "turn": 12,
+   "seconds": 3.131,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919511.184,
+   "turn": 13,
+   "seconds": 30.71
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919523.974,
+   "turn": 13,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 43.49
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794919529.305,
+   "turn": 13,
+   "seconds": 2.023,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "working",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.map_error",
+   "at": 1794919822.579,
+   "turn": 14,
+   "seconds": 295.3,
+   "error": "The provider timed out. Your answers are retained.",
+   "code": "timeout"
+  },
+  {
+   "kind": "wrap.map_error",
+   "at": 1794919825.743,
+   "turn": 14,
+   "seconds": 298.46,
+   "error": "The provider timed out. Your answers are retained.",
+   "code": "timeout"
+  }
+ ],
+ "started": 1794919210.877291,
+ "revision": "afdb2f40bafa621f8ff48fff209b73375af31450ccca607ae10f828768c11d01",
+ "capture": {
+  "memo_findings": [
+   {
+    "answer": "Payment Execution & Callback Verification Controls",
+    "evidence_turns": [
+     "context"
+    ],
+    "key": "name",
+    "status": "captured"
+   },
+   {
+    "answer": "The work executes proposed outgoing payments with payment and callback verification controls, followed by status monitoring and record sign-off.",
+    "evidence_turns": [
+     "t002",
+     "t012"
+    ],
+    "key": "purpose",
+    "status": "partial"
+   },
+   {
+    "answer": "Work starts whenever an outgoing payment is proposed; it is not calendar-based and applies to every payment.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "trigger",
+    "status": "captured"
+   },
+   {
+    "answer": "The participant describes the end as the preparer filing the records in the digital binder and an assistant fund controller or higher signing off their completeness, after monitoring and the next-day return or rejection check.",
+    "evidence_turns": [
+     "t012"
+    ],
+    "key": "completion",
+    "status": "captured"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "accountable",
+    "status": "unknown"
+   },
+   {
+    "answer": "The payment preparer opens the proposed payment in the payments log, records the payee, amount, purpose, entity, requested value date and payment folder reference, and sets the status.\nFor new or changed bank instructions, a separate callback performer obtains the phone number from an independent approved source, not the instruction email, calls the known contact and confirms the contact's name and relationship to the counterparty.\nFor a European payment the callback performer verifies IBAN and SWIFT code; for a U.S. payment, the ABA routing number. The performer records performer, contact, relationship, date and time on the callback checklist.\nIf the callback performer cannot reach the known contact, the payment is not released and an attempted-contact record is kept. Inconsistent details or a payee/account-holder name mismatch stop the payment, trigger escalation and require a mismatch record.\nNo independent number or eligible independent performer also blocks the payment; email is not a substitute. Nothing continues until the issue is resolved and documented. Once the callback is satisfactory, the preparer and reviewer proceed to payment checks.\nBefore the callback, the preparer confirms the approval path. U.S. payments need client approval before release; European payments follow the regulated approval sequence.\nThe preparer and reviewer compare invoice or payment documents with the amount, payee, purpose and entity, check for duplicates, and run Exiger screening for sanctions and high-risk countries. A potential high-risk country match goes to two signatory approvers. UK construction industry scheme supplier verification is performed where applicable.\nBefore release, the preparer, with treasury, saves a bank statement screenshot of the balance, checks that funds cover the payment and known pending obligations, confirms the bank cutoff and value date, and arranges FX if needed.\nIf funds are short, the status changes to insufficient funds and the payment is routed to treasury or the fund team.\nThe preparer enters the payment in the bank platform and sets the status to payment input for review. Signatory one approves, followed by an independent signatory two; a high-risk hit also requires the two-signatory approvals described by the participant.\nAfter both signatories approve, the payment is released in the bank platform. It is scheduled or released hours, not minutes, before the bank cutoff; if the cutoff is at risk, it is rescheduled or escalated without skipping checks.\nThe person who performs release and the exact lead time before cutoff are not established; the participant does not know the exact lead time.\nAfter release, the preparer and treasury monitor status and update the payments log from in progress to settled, pending query, or not paid by GPFS.\nThe next day, the team checks for returns or rejections, investigates them, and verifies changed details again before resubmission.\nFinally, the preparer files the records in the digital binder, and an assistant fund controller or higher signs off that they are complete.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010",
+     "t012"
+    ],
+    "key": "lifecycle",
+    "status": "partial"
+   },
+   {
+    "answer": "Before a payment can be entered or released, an approved obligation is required; examples given are an approved invoice or deal support.\nThe preparer determines whether bank instructions are new or changed. If they are new or changed, a callback is required; urgency does not remove that requirement.\nThe callback performer must be different from both the initiator and the reviewer. The phone number must come from an independent approved source, never the instruction email; the known contact's name and relationship to the counterparty are confirmed.\nThe callback verifies IBAN and SWIFT for European payments and ABA routing number for U.S. payments. The payee name is compared with the account holder name.\nAn unreachable contact prevents release; inconsistent details, a name mismatch, no independent number or no eligible independent performer block progress. Mismatches are escalated, and issues must be resolved and documented before work continues.\nThe participant does not know who owns escalation or the escalation threshold; these are not confirmed.\nThe preparer and reviewer compare the invoice or payment documents against amount, payee, purpose and entity, check for duplicates and run Exiger sanctions and high-risk-country screening. Potential high-risk country matches go to two signatory approvers; UK construction industry scheme supplier verification is performed where applicable.\nThe preparer confirms the approval path before the callback. U.S. payments require client approval before release, while European payments follow a regulated approval sequence. An unresolved screening result or possible duplicate prevents release.\nThe steps in the European regulated approval sequence, the client approval evidence, and how screening or duplicate issues are resolved have not been explained.\nThe preparer and treasury check available balance against the payment and known pending obligations and confirm cutoff and value date before release.\nSignatory one approves before independent signatory two. Nobody approves their own payment, and a payment is never released on one signature. Additional two-signatory approvals apply to a high-risk hit.\nThe next-day return or rejection check leads to investigation and verification of changed details before resubmission. An assistant fund controller or higher signs off that the filed records are complete.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010",
+     "t012"
+    ],
+    "key": "checks",
+    "status": "partial"
+   },
+   {
+    "answer": "The reported conditional route is that new or changed bank instructions require a callback; urgency does not remove the callback requirement.\nThe bank identifiers verified in the callback differ by payment geography: IBAN and SWIFT for European payments, ABA routing number for U.S. payments.\nApproval routes differ by geography: U.S. payments need client approval before release, while European payments follow the regulated approval sequence. UK construction industry scheme supplier verification is performed where applicable.\nFX is arranged when needed. If funds are short, the payment is marked insufficient funds and routed to treasury or the fund team rather than proceeding directly.\nIf the cutoff is at risk, the payment is rescheduled or escalated rather than skipping checks. Returned or rejected payments are investigated and changed details verified again before resubmission.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t008",
+     "t010",
+     "t012"
+    ],
+    "key": "variations",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "pain_points",
+    "status": "unknown"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "risk",
+    "status": "unknown"
+   },
+   {
+    "answer": "The payments log records proposed payment details, status and a payment folder reference.\nThe payment folder's contents and location remain unspecified.\nThe callback checklist records the performer, contact, relationship, date and time.\nAn attempted-contact record is kept when the known contact cannot be reached, and a mismatch record is kept for inconsistent details or a payee/account-holder name mismatch.\nInvoices or payment documents are compared with the payment's amount, payee, purpose and entity.\nA bank statement screenshot showing the balance is saved as part of the funding check.\nThe preparer files payment records in a digital binder, where their completeness is signed off by an assistant fund controller or higher.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010",
+     "t012"
+    ],
+    "key": "materials",
+    "status": "partial"
+   },
+   {
+    "answer": "The work concerns outgoing payments; the preparer records an entity for each payment.\nThe entity population and whether procedures differ by entity remain unspecified.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "scope",
+    "status": "partial"
+   },
+   {
+    "answer": "An approved obligation, such as an approved invoice or deal support, is required before payment entry or release. New or changed bank instructions require a callback even when urgent.\nThe source or authority for the obligation and callback requirements remains unspecified.\nThe callback performer must be distinct from the initiator and reviewer, and the phone number must come from an independent approved source rather than the instruction email. Only masked bank details are retained.\nEmail cannot substitute for the independent callback arrangements, and blocked work cannot continue until the issue is resolved and documented.\nU.S. payments require client approval before release; European payments follow a regulated approval sequence. Release is blocked while a screening result or possible duplicate remains unresolved.\nNobody may approve their own payment, and release requires more than one signature; the second signatory is independent.\nRelease follows approval by both signatories and is scheduled or performed hours before bank cutoff. At-risk cutoffs are rescheduled or escalated without skipping checks.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010",
+     "t012"
+    ],
+    "key": "rules",
+    "status": "partial"
+   },
+   {
+    "answer": "The preparer works with treasury on the funding check. If funds are short, the payment is routed to treasury or the fund team.\nU.S. payments require client approval before release.\nHands off to Treasury or fund team: When funds are short, the payment is routed to treasury or the fund team.",
+    "evidence_turns": [
+     "t010",
+     "t008"
+    ],
+    "key": "connections",
+    "status": "partial"
+   },
+   {
+    "answer": "The preparer uses a payments log to open the proposed payment, record its details and set its status, including a payment folder reference.\nThe payment folder's system or location remains unspecified.\nThe callback performer records callback details on a checklist; only masked bank details are retained.\nThe preparer and reviewer run Exiger screening for sanctions and high-risk countries.\nThe preparer enters the payment in the bank platform and sets its status to payment input for review.\nRelease takes place in the bank platform. The preparer and treasury update the payments log after release, and the preparer files records in a digital binder.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t008",
+     "t010",
+     "t012"
+    ],
+    "key": "data_systems",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant reports that the work applies to every outgoing payment.\nPayment counts and effort estimates remain unspecified.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "volume",
+    "status": "partial"
+   }
+  ],
+  "coverage": [
+   {
+    "key": "name",
+    "label": "Name & other names",
+    "status": "partial"
+   },
+   {
+    "key": "purpose",
+    "label": "Purpose & result",
+    "status": "partial"
+   },
+   {
+    "key": "trigger",
+    "label": "Start, cadence & deadlines",
+    "status": "partial"
+   },
+   {
+    "key": "completion",
+    "label": "Finished condition",
+    "status": "partial"
+   },
+   {
+    "key": "accountable",
+    "label": "Accountability",
+    "status": "missing"
+   },
+   {
+    "key": "lifecycle",
+    "label": "Items, stages & handoffs",
+    "status": "partial"
+   },
+   {
+    "key": "checks",
+    "label": "Checks, approvals & proof",
+    "status": "partial"
+   },
+   {
+    "key": "variations",
+    "label": "Variations and conditions",
+    "status": "partial"
+   },
+   {
+    "key": "pain_points",
+    "label": "Manual work & pain",
+    "status": "missing"
+   },
+   {
+    "key": "risk",
+    "label": "Consequences of failure",
+    "status": "missing"
+   },
+   {
+    "key": "materials",
+    "label": "Existing materials",
+    "status": "partial"
+   },
+   {
+    "key": "scope",
+    "label": "Scope & entity context",
+    "status": "partial"
+   },
+   {
+    "key": "rules",
+    "label": "Business rules & lineage",
+    "status": "partial"
+   },
+   {
+    "key": "connections",
+    "label": "Connected processes",
+    "status": "partial"
+   },
+   {
+    "key": "data_systems",
+    "label": "Data & systems",
+    "status": "partial"
+   },
+   {
+    "key": "volume",
+    "label": "Volume & effort",
+    "status": "partial"
+   }
+  ],
+  "summary": "After both signatories approve, the payment is released in the bank platform hours before cutoff. The preparer and treasury monitor its status; returns or rejections are checked the next day. The preparer files records and an assistant fund controller or higher signs off completeness.",
+  "focus": "Post-release monitoring and returned payments",
+  "parking_lot": [],
+  "connections_out": [
+   {
+    "condition": "When funds are short, the payment is routed to treasury or the fund team.",
+    "counterpart": "Treasury or fund team",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "U.S. payments require client approval before release.",
+    "counterpart": "Client",
+    "evidence_turns": [
+     "t008"
+    ],
+    "relationship_type": "requires_approval_from"
+   }
+  ],
+  "taxonomy": [
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "functional_area",
+    "note": "Reported work concerns execution controls for outgoing payments.",
+    "value": "treasury_payments"
+   },
+   {
+    "evidence_turns": [
+     "context"
+    ],
+    "facet": "process_level",
+    "note": "Captured under the supplied process name; level is a descriptive classification, not an independently confirmed architecture decision.",
+    "value": "process"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "control_type",
+    "note": "Reported callback verification and separation of the performer from initiator and reviewer.",
+    "value": "gpfs_operational"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "variant_class",
+    "note": "Reported bank identifiers checked differ for European and U.S. payments; source of the difference is unconfirmed.",
+    "value": "structural"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "facet": "control_type",
+    "note": "Reported mismatches stop payment and are escalated; escalation ownership and threshold are unconfirmed.",
+    "value": "exception_escalation"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "facet": "control_type",
+    "note": "Participant reports client approval is required before release of U.S. payments.",
+    "value": "client_approval"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "facet": "system",
+    "note": "Exiger is used for sanctions and high-risk-country screening.",
+    "value": "other"
+   },
+   {
+    "evidence_turns": [
+     "t010"
+    ],
+    "facet": "system",
+    "note": "The preparer enters the payment in the bank platform for review.",
+    "value": "bank_platform"
+   },
+   {
+    "evidence_turns": [
+     "t012"
+    ],
+    "facet": "control_type",
+    "note": "An assistant fund controller or higher signs off that filed records are complete, as reported by the participant.",
+    "value": "gpfs_supervisory"
+   }
+  ],
+  "completion": {
+   "allowed": false,
+   "ready_for_final_check": false,
+   "complete": false,
+   "partial": true,
+   "participant_confirmed": false,
+   "blockers": [
+    "role_incomplete:coverage_reviewer",
+    "role_incomplete:process_reviewer",
+    "coverage_result_unbound",
+    "coverage_incomplete",
+    "coverage_unresolved:name",
+    "coverage_unresolved:purpose",
+    "coverage_unresolved:trigger",
+    "coverage_unresolved:completion",
+    "coverage_unresolved:accountable",
+    "coverage_unresolved:lifecycle",
+    "coverage_unresolved:checks",
+    "coverage_unresolved:variations",
+    "coverage_unresolved:pain_points",
+    "coverage_unresolved:risk",
+    "coverage_unresolved:materials",
+    "coverage_unresolved:scope",
+    "coverage_unresolved:rules",
+    "coverage_unresolved:connections",
+    "coverage_unresolved:data_systems",
+    "coverage_unresolved:volume",
+    "process_result_unbound"
+   ],
+   "revision": "14c58d74490afe8790b32e322ce61cd88e9f7ebc0e14e7ef9522381838e39fa7",
+   "run_id": "9a209a8968644574b5c7b69563bddbab"
+  },
+  "coverage_assessment": null
+ },
+ "finished": 1794919825.742645
+}

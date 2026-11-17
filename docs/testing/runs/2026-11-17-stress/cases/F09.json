@@ -1,0 +1,1963 @@
+{
+ "case": "F09",
+ "port": 8794,
+ "interview_id": "9ece7bab6285492385ffcefeebb6a1c9",
+ "context": {
+  "process_name": "European Distribution Execution",
+  "process_owner": "",
+  "objective": "Document how we carry out European Distribution Execution, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "Thanks for sharing. Give me a moment to digest the file. Then I\u2019ll follow up with a question.",
+   "document_event": true,
+   "document_id": "doc_intake"
+  },
+  {
+   "id": "t002",
+   "role": "assistant",
+   "text": "The table in \u201cF09 FA-18C scanned pages.pdf\u201d sets actions at T+7, T+8 and T+15 but does not define T. What event starts that timeline in the process described?"
+  },
+  {
+   "id": "t003",
+   "role": "user",
+   "text": "T is the date the client notifies us of the distribution. I do not know whether the T plus n days are business or calendar days, that has never been confirmed. On T the preparer opens the event: records T, the entity, the amount, the purpose and the expected payment date, sets up the schedule through T+15, identifies the preparer, reviewer and contacts, and opens the European distribution checklist. By T+3 the preparer with Fund Accounting drafts each investor's gross amount, any withholding and net payment, checks the investor totals agree with the approved fund-level distribution, and shares the draft with the client. The client comments by T+4, and by T+5 the preparer and reviewer update the calculations and allocations and prepare the distribution notices, repeating the affected checks. Then we run Exiger sanctions screening and check the CDD status of every payee; any blocked investor is marked, their payment is withheld and follow-ups are scheduled straight away for 30, 60 and 90 days. At T+6 we send the final calculation details and draft notices to the client, and the client approves the notices in writing at T+7."
+  },
+  {
+   "id": "t004",
+   "role": "assistant",
+   "text": "How does the client\u2019s distribution notification reach the preparer?"
+  },
+  {
+   "id": "t005",
+   "role": "user",
+   "text": "I do not know the exact channel, it is not fixed anywhere that I know of; the client notifies us and the preparer checks that T matches the date of that notification. For the rest: at T+8 the notices go out through the investor portal or by email, done by us or Investor Services, the exact role is not defined, and we keep the delivery record. If the client approval is missing at T+7 we do not send notices at T+8 and everything stops until it is resolved. Between T+8 and T+15 Fund Accounting and Treasury confirm cash is available now and through T+15, and the payments are prepared with the callback check, funding and dual approval, leaving out anyone who is CDD blocked. If funds are insufficient we hold the payment and escalate; I do not know who makes that decision. Payments are released at T+15 only to cleared investors; who actually releases, client or us, is not confirmed. Shortening the T+15 wait needs written approval from the Head of the applicable jurisdiction. From one day after the due date we report payment status and returned payments to the client until each item is resolved, returned payments are investigated, and blocked investors are followed up at 30, 60 and 90 days. If CDD clears we update the status and pay through the approved checks. If still blocked after 90 days we escalate, but the next step is not defined. Finally the preparer and reviewer file all records in the digital binder, initial the checklist and close the event, with open blocked or returned items tracked separately and not marked closed."
+  },
+  {
+   "id": "t006",
+   "role": "assistant",
+   "text": "Outside a specific client distribution notification, how often does this work normally arise?"
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "This capture still has open sections. 16 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "doc.session",
+   "at": 1794920314.064,
+   "turn": 0,
+   "seconds": 0.028,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.upload",
+   "at": 1794920314.067,
+   "turn": 0,
+   "seconds": 0.003,
+   "status": 202,
+   "retries": 0,
+   "file": "F09 FA-18C scanned pages.pdf",
+   "bytes": 213504
+  },
+  {
+   "kind": "doc.extracted",
+   "at": 1794920314.586,
+   "turn": 0,
+   "seconds": 0.55,
+   "file": "F09 FA-18C scanned pages.pdf",
+   "chunks": 2,
+   "status": "partial",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 0,
+    "total_units": 2,
+    "text_indexed_units": 0,
+    "visual_pending_units": 2,
+    "unit": "pages",
+    "limitations": [
+     "2 pages contain no extractable text and require native visual review; they were not treated as read."
+    ]
+   }
+  },
+  {
+   "kind": "doc.review_started",
+   "at": 1794920314.586,
+   "turn": 0,
+   "seconds": 0.55,
+   "file": "F09 FA-18C scanned pages.pdf",
+   "chunks": 2,
+   "status": "partial",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 0,
+    "total_units": 2,
+    "text_indexed_units": 0,
+    "visual_pending_units": 2,
+    "unit": "pages",
+    "limitations": [
+     "2 pages contain no extractable text and require native visual review; they were not treated as read."
+    ]
+   }
+  },
+  {
+   "kind": "doc.review_deep",
+   "at": 1794920323.357,
+   "turn": 0,
+   "seconds": 9.32,
+   "file": "F09 FA-18C scanned pages.pdf",
+   "chunks": 2,
+   "status": "partial",
+   "phase": "deep",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 1,
+    "total_units": 2,
+    "text_indexed_units": 0,
+    "visual_pending_units": 1,
+    "unit": "pages",
+    "limitations": [
+     "1 pages still require native visual review.",
+     "AI visual transcriptions are searchable but have not been independently verified."
+    ]
+   }
+  },
+  {
+   "kind": "doc.review_complete",
+   "at": 1794920335.733,
+   "turn": 0,
+   "seconds": 21.7,
+   "file": "F09 FA-18C scanned pages.pdf",
+   "chunks": 2,
+   "status": "partial",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 2,
+    "total_units": 2,
+    "text_indexed_units": 0,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": [
+     "AI visual transcriptions are searchable but have not been independently verified."
+    ]
+   }
+  },
+  {
+   "kind": "doc.followup_question",
+   "at": 1794920338.433,
+   "turn": 1,
+   "seconds": 2.7,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.first_question",
+   "at": 1794920338.433,
+   "turn": 2,
+   "seconds": 24.4,
+   "reading": {
+    "omitted_documents": 0,
+    "documents": [
+     {
+      "id": "doc_9ab4c21107ae1d6ed6de6aa4",
+      "included_chunks": 2,
+      "total_chunks": 2
+     }
+    ]
+   }
+  },
+  {
+   "kind": "doc.notes_ready",
+   "at": 1794920368.86,
+   "turn": 2,
+   "seconds": 33.13
+  },
+  {
+   "kind": "doc.map_ready",
+   "at": 1794920417.552,
+   "turn": 2,
+   "seconds": 81.82,
+   "steps": 8,
+   "connections": 4
+  },
+  {
+   "kind": "question",
+   "at": 1794920426.093,
+   "turn": 3,
+   "seconds": 1.396,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794920461.676,
+   "turn": 4,
+   "seconds": 36.98
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794920516.549,
+   "turn": 4,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 91.85
+  },
+  {
+   "kind": "question",
+   "at": 1794920526.234,
+   "turn": 5,
+   "seconds": 1.738,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794920568.004,
+   "turn": 6,
+   "seconds": 43.51
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794920616.647,
+   "turn": 6,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 92.15
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794920618.764,
+   "turn": 6,
+   "seconds": 2.032,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "working",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.map_ready",
+   "at": 1794920756.123,
+   "turn": 7,
+   "seconds": 139.39,
+   "steps": 23,
+   "connections": 24
+  }
+ ],
+ "started": 1794920311.377601,
+ "documents": [
+  {
+   "id": "doc_9ab4c21107ae1d6ed6de6aa4",
+   "name": "F09 FA-18C scanned pages.pdf",
+   "kind": "pdf",
+   "size": 213504,
+   "status": "partial",
+   "chunk_count": 2,
+   "analysis": {
+    "phase": "complete",
+    "intent_version": 0,
+    "basis_turn_id": "",
+    "basis_question": "",
+    "request_count": 2,
+    "generated_by": [
+     {
+      "build_id": "713975ca987f099ba0b713812b594415e1273cd802fdd81c77d3aca273de914f",
+      "generated_at": "2026-11-17T12:58:43.104+00:00",
+      "model": "gpt-6.1-terra",
+      "prompt_id": "3cdf9a64520b6eaf",
+      "reasoning_effort": "low",
+      "stage": "document_context_review"
+     },
+     {
+      "build_id": "713975ca987f099ba0b713812b594415e1273cd802fdd81c77d3aca273de914f",
+      "generated_at": "2026-11-17T12:58:55.353+00:00",
+      "model": "gpt-6.1-terra",
+      "prompt_id": "3cdf9a64520b6eaf",
+      "reasoning_effort": "low",
+      "stage": "document_context_review"
+     }
+    ],
+    "app_version": "0.32.0",
+    "questions": [
+     {
+      "id": "doc_9ab4c21107ae1d6ed6de6aa4_44f6e6804726bd5a388d",
+      "text": "What event defines T, and are the T+7, T+8 and T+15 intervals calendar or business days?",
+      "sources": [
+       {
+        "source_id": "doc_9ab4c21107ae1d6ed6de6aa4_p2_c1",
+        "label": "F09 FA-18C scanned pages.pdf \u00b7 page 2"
+       }
+      ]
+     },
+     {
+      "id": "doc_9ab4c21107ae1d6ed6de6aa4_29e53683d513d73d1636",
+      "text": "Who follows up and escalates when client notice approval is missing, and how is the stop lifted?",
+      "sources": [
+       {
+        "source_id": "doc_9ab4c21107ae1d6ed6de6aa4_p2_c1",
+        "label": "F09 FA-18C scanned pages.pdf \u00b7 page 2"
+       }
+      ]
+     },
+     {
+      "id": "doc_9ab4c21107ae1d6ed6de6aa4_94cb9e3db8040c5f67f7",
+      "text": "Who owns a payment blocked by an Exiger or CDD check, including its follow-ups and resolution?",
+      "sources": [
+       {
+        "source_id": "doc_9ab4c21107ae1d6ed6de6aa4_p1_c1",
+        "label": "F09 FA-18C scanned pages.pdf \u00b7 page 1"
+       }
+      ]
+     },
+     {
+      "id": "doc_9ab4c21107ae1d6ed6de6aa4_b347fbc176cc75c4546f",
+      "text": "How are shortened timelines assessed, and how are required checks and notice approvals accommodated?",
+      "sources": [
+       {
+        "source_id": "doc_9ab4c21107ae1d6ed6de6aa4_p2_c1",
+        "label": "F09 FA-18C scanned pages.pdf \u00b7 page 2"
+       }
+      ]
+     }
+    ],
+    "observations": [
+     {
+      "id": "doc_9ab4c21107ae1d6ed6de6aa4_2792a7a2eebef3139df7",
+      "text": "The table says client changes to distribution terms or amounts require updated calculations and notices and repetition of affected checks.",
+      "basis": "stated",
+      "quote": "Update the calculation and notices, and repeat the affected checks.",
+      "sources": [
+       {
+        "source_id": "doc_9ab4c21107ae1d6ed6de6aa4_p1_c1",
+        "label": "F09 FA-18C scanned pages.pdf \u00b7 page 1"
+       }
+      ]
+     },
+     {
+      "id": "doc_9ab4c21107ae1d6ed6de6aa4_7d3af39d86b4a3d18fd3",
+      "text": "For a payment blocked by an Exiger or CDD check, the table specifies withholding payment and follow-ups at 30, 60 and 90 days; it says the Compliance or regional owner is not specified.",
+      "basis": "stated",
+      "quote": "The Compliance or regional owner is not specified.",
+      "sources": [
+       {
+        "source_id": "doc_9ab4c21107ae1d6ed6de6aa4_p1_c1",
+        "label": "F09 FA-18C scanned pages.pdf \u00b7 page 1"
+       }
+      ]
+     },
+     {
+      "id": "doc_9ab4c21107ae1d6ed6de6aa4_d7c11bf93f833d5a43c0",
+      "text": "The table says that if client approval of the notice is missing at T+7, notices are not to be sent at T+8; it identifies the client as decision-maker and requires an approval record.",
+      "basis": "stated",
+      "quote": "Client approval of the notice is missing at T+7. | Do not send notices at T+8.",
+      "sources": [
+       {
+        "source_id": "doc_9ab4c21107ae1d6ed6de6aa4_p2_c1",
+        "label": "F09 FA-18C scanned pages.pdf \u00b7 page 2"
+       }
+      ]
+     },
+     {
+      "id": "doc_9ab4c21107ae1d6ed6de6aa4_7a45d1578392a9853187",
+      "text": "For a proposed timeline shorter than T+15, the table requires approval from the head of the applicable jurisdiction and a written approval before proceeding.",
+      "basis": "stated",
+      "quote": "Obtain approval from the Head of the applicable jurisdiction.",
+      "sources": [
+       {
+        "source_id": "doc_9ab4c21107ae1d6ed6de6aa4_p2_c1",
+        "label": "F09 FA-18C scanned pages.pdf \u00b7 page 2"
+       }
+      ]
+     }
+    ],
+    "limit_indicator": false,
+    "unreadable_sources": [],
+    "limitations": [],
+    "summary": "A decisions and exceptions table describes responses to client changes to distribution terms or amounts and to payments blocked by Exiger or CDD checks. It specifies actions, stop/proceed rules and records, but states that the Compliance or regional owner for a blocked payment is not specified. The excerpt does not establish actual practice or control effectiveness.",
+    "summary_basis": "initial_review",
+    "summary_basis_note": "Written from the initial review selection. Later review may have changed coverage; current review status and limitations are shown separately.",
+    "summary_at_review_version": 1,
+    "queries": [],
+    "error": null,
+    "version": 2,
+    "relevance": "relevant",
+    "relevance_reason": "The table addresses distribution changes, payment exceptions, controls and an explicitly unspecified responsibility, directly supporting the stated documentation objective.",
+    "disposition": "relevant",
+    "acknowledgement": "",
+    "question": "",
+    "sources": [
+     {
+      "source_id": "doc_9ab4c21107ae1d6ed6de6aa4_p2_c1",
+      "label": "F09 FA-18C scanned pages.pdf \u00b7 page 2"
+     },
+     {
+      "source_id": "doc_9ab4c21107ae1d6ed6de6aa4_p1_c1",
+      "label": "F09 FA-18C scanned pages.pdf \u00b7 page 1"
+     }
+    ],
+    "cursor": 2,
+    "reviewed_chunks": 2,
+    "total_chunks": 2,
+    "review_complete": true,
+    "estimated_requests": 2
+   },
+   "coverage": {
+    "indexed_units": 2,
+    "total_units": 2,
+    "text_indexed_units": 0,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": [
+     "AI visual transcriptions are searchable but have not been independently verified."
+    ]
+   },
+   "error": null,
+   "revision": 8,
+   "intent_version": null
+  }
+ ],
+ "revision": "911b720c285a7a3181c752105c08b57ba6ae777f35a5a2d43ff8af1a100f679d",
+ "capture": {
+  "memo_findings": [
+   {
+    "answer": "The intake names the work European Distribution Execution.",
+    "evidence_turns": [
+     "context"
+    ],
+    "key": "name",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "purpose",
+    "status": "unknown"
+   },
+   {
+    "answer": "The participant does not know whether T-plus intervals use business or calendar days; this has never been confirmed. The normal cadence is not established.\nT is the date the client notifies the team of the distribution.\nThe preparer checks that T matches the date of the client's notification.\nThe participant does not know the exact notification channel and says it is not fixed anywhere they know of.",
+    "evidence_turns": [
+     "t003",
+     "t005"
+    ],
+    "key": "trigger",
+    "status": "partial"
+   },
+   {
+    "answer": "The table says affected work, including approvals, calculations, accounting, payments, reporting or handoffs, remains open until an identified issue is resolved.\nThe preparer and reviewer file all records in the digital binder, initial the checklist and close the event. Open blocked or returned items are tracked separately and are not marked closed.",
+    "evidence_turns": [
+     "doc_9ab4c21107ae1d6ed6de6aa4_p1_c1",
+     "t005"
+    ],
+    "key": "completion",
+    "status": "partial"
+   },
+   {
+    "answer": "The table does not specify the Compliance or regional decision-maker for a blocked payment; overall process accountability is also not established.\nThe participant does not know who makes the insufficient-funds hold or escalation decision.",
+    "evidence_turns": [
+     "doc_9ab4c21107ae1d6ed6de6aa4_p1_c1",
+     "context",
+     "t005"
+    ],
+    "key": "accountable",
+    "status": "partial"
+   },
+   {
+    "answer": "The supplied exception table says that when client comments change distribution terms or amounts, the calculation and notices are updated and affected checks repeated. It identifies the client / GPFS reviewer as decision-maker and requires completion and documentation before proceeding.\nThe table says an Exiger or CDD payment block requires withholding payment and starting follow-ups for 30, 60 and 90 days; work stops until the issue is resolved and documented.\nThe notice sender and payment releaser are not confirmed; the next step after escalation of a block still unresolved at 90 days is not defined.\nOn T the preparer opens the event, records T, entity, amount, purpose and expected payment date, sets the schedule through T+15, identifies the preparer, reviewer and contacts, and opens the European distribution checklist.\nBy T+3 the preparer and Fund Accounting draft each investor's gross amount, withholding and net payment, check investor totals against the approved fund-level distribution and share the draft with the client. The client comments by T+4.\nBy T+5 the preparer and reviewer update calculations and allocations, prepare distribution notices and repeat affected checks. The team then runs Exiger sanctions screening and checks every payee's CDD status; blocked investors are marked, payment withheld and follow-ups scheduled for 30, 60 and 90 days.\nAt T+6 the team sends final calculation details and draft notices to the client; the client approves the notices in writing at T+7.\nAt T+8 notices are sent through the investor portal or email by the team or Investor Services, and a delivery record is kept. The exact sending role is not defined.\nIf client approval is missing at T+7, notices are not sent at T+8 and work stops until the issue is resolved.\nBetween T+8 and T+15 Fund Accounting and Treasury confirm cash is available now and through T+15. Payments are prepared with callback check, funding and dual approval, excluding CDD-blocked investors; insufficient funds cause a hold and escalation.\nPayments are released at T+15 only to cleared investors; whether the client or the team releases them is unconfirmed. A shorter wait requires written approval from the Head of the applicable jurisdiction.\nFrom one day after the due date, payment status and returned payments are reported to the client until each item is resolved; returned payments are investigated. Blocked investors are followed up at 30, 60 and 90 days; if CDD clears, status is updated and payment proceeds through approved checks, while a continuing block after 90 days is escalated.",
+    "evidence_turns": [
+     "doc_9ab4c21107ae1d6ed6de6aa4_p1_c1",
+     "t005",
+     "t003"
+    ],
+    "key": "lifecycle",
+    "status": "partial"
+   },
+   {
+    "answer": "The table says that if client notice approval is missing at T+7, notices must not be sent at T+8. The client is the decision-maker and an approval record is required; work stops until the issue is resolved and documented.\nFor a proposed timeline shorter than T+15, the table requires approval from the Head of the applicable jurisdiction and written approval before proceeding.\nThe preparer checks investor totals against the approved fund-level distribution; after client comments the preparer and reviewer repeat affected checks. Every payee undergoes Exiger sanctions screening and a CDD-status check.\nThe client approves the notices in writing at T+7 after receiving final calculation details and draft notices at T+6.\nPayment preparation includes a callback check, funding and dual approval. Fund Accounting and Treasury confirm cash availability through T+15; insufficient funds result in a hold and escalation.",
+    "evidence_turns": [
+     "doc_9ab4c21107ae1d6ed6de6aa4_p2_c1",
+     "t003",
+     "t005"
+    ],
+    "key": "checks",
+    "status": "partial"
+   },
+   {
+    "answer": "A shorter-than-T+15 wait is possible with written approval from the Head of the applicable jurisdiction; the participant does not describe other changed steps.",
+    "evidence_turns": [
+     "t005"
+    ],
+    "key": "variations",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "pain_points",
+    "status": "unknown"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "risk",
+    "status": "unknown"
+   },
+   {
+    "answer": "The supplied scanned pages contain a decisions, exceptions and escalation table. Its required records include a calculation with version history, a block and follow-up record, an approval record and written approval. The searchable visual transcription has not been independently verified.\nThe preparer opens the European distribution checklist and records event details and a schedule through T+15. Draft investor calculations and distribution notices are prepared for client review and approval.\nA notice delivery record is retained. The preparer and reviewer file records in a digital binder and initial the distribution checklist at event close.",
+    "evidence_turns": [
+     "doc_9ab4c21107ae1d6ed6de6aa4_p1_c1",
+     "doc_9ab4c21107ae1d6ed6de6aa4_p2_c1",
+     "t003",
+     "t005"
+    ],
+    "key": "materials",
+    "status": "partial"
+   },
+   {
+    "answer": "The intake identifies European Distribution Execution as the interview scope.",
+    "evidence_turns": [
+     "context"
+    ],
+    "key": "scope",
+    "status": "partial"
+   },
+   {
+    "answer": "The supplied table specifies stop or proceed gates for changed terms, blocked payments, missing notice approval and proposed shorter timelines. These are documented requirements, not yet confirmed as current practice.\nInvestor totals are checked against the approved fund-level distribution. A blocked investor's payment is withheld, with follow-ups scheduled for 30, 60 and 90 days.\nThe participant reports a stop if T+7 notice approval is missing, release only to cleared investors at T+15, and a written jurisdiction-head approval requirement for shortening the wait.",
+    "evidence_turns": [
+     "doc_9ab4c21107ae1d6ed6de6aa4_p1_c1",
+     "doc_9ab4c21107ae1d6ed6de6aa4_p2_c1",
+     "t003",
+     "t005"
+    ],
+    "key": "rules",
+    "status": "partial"
+   },
+   {
+    "answer": "The process requires the client's written approval of the notices at T+7, after final calculation details and draft notices are sent at T+6.\nFund Accounting helps draft investor amounts and, with Treasury, confirms cash availability through T+15. Investor Services may send notices, although the exact sending role is not defined.\nShortening the T+15 wait requires written approval from the Head of the applicable jurisdiction.",
+    "evidence_turns": [
+     "t003",
+     "t005"
+    ],
+    "key": "connections",
+    "status": "partial"
+   },
+   {
+    "answer": "The team runs sanctions screening using Exiger and checks each payee's CDD status.\nNotices are sent through the investor portal or email; event records are filed in a digital binder.",
+    "evidence_turns": [
+     "t003",
+     "t005"
+    ],
+    "key": "data_systems",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "volume",
+    "status": "unknown"
+   }
+  ],
+  "coverage": [
+   {
+    "key": "name",
+    "label": "Name & other names",
+    "status": "partial"
+   },
+   {
+    "key": "purpose",
+    "label": "Purpose & result",
+    "status": "missing"
+   },
+   {
+    "key": "trigger",
+    "label": "Start, cadence & deadlines",
+    "status": "partial"
+   },
+   {
+    "key": "completion",
+    "label": "Finished condition",
+    "status": "partial"
+   },
+   {
+    "key": "accountable",
+    "label": "Accountability",
+    "status": "partial"
+   },
+   {
+    "key": "lifecycle",
+    "label": "Items, stages & handoffs",
+    "status": "partial"
+   },
+   {
+    "key": "checks",
+    "label": "Checks, approvals & proof",
+    "status": "partial"
+   },
+   {
+    "key": "variations",
+    "label": "Variations and conditions",
+    "status": "partial"
+   },
+   {
+    "key": "pain_points",
+    "label": "Manual work & pain",
+    "status": "missing"
+   },
+   {
+    "key": "risk",
+    "label": "Consequences of failure",
+    "status": "missing"
+   },
+   {
+    "key": "materials",
+    "label": "Existing materials",
+    "status": "partial"
+   },
+   {
+    "key": "scope",
+    "label": "Scope & entity context",
+    "status": "partial"
+   },
+   {
+    "key": "rules",
+    "label": "Business rules & lineage",
+    "status": "partial"
+   },
+   {
+    "key": "connections",
+    "label": "Connected processes",
+    "status": "partial"
+   },
+   {
+    "key": "data_systems",
+    "label": "Data & systems",
+    "status": "partial"
+   },
+   {
+    "key": "volume",
+    "label": "Volume & effort",
+    "status": "missing"
+   }
+  ],
+  "summary": "The participant describes notice delivery, payment preparation and release, post-due-date follow-up and event closure. The sender, releaser and some escalation ownership remain unresolved; the day convention is still unconfirmed.",
+  "focus": "Payment preparation and follow-up",
+  "parking_lot": [
+   "Confirm whether the documented exception routes reflect current practice.",
+   "Clarify what T means and whether the stated intervals use calendar or business days.",
+   "Clarify ownership of blocked-payment follow-ups and missing notice approvals."
+  ],
+  "connections_out": [
+   {
+    "condition": "Written approval of notices at T+7 after final calculation details and draft notices are sent at T+6.",
+    "counterpart": "Client",
+    "evidence_turns": [
+     "t003"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "Helps draft investor amounts and confirms cash availability with Treasury.",
+    "counterpart": "Fund Accounting",
+    "evidence_turns": [
+     "t003",
+     "t005"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "Confirms cash availability with Fund Accounting between T+8 and T+15.",
+    "counterpart": "Treasury",
+    "evidence_turns": [
+     "t005"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "May send notices at T+8; the exact sending role is not defined.",
+    "counterpart": "Investor Services",
+    "evidence_turns": [
+     "t005"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "Written approval is required to shorten the T+15 wait.",
+    "counterpart": "Head of the applicable jurisdiction",
+    "evidence_turns": [
+     "t005"
+    ],
+    "relationship_type": "requires_approval_from"
+   }
+  ],
+  "taxonomy": [
+   {
+    "evidence_turns": [
+     "context",
+     "doc_9ab4c21107ae1d6ed6de6aa4_p1_c1"
+    ],
+    "facet": "functional_area",
+    "note": "Intake names European Distribution Execution; supplied exception table addresses distribution notices and payments.",
+    "value": "capital_activity"
+   },
+   {
+    "evidence_turns": [
+     "doc_9ab4c21107ae1d6ed6de6aa4_p2_c1"
+    ],
+    "facet": "control_type",
+    "note": "Documented client notice approval gate; current practice unconfirmed.",
+    "value": "client_approval"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "facet": "entity_type",
+    "note": "Participant describes an approved fund-level distribution and investor amounts.",
+    "value": "fund"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "facet": "system",
+    "note": "Participant reports Exiger for sanctions screening.",
+    "value": "other"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "facet": "control_type",
+    "note": "Participant reports investor-total tie-out and payee screening.",
+    "value": "gpfs_operational"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "facet": "system",
+    "note": "Participant reports investor portal as one notice-delivery channel.",
+    "value": "client_portal"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "facet": "system",
+    "note": "Participant reports email as an alternative notice-delivery channel.",
+    "value": "email"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "facet": "control_type",
+    "note": "Participant reports escalation for insufficient funds and blocks persisting beyond 90 days.",
+    "value": "exception_escalation"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "facet": "control_type",
+    "note": "Participant reports dual approval in payment preparation; approver roles are not specified.",
+    "value": "gpfs_supervisory"
+   }
+  ],
+  "completion": {
+   "allowed": false,
+   "ready_for_final_check": false,
+   "complete": false,
+   "partial": true,
+   "participant_confirmed": false,
+   "blockers": [
+    "role_incomplete:coverage_reviewer",
+    "role_incomplete:process_reviewer",
+    "coverage_result_unbound",
+    "coverage_incomplete",
+    "coverage_unresolved:name",
+    "coverage_unresolved:purpose",
+    "coverage_unresolved:trigger",
+    "coverage_unresolved:completion",
+    "coverage_unresolved:accountable",
+    "coverage_unresolved:lifecycle",
+    "coverage_unresolved:checks",
+    "coverage_unresolved:variations",
+    "coverage_unresolved:pain_points",
+    "coverage_unresolved:risk",
+    "coverage_unresolved:materials",
+    "coverage_unresolved:scope",
+    "coverage_unresolved:rules",
+    "coverage_unresolved:connections",
+    "coverage_unresolved:data_systems",
+    "coverage_unresolved:volume",
+    "process_result_unbound"
+   ],
+   "revision": "249ae36e53863e80095f91702f5f588d8902b0735f89c8d0cd209e143ea0914d",
+   "run_id": "11eb26c76bf04fa28621140178b1300a"
+  },
+  "coverage_assessment": null
+ },
+ "workflow": {
+  "connections": [
+   {
+    "evidence_turns": [
+     "doc_9ab4c21107ae1d6ed6de6aa4_p1_c1"
+    ],
+    "from": "S1",
+    "label": "Client comments change terms or amounts",
+    "to": "S2"
+   },
+   {
+    "evidence_turns": [
+     "doc_9ab4c21107ae1d6ed6de6aa4_p1_c1"
+    ],
+    "from": "S3",
+    "label": "Exiger or CDD check blocks payment",
+    "to": "S4"
+   },
+   {
+    "evidence_turns": [
+     "doc_9ab4c21107ae1d6ed6de6aa4_p2_c1"
+    ],
+    "from": "S5",
+    "label": "Approval missing at T+7",
+    "to": "S6"
+   },
+   {
+    "evidence_turns": [
+     "doc_9ab4c21107ae1d6ed6de6aa4_p2_c1"
+    ],
+    "from": "S7",
+    "label": "Timeline shorter than T+15 proposed",
+    "to": "S8"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "from": "S9",
+    "label": "Event opened",
+    "to": "S10"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "from": "S10",
+    "label": "Draft shared",
+    "to": "S11"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "from": "S2",
+    "label": "Updated work",
+    "to": "S12"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "from": "S12",
+    "label": "Check results",
+    "to": "S3"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "from": "S3",
+    "label": "Payee not blocked",
+    "to": "S13"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "from": "S4",
+    "label": "Blocked payments withheld; other work continues",
+    "to": "S13"
+   },
+   {
+    "evidence_turns": [
+     "t003",
+     "t005"
+    ],
+    "from": "S4",
+    "label": "Scheduled blocked-item follow-ups",
+    "to": "S21"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "from": "S13",
+    "label": "Sent for client approval",
+    "to": "S5"
+   },
+   {
+    "evidence_turns": [
+     "t003",
+     "t005"
+    ],
+    "from": "S5",
+    "label": "Written approval received",
+    "to": "S14"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "from": "S6",
+    "label": "Approval issue resolved; timing UNKNOWN",
+    "to": "S14"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "from": "S15",
+    "label": "Cash checked",
+    "to": "S16"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "from": "S16",
+    "label": "Insufficient funds",
+    "to": "S17"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "from": "S16",
+    "label": "Funds sufficient",
+    "to": "S18"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "from": "S19",
+    "label": "Status and returns",
+    "to": "S20"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "from": "S18",
+    "label": "Checks complete and investors cleared; T+15 or shorter wait with written jurisdiction-head approval",
+    "to": "S19"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "from": "S8",
+    "label": "Shorter wait: written jurisdiction-head approval and completed checks and cleared investors",
+    "to": "S19"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "from": "S20",
+    "label": "Event closure; unresolved items tracked separately",
+    "to": "S22"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "from": "S21",
+    "label": "CDD clears and status is updated",
+    "to": "S23"
+   },
+   {
+    "evidence_turns": [
+     "doc_9ab4c21107ae1d6ed6de6aa4_p1_c1"
+    ],
+    "from": "S11",
+    "label": "",
+    "to": "S1"
+   },
+   {
+    "evidence_turns": [
+     "t003",
+     "doc_9ab4c21107ae1d6ed6de6aa4_p1_c1"
+    ],
+    "from": "S1",
+    "label": "",
+    "to": "S2"
+   }
+  ],
+  "open_questions": [
+   "What condition leads from decision S1 (Do comments change terms or amounts?) to step S2?",
+   "Are there other outcomes from decision S1 (Do comments change terms or amounts?), and where do they lead?",
+   "Are there other outcomes from decision S7 (Is a shorter timeline proposed?), and where do they lead?",
+   "Does any incoming route start S13 (Send final details to client), or must all prerequisites finish?",
+   "Does any incoming route start S14 (Deliver investor notices), or must all prerequisites finish?",
+   "Does any incoming route start S19 (Release cleared payments), or must all prerequisites finish?",
+   "Are the routes containing S1 (Do comments change terms or amounts?) and S7 (Is a shorter timeline proposed?) separate, or is there a reported handoff between them?",
+   "Are T+n intervals business or calendar days? T is the client notification date; the notification channel is UNKNOWN.",
+   "Who is accountable for the overall process, and which clients and entity types does this account cover? Is it general GPFS practice or client-specific?",
+   "Does the scanned procedure reflect current practice and the same scope? Its two pages have no native text; both indexed sections were supplied, AI review covered two of two chunks and was not stopped, and no visual units remain unread. The visual transcriptions are not independently verified.",
+   "What are the calculation inputs and sources, allocation and withholding rules, calculation location, rounding and tie-out, and correction or override methods? Who interprets the rules?",
+   "What exactly do the reviewer, callback check and dual approvers check? Who performs them, what evidence is retained, and are any controls system-enforced?",
+   "Who follows up missing notice approval and lifts the hold? What happens if approval or a payment check fails?",
+   "Who owns blocked payments and their follow-ups, what starts the 30-, 60- and 90-day intervals, and who receives the escalation after 90 days?",
+   "Who decides and receives escalation when funds are insufficient, and how does a held payment return to the process?",
+   "Who releases payments, and how are returned payments resolved? What is the due date used for reporting?",
+   "Where are calculations, approvals, delivery records and separate open-item tracking kept, and which records are authoritative?",
+   "What variations, charging or removal constraints, practical difficulties, risks, volumes and effort affect this work?",
+   "Where does the shorter-timeline approval decision enter the actual sequence, and what happens if approval is not granted?",
+   "What happens when client comments do not change terms or amounts, and which affected checks are repeated?",
+   "What is the handoff into cash confirmation, and is it necessarily after notice delivery?",
+   "After CDD clearance and status update, which specific payment steps are repeated, and what is the subsequent handoff?"
+  ],
+  "steps": [
+   {
+    "actor": "Client / GPFS reviewer",
+    "completion_criteria": "The outcome is known.",
+    "control_type": [],
+    "data_origin": "Client comments",
+    "description": "The document identifies client comments changing distribution terms or amounts as a decision condition. Current practice is UNKNOWN.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_9ab4c21107ae1d6ed6de6aa4_p1_c1"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S1",
+    "input": "Client comments",
+    "operating_details": [],
+    "output": "Decision outcome",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F09 FA-18C scanned pages.pdf, FA18C-DP-01",
+    "system": "UNKNOWN",
+    "title": "Do comments change terms or amounts?",
+    "type": "decision"
+   },
+   {
+    "actor": "Preparer and reviewer",
+    "completion_criteria": "Affected checks repeated; documentary completion and record requirements are stated in FA18C-DP-01.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Client comments and draft calculations",
+    "description": "By T+5, update calculations and allocations, prepare notices and repeat affected checks. The document separately requires version history and completion and documentation before proceeding when comments change terms or amounts.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003",
+     "doc_9ab4c21107ae1d6ed6de6aa4_p1_c1"
+    ],
+    "handoff": "Proceed to screening.",
+    "id": "S2",
+    "input": "Client comments and draft calculations",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "deadline",
+      "text": "by T+5 the preparer and reviewer update the calculations and allocations and prepare the distribution notices, repeating the affected checks."
+     },
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "responsible",
+      "text": "the preparer and reviewer update the calculations and allocations and prepare the distribution notices, repeating the affected checks."
+     },
+     {
+      "evidence_turns": [
+       "doc_9ab4c21107ae1d6ed6de6aa4_p1_c1"
+      ],
+      "field": "control",
+      "text": "Proceed only after the required action is complete and documented."
+     }
+    ],
+    "output": "Updated calculations, allocations and notices",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F09 FA-18C scanned pages.pdf, FA18C-DP-01",
+    "system": "UNKNOWN",
+    "title": "Update calculations and notices",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Payee status identified.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Exiger and CDD checks",
+    "description": "Determine whether sanctions screening or CDD status blocks an investor's payment. The document does not specify the Compliance or regional owner.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003",
+     "doc_9ab4c21107ae1d6ed6de6aa4_p1_c1"
+    ],
+    "handoff": "Blocked investors are marked and withheld; other distribution work continues.",
+    "id": "S3",
+    "input": "Screening and CDD results",
+    "operating_details": [],
+    "output": "Blocked or cleared status",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F09 FA-18C scanned pages.pdf, FA18C-EX-01",
+    "system": "Exiger",
+    "title": "Does a check block payment?",
+    "type": "decision"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Block marked and follow-ups scheduled; resolution remains open.",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Screening and CDD results",
+    "description": "Mark blocked investors, withhold their payments and immediately schedule follow-ups at 30, 60 and 90 days. The document requires a block and follow-up record and resolution and documentation before proceeding with the affected work.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003",
+     "t005",
+     "doc_9ab4c21107ae1d6ed6de6aa4_p1_c1"
+    ],
+    "handoff": "Track the blocked item separately while other work continues.",
+    "id": "S4",
+    "input": "Blocked investor",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "frequency",
+      "text": "follow-ups are scheduled straight away for 30, 60 and 90 days."
+     },
+     {
+      "evidence_turns": [
+       "doc_9ab4c21107ae1d6ed6de6aa4_p1_c1"
+      ],
+      "field": "control",
+      "text": "Stop. Do not proceed until the issue is resolved and documented."
+     }
+    ],
+    "output": "Payment withheld and follow-ups scheduled",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F09 FA-18C scanned pages.pdf, FA18C-EX-01",
+    "system": "UNKNOWN",
+    "title": "Withhold and schedule follow-ups",
+    "type": "activity"
+   },
+   {
+    "actor": "Client",
+    "completion_criteria": "Approval status established.",
+    "control_type": [
+     "client_approval"
+    ],
+    "data_origin": "Client",
+    "description": "The client approves notices in writing at T+7. If approval is missing, the participant reports that the process stops until resolved.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003",
+     "t005",
+     "doc_9ab4c21107ae1d6ed6de6aa4_p2_c1"
+    ],
+    "handoff": "Approved notices proceed to delivery; missing approval causes a hold.",
+    "id": "S5",
+    "input": "Final calculations and draft notices",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "deadline",
+      "text": "the client approves the notices in writing at T+7."
+     },
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "responsible",
+      "text": "the client approves the notices in writing at T+7."
+     }
+    ],
+    "output": "Written approval or missing approval",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F09 FA-18C scanned pages.pdf, FA18C-DP-02",
+    "system": "UNKNOWN",
+    "title": "Is notice approval missing at T+7?",
+    "type": "decision"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Issue resolved; the document requires it to be documented.",
+    "control_type": [
+     "client_approval"
+    ],
+    "data_origin": "Client approval status",
+    "description": "Do not send notices at T+8 if approval is missing at T+7; everything stops until resolved. The document requires resolution to be documented and an approval record.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t005",
+     "doc_9ab4c21107ae1d6ed6de6aa4_p2_c1"
+    ],
+    "handoff": "Notice delivery after resolution; timing and hold owner UNKNOWN.",
+    "id": "S6",
+    "input": "Missing client notice approval",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "exception",
+      "text": "If the client approval is missing at T+7 we do not send notices at T+8 and everything stops until it is resolved."
+     },
+     {
+      "evidence_turns": [
+       "doc_9ab4c21107ae1d6ed6de6aa4_p2_c1"
+      ],
+      "field": "control",
+      "text": "Stop. Do not proceed until the issue is resolved and documented."
+     }
+    ],
+    "output": "Notices held",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F09 FA-18C scanned pages.pdf, FA18C-DP-02",
+    "system": "UNKNOWN",
+    "title": "Hold notices",
+    "type": "wait"
+   },
+   {
+    "actor": "Head of applicable jurisdiction",
+    "completion_criteria": "The outcome is known.",
+    "control_type": [],
+    "data_origin": "Timeline proposal",
+    "description": "The document identifies a proposed timeline shorter than T+15 as an exception requiring jurisdiction-head approval.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_9ab4c21107ae1d6ed6de6aa4_p2_c1"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S7",
+    "input": "Timeline proposal",
+    "operating_details": [],
+    "output": "Decision outcome",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F09 FA-18C scanned pages.pdf, FA18C-EX-02",
+    "system": "UNKNOWN",
+    "title": "Is a shorter timeline proposed?",
+    "type": "decision"
+   },
+   {
+    "actor": "Head of applicable jurisdiction approves; requester UNKNOWN",
+    "completion_criteria": "Written approval obtained; documentary proceed condition satisfied.",
+    "control_type": [
+     "gpfs_supervisory"
+    ],
+    "data_origin": "Head of applicable jurisdiction",
+    "description": "A shorter T+15 wait requires written approval from the head of the applicable jurisdiction. The document says the required action must be complete and documented before proceeding.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t005",
+     "doc_9ab4c21107ae1d6ed6de6aa4_p2_c1"
+    ],
+    "handoff": "A shortened wait also requires completed payment checks and cleared investors before release.",
+    "id": "S8",
+    "input": "Proposed shorter wait",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "control",
+      "text": "Shortening the T+15 wait needs written approval from the Head of the applicable jurisdiction."
+     },
+     {
+      "evidence_turns": [
+       "doc_9ab4c21107ae1d6ed6de6aa4_p2_c1"
+      ],
+      "field": "control",
+      "text": "Proceed only after the required action is complete and documented."
+     }
+    ],
+    "output": "Written approval",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F09 FA-18C scanned pages.pdf, FA18C-EX-02",
+    "system": "UNKNOWN",
+    "title": "Obtain jurisdiction-head approval",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "Event details and roles recorded.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Client notification; channel UNKNOWN",
+    "description": "On T, check that T matches the client notification date; record the entity, amount, purpose and expected payment date. Set the schedule through T+15, identify the preparer, reviewer and contacts, and open the European distribution checklist.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003",
+     "t005"
+    ],
+    "handoff": "Preparer works with Fund Accounting on investor calculations.",
+    "id": "S9",
+    "input": "Client distribution notification",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "responsible",
+      "text": "On T the preparer opens the event: records T, the entity, the amount, the purpose and the expected payment date, sets up the schedule through T+15, identifies the preparer, reviewer and contacts, and opens the European distribution checklist."
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "control",
+      "text": "the preparer checks that T matches the date of that notification."
+     }
+    ],
+    "output": "Event, schedule and checklist opened",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Open distribution event",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer and Fund Accounting",
+    "completion_criteria": "Investor totals checked against the approved fund-level distribution and draft shared.",
+    "control_type": [
+     "gpfs_operational",
+     "client_review"
+    ],
+    "data_origin": "Approved fund-level distribution; other input origins UNKNOWN",
+    "description": "Draft each investor's gross amount, withholding and net payment, check totals against the approved fund-level distribution, and share the draft with the client by T+3.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "calculated",
+    "evidence_turns": [
+     "t003"
+    ],
+    "handoff": "Client receives draft for comment.",
+    "id": "S10",
+    "input": "Approved fund-level distribution and investor inputs",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "deadline",
+      "text": "By T+3 the preparer with Fund Accounting drafts each investor's gross amount, any withholding and net payment, checks the investor totals agree with the approved fund-level distribution, and shares the draft with the client."
+     },
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "responsible",
+      "text": "the preparer with Fund Accounting drafts each investor's gross amount, any withholding and net payment, checks the investor totals agree with the approved fund-level distribution, and shares the draft with the client."
+     },
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "control",
+      "text": "checks the investor totals agree with the approved fund-level distribution"
+     }
+    ],
+    "output": "Draft investor calculations shared with client",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Draft investor amounts",
+    "type": "activity"
+   },
+   {
+    "actor": "Client comments; recipient UNKNOWN",
+    "completion_criteria": "Comments received.",
+    "control_type": [
+     "client_review"
+    ],
+    "data_origin": "Client",
+    "description": "The client comments on the draft by T+4.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003"
+    ],
+    "handoff": "Preparer and reviewer update the work.",
+    "id": "S11",
+    "input": "Draft investor calculations",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "deadline",
+      "text": "The client comments by T+4"
+     },
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "responsible",
+      "text": "The client comments by T+4"
+     }
+    ],
+    "output": "Client comments",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Receive client comments",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Every payee's CDD status checked and screening run.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Payee records",
+    "description": "Run Exiger sanctions screening and check the CDD status of every payee.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003"
+    ],
+    "handoff": "Identify blocked payments.",
+    "id": "S12",
+    "input": "Payees",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "system",
+      "text": "we run Exiger sanctions screening"
+     },
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "control",
+      "text": "we run Exiger sanctions screening"
+     },
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "control",
+      "text": "check the CDD status of every payee"
+     }
+    ],
+    "output": "Sanctions and CDD check results",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Exiger; CDD system UNKNOWN",
+    "title": "Screen and check payees",
+    "type": "activity"
+   },
+   {
+    "actor": "GPFS; exact role UNKNOWN",
+    "completion_criteria": "Materials sent to the client; receipt confirmation UNKNOWN.",
+    "control_type": [
+     "client_approval"
+    ],
+    "data_origin": "Updated distribution work",
+    "description": "At T+6 send final calculation details and draft notices to the client.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003"
+    ],
+    "handoff": "Client notice approval at T+7.",
+    "id": "S13",
+    "input": "Final calculation details and draft notices",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "deadline",
+      "text": "At T+6 we send the final calculation details and draft notices to the client"
+     }
+    ],
+    "output": "Details and notices sent to client",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Send final details to client",
+    "type": "activity"
+   },
+   {
+    "actor": "GPFS or Investor Services; exact role UNKNOWN",
+    "completion_criteria": "Notices sent and delivery record kept.",
+    "control_type": [
+     "client_approval"
+    ],
+    "data_origin": "Approved notices",
+    "description": "At T+8 send approved notices through the investor portal or email and retain the delivery record.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t005"
+    ],
+    "handoff": "Investors are sent notices; subsequent handoff to cash confirmation is UNKNOWN.",
+    "id": "S14",
+    "input": "Client-approved notices",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "deadline",
+      "text": "at T+8 the notices go out through the investor portal or by email, done by us or Investor Services, the exact role is not defined, and we keep the delivery record."
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "responsible",
+      "text": "the notices go out through the investor portal or by email, done by us or Investor Services, the exact role is not defined"
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "system",
+      "text": "the notices go out through the investor portal or by email"
+     }
+    ],
+    "output": "Notices sent and delivery record retained",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Investor portal or email",
+    "title": "Deliver investor notices",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund Accounting and Treasury",
+    "completion_criteria": "Availability checked for the stated period.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "UNKNOWN",
+    "description": "Between T+8 and T+15 confirm cash is available now and through T+15.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t005"
+    ],
+    "handoff": "Insufficient funds are held and escalated.",
+    "id": "S15",
+    "input": "Cash availability",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "deadline",
+      "text": "Between T+8 and T+15 Fund Accounting and Treasury confirm cash is available now and through T+15"
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "responsible",
+      "text": "Fund Accounting and Treasury confirm cash is available now and through T+15"
+     }
+    ],
+    "output": "Cash sufficiency status",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Confirm distribution cash",
+    "type": "activity"
+   },
+   {
+    "actor": "Decision-maker UNKNOWN",
+    "completion_criteria": "Cash condition identified.",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Fund Accounting and Treasury cash confirmation",
+    "description": "If funds are insufficient, hold the payment and escalate; who makes the decision is not known.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t005"
+    ],
+    "handoff": "Prepare payments or hold and escalate.",
+    "id": "S16",
+    "input": "Cash sufficiency status",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "exception",
+      "text": "If funds are insufficient we hold the payment and escalate; I do not know who makes that decision."
+     }
+    ],
+    "output": "Sufficient or insufficient funds",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Are funds sufficient?",
+    "type": "decision"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Hold and escalation made.",
+    "control_type": [
+     "exception_escalation"
+    ],
+    "data_origin": "Cash confirmation",
+    "description": "Hold payment and escalate if funds are insufficient. The decision-maker and subsequent resolution are UNKNOWN.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t005"
+    ],
+    "handoff": "Escalation recipient and return route UNKNOWN.",
+    "id": "S17",
+    "input": "Insufficient funds",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "exception",
+      "text": "If funds are insufficient we hold the payment and escalate"
+     }
+    ],
+    "output": "Payment held and escalated",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Hold and escalate payment",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Callback, funding and dual approval completed; CDD-blocked investors excluded.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Distribution calculations and payee status",
+    "description": "Between T+8 and T+15 prepare payments with the callback check, funding and dual approval, leaving out CDD-blocked investors.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t005"
+    ],
+    "handoff": "Cleared payments proceed to release at T+15, or earlier with written jurisdiction-head approval.",
+    "id": "S18",
+    "input": "Payment details and cash availability",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "deadline",
+      "text": "Between T+8 and T+15 Fund Accounting and Treasury confirm cash is available now and through T+15, and the payments are prepared with the callback check, funding and dual approval, leaving out anyone who is CDD blocked."
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "control",
+      "text": "the payments are prepared with the callback check, funding and dual approval"
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "control",
+      "text": "leaving out anyone who is CDD blocked"
+     }
+    ],
+    "output": "Payments prepared with reported checks",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Prepare and check payments",
+    "type": "activity"
+   },
+   {
+    "actor": "Client or GPFS; not confirmed",
+    "completion_criteria": "Only cleared investors paid; a shorter wait requires written jurisdiction-head approval.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Prepared payments and payee status",
+    "description": "Release payments at T+15 only to cleared investors. A shorter wait needs written jurisdiction-head approval.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t005"
+    ],
+    "handoff": "Payment status and returned payments are reported to the client.",
+    "id": "S19",
+    "input": "Prepared, approved payments for cleared investors",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "deadline",
+      "text": "Payments are released at T+15 only to cleared investors; who actually releases, client or us, is not confirmed."
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "control",
+      "text": "Payments are released at T+15 only to cleared investors"
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "control",
+      "text": "Shortening the T+15 wait needs written approval from the Head of the applicable jurisdiction."
+     }
+    ],
+    "output": "Payments released",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Release cleared payments",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Reporting continues until each item is resolved; unresolved returns remain separately tracked at event closure.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Payment status and returned payments",
+    "description": "From one day after the due date, report payment status and returned payments to the client until each item is resolved; investigate returned payments. Open returned items are tracked separately when the event is closed.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t005"
+    ],
+    "handoff": "Client receives status reports; return-resolution route UNKNOWN.",
+    "id": "S20",
+    "input": "Payment status and returns",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "frequency",
+      "text": "From one day after the due date we report payment status and returned payments to the client until each item is resolved"
+     }
+    ],
+    "output": "Client reports and investigated returns",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Report and investigate payments",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "CDD clearance and status update, or escalation if still blocked after 90 days; unresolved blocks remain open.",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Blocked investor and CDD status",
+    "description": "Follow up at 30, 60 and 90 days. If CDD clears, update status and pay through the approved checks; if still blocked after 90 days, escalate, with the next step undefined.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t005"
+    ],
+    "handoff": "On clearance, pay through approved checks; escalation recipient UNKNOWN.",
+    "id": "S21",
+    "input": "Open blocked investor",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "frequency",
+      "text": "blocked investors are followed up at 30, 60 and 90 days."
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "exception",
+      "text": "If still blocked after 90 days we escalate, but the next step is not defined."
+     }
+    ],
+    "output": "Updated status or escalation",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Follow up blocked investors",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer and reviewer",
+    "completion_criteria": "Records filed, checklist initialled and event closed without closing unresolved items.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Distribution event records",
+    "description": "File all records in the digital binder, initial the checklist and close the event. Open blocked or returned items are tracked separately and not marked closed.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t005"
+    ],
+    "handoff": "Open items continue in separate tracking.",
+    "id": "S22",
+    "input": "Event records and checklist",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "responsible",
+      "text": "the preparer and reviewer file all records in the digital binder, initial the checklist and close the event"
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "system",
+      "text": "file all records in the digital binder"
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "control",
+      "text": "open blocked or returned items tracked separately and not marked closed."
+     }
+    ],
+    "output": "Closed event and separately tracked open items",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Digital binder",
+    "title": "File and close event",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Payment made through the approved checks.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Updated CDD status",
+    "description": "After CDD clears and status is updated, pay through the approved checks. The exact earlier step, if any, to which this work returns is not stated.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t005"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S23",
+    "input": "Updated cleared CDD status",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "control",
+      "text": "If CDD clears we update the status and pay through the approved checks."
+     }
+    ],
+    "output": "Payment through approved checks",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Pay cleared blocked investor",
+    "type": "activity"
+   }
+  ],
+  "title": "European Distribution Execution"
+ },
+ "workflow_revision": "911b720c285a7a3181c752105c08b57ba6ae777f35a5a2d43ff8af1a100f679d",
+ "finished": 1794920756.122951,
+ "graph_checks": {
+  "steps": 23,
+  "connections": 24,
+  "types": {
+   "decision": 5,
+   "activity": 17,
+   "wait": 1
+  },
+  "components": 2,
+  "isolated_steps": [],
+  "entry_points": [
+   "S7",
+   "S9",
+   "S15"
+  ],
+  "typed_start": [],
+  "exit_points": [
+   "S14",
+   "S17",
+   "S22",
+   "S23"
+  ],
+  "typed_end": [],
+  "decisions_with_under_two_exits": [
+   "S7"
+  ],
+  "decision_exits_without_label": [
+   "S1->S2"
+  ],
+  "non_decision_with_multiple_exits": [
+   "S4"
+  ],
+  "steps_without_actor": [],
+  "actors": [
+   "Client",
+   "Client / GPFS reviewer",
+   "Client comments; recipient UNKNOWN",
+   "Client or GPFS; not confirmed",
+   "Decision-maker UNKNOWN",
+   "Fund Accounting and Treasury",
+   "GPFS or Investor Services; exact role UNKNOWN",
+   "GPFS; exact role UNKNOWN",
+   "Head of applicable jurisdiction",
+   "Head of applicable jurisdiction approves; requester UNKNOWN",
+   "Preparer",
+   "Preparer and Fund Accounting",
+   "Preparer and reviewer",
+   "UNKNOWN"
+  ],
+  "open_questions": 22
+ }
+}

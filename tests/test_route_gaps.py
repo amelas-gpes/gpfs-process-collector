@@ -1,6 +1,6 @@
 """A reviewed map is checked for parts its route passes by before it is published.
 
-Finding 2 of docs/testing/process-capture-2026-11-16. The carry-vesting map led from the start
+Finding 2 of docs/testing/runs/2026-11-16-process-capture. The carry-vesting map led from the start
 to the calculation without passing the method selection whose Method B outcome puts the work on
 hold; another map left the identity check and ownership tracing outside the route, a third the
 legal clearance. The fixture below is a fictional process with the same shape: no provider,
@@ -15,7 +15,7 @@ from unittest.mock import Mock
 
 from test_server import server
 
-CORPUS = Path(__file__).resolve().parents[1] / 'docs' / 'testing' / 'process-capture-2026-11-16' / 'interviews'
+CORPUS = Path(__file__).resolve().parents[1] / 'docs' / 'testing' / 'runs' / '2026-11-16-process-capture' / 'interviews'
 
 TURNS = [
     {'id': 'u1', 'role': 'user', 'text': 'When a grant changes, the preparer opens a change record and then ties the prior '

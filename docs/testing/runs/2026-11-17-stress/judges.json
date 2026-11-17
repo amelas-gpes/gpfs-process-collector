@@ -1,0 +1,524 @@
+[
+ {
+  "map": "M1",
+  "steps_stated_by_participant": 28,
+  "stated_steps_present": 28,
+  "stated_sequence_links_present_pct": 83,
+  "invented_items": [
+   "S21: 'identify which checks must be repeated' is a task the participant did not state (they said only 'revise and repeat affected checks')",
+   "S16: 'the exact return point depends on what is affected' is an inference, not a statement",
+   "S13: actor 'accounting reviewers' is inferred from 'routes them through accounting review'; no such role was named",
+   "Open questions 'Does any incoming route start S6 / S10 / S12, or must all prerequisites finish?' are tool artefacts about loop-backs the participant described unambiguously",
+   "S13 -> S16 anchors post-posting error discovery to the posting step only; the participant said only 'after posting' (could be found during S14, S15 or later)"
+  ],
+  "wrong_items": [
+   "S15 typed [end] but is a substantive closeout activity (receivable handoff / wire confirmation, records update, deliverables, retention, Cobalt upload); there is no separate end event",
+   "S3, S5, S6, S9, S10, S11, S12, S14 are typed [activity] yet each emits conditional branches; no decision node exists anywhere in the map",
+   "S17 and S18 duplicate escalation text already inside S3 and S5 descriptions, so the same action appears twice (inline and as a side node)",
+   "S23 actor = Preparer for a pause the participant attributed to no one; S19 actor = Preparer although the freeze is done by preparer with reviewer and client",
+   "S12 -> S13 and S13 -> S14 carry the non-semantic label 'Reported next step' instead of a condition/outcome (e.g. all notices agree to locked allocation; entries posted)",
+   "S12 self-loop (S12 -> S12) used for the regenerate rework instead of a check decision with a fail branch",
+   "S10 -> S11 label is correct, but S10 -> S20 and S10 -> S11 leave the same activity with no gateway, so sign-off vs comments is not modelled as a decision"
+  ],
+  "missing_items": [
+   "Return link from S21 (revise for client feedback): participant said 'revise and repeat affected checks' then final approval; S21 has no outgoing connection",
+   "Return link from S16 (reverse and repost): participant said the affected review, notice and approval steps are repeated; S16 has no outgoing connection",
+   "Closeout branch by event type (call -> hand receivable baseline to receipt tracking; distribution -> confirm wires settled) is only prose inside S15, not a labelled branch",
+   "Conditional 'for cash outflows Treasury initiates payment after bank detail controls' is buried in S13 rather than drawn as a conditional step with Treasury as actor",
+   "File lock on final written approval is not its own step; only text in S11 and an edge label",
+   "Reviewer's e-check comparison of each notice to the locked allocation is folded into S12 rather than a separate check/decision",
+   "Population gate outcome (unconfirmed change stays excluded until written client direction) is only description text in S7, no branch",
+   "Stated variations absent from any step: GP vehicles' own population/waiver/commitment/carry rules, per-investment or per-tranche allocation history, client elections recorded in the event brief (mentioned only in an open question)",
+   "Client approval of final notices (t004) is not placed in the flow; relegated to an open question",
+   "Business-day versus calendar-day LPA notice rule distinction is reduced to 'the fund's reported LPA notice rule' in S3"
+  ],
+  "disconnected_or_dead_end": [
+   "S16 (Correct post-posting changes) - no outgoing connection although a return was stated",
+   "S21 (Revise for client feedback) - no outgoing connection although a return was stated",
+   "S17 (Escalate date issue) - dead end; return not stated, covered by an open question",
+   "S18 (Escalate opening balance difference) - dead end; return not stated, covered by an open question",
+   "S23 (Pause submission for reconciliation difference) - dead end; covered by an open question",
+   "S22 (Hold release for discrepancy) - dead end; covered by an open question"
+  ],
+  "accuracy_score": 7,
+  "structure_score": 4,
+  "one_line_verdict": "The 14-step happy path is complete, correctly ordered and almost free of invention, with unknowns properly held as open questions, but the map has no decision nodes, six of eight exception side-nodes are dead ends (two of them with returns the participant actually stated), several stated conditionals exist only as description text, and the end node is an activity."
+ },
+ {
+  "map": "M4",
+  "steps_stated_by_participant": 23,
+  "stated_steps_present": 23,
+  "stated_sequence_links_present_pct": 95,
+  "invented_items": [
+   "S16 -> S11 [Copy difference escalated]: participant only said the copy difference is escalated, never that the flow then continues to communication (the map's own open question admits this is unknown)",
+   "S12 -> S4 return target: participant said the item stays an open exception until they answer; re-entry at classification is a reasonable inference, not a statement",
+   "S14 and S16 actors (preparer; preparer and reviewer) for the escalations: participant did not say who escalates",
+   "S4 system 'Cash Composition workbook' and S1 system 'bank portal' are inferred rather than stated for those steps"
+  ],
+  "wrong_items": [
+   "S4 typed activity but carries the 'unclear or mixed-purpose?' decision via labelled outgoing branches; should be activity plus decision node",
+   "S8 typed activity but carries two stacked decisions (shortfall? and receipt matching applicable?) merged into compound branch labels on S8 -> S9 / S8 -> S10 / S8 -> S15",
+   "S15 typed activity but branches on 'receipt matching applicable' (S15 -> S9, S15 -> S10); the applicability decision is duplicated across S8 and S15 instead of being one decision node",
+   "S10 typed activity but branches on 'copies differ?' (S10 -> S16, S10 -> S11)",
+   "S13 has two outgoing branches (repeat / difference remains) with no decision node; and S13 -> S14 competes with S13 -> S6 without a stated criterion",
+   "S15 collapses 'proceed only after that is done' into an immediate onward flow; no wait for the client/fund decision is modelled (only raised as an open question)",
+   "S18 duplicates the clarification exception already modelled as S12 (t008 most plausibly describes the fund team/client supplying records for the unclear movement) and is left as an orphan",
+   "S6 description repeats the investigate/escalate content that belongs to S13/S14"
+  ],
+  "missing_items": [
+   "No start event node: the three stated triggers (bank portal activity, monthly reconciliation findings, planned capital event) exist only as prose inside S1",
+   "No explicit end node after S11 although the participant said 'That is the end'",
+   "S14 has no outgoing connection or end: the stated outcome 'report is not relied on' is not drawn as a terminal state",
+   "Client/fund authorization (S17) is not placed anywhere in the flow (correctly raised as an open question, but the node is an orphan)",
+   "No open question on frequency of the work, which the interviewer asked and was left unanswered"
+  ],
+  "disconnected_or_dead_end": [
+   "S17 (no connections)",
+   "S18 (no connections)",
+   "S14 (dead end, no end node)",
+   "S11 (terminal activity with no end event)"
+  ],
+  "accuracy_score": 8,
+  "structure_score": 5,
+  "one_line_verdict": "Content fidelity is high - all 11 stated steps, every exception path and the right actors are present in order with little invention - but as a diagram it is weak: no start or end nodes, only one of five decisions is a decision node (the rest are branches off activities with compound labels), S14 dead-ends, and S17/S18 are orphans."
+ },
+ {
+  "map": "M2",
+  "steps_stated_by_participant": 28,
+  "stated_steps_present": 20,
+  "stated_sequence_links_present_pct": 55,
+  "invented_items": [
+   "Organisation name 'GPFS' in S0, S3 and several open questions: the participant only ever says 'we'/'us'",
+   "S12 -> S15 anchors discovery of a post-posting error at S12 specifically; the participant said only 'after posting' (it could surface at S13, S14 or later)",
+   "S13 -> S14 label 'No mapping or contact discrepancy' is an inferred happy-path condition; the participant stated only the hold, not what releases it (minor, reasonable inference)"
+  ],
+  "wrong_items": [
+   "S9: stated decision (comments back to preparer for correction, otherwise sign-off) typed as a plain activity; only the 'Internal sign-off' branch is drawn, the comments/correction loop is missing",
+   "S10: stated decision (client feedback -> revise and repeat affected checks; final written approval -> lock) typed as an activity; only the approval exit is drawn, no feedback loop back to S7/S8/S9",
+   "S11: notice comparison pass/fail typed as an activity; 'failures are regenerated' has no loop",
+   "S13: hold-on-discrepancy is a decision, but only one labelled exit ('No mapping or contact discrepancy') exists; the hold branch has no target",
+   "S12: three different things (prepare/route/post journal entries; conditional 'for cash outflows' Treasury payment after bank detail controls) merged into one activity; the cash-outflow condition and the Treasury actor are not separately modelled",
+   "S14: call vs distribution closeout is a stated branch (receivable baseline to receipt tracking vs confirm wires settled) but is collapsed into one activity with no decision",
+   "S15: participant said affected review, notice and approval steps are repeated, but S15 has no outgoing connection, so the rework neither rejoins nor ends",
+   "S2, S4, S5, S6, S8: the stated conditions (escalate, pause for written direction, exclude until written direction, pause client submission) exist only in description text, not as decisions or branches",
+   "S12 -> S15 is an unlabelled-alternative branch out of an activity: S12 has two outgoing edges (to S13 unlabelled, to S15 labelled) with no decision node"
+  ],
+  "missing_items": [
+   "No end node at all: S14 (closeout / retain final package) and S15 both terminate without an explicit end",
+   "Return path from S15 to the repeated review, notice and approval steps (raised as an open question, but nothing is drawn)",
+   "S9 comments -> preparer correction -> re-review loop",
+   "S10 client feedback -> revise -> repeat affected checks loop",
+   "S11 failed notice -> regenerate -> re-compare loop",
+   "S13 discrepancy -> hold release branch",
+   "S12 cash-outflow decision leading to Treasury payment initiation after bank detail controls",
+   "S14 call / distribution closeout split",
+   "S2 escalation branch when the requested date cannot meet the notice rule or cut-off",
+   "S4 escalation of unexplained balance difference to reviewer and client before calculations are finalized",
+   "S5 pause for written client or legal direction when LPA treatment is ambiguous",
+   "S8 pause of client submission on unexplained reconciliation difference",
+   "Open question for the unanswered t011 question: what happens at closeout for the call and distribution components of a combined net event",
+   "Client elections recorded in the event brief are not placed in any step (S1 or S5); they appear only in an open question",
+   "S7 totals check (investor totals must equal fund totals apart from documented rounding) has no failure path; the participant did not state one either, so this is minor"
+  ],
+  "disconnected_or_dead_end": [
+   "S15 Correct post-posting changes: no outgoing connection, no rejoin, no end",
+   "S14 Close out event: terminal activity with no end node",
+   "No node is disconnected; S0 is the single start and reaches all 15 others"
+  ],
+  "accuracy_score": 7,
+  "structure_score": 3,
+  "one_line_verdict": "Faithful and well ordered in its text, with all 14 stated steps, the trigger and the post-posting correction present and almost nothing invented, but it is a straight chain rather than a process diagram: no end node, no decision nodes, every stated loop, hold and escalation is buried in descriptions, and S15 is a dead end."
+ },
+ {
+  "map": "M2",
+  "steps_stated_by_participant": 27,
+  "stated_steps_present": 16,
+  "stated_sequence_links_present_pct": 58,
+  "invented_items": [
+   "Organisation name 'GPFS' in S0 and S3 (actor 'Client or GPFS'); the participant only ever said 'we'/'us'",
+   "S8 system 'Excel': the participant named no system for the reconciliation step",
+   "S3 places management-company invoice information inside the data pack step; the participant stated the fact (t010) but never tied it to step 3",
+   "S13 -> S14 label 'No mapping or contact discrepancy' makes closeout conditional on that check; the participant only said release is held on a discrepancy",
+   "S12 -> S15 anchors discovery of the post-posting error at S12; the participant said only 'after posting', which could be at or after S13/S14"
+  ],
+  "wrong_items": [
+   "S9: stated decision (comments back to preparer vs sign-off) drawn as an activity with one outgoing edge 'Internal sign-off'; the comments/correction loop is not drawn",
+   "S10: stated decision (client feedback -> revise and repeat affected checks vs final written approval -> lock) drawn as an activity with only the approval edge; no rework loop to S7/S8/S9",
+   "S11: notice check pass/fail drawn as an activity; the 'failures are regenerated' loop is absent",
+   "S13: 'hold release on mapping or contact discrepancy' has only the happy-path label to S14; no hold branch",
+   "S14: call vs distribution closeout (receivable baseline to receipt tracking vs confirm wires settled) fused into one activity instead of a labelled branch",
+   "S12: fuses four stated actions with three actors (prepare JEs, accounting review, post in GL, Treasury payment for cash outflows) into one node; the cash-outflow condition is not a branch",
+   "S12: two outgoing edges, one labelled (to S15) and one unlabelled (to S13), from an activity node, so it acts as an implicit undeclared decision",
+   "S2, S4, S5, S6, S8: stated escalate/pause/exclude exceptions exist only in description prose, with no decision node or exception branch",
+   "S15: dead end; the participant said affected review, notice and approval steps are repeated, but no edge returns to S9/S10/S11/S12 (flagged only as an open question)",
+   "S5: merges 'LPA ambiguous -> pause for written client or legal direction' (t002) with 'documents silent -> use written client-approved methodology' (t010) into one activity without a branch"
+  ],
+  "missing_items": [
+   "No end node: S14 and S15 both terminate without an explicit end",
+   "Return path from S9 to the preparer for correction and back to review",
+   "Client-feedback revise loop from S10 back to the affected checks",
+   "Regenerate loop on failed notice comparison at S11",
+   "Hold/resolve branch at S13 on mapping or contact discrepancy",
+   "Escalation branch at S2 when the date cannot meet the notice rule or cut-off",
+   "Escalation branch at S4 on an unexplained beginning-balance difference",
+   "Pause branch at S5 for ambiguous LPA treatment",
+   "Pause branch at S8 on an unexplained reconciliation difference (blocks client submission)",
+   "Call vs distribution branch at closeout; no open question recording the unanswered combined-net-event closeout treatment (t011)",
+   "Rejoin edges from S15 to the repeated review, notice and approval steps",
+   "Client elections recorded in the event brief (t010) appear only in an open question, not in S1 or any step",
+   "Cash-outflow condition for Treasury payment as a labelled branch"
+  ],
+  "disconnected_or_dead_end": [
+   "S15 (Correct post-posting changes): no outgoing connection, no end node, no rejoin",
+   "S14 (Close out event): terminal activity with no explicit end node"
+  ],
+  "accuracy_score": 6,
+  "structure_score": 3,
+  "one_line_verdict": "M2 captures the trigger, all 14 steps and the post-posting correction in the right order with almost nothing invented, but it is a linear chain: none of the roughly 11 stated decisions is a decision node, every rework loop and exception branch lives only in description prose, there is no end node, and S15 is a dead end."
+ },
+ {
+  "map": "M4",
+  "steps_stated_by_participant": 20,
+  "stated_steps_present": 18,
+  "stated_sequence_links_present_pct": 93,
+  "invented_items": [
+   "S16 -> S11 [Copy difference escalated]: participant only said the copy difference is escalated, never that the flow then continues to communication; the map's own open question asks whether a copy difference blocks communication, yet the edge is drawn as fact",
+   "S12 -> S4 [Clarification received]: the return target is inferred; participant only said the item stays an open exception until they answer (reasonable inference, but not stated)",
+   "S4 system 'Cash Composition workbook' and S1 system 'bank portal': not stated for those steps (step 3 puts category on the Cash Analysis tab; step 1 names only the workbook)",
+   "S15 actor 'Cash-composition preparer with fund or capital-activity team': inherited from step 8; participant did not say who flags and sends the shortfall separately",
+   "S18 as a separate step with actor UNKNOWN: t008 describes the same clarification exception already modelled as S12 ('they give us the source records... until we have it the item stays an open exception'); splitting it creates a duplicate step the participant did not describe as distinct"
+  ],
+  "wrong_items": [
+   "S8 typed [activity] but carries five conditional outgoing branches (to S15, S9, S10): the stated shortfall test 'if pending outflows exceed available cash' is a decision and is not modelled as a decision node",
+   "Receipt-matching applicability ('when applicable', step 9) is folded into compound edge labels on S8 and S15 (e.g. 'Shortfall flagged and sent; receipt matching applicable') instead of a separate decision; two conditions are mixed on one branch",
+   "S10 typed [activity] with conditional branches to S16 / S11 (copies differ / no copy difference): embedded decision not modelled",
+   "S13 typed [activity] with two conditional exits (S13 -> S6 repeat, S13 -> S14 difference remains): no decision node, and no criterion for when to stop repeating",
+   "S12 typed [wait] with actor 'Fund team or client': the referral is sent by the preparer; the sending action is only in S4's description",
+   "S18 actor UNKNOWN and disconnected, although t008 context ties it to the clarification exception (S12) where the fund team or client supplies the records to the preparer",
+   "S4 description absorbs t006 content (category must rest on identifiable transaction activity; formula/prior report/memory is not a rule) that was given in answer to what the quarterly reviewer checks (S10); placement is defensible but S10 gets none of it"
+  ],
+  "missing_items": [
+   "No start node: the three stated triggers (cash activity in bank portal, monthly bank reconciliation activity, planned capital event needing liquidity analysis) appear only in S1's description text",
+   "No end node: 'That is the end' is only in S11's description; S11 has no outgoing connection to an end",
+   "S14 has no outgoing connection and no end marker: 'report is not relied on' is not drawn as a terminal outcome",
+   "Explicit shortfall decision node (step 8) and explicit 'receipt matching applicable?' decision node (step 9)",
+   "Step 7 'update or close them when the cash moves' is description-only (acceptable, but no separate handling)"
+  ],
+  "disconnected_or_dead_end": [
+   "S17 (Authorize later capital decision): orphan, no connections; covered by an open question, which is the correct handling of the unknown placement",
+   "S18 (Receive and retain movement support): orphan, no connections; should have been merged into or attached to S12",
+   "S14 (Escalate remaining difference): dead end with no end node",
+   "S11: terminal step with no explicit end node"
+  ],
+  "accuracy_score": 7,
+  "structure_score": 4,
+  "one_line_verdict": "Main 11-step spine, the classification exception loop, the reconciliation loop and all stated branch targets are captured faithfully with little invention, but as a diagram it is weak: no start or end node, only one of four decision points is a decision node (S8, S10, S13 are activities with conditional exits and compound labels), S14 dead-ends, and S17/S18 float as orphans with S18 duplicating S12."
+ },
+ {
+  "map": "M3",
+  "steps_stated_by_participant": 29,
+  "stated_steps_present": 28,
+  "stated_sequence_links_present_pct": 85,
+  "invented_items": [
+   "S9 -> S10 label 'Sign-off and no unexplained reconciliation difference': the reconciliation condition belongs to step 8 (S8/S24); the participant gave only sign-off as the review exit",
+   "S14 -> S16 'Distribution: confirm wire settlement': a direct Treasury-to-closeout route that bypasses notice release (S15) was never stated; the participant put Investor Services release (step 13) between posting/payment and closeout",
+   "S23 -> S5 return 'Written client or legal direction received' is inferred (reasonable, but the only return drawn, which is inconsistent with the other pauses)",
+   "Open questions 'Does any incoming route start S5 / S11 / S16' and 'S4 uses locked event file which S10 produces' are tool noise; the last one confuses the prior event's locked file with this event's lock"
+  ],
+  "wrong_items": [
+   "S13 has three unguarded outgoing edges (S14 'Cash outflow', S15 'Reported walkthrough order', S17 error) from an activity node: read as exclusive, a distribution never reaches notice release S15; read as parallel, it is not marked as such",
+   "S15 -> S16 and S14 -> S16 both enter closeout with no join semantics; the call vs distribution split at closeout (receivable baseline vs wires settled) sits only in the S16 description, while the 'Distribution' label is misplaced on the S14 edge",
+   "S2, S4, S5, S8, S9, S10, S12, S15 are typed [activity] but each carries a stated condition with two outcomes; no decision node exists anywhere in the map",
+   "S17 hangs off S13 only, although the participant said the error or late change is found 'after posting' (any time later) and that review, notice and approval steps are then repeated; no return edges drawn",
+   "S9 -> S10 label mixes the S8 gate into the S9 outcome (see invented)",
+   "S16 actor UNKNOWN and S19 actor UNKNOWN although step 10 names the preparer as the one sending and revising ('we revise'); S19 could reasonably be Preparer",
+   "'Edge label 'Reported walkthrough order' (S13 -> S15) is a meta-comment, not a process condition"
+  ],
+  "missing_items": [
+   "No start event: the trigger (client tells us or we identify a need to move capital) appears only inside the S1 description",
+   "No end event after S16 closeout",
+   "No decision nodes for: date feasible (S2), balances tie (S4), LPA ambiguous (S5), reconciliation difference (S8), comments vs sign-off (S9), feedback vs approval (S10), notice pass/fail (S12), cash outflow (S13), mapping/contact discrepancy (S15), call vs distribution (S16)",
+   "Return from S18 (preparer corrects) back to internal review S9: 'comments go back to the preparer for correction, otherwise sign-off' implies the loop; not drawn",
+   "Return from S19 (revise and repeat affected checks) back to the checks / client approval S10; not drawn",
+   "Repeat loop from S17 to the affected review, notice and approval steps (S9/S10/S11-S12); stated by the participant but not drawn",
+   "File lock is not its own step; folded into S10 description and an edge label",
+   "Step 6 rule 'unconfirmed change stays excluded until written client direction' exists only as description text, not as a branch or wait",
+   "One Rock Cobalt upload is only description text in S16, not a conditional step"
+  ],
+  "disconnected_or_dead_end": [
+   "S17 Correct posted event (no outgoing)",
+   "S18 Correct review comments (no outgoing)",
+   "S19 Revise for client feedback (no outgoing)",
+   "S21 Escalate infeasible date (no outgoing)",
+   "S22 Escalate balance difference (no outgoing)",
+   "S24 Hold client submission (no outgoing)",
+   "S25 Hold notice release (no outgoing)",
+   "S16 Close out event is the only implicit end; no explicit end node"
+  ],
+  "accuracy_score": 7,
+  "structure_score": 3,
+  "one_line_verdict": "Content of the 14-step walkthrough is captured faithfully with almost nothing invented and unknowns correctly parked as open questions, but as a diagram it is weak: no start or end event, zero decision nodes (all ten conditions sit on activity nodes), seven dead-end exception stubs with no return, and an ambiguous unguarded three-way split after S13 that can route a distribution past notice release."
+ },
+ {
+  "map": "M1",
+  "steps_stated_by_participant": 28,
+  "stated_steps_present": 28,
+  "stated_sequence_links_present_pct": 81,
+  "invented_items": [
+   "S16 description: 'the exact return point depends on what is affected' is the tool's inference; the participant only said the affected review, notice and approval steps are repeated",
+   "S4: management-company invoice information is attached to the data-pack step; the participant gave it as a general variation (t010) and never tied it to step 3",
+   "S1 actor 'GPFS team': the participant only said 'we'; 'GPFS' appears only in an interviewer question (t011)",
+   "S13 -> S16 anchors discovery of a post-posting error at the posting step; the participant only said 'found after posting', which could be at any later point (S14, S15)",
+   "Open questions 'Does any incoming route start S6 / S10 / S12, or must all prerequisites finish?' are tool artefacts about its own loop-back merges, not unknowns the participant left"
+  ],
+  "wrong_items": [
+   "No decision nodes anywhere: every stated condition (S3 date feasible?, S5 difference?, S6 ambiguous?, S9 difference?, S10 comments or sign-off?, S11 feedback or approval?, S12 notice agrees?, S13 cash outflow?, S14 discrepancy?, S15 call or distribution?) is drawn as a labelled edge leaving an activity node - wrong type",
+   "S15 typed [end] but carries real work (receivable hand-off, wire confirmation, record update, deliverables, retention, Cobalt upload); it should be an activity followed by an end event",
+   "S13 merges two different actors and steps (journal entries/accounting review/GL posting by Fund Team or preparer, and Treasury payment initiation for cash outflows) into one node; the stated cash-outflow condition is not a branch",
+   "S12 merges preparer notice generation and the reviewer e-check comparison into one node, so the failure loop is a self-loop S12 -> S12 instead of check -> regenerate -> re-check",
+   "S17 and S18 duplicate escalation text already inside S3 and S5 descriptions, so the same action exists twice (once inline, once as a branch node)",
+   "S21 has no outgoing connection although the participant said feedback means 'revise and repeat affected checks' (should return to the affected checks / S11)",
+   "S16 has no outgoing connection although the participant said the affected review, notice and approval steps are repeated",
+   "S2 says 'name the preparing team'; step 1 of the walkthrough says the preparer and second reviewer are named (the t004 wording 'preparing team' was used instead) - minor",
+   "S3 flattens the business-days versus calendar-days distinction to 'the fund's reported LPA notice rule', losing the stated point that the two are not interchangeable"
+  ],
+  "missing_items": [
+   "Return path from S21 (revise for client feedback) to repeating affected checks and re-submission to the client",
+   "Return path from S16 (reverse and repost) to the repeated review, notice and approval steps",
+   "Call versus distribution branch at closeout (receivable baseline to receipt tracking / confirm wires settled) exists only as text in S15, not as a branch",
+   "Cash-outflow condition for Treasury payment exists only as text in S13, not as a branch or separate step",
+   "Population gate exception (unconfirmed change stays excluded until written client direction) exists only as text in S7; no branch or wait drawn, unlike the other exceptions",
+   "Investor-totals-equal-fund-totals check in S8 has no failure handling or gate drawn (text only)",
+   "Control that the posted GL entry must equal the locked totals (t006) is not captured in S13",
+   "Client elections (narrative, notice date, presentation, net-event display, recipient population) recorded in the event brief are not in S2 or any step; mentioned only in an open question",
+   "GP-vehicle population/waiver/commitment/carry rules and separate allocation history per investment or tranche are not in S7/S8; mentioned only in an open question",
+   "Stated workbook clean-up when copying forward (manual entries, plugs, hidden tabs, broken links, outdated settings to source or clean) is not in S5",
+   "Client approval of final notices (t004) is not placed in the flow; correctly raised as an open question but nothing is drawn"
+  ],
+  "disconnected_or_dead_end": [
+   "S17 Escalate date issue - no outgoing connection (return not stated; covered by an open question)",
+   "S18 Escalate opening balance difference - no outgoing connection (return not stated; covered by an open question)",
+   "S23 Pause submission for reconciliation difference - no outgoing connection (covered by an open question)",
+   "S22 Hold release for discrepancy - no outgoing connection (covered by an open question)",
+   "S21 Revise for client feedback - no outgoing connection although a return was stated",
+   "S16 Correct post-posting changes - no outgoing connection although repeated steps were stated"
+  ],
+  "accuracy_score": 7,
+  "structure_score": 4,
+  "one_line_verdict": "The 14-step main path is complete, correctly ordered and almost free of invention, with unknowns properly parked as open questions, but as a process diagram it is weak: no decision nodes at all, six exception nodes that dead-end (two of which the participant gave a return for), an end node that is really an activity, and several stated branches (cash outflow, call versus distribution, population exclusion) left as description text only."
+ },
+ {
+  "map": "M3",
+  "steps_stated_by_participant": 34,
+  "stated_steps_present": 32,
+  "stated_sequence_links_present_pct": 86,
+  "invented_items": [
+   "S9 -> S10 label 'Sign-off and no unexplained reconciliation difference': composite condition the participant never stated; the reconciliation pause belongs to step 8 (S8/S24), not to the review outcome",
+   "S14 -> S16 label 'Distribution: confirm wire settlement': participant tied Treasury payment to 'cash outflows' and wire confirmation to closeout; no direct Treasury-to-closeout handoff for distributions was stated",
+   "Open question 1 treats the 'prior locked Excel event file' in S4 as the output of S10 in the same run and asks for a route from S10 to S4; the participant meant the prior event's file, so the question rests on a misreading",
+   "Three auto-generated open questions ('Does any incoming route start S5 / S11 / S16...') are tool artefacts, not gaps the participant left; S5 and S11 each have a clear single predecessor",
+   "Open question wording 'charging or removal constraints' has no basis in anything the participant said"
+  ],
+  "wrong_items": [
+   "S8 -> S9 'Reconciliation proceeds to review' is unconditional and sits alongside S8 -> S24; the participant's 'unexplained difference pauses client submission' is not modelled as an exclusive branch, and the condition is instead pushed onto the S9 -> S10 label",
+   "S4 -> S5 is unconditional although the participant said an unexplained difference is escalated 'before calculations are finalized'; S22 is a side stub that does not gate the main flow",
+   "S2 -> S3 likewise unconditional alongside S2 -> S21; the infeasible-date escalation does not gate the flow",
+   "S13 has three unlabelled-type outgoing edges (S14 conditional, S15 'reported walkthrough order', S17 exception) with no gateway; cannot tell parallel from exclusive. Read literally, a distribution can go S13 -> S14 -> S16 and bypass notice release S15",
+   "S17 hangs off S13 only; the participant said the error or late change is found 'after posting' (any later point), and that affected review, notice and approval steps are repeated - no return edges drawn",
+   "S21, S22 typed as activity and S23, S24, S25 as wait; every one of these is the outcome of a decision the participant stated as an if/then, yet the map contains zero decision nodes",
+   "Step 6 rule 'unconfirmed change stays excluded until written client direction' is only description text in S6, not a branch",
+   "Closeout call-vs-distribution split (step 14) is only description text in S16, not a branch",
+   "Step ID S20 is missing from the sequence (numbering gap)"
+  ],
+  "missing_items": [
+   "No start event: the trigger (client request or internally identified need, with the six listed drivers) is folded into the S1 description; the drivers themselves (line of credit repayment, investment funding, management fee, operating expenses, portfolio company proceeds, ad hoc) are dropped",
+   "No end event anywhere; S16 simply has no outgoing edge",
+   "Return edge after S18 (corrected comments back to second reviewer for sign-off) - participant said comments go back for correction 'otherwise sign-off', and that sign-off is required before anything goes to the client",
+   "Return edge after S19 (revise, repeat affected checks, back to client for 'final written approval')",
+   "Return edges after S17 to the repeated review, notice and approval steps",
+   "Lock file is not a distinct step; buried in S10 description and the S10 -> S11 label",
+   "Event classification (capital call / distribution / combined net event) is not modelled as a branch although it drives the closeout split and the Treasury outflow path",
+   "Participant's rough durations (basic call a couple of hours; complex distribution a couple of days or longer) omitted",
+   "The list of guarded failure modes (wrong population, notice not matching locked allocation, missed manual notice step, infeasible due date) is not captured as controls or risks apart from the GL-equals-locked-totals note in S13",
+   "Historical proceeds, tax details and special rules spread across several workpapers (t008) omitted"
+  ],
+  "disconnected_or_dead_end": [
+   "S17 Correct posted event - no outgoing edge",
+   "S18 Correct review comments - no outgoing edge",
+   "S19 Revise for client feedback - no outgoing edge",
+   "S21 Escalate infeasible date - no outgoing edge",
+   "S22 Escalate balance difference - no outgoing edge",
+   "S24 Hold client submission - no outgoing edge",
+   "S25 Hold notice release - no outgoing edge",
+   "S16 Close out event - terminal activity with no end node"
+  ],
+  "accuracy_score": 7,
+  "structure_score": 3,
+  "one_line_verdict": "Content is faithful and nearly complete with almost nothing invented and unknowns correctly parked as open questions, but as a process diagram it is weak: no start or end event, zero decision nodes (all eleven stated conditions are edges off activities), seven dead-end exception stubs with only one of eight exception paths rejoining (S23 -> S5), and an ambiguous three-way fan-out at S13 that lets a distribution bypass notice release."
+ },
+ {
+  "map": "M6",
+  "steps_stated_by_participant": 36,
+  "stated_steps_present": 32,
+  "stated_sequence_links_present_pct": 88,
+  "invented_items": [
+   "S20 -> S21 label 'package complete' and S10 -> S11 label 'Reconciliation reviewed' imply a gate/ordering the participant did not state in those words (minor)",
+   "S5/S6 split 'model is updated' and 'results are recalculated' into two sequenced activities with actor UNKNOWN; defensible but the S4 -> S5 -> S6 chain labels ('Interpretation provided', 'Model updated') are inferred",
+   "Generic template open questions (dual controls, parent process, 'charges or removal constraints', volumes/peaks) are not grounded in anything the participant said; harmless but noise"
+  ],
+  "wrong_items": [
+   "S17: participant's decision was 'is a holdback required or is a release being requested?' with a sub-check on completeness; map reframes it as 'Holdback release supported?' and gives it only ONE outgoing edge (S17 -> S18 'Proceed to clawback test'), so the stated outcomes (release stops and carry stays held with wind-down / release goes ahead) exist only in description text, not as branches",
+   "S21 typed activity but carries the pass/fail branch (S21 -> S22 'Review fails', S21 -> S23 'Review passes'); the review outcome should be a decision node",
+   "S25 typed activity but carries the posting-check branch (S25 -> S26, S25 -> S27); the before/after posting match check is a stated decision folded into an activity",
+   "S11 actor 'Preparer and reviewer': participant said the reviewer reviews the reconciliation, the preparer runs it; the separate reviewer-review step is collapsed into an edge label and a joint actor",
+   "S19 description absorbs 'record the gross analysis' (a stated action on the No branch) rather than showing it as a step; S19 actor includes the tax adviser as decision-maker, which the participant only said for the adjustment/approval",
+   "S27 typed end while also being the hand-off activity performed by the preparer; no separate end event",
+   "S13 description says 'prepare bridge reconciliations for complex features' but drops 'apply ONLY the governing tiers', and bridge-reconciliation prep overlaps S15"
+  ],
+  "missing_items": [
+   "'If required accounts or approvals are missing, posting stops' (t008, t012) - no node, no branch, not in S24/S25 description",
+   "'Examples treated as rules (example preferred return rate/split/holdback range) - the reviewer stops the process' (t012) and 'never an example range' (t006) - absent",
+   "Holdback release outcomes as actual branches/nodes (release stops and stays open with wind-down vs. release proceeds) - only in S17 description",
+   "S28 any-point exception (stale regulatory material / unsupported treatment) is not connected to anything",
+   "Rejoin routes after S6, S9 and S26 (participant did not state them explicitly; correctly raised as open questions, but the nodes are left hanging)",
+   "Preparer's escalation rule (must not interpret unresolved terms; escalate model-vs-terms conflict) not captured",
+   "Model-not-version-controlled and unsupported tax/legal assumption stoppers (t012) not represented",
+   "Outputs per step (locked calculation instructions, reconciled input package, waterfall output per layer, holdback schedule, gross and after-tax analyses) largely omitted from descriptions"
+  ],
+  "disconnected_or_dead_end": [
+   "S28 Validate unsupported material - fully disconnected (no incoming, no outgoing)",
+   "S6 Recalculate affected results - dead end, no outgoing edge, not an end node",
+   "S9 Prepare layers separately - dead end, no outgoing edge",
+   "S26 Correct posting mismatch - dead end, no outgoing edge",
+   "S17 decision has a single outgoing edge (no labelled alternative branches)"
+  ],
+  "accuracy_score": 7,
+  "structure_score": 5,
+  "one_line_verdict": "Faithful, well-ordered main path with almost nothing invented and unknowns correctly parked as open questions, but structurally weak: three hanging exception activities (S6, S9, S26), a disconnected S28, a one-exit decision (S17), two decisions hidden inside activities (S21, S25), and the 'posting stops if accounts/approvals missing' and 'examples used as rules' stops are absent."
+ },
+ {
+  "map": "M6",
+  "steps_stated_by_participant": 38,
+  "stated_steps_present": 33,
+  "stated_sequence_links_present_pct": 90,
+  "invented_items": [
+   "No invented process steps or connections found; content traces to the transcript.",
+   "Minor: S11 actor 'Preparer and reviewer' -- the participant said the reviewer reviews the reconciliation and that the reviewer or Accounting decides on a difference, not that the decision itself is jointly owned.",
+   "Minor: several template-style open questions (dual controls system-enforced or procedural, parent process, 'charges or removal constraints', volumes/peak periods) do not correspond to anything the participant raised as unknown; harmless but noise."
+  ],
+  "wrong_items": [
+   "S17 wrong type/shape: typed as a decision but has one outgoing edge (S17 -> S18 'Proceed to clawback test'). The stated decision 'is a holdback required or is a release being requested?' is reframed as 'Holdback release supported?', and its two stated outcomes (release stops and carry stays held with wind-down / release goes ahead) exist only in description text.",
+   "S21 wrong type: an activity carrying the review pass/fail branch (S21 -> S22 'Review fails', S21 -> S23 'Review passes'); the review outcome is a decision and is not modelled as a decision node.",
+   "S25 wrong type: an activity carrying the pre/post-posting match check branch (S25 -> S26 'Version check fails', S25 -> S27 'Checks pass'); posting, reconciling and the check are collapsed into one node, so the 'before and after posting' check is not a decision node.",
+   "S27 wrong type: the hand-off activity (preparer hands off approved results and keeps records) is typed as the end node, so there is no separate end event.",
+   "S10 merges two stated actions (collect inputs; match to general ledger and prior approved model), and the reviewer's review of the reconciliation appears only as the edge label on S10 -> S11, not as a step.",
+   "S1 actor UNKNOWN is acceptable (the participant never said who detects the trigger); not counted as an error."
+  ],
+  "missing_items": [
+   "'If required accounts or approvals are missing, posting stops' (t008, repeated t012) -- absent from S25 and from every connection.",
+   "Holdback branch outcomes as steps: 'release stops, carry stays held and stays open with wind-down' and 'release can go ahead' -- only in S17 description, no nodes or branches.",
+   "Stop condition 'examples treated as rules -> the reviewer stops the process' (t012) -- absent.",
+   "Stop condition 'model not version controlled' (t012) -- absent.",
+   "Preparer escalation rule: must not interpret unresolved governing, tax or legal terms; escalates model-versus-terms conflicts, complex features and non-reconciling results (t012) -- absent.",
+   "Rule 'if the fund is not yet in a cash-carry position, cash carry is not distributed at all' -- only a clause in S16 description, not a gate.",
+   "'Settlement is stopped without that support' on the clawback yes-branch -- only description text in S20, no stop outcome drawn.",
+   "Step outputs (locked calculation instructions, reconciled input package, waterfall output per layer, holdback calculation and schedule of changes, gross and approved after-tax analyses) are largely not captured."
+  ],
+  "disconnected_or_dead_end": [
+   "S6 Recalculate affected results -- no outgoing edge (dead end; resume point left as an open question)",
+   "S9 Prepare layers separately -- no outgoing edge (dead end)",
+   "S26 Correct posting mismatch -- no outgoing edge, neither rejoins nor ends",
+   "S28 Validate unsupported material -- fully disconnected, no incoming or outgoing edges"
+  ],
+  "accuracy_score": 7,
+  "structure_score": 5,
+  "one_line_verdict": "Faithful main path with correct order, actors, loop-backs (S12 -> S10, S22 -> S21) and nothing invented, but the map drops the 'posting stops' exception and several stop rules, reduces the holdback decision S17 to one exit, hides two decisions inside activities S21 and S25, and leaves S6, S9 and S26 as dead ends and S28 orphaned."
+ },
+ {
+  "map": "M5",
+  "steps_stated_by_participant": 36,
+  "stated_steps_present": 33,
+  "stated_sequence_links_present_pct": 89,
+  "invented_items": [
+   "S19 -> S20 [Release prerequisites subsequently complete]: the participant only said the release stops, carry stays held and it stays open with wind-down; no later loop into a permitted release was stated.",
+   "S18 -> S21 [No release requested]: a third branch the participant never described. He gave only the release-requested complete/incomplete outcomes and 'either way' on to step five; this is a reasonable inference but not stated.",
+   "S26 says the tax adviser approves the separate tax adjustment 'where applicable'; the participant stated that approval without qualification.",
+   "Labels on S22 -> S24 and S23 -> S24 assert 'package complete with no blocking exception' as an outcome of the clawback step; the participant gave it as an entry condition for step six, not as something the clawback step establishes."
+  ],
+  "wrong_items": [
+   "S24 is typed as an activity but carries the pass/fail branches (S24 -> S25, S24 -> S26); the stated review pass/fail decision has no decision node.",
+   "S11 actor is UNKNOWN although the participant described the reconciliation decision as his own ('I stop ... I move to step three'), i.e. the GPFS preparer.",
+   "S10 (reviewer reviews reconciliation) is drawn as a side branch off S9 parallel to S9 -> S11 with no exit, so the review gates nothing; the participant placed it between the reconciled package and the decision. Order is flagged as an open question but the drawing is still a stub.",
+   "S18 merges 'is a holdback required' and 'is a release requested' into one node whose branches cover only the release case; the 'holdback required' half has no labelled outcome.",
+   "S26 collapses three stated things (lock model; Client, tax adviser and Legal/Compliance approvals) into one activity, losing the stated order 'review passes -> model locked -> approvals'.",
+   "S22 folds the stated 'record the gross analysis' action into the decision description instead of a step on the 'no' branch.",
+   "S28 bundles two different stated failure conditions (amount check fails; required accounts or approvals missing) into one decision with three exits, and S28 -> S29 'reverse or correct' is applied to a pre-posting failure where nothing has yet been posted to reverse."
+  ],
+  "missing_items": [
+   "The 'anywhere' exception: outdated regulatory statement or unsupported calculation/tax treatment -> stop using it, get current validation from Legal, Compliance or Tax, nothing posted/disclosed/released. No step, no connection, and no open question covers it.",
+   "S16 -> S17: the participant said that after Client and adviser approval of the complex feature 'then I continue' (to step four, holdback). The map leaves S16 with no outgoing link and only an open question.",
+   "The three stated triggers (realization event, required interim clawback test, final liquidation) are not drawn as a start event; they survive only as the word 'trigger' in S1.",
+   "No explicit end node, although the participant said hand-off 'is the end' (S30 is merely a terminal activity).",
+   "The reviewer stopping the process when examples (example preferred return, split, holdback range) are treated as rules is not represented.",
+   "The preparer's escalation rule (must not interpret unresolved governing, tax or legal terms; escalate model-versus-terms conflicts and non-reconciling results) is not represented.",
+   "The cash-carry-position rule ('if the fund is not yet in a cash-carry position, cash carry is not distributed at all') is only a sentence in S17, not a gate.",
+   "Downstream hand-off recipients (distribution execution teams, member allocation, wind-down, disclosure) exist only as text in S30, not as flow."
+  ],
+  "disconnected_or_dead_end": [
+   "S5 Recalculate affected model and results: no outgoing connection (resume point left as open question).",
+   "S8 Prepare layers separately: no outgoing connection.",
+   "S10 Review input reconciliation: no outgoing connection; parallel stub off S9.",
+   "S16 Approve complex-feature treatment: no outgoing connection despite the stated 'then I continue'.",
+   "S29 Reverse or correct mismatch: no outgoing connection and no end node.",
+   "S33 Stop posting for missing prerequisites: no outgoing connection and no end node.",
+   "No start event and no end event; S1 and S30 are implicit start and end."
+  ],
+  "accuracy_score": 7,
+  "structure_score": 5,
+  "one_line_verdict": "Faithful on the main six-step spine and almost all stated branches with little invention, but it drops the cross-cutting stale-material exception and the stated S16 continuation, and as a diagram it has six dead-end stubs, no start/end events and a review gate drawn as an activity."
+ },
+ {
+  "map": "M5",
+  "steps_stated_by_participant": 36,
+  "stated_steps_present": 33,
+  "stated_sequence_links_present_pct": 88,
+  "invented_items": [
+   "S19 -> S20 [Release prerequisites subsequently complete]: the participant only said an incomplete release stops and stays held/open with wind-down; a later loop from held to released was never stated.",
+   "S19 description 'the release can go ahead once all stated prerequisites are complete' is the same inference written as fact.",
+   "S18 -> S21 [No release requested]: the participant said 'either way' to step five but never described a no-release branch; mild inference, and the 'holdback required' side of the decision gets no branch of its own.",
+   "S29 used as the target of a failed PRE-posting check (S28 -> S29) with 'reverse or correct': reversing before anything is posted is an extrapolation of the single 'before and after' statement.",
+   "Five auto-generated open questions ('Does any incoming route start S9/S20/S21/S24/S29, or must all prerequisites finish?') are tool-artifact noise, not unknowns the participant left."
+  ],
+  "wrong_items": [
+   "S24 typed [activity] but carries the pass/fail branching (S24 -> S25 'Review fails', S24 -> S26 'Review passes'); the review outcome should be a decision node.",
+   "S26 merges four stated things into one activity (lock model; Client approval; tax adviser approval; Legal/Compliance interpretation when required) with a composite actor; the conditional 'when required' interpretation is not modelled as a condition.",
+   "S22 [decision] description contains an action ('If not, record the gross analysis'); the stated 'record the gross analysis' step exists only as text and an edge label on S22 -> S24.",
+   "S10 (Reviewer reviews reconciliation) hangs off S9 as a side branch with no outgoing edge while S9 -> S11 bypasses it; S9 therefore has two unlabelled-condition outgoing edges from an activity (implicit parallel split with no join).",
+   "S28 is a single decision with three outgoing branches mixing two different tests (version match; accounts/approvals present); the participant stated them as separate stop conditions.",
+   "S17 buries the stated rule 'if the fund is not yet in a cash-carry position, cash carry is not distributed at all' in description text rather than as a condition; S17 also buries the check (gross = net + holdback; releases meet criteria).",
+   "S11 actor UNKNOWN although the participant framed the reconciliation decision within step two, which is 'mine as preparer' (minor)."
+  ],
+  "missing_items": [
+   "Start event / trigger: the three stated triggers (realization event, required interim clawback test, final liquidation) are not a node; S1 only mentions 'confirm the trigger'.",
+   "Explicit end: the participant said hand-off 'is the end'; S30 has no end node.",
+   "S16 -> S17: the participant said after Client/adviser approval 'then I continue' (to step four); the map leaves S16 a dead end and asks an open question instead.",
+   "Process-wide exception: outdated regulatory statement or unsupported calculation/tax treatment -> stop using the material, get current validation from Legal, Compliance or Tax; nothing posted, disclosed or released. Absent as step, branch and open question.",
+   "Reviewer stops the process when examples are treated as rules (example preferred return rate, split or holdback range used as default). Absent.",
+   "Stop condition 'model not version controlled' and the preparer's escalation rule (must not interpret unresolved governing/tax/legal terms; escalate model-vs-terms conflicts) are not represented.",
+   "Downstream hand-off recipients (distribution execution teams, member allocation, wind-down, disclosure after Accounting/Legal approval) appear only as S30 description text, not as flows or outputs."
+  ],
+  "disconnected_or_dead_end": [
+   "S5 Recalculate affected model and results: no outgoing edge (resume point not stated; open question raised, but still a dead end).",
+   "S8 Prepare layers separately: no outgoing edge (same).",
+   "S10 Review input reconciliation: no outgoing edge; floats beside the main flow.",
+   "S16 Approve complex-feature treatment: no outgoing edge although the participant said work then continues.",
+   "S29 Reverse or correct mismatch: no outgoing edge, no end node.",
+   "S33 Stop posting for missing prerequisites: no outgoing edge, no end node.",
+   "S30 Hand off approved results: terminal activity with no explicit end event.",
+   "No start event: S1 has no incoming trigger node."
+  ],
+  "accuracy_score": 7,
+  "structure_score": 5,
+  "one_line_verdict": "M5 follows the six-step backbone and most stated branches faithfully and handles unknown actors honestly, but it omits the process-wide stale-material exception and the examples-as-rules stop, drops the stated S16 continuation, invents a held-to-released loop (S19 -> S20), and is structurally weak: no start or end events, seven dead-end nodes, a floating review step (S10) and a pass/fail review (S24) typed as an activity."
+ }
+]

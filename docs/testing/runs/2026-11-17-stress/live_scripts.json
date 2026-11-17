@@ -1,0 +1,87 @@
+{
+ "V07": {
+  "case_id": "V07",
+  "process_title": "Partner Transfers",
+  "utterances": [
+   "It kicks off when a client or investor tells us about a transfer, full or partial, and we open a checklist.",
+   "Then we check the signed documents, the consent and the effective date, and the new investor gets screened, the money laundering checks and so on.",
+   "After that we sort of lock the old balances, work out the split between the two parties, and a second person reviews it.",
+   "The client approves the split, I think, but honestly I am not sure who signs off internally. Then the systems and portal get updated.",
+   "Lastly we fix up the lists for future events, do a final check that everything still adds up, and tell the client it is done."
+  ],
+  "facts_stated": [
+   "Trigger: a client or investor notifies the firm of a proposed full or partial transfer",
+   "A transfer checklist (transfer record) is opened",
+   "Executed documents, client consent and the effective date are validated",
+   "The transferee (new investor) is screened with anti-money-laundering and know-your-customer checks",
+   "The transferor's pre-transfer balances are locked",
+   "The transfer split between transferor and transferee is calculated",
+   "A second reviewer independently reviews the split",
+   "The client approves the split",
+   "Speaker is not sure who signs off internally (internal approver is not confirmed in the source)",
+   "CRM and accounting system records are updated",
+   "Portal access is updated",
+   "Future-event participant lists are updated",
+   "A final balance-preservation check confirms the combined totals still match the pre-transfer position",
+   "Completion is confirmed to the client"
+  ]
+ },
+ "V06": {
+  "case_id": "V06",
+  "process_title": "Manco Treasury & Payment Release",
+  "utterances": [
+   "It starts when the client approves the payment list for the treasury cycle, usually weekly or every two weeks. First we check whether any vendor or bank details are new or changed. If so, we do the callback verification and sanctions screening before any first payment.",
+   "Then I validate the approved list. I confirm every payment is client approved and matches the invoice package, check vendor, entity, amount, currency, date and account, and leave out anything rejected, duplicated, unsupported or under query. Then I record the list in the payment log.",
+   "Next we confirm funding. We check the funding account and available balance for each currency, and identify any foreign exchange needs, value dates and cutoffs. If funds are short, we get an approved funding decision. We also confirm separate initiator and releaser users have current access.",
+   "After that, the initiator enters or imports the payments in the bank platform, and we match that setup to the payment log and invoice package. The actual release is handled by a different person, the releaser, and I honestly do not know the details of that step."
+  ],
+  "facts_stated": [
+   "Trigger: the client approves the payment list for the treasury cycle (typically weekly or biweekly)",
+   "Determine whether vendor or bank details are new or changed",
+   "Decision: if new or changed, complete callback verification and sanctions screening before any first payment",
+   "Validate the approved payment list: confirm every payment is client-approved and matches the invoice package",
+   "Confirm vendor, entity, amount, currency, date and payment account",
+   "Exclude rejected, duplicate, unsupported or pending-query items",
+   "Record the payment list in the payment log",
+   "Confirm the funding account and available balance for each currency",
+   "Identify foreign exchange needs, value dates and cutoffs",
+   "Decision: if funds are insufficient, obtain an approved funding decision",
+   "Confirm different initiator and releaser users are available with current access",
+   "Initiator enters or imports the payments in the bank platform",
+   "Match the bank setup to the payment log and invoice package",
+   "Release is handled by a different person (the releaser); the speaker does not know the details of that step"
+  ]
+ },
+ "V05": {
+  "case_id": "V05",
+  "process_title": "GP Member Changes: Joiners, Leavers & Commitment True-Ups",
+  "utterances": [
+   "It starts when someone joins the general partner group after the fund has begun, when a member leaves, or when we find the member list was treated wrongly. As the preparer, I open a member change record. I note who the member is, the event, the discovery date, the proposed dates and statuses, our sources, and which later outputs may need to change.",
+   "Next I reconcile where things stood before the change. I record the commitment, the cash and fee waiver split, contributions since inception, the unfunded balance, the member list and the carry schedules, and tie the general partner totals to the fund's records. Then the client confirms each status and date, the treatment, what the commitment amount means, and the named recipients, and we lock that decision record.",
+   "For a joiner, the reviewer and I apply whichever treatment the client approved. With life to date, we calculate only under an approved specification and apply increases or decreases only to the named recipients. With go forward, we leave prior amounts unchanged and build schedules starting on the approved effective date. Either way, we show that all increases and decreases net to zero.",
+   "For a leaver we apply the approved option: continue existing terms, swap future fee waiver funding for cash, forfeit the remaining fee waiver amount, cap the commitment at what was funded through the effective date, or another fully specified treatment. We update whether future capital calls include them and name each reallocation recipient. Carry, vesting and fee waiver questions go to the related processes, and I link their approvals.",
+   "Once the package is reviewed, we update the capital call and distribution files, the workbook, profit and loss, schedules and notices, using the same approved member list and version everywhere. To close, the reviewer and I reconcile partner capital records, the trial balance and the total unfunded balance to the fund's records, reconfirm the member list and treatment before the next cycle, then lock and keep the package."
+  ],
+  "facts_stated": [
+   "Trigger: a member joins after the fund begins, a member leaves, or a prior treatment of the member list is found to be wrong",
+   "Preparer opens the member-change record",
+   "Preparer records the member's identity, event, discovery date, proposed dates and statuses, sources, and outputs later processes may need to change",
+   "Preparer reconciles the pre-change position: records commitment, cash and fee-waiver split, contributions since inception, unfunded balance, member list, and carry schedules",
+   "Preparer reconciles GP totals to the fund's records",
+   "Client confirms each status and date, the chosen treatment, the meaning of the commitment amount, and the named recipients; preparer records the decision",
+   "The decision record is locked and approved",
+   "Joiner treatment is applied by preparer and reviewer according to the client's approved choice",
+   "Decision: life-to-date treatment - calculate only under an approved specification and apply increases or decreases only to named recipients",
+   "Decision: go-forward treatment - leave prior amounts unchanged and create schedules starting on the approved effective date",
+   "Show that all increases and decreases net to zero",
+   "Leaver treatment is applied per the approved option: continue existing terms, replace future fee-waiver funding with cash, forfeit the remaining fee-waiver amount, cap the commitment at the amount funded through the effective date, or another fully specified treatment",
+   "Update whether future capital calls include the member and name each reallocation recipient",
+   "Send carry and vesting questions and fee-waiver questions to the related processes and link the returned approvals",
+   "After the package is reviewed, update the capital-call and distribution files, workbook, P&L, schedules, and notices",
+   "Use the same approved member list and version in every output",
+   "Preparer and reviewer reconcile partner-capital records, the trial balance, and the GP's total unfunded balance to the fund's records",
+   "Reconfirm the member list and treatment before the next cycle",
+   "Lock and keep the package"
+  ]
+ }
+}

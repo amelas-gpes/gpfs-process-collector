@@ -1,0 +1,569 @@
+{
+ "case": "A-T07",
+ "port": 8796,
+ "interview_id": "c16f885765674838be4090e51a5ea013",
+ "context": {
+  "process_name": "Cash Reconciliation & Working Capital Reporting",
+  "process_owner": "",
+  "objective": "Document how we carry out Cash Reconciliation & Working Capital Reporting, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "It starts when cash activity shows up in the bank portal, when the monthly bank reconciliation turns up activity, or when a planned capital event needs a liquidity analysis. Here is the whole thing end to end:\n1. Cash-composition preparer: carry the Cash Composition workbook into the new period, create the new monthly tab, carry forward the beginning balance and confirm it matches the prior ending balance and the actual bank balance including sweep accounts.\n2. Cash-composition preparer: review new bank activity and anything found in the monthly bank reconciliation, validate account, entity, date, amount and direction, and make sure nothing is recorded twice.\n3. Cash-composition preparer: enter one row per movement in the Cash Analysis tab with date, description, amount, category and a reference to support.\n4. Cash-composition preparer: classify each movement as a source (capital call, LOC draw, proceeds), a use (investment, management fee, expense, LOC repayment, distribution) or due to or from affiliates. If a movement is unclear or mixed-purpose, it goes to the fund team or client for clarification and stays an open exception until they answer; we do not guess.\n5. Cash-composition preparer: add each movement to the life-to-date sources and uses on the Cash Composition tab, each amount linked to its transaction.\n6. Cash-composition preparer: total the categories and compare to the bank balance including sweep accounts. If they do not match, investigate missing items, duplicates, broken formulas and misclassifications and repeat until they match; any difference that remains is escalated and the report is not relied on. If they match, continue.\n7. Cash-composition preparer: log known expected outflows from client notices or approved internal commitments, kept separate from cash already in the GL, and update or close them when the cash moves.\n8. Cash-composition preparer with the fund or capital-activity team: build the pre, during and post event view - starting cash by category, the event inflows and outflows, ending cash by category. If pending outflows exceed available cash, flag the shortfall and send it to the client or fund team for the capital-event or payment decision; proceed only after that is done.\n9. Cash-composition preparer: when applicable, record who paid and when from portal and bank details and match investor receipt totals to the Cash Composition amount.\n10. Cash-composition preparer and quarterly reviewer: copy the current report into the quarterly supporting files, do the detailed quarterly review, list corrections, and escalate any difference between the quarterly copy and the Treasury-folder copy.\n11. Fund or capital-activity team: tell the decision-makers the available cash, amounts set aside, pending obligations and projected ending balance, say whether a capital call, hold or other action is needed, and keep the reconciliation, event view, source records and exceptions with the period supporting files. That is the end."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "Which role is accountable for the overall cash reconciliation and working capital reporting result?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "I do not know - the overall process owner and the internal approver have not been confirmed yet. What I can say is that the client or fund has to authorize the later liquidity or capital-event decision, but exactly where that approval happens is not confirmed either."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "Does this work follow the same approach across your funds and clients, or does it vary?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "The category has to be based on identifiable activity in the transaction records. Sources are cash coming in - capital calls, LOC draws, proceeds received. Uses are cash going out - investments, management fees, organizational and other expenses, LOC repayments, distributions. Due to or from affiliates is amounts owed between the fund and related entities and is kept as its own category. A workbook formula, a prior report or someone's memory is not a rule by itself. Which entity, transaction and repayment details are required for affiliate items is not confirmed yet."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "How are the life-to-date category totals produced from the movement rows?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "They give us the source records and transaction details for that movement, and we keep the supporting documents or correspondence as the record. Beyond that I do not know exactly what they look at on their side. Until we have it, the item stays an open exception and that item does not move forward."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "Who typically first notices or receives the bank activity or planned capital-event information that starts this work?"
+  },
+  {
+   "id": "t010",
+   "role": "assistant",
+   "text": "This capture still has open sections. 13 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794922479.418,
+   "turn": 0,
+   "seconds": 0.026,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794922481.357,
+   "turn": 2,
+   "seconds": 1.885,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794922513.493,
+   "turn": 3,
+   "seconds": 34.02
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794922526.792,
+   "turn": 3,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 47.32
+  },
+  {
+   "kind": "question",
+   "at": 1794922529.169,
+   "turn": 4,
+   "seconds": 2.302,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794922565.427,
+   "turn": 5,
+   "seconds": 38.56
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794922574.625,
+   "turn": 5,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 47.76
+  },
+  {
+   "kind": "question",
+   "at": 1794922578.928,
+   "turn": 6,
+   "seconds": 4.233,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794922603.473,
+   "turn": 7,
+   "seconds": 28.78
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794922623.95,
+   "turn": 7,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 49.25
+  },
+  {
+   "kind": "question",
+   "at": 1794922627.536,
+   "turn": 8,
+   "seconds": 3.518,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794922644.368,
+   "turn": 9,
+   "seconds": 20.35
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794922673.031,
+   "turn": 9,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 49.01
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794922675.132,
+   "turn": 9,
+   "seconds": 2.025,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "queued",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.map_error",
+   "at": 1794922985.635,
+   "turn": 10,
+   "seconds": 312.53,
+   "error": "The provider timed out. Your answers are retained.",
+   "code": "timeout"
+  }
+ ],
+ "started": 1794922479.392096,
+ "revision": "dfaebdf92e2d8096c7064cae8602b76c003753f1849365e8717b2b9d92bdc93a",
+ "capture": {
+  "memo_findings": [
+   {
+    "answer": "Cash Reconciliation & Working Capital Reporting",
+    "evidence_turns": [
+     "context"
+    ],
+    "key": "name",
+    "status": "captured"
+   },
+   {
+    "answer": "The work reconciles cash sources and uses to bank balances and provides decision-makers with available cash, amounts set aside, pending obligations, and projected ending balance to inform whether a capital call, hold, or other action is needed.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "purpose",
+    "status": "captured"
+   },
+   {
+    "answer": "Work starts when cash activity appears in the bank portal, when the monthly bank reconciliation identifies activity, or when a planned capital event requires liquidity analysis.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "trigger",
+    "status": "partial"
+   },
+   {
+    "answer": "The reported end condition is that decision-makers have been told available cash, amounts set aside, pending obligations, projected ending balance and whether a capital call, hold or other action is needed, and that the reconciliation, event view, source records and exceptions are kept with period supporting files.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "completion",
+    "status": "captured"
+   },
+   {
+    "answer": "The participant does not know the overall accountable role; the process owner has not been confirmed.",
+    "evidence_turns": [
+     "t004"
+    ],
+    "key": "accountable",
+    "status": "partial"
+   },
+   {
+    "answer": "The cash-composition preparer carries the Cash Composition workbook into a new period, creates a monthly tab, carries forward the beginning balance, and checks it against the prior ending balance and actual bank balance including sweep accounts. The preparer reviews new bank activity and activity found in the monthly bank reconciliation; validates account, entity, date, amount and direction; checks for duplicates; and enters one row per movement in Cash Analysis with date, description, amount, category and support reference.\nThe preparer classifies movements as sources, uses, or due to/from affiliates, then adds each movement to life-to-date sources and uses on Cash Composition, linked to its transaction. Unclear or mixed-purpose movements go to the fund team or client for clarification and remain open exceptions until answered; the preparer does not guess.\nThe preparer totals categories and compares them with the bank balance including sweep accounts. A mismatch leads to investigation of missing items, duplicates, broken formulas and misclassifications, with the comparison repeated until matched; any remaining difference is escalated and the report is not relied on. Known expected outflows from client notices or approved internal commitments are logged separately from cash already in the GL and updated or closed when cash moves.\nWith the fund or capital-activity team, the preparer builds a pre-, during-, and post-event view of starting cash by category, event inflows and outflows, and ending cash by category. If pending outflows exceed available cash, the shortfall is sent to the client or fund team for the capital-event or payment decision, and work proceeds only after that decision is done. When applicable, the preparer records who paid and when from portal and bank details and matches investor receipt totals to the Cash Composition amount.\nThe preparer and quarterly reviewer copy the current report into quarterly supporting files, perform a detailed quarterly review, list corrections, and escalate differences between the quarterly copy and Treasury-folder copy. The fund or capital-activity team communicates the cash position and recommended action to decision-makers and keeps the reconciliation, event view, source records and exceptions with period supporting files.\nFor a movement referred for clarification, source records and transaction details are provided; until these are received, the item remains an open exception and does not move forward.",
+    "evidence_turns": [
+     "t002",
+     "t008"
+    ],
+    "key": "lifecycle",
+    "status": "partial"
+   },
+   {
+    "answer": "The preparer checks the carried-forward beginning balance against the prior ending balance and actual bank balance including sweep accounts, validates account, entity, date, amount and direction, checks for duplicate recording, and reconciles category totals to bank balance. Differences prompt investigation of missing items, duplicates, broken formulas and misclassifications; unresolved differences are escalated and the report is not relied on.\nA quarterly reviewer participates in the detailed quarterly review; corrections are listed and differences between the quarterly report copy and Treasury-folder copy are escalated. When applicable, investor receipt totals are matched to the Cash Composition amount.\nThe client or fund must authorize the later liquidity or capital-event decision.\nThe internal approver and the exact point of client or fund authorization have not been confirmed.\nAn unclear or mixed-purpose item remains an open exception and cannot move forward until the source records and transaction details are received.\nThe participant does not know exactly what the people providing clarification look at on their side.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t008"
+    ],
+    "key": "checks",
+    "status": "partial"
+   },
+   {
+    "answer": "A planned capital event calls for a liquidity view; quarterly work includes a detailed review and supporting-file copies; investor-payment recording and receipt matching are performed when applicable.\nClient-specific and entity-specific differences, if any, remain unestablished.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "variations",
+    "status": "partial"
+   },
+   {
+    "answer": "When cash-category totals do not match the bank balance, the preparer investigates missing items, duplicates, broken formulas and misclassifications and repeats the comparison; unresolved differences are escalated and the report is not relied on. Unclear or mixed-purpose activity waits as an open exception for clarification.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "pain_points",
+    "status": "partial"
+   },
+   {
+    "answer": "A remaining difference between category totals and bank balance is escalated and the report is not relied on; pending outflows exceeding available cash trigger a shortfall notice and a capital-event or payment decision before proceeding.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "risk",
+    "status": "partial"
+   },
+   {
+    "answer": "The Cash Composition workbook is carried into each new period; the preparer creates a monthly tab and enters movement-level information in the Cash Analysis tab and life-to-date sources and uses on Cash Composition. The workbook is used to compare categorized cash with bank balances and build event cash views.\nThe preparer uses bank-portal and bank details, the monthly bank reconciliation, movement support references, client notices and approved internal commitments. Quarterly supporting files hold a report copy, which is compared with the Treasury-folder copy; period supporting files hold the reconciliation, event view, source records and exceptions.\nSpecific locations and custodians for the individual supporting materials beyond the reported folders and files remain unestablished.\nTransaction records provide the identifiable activity on which the cash category must be based.\nSupporting documents or correspondence for the movement are retained as the record of the clarification.",
+    "evidence_turns": [
+     "t002",
+     "t006",
+     "t008"
+    ],
+    "key": "materials",
+    "status": "partial"
+   },
+   {
+    "answer": "The reported work involves cash activity and sweep balances, the fund or capital-activity team, and, when applicable, investor receipts.\nEntity coverage beyond the reported fund context and whether the route is common across clients or funds remain unestablished.",
+    "evidence_turns": [
+     "t002",
+     "t006"
+    ],
+    "key": "scope",
+    "status": "partial"
+   },
+   {
+    "answer": "Movements are classified as sources (including capital calls, LOC draws and proceeds), uses (including investments, management fees, expenses, LOC repayments and distributions), or due to/from affiliates. Unclear or mixed-purpose movements are referred for fund-team or client clarification rather than guessed; they remain open until answered.\nExpected outflows from client notices or approved internal commitments are kept separate from cash already in the GL and updated or closed when the cash moves. For a shortfall where pending outflows exceed available cash, the client or fund team must make the capital-event or payment decision before work proceeds.\nThe client or fund must authorize the later liquidity or capital-event decision.\nThe precise point of client or fund authorization has not been confirmed.\nClassification must be based on identifiable activity in transaction records. Sources are incoming cash, uses are outgoing cash, and amounts owed between the fund and related entities are kept in a separate due-to-or-from-affiliates category.\nA workbook formula, prior report or someone's memory is not by itself a classification rule.\nThe entity, transaction and repayment details required for affiliate items have not been confirmed.\nAn item awaiting clarification does not move forward until the source records and transaction details are received.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008"
+    ],
+    "key": "rules",
+    "status": "partial"
+   },
+   {
+    "answer": "The process sends unclear or mixed-purpose movements to the fund team or client for clarification, and sends a shortfall to the client or fund team for a capital-event or payment decision. It works with the fund or capital-activity team to build the event view; that team communicates cash and pending obligations to decision-makers. The process also uses activity identified in the monthly bank reconciliation and compares its report copy with the Treasury-folder copy.\nThe later liquidity or capital-event decision requires client or fund authorization.\nThe precise point of the client or fund authorization dependency has not been confirmed.\nFor an unclear or mixed-purpose movement referred to the fund team or client, source records and transaction details are provided in response; the item remains open until received.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t008"
+    ],
+    "key": "connections",
+    "status": "partial"
+   },
+   {
+    "answer": "Reported tools and records include the bank portal, bank details, Cash Composition workbook and its Cash Analysis and Cash Composition tabs, GL, monthly bank reconciliation and Treasury folder. The preparer enters movement-level data and links amounts to transactions.\nWorkbook formula ownership and whether data is re-keyed from other systems remain unestablished.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "data_systems",
+    "status": "partial"
+   },
+   {
+    "answer": "Normal transaction counts, peak volumes, exception frequency and time or effort by step were not reported.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "volume",
+    "status": "partial"
+   }
+  ],
+  "coverage": [
+   {
+    "key": "name",
+    "label": "Name & other names",
+    "status": "partial"
+   },
+   {
+    "key": "purpose",
+    "label": "Purpose & result",
+    "status": "partial"
+   },
+   {
+    "key": "trigger",
+    "label": "Start, cadence & deadlines",
+    "status": "partial"
+   },
+   {
+    "key": "completion",
+    "label": "Finished condition",
+    "status": "partial"
+   },
+   {
+    "key": "accountable",
+    "label": "Accountability",
+    "status": "partial"
+   },
+   {
+    "key": "lifecycle",
+    "label": "Items, stages & handoffs",
+    "status": "partial"
+   },
+   {
+    "key": "checks",
+    "label": "Checks, approvals & proof",
+    "status": "partial"
+   },
+   {
+    "key": "variations",
+    "label": "Variations and conditions",
+    "status": "partial"
+   },
+   {
+    "key": "pain_points",
+    "label": "Manual work & pain",
+    "status": "partial"
+   },
+   {
+    "key": "risk",
+    "label": "Consequences of failure",
+    "status": "partial"
+   },
+   {
+    "key": "materials",
+    "label": "Existing materials",
+    "status": "partial"
+   },
+   {
+    "key": "scope",
+    "label": "Scope & entity context",
+    "status": "partial"
+   },
+   {
+    "key": "rules",
+    "label": "Business rules & lineage",
+    "status": "partial"
+   },
+   {
+    "key": "connections",
+    "label": "Connected processes",
+    "status": "partial"
+   },
+   {
+    "key": "data_systems",
+    "label": "Data & systems",
+    "status": "partial"
+   },
+   {
+    "key": "volume",
+    "label": "Volume & effort",
+    "status": "partial"
+   }
+  ],
+  "summary": "Clarification supplies movement source records and transaction details, with supporting documents or correspondence retained. The item remains open and cannot move forward until received; the participant does not know what the providers check.",
+  "focus": "Clarification of unclear cash movements",
+  "parking_lot": [],
+  "connections_out": [
+   {
+    "condition": "Uses new activity identified in the monthly bank reconciliation as an input to cash review.",
+    "counterpart": "Monthly bank reconciliation",
+    "evidence_turns": [
+     "t002"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "Refers unclear or mixed-purpose movements for clarification; they remain open until answered.",
+    "counterpart": "Fund team or client",
+    "evidence_turns": [
+     "t002"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "Sends a shortfall when pending outflows exceed available cash for the capital-event or payment decision; proceeds only after the decision is done.",
+    "counterpart": "Client or fund team",
+    "evidence_turns": [
+     "t002"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "Builds the pre-, during-, and post-event cash view with the cash-composition preparer; the team then tells decision-makers the cash position and whether action is needed.",
+    "counterpart": "Fund or capital-activity team",
+    "evidence_turns": [
+     "t002"
+    ],
+    "relationship_type": "parallel_with"
+   },
+   {
+    "condition": "The fund or capital-activity team communicates available cash, amounts set aside, pending obligations and projected ending balance to inform a capital-call, hold or other action.",
+    "counterpart": "Decision-makers",
+    "evidence_turns": [
+     "t002"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "Compares the quarterly report copy with the Treasury-folder copy and escalates differences.",
+    "counterpart": "Treasury-folder copy",
+    "evidence_turns": [
+     "t002"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "The later liquidity or capital-event decision requires authorization; the exact approval point is unconfirmed.",
+    "counterpart": "Client or fund",
+    "evidence_turns": [
+     "t004"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "Unclear or mixed-purpose movements are referred for clarification; source records and transaction details are provided in response, and the item remains open until received.",
+    "counterpart": "Fund team or client",
+    "evidence_turns": [
+     "t002",
+     "t008"
+    ],
+    "relationship_type": "hands_off_to"
+   }
+  ],
+  "taxonomy": [
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "functional_area",
+    "note": "Reported cash reconciliation, bank balances, expected outflows and liquidity analysis; functional-area classification is descriptive.",
+    "value": "treasury_payments"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "functional_area",
+    "note": "Reported communication of cash availability, obligations and projected ending balance to decision-makers; this does not establish a distinct investor report.",
+    "value": "investor_reporting"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "process_level",
+    "note": "Participant described the work end to end, from cash activity or planned capital-event liquidity analysis through communication and period-file retention.",
+    "value": "process"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "system",
+    "note": "The participant reports using a Cash Composition workbook with Cash Analysis and Cash Composition tabs.",
+    "value": "excel_workbook"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "system",
+    "note": "The participant reports cash activity appearing in a bank portal and use of portal and bank details.",
+    "value": "bank_platform"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "control_type",
+    "note": "Participant reports client or fund authorization of the later liquidity or capital-event decision; the precise point remains unconfirmed.",
+    "value": "client_approval"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "facet": "entity_type",
+    "note": "Reported fund and related-entity cash context; other entity coverage is unconfirmed.",
+    "value": "fund"
+   }
+  ],
+  "completion": {
+   "allowed": false,
+   "ready_for_final_check": false,
+   "complete": false,
+   "partial": true,
+   "participant_confirmed": false,
+   "blockers": [
+    "role_incomplete:coverage_reviewer",
+    "role_incomplete:process_reviewer",
+    "coverage_result_unbound",
+    "coverage_incomplete",
+    "coverage_unresolved:name",
+    "coverage_unresolved:purpose",
+    "coverage_unresolved:trigger",
+    "coverage_unresolved:completion",
+    "coverage_unresolved:accountable",
+    "coverage_unresolved:lifecycle",
+    "coverage_unresolved:checks",
+    "coverage_unresolved:variations",
+    "coverage_unresolved:pain_points",
+    "coverage_unresolved:risk",
+    "coverage_unresolved:materials",
+    "coverage_unresolved:scope",
+    "coverage_unresolved:rules",
+    "coverage_unresolved:connections",
+    "coverage_unresolved:data_systems",
+    "coverage_unresolved:volume",
+    "process_result_unbound"
+   ],
+   "revision": "216cff85ac54f42b97c5e6ca8a4ac2e7eba46ff82a5af21b2b2d2dfe6c7f4dcd",
+   "run_id": "928bcde42c3a4450af1eb062020694a2"
+  },
+  "coverage_assessment": null
+ },
+ "finished": 1794922985.635272
+}

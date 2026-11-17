@@ -1,0 +1,640 @@
+{
+ "case": "STRESS-T04",
+ "port": 8791,
+ "interview_id": "d4e848c3d7cf41f39f2fb2960f116aa0",
+ "context": {
+  "process_name": "Deemed Contributions, Fee Waivers & Special Profits",
+  "process_owner": "",
+  "objective": "Document how we carry out Deemed Contributions, Fee Waivers & Special Profits, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "Honestly I do not know what kicks the whole thing off, that is another team and it happens before it reaches me. My part starts in the middle: the management-fee preparer hands me the approved management-fee calculation for the period or event, and I, as the fund administration preparer, pick it up from there. From that calculation I obtain the gross management fee, the applicable offsets, the waiver amount, the net fee and the member allocation."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "How do you use the member allocation once you have it?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "I validate the handoff. I confirm the period, the entity, the effective dates and that I have the approved version. Then I confirm the waiver amount agrees to the method or schedule in the arrangement, and I reconcile the current-period input to the cumulative fee-waiver tracking in the ICC roll-forward, which is an Excel schedule. The check is that the waiver input traces to the approved fee calculation and does not exceed the governing arrangement. If there is an unexplained fee or waiver difference I return it to the management-fee preparer or the client. If it is fine, the result is the approved current-period waived-fee input, and then I record the deemed contribution."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "How do you record the deemed contribution once the waived-fee input is approved?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "I need the approved waived-fee amount and the eligible-member population. I calculate the approved deemed contribution by member using the governing arrangement, add it to that member's life-to-date ICC roll-forward, and reduce the applicable waiver-funded unfunded commitment as approved. Then I update the GP capital-account support and the accounting workpapers, keeping the cash-funded and waiver-funded components separately visible. The accounting or Fund Team posts the entry where applicable. The check is that the current deemed contribution equals the approved waived-fee treatment and that cumulative funded plus unfunded reconciles to the commitment. One gap: the accounting entry and the exact offset accounts are not specified, so I have to obtain approved accounting direction; who approves the journal entry I do not know. After that comes capital-call treatment."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "What happens to the deemed contribution in the capital-call treatment that follows?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "There is no single formula I can give you. It is fund-specific: the waiver amount is either specified by the LPA, based on a predetermined fixed schedule, or waived first and later trued up to the final amount, and I apply whichever one is documented for that fund. Beyond that I do not know a general rule. What I can describe is the next step, capital-call treatment, which I coordinate with the capital-call event preparer when a call includes a waiver-funded member. I identify the member's total allocation for the event, separate the amount satisfied through deemed or waiver funding from the cash due, keep the member in the correct population while preventing a cash call for the waiver portion, update the allocation file and notice data in the capital call workbook to show the funding source, and reconcile the event results to the ICC roll-forward and the GP unfunded schedule. The check is no duplicate funding: cash due plus deemed or waiver amount equals the approved member allocation. If the notice disclosure or call treatment is unclear I escalate to the client or their advisor; the exact notice wording is not settled."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "How do you hand the completed waiver treatment back to the capital-call event preparer?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "I do not know of a defined signal for that; we coordinate on it and the output is the approved cash-versus-waiver event allocation, with the client confirming, but how the handover is flagged is not written down as far as I know. The last thing I do is confirm the special-profits method and the available-income condition, together with the client's tax or legal advisor and with client approval. I identify the fund's selected special-profits methodology and timing, obtain the governing definition of available income, determine the member and GP population and the target economic adjustment, and confirm whether the current period or event satisfies the available-income condition. Then written advisor and client approval is needed before anything is calculated or any accounting entry is recorded. In practice this is on hold: the formula and method are not specified, so I hold and obtain advisor direction. If available income is insufficient, no special profits are shifted and we follow client direction. The actual calculation and recording of special profits, and how the period is closed out, is someone else and I do not know how it ends."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "What is the intended outcome of this work for the fund or its members?"
+  },
+  {
+   "id": "t012",
+   "role": "assistant",
+   "text": "This capture still has open sections. 16 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794920891.726,
+   "turn": 0,
+   "seconds": 0.024,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794920897.284,
+   "turn": 2,
+   "seconds": 5.509,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794920924.413,
+   "turn": 3,
+   "seconds": 32.64
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794920927.482,
+   "turn": 3,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 35.71
+  },
+  {
+   "kind": "question",
+   "at": 1794920929.862,
+   "turn": 4,
+   "seconds": 2.329,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794920959.968,
+   "turn": 5,
+   "notes_state": "working",
+   "map_state": "queued",
+   "seconds": 32.44
+  },
+  {
+   "kind": "question",
+   "at": 1794920965.272,
+   "turn": 6,
+   "seconds": 5.234,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794920992.926,
+   "turn": 7,
+   "seconds": 32.89
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794920995.481,
+   "turn": 7,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 35.44
+  },
+  {
+   "kind": "question",
+   "at": 1794921001.479,
+   "turn": 8,
+   "seconds": 5.946,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794921031.594,
+   "turn": 9,
+   "notes_state": "queued",
+   "map_state": "queued",
+   "seconds": 36.06
+  },
+  {
+   "kind": "question",
+   "at": 1794921035.01,
+   "turn": 10,
+   "seconds": 3.349,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794921065.095,
+   "turn": 11,
+   "notes_state": "queued",
+   "map_state": "queued",
+   "seconds": 33.43
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794921192.246,
+   "turn": 11,
+   "seconds": 127.076,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "queued",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.left_pending",
+   "at": 1794921625.578,
+   "turn": 12,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 560.41
+  }
+ ],
+ "started": 1794920891.702357,
+ "revision": "03bf8ec5887aedc24feec2246be2f7019a875fa92079a8419efac8f1982baedd",
+ "capture": {
+  "memo_findings": [
+   {
+    "answer": "Deemed Contributions, Fee Waivers & Special Profits",
+    "evidence_turns": [
+     "context"
+    ],
+    "key": "name",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant's capital-call treatment separates each waiver-funded member's event allocation into cash and deemed or waiver funding, avoiding a cash call for the waiver portion.",
+    "evidence_turns": [
+     "t008"
+    ],
+    "key": "purpose",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant's part begins when the management-fee preparer hands them the approved management-fee calculation for the period or event; the participant, acting as fund administration preparer, picks it up from there.\nThe participant does not know what initiates the overall work; it is another team's work before the calculation reaches them. Cadence and any fixed deadlines were not stated.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "trigger",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant identifies an approved cash-versus-waiver event allocation, confirmed by the client, as the capital-call output.\nThe participant does not know how special-profits calculation and recording or period closeout are completed; someone else performs them.",
+    "evidence_turns": [
+     "t010"
+    ],
+    "key": "completion",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant identifies their role in this part as the fund administration preparer.\nThe role accountable for the overall result, distinct from the participant's preparer role, was not established.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "accountable",
+    "status": "partial"
+   },
+   {
+    "answer": "After receiving the approved management-fee calculation, the participant obtains from it the gross management fee, applicable offsets, waiver amount, net fee and member allocation.\nThe fund administration preparer validates the handoff by confirming the period, entity, effective dates and approved version, checking the waiver against the arrangement's method or schedule, and reconciling the current-period input to cumulative fee-waiver tracking in the ICC roll-forward.\nIf there is an unexplained fee or waiver difference, the participant returns it to the management-fee preparer or the client. If the handoff is fine, the result is the approved current-period waived-fee input, after which the participant records the deemed contribution.\nUsing the approved waived-fee amount and eligible-member population, the fund administration preparer calculates the approved deemed contribution by member under the governing arrangement, adds it to each member's life-to-date ICC roll-forward and reduces the applicable waiver-funded unfunded commitment as approved.\nThe preparer updates GP capital-account support and accounting workpapers, keeping cash-funded and waiver-funded components separately visible. The accounting or Fund Team posts the entry where applicable; capital-call treatment follows.\nWhen a capital call includes a waiver-funded member, the fund administration preparer coordinates with the capital-call event preparer, identifies the member's total event allocation, separates waiver or deemed funding from cash due, and keeps the member in the correct population without calling cash for the waiver portion.\nThe participant updates the allocation file and notice data in the capital call workbook to show the funding source and reconciles the event results to the ICC roll-forward and GP unfunded schedule. If notice disclosure or call treatment is unclear, the participant escalates to the client or advisor.\nThe coordinated capital-call output is the approved cash-versus-waiver event allocation, with client confirmation. The participant knows of no defined handover signal and says how it is flagged is not written down as far as they know.\nThe last activity the participant performs is confirming the special-profits method and available-income condition with the client's tax or legal advisor and client approval. The participant identifies the fund's selected methodology and timing, obtains the governing available-income definition, determines the member and GP population and target adjustment, and confirms whether the period or event satisfies the condition.\nWritten advisor and client approval is required before special profits are calculated or any accounting entry recorded. The work is on hold because the formula and method are unspecified; the participant obtains advisor direction. If available income is insufficient, no special profits are shifted and client direction is followed.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010"
+    ],
+    "key": "lifecycle",
+    "status": "partial"
+   },
+   {
+    "answer": "The fund administration preparer confirms period, entity, effective dates and approved version; checks the waiver against the arrangement's method or schedule; and reconciles the current-period input to cumulative tracking. The waiver input must trace to the approved fee calculation and not exceed the governing arrangement.\nThe participant returns unexplained fee or waiver differences to the management-fee preparer or the client rather than proceeding on a clean handoff.\nThe deemed-contribution check is that the current contribution equals the approved waived-fee treatment and cumulative funded plus unfunded reconciles to the commitment.\nThe participant does not know who approves the journal entry.\nFor capital calls, cash due plus the deemed or waiver amount must equal the approved member allocation to prevent duplicate funding. Unclear notice disclosure or call treatment is escalated to the client or advisor.\nWritten advisor and client approval must precede special-profits calculation or accounting entry; the participant confirms the available-income condition with the client's tax or legal advisor and client approval.",
+    "evidence_turns": [
+     "t004",
+     "t006",
+     "t008",
+     "t010"
+    ],
+    "key": "checks",
+    "status": "partial"
+   },
+   {
+    "answer": "The waiver approach is fund-specific: the amount may be specified by the LPA, based on a predetermined fixed schedule, or waived first and later trued up to the final amount. The participant applies the approach documented for the fund.\nThe participant cannot give a single general waiver formula beyond the documented fund-specific approaches; other variation dimensions and their effort are not established.",
+    "evidence_turns": [
+     "t008"
+    ],
+    "key": "variations",
+    "status": "partial"
+   },
+   {
+    "answer": "Special-profits work is on hold because its formula and method are unspecified; the participant obtains advisor direction.",
+    "evidence_turns": [
+     "t010"
+    ],
+    "key": "pain_points",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "risk",
+    "status": "unknown"
+   },
+   {
+    "answer": "The approved management-fee calculation for the period or event is handed to the participant and supplies the gross management fee, applicable offsets, waiver amount, net fee and member allocation.\nThe format and storage location of the approved management-fee calculation have not been established.\nThe ICC roll-forward is an Excel schedule containing cumulative fee-waiver tracking used to reconcile the current-period input.\nThe arrangement contains a method or schedule used to check the waiver amount.\nThe preparer updates the GP capital-account support and accounting workpapers to keep cash-funded and waiver-funded components separately visible.\nThe capital call workbook contains allocation-file and notice data that the participant updates to show funding source. Event results are reconciled to the ICC roll-forward and GP unfunded schedule.\nThe participant obtains the governing definition of available income for special-profits treatment; written advisor and client approval is required before calculation or recording.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010"
+    ],
+    "key": "materials",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant describes their part as fund administration preparation, beginning with receipt of an approved management-fee calculation for a period or event.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "scope",
+    "status": "partial"
+   },
+   {
+    "answer": "The approved management-fee calculation supplies the gross management fee, applicable offsets, waiver amount, net fee and member allocation.\nThe waiver amount is checked against the method or schedule in the arrangement; the waiver input must trace to the approved fee calculation and not exceed the governing arrangement.\nThe governing arrangement is used to calculate the deemed contribution by eligible member; the applicable waiver-funded unfunded commitment is reduced as approved.\nThe accounting entry and exact offset accounts are unspecified; the participant must obtain approved accounting direction.\nThe participant applies the fund's documented waiver approach: LPA-specified amount, predetermined fixed schedule, or waiver followed by a true-up to the final amount.\nSpecial-profits calculation and accounting require written advisor and client approval first. If available income is insufficient, no special profits are shifted and client direction is followed.\nThe special-profits formula and method are unspecified; the participant holds the work and obtains advisor direction.\nThe exact notice wording for waiver-funded capital-call treatment is not settled.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010"
+    ],
+    "key": "rules",
+    "status": "partial"
+   },
+   {
+    "answer": "The management-fee preparer hands the participant the approved management-fee calculation before the participant's fund administration preparation begins.\nUses the output of Management-fee preparation (management-fee preparer): The participant receives and uses the approved management-fee calculation for the period or event.\nThe participant returns unexplained fee or waiver differences to the management-fee preparer or the client.\nHands off to Management-fee preparation (management-fee preparer): An unexplained fee or waiver difference may be returned to the management-fee preparer.\nThe accounting or Fund Team posts the entry where applicable. Capital-call treatment follows the deemed-contribution work.\nFor a capital call involving a waiver-funded member, the participant coordinates with the capital-call event preparer on the approved cash-versus-waiver allocation, with client confirmation. The participant knows of no defined handover signal.\nThe participant escalates unclear capital-call disclosure or treatment to the client or advisor. Written advisor and client approval is required before special-profits calculation or accounting entry.\nSomeone else calculates and records special profits and closes the period; the participant does not know how that work ends.\nRequires approval from Client's tax or legal advisor: Written advisor approval is required before special-profits calculation or any accounting entry.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010"
+    ],
+    "key": "connections",
+    "status": "partial"
+   },
+   {
+    "answer": "Cumulative fee-waiver tracking is maintained in the ICC roll-forward, an Excel schedule, against which the participant reconciles the current-period input.\nThe preparer adds each member's deemed contribution to the member's life-to-date ICC roll-forward.\nThe participant updates allocation-file and notice data in the capital call workbook to identify the funding source, then reconciles event results to the ICC roll-forward and GP unfunded schedule.",
+    "evidence_turns": [
+     "t004",
+     "t006",
+     "t008"
+    ],
+    "key": "data_systems",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "volume",
+    "status": "unknown"
+   }
+  ],
+  "coverage": [
+   {
+    "key": "name",
+    "label": "Name & other names",
+    "status": "partial"
+   },
+   {
+    "key": "purpose",
+    "label": "Purpose & result",
+    "status": "partial"
+   },
+   {
+    "key": "trigger",
+    "label": "Start, cadence & deadlines",
+    "status": "partial"
+   },
+   {
+    "key": "completion",
+    "label": "Finished condition",
+    "status": "partial"
+   },
+   {
+    "key": "accountable",
+    "label": "Accountability",
+    "status": "partial"
+   },
+   {
+    "key": "lifecycle",
+    "label": "Items, stages & handoffs",
+    "status": "partial"
+   },
+   {
+    "key": "checks",
+    "label": "Checks, approvals & proof",
+    "status": "partial"
+   },
+   {
+    "key": "variations",
+    "label": "Variations and conditions",
+    "status": "partial"
+   },
+   {
+    "key": "pain_points",
+    "label": "Manual work & pain",
+    "status": "partial"
+   },
+   {
+    "key": "risk",
+    "label": "Consequences of failure",
+    "status": "missing"
+   },
+   {
+    "key": "materials",
+    "label": "Existing materials",
+    "status": "partial"
+   },
+   {
+    "key": "scope",
+    "label": "Scope & entity context",
+    "status": "partial"
+   },
+   {
+    "key": "rules",
+    "label": "Business rules & lineage",
+    "status": "partial"
+   },
+   {
+    "key": "connections",
+    "label": "Connected processes",
+    "status": "partial"
+   },
+   {
+    "key": "data_systems",
+    "label": "Data & systems",
+    "status": "partial"
+   },
+   {
+    "key": "volume",
+    "label": "Volume & effort",
+    "status": "missing"
+   }
+  ],
+  "summary": "The participant coordinates capital-call allocations to separate cash and waiver funding, with client confirmation. Special-profits work is on hold pending advisor direction and written approvals; the participant does not know the downstream closeout.",
+  "focus": "Special-profits approval and the current hold",
+  "parking_lot": [],
+  "connections_out": [
+   {
+    "condition": "The participant receives and uses the approved management-fee calculation for the period or event.",
+    "counterpart": "Management-fee preparation (management-fee preparer)",
+    "evidence_turns": [
+     "t002"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "An unexplained fee or waiver difference may be returned to the management-fee preparer.",
+    "counterpart": "Management-fee preparation (management-fee preparer)",
+    "evidence_turns": [
+     "t004"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "An unexplained fee or waiver difference may be returned to the client.",
+    "counterpart": "Client",
+    "evidence_turns": [
+     "t004"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "The accounting or Fund Team posts the entry where applicable.",
+    "counterpart": "Accounting or Fund Team",
+    "evidence_turns": [
+     "t006"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "Capital-call treatment follows the deemed-contribution work; the specific input and handoff are not yet established.",
+    "counterpart": "Capital-call treatment",
+    "evidence_turns": [
+     "t006"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "For a call with a waiver-funded member, the participant coordinates with the capital-call event preparer on the approved cash-versus-waiver event allocation, with client confirmation; no defined handover signal is known.",
+    "counterpart": "Capital-call treatment",
+    "evidence_turns": [
+     "t006",
+     "t008",
+     "t010"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "Written client approval is required before special-profits calculation or any accounting entry.",
+    "counterpart": "Client",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "Written advisor approval is required before special-profits calculation or any accounting entry.",
+    "counterpart": "Client's tax or legal advisor",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "requires_approval_from"
+   }
+  ],
+  "taxonomy": [
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "functional_area",
+    "note": "Reported work includes fee-waiver validation and deemed contribution recording.",
+    "value": "fees_and_carry"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "system",
+    "note": "The ICC roll-forward is reported as an Excel schedule for cumulative fee-waiver tracking.",
+    "value": "excel_workbook"
+   },
+   {
+    "evidence_turns": [
+     "t002",
+     "t004"
+    ],
+    "facet": "control_type",
+    "note": "The fund administration preparer reports performing handoff and waiver checks.",
+    "value": "gpfs_operational"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "rule_source",
+    "note": "The participant cites the governing arrangement and its method or schedule; its document type is not specified.",
+    "value": "other"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "facet": "entity_type",
+    "note": "The participant reports updating GP capital-account support for deemed contributions; broader entity applicability is not established.",
+    "value": "gp_carry"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "facet": "functional_area",
+    "note": "The participant updates accounting workpapers; accounting or the Fund Team posts where applicable.",
+    "value": "fund_accounting"
+   },
+   {
+    "evidence_turns": [
+     "t008",
+     "t010"
+    ],
+    "facet": "entity_type",
+    "note": "Reported waiver approaches and special-profits methodology are fund-specific.",
+    "value": "fund"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "facet": "applicability",
+    "note": "Participant reports fund-specific waiver approaches; broader entity applicability is not established.",
+    "value": "multi_variant"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "facet": "functional_area",
+    "note": "Participant coordinates capital-call treatment for waiver-funded members.",
+    "value": "capital_activity"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "facet": "rule_source",
+    "note": "Participant reports that an LPA may specify the waiver amount; documents were not independently reviewed.",
+    "value": "lpa_governing_doc"
+   },
+   {
+    "evidence_turns": [
+     "t010"
+    ],
+    "facet": "control_type",
+    "note": "Written client approval is required before special-profits calculation or accounting entry.",
+    "value": "client_approval"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "facet": "control_type",
+    "note": "Unclear capital-call disclosure or treatment is escalated to the client or advisor.",
+    "value": "exception_escalation"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "facet": "variant_class",
+    "note": "Waiver method varies by fund; the participant does not classify the reason for each difference.",
+    "value": "unclassified"
+   }
+  ],
+  "completion": {
+   "allowed": false,
+   "ready_for_final_check": false,
+   "complete": false,
+   "partial": true,
+   "participant_confirmed": false,
+   "blockers": [
+    "role_incomplete:coverage_reviewer",
+    "role_incomplete:process_reviewer",
+    "coverage_result_unbound",
+    "coverage_incomplete",
+    "coverage_unresolved:name",
+    "coverage_unresolved:purpose",
+    "coverage_unresolved:trigger",
+    "coverage_unresolved:completion",
+    "coverage_unresolved:accountable",
+    "coverage_unresolved:lifecycle",
+    "coverage_unresolved:checks",
+    "coverage_unresolved:variations",
+    "coverage_unresolved:pain_points",
+    "coverage_unresolved:risk",
+    "coverage_unresolved:materials",
+    "coverage_unresolved:scope",
+    "coverage_unresolved:rules",
+    "coverage_unresolved:connections",
+    "coverage_unresolved:data_systems",
+    "coverage_unresolved:volume",
+    "process_result_unbound"
+   ],
+   "revision": "88544c66a6697ad57a433f9940b14b285267e887da01bb99e9cd4218bfa5889f",
+   "run_id": "6c738c84e0404161a9a30b61f4340c71"
+  },
+  "coverage_assessment": null
+ },
+ "finished": 1794921625.5785449
+}

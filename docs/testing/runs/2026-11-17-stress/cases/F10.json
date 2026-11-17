@@ -1,0 +1,856 @@
+{
+ "case": "F10",
+ "port": 8795,
+ "interview_id": "48306ec17a1f46e2be5998157dd55e7f",
+ "context": {
+  "process_name": "One Rock Due to Manager Variant",
+  "process_owner": "",
+  "objective": "Document how we carry out One Rock Due to Manager Variant, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "It is the quarterly due to manager cycle for One Rock, which runs out of their Sage system. I honestly do not know the exact close-calendar event or deadline that kicks it off, that has never been confirmed. Before I start I need the One Rock Sage export, the current client-approved mapping file, the vendor master list, the Sage source classifications and the invoice support. The first thing I do as the GPFS DTM preparer is confirm the cycle and the source package: I record the period, the entities, the export date and version and the source totals on the intake checklist, confirm the export has the complete approved set of One Rock DTM records, and confirm the mapping version and which target accounting system we are posting to. The result is a logged source package, and scope and source totals have to be documented before I transform anything."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "Once the source package is logged, how do you transform the DTM records?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "Before transforming there is a validation step that I do together with the reviewer. We look for missing or invalid classifications and unmatched vendors, compare the source vendor codes against the target vendor master, and apply the due to affiliate versus due to manager categories and the direct or indirect vendor classifications only if the approved One Rock mapping actually implements those fields. Every exception goes in the mapping exception log and gets resolved. If there is a mapping or vendor master exception, I stop that item and it has to be resolved, with a resolution approved by One Rock, before anything is posted; nothing gets posted on an assumed classification. If those classifications are not implemented in the mapping, I use the current approved mapping and record the design gap. How vendor master changes get approved is not defined, I do not know. Once the records are validated, I transform them alone: I map the Sage fields, classifications and vendor codes to the target template in the Excel mapping and upload workbook, keep vendor-level detail where the target structure supports it, calculate totals before and after, and keep any rejected or unmapped items in the exception log. The check is that source and transformed totals and record counts have no unexplained differences. I must not combine vendor detail without disclosing it or override the approved mapping."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "Once the records are transformed and totals and counts tie out, what happens next?"
+  },
+  {
+   "id": "t006",
+   "role": "assistant",
+   "text": "Thanks for sharing. Give me a moment to digest the file. Then I\u2019ll follow up with a question.",
+   "document_event": true,
+   "document_id": "doc_intake"
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "The overview lists assembling supporting records and a reconciliation package after transformation. What goes into that package?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "Yes, that is the next step and I do it as the preparer. I collect the invoices and allocation records for the mapped records, organize the color-coded lanes for the management company, the client and the fund team, assemble the reconciliation package on the approved template, and link each supporting record to its mapped line. The output is a DTM support package with an index, and the check is that every item needing support traces to its source and its mapped output. On which lines need invoice-level support: there is a proposed 1,000 dollar threshold but it is not approved. I only apply it once the rule is confirmed by One Rock or the appropriate process expert; if it is not confirmed I send the package to the process expert for review and that part stays on hold. The exact contents and order of the package, the official template location, and where support exceptions get routed are not specified, so I cannot tell you those. The package has been described as 25 plus pages."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "The overview says review happens before posting; what does the reviewer actually check in the transformed records and support package?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "I cannot give you a defined reviewer checklist, and the number and order of reviewers is not confirmed. In practice we have seen three to four One Rock reviews and two GPFS fund team reviews, but that is observed practice, not an approved requirement. What happens in this step: I send the transformed data and the support package through the required GPFS and One Rock review before posting. Review comments are recorded and resolved, and then we get written approval to post. We do not post before that approval. Then I post the data using the validated One Rock manual or upload method into the target fund accounting system. After posting I compare source, transformed and posted totals and record counts and confirm they agree, resolve any rejected items and any mapping or posting differences, and keep the approval and the records from the target system. No unexplained difference may remain after posting. The result is the One Rock DTM posting with a completed reconciliation. Which Sage-to-target reconciliation report to use and what difference is tolerated are not specified, a process expert has to confirm that."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "After the posting reconciliation is complete, how is the DTM package handed off for billing?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "There is one more step before the handoff: a final review after posting and reconciliation, done by the GPFS fund team, the One Rock reviewers and the GPFS reviewer. The exact sequence is not confirmed. The posted and reconciled package is routed through that final review, every question, response, change and re-review is recorded in the review log, and final approval is retained. If the review changes anything, such as data, support, mapping or totals, we post again if needed, repeat the reconciliation and get approval again on the final version, because the earlier approval no longer applies. If nothing changes, the exact approved records and totals go forward. The check is that the final posted records and the handoff package agree with the approved version. Then the handoff, which I do with the billing preparer: we identify the funds and affiliates to bill and the approved amounts, I transfer the reviewed package to the billing and invoicing process, we compare the billing intake totals to the approved DTM package and confirm they agree exactly, including the number of supported items, and we keep proof that the handoff was accepted. That accepted billing handoff is the end of my process; the actual billing and invoicing is a separate process. Who the final approver for the billing set is has not been specified."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "What can go wrong if the DTM posting or billing handoff is incorrect or delayed?"
+  },
+  {
+   "id": "t014",
+   "role": "assistant",
+   "text": "This capture still has open sections. 14 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794920169.277,
+   "turn": 0,
+   "seconds": 0.024,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794920177.29,
+   "turn": 2,
+   "seconds": 2.447,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794920192.669,
+   "turn": 3,
+   "seconds": 17.83
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794920222.434,
+   "turn": 3,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 47.59
+  },
+  {
+   "kind": "question",
+   "at": 1794920231.021,
+   "turn": 4,
+   "seconds": 1.625,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794920274.008,
+   "turn": 5,
+   "seconds": 44.61
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794920276.054,
+   "turn": 5,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 46.66
+  },
+  {
+   "kind": "doc.session",
+   "at": 1794920280.25,
+   "turn": 5,
+   "seconds": 0.017,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.upload",
+   "at": 1794920280.254,
+   "turn": 5,
+   "seconds": 0.003,
+   "status": 202,
+   "retries": 0,
+   "file": "F10 MC-02A overview only.pdf",
+   "bytes": 279064
+  },
+  {
+   "kind": "doc.extracted",
+   "at": 1794920280.77,
+   "turn": 5,
+   "seconds": 0.54,
+   "file": "F10 MC-02A overview only.pdf",
+   "chunks": 5,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 5,
+    "total_units": 5,
+    "text_indexed_units": 5,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_started",
+   "at": 1794920280.77,
+   "turn": 5,
+   "seconds": 0.54,
+   "file": "F10 MC-02A overview only.pdf",
+   "chunks": 5,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 5,
+    "total_units": 5,
+    "text_indexed_units": 5,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_deep",
+   "at": 1794920286.451,
+   "turn": 5,
+   "seconds": 6.22,
+   "file": "F10 MC-02A overview only.pdf",
+   "chunks": 5,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 5,
+    "total_units": 5,
+    "text_indexed_units": 5,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_complete",
+   "at": 1794920286.451,
+   "turn": 5,
+   "seconds": 6.22,
+   "file": "F10 MC-02A overview only.pdf",
+   "chunks": 5,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 5,
+    "total_units": 5,
+    "text_indexed_units": 5,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.followup_question",
+   "at": 1794920289.639,
+   "turn": 6,
+   "seconds": 3.189,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.first_question",
+   "at": 1794920289.639,
+   "turn": 7,
+   "seconds": 9.41,
+   "reading": {
+    "omitted_documents": 0,
+    "documents": [
+     {
+      "id": "doc_a2f04c27ab79ca8970807036",
+      "included_chunks": 5,
+      "total_chunks": 5
+     }
+    ]
+   }
+  },
+  {
+   "kind": "doc.left_pending",
+   "at": 1794920335.109,
+   "turn": 7,
+   "notes_state": "working",
+   "map_state": "queued",
+   "seconds": 48.66
+  },
+  {
+   "kind": "question",
+   "at": 1794920343.06,
+   "turn": 8,
+   "seconds": 1.567,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794920381.846,
+   "turn": 9,
+   "seconds": 40.35
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794920388.563,
+   "turn": 9,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 47.07
+  },
+  {
+   "kind": "question",
+   "at": 1794920397.414,
+   "turn": 10,
+   "seconds": 2.52,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794920429.957,
+   "turn": 11,
+   "seconds": 35.06
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794920442.907,
+   "turn": 11,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 48.01
+  },
+  {
+   "kind": "question",
+   "at": 1794920451.533,
+   "turn": 12,
+   "seconds": 1.959,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794920485.537,
+   "turn": 13,
+   "seconds": 35.96
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794920496.897,
+   "turn": 13,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 47.32
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794920502.077,
+   "turn": 13,
+   "seconds": 2.029,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "working",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.map_error",
+   "at": 1794920657.604,
+   "turn": 14,
+   "seconds": 157.56,
+   "error": "The provider timed out. Your answers are retained.",
+   "code": "timeout"
+  },
+  {
+   "kind": "wrap.map_error",
+   "at": 1794920660.954,
+   "turn": 14,
+   "seconds": 160.91,
+   "error": "The provider timed out. Your answers are retained.",
+   "code": "timeout"
+  }
+ ],
+ "started": 1794920169.252803,
+ "revision": "22c6a1c8828444a2b4e6150e914e374948f57573293d767e0906be3c652f2c7e",
+ "capture": {
+  "memo_findings": [
+   {
+    "answer": "One Rock Due to Manager Variant, process ID MC-02A; the participant calls it the quarterly due to manager cycle.",
+    "evidence_turns": [
+     "doc_a2f04c27ab79ca8970807036_p1_c1",
+     "t002"
+    ],
+    "key": "name",
+    "status": "captured"
+   },
+   {
+    "answer": "The overview describes preparing a reviewed DTM package for posting in the fund accounting system and billing and invoicing.",
+    "evidence_turns": [
+     "doc_a2f04c27ab79ca8970807036_p2_c1"
+    ],
+    "key": "purpose",
+    "status": "partial"
+   },
+   {
+    "answer": "The One Rock Sage-based DTM cycle is quarterly.\nThe participant does not know the exact close-calendar trigger or deadline; the overview also leaves the period, source cutoff and preparation and billing deadlines unspecified.",
+    "evidence_turns": [
+     "t002",
+     "doc_a2f04c27ab79ca8970807036_p3_c1"
+    ],
+    "key": "trigger",
+    "status": "partial"
+   },
+   {
+    "answer": "The process ends when the billing handoff is accepted. The billing intake totals and supported-item count must agree exactly with the approved DTM package, and proof of acceptance is retained.\nThe participant describes the result as the One Rock DTM posting with a completed reconciliation, with source, transformed and posted totals and counts agreeing and no unexplained differences remaining.",
+    "evidence_turns": [
+     "t012",
+     "t010"
+    ],
+    "key": "completion",
+    "status": "captured"
+   },
+   {
+    "answer": "The overview says the process owner is not yet confirmed; it does not establish who is accountable for the result.",
+    "evidence_turns": [
+     "doc_a2f04c27ab79ca8970807036_p2_c1"
+    ],
+    "key": "accountable",
+    "status": "partial"
+   },
+   {
+    "answer": "Before starting, the GPFS DTM preparer obtains the One Rock Sage export, current client-approved mapping, vendor master, Sage classifications and invoice support. The preparer logs period, entities, export date and version, and source totals on the intake checklist; checks the approved DTM record set is complete; and confirms mapping version and target system before transformation.\nBefore transformation, the preparer and reviewer check for invalid or missing classifications and unmatched vendors, comparing source vendor codes with the target vendor master. They apply affiliate versus manager and direct versus indirect categories only where the approved mapping implements those fields.\nThe preparer logs exceptions. A mapping or vendor-master exception stops the affected item until resolution is approved by One Rock before posting; no assumed classification is posted. If the classification fields are not implemented, the preparer uses the current approved mapping and records the design gap.\nAfter validation, the preparer alone maps Sage fields, classifications and vendor codes to the target template in the Excel mapping and upload workbook, retains vendor detail where the target supports it, calculates before-and-after totals, and logs rejected or unmapped items.\nAfter transformation, the preparer collects invoices and allocation records for mapped records, organizes color-coded management-company, client and fund-team lanes, assembles the reconciliation package on the approved template and links support to mapped lines. The output is an indexed DTM support package.\nThe overview places review, posting and reconciliation under MC-02, followed by final review and handoff to MC-03. The participant describes the final review and billing handoff after posting and reconciliation.\nThe proposed $1,000 invoice-support threshold is not approved. The preparer applies it only when One Rock or the appropriate process expert confirms the rule; otherwise the preparer sends the package to the process expert for review and that part remains on hold.\nThe preparer sends transformed data and the support package through required GPFS and One Rock review. Comments are recorded and resolved, and written approval to post is obtained before the preparer posts using the validated One Rock manual or upload method in the target fund accounting system.\nAfter posting, the preparer compares source, transformed and posted totals and record counts, resolves rejected items and mapping or posting differences, and retains the approval and target-system records. No unexplained difference may remain.\nAfter posting and reconciliation, the package goes through final review by the GPFS fund team, One Rock reviewers and the GPFS reviewer. Questions, responses, changes and re-reviews are recorded in the review log and final approval is retained; the exact review sequence is unconfirmed.\nIf final review changes data, support, mapping or totals, the team posts again if needed, repeats reconciliation and obtains approval on the final version; the earlier approval no longer applies. If nothing changes, the exact approved records and totals proceed.\nThe DTM preparer and billing preparer identify the funds and affiliates to bill and approved amounts. The DTM preparer transfers the reviewed package to billing and invoicing; together they compare intake totals and supported-item counts to the approved package and retain acceptance proof.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t008",
+     "doc_a2f04c27ab79ca8970807036_p1_c1",
+     "t012",
+     "t010"
+    ],
+    "key": "lifecycle",
+    "status": "partial"
+   },
+   {
+    "answer": "The preparer checks that source and transformed totals and record counts have no unexplained differences. Vendor detail must not be combined without disclosure, and the approved mapping must not be overridden.\nFor mapping or vendor-master exceptions, the preparer stops the affected item and One Rock must approve the resolution before posting.\nThe participant cannot provide a defined reviewer checklist; the required number and order of reviewers and approver roles remain unconfirmed.\nThe package check is that every item needing support traces to its source and mapped output.\nThree to four One Rock reviews and two GPFS fund-team reviews have been observed in practice; these counts are not an approved requirement.\nReview comments are recorded and resolved, and written approval is required before posting. After posting, the preparer compares source, transformed and posted totals and counts, resolves differences and retains approval and target-system records.\nThe Sage-to-target reconciliation report and tolerated difference are unspecified and require process-expert confirmation.\nThe final check is that posted records and the handoff package agree with the approved version. The DTM and billing preparers check that billing intake totals and the number of supported items agree exactly with the approved DTM package.\nThe final approver for the billing set has not been specified.",
+    "evidence_turns": [
+     "t004",
+     "t010",
+     "doc_a2f04c27ab79ca8970807036_p2_c1",
+     "t008",
+     "t012"
+    ],
+    "key": "checks",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant describes a conditional mapping route: where the approved mapping does not implement the specified classification fields, the preparer uses the current approved mapping and records the design gap instead of applying those fields.\nThe overview calls this a One Rock variant, but the differences from the broader MC-02 route and their basis are not established by the supplied excerpts.\nThe preparer posts using a validated One Rock manual or upload method.\nThe condition for choosing the manual versus upload posting method has not been described.",
+    "evidence_turns": [
+     "t004",
+     "doc_a2f04c27ab79ca8970807036_p2_c1",
+     "t010"
+    ],
+    "key": "variations",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "pain_points",
+    "status": "unknown"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "risk",
+    "status": "unknown"
+   },
+   {
+    "answer": "Working inputs include the Sage export and source classifications, client-approved mapping file, vendor master and invoice support. The preparer records intake on a checklist and exceptions in a mapping exception log, and uses an Excel mapping and upload workbook.\nThe preparer assembles an indexed DTM support and reconciliation package on an approved template, linking invoices and allocation records to mapped lines and organizing color-coded lanes for the management company, client and fund team.\nThe participant cannot identify the exact package contents and order, the official template location, or the route for support exceptions.\nThe preparer retains the written posting approval and target-system records as part of the posting and reconciliation work.\nThe review log records final-review questions, responses, changes and re-reviews. Final approval and proof that the billing handoff was accepted are retained.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t008",
+     "t010",
+     "t012"
+    ],
+    "key": "materials",
+    "status": "partial"
+   },
+   {
+    "answer": "The overview places One Rock DTM source, mapping, vendor and classification checks, package, review, posting and billing handoff in scope. It excludes management-company AP invoice processing, detailed billing and Sage AR invoicing, and AEA's Bilixio workbook.",
+    "evidence_turns": [
+     "doc_a2f04c27ab79ca8970807036_p3_c1"
+    ],
+    "key": "scope",
+    "status": "partial"
+   },
+   {
+    "answer": "The preparer documents scope and source totals before transformation, uses the current approved mapping, and does not override it. One Rock approval of a mapping or vendor-master exception resolution is required before posting the affected item.\nThe participant does not know how vendor-master changes are approved.\nThe overview says workbook outputs must not be used until defects, aggregation basis, exceptions, owner, version, effective date and approval are resolved. Whether this applies to the workbook described by the participant and the status of those conditions remain unconfirmed.\nThe participant describes a proposed, unapproved $1,000 threshold for invoice-level support. The preparer applies it only after confirmation by One Rock or the appropriate process expert; otherwise the relevant part is held and the package is sent to the process expert for review.\nThe invoice-level support threshold is proposed rather than approved; the final rule remains to be confirmed.\nPosting must wait for written approval; after posting no unexplained difference may remain.\nA change during final review invalidates the earlier approval; approval must be obtained again on the final version after any needed reposting and repeat reconciliation.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "doc_a2f04c27ab79ca8970807036_p2_c1",
+     "t008",
+     "t010",
+     "t012"
+    ],
+    "key": "rules",
+    "status": "partial"
+   },
+   {
+    "answer": "The overview places posting and reconciliation under MC-02 and a subsequent handoff to MC-03 billing and invoicing. Detailed billing itself is outside this process.\nThe preparer transfers the reviewed package to the separate billing and invoicing process. The preparer and billing preparer reconcile its intake to the approved DTM package and retain proof of acceptance.",
+    "evidence_turns": [
+     "doc_a2f04c27ab79ca8970807036_p1_c1",
+     "doc_a2f04c27ab79ca8970807036_p3_c1",
+     "t012"
+    ],
+    "key": "connections",
+    "status": "partial"
+   },
+   {
+    "answer": "One Rock's Sage supplies the DTM source data; the preparer transforms it in an Excel mapping and upload workbook to a target template. The target accounting system is confirmed at intake rather than identified generically in the testimony.\nThe preparer posts into the target fund accounting system using the validated One Rock manual or upload method.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t010"
+    ],
+    "key": "data_systems",
+    "status": "partial"
+   },
+   {
+    "answer": "The DTM cycle is quarterly, and the support package has been described as 25 plus pages.\nTransaction counts and effort by step have not been established.",
+    "evidence_turns": [
+     "t002",
+     "t008"
+    ],
+    "key": "volume",
+    "status": "partial"
+   }
+  ],
+  "coverage": [
+   {
+    "key": "name",
+    "label": "Name & other names",
+    "status": "partial"
+   },
+   {
+    "key": "purpose",
+    "label": "Purpose & result",
+    "status": "partial"
+   },
+   {
+    "key": "trigger",
+    "label": "Start, cadence & deadlines",
+    "status": "partial"
+   },
+   {
+    "key": "completion",
+    "label": "Finished condition",
+    "status": "partial"
+   },
+   {
+    "key": "accountable",
+    "label": "Accountability",
+    "status": "partial"
+   },
+   {
+    "key": "lifecycle",
+    "label": "Items, stages & handoffs",
+    "status": "partial"
+   },
+   {
+    "key": "checks",
+    "label": "Checks, approvals & proof",
+    "status": "partial"
+   },
+   {
+    "key": "variations",
+    "label": "Variations and conditions",
+    "status": "partial"
+   },
+   {
+    "key": "pain_points",
+    "label": "Manual work & pain",
+    "status": "missing"
+   },
+   {
+    "key": "risk",
+    "label": "Consequences of failure",
+    "status": "missing"
+   },
+   {
+    "key": "materials",
+    "label": "Existing materials",
+    "status": "partial"
+   },
+   {
+    "key": "scope",
+    "label": "Scope & entity context",
+    "status": "partial"
+   },
+   {
+    "key": "rules",
+    "label": "Business rules & lineage",
+    "status": "partial"
+   },
+   {
+    "key": "connections",
+    "label": "Connected processes",
+    "status": "partial"
+   },
+   {
+    "key": "data_systems",
+    "label": "Data & systems",
+    "status": "partial"
+   },
+   {
+    "key": "volume",
+    "label": "Volume & effort",
+    "status": "partial"
+   }
+  ],
+  "summary": "Final review follows posting and reconciliation. Changes require renewed reconciliation and approval; the process ends with an accepted, exactly matched billing handoff. Does the overview\u2019s workbook stop condition apply to the workbook you use, and have its conditions been resolved?",
+  "focus": "Final review and billing handoff",
+  "parking_lot": [
+   "Confirm whether the overview's workbook stop condition applies and whether its conditions are resolved."
+  ],
+  "connections_out": [
+   {
+    "condition": "Overview places posting and reconciliation under MC-02; broader process relationship needs confirmation.",
+    "counterpart": "MC-02",
+    "evidence_turns": [
+     "doc_a2f04c27ab79ca8970807036_p1_c1"
+    ],
+    "relationship_type": "subprocess_of"
+   },
+   {
+    "condition": "Overview lists handoff after final review; current handoff details need confirmation.",
+    "counterpart": "MC-03 billing and invoicing",
+    "evidence_turns": [
+     "doc_a2f04c27ab79ca8970807036_p1_c1"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "After final approval, the preparer transfers the reviewed package; the DTM and billing preparers compare intake totals and supported-item counts and retain acceptance proof. The overview identifies the receiving process as MC-03.",
+    "counterpart": "MC-03 billing and invoicing",
+    "evidence_turns": [
+     "doc_a2f04c27ab79ca8970807036_p1_c1",
+     "t012"
+    ],
+    "relationship_type": "hands_off_to"
+   }
+  ],
+  "taxonomy": [
+   {
+    "evidence_turns": [
+     "doc_a2f04c27ab79ca8970807036_p1_c1",
+     "doc_a2f04c27ab79ca8970807036_p2_c1"
+    ],
+    "facet": "entity_type",
+    "note": "Overview identifies the service line as Management Company and Sage as management-company accounting.",
+    "value": "manco"
+   },
+   {
+    "evidence_turns": [
+     "doc_a2f04c27ab79ca8970807036_p1_c1",
+     "doc_a2f04c27ab79ca8970807036_p2_c1"
+    ],
+    "facet": "functional_area",
+    "note": "Overview describes fund accounting posting and reconciliation.",
+    "value": "fund_accounting"
+   },
+   {
+    "evidence_turns": [
+     "doc_a2f04c27ab79ca8970807036_p2_c1"
+    ],
+    "facet": "client_applicability",
+    "note": "Overview identifies a One Rock DTM variant; differences from the base route remain unconfirmed.",
+    "value": "client_specific"
+   },
+   {
+    "evidence_turns": [
+     "t002",
+     "t004"
+    ],
+    "facet": "rule_source",
+    "note": "Current client-approved mapping is used for transformation.",
+    "value": "client_methodology"
+   },
+   {
+    "evidence_turns": [
+     "t004",
+     "doc_a2f04c27ab79ca8970807036_p2_c1"
+    ],
+    "facet": "system",
+    "note": "Participant reports an Excel mapping and upload workbook; overview's stop condition needs reconciliation.",
+    "value": "excel_workbook"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "system",
+    "note": "One Rock Sage supplies the source data.",
+    "value": "other"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "control_type",
+    "note": "One Rock approves resolutions of mapping or vendor-master exceptions before posting.",
+    "value": "client_approval"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "control_type",
+    "note": "Preparer and reviewer validate classifications and vendors; preparer checks transformation totals and counts.",
+    "value": "gpfs_operational"
+   },
+   {
+    "evidence_turns": [
+     "t010"
+    ],
+    "facet": "control_type",
+    "note": "Participant reports One Rock review before posting; observed review count is not an approved requirement.",
+    "value": "client_review"
+   },
+   {
+    "evidence_turns": [
+     "t010"
+    ],
+    "facet": "control_type",
+    "note": "Participant reports GPFS fund-team reviews; exact required roles and checklist remain unconfirmed.",
+    "value": "gpfs_supervisory"
+   }
+  ],
+  "completion": {
+   "allowed": false,
+   "ready_for_final_check": false,
+   "complete": false,
+   "partial": true,
+   "participant_confirmed": false,
+   "blockers": [
+    "role_incomplete:coverage_reviewer",
+    "role_incomplete:process_reviewer",
+    "coverage_result_unbound",
+    "coverage_incomplete",
+    "coverage_unresolved:name",
+    "coverage_unresolved:purpose",
+    "coverage_unresolved:trigger",
+    "coverage_unresolved:completion",
+    "coverage_unresolved:accountable",
+    "coverage_unresolved:lifecycle",
+    "coverage_unresolved:checks",
+    "coverage_unresolved:variations",
+    "coverage_unresolved:pain_points",
+    "coverage_unresolved:risk",
+    "coverage_unresolved:materials",
+    "coverage_unresolved:scope",
+    "coverage_unresolved:rules",
+    "coverage_unresolved:connections",
+    "coverage_unresolved:data_systems",
+    "coverage_unresolved:volume",
+    "process_result_unbound"
+   ],
+   "revision": "6d0941121761d04e24ec0d1df03f4e87db7445b6a76f7a302247cf17f3194177",
+   "run_id": "08f26b79507749ab90617e7d53f7fdef"
+  },
+  "coverage_assessment": null
+ },
+ "documents": [
+  {
+   "id": "doc_a2f04c27ab79ca8970807036",
+   "name": "F10 MC-02A overview only.pdf",
+   "kind": "pdf",
+   "size": 279064,
+   "status": "ready",
+   "chunk_count": 5,
+   "analysis": {
+    "phase": "complete",
+    "intent_version": 0,
+    "basis_turn_id": "t004",
+    "basis_question": "Once the records are transformed and totals and counts tie out, what happens next?",
+    "request_count": 1,
+    "generated_by": [
+     {
+      "build_id": "713975ca987f099ba0b713812b594415e1273cd802fdd81c77d3aca273de914f",
+      "generated_at": "2026-11-17T12:58:05.997+00:00",
+      "model": "gpt-6.1-terra",
+      "prompt_id": "3cdf9a64520b6eaf",
+      "reasoning_effort": "low",
+      "stage": "document_context_review"
+     }
+    ],
+    "app_version": "0.32.0",
+    "questions": [],
+    "observations": [
+     {
+      "id": "doc_a2f04c27ab79ca8970807036_33235bc04e944e799814",
+      "text": "The overview lists assembling supporting records and a reconciliation package after transformation, followed by review, posting and reconciliation, final review, and handoff to billing.",
+      "basis": "stated",
+      "quote": "Step 4 \u2014 Assemble supporting records and the reconciliation package",
+      "sources": [
+       {
+        "source_id": "doc_a2f04c27ab79ca8970807036_p1_c1",
+        "label": "F10 MC-02A overview only.pdf \u00b7 page 1"
+       }
+      ]
+     },
+     {
+      "id": "doc_a2f04c27ab79ca8970807036_c497c1032c09f8dc0387",
+      "text": "The document says not to use workbook outputs or apply the $1,000 threshold until specified workbook issues and approvals are resolved.",
+      "basis": "stated",
+      "quote": "Do not use workbook outputs or apply the $1,000  threshold",
+      "sources": [
+       {
+        "source_id": "doc_a2f04c27ab79ca8970807036_p2_c1",
+        "label": "F10 MC-02A overview only.pdf \u00b7 page 2"
+       }
+      ]
+     },
+     {
+      "id": "doc_a2f04c27ab79ca8970807036_a05d094fe519c1ae6f44",
+      "text": "The overview identifies the review sequence, reconciliation format, approval criteria and support threshold as unconfirmed.",
+      "basis": "stated",
+      "quote": "the exact Sage report, review sequence, reconciliation format, approval criteria, and support threshold are not confirmed.",
+      "sources": [
+       {
+        "source_id": "doc_a2f04c27ab79ca8970807036_p2_c1",
+        "label": "F10 MC-02A overview only.pdf \u00b7 page 2"
+       }
+      ]
+     }
+    ],
+    "limit_indicator": false,
+    "unreadable_sources": [],
+    "limitations": [],
+    "summary": "The overview describes the quarterly One Rock Sage-based DTM process, including preparation, review, posting, reconciliation and billing handoff. It identifies unresolved workbook conditions and notes that the review sequence, approval criteria and support threshold are unconfirmed.",
+    "summary_basis": "initial_review",
+    "summary_basis_note": "Written from the initial review selection. Later review may have changed coverage; current review status and limitations are shown separately.",
+    "summary_at_review_version": 1,
+    "queries": [],
+    "error": null,
+    "version": 1,
+    "relevance": "relevant",
+    "relevance_reason": "The overview addresses the same process and outlines the steps following transformation, directly relevant to the current question.",
+    "disposition": "relevant",
+    "acknowledgement": "",
+    "question": "",
+    "sources": [
+     {
+      "source_id": "doc_a2f04c27ab79ca8970807036_p1_c1",
+      "label": "F10 MC-02A overview only.pdf \u00b7 page 1"
+     },
+     {
+      "source_id": "doc_a2f04c27ab79ca8970807036_p2_c1",
+      "label": "F10 MC-02A overview only.pdf \u00b7 page 2"
+     }
+    ],
+    "cursor": 5,
+    "reviewed_chunks": 5,
+    "total_chunks": 5,
+    "review_complete": true,
+    "estimated_requests": 1
+   },
+   "coverage": {
+    "indexed_units": 5,
+    "total_units": 5,
+    "text_indexed_units": 5,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   },
+   "error": null,
+   "revision": 4,
+   "intent_version": null
+  }
+ ],
+ "finished": 1794920660.953581
+}

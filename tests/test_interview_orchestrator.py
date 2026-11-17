@@ -595,7 +595,7 @@ class CoordinatorBoundaryTests(unittest.TestCase):
             step["evidence_turns"] = ["fabricated_document_reference"]
             result["upsert_steps"].append(step)
         client.result_changes["team_working_map_source_audit"] = fabricate
-        # Finding 5 of docs/testing/process-capture-2026-11-16: a source the reviewer made up is
+        # Finding 5 of docs/testing/runs/2026-11-16-process-capture: a source the reviewer made up is
         # the model's slip. The step that rests on it alone is left off the map and named in the
         # open questions; the map is not refused and nobody is asked to resolve the citation.
         result = client.coordinator.workflow(payload)

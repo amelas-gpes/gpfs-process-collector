@@ -1,0 +1,1064 @@
+{
+ "case": "T09",
+ "port": 8796,
+ "interview_id": "1b7c63b7951041b2a954ef4c1cad4bb8",
+ "context": {
+  "process_name": "Client Data Migration",
+  "process_owner": "",
+  "objective": "Document how we carry out Client Data Migration, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "It kicks off when a new client is onboarded, when a fund changes administrators, or when historical data has to be migrated into Entrilia or Allvue. There is no fixed schedule, it is as needed. First the Manager and I as the preparer confirm the migration scope and target: the entities, the historical period, the target system, the types of data, the source provider and the output reports we will need. We also confirm it is a client onboarding migration and not the separate Allvue to Entrilia platform program, and we identify the approvals and milestones. The Manager has to confirm the scope before any mapping starts."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "Once the Manager confirms the scope, how do you carry out the data mapping?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "Mapping does not come straight after scope, and honestly the mapping itself is not something I can describe well. What I do next, as the preparer, is receive and inventory the source package from the client or prior administrator: the detailed general ledger from the fund's start, the trial balance, prior reports, investor reference data, contact and banking data, the client chart of accounts, plus the target chart of accounts and transcodes and the upload templates. I list each file with its entity, period, version and provider in the intake log, keep an unchanged copy of every source file, and record anything missing or replaced. I check the package against the approved scope. How the mapping is done after that I am not sure about."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What do you check in the source package to determine whether it matches the approved scope?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "That is my third step, validating the source for completeness and internal consistency. I confirm the general ledger covers the period from the fund's start through the migration cutoff date. I compare the general ledger and trial balance periods and totals and identify differences. I check for missing or duplicate rows and files and for incomplete required fields. I check the investor reference, contact and banking data against the agreed scope. If there are problems I ask the source provider to clarify or correct them. I do this in the intake checks and the reconciliation workbook, and the Manager reviews significant issues. If the source is incomplete I stop: we do not treat it as ready for migration unless the Manager approves that decision, and we never fill gaps without recording them. If it is complete it moves on to mapping."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "What does the Manager review when a source issue is considered significant?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "I do not know exactly what the Manager looks at, that is on their side. What I know is that I bring them the validated files, the issues that were resolved and the list of remaining issues, and they decide whether incomplete source data can go forward. There is no defined threshold for what counts as significant that I am aware of, and I do not know of any tolerance or a written rule on who else may accept incomplete data."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "What can go wrong if migrated data is inaccurate or incomplete, and what is the practical impact?"
+  },
+  {
+   "id": "t010",
+   "role": "assistant",
+   "text": "What does a completed migration make possible for the client or the team?"
+  },
+  {
+   "id": "t011",
+   "role": "user",
+   "text": "I only know that part second hand because the end is handled by other people. As I understand it, once the Manager gives final sign-off the account is handed off to the first accounting close, which is a separate process. The migration only counts as complete when the source and target reports fully agree with no unexplained difference and the Manager's sign-off is kept. Beyond that I am not sure what it enables."
+  },
+  {
+   "id": "t012",
+   "role": "assistant",
+   "text": "How do you learn that one of these events requires a migration?"
+  },
+  {
+   "id": "t013",
+   "role": "user",
+   "text": "What we need before starting is a client onboarding or administrator transition request and a decision on the target system. I do not know of a standard scope form or a set channel that the request arrives through, and there is no standard timeline or milestone calendar. After my validation step the rest, building the workbook mapping, the uploads, the import, the reports and the reconciliation, I cannot walk you through reliably. I know the import itself is done by someone else but I am not sure exactly who."
+  },
+  {
+   "id": "t014",
+   "role": "assistant",
+   "text": "What practical problems can inaccurate or incomplete migrated data cause for the client or team?"
+  },
+  {
+   "id": "t015",
+   "role": "assistant",
+   "text": "This capture still has open sections. 15 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794918899.98,
+   "turn": 0,
+   "seconds": 0.024,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794918907.174,
+   "turn": 2,
+   "seconds": 2.774,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794918920.911,
+   "turn": 3,
+   "seconds": 16.51
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794918937.65,
+   "turn": 3,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 33.25
+  },
+  {
+   "kind": "question",
+   "at": 1794918945.411,
+   "turn": 4,
+   "seconds": 2.023,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794918975.881,
+   "turn": 5,
+   "notes_state": "working",
+   "map_state": "queued",
+   "seconds": 32.49
+  },
+  {
+   "kind": "question",
+   "at": 1794918983.716,
+   "turn": 6,
+   "seconds": 2.791,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919009.1,
+   "turn": 7,
+   "seconds": 28.17
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919014.172,
+   "turn": 7,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 33.25
+  },
+  {
+   "kind": "question",
+   "at": 1794919020.785,
+   "turn": 8,
+   "seconds": 1.787,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919041.58,
+   "turn": 9,
+   "seconds": 22.58
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919051.278,
+   "turn": 9,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 32.28
+  },
+  {
+   "kind": "question",
+   "at": 1794919056.363,
+   "turn": 9,
+   "seconds": 2.03,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919056.368,
+   "turn": 10,
+   "seconds": 2.04
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919076.713,
+   "turn": 10,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 22.38
+  },
+  {
+   "kind": "question",
+   "at": 1794919085.206,
+   "turn": 11,
+   "seconds": 4.068,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919108.041,
+   "turn": 12,
+   "seconds": 26.9
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919115.671,
+   "turn": 12,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 34.53
+  },
+  {
+   "kind": "question",
+   "at": 1794919123.725,
+   "turn": 13,
+   "seconds": 2.685,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919147.093,
+   "turn": 14,
+   "seconds": 26.05
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919154.23,
+   "turn": 14,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 33.19
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794919160.179,
+   "turn": 14,
+   "seconds": 2.023,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "working",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.map_ready",
+   "at": 1794919394.035,
+   "turn": 15,
+   "seconds": 235.88,
+   "steps": 8,
+   "connections": 8
+  }
+ ],
+ "started": 1794918899.9561589,
+ "revision": "2421c31239e310a4c18b43ad89d8034986dabd9ca77f438d3aeba2ea1d50c1a7",
+ "capture": {
+  "memo_findings": [
+   {
+    "answer": "Client Data Migration",
+    "evidence_turns": [
+     "context"
+    ],
+    "key": "name",
+    "status": "captured"
+   },
+   {
+    "answer": "The migration prepares the account for handoff to the separate first accounting close, according to the participant's second-hand understanding.\nThe participant is unsure what the completed migration enables beyond the handoff to the first accounting close.",
+    "evidence_turns": [
+     "t011"
+    ],
+    "key": "purpose",
+    "status": "partial"
+   },
+   {
+    "answer": "Work is initiated when a new client is onboarded, when a fund changes administrators, or when historical data needs to be migrated into Entrilia or Allvue. The work is as needed, with no fixed schedule.\nBefore starting, the team needs a client onboarding or administrator transition request and a decision on the target system.\nThe participant does not know of a set channel for the request; who receives or detects it remains unspecified.\nThe participant reports no standard timeline or milestone calendar.",
+    "evidence_turns": [
+     "t002",
+     "t013"
+    ],
+    "key": "trigger",
+    "status": "partial"
+   },
+   {
+    "answer": "According to the participant's second-hand understanding, migration is complete only when source and target reports fully agree with no unexplained difference and the Manager's final sign-off is kept.\nThe completion and handoff account is second-hand; the participant says other people handle the end.",
+    "evidence_turns": [
+     "t011"
+    ],
+    "key": "completion",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant is the preparer and confirms the migration scope with the Manager. The Manager must confirm scope before mapping starts.\nAccountability for the overall migration result remains unspecified.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "accountable",
+    "status": "partial"
+   },
+   {
+    "answer": "Before mapping, the Manager and the participant (as preparer) confirm the migration scope and target, including entities, historical period, target system, data types, source provider, and needed output reports. They also identify approvals and milestones.\nAfter scope confirmation, the preparer receives and inventories the source package from the client or prior administrator before mapping. They list each file's entity, period, version and provider in the intake log, retain an unchanged copy of every source file, record missing or replaced items, and check the package against approved scope.\nThe participant cannot describe how mapping is performed after source intake.\nAs the third step, the preparer validates source completeness and internal consistency: checks ledger coverage from the fund's start through the migration cutoff, compares ledger and trial balance periods and totals, identifies differences, checks for missing or duplicate rows and files and incomplete required fields, and checks investor reference, contact and banking data against agreed scope.\nWhen problems are found, the preparer asks the source provider to clarify or correct them; the Manager reviews significant issues. If the source is incomplete, the preparer stops and it is not treated as ready unless the Manager approves that decision. Gaps are never filled without recording them; a complete source moves to mapping.\nFor the Manager's readiness decision, the preparer brings validated files, resolved issues and the remaining-issues list to the Manager, who decides whether incomplete source data can go forward.\nAccording to the participant's second-hand understanding, after the Manager's final sign-off the account is handed off to the separate first accounting close.\nAfter validation, the participant identifies workbook mapping, uploads, import, reports and reconciliation as later work, but cannot reliably walk through it. Someone else performs the import.\nThe participant cannot reliably describe the later uploads, import, reports and reconciliation or identify the person who imports the data.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t011",
+     "t013"
+    ],
+    "key": "lifecycle",
+    "status": "partial"
+   },
+   {
+    "answer": "The Manager must confirm the scope before any mapping starts; the participant and Manager first confirm the scope and target together. The specific review criteria and evidence of confirmation are not stated.\nThe preparer checks the source package against the approved scope and records missing or replaced items in the intake log.\nThe preparer checks ledger coverage through the migration cutoff, compares ledger and trial balance periods and totals, identifies differences, checks missing or duplicate rows and files and incomplete required fields, and checks investor, contact and banking data against agreed scope. The Manager reviews significant issues.\nThe participant does not know exactly what the Manager examines when reviewing significant issues. The criteria for accepting incomplete data and evidence of the decision remain unspecified.\nThe preparer brings the Manager validated files, resolved issues and the list of remaining issues; the Manager decides whether incomplete source data can go forward.\nThe participant understands that source and target reports must fully agree without unexplained differences and that the Manager's final sign-off must be retained for completion.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t011"
+    ],
+    "key": "checks",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant distinguishes client-onboarding migration from the separate Allvue-to-Entrilia platform program; the account does not yet establish whether or how the migration procedure differs across cases.\nSource completeness changes the route: a complete source moves to mapping; an incomplete source stops and is not treated as ready unless the Manager approves that decision.",
+    "evidence_turns": [
+     "t002",
+     "t006"
+    ],
+    "key": "variations",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "pain_points",
+    "status": "unknown"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "risk",
+    "status": "unknown"
+   },
+   {
+    "answer": "The source package includes the detailed general ledger from the fund's start, trial balance, prior reports, investor reference data, contact and banking data, client and target charts of accounts, transcodes and upload templates. The preparer inventories the package against the approved scope.\nThe preparer uses an intake log to record each file's entity, period, version and provider, as well as missing or replaced items, and retains unchanged source-file copies.\nThe preparer performs source validation in the intake checks and reconciliation workbook.\nThe storage location of the intake checks and reconciliation workbook is unspecified.\nThe preparer brings validated files, resolved issues and a remaining-issues list to the Manager for the incomplete-source decision.\nSource and target reports are compared for completion, and the Manager's final sign-off is kept, according to the participant's second-hand account.\nThe participant does not know of a standard scope form.\nA workbook is used for mapping after validation; the participant cannot reliably describe how the mapping is built.",
+    "evidence_turns": [
+     "t004",
+     "t006",
+     "t008",
+     "t011",
+     "t013"
+    ],
+    "key": "materials",
+    "status": "partial"
+   },
+   {
+    "answer": "The Manager and preparer confirm entities, historical period, target system, data types, source provider and required output reports. They distinguish client onboarding migration from the separate Allvue-to-Entrilia platform program.\nThe source package includes fund data; applicability to other entity types and across clients remains unspecified.",
+    "evidence_turns": [
+     "t002",
+     "t004"
+    ],
+    "key": "scope",
+    "status": "partial"
+   },
+   {
+    "answer": "Before mapping, the Manager must confirm the migration scope. The participant says the approvals and milestones are identified during scope confirmation, but their criteria, sources, and approval details are not yet stated.\nAn incomplete source is not treated as ready for migration unless the Manager approves that decision; gaps must be recorded if filled. A complete source moves on to mapping.\nThe participant is not aware of a defined significance threshold or any tolerance, and does not know of a written rule specifying who else may accept incomplete data.\nThe participant reports second-hand that full source-to-target report agreement without unexplained differences and retained Manager sign-off are completion requirements.",
+    "evidence_turns": [
+     "t002",
+     "t006",
+     "t008",
+     "t011"
+    ],
+    "key": "rules",
+    "status": "partial"
+   },
+   {
+    "answer": "Client onboarding or a fund changing administrators can trigger this work. The participant distinguishes client onboarding migration from the separate Allvue-to-Entrilia platform program.\nThe preparer receives the source package from the client or prior administrator as an input to the migration.\nThe participant understands that the account is handed off to the separate first accounting close after the Manager's final sign-off.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t011"
+    ],
+    "key": "connections",
+    "status": "partial"
+   },
+   {
+    "answer": "Entrilia and Allvue are possible migration targets. The preparer receives the source package from the client or prior administrator.\nThe method used to transfer the source package is unspecified.\nThe participant cannot reliably explain the mapping workbook, uploads or import, including who performs the import.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t013"
+    ],
+    "key": "data_systems",
+    "status": "partial"
+   },
+   {
+    "answer": "The work is performed as needed with no fixed schedule; no migration counts, peaks, or effort estimates are stated.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "volume",
+    "status": "partial"
+   }
+  ],
+  "coverage": [
+   {
+    "key": "name",
+    "label": "Name & other names",
+    "status": "partial"
+   },
+   {
+    "key": "purpose",
+    "label": "Purpose & result",
+    "status": "partial"
+   },
+   {
+    "key": "trigger",
+    "label": "Start, cadence & deadlines",
+    "status": "partial"
+   },
+   {
+    "key": "completion",
+    "label": "Finished condition",
+    "status": "partial"
+   },
+   {
+    "key": "accountable",
+    "label": "Accountability",
+    "status": "partial"
+   },
+   {
+    "key": "lifecycle",
+    "label": "Items, stages & handoffs",
+    "status": "partial"
+   },
+   {
+    "key": "checks",
+    "label": "Checks, approvals & proof",
+    "status": "partial"
+   },
+   {
+    "key": "variations",
+    "label": "Variations and conditions",
+    "status": "partial"
+   },
+   {
+    "key": "pain_points",
+    "label": "Manual work & pain",
+    "status": "missing"
+   },
+   {
+    "key": "risk",
+    "label": "Consequences of failure",
+    "status": "missing"
+   },
+   {
+    "key": "materials",
+    "label": "Existing materials",
+    "status": "partial"
+   },
+   {
+    "key": "scope",
+    "label": "Scope & entity context",
+    "status": "partial"
+   },
+   {
+    "key": "rules",
+    "label": "Business rules & lineage",
+    "status": "partial"
+   },
+   {
+    "key": "connections",
+    "label": "Connected processes",
+    "status": "partial"
+   },
+   {
+    "key": "data_systems",
+    "label": "Data & systems",
+    "status": "partial"
+   },
+   {
+    "key": "volume",
+    "label": "Volume & effort",
+    "status": "partial"
+   }
+  ],
+  "summary": "Before starting, the team needs an onboarding or administrator transition request and a target-system decision. The participant knows of no set request channel, standard scope form or milestone calendar. They cannot reliably describe the post-validation work or identify who performs the import.",
+  "focus": "Migration initiation and work after validation",
+  "parking_lot": [
+   "What happens after the Manager confirms scope, including the mapping work and its completion condition.",
+   "How the migration is initiated in practice, including who receives or detects each trigger.",
+   "How approvals and milestones work, and what the Manager checks before confirming scope.",
+   "Whether the migration route differs by client, entity, target system, or available source data."
+  ],
+  "connections_out": [
+   {
+    "condition": "Source package supplied for migration intake.",
+    "counterpart": "Client or prior administrator",
+    "evidence_turns": [
+     "t004"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "Account handed off after Manager final sign-off; participant's second-hand understanding.",
+    "counterpart": "First accounting close",
+    "evidence_turns": [
+     "t011"
+    ],
+    "relationship_type": "hands_off_to"
+   }
+  ],
+  "taxonomy": [
+   {
+    "evidence_turns": [
+     "context",
+     "t002"
+    ],
+    "facet": "functional_area",
+    "note": "Reported process is client data migration; the participant identifies historical data and target systems, without establishing a broader system or policy classification.",
+    "value": "data_management"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "entity_type",
+    "note": "The reported source package includes a fund's general ledger; other entity applicability remains open.",
+    "value": "fund"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "system",
+    "note": "Reported as a possible migration target.",
+    "value": "entrilia"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "system",
+    "note": "Reported as a possible migration target; the separate platform program is outside the described scope.",
+    "value": "allvue"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "control_type",
+    "note": "The preparer checks the source package against approved scope and records missing or replaced items.",
+    "value": "gpfs_operational"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "control_type",
+    "note": "The Manager must confirm scope before mapping starts.",
+    "value": "gpfs_supervisory"
+   }
+  ],
+  "completion": {
+   "allowed": false,
+   "ready_for_final_check": false,
+   "complete": false,
+   "partial": true,
+   "participant_confirmed": false,
+   "blockers": [
+    "role_incomplete:coverage_reviewer",
+    "role_incomplete:process_reviewer",
+    "coverage_result_unbound",
+    "coverage_incomplete",
+    "coverage_unresolved:name",
+    "coverage_unresolved:purpose",
+    "coverage_unresolved:trigger",
+    "coverage_unresolved:completion",
+    "coverage_unresolved:accountable",
+    "coverage_unresolved:lifecycle",
+    "coverage_unresolved:checks",
+    "coverage_unresolved:variations",
+    "coverage_unresolved:pain_points",
+    "coverage_unresolved:risk",
+    "coverage_unresolved:materials",
+    "coverage_unresolved:scope",
+    "coverage_unresolved:rules",
+    "coverage_unresolved:connections",
+    "coverage_unresolved:data_systems",
+    "coverage_unresolved:volume",
+    "process_result_unbound"
+   ],
+   "revision": "79e7aaa44adc8c6a3c9c5233b52b92223188c03b1bdc6e7397ccb443620d68b3",
+   "run_id": "0dd91e07533b41f28179de8deb6868ea"
+  },
+  "coverage_assessment": null
+ },
+ "workflow": {
+  "connections": [
+   {
+    "evidence_turns": [
+     "t002",
+     "t004"
+    ],
+    "from": "S1",
+    "label": "After scope confirmation",
+    "to": "S2"
+   },
+   {
+    "evidence_turns": [
+     "t004",
+     "t006"
+    ],
+    "from": "S2",
+    "label": "After inventory",
+    "to": "S3"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "from": "S3",
+    "label": "Source problems found",
+    "to": "S4"
+   },
+   {
+    "evidence_turns": [
+     "t006",
+     "t008"
+    ],
+    "from": "S3",
+    "label": "Significant issues or incomplete source",
+    "to": "S5"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "from": "S3",
+    "label": "Source complete",
+    "to": "S6"
+   },
+   {
+    "evidence_turns": [
+     "t006",
+     "t008"
+    ],
+    "from": "S5",
+    "label": "Manager approves incomplete source proceeding",
+    "to": "S6"
+   },
+   {
+    "evidence_turns": [
+     "t011"
+    ],
+    "from": "S7",
+    "label": "After final sign-off",
+    "to": "S8"
+   },
+   {
+    "evidence_turns": [
+     "t011",
+     "t013"
+    ],
+    "from": "S6",
+    "label": "Source and target reports fully agree with no unexplained difference",
+    "to": "S7"
+   }
+  ],
+  "open_questions": [
+   "Are there other outcomes from decision S5 (Can incomplete source proceed?), and where do they lead?",
+   "Does any incoming route start S6 (Map and migrate data), or must all prerequisites finish?",
+   "Who receives the initiating request, how is readiness detected, and are there specific client deadlines?",
+   "When migration is triggered because historical data has to be migrated into Entrilia or Allvue, does it come through the same request path as onboarding or administrator-transition work?",
+   "Who is accountable for the overall migration, and what result does it enable for the client or team?",
+   "Which entity types and clients are covered, and is this the participant's route or general GPFS practice? What is the basis for that scope?",
+   "Who performs mapping, uploads, import, reporting and reconciliation, and what are their actual order, rules, systems and handoffs?",
+   "How are source corrections returned and rechecked? What happens when the Manager does not approve incomplete source?",
+   "What does the Manager check at each review, what evidence is retained and where, and who records it?",
+   "Are client reviews or approvals, thresholds, dual controls, system restrictions or escalation and override arrangements applicable? If so, where and how?",
+   "Who resolves unexplained report differences, how is rework checked, and who sends and receives the accounting-close handoff?",
+   "What procedures, templates or other materials exist, where are they available, and have any been reviewed?",
+   "What rules govern mapping and reconciliation, who interprets conflicts, and how are those rules implemented? Are material calculations performed in this process?",
+   "Which records are authoritative, where are files and workpapers stored, and which data are entered manually, imported or calculated?",
+   "What variations change the work, their sources and reasons, and any added effort, charging or constraints on removal?",
+   "What manual friction, material risks, normal volumes, peaks, exception frequency and step-level effort does the participant know of?"
+  ],
+  "steps": [
+   {
+    "actor": "Preparer and Manager",
+    "completion_criteria": "Manager confirms scope before any mapping starts.",
+    "control_type": [
+     "gpfs_supervisory"
+    ],
+    "data_origin": "New client onboarding, fund administrator change, or need to migrate historical data into Entrilia or Allvue",
+    "description": "Confirm the entities, historical period, target system, data types, source provider, required output reports, approvals and milestones. Also confirm the work is not the separate Allvue to Entrilia platform program.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002",
+     "t013"
+    ],
+    "handoff": "Preparer receives the source package.",
+    "id": "S1",
+    "input": "Client onboarding or administrator transition request and target-system decision",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t002"
+      ],
+      "field": "frequency",
+      "text": "There is no fixed schedule, it is as needed."
+     },
+     {
+      "evidence_turns": [
+       "t002"
+      ],
+      "field": "responsible",
+      "text": "First the Manager and I as the preparer confirm the migration scope and target"
+     },
+     {
+      "evidence_turns": [
+       "t002"
+      ],
+      "field": "control",
+      "text": "The Manager has to confirm the scope before any mapping starts."
+     }
+    ],
+    "output": "Manager-confirmed scope",
+    "parent_process": "Client onboarding or administrator transition",
+    "rule_source_ref": "Participant account; written source UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Confirm migration scope",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Client or prior administrator; origin of each target-side item UNKNOWN",
+    "description": "Receive the package from the client or prior administrator and list each file by entity, period, version and provider. Keep an unchanged copy, record missing or replaced files and check the package against approved scope.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t004"
+    ],
+    "handoff": "Preparer validates the source.",
+    "id": "S2",
+    "input": "General ledger, trial balance, prior reports, investor reference, contact and banking data, client and target charts of accounts, transcodes and upload templates",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "responsible",
+      "text": "What I do next, as the preparer, is receive and inventory the source package"
+     },
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "system",
+      "text": "I list each file with its entity, period, version and provider in the intake log"
+     },
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "control",
+      "text": "keep an unchanged copy of every source file"
+     },
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "exception",
+      "text": "record anything missing or replaced"
+     }
+    ],
+    "output": "Inventoried package and intake log",
+    "parent_process": "Client Data Migration",
+    "rule_source_ref": "Participant account",
+    "system": "Intake log; storage location UNKNOWN",
+    "title": "Inventory source package",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "Complete source may move to mapping; gaps are recorded and incomplete source is held unless the Manager approves proceeding.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Source package",
+    "description": "Check ledger coverage from fund inception to cutoff, compare ledger and trial balance periods and totals, and identify differences. Check missing or duplicate rows and files, required fields, and investor reference, contact and banking data against scope.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t006"
+    ],
+    "handoff": "Bring validated files, resolved issues and remaining issues to the Manager where review is needed.",
+    "id": "S3",
+    "input": "Inventoried source package and approved scope",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t006"
+      ],
+      "field": "responsible",
+      "text": "That is my third step, validating the source for completeness and internal consistency."
+     },
+     {
+      "evidence_turns": [
+       "t006"
+      ],
+      "field": "system",
+      "text": "I do this in the intake checks and the reconciliation workbook"
+     },
+     {
+      "evidence_turns": [
+       "t006"
+      ],
+      "field": "exception",
+      "text": "If there are problems I ask the source provider to clarify or correct them."
+     },
+     {
+      "evidence_turns": [
+       "t006"
+      ],
+      "field": "control",
+      "text": "If the source is incomplete I stop: we do not treat it as ready for migration unless the Manager approves that decision"
+     },
+     {
+      "evidence_turns": [
+       "t006"
+      ],
+      "field": "control",
+      "text": "we never fill gaps without recording them."
+     }
+    ],
+    "output": "Validated files and recorded issues",
+    "parent_process": "Client Data Migration",
+    "rule_source_ref": "Participant account; written rule UNKNOWN",
+    "system": "Intake checks and reconciliation workbook",
+    "title": "Validate source data",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "exception_escalation"
+    ],
+    "data_origin": "Validation issues",
+    "description": "Ask the source provider to clarify or correct problems found in validation. How corrected data returns to validation is UNKNOWN.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t006"
+    ],
+    "handoff": "Source provider",
+    "id": "S4",
+    "input": "Source problems",
+    "operating_details": [],
+    "output": "Clarification or correction requested",
+    "parent_process": "Client Data Migration",
+    "rule_source_ref": "Participant account",
+    "system": "UNKNOWN",
+    "title": "Request source correction",
+    "type": "activity"
+   },
+   {
+    "actor": "Manager",
+    "completion_criteria": "Decision made on whether incomplete source data can go forward.",
+    "control_type": [
+     "gpfs_supervisory",
+     "exception_escalation"
+    ],
+    "data_origin": "Preparer's validation and issue records",
+    "description": "Review significant issues and decide whether incomplete source data may proceed. The participant does not know precisely what the Manager checks or a defined significance threshold.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t006",
+     "t008"
+    ],
+    "handoff": "If approved, incomplete source may go forward; if not approved, the hold/next route is UNKNOWN.",
+    "id": "S5",
+    "input": "Validated files, resolved issues and remaining issues",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t008"
+      ],
+      "field": "responsible",
+      "text": "they decide whether incomplete source data can go forward."
+     }
+    ],
+    "output": "Decision on proceeding with incomplete source",
+    "parent_process": "Client Data Migration",
+    "rule_source_ref": "Participant account; written rule and other acceptance authority UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Can incomplete source proceed?",
+    "type": "decision"
+   },
+   {
+    "actor": "UNKNOWN; import is performed by someone other than the participant",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "Source package and mapping workbook; detailed origins UNKNOWN",
+    "description": "The participant identifies workbook mapping, uploads, import, reports and reconciliation as later work, but cannot reliably describe the details or sequence. Mapping follows complete source validation; the performer of the import is not known precisely.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t006",
+     "t013"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S6",
+    "input": "Validated source and target-system decision",
+    "operating_details": [],
+    "output": "Source and target reports for reconciliation; detailed outputs UNKNOWN",
+    "parent_process": "Client Data Migration",
+    "rule_source_ref": "Mapping and reconciliation rules UNKNOWN",
+    "system": "Entrilia or Allvue, according to target decision",
+    "title": "Map and migrate data",
+    "type": "subprocess"
+   },
+   {
+    "actor": "Manager",
+    "completion_criteria": "Reports fully agree without unexplained differences and sign-off is kept.",
+    "control_type": [
+     "gpfs_supervisory"
+    ],
+    "data_origin": "Source and target reports",
+    "description": "The participant understands second-hand that migration is complete only when source and target reports fully agree with no unexplained difference and the Manager's final sign-off is retained.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t011"
+    ],
+    "handoff": "Account is handed to the first accounting close.",
+    "id": "S7",
+    "input": "Source and target reports",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t011"
+      ],
+      "field": "responsible",
+      "text": "once the Manager gives final sign-off"
+     },
+     {
+      "evidence_turns": [
+       "t011"
+      ],
+      "field": "control",
+      "text": "the Manager's sign-off is kept"
+     }
+    ],
+    "output": "Retained Manager sign-off",
+    "parent_process": "Client Data Migration",
+    "rule_source_ref": "Participant's second-hand understanding; written source UNKNOWN",
+    "system": "Sign-off storage location UNKNOWN",
+    "title": "Obtain final sign-off",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "Completed migration",
+    "description": "After final sign-off, the account is handed off to the first accounting close, a separate process, according to the participant's second-hand understanding.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t011"
+    ],
+    "handoff": "First accounting close; recipient and notification method UNKNOWN",
+    "id": "S8",
+    "input": "Signed-off migration",
+    "operating_details": [],
+    "output": "Account handed to first accounting close",
+    "parent_process": "Client Data Migration",
+    "rule_source_ref": "Participant's second-hand understanding",
+    "system": "UNKNOWN",
+    "title": "Hand off to accounting close",
+    "type": "activity"
+   }
+  ],
+  "title": "Client Data Migration"
+ },
+ "workflow_revision": "2421c31239e310a4c18b43ad89d8034986dabd9ca77f438d3aeba2ea1d50c1a7",
+ "finished": 1794919394.034824,
+ "graph_checks": {
+  "steps": 8,
+  "connections": 8,
+  "types": {
+   "activity": 6,
+   "decision": 1,
+   "subprocess": 1
+  },
+  "components": 1,
+  "isolated_steps": [],
+  "entry_points": [
+   "S1"
+  ],
+  "typed_start": [],
+  "exit_points": [
+   "S4",
+   "S8"
+  ],
+  "typed_end": [],
+  "decisions_with_under_two_exits": [
+   "S5"
+  ],
+  "decision_exits_without_label": [],
+  "non_decision_with_multiple_exits": [
+   "S3"
+  ],
+  "steps_without_actor": [],
+  "actors": [
+   "Manager",
+   "Preparer",
+   "Preparer and Manager",
+   "UNKNOWN",
+   "UNKNOWN; import is performed by someone other than the participant"
+  ],
+  "open_questions": 16
+ }
+}

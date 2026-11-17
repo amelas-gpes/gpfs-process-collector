@@ -1,0 +1,1587 @@
+{
+ "case": "V04",
+ "port": 8795,
+ "interview_id": "7e98f3d5b9f64e73a6c53fb28101423d",
+ "context": {
+  "process_name": "Accounts Payable",
+  "process_owner": "",
+  "objective": "Document how we carry out Accounts Payable, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "So, GPFS, on the management company service line, AP kicks off when the client emails an invoice PDF into Outlook or sends an urgent payment request outside the normal batch cycle. I am the preparer. I confirm the attachment really is an invoice, identify the client and legal entity, and record receipt on the Excel invoice log so nothing gets missed. If the invoice or entity is unclear, it goes back to the client for clarification, then I save the PDF to Box."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "What happens after you save the invoice to Box?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "Next, iKey vendor, invoice number, date, amount, entity and status into the Excel invoice log, then run the duplicate check on vendor plus invoice number plus amount. A possible duplicate is a hard stop; nothing goes into Entrilia or gets paid until it is resolved and documented, manager or client as needed, no match, I do GL coding, account, accounting class, and the allocation across legal entities using only a current client-approved allocation matrix. Unclear coding gets escalated to the manager or client, never guessed, then I book it in Entrilia."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What happens to the invoice after you book it in Entrilia?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "After the Entrilia entry, I compare vendor, invoice number, date, amount, and GL classification in Entrilia back to the PDF and update the invoice log with the Entrilia status and reference. Then I build the approval batch for the weekly, biweekly, or monthly client cycle, compiling invoice PDFs from Box plus the invoice log export, and confirm the batch list and total tie to the log, the manager reviews log, Entrilia record, coding, amounts, duplicate check result, and completeness. I clear review comments, and the batch goes to the client by email or Adobe eSign."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "What happens after the approval batch goes to the client?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "Client approval is the hard gate. We keep the approval email or Adobe e-sign naming every approved invoice and the total. If the client only partially approves, only the specifically approved items move on, and I record the status of each held or rejected invoice. I add only approved invoices to the payment log: match vendor, amount, entity, and approval support to the package, flag new or changed vendor bank details for the callback and sanctions screening, and hand off to treasury. The treasury initiator and releaser pay through the banking platform under dual control."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "What confirms to you that treasury has completed the payment?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "Treasury retains the payment confirmation from the banking platform and updates the payment log and invoice log to final status. Failed or pending payments follow the treasury exception path, then I do the close. Invoice log to the box PDFs so every invoice is there once. Entrilia to the PDFs for vendor, invoice number, amount and classification, and paid invoices to payment confirmations. I resolve every difference, mark the invoice paid and closed, manager reviews, and that is the end. Closing schedule, tolerance and status definitions I do not know; those are not confirmed."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "What can go wrong in this AP process, and what is the practical consequence?"
+  },
+  {
+   "id": "t012",
+   "role": "assistant",
+   "text": "This capture still has open sections. 15 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794918932.067,
+   "turn": 0,
+   "seconds": 0.026,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794918940.104,
+   "turn": 1,
+   "seconds": 1.579,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 22.6,
+   "audio_bytes": 722592,
+   "wer": 0.012,
+   "spoken": "So at GPFS, on the Management Company service line, AP kicks off when the client emails an invoice PDF into Outlook, or sends an urgent payment request outside the normal batch cycle. I am the preparer. I confirm the attachment really is an invoice, identify the client and legal entity, and record receipt on the Excel invoice log so nothing gets missed. If the invoice or entity is unclear, it goes back to the client for clarification. Then I save the PDF to Box.",
+   "heard": "So, GPFS, on the management company service line, AP kicks off when the client emails an invoice PDF into Outlook or sends an urgent payment request outside the normal batch cycle. I am the preparer. I confirm the attachment really is an invoice, identify the client and legal entity, and record receipt on the Excel invoice log so nothing gets missed. If the invoice or entity is unclear, it goes back to the client for clarification, then I save the PDF to Box."
+  },
+  {
+   "kind": "question",
+   "at": 1794918942.235,
+   "turn": 2,
+   "seconds": 2.128,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794918955.43,
+   "turn": 3,
+   "seconds": 15.32
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794918977.315,
+   "turn": 3,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 37.21
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794918985.596,
+   "turn": 3,
+   "seconds": 1.62,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 27.0,
+   "audio_bytes": 863300,
+   "wer": 0.022,
+   "spoken": "Next I key vendor, invoice number, date, amount, entity and status into the Excel invoice log, then run the duplicate check on vendor plus invoice number plus amount. A possible duplicate is a hard stop, nothing goes into Entrilia or gets paid until it is resolved and documented, manager or client as needed. No match, I do GL coding, account, accounting class, and the allocation across legal entities using only a current client-approved allocation matrix. Unclear coding gets escalated to the manager or client, never guessed. Then I book it in Entrilia.",
+   "heard": "Next, iKey vendor, invoice number, date, amount, entity and status into the Excel invoice log, then run the duplicate check on vendor plus invoice number plus amount. A possible duplicate is a hard stop; nothing goes into Entrilia or gets paid until it is resolved and documented, manager or client as needed, no match, I do GL coding, account, accounting class, and the allocation across legal entities using only a current client-approved allocation matrix. Unclear coding gets escalated to the manager or client, never guessed, then I book it in Entrilia."
+  },
+  {
+   "kind": "question",
+   "at": 1794918989.266,
+   "turn": 4,
+   "seconds": 3.667,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919021.74,
+   "turn": 5,
+   "seconds": 36.14
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919024.282,
+   "turn": 5,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 38.68
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794919033.181,
+   "turn": 5,
+   "seconds": 2.042,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 27.4,
+   "audio_bytes": 877918,
+   "wer": 0.041,
+   "spoken": "After the Entrilia entry I compare vendor, invoice number, date, amount and GL classification in Entrilia back to the PDF, and update the invoice log with the Entrilia status and reference. Then I build the approval batch for the weekly, bi-weekly or monthly client cycle, compiling invoice PDFs from Box plus the invoice-log export, and confirm the batch list and total tie to the log. The manager reviews log, Entrilia record, coding, amounts, duplicate-check result and completeness, I clear review comments, and the batch goes to the client by email or Adobe e-sign.",
+   "heard": "After the Entrilia entry, I compare vendor, invoice number, date, amount, and GL classification in Entrilia back to the PDF and update the invoice log with the Entrilia status and reference. Then I build the approval batch for the weekly, biweekly, or monthly client cycle, compiling invoice PDFs from Box plus the invoice log export, and confirm the batch list and total tie to the log, the manager reviews log, Entrilia record, coding, amounts, duplicate check result, and completeness. I clear review comments, and the batch goes to the client by email or Adobe eSign."
+  },
+  {
+   "kind": "question",
+   "at": 1794919035.555,
+   "turn": 6,
+   "seconds": 2.369,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919066.519,
+   "turn": 7,
+   "seconds": 33.33
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919070.587,
+   "turn": 7,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 37.4
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794919078.803,
+   "turn": 7,
+   "seconds": 1.528,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 25.7,
+   "audio_bytes": 821144,
+   "wer": 0.0,
+   "spoken": "Client approval is the hard gate. We keep the approval email or Adobe e-sign naming every approved invoice and the total. If the client only partially approves, only the specifically approved items move on, and I record the status of each held or rejected invoice. I add only approved invoices to the payment log, match vendor, amount, entity and approval support to the package, flag new or changed vendor bank details for the callback and sanctions screening, and hand off to Treasury. The Treasury initiator and releaser pay through the banking platform under dual control.",
+   "heard": "Client approval is the hard gate. We keep the approval email or Adobe e-sign naming every approved invoice and the total. If the client only partially approves, only the specifically approved items move on, and I record the status of each held or rejected invoice. I add only approved invoices to the payment log: match vendor, amount, entity, and approval support to the package, flag new or changed vendor bank details for the callback and sanctions screening, and hand off to treasury. The treasury initiator and releaser pay through the banking platform under dual control."
+  },
+  {
+   "kind": "question",
+   "at": 1794919081.692,
+   "turn": 8,
+   "seconds": 2.884,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919113.63,
+   "turn": 9,
+   "seconds": 34.82
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919117.202,
+   "turn": 9,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 38.39
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794919125.066,
+   "turn": 9,
+   "seconds": 1.547,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 27.5,
+   "audio_bytes": 880140,
+   "wer": 0.0,
+   "spoken": "Treasury retains the payment confirmation from the banking platform and updates the payment log and invoice log to final status. Failed or pending payments follow the Treasury exception path. Then I do the close, invoice log to the Box PDFs so every invoice is there once, Entrilia to the PDFs for vendor, invoice number, amount and classification, and paid invoices to payment confirmations. I resolve every difference, mark the invoice paid and closed, manager reviews, and that is the end. Closing schedule, tolerance and status definitions I do not know, those are not confirmed.",
+   "heard": "Treasury retains the payment confirmation from the banking platform and updates the payment log and invoice log to final status. Failed or pending payments follow the treasury exception path, then I do the close. Invoice log to the box PDFs so every invoice is there once. Entrilia to the PDFs for vendor, invoice number, amount and classification, and paid invoices to payment confirmations. I resolve every difference, mark the invoice paid and closed, manager reviews, and that is the end. Closing schedule, tolerance and status definitions I do not know; those are not confirmed."
+  },
+  {
+   "kind": "question",
+   "at": 1794919126.646,
+   "turn": 10,
+   "seconds": 1.576,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919152.032,
+   "turn": 11,
+   "seconds": 26.96
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919161.71,
+   "turn": 11,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 36.64
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794919166.916,
+   "turn": 11,
+   "seconds": 2.028,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "working",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.map_ready",
+   "at": 1794919438.64,
+   "turn": 12,
+   "seconds": 273.75,
+   "steps": 20,
+   "connections": 22
+  }
+ ],
+ "started": 1794918932.040857,
+ "revision": "277e3c9d63a9a3ae6420b9bc86ff7cdef37405fe2f743cfea768682924d66083",
+ "capture": {
+  "memo_findings": [
+   {
+    "answer": "Accounts Payable",
+    "evidence_turns": [
+     "context"
+    ],
+    "key": "name",
+    "status": "partial"
+   },
+   {
+    "answer": "The work processes client invoices for approval and payment.",
+    "evidence_turns": [
+     "t002",
+     "t008"
+    ],
+    "key": "purpose",
+    "status": "captured"
+   },
+   {
+    "answer": "For GPFS on the management company service line, AP starts when the client emails an invoice PDF into Outlook or sends an urgent payment request outside the normal batch cycle.\nClient approval batches follow a weekly, biweekly or monthly client cycle.",
+    "evidence_turns": [
+     "t002",
+     "t006"
+    ],
+    "key": "trigger",
+    "status": "partial"
+   },
+   {
+    "answer": "Treasury's initiator and releaser pay through the banking platform under dual control after the preparer's handoff.\nHow held or rejected invoices are ultimately closed remains unspecified.\nFor paid invoices, closeout includes payment confirmation, reconciliation of the log, PDFs, Entrilia and confirmations, resolution of every difference, marking the invoice paid and closed, and manager review.",
+    "evidence_turns": [
+     "t008",
+     "t010"
+    ],
+    "key": "completion",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant is the preparer.\nThe role accountable for the overall result has not been established.",
+    "evidence_turns": [
+     "t002",
+     "t006"
+    ],
+    "key": "accountable",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant confirms the attachment is an invoice, identifies the client and legal entity, and records receipt in the Excel invoice log. If the invoice or entity is unclear, the item goes back to the client for clarification; the participant then saves the PDF to Box.\nAfter saving the invoice, the preparer keys vendor, invoice number, date, amount, entity and status into the Excel invoice log and runs a duplicate check on vendor, invoice number and amount.\nA possible duplicate is a hard stop: nothing is entered into Entrilia or paid until it is resolved and documented, involving the manager or client as needed.\nIf there is no duplicate match, the preparer performs GL coding for account and accounting class and allocates across legal entities using a current client-approved allocation matrix. Unclear coding is escalated to the manager or client rather than guessed; the preparer then books it in Entrilia.\nAfter booking in Entrilia, the preparer compares vendor, invoice number, date, amount and GL classification in Entrilia to the PDF, then updates the invoice log with the Entrilia status and reference.\nThe preparer builds the approval batch for the client's weekly, biweekly or monthly cycle from invoice PDFs in Box and an invoice log export, and ties the batch list and total to the log.\nThe manager reviews the log, Entrilia record, coding, amounts, duplicate check result and completeness. The preparer clears review comments, and the batch goes to the client by email or Adobe eSign.\nFollowing client approval, only specifically approved items move on if approval is partial; the preparer records each held or rejected invoice's status.\nThe preparer adds only approved invoices to the payment log, matches vendor, amount, entity and approval support to the package, flags new or changed vendor bank details for callback and sanctions screening, and hands off to Treasury. Treasury's initiator and releaser pay through the banking platform under dual control.\nTreasury retains the banking-platform payment confirmation and updates the payment and invoice logs to final status. Failed or pending payments follow the Treasury exception path.\nThe preparer closes by comparing the invoice log to Box PDFs for one occurrence of every invoice, Entrilia to PDFs for vendor, invoice number, amount and classification, and paid invoices to payment confirmations. The preparer resolves every difference and marks the invoice paid and closed; the manager reviews.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010"
+    ],
+    "key": "lifecycle",
+    "status": "partial"
+   },
+   {
+    "answer": "The preparer checks that the attachment really is an invoice and identifies the client and legal entity. If the invoice or entity is unclear, it goes back to the client for clarification.\nThe preparer checks for duplicates using vendor, invoice number and amount. A possible duplicate blocks Entrilia entry and payment until resolution is documented, with manager or client involvement as needed.\nUnclear coding is escalated to the manager or client and is not guessed.\nHow possible duplicates are investigated, resolved and documented remains unspecified.\nThe preparer compares the Entrilia vendor, invoice number, date, amount and GL classification against the invoice PDF and ties the approval batch list and total to the invoice log.\nThe manager reviews the log, Entrilia record, coding, amounts, duplicate check result and completeness; the preparer clears the review comments before the batch goes to the client.\nClient approval is a hard gate. The team keeps the approval email or Adobe e-sign naming every approved invoice and the total; if approval is partial, only specifically approved items move on.\nThe preparer matches vendor, amount, entity and approval support to the package and flags new or changed vendor bank details for callback and sanctions screening. Treasury uses an initiator and releaser under dual control.\nWho performs the callback and sanctions screening, how their results are evidenced, and what happens if either fails remain unspecified.\nAt close the preparer checks the log against Box PDFs for completeness and uniqueness, Entrilia against PDFs for vendor, invoice number, amount and classification, and paid invoices against payment confirmations; the preparer resolves differences and the manager reviews.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010"
+    ],
+    "key": "checks",
+    "status": "partial"
+   },
+   {
+    "answer": "An urgent payment request can start AP outside the normal batch cycle.\nHow urgent requests are handled differently after intake remains unresolved.\nThe client approval batch cycle can be weekly, biweekly or monthly.",
+    "evidence_turns": [
+     "t002",
+     "t006"
+    ],
+    "key": "variations",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "pain_points",
+    "status": "unknown"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "risk",
+    "status": "unknown"
+   },
+   {
+    "answer": "An Excel invoice log is used to record receipt. The invoice PDF is saved to Box after the participant's stated intake actions; Box storage location details are not given.\nThe Excel invoice log holds vendor, invoice number, date, amount, entity and status. A current client-approved allocation matrix is used for allocations across legal entities.\nThe approval batch comprises invoice PDFs from Box and an invoice log export; its list and total are checked against the log.\nThe team retains an approval email or Adobe e-sign naming every approved invoice and the total. The preparer uses a payment log for approved invoices.\nTreasury retains banking-platform payment confirmations, which the preparer compares with paid invoices at close.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010"
+    ],
+    "key": "materials",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant describes GPFS Accounts Payable on the management company service line, involving client invoices and legal entities.\nSpecific entity applicability and whether the route varies by client remain unresolved.",
+    "evidence_turns": [
+     "t002",
+     "t004"
+    ],
+    "key": "scope",
+    "status": "partial"
+   },
+   {
+    "answer": "The basis or rule used to determine whether an attachment is an invoice and to identify its client and legal entity has not been described.\nAllocation across legal entities uses only a current client-approved allocation matrix.\nA possible duplicate must be resolved and documented before Entrilia entry or payment.\nOnly client-approved invoices are added to the payment log; partial approval advances only specifically approved items.\nThe participant does not know the closing schedule, tolerance or status definitions; these are not confirmed.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t008",
+     "t010"
+    ],
+    "key": "rules",
+    "status": "partial"
+   },
+   {
+    "answer": "When the invoice or entity is unclear, the item goes back to the client for clarification.\nThe method of the client clarification handoff and the condition for returning to the process remain unspecified.\nAfter manager review and clearance of comments, the approval batch goes to the client by email or Adobe eSign.\nThe client approves the batch as a hard gate; after matching and flagging relevant bank details, the preparer hands approved invoices to Treasury, whose initiator and releaser pay under dual control.\nAP relies on Treasury's payment confirmation and final log updates for close; failed or pending payments follow the Treasury exception path.",
+    "evidence_turns": [
+     "t002",
+     "t006",
+     "t008",
+     "t010"
+    ],
+    "key": "connections",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant reports that the client emails the invoice PDF into Outlook; receipt is logged in Excel, and the participant saves the PDF to Box. Whether urgent requests use these same tools is not stated.\nThe preparer keys invoice details into the Excel invoice log and books the coded invoice in Entrilia.\nThe preparer updates the invoice log with the Entrilia status and reference. The client batch is sent by email or Adobe eSign.\nApproval evidence is retained as an email or Adobe e-sign, approved invoices are added to a payment log, and Treasury pays through a banking platform.\nTreasury updates both the payment log and invoice log to final status and retains the payment confirmation from the banking platform.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010"
+    ],
+    "key": "data_systems",
+    "status": "partial"
+   },
+   {
+    "answer": "Approval batches are built on a weekly, biweekly or monthly client cycle.",
+    "evidence_turns": [
+     "t006"
+    ],
+    "key": "volume",
+    "status": "partial"
+   }
+  ],
+  "coverage": [
+   {
+    "key": "name",
+    "label": "Name & other names",
+    "status": "partial"
+   },
+   {
+    "key": "purpose",
+    "label": "Purpose & result",
+    "status": "partial"
+   },
+   {
+    "key": "trigger",
+    "label": "Start, cadence & deadlines",
+    "status": "partial"
+   },
+   {
+    "key": "completion",
+    "label": "Finished condition",
+    "status": "partial"
+   },
+   {
+    "key": "accountable",
+    "label": "Accountability",
+    "status": "partial"
+   },
+   {
+    "key": "lifecycle",
+    "label": "Items, stages & handoffs",
+    "status": "partial"
+   },
+   {
+    "key": "checks",
+    "label": "Checks, approvals & proof",
+    "status": "partial"
+   },
+   {
+    "key": "variations",
+    "label": "Variations and conditions",
+    "status": "partial"
+   },
+   {
+    "key": "pain_points",
+    "label": "Manual work & pain",
+    "status": "missing"
+   },
+   {
+    "key": "risk",
+    "label": "Consequences of failure",
+    "status": "missing"
+   },
+   {
+    "key": "materials",
+    "label": "Existing materials",
+    "status": "partial"
+   },
+   {
+    "key": "scope",
+    "label": "Scope & entity context",
+    "status": "partial"
+   },
+   {
+    "key": "rules",
+    "label": "Business rules & lineage",
+    "status": "partial"
+   },
+   {
+    "key": "connections",
+    "label": "Connected processes",
+    "status": "partial"
+   },
+   {
+    "key": "data_systems",
+    "label": "Data & systems",
+    "status": "partial"
+   },
+   {
+    "key": "volume",
+    "label": "Volume & effort",
+    "status": "partial"
+   }
+  ],
+  "summary": "Treasury retains payment confirmations and updates both logs. The preparer reconciles invoices, resolves differences and closes paid invoices, followed by manager review. The closing schedule, tolerance and status definitions are unconfirmed.",
+  "focus": "Payment confirmation and closeout",
+  "parking_lot": [],
+  "connections_out": [
+   {
+    "condition": "When the invoice or entity is unclear, the item goes back to the client for clarification; method and return condition are not described.",
+    "counterpart": "client",
+    "evidence_turns": [
+     "t002"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "After manager review and clearance of comments, the approval batch goes to the client by email or Adobe eSign.",
+    "counterpart": "client",
+    "evidence_turns": [
+     "t006"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "Client approval is a hard gate; only specifically approved items advance on partial approval.",
+    "counterpart": "client",
+    "evidence_turns": [
+     "t008"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "After adding approved invoices to the payment log, matching the package and flagging new or changed vendor bank details, the preparer hands off for Treasury payment under dual control.",
+    "counterpart": "Treasury",
+    "evidence_turns": [
+     "t008"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "Treasury retains payment confirmation and updates both logs; the preparer uses payment confirmations in close. Failed or pending payments follow Treasury's exception path.",
+    "counterpart": "Treasury",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "consumes"
+   }
+  ],
+  "taxonomy": [
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "entity_type",
+    "note": "Reported GPFS management company service line; this scope label comes from participant testimony and does not establish a specific legal entity.",
+    "value": "manco"
+   },
+   {
+    "evidence_turns": [
+     "context",
+     "t002"
+    ],
+    "facet": "functional_area",
+    "note": "Accounts Payable intake is reported, including urgent payment requests; functional classification is descriptive and does not assert that payment execution is in scope.",
+    "value": "treasury_payments"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "system",
+    "note": "Participant reports invoice PDF email into Outlook.",
+    "value": "email"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "system",
+    "note": "Participant reports an Excel invoice log used to record receipt.",
+    "value": "excel_workbook"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "system",
+    "note": "Participant reports saving invoice PDFs to Box; Box is represented as other because it is not a listed system value.",
+    "value": "other"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "system",
+    "note": "The participant reports booking the coded invoice in Entrilia.",
+    "value": "entrilia"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "control_type",
+    "note": "The preparer reports a duplicate check and a hard stop pending documented resolution.",
+    "value": "gpfs_operational"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "control_type",
+    "note": "Unclear coding is escalated to the manager or client; possible duplicates involve them as needed.",
+    "value": "exception_escalation"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "rule_source",
+    "note": "The participant reports using a current client-approved allocation matrix; its underlying authority is not established.",
+    "value": "client_methodology"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "facet": "control_type",
+    "note": "Participant reports manager review of the log, Entrilia record, coding, amounts, duplicate result and completeness.",
+    "value": "gpfs_supervisory"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "facet": "system",
+    "note": "Adobe eSign is a reported alternative channel for sending the batch to the client.",
+    "value": "other"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "facet": "control_type",
+    "note": "Participant reports client approval as a hard gate; partial approval advances only approved invoices.",
+    "value": "client_approval"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "facet": "control_type",
+    "note": "Participant reports package matching and flags new or changed bank details for callback and sanctions screening; Treasury uses dual control.",
+    "value": "gpfs_operational"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "facet": "system",
+    "note": "Treasury initiator and releaser reportedly pay through a banking platform.",
+    "value": "bank_platform"
+   },
+   {
+    "evidence_turns": [
+     "t010"
+    ],
+    "facet": "control_type",
+    "note": "Participant reports manager review after paid-invoice close; review mechanism is not described.",
+    "value": "gpfs_supervisory"
+   }
+  ],
+  "completion": {
+   "allowed": false,
+   "ready_for_final_check": false,
+   "complete": false,
+   "partial": true,
+   "participant_confirmed": false,
+   "blockers": [
+    "role_incomplete:coverage_reviewer",
+    "role_incomplete:process_reviewer",
+    "coverage_result_unbound",
+    "coverage_incomplete",
+    "coverage_unresolved:name",
+    "coverage_unresolved:purpose",
+    "coverage_unresolved:trigger",
+    "coverage_unresolved:completion",
+    "coverage_unresolved:accountable",
+    "coverage_unresolved:lifecycle",
+    "coverage_unresolved:checks",
+    "coverage_unresolved:variations",
+    "coverage_unresolved:pain_points",
+    "coverage_unresolved:risk",
+    "coverage_unresolved:materials",
+    "coverage_unresolved:scope",
+    "coverage_unresolved:rules",
+    "coverage_unresolved:connections",
+    "coverage_unresolved:data_systems",
+    "coverage_unresolved:volume",
+    "process_result_unbound"
+   ],
+   "revision": "302184597a833330fa48c1a07bd71202bf23241d1953c4b9d50e0b1320f8e16b",
+   "run_id": "433ed84ca29a4a55b86ad454f1819823"
+  },
+  "coverage_assessment": null
+ },
+ "workflow": {
+  "connections": [
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S1",
+    "label": "Invoice PDF received",
+    "to": "S2"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S2",
+    "label": "Invoice or entity unclear",
+    "to": "S3"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S2",
+    "label": "Invoice and entity clear",
+    "to": "S4"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S3",
+    "label": "After clarification",
+    "to": "S4"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S4",
+    "label": "PDF saved",
+    "to": "S5"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S5",
+    "label": "Details entered",
+    "to": "S6"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S6",
+    "label": "Possible duplicate",
+    "to": "S7"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S6",
+    "label": "No match",
+    "to": "S8"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S8",
+    "label": "Coding unclear",
+    "to": "S9"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S8",
+    "label": "Coding clear",
+    "to": "S10"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S9",
+    "label": "After clarification",
+    "to": "S10"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "from": "S10",
+    "label": "Entry booked",
+    "to": "S11"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "from": "S11",
+    "label": "Entry checked and log updated",
+    "to": "S12"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "from": "S12",
+    "label": "Batch compiled",
+    "to": "S13"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "from": "S13",
+    "label": "Review comments cleared",
+    "to": "S14"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "from": "S14",
+    "label": "Held or rejected",
+    "to": "S15"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "from": "S14",
+    "label": "Specifically approved",
+    "to": "S16"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "from": "S16",
+    "label": "Treasury handoff",
+    "to": "S17"
+   },
+   {
+    "evidence_turns": [
+     "t008",
+     "t010"
+    ],
+    "from": "S17",
+    "label": "Payment outcome",
+    "to": "S18"
+   },
+   {
+    "evidence_turns": [
+     "t010"
+    ],
+    "from": "S18",
+    "label": "Then close",
+    "to": "S19"
+   },
+   {
+    "evidence_turns": [
+     "t010"
+    ],
+    "from": "S19",
+    "label": "Close prepared",
+    "to": "S20"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S7",
+    "label": "Resolved as no match",
+    "to": "S8"
+   }
+  ],
+  "open_questions": [
+   "Does any incoming route start S4 (Save invoice PDF), or must all prerequisites finish?",
+   "Does any incoming route start S8 (Code and allocate invoice), or must all prerequisites finish?",
+   "Does any incoming route start S10 (Book invoice), or must all prerequisites finish?",
+   "Who is accountable for the overall AP result?",
+   "How are urgent payment requests received and processed, and which normal batch steps or deadlines change?",
+   "What happens when a possible duplicate is confirmed as a duplicate after resolution and documentation?",
+   "Who performs the callback and sanctions screening, when must they be completed, and what happens if either fails?",
+   "Where is duplicate-resolution evidence retained, and where is close-review evidence retained?",
+   "What is the treasury exception path for failed or pending payments?",
+   "What happens to held or rejected invoices, and how do they return for approval or terminate?",
+   "What does the manager check at close, and what happens if that review finds a problem?",
+   "What are the closing schedule, tolerances and status definitions? The participant said these are not confirmed.",
+   "What are the source, ownership and calculation details of the allocation matrix, and who interprets conflicting instructions?",
+   "Are dual control and approval gates enforced by systems or procedures, and are there thresholds or authorized overrides?",
+   "What are the authoritative records, parent process, downstream consumers, volumes, common exceptions and material pain points?",
+   "What client-specific variations, reasons, additional effort, charging and removal constraints apply, if any?"
+  ],
+  "steps": [
+   {
+    "actor": "Preparer",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "Client",
+    "description": "The client emails an invoice PDF or sends an urgent payment request outside the normal batch cycle. How urgent requests enter and proceed is UNKNOWN.",
+    "entity_scope": [
+     "manco"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S1",
+    "input": "Client invoice PDF or urgent payment request",
+    "operating_details": [],
+    "output": "Request received",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Outlook",
+    "title": "Receive AP request",
+    "type": "start"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "Invoice and entity identified, or clarification requested",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Client invoice",
+    "description": "Confirm the attachment is an invoice, identify the client and legal entity, and record receipt.",
+    "entity_scope": [
+     "manco"
+    ],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "Client if unclear",
+    "id": "S2",
+    "input": "Invoice attachment",
+    "operating_details": [],
+    "output": "Receipt recorded",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Excel invoice log",
+    "title": "Validate and log receipt",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer and client",
+    "completion_criteria": "Clarification obtained",
+    "control_type": [
+     "exception_escalation"
+    ],
+    "data_origin": "Client",
+    "description": "Return an unclear invoice or entity to the client for clarification.",
+    "entity_scope": [
+     "manco"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "Back to preparer",
+    "id": "S3",
+    "input": "Unclear invoice or entity",
+    "operating_details": [],
+    "output": "Client clarification",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Clarify invoice or entity",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "PDF saved",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "Client",
+    "description": "Save the invoice PDF to Box.",
+    "entity_scope": [
+     "manco"
+    ],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "Preparer continues processing",
+    "id": "S4",
+    "input": "Invoice PDF",
+    "operating_details": [],
+    "output": "Saved PDF",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Box",
+    "title": "Save invoice PDF",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "Details entered",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Invoice PDF",
+    "description": "Key vendor, invoice number, date, amount, entity and status into the invoice log.",
+    "entity_scope": [
+     "manco"
+    ],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "t004"
+    ],
+    "handoff": "Preparer runs duplicate check",
+    "id": "S5",
+    "input": "Invoice details",
+    "operating_details": [],
+    "output": "Invoice log entry",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Excel invoice log",
+    "title": "Enter invoice details",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "Check performed",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Invoice log",
+    "description": "Check vendor, invoice number and amount. A possible duplicate is a hard stop for Entrilia entry and payment.",
+    "entity_scope": [
+     "manco"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t004"
+    ],
+    "handoff": "Possible match for resolution; otherwise coding",
+    "id": "S6",
+    "input": "Invoice log details",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "control",
+      "text": "A possible duplicate is a hard stop; nothing goes into Entrilia or gets paid until it is resolved and documented"
+     }
+    ],
+    "output": "Duplicate check result",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Participant-reported practice",
+    "system": "Excel invoice log",
+    "title": "Check for duplicates",
+    "type": "decision"
+   },
+   {
+    "actor": "Preparer, manager or client as needed",
+    "completion_criteria": "Resolution documented",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Duplicate check",
+    "description": "Resolve and document the possible duplicate before entry or payment. If it is resolved as no match, processing continues to GL coding; the outcome for a confirmed duplicate remains UNKNOWN.",
+    "entity_scope": [
+     "manco"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t004"
+    ],
+    "handoff": "If resolved as no match, preparer codes the invoice; confirmed-duplicate handling is UNKNOWN",
+    "id": "S7",
+    "input": "Possible duplicate",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "control",
+      "text": "nothing goes into Entrilia or gets paid until it is resolved and documented"
+     }
+    ],
+    "output": "Documented duplicate resolution",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Participant-reported practice",
+    "system": "UNKNOWN",
+    "title": "Resolve possible duplicate",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "Coding and allocation determined",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Client-approved allocation matrix and invoice",
+    "description": "Determine GL account, accounting class and allocation across legal entities, using a current client-approved allocation matrix.",
+    "entity_scope": [
+     "manco"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t004"
+    ],
+    "handoff": "Unclear coding escalated; otherwise book",
+    "id": "S8",
+    "input": "Invoice and current client-approved allocation matrix",
+    "operating_details": [],
+    "output": "Coding and allocation",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Client-approved allocation matrix; participant-reported practice",
+    "system": "UNKNOWN",
+    "title": "Code and allocate invoice",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer, manager or client",
+    "completion_criteria": "Coding clarified",
+    "control_type": [
+     "exception_escalation"
+    ],
+    "data_origin": "Manager or client",
+    "description": "Escalate unclear coding to the manager or client rather than guessing.",
+    "entity_scope": [
+     "manco"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t004"
+    ],
+    "handoff": "Preparer books invoice",
+    "id": "S9",
+    "input": "Unclear coding",
+    "operating_details": [],
+    "output": "Coding clarification",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Participant-reported practice",
+    "system": "UNKNOWN",
+    "title": "Clarify coding",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "Entry booked",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "Invoice and coding",
+    "description": "Book the coded invoice in Entrilia.",
+    "entity_scope": [
+     "manco"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t004"
+    ],
+    "handoff": "Preparer checks entry",
+    "id": "S10",
+    "input": "Invoice and coding",
+    "operating_details": [],
+    "output": "Entrilia entry",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Entrilia",
+    "title": "Book invoice",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "Comparison and log update performed",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Entrilia and invoice PDF",
+    "description": "Compare vendor, invoice number, date, amount and GL classification in Entrilia to the PDF. Update the log with Entrilia status and reference.",
+    "entity_scope": [
+     "manco"
+    ],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "t006"
+    ],
+    "handoff": "Preparer compiles approval batch",
+    "id": "S11",
+    "input": "Entrilia entry and invoice PDF",
+    "operating_details": [],
+    "output": "Checked entry and updated invoice log",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Entrilia, Excel invoice log and Box",
+    "title": "Check entry and update log",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "Batch list and total tied to log",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Box and invoice log",
+    "description": "Compile invoice PDFs and a log export for the client cycle; tie the batch list and total to the log.",
+    "entity_scope": [
+     "manco"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t006"
+    ],
+    "handoff": "Manager review",
+    "id": "S12",
+    "input": "Box PDFs and invoice log export",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t006"
+      ],
+      "field": "frequency",
+      "text": "for the weekly, biweekly, or monthly client cycle"
+     }
+    ],
+    "output": "Tied approval batch",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Box and Excel invoice log",
+    "title": "Compile approval batch",
+    "type": "activity"
+   },
+   {
+    "actor": "Manager",
+    "completion_criteria": "Review comments cleared",
+    "control_type": [
+     "gpfs_supervisory"
+    ],
+    "data_origin": "Invoice log, Entrilia and duplicate check",
+    "description": "Review the log, Entrilia record, coding, amounts, duplicate check result and completeness. The preparer clears review comments.",
+    "entity_scope": [
+     "manco"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t006"
+    ],
+    "handoff": "Preparer sends batch to client",
+    "id": "S13",
+    "input": "Approval batch and supporting records",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t006"
+      ],
+      "field": "responsible",
+      "text": "the manager reviews log, Entrilia record, coding, amounts, duplicate check result, and completeness."
+     }
+    ],
+    "output": "Reviewed batch with comments cleared",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Excel invoice log and Entrilia",
+    "title": "Review approval batch",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer and client",
+    "completion_criteria": "Approval received for each item proceeding",
+    "control_type": [
+     "client_approval"
+    ],
+    "data_origin": "Client approval email or e-sign",
+    "description": "Send the batch to the client. Retain approval naming each approved invoice and the total; only specifically approved items move on.",
+    "entity_scope": [
+     "manco"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t006",
+     "t008"
+    ],
+    "handoff": "Approved items to payment log; held or rejected items recorded",
+    "id": "S14",
+    "input": "Reviewed approval batch",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t008"
+      ],
+      "field": "control",
+      "text": "Client approval is the hard gate."
+     },
+     {
+      "evidence_turns": [
+       "t006"
+      ],
+      "field": "system",
+      "text": "by email or Adobe eSign."
+     }
+    ],
+    "output": "Client approval or partial approval",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Participant-reported practice",
+    "system": "Email or Adobe eSign",
+    "title": "Obtain client approval",
+    "type": "decision"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "Status recorded",
+    "control_type": [
+     "client_approval"
+    ],
+    "data_origin": "Client response",
+    "description": "Record the status of each held or rejected invoice after partial approval. Subsequent handling and return route are UNKNOWN.",
+    "entity_scope": [
+     "manco"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t008"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S15",
+    "input": "Held or rejected invoice",
+    "operating_details": [],
+    "output": "Recorded held or rejected status",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Record held or rejected status",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "Approved items matched and handed to treasury",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Approved package and client approval",
+    "description": "Add only approved invoices; match vendor, amount, entity and approval support to the package. Flag new or changed vendor bank details for callback and sanctions screening, then hand off to treasury.",
+    "entity_scope": [
+     "manco"
+    ],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "t008"
+    ],
+    "handoff": "Treasury",
+    "id": "S16",
+    "input": "Approved invoice package and approval support",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t008"
+      ],
+      "field": "control",
+      "text": "flag new or changed vendor bank details for the callback and sanctions screening"
+     }
+    ],
+    "output": "Payment log and flagged bank details",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Participant-reported practice",
+    "system": "Payment log",
+    "title": "Prepare payment handoff",
+    "type": "activity"
+   },
+   {
+    "actor": "Treasury initiator and releaser",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Payment log",
+    "description": "Treasury initiates and releases payment under dual control. Whether the platform enforces that control is UNKNOWN.",
+    "entity_scope": [
+     "manco"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t008"
+    ],
+    "handoff": "Treasury records outcome",
+    "id": "S17",
+    "input": "Approved payment handoff",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t008"
+      ],
+      "field": "responsible",
+      "text": "The treasury initiator and releaser pay through the banking platform under dual control."
+     },
+     {
+      "evidence_turns": [
+       "t008"
+      ],
+      "field": "system",
+      "text": "through the banking platform"
+     },
+     {
+      "evidence_turns": [
+       "t008"
+      ],
+      "field": "control",
+      "text": "under dual control."
+     }
+    ],
+    "output": "Payment initiated and released",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Participant-reported practice",
+    "system": "Banking platform",
+    "title": "Initiate and release payment",
+    "type": "activity"
+   },
+   {
+    "actor": "Treasury",
+    "completion_criteria": "UNKNOWN for failed or pending payments",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Banking platform",
+    "description": "Retain the payment confirmation and update both logs to final status. Failed or pending payments follow the treasury exception path.",
+    "entity_scope": [
+     "manco"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t010"
+    ],
+    "handoff": "Preparer performs close",
+    "id": "S18",
+    "input": "Banking platform payment outcome",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t010"
+      ],
+      "field": "responsible",
+      "text": "Treasury retains the payment confirmation from the banking platform and updates the payment log and invoice log to final status."
+     },
+     {
+      "evidence_turns": [
+       "t010"
+      ],
+      "field": "exception",
+      "text": "Failed or pending payments follow the treasury exception path"
+     }
+    ],
+    "output": "Confirmation and updated logs, or treasury exception",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Banking platform, payment log and invoice log",
+    "title": "Record payment outcome",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "Differences resolved and invoices marked paid and closed",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Invoice log, Box, Entrilia and payment confirmations",
+    "description": "Reconcile the log to PDFs for completeness and uniqueness, Entrilia to PDFs for vendor, invoice number, amount and classification, and paid invoices to confirmations. Resolve every difference and mark invoices paid and closed.",
+    "entity_scope": [
+     "manco"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t010"
+    ],
+    "handoff": "Manager review",
+    "id": "S19",
+    "input": "Invoice log, PDFs, Entrilia records and payment confirmations",
+    "operating_details": [],
+    "output": "Reconciled and closed invoices",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Excel invoice log, Box, Entrilia and payment confirmations",
+    "title": "Reconcile and close invoices",
+    "type": "activity"
+   },
+   {
+    "actor": "Manager",
+    "completion_criteria": "Manager review completed",
+    "control_type": [
+     "gpfs_supervisory"
+    ],
+    "data_origin": "Close work",
+    "description": "The manager reviews the close; the participant identifies this as the end. Specific review checks and retained evidence are UNKNOWN.",
+    "entity_scope": [
+     "manco"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t010"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S20",
+    "input": "Closed invoices and reconciliation",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t010"
+      ],
+      "field": "responsible",
+      "text": "manager reviews"
+     }
+    ],
+    "output": "Manager-reviewed close",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Review close",
+    "type": "end"
+   }
+  ],
+  "title": "Accounts Payable"
+ },
+ "workflow_revision": "277e3c9d63a9a3ae6420b9bc86ff7cdef37405fe2f743cfea768682924d66083",
+ "finished": 1794919438.640453,
+ "graph_checks": {
+  "steps": 20,
+  "connections": 22,
+  "types": {
+   "start": 1,
+   "activity": 16,
+   "decision": 2,
+   "end": 1
+  },
+  "components": 1,
+  "isolated_steps": [],
+  "entry_points": [
+   "S1"
+  ],
+  "typed_start": [
+   "S1"
+  ],
+  "exit_points": [
+   "S15",
+   "S20"
+  ],
+  "typed_end": [
+   "S20"
+  ],
+  "decisions_with_under_two_exits": [],
+  "decision_exits_without_label": [],
+  "non_decision_with_multiple_exits": [
+   "S2",
+   "S8"
+  ],
+  "steps_without_actor": [],
+  "actors": [
+   "Manager",
+   "Preparer",
+   "Preparer and client",
+   "Preparer, manager or client",
+   "Preparer, manager or client as needed",
+   "Treasury",
+   "Treasury initiator and releaser"
+  ],
+  "open_questions": 16
+ }
+}

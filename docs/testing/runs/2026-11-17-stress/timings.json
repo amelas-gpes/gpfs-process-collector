@@ -1,0 +1,1419 @@
+[
+ {
+  "case": "F01",
+  "q": [
+   1.741,
+   1.653,
+   1.755
+  ],
+  "notes": [
+   81.15,
+   33.6,
+   32.34
+  ],
+  "maps_mid": [],
+  "pending": 4,
+  "wrap": 2.044,
+  "final_map": "map_ready",
+  "final_map_s": 231.21,
+  "steps": 20,
+  "graph": {
+   "steps": 20,
+   "connections": 25,
+   "types": {
+    "wait": 1,
+    "start": 1,
+    "activity": 18
+   },
+   "components": 2,
+   "isolated_steps": [
+    "S1"
+   ],
+   "entry_points": [
+    "S1",
+    "S2",
+    "S14",
+    "S17"
+   ],
+   "typed_start": [
+    "S2"
+   ],
+   "exit_points": [
+    "S1",
+    "S12",
+    "S19"
+   ],
+   "typed_end": [],
+   "decisions_with_under_two_exits": [],
+   "decision_exits_without_label": [],
+   "non_decision_with_multiple_exits": [
+    "S8",
+    "S9",
+    "S10",
+    "S13",
+    "S15",
+    "S17",
+    "S18"
+   ],
+   "steps_without_actor": [],
+   "actors": [
+    "Assigned system/accrual preparer; checker",
+    "Assigned workbook preparer",
+    "Checker and Accounting/Fund Team; approver UNKNOWN",
+    "Independent checker",
+    "UNKNOWN",
+    "Workbook preparer",
+    "Workbook preparer and checker",
+    "Workbook preparer and independent checker",
+    "Workbook preparer; Treasury or cash-monitoring role supplies receipts",
+    "Workbook preparer; checker",
+    "Workbook preparer; checker confirms completeness",
+    "Workbook preparer; checker verifies",
+    "Workbook preparer; client or advisers as applicable",
+    "Workbook preparer; independent checker"
+   ],
+   "open_questions": 21
+  },
+  "doc": {
+   "doc.session": 0.028,
+   "doc.upload": 0.004,
+   "doc.extracted": 3.24,
+   "doc.review_started": 3.24,
+   "doc.review_deep": 10.88,
+   "doc.review_complete": 159.32,
+   "doc.followup_question": 2.173,
+   "doc.first_question": 161.49,
+   "doc.notes_error": 90.61,
+   "doc.left_pending": 92.67
+  },
+  "upload": [
+   0.004
+  ]
+ },
+ {
+  "case": "F02",
+  "q": [
+   3.841,
+   1.849,
+   2.766
+  ],
+  "notes": [
+   40.59,
+   34.73
+  ],
+  "maps_mid": [],
+  "pending": 4,
+  "wrap": 2.03,
+  "final_map": "map_ready",
+  "final_map_s": 233.53,
+  "steps": 20,
+  "graph": {
+   "steps": 20,
+   "connections": 21,
+   "types": {
+    "activity": 19,
+    "decision": 1
+   },
+   "components": 2,
+   "isolated_steps": [
+    "S19"
+   ],
+   "entry_points": [
+    "S1",
+    "S3",
+    "S12",
+    "S19"
+   ],
+   "typed_start": [],
+   "exit_points": [
+    "S2",
+    "S7",
+    "S18",
+    "S19",
+    "S20"
+   ],
+   "typed_end": [],
+   "decisions_with_under_two_exits": [
+    "S9"
+   ],
+   "decision_exits_without_label": [],
+   "non_decision_with_multiple_exits": [
+    "S1",
+    "S5",
+    "S6",
+    "S11"
+   ],
+   "steps_without_actor": [],
+   "actors": [
+    "Client; sender and client-comment resolver UNKNOWN",
+    "Controller",
+    "Director",
+    "Fund Accountant",
+    "Fund Accountant; Controller reviews",
+    "UNKNOWN"
+   ],
+   "open_questions": 24
+  },
+  "doc": {
+   "doc.session": 0.025,
+   "doc.upload": 0.003,
+   "doc.extracted": 0.54,
+   "doc.review_started": 0.54,
+   "doc.review_deep": 6.18,
+   "doc.review_complete": 19.52,
+   "doc.followup_question": 1.459,
+   "doc.first_question": 20.98,
+   "doc.left_pending": 61.96
+  },
+  "upload": [
+   0.003
+  ]
+ },
+ {
+  "case": "F03",
+  "q": [
+   2.002,
+   1.87,
+   2.983
+  ],
+  "notes": [
+   32.93,
+   40.59,
+   29.14,
+   34.31
+  ],
+  "maps_mid": [],
+  "pending": 4,
+  "wrap": 2.026,
+  "final_map": "map_ready",
+  "final_map_s": 133.8,
+  "steps": 18,
+  "graph": {
+   "steps": 18,
+   "connections": 16,
+   "types": {
+    "activity": 14,
+    "decision": 3,
+    "wait": 1
+   },
+   "components": 3,
+   "isolated_steps": [
+    "S4"
+   ],
+   "entry_points": [
+    "S1",
+    "S2",
+    "S4",
+    "S18"
+   ],
+   "typed_start": [],
+   "exit_points": [
+    "S3",
+    "S4",
+    "S8",
+    "S12",
+    "S17"
+   ],
+   "typed_end": [],
+   "decisions_with_under_two_exits": [
+    "S2"
+   ],
+   "decision_exits_without_label": [],
+   "non_decision_with_multiple_exits": [
+    "S11"
+   ],
+   "steps_without_actor": [],
+   "actors": [
+    "Administration, Fund Accounting, Controller and Head of Jurisdiction",
+    "Compliance or Legal confirms; action owner UNKNOWN",
+    "Escalation initiator and resolution owner UNKNOWN; Compliance and regional governance are escalation recipients",
+    "Fund Administrator",
+    "Fund Administrator and regional reviewers",
+    "Fund Administrator or Treasury",
+    "Fund Administrator, Treasury and regional reviewer",
+    "Fund Administrator, with Fund Accounting and client input",
+    "Submitter UNKNOWN",
+    "Treasury",
+    "Treasury escalation owner UNKNOWN",
+    "Treasury or Fund Administrator; exact owner UNKNOWN",
+    "Treasury owner confirms; requester UNKNOWN",
+    "UNKNOWN"
+   ],
+   "open_questions": 20
+  },
+  "doc": {
+   "doc.session": 0.026,
+   "doc.upload": 0.003,
+   "doc.extracted": 0.54,
+   "doc.review_started": 0.54,
+   "doc.review_deep": 8.3,
+   "doc.review_complete": 8.3,
+   "doc.followup_question": 1.997,
+   "doc.first_question": 10.29,
+   "doc.notes_ready": 32.93,
+   "doc.left_pending": 62.41
+  },
+  "upload": [
+   0.003
+  ]
+ },
+ {
+  "case": "F04",
+  "q": [
+   1.538,
+   1.572,
+   1.812
+  ],
+  "notes": [],
+  "maps_mid": [],
+  "pending": 4,
+  "wrap": 77.024,
+  "final_map": "map_ready",
+  "final_map_s": 200.27,
+  "steps": 24,
+  "graph": {
+   "steps": 24,
+   "connections": 33,
+   "types": {
+    "activity": 18,
+    "decision": 4,
+    "subprocess": 1,
+    "document": 1
+   },
+   "components": 1,
+   "isolated_steps": [],
+   "entry_points": [
+    "S1"
+   ],
+   "typed_start": [],
+   "exit_points": [
+    "S22",
+    "S23"
+   ],
+   "typed_end": [],
+   "decisions_with_under_two_exits": [],
+   "decision_exits_without_label": [],
+   "non_decision_with_multiple_exits": [
+    "S2",
+    "S5",
+    "S12",
+    "S15",
+    "S17"
+   ],
+   "steps_without_actor": [],
+   "actors": [
+    "Client, Director or lender, as applicable",
+    "Client; internal owner UNKNOWN",
+    "Facility compliance preparer and reviewer",
+    "Fund and capital-activity preparer",
+    "Fund and capital-activity team",
+    "Fund and capital-activity team and client",
+    "Fund and capital-activity team with the client",
+    "Fund team and Treasury; exact responsibilities UNKNOWN",
+    "Fund team and Treasury; exact reviewer UNKNOWN",
+    "Fund team or GL preparer",
+    "Fund team or GL preparer, then Treasury; exact check roles UNKNOWN",
+    "Preparer",
+    "Treasury",
+    "Treasury and fund team",
+    "UNKNOWN",
+    "UNKNOWN; formal sign-off unconfirmed"
+   ],
+   "open_questions": 22
+  },
+  "doc": {
+   "doc.session": 0.026,
+   "doc.upload": 0.003,
+   "doc.extracted": 0.55,
+   "doc.review_started": 0.55,
+   "doc.review_deep": 5.66,
+   "doc.review_complete": 5.66,
+   "doc.followup_question": 4.331,
+   "doc.first_question": 9.99,
+   "doc.left_pending": 64.71
+  },
+  "upload": [
+   0.003
+  ]
+ },
+ {
+  "case": "F05",
+  "q": [
+   1.585,
+   1.681,
+   3.115
+  ],
+  "notes": [
+   61.36,
+   53.69,
+   29.53,
+   37.76
+  ],
+  "maps_mid": [],
+  "pending": 4,
+  "wrap": 2.035,
+  "final_map": "map_error",
+  "final_map_s": 152.81,
+  "steps": 0,
+  "graph": null,
+  "doc": {
+   "doc.session": 0.027,
+   "doc.upload": 0.003,
+   "doc.extracted": 0.54,
+   "doc.review_started": 0.54,
+   "doc.review_deep": 6.69,
+   "doc.review_complete": 6.69,
+   "doc.followup_question": 1.592,
+   "doc.first_question": 8.29,
+   "doc.notes_ready": 61.36,
+   "doc.left_pending": 61.87
+  },
+  "upload": [
+   0.003
+  ]
+ },
+ {
+  "case": "F06",
+  "q": [
+   1.465,
+   1.952,
+   2.948
+  ],
+  "notes": [
+   29.77,
+   33.99,
+   35.43,
+   39.08
+  ],
+  "maps_mid": [
+   48.81
+  ],
+  "pending": 3,
+  "wrap": 2.033,
+  "final_map": "map_ready",
+  "final_map_s": 116.23,
+  "steps": 15,
+  "graph": {
+   "steps": 15,
+   "connections": 15,
+   "types": {
+    "activity": 14,
+    "wait": 1
+   },
+   "components": 1,
+   "isolated_steps": [],
+   "entry_points": [
+    "S1"
+   ],
+   "typed_start": [],
+   "exit_points": [
+    "S13"
+   ],
+   "typed_end": [],
+   "decisions_with_under_two_exits": [],
+   "decision_exits_without_label": [],
+   "non_decision_with_multiple_exits": [
+    "S12"
+   ],
+   "steps_without_actor": [],
+   "actors": [
+    "Controller",
+    "Controller; Director as required",
+    "Preparer",
+    "Preparer and client",
+    "UNKNOWN"
+   ],
+   "open_questions": 13
+  },
+  "doc": {
+   "doc.session": 0.027,
+   "doc.upload": 0.003,
+   "doc.extracted": 0.54,
+   "doc.review_started": 0.54,
+   "doc.review_deep": 8.26,
+   "doc.review_complete": 14.47,
+   "doc.followup_question": 1.929,
+   "doc.first_question": 16.4,
+   "doc.notes_ready": 29.77,
+   "doc.map_ready": 48.81
+  },
+  "upload": [
+   0.003
+  ]
+ },
+ {
+  "case": "F07",
+  "q": [
+   1.913,
+   1.895,
+   1.861
+  ],
+  "notes": [
+   27.69,
+   32.26,
+   34.32
+  ],
+  "maps_mid": [],
+  "pending": 4,
+  "wrap": 2.033,
+  "final_map": "map_ready",
+  "final_map_s": 143.18,
+  "steps": 11,
+  "graph": {
+   "steps": 11,
+   "connections": 13,
+   "types": {
+    "start": 1,
+    "activity": 9,
+    "decision": 1
+   },
+   "components": 1,
+   "isolated_steps": [],
+   "entry_points": [
+    "S1"
+   ],
+   "typed_start": [
+    "S1"
+   ],
+   "exit_points": [
+    "S10"
+   ],
+   "typed_end": [],
+   "decisions_with_under_two_exits": [
+    "S4"
+   ],
+   "decision_exits_without_label": [],
+   "non_decision_with_multiple_exits": [
+    "S5",
+    "S6"
+   ],
+   "steps_without_actor": [],
+   "actors": [
+    "GPFS fund-team preparer",
+    "GPFS preparer and reviewer",
+    "GPFS preparer and reviewer; client-specific roles per procedure",
+    "GPFS preparer; client or process owner confirms",
+    "Management company and GPFS fund team",
+    "Preparer and reviewer",
+    "UNKNOWN",
+    "UNKNOWN; GPFS reviewer or client decides as needed"
+   ],
+   "open_questions": 15
+  },
+  "doc": {
+   "doc.session": 0.027,
+   "doc.upload": 0.004,
+   "doc.extracted": 6.68,
+   "doc.review_started": 6.68,
+   "doc.review_deep": 11.28,
+   "doc.review_complete": 11.28,
+   "doc.followup_question": 2.165,
+   "doc.first_question": 13.45,
+   "doc.left_pending": 62.22
+  },
+  "upload": [
+   0.003,
+   0.004
+  ]
+ },
+ {
+  "case": "F08",
+  "q": [
+   2.402,
+   2.266,
+   1.969,
+   2.394
+  ],
+  "notes": [
+   16.15,
+   17.87,
+   26.01,
+   43.0
+  ],
+  "maps_mid": [
+   38.89,
+   37.83
+  ],
+  "pending": 3,
+  "wrap": 2.035,
+  "final_map": "map_error",
+  "final_map_s": 184.26,
+  "steps": 5,
+  "graph": {
+   "steps": 5,
+   "connections": 4,
+   "types": {
+    "activity": 5
+   },
+   "components": 1,
+   "isolated_steps": [],
+   "entry_points": [
+    "S1"
+   ],
+   "typed_start": [],
+   "exit_points": [
+    "S3"
+   ],
+   "typed_end": [],
+   "decisions_with_under_two_exits": [],
+   "decision_exits_without_label": [],
+   "non_decision_with_multiple_exits": [],
+   "steps_without_actor": [],
+   "actors": [
+    "Fund Accountant"
+   ],
+   "open_questions": 9
+  },
+  "doc": {
+   "doc.session": 0.029,
+   "doc.upload": 0.002,
+   "doc.extracted": 0.55,
+   "doc.review_started": 0.55,
+   "doc.review_deep": 4.67,
+   "doc.review_complete": 4.67,
+   "doc.followup_question": 2.256,
+   "doc.first_question": 6.93,
+   "doc.notes_ready": 16.15,
+   "doc.map_ready": 38.89
+  },
+  "upload": [
+   0.002
+  ]
+ },
+ {
+  "case": "F09",
+  "q": [
+   1.396,
+   1.738
+  ],
+  "notes": [
+   33.13,
+   36.98,
+   43.51
+  ],
+  "maps_mid": [
+   81.82
+  ],
+  "pending": 2,
+  "wrap": 2.032,
+  "final_map": "map_ready",
+  "final_map_s": 139.39,
+  "steps": 23,
+  "graph": {
+   "steps": 23,
+   "connections": 24,
+   "types": {
+    "decision": 5,
+    "activity": 17,
+    "wait": 1
+   },
+   "components": 2,
+   "isolated_steps": [],
+   "entry_points": [
+    "S7",
+    "S9",
+    "S15"
+   ],
+   "typed_start": [],
+   "exit_points": [
+    "S14",
+    "S17",
+    "S22",
+    "S23"
+   ],
+   "typed_end": [],
+   "decisions_with_under_two_exits": [
+    "S7"
+   ],
+   "decision_exits_without_label": [
+    "S1->S2"
+   ],
+   "non_decision_with_multiple_exits": [
+    "S4"
+   ],
+   "steps_without_actor": [],
+   "actors": [
+    "Client",
+    "Client / GPFS reviewer",
+    "Client comments; recipient UNKNOWN",
+    "Client or GPFS; not confirmed",
+    "Decision-maker UNKNOWN",
+    "Fund Accounting and Treasury",
+    "GPFS or Investor Services; exact role UNKNOWN",
+    "GPFS; exact role UNKNOWN",
+    "Head of applicable jurisdiction",
+    "Head of applicable jurisdiction approves; requester UNKNOWN",
+    "Preparer",
+    "Preparer and Fund Accounting",
+    "Preparer and reviewer",
+    "UNKNOWN"
+   ],
+   "open_questions": 22
+  },
+  "doc": {
+   "doc.session": 0.028,
+   "doc.upload": 0.003,
+   "doc.extracted": 0.55,
+   "doc.review_started": 0.55,
+   "doc.review_deep": 9.32,
+   "doc.review_complete": 21.7,
+   "doc.followup_question": 2.7,
+   "doc.first_question": 24.4,
+   "doc.notes_ready": 33.13,
+   "doc.map_ready": 81.82
+  },
+  "upload": [
+   0.003
+  ]
+ },
+ {
+  "case": "F10",
+  "q": [
+   2.447,
+   1.625,
+   1.567,
+   2.52,
+   1.959
+  ],
+  "notes": [
+   17.83,
+   44.61,
+   40.35,
+   35.06,
+   35.96
+  ],
+  "maps_mid": [],
+  "pending": 6,
+  "wrap": 2.029,
+  "final_map": "map_error",
+  "final_map_s": 160.91,
+  "steps": 0,
+  "graph": null,
+  "doc": {
+   "doc.session": 0.017,
+   "doc.upload": 0.003,
+   "doc.extracted": 0.54,
+   "doc.review_started": 0.54,
+   "doc.review_deep": 6.22,
+   "doc.review_complete": 6.22,
+   "doc.followup_question": 3.189,
+   "doc.first_question": 9.41,
+   "doc.left_pending": 48.66
+  },
+  "upload": [
+   0.003
+  ]
+ },
+ {
+  "case": "T01",
+  "q": [
+   3.381,
+   1.692,
+   1.693,
+   2.647,
+   3.234
+  ],
+  "notes": [
+   37.59,
+   30.75,
+   27.25,
+   31.77,
+   44.66
+  ],
+  "maps_mid": [],
+  "pending": 5,
+  "wrap": 2.023,
+  "final_map": "map_error",
+  "final_map_s": 373.62,
+  "steps": 0,
+  "graph": null,
+  "doc": {},
+  "upload": []
+ },
+ {
+  "case": "T02",
+  "q": [
+   2.269,
+   2.124,
+   2.355,
+   1.595,
+   1.695,
+   2.835,
+   2.798
+  ],
+  "notes": [
+   18.57,
+   45.96,
+   39.11,
+   36.33,
+   29.83,
+   38.15,
+   31.29
+  ],
+  "maps_mid": [],
+  "pending": 7,
+  "wrap": 2.023,
+  "final_map": "map_error",
+  "final_map_s": 446.27,
+  "steps": 0,
+  "graph": null,
+  "doc": {},
+  "upload": []
+ },
+ {
+  "case": "T03",
+  "q": [
+   3.489,
+   2.327,
+   2.552,
+   2.666,
+   3.5,
+   2.595,
+   1.727
+  ],
+  "notes": [
+   8.58,
+   7.42,
+   12.25,
+   26.15,
+   16.27,
+   18.97,
+   22.18
+  ],
+  "maps_mid": [
+   26.98
+  ],
+  "pending": 6,
+  "wrap": 2.029,
+  "final_map": "map_ready",
+  "final_map_s": 214.73,
+  "steps": 11,
+  "graph": {
+   "steps": 11,
+   "connections": 10,
+   "types": {
+    "start": 1,
+    "activity": 9,
+    "wait": 1
+   },
+   "components": 1,
+   "isolated_steps": [],
+   "entry_points": [
+    "start_trigger_subsequent_close"
+   ],
+   "typed_start": [
+    "start_trigger_subsequent_close"
+   ],
+   "exit_points": [
+    "wait_for_written_direction",
+    "calculate_call_amounts_interest",
+    "escalate_readiness_issue"
+   ],
+   "typed_end": [],
+   "decisions_with_under_two_exits": [],
+   "decision_exits_without_label": [],
+   "non_decision_with_multiple_exits": [
+    "check_readiness",
+    "resolve_applicable_terms"
+   ],
+   "steps_without_actor": [],
+   "actors": [
+    "Fund admin preparer",
+    "Reviewer",
+    "Team member",
+    "UNKNOWN"
+   ],
+   "open_questions": 11
+  },
+  "doc": {},
+  "upload": []
+ },
+ {
+  "case": "T04",
+  "q": [
+   2.64,
+   1.794,
+   1.558,
+   2.037,
+   2.589
+  ],
+  "notes": [
+   13.33,
+   28.71,
+   25.55,
+   39.32,
+   38.82
+  ],
+  "maps_mid": [],
+  "pending": 5,
+  "wrap": 2.027,
+  "final_map": "map_ready",
+  "final_map_s": 256.89,
+  "steps": 15,
+  "graph": {
+   "steps": 15,
+   "connections": 14,
+   "types": {
+    "activity": 12,
+    "decision": 2,
+    "wait": 1
+   },
+   "components": 1,
+   "isolated_steps": [],
+   "entry_points": [
+    "S1"
+   ],
+   "typed_start": [],
+   "exit_points": [
+    "S4",
+    "S10",
+    "S13",
+    "S14",
+    "S15"
+   ],
+   "typed_end": [],
+   "decisions_with_under_two_exits": [],
+   "decision_exits_without_label": [],
+   "non_decision_with_multiple_exits": [
+    "S8"
+   ],
+   "steps_without_actor": [],
+   "actors": [
+    "Client and fund administration preparer",
+    "Fund administration preparer",
+    "Fund administration preparer and client",
+    "Fund administration preparer and client's advisor",
+    "Fund administration preparer with client's tax or legal advisor and client",
+    "Fund administration preparer, coordinating with capital-call event preparer",
+    "Fund administration preparer; accounting or Fund Team"
+   ],
+   "open_questions": 9
+  },
+  "doc": {},
+  "upload": []
+ },
+ {
+  "case": "T05",
+  "q": [
+   2.097,
+   2.242,
+   1.583,
+   1.738,
+   2.93,
+   2.594
+  ],
+  "notes": [
+   27.1,
+   40.92,
+   41.07,
+   36.66
+  ],
+  "maps_mid": [],
+  "pending": 6,
+  "wrap": 2.699,
+  "final_map": "map_error",
+  "final_map_s": 289.38,
+  "steps": 0,
+  "graph": null,
+  "doc": {},
+  "upload": []
+ },
+ {
+  "case": "T06",
+  "q": [
+   1.704,
+   2.205,
+   1.601,
+   3.547,
+   2.626,
+   1.715
+  ],
+  "notes": [
+   7.31,
+   11.36,
+   8.25,
+   30.67,
+   38.52
+  ],
+  "maps_mid": [
+   24.74
+  ],
+  "pending": 5,
+  "wrap": 2.026,
+  "final_map": "map_error",
+  "final_map_s": 290.1,
+  "steps": 1,
+  "graph": {
+   "steps": 1,
+   "connections": 0,
+   "types": {
+    "start": 1
+   },
+   "components": 1,
+   "isolated_steps": [
+    "start_quarterly_close_numbers_ready"
+   ],
+   "entry_points": [
+    "start_quarterly_close_numbers_ready"
+   ],
+   "typed_start": [
+    "start_quarterly_close_numbers_ready"
+   ],
+   "exit_points": [
+    "start_quarterly_close_numbers_ready"
+   ],
+   "typed_end": [],
+   "decisions_with_under_two_exits": [],
+   "decision_exits_without_label": [],
+   "non_decision_with_multiple_exits": [],
+   "steps_without_actor": [],
+   "actors": [
+    "UNKNOWN"
+   ],
+   "open_questions": 6
+  },
+  "doc": {},
+  "upload": []
+ },
+ {
+  "case": "T07",
+  "q": [
+   1.498,
+   1.765,
+   2.141,
+   3.158
+  ],
+  "notes": [
+   36.03,
+   32.99,
+   30.26,
+   27.19
+  ],
+  "maps_mid": [],
+  "pending": 4,
+  "wrap": 2.028,
+  "final_map": "map_error",
+  "final_map_s": 319.55,
+  "steps": 0,
+  "graph": null,
+  "doc": {},
+  "upload": []
+ },
+ {
+  "case": "T08",
+  "q": [
+   1.508,
+   1.509,
+   1.933,
+   2.987,
+   1.638,
+   5.153
+  ],
+  "notes": [
+   24.04,
+   43.39,
+   44.89,
+   29.08,
+   38.95,
+   33.71
+  ],
+  "maps_mid": [],
+  "pending": 6,
+  "wrap": 2.025,
+  "final_map": "map_error",
+  "final_map_s": 302.01,
+  "steps": 0,
+  "graph": null,
+  "doc": {},
+  "upload": []
+ },
+ {
+  "case": "T09",
+  "q": [
+   2.774,
+   2.023,
+   2.791,
+   1.787,
+   2.03,
+   4.068,
+   2.685
+  ],
+  "notes": [
+   16.51,
+   28.17,
+   22.58,
+   2.04,
+   26.9,
+   26.05
+  ],
+  "maps_mid": [],
+  "pending": 7,
+  "wrap": 2.023,
+  "final_map": "map_ready",
+  "final_map_s": 235.88,
+  "steps": 8,
+  "graph": {
+   "steps": 8,
+   "connections": 8,
+   "types": {
+    "activity": 6,
+    "decision": 1,
+    "subprocess": 1
+   },
+   "components": 1,
+   "isolated_steps": [],
+   "entry_points": [
+    "S1"
+   ],
+   "typed_start": [],
+   "exit_points": [
+    "S4",
+    "S8"
+   ],
+   "typed_end": [],
+   "decisions_with_under_two_exits": [
+    "S5"
+   ],
+   "decision_exits_without_label": [],
+   "non_decision_with_multiple_exits": [
+    "S3"
+   ],
+   "steps_without_actor": [],
+   "actors": [
+    "Manager",
+    "Preparer",
+    "Preparer and Manager",
+    "UNKNOWN",
+    "UNKNOWN; import is performed by someone other than the participant"
+   ],
+   "open_questions": 16
+  },
+  "doc": {},
+  "upload": []
+ },
+ {
+  "case": "T10",
+  "q": [
+   2.718,
+   2.754,
+   1.169,
+   2.807,
+   2.337
+  ],
+  "notes": [
+   13.98,
+   34.92,
+   24.68,
+   34.05,
+   34.05
+  ],
+  "maps_mid": [],
+  "pending": 5,
+  "wrap": 2.027,
+  "final_map": "map_error",
+  "final_map_s": 142.91,
+  "steps": 0,
+  "graph": null,
+  "doc": {},
+  "upload": []
+ },
+ {
+  "case": "T11",
+  "q": [
+   1.56,
+   1.504,
+   2.298,
+   2.692,
+   1.842,
+   2.782
+  ],
+  "notes": [
+   39.93,
+   34.06,
+   42.06,
+   35.04,
+   33.51
+  ],
+  "maps_mid": [],
+  "pending": 6,
+  "wrap": 2.031,
+  "final_map": "map_error",
+  "final_map_s": 383.42,
+  "steps": 0,
+  "graph": null,
+  "doc": {},
+  "upload": []
+ },
+ {
+  "case": "T12",
+  "q": [
+   2.232,
+   1.706,
+   3.334,
+   1.621,
+   1.89
+  ],
+  "notes": [
+   22.71,
+   33.86,
+   27.89,
+   45.58,
+   39.21
+  ],
+  "maps_mid": [],
+  "pending": 5,
+  "wrap": 2.024,
+  "final_map": "map_error",
+  "final_map_s": 142.93,
+  "steps": 0,
+  "graph": null,
+  "doc": {},
+  "upload": []
+ },
+ {
+  "case": "T13",
+  "q": [
+   1.45,
+   2.498,
+   1.357,
+   1.914,
+   2.066,
+   2.699,
+   2.185,
+   2.359
+  ],
+  "notes": [
+   6.57,
+   8.62,
+   7.98,
+   10.12,
+   14.44
+  ],
+  "maps_mid": [],
+  "pending": 8,
+  "wrap": 2.022,
+  "final_map": "map_ready",
+  "final_map_s": 164.61,
+  "steps": 8,
+  "graph": {
+   "steps": 8,
+   "connections": 6,
+   "types": {
+    "start": 1,
+    "data_store": 2,
+    "activity": 4,
+    "document": 1
+   },
+   "components": 2,
+   "isolated_steps": [
+    "S7"
+   ],
+   "entry_points": [
+    "S0",
+    "S7"
+   ],
+   "typed_start": [
+    "S0"
+   ],
+   "exit_points": [
+    "S4",
+    "S6",
+    "S7"
+   ],
+   "typed_end": [],
+   "decisions_with_under_two_exits": [],
+   "decision_exits_without_label": [],
+   "non_decision_with_multiple_exits": [
+    "S2"
+   ],
+   "steps_without_actor": [],
+   "actors": [
+    "Reviewer",
+    "UNKNOWN"
+   ],
+   "open_questions": 10
+  },
+  "doc": {},
+  "upload": []
+ },
+ {
+  "case": "V01",
+  "q": [
+   1.848,
+   2.54,
+   1.971,
+   3.108,
+   2.315,
+   3.131
+  ],
+  "notes": [
+   14.63,
+   38.32,
+   20.83,
+   29.25,
+   30.39,
+   30.71
+  ],
+  "maps_mid": [],
+  "pending": 6,
+  "wrap": 2.023,
+  "final_map": "map_error",
+  "final_map_s": 298.46,
+  "steps": 0,
+  "graph": null,
+  "doc": {},
+  "upload": []
+ },
+ {
+  "case": "V02",
+  "q": [
+   1.494,
+   2.103,
+   2.062,
+   2.287,
+   2.446,
+   1.259
+  ],
+  "notes": [
+   9.1,
+   21.42,
+   19.32,
+   9.92,
+   22.25,
+   23.09
+  ],
+  "maps_mid": [
+   24.88
+  ],
+  "pending": 5,
+  "wrap": 2.02,
+  "final_map": "map_ready",
+  "final_map_s": 250.59,
+  "steps": 17,
+  "graph": {
+   "steps": 17,
+   "connections": 17,
+   "types": {
+    "start": 1,
+    "activity": 11,
+    "decision": 3,
+    "wait": 1,
+    "subprocess": 1
+   },
+   "components": 1,
+   "isolated_steps": [],
+   "entry_points": [
+    "S1"
+   ],
+   "typed_start": [
+    "S1"
+   ],
+   "exit_points": [
+    "S5",
+    "S11",
+    "S16"
+   ],
+   "typed_end": [],
+   "decisions_with_under_two_exits": [],
+   "decision_exits_without_label": [],
+   "non_decision_with_multiple_exits": [],
+   "steps_without_actor": [],
+   "actors": [
+    "AML reviewer",
+    "UNKNOWN"
+   ],
+   "open_questions": 11
+  },
+  "doc": {},
+  "upload": []
+ },
+ {
+  "case": "V03",
+  "q": [
+   2.189,
+   2.795,
+   2.221
+  ],
+  "notes": [
+   59.55,
+   37.81,
+   25.09
+  ],
+  "maps_mid": [],
+  "pending": 3,
+  "wrap": 2.023,
+  "final_map": "map_error",
+  "final_map_s": 361.47,
+  "steps": 0,
+  "graph": null,
+  "doc": {},
+  "upload": []
+ },
+ {
+  "case": "V04",
+  "q": [
+   2.128,
+   3.667,
+   2.369,
+   2.884,
+   1.576
+  ],
+  "notes": [
+   15.32,
+   36.14,
+   33.33,
+   34.82,
+   26.96
+  ],
+  "maps_mid": [],
+  "pending": 5,
+  "wrap": 2.028,
+  "final_map": "map_ready",
+  "final_map_s": 273.75,
+  "steps": 20,
+  "graph": {
+   "steps": 20,
+   "connections": 22,
+   "types": {
+    "start": 1,
+    "activity": 16,
+    "decision": 2,
+    "end": 1
+   },
+   "components": 1,
+   "isolated_steps": [],
+   "entry_points": [
+    "S1"
+   ],
+   "typed_start": [
+    "S1"
+   ],
+   "exit_points": [
+    "S15",
+    "S20"
+   ],
+   "typed_end": [
+    "S20"
+   ],
+   "decisions_with_under_two_exits": [],
+   "decision_exits_without_label": [],
+   "non_decision_with_multiple_exits": [
+    "S2",
+    "S8"
+   ],
+   "steps_without_actor": [],
+   "actors": [
+    "Manager",
+    "Preparer",
+    "Preparer and client",
+    "Preparer, manager or client",
+    "Preparer, manager or client as needed",
+    "Treasury",
+    "Treasury initiator and releaser"
+   ],
+   "open_questions": 16
+  },
+  "doc": {},
+  "upload": []
+ }
+]

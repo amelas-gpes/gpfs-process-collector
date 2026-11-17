@@ -1,0 +1,771 @@
+{
+ "case": "F05",
+ "port": 8795,
+ "interview_id": "e0306e57a90c45ecb0cf35bf3250d70d",
+ "context": {
+  "process_name": "Management Fee Calculation & Offsets",
+  "process_owner": "",
+  "objective": "Document how we carry out Management Fee Calculation & Offsets, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "Thanks for sharing. Give me a moment to digest the file. Then I\u2019ll follow up with a question.",
+   "document_event": true,
+   "document_id": "doc_intake"
+  },
+  {
+   "id": "t002",
+   "role": "assistant",
+   "text": "The workbook describes a seven-step fee process, including rule confirmation, client approval, posting and final reconciliation. Does that describe how this work is carried out today?"
+  },
+  {
+   "id": "t003",
+   "role": "user",
+   "text": "Yes, those seven steps in that order are how we run it each billing period. The part that needs the most care is offsets in step 4. If the offsets come out bigger than the gross fee, the preparer stops right there. We do not just floor the fee at zero or throw the excess away by default. The client decides, based on what the LPA says about nonnegative fees and carryforwards, and we need a record supporting that rule. Once that is resolved and documented, we go back and finish the net fee in step 4 and then carry on to the review. I do not know the actual negative-fee or carryforward rule for any fund, that has not been confirmed."
+  },
+  {
+   "id": "t004",
+   "role": "assistant",
+   "text": "What event starts the billing-period work, and how do you receive or identify that it is time to begin?"
+  },
+  {
+   "id": "t005",
+   "role": "user",
+   "text": "It starts with each billing period as the LPA defines it, which can be quarterly, semiannual or annual. It also gets run off-cycle when something changes the calculation: a later close, a fee-rate step-down, the end of the investment period, an impairment, a waiver election, a fee holiday, a start-date override or an LPA amendment. The exact close-calendar deadlines are not set, so I cannot tell you a date. Two exceptions come up in step 1. If two rules overlap for the same scope and dates, the preparer stops and the effective-date conflict has to be resolved with a corrected rules table before any fee is calculated, then we continue to gathering inputs. Who owns the rules table is not specified, I do not know. And a start-date override can only be used with a documented written decision from the GP; the preparer cannot approve that themselves."
+  },
+  {
+   "id": "t006",
+   "role": "assistant",
+   "text": "When a fee calculation or review cannot be completed, what practical consequences does that have for the fund or others relying on it?"
+  },
+  {
+   "id": "t007",
+   "role": "user",
+   "text": "The affected piece simply stays open. The calculation, approval, posting, payment or handoff that depends on it does not move until the issue is resolved and the record is on file, so the fee is not funded, collected or posted in the meantime. Beyond that I do not know the wider business impact, the severity has not been confirmed. Two more exceptions worth capturing. In step 5, if the period has a step-down or a fee-base change, the rules are segmented by effective date and a two-person review is mandatory before the client approves; otherwise it is the normal senior review and then client approval. Who exactly the two reviewers are and how that review is recorded is not specified. And if a waiver election changes, in step 4 we apply the new election and update the related contribution amounts and caps, with the election and the rollforward kept as the record, then continue. Also, if the workbook has broken references, external links or no controlled version, we stop and do not use it until it is repaired, independently recalculated, reviewed and approved."
+  },
+  {
+   "id": "t008",
+   "role": "assistant",
+   "text": "Which role is accountable for the overall management-fee process, beyond performing or reviewing individual steps?"
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "This capture still has open sections. 15 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "doc.session",
+   "at": 1794918455.269,
+   "turn": 0,
+   "seconds": 0.027,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.upload",
+   "at": 1794918455.272,
+   "turn": 0,
+   "seconds": 0.003,
+   "status": 202,
+   "retries": 0,
+   "file": "F05 MC-05 workbook.xlsx",
+   "bytes": 8474
+  },
+  {
+   "kind": "doc.extracted",
+   "at": 1794918455.785,
+   "turn": 0,
+   "seconds": 0.54,
+   "file": "F05 MC-05 workbook.xlsx",
+   "chunks": 3,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 3,
+    "total_units": 3,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_started",
+   "at": 1794918455.785,
+   "turn": 0,
+   "seconds": 0.54,
+   "file": "F05 MC-05 workbook.xlsx",
+   "chunks": 3,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 3,
+    "total_units": 3,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_deep",
+   "at": 1794918461.937,
+   "turn": 0,
+   "seconds": 6.69,
+   "file": "F05 MC-05 workbook.xlsx",
+   "chunks": 3,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 3,
+    "total_units": 3,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_complete",
+   "at": 1794918461.937,
+   "turn": 0,
+   "seconds": 6.69,
+   "file": "F05 MC-05 workbook.xlsx",
+   "chunks": 3,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 3,
+    "total_units": 3,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.followup_question",
+   "at": 1794918463.529,
+   "turn": 1,
+   "seconds": 1.592,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.first_question",
+   "at": 1794918463.529,
+   "turn": 2,
+   "seconds": 8.29,
+   "reading": {
+    "omitted_documents": 0,
+    "documents": [
+     {
+      "id": "doc_2e89b0cdb28714ea5d85006f",
+      "included_chunks": 3,
+      "total_chunks": 3
+     }
+    ]
+   }
+  },
+  {
+   "kind": "doc.notes_ready",
+   "at": 1794918523.296,
+   "turn": 2,
+   "seconds": 61.36
+  },
+  {
+   "kind": "doc.left_pending",
+   "at": 1794918523.806,
+   "turn": 2,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 61.87
+  },
+  {
+   "kind": "question",
+   "at": 1794918531.123,
+   "turn": 3,
+   "seconds": 1.585,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794918583.226,
+   "turn": 4,
+   "seconds": 53.69
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794918591.471,
+   "turn": 4,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 61.93
+  },
+  {
+   "kind": "question",
+   "at": 1794918598.966,
+   "turn": 5,
+   "seconds": 1.681,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794918626.811,
+   "turn": 6,
+   "seconds": 29.53
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794918659.373,
+   "turn": 6,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 62.09
+  },
+  {
+   "kind": "question",
+   "at": 1794918668.743,
+   "turn": 7,
+   "seconds": 3.115,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794918703.392,
+   "turn": 8,
+   "seconds": 37.76
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794918729.24,
+   "turn": 8,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 63.61
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794918734.076,
+   "turn": 8,
+   "seconds": 2.035,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "working",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.map_error",
+   "at": 1794918881.437,
+   "turn": 9,
+   "seconds": 149.4,
+   "error": "The provider timed out. Your answers are retained.",
+   "code": "timeout"
+  },
+  {
+   "kind": "wrap.map_error",
+   "at": 1794918884.846,
+   "turn": 9,
+   "seconds": 152.81,
+   "error": "The provider timed out. Your answers are retained.",
+   "code": "timeout"
+  }
+ ],
+ "started": 1794918453.415872,
+ "documents": [
+  {
+   "id": "doc_2e89b0cdb28714ea5d85006f",
+   "name": "F05 MC-05 workbook.xlsx",
+   "kind": "xlsx",
+   "size": 8474,
+   "status": "ready",
+   "chunk_count": 3,
+   "analysis": {
+    "phase": "complete",
+    "intent_version": 0,
+    "basis_turn_id": "",
+    "basis_question": "",
+    "request_count": 1,
+    "generated_by": [
+     {
+      "build_id": "713975ca987f099ba0b713812b594415e1273cd802fdd81c77d3aca273de914f",
+      "generated_at": "2026-11-17T12:27:41.432+00:00",
+      "model": "gpt-6.1-terra",
+      "prompt_id": "3cdf9a64520b6eaf",
+      "reasoning_effort": "low",
+      "stage": "document_context_review"
+     }
+    ],
+    "app_version": "0.32.0",
+    "questions": [],
+    "observations": [
+     {
+      "id": "doc_2e89b0cdb28714ea5d85006f_af99966f49c3617d75f4",
+      "text": "The workbook describes a seven-step process covering rule confirmation, input reconciliation, calculation, offsets, approval, posting and final filing.",
+      "basis": "stated",
+      "quote": "Review and obtain client approval",
+      "sources": [
+       {
+        "source_id": "doc_2e89b0cdb28714ea5d85006f_s1_r1_8_b1_c1",
+        "label": "F05 MC-05 workbook.xlsx \u00b7 Steps!A1:E8"
+       }
+      ]
+     },
+     {
+      "id": "doc_2e89b0cdb28714ea5d85006f_3d41d54d9f63547c364a",
+      "text": "The checks include reviewer reconciliation of monitoring-fee and other offsets to their sources and the LPA.",
+      "basis": "stated",
+      "quote": "Monitoring-fee and other offsets agree with their sources and the LPA",
+      "sources": [
+       {
+        "source_id": "doc_2e89b0cdb28714ea5d85006f_s2_r1_7_b1_c1",
+        "label": "F05 MC-05 workbook.xlsx \u00b7 Checks!A1:E7"
+       }
+      ]
+     },
+     {
+      "id": "doc_2e89b0cdb28714ea5d85006f_d712ed41485ace17de9f",
+      "text": "The hidden Notes sheet lists calculation conventions and several operational details as open.",
+      "basis": "stated",
+      "quote": "Standard Days, annualization, stub-period and proration rules, treatment of negative fees, carryforwards, and rounding rules are not confirmed",
+      "sources": [
+       {
+        "source_id": "doc_2e89b0cdb28714ea5d85006f_s3_r1_4_b1_c1",
+        "label": "F05 MC-05 workbook.xlsx \u00b7 Notes!A1:C4"
+       }
+      ]
+     }
+    ],
+    "limit_indicator": false,
+    "unreadable_sources": [],
+    "limitations": [],
+    "summary": "The workbook outlines management-fee calculation and offsets from period-rule confirmation through approval, funding, posting and final reconciliation. It lists six checks and identifies unresolved ownership, calculation rules, offset timing and fund-specific accounting and funding details. It describes intended steps and checks, not evidence of actual practice or control effectiveness.",
+    "summary_basis": "initial_review",
+    "summary_basis_note": "Written from the initial review selection. Later review may have changed coverage; current review status and limitations are shown separately.",
+    "summary_at_review_version": 1,
+    "queries": [],
+    "error": null,
+    "version": 1,
+    "relevance": "relevant",
+    "relevance_reason": "The steps, checks and open items directly address the stated objective of documenting the management-fee process, controls and matters requiring confirmation.",
+    "disposition": "relevant",
+    "acknowledgement": "",
+    "question": "",
+    "sources": [
+     {
+      "source_id": "doc_2e89b0cdb28714ea5d85006f_s1_r1_8_b1_c1",
+      "label": "F05 MC-05 workbook.xlsx \u00b7 Steps!A1:E8"
+     },
+     {
+      "source_id": "doc_2e89b0cdb28714ea5d85006f_s2_r1_7_b1_c1",
+      "label": "F05 MC-05 workbook.xlsx \u00b7 Checks!A1:E7"
+     },
+     {
+      "source_id": "doc_2e89b0cdb28714ea5d85006f_s3_r1_4_b1_c1",
+      "label": "F05 MC-05 workbook.xlsx \u00b7 Notes!A1:C4"
+     }
+    ],
+    "cursor": 3,
+    "reviewed_chunks": 3,
+    "total_chunks": 3,
+    "review_complete": true,
+    "estimated_requests": 1
+   },
+   "coverage": {
+    "indexed_units": 3,
+    "total_units": 3,
+    "limitations": []
+   },
+   "error": null,
+   "revision": 4,
+   "intent_version": null
+  }
+ ],
+ "revision": "bd2b0eb162e26093c4dbdc1f69f6918ba1c737d04c2ec4ea2a38688be42d5c0f",
+ "capture": {
+  "memo_findings": [
+   {
+    "answer": "The intake names the work Management Fee Calculation & Offsets.",
+    "evidence_turns": [
+     "context"
+    ],
+    "key": "name",
+    "status": "partial"
+   },
+   {
+    "answer": "The process produces an approved management-fee calculation, a funded or collected and posted fee, and a complete records package.",
+    "evidence_turns": [
+     "doc_2e89b0cdb28714ea5d85006f_s1_r1_8_b1_c1",
+     "t003"
+    ],
+    "key": "purpose",
+    "status": "captured"
+   },
+   {
+    "answer": "The workbook instructs the preparer to identify the billing period and whether it is in advance, in arrears or a stub, and check events including closes, step-downs, investment-period end and amendments.\nExact close-calendar deadlines are not set; the participant cannot provide a date.\nThe participant says the seven-step process runs each billing period.\nWork starts each billing period as defined by the LPA: quarterly, semiannual or annual. It also runs off-cycle after a later close, fee-rate step-down, investment-period end, impairment, waiver election, fee holiday, start-date override or LPA amendment that changes the calculation.",
+    "evidence_turns": [
+     "doc_2e89b0cdb28714ea5d85006f_s1_r1_8_b1_c1",
+     "t005",
+     "t003"
+    ],
+    "key": "trigger",
+    "status": "partial"
+   },
+   {
+    "answer": "The workbook requires funded and posted amounts to equal the approved calculation. The GPFS preparer and reviewer reconcile the final standalone calculation to the GL and later notice and workbook outputs, and file the package; the GL, calculation, notices, workbooks and funding must agree.",
+    "evidence_turns": [
+     "doc_2e89b0cdb28714ea5d85006f_s1_r1_8_b1_c1"
+    ],
+    "key": "completion",
+    "status": "partial"
+   },
+   {
+    "answer": "The accountable owner and named reviewer and approver are unconfirmed in the workbook.",
+    "evidence_turns": [
+     "doc_2e89b0cdb28714ea5d85006f_s3_r1_4_b1_c1"
+    ],
+    "key": "accountable",
+    "status": "partial"
+   },
+   {
+    "answer": "The workbook says the GPFS preparer identifies the period and rule changes, documents effective rules and keeps supporting terms; the reviewer and client confirm. Unclear or overlapping rules must be resolved before calculation, and prior rules must not be carried forward without checking effective dates.\nThe documented preparer obtains fee-base inputs and investor lists, reconciles offsets to sources, and obtains waiver elections, contribution rollforwards, caps and side-letter exceptions. Prior offsets, waivers and carryforwards are reconciled to the previous standalone calculation and GL; differences are resolved or documented, and missing adviser or client terms stop the affected calculation.\nThe documented preparer calculates gross fees by investor using the applicable base and rate for each effective time segment, applies approved period and investor-specific rules, and reconciles investor gross fees to fund totals. Generic formulas must not be used until Standard Days and annualization are confirmed.\nThe documented preparer allocates offsets under applicable LPA rules, fund and portfolio-company lists, percentages and timing; applies waivers, caps and approved carryforwards; and calculates net fees under the validated negative or nonnegative fee rule. Remaining approved carryforward amounts move to the next period.\nThe workbook calls for senior review, resolution of comments and client approval, followed by identifying the final approved version and ensuring duplicates agree with or link to it. Fund accounting and capital-call teams then fund or collect and post, with their exact downstream roles unspecified.\nThe participant confirms that the workbook's seven steps run in order each billing period.\nIf offsets exceed the gross fee in step 4, the preparer stops. The client decides based on the LPA's nonnegative-fee and carryforward terms; once the rule is resolved and documented, the preparer finishes the net fee and the process continues to review.\nIn step 1, if rules overlap for the same scope and dates, the preparer stops. The effective-date conflict must be resolved with a corrected rules table before any fee is calculated; work then continues to gathering inputs.\nIn step 5, a period with a step-down or fee-base change has rules segmented by effective date and requires two-person review before client approval. Otherwise, normal senior review precedes client approval.\nIf a waiver election changes, step 4 applies the new election and updates related contribution amounts and caps before continuing. The election and rollforward are kept as the record.\nIf the workbook has broken references, external links or no controlled version, work stops and the workbook is not used until it is repaired, independently recalculated, reviewed and approved.",
+    "evidence_turns": [
+     "doc_2e89b0cdb28714ea5d85006f_s1_r1_8_b1_c1",
+     "t003",
+     "t005",
+     "t007"
+    ],
+    "key": "lifecycle",
+    "status": "partial"
+   },
+   {
+    "answer": "The workbook specifies preparer checks, reviewed by a reviewer, of effective-rule scope and dates, source and opening-balance ties, and investor-to-fund totals. The reviewer checks offsets against sources and the LPA, version consistency, and funding and entries against approved fees.\nThe workbook specifies two-person review for a step-down or fee-base change, reconciliation to capital-call or quarterly copies, resolution of comments and client approval before funding or posting.\nAn excess-offset calculation stops until the client decision is resolved and documented; the participant says a record supporting the rule is needed before finishing the net fee and proceeding to review.\nOverlapping rules for the same scope and dates stop calculation until the effective-date conflict is resolved in a corrected rules table. A start-date override requires a documented written GP decision; the preparer cannot approve it.\nThe identities of the two reviewers and how their review is recorded are unspecified.\nA workbook with broken references, external links or no controlled version cannot be used until repaired, independently recalculated, reviewed and approved.",
+    "evidence_turns": [
+     "doc_2e89b0cdb28714ea5d85006f_s2_r1_7_b1_c1",
+     "doc_2e89b0cdb28714ea5d85006f_s1_r1_8_b1_c1",
+     "t003",
+     "t005",
+     "t007"
+    ],
+    "key": "checks",
+    "status": "partial"
+   },
+   {
+    "answer": "The workbook describes fund- and investor-specific bases and rates, side-letter and class rules, and permitted funding by capital call, fund cash or netting.\nA general GPFS standard and specific fund implementations have not been established.\nThe process also runs off-cycle when specified calculation-changing events occur, rather than only at the LPA-defined billing period. A start-date override requires a written GP decision.\nPeriods with a step-down or fee-base change use effective-date segmentation and mandatory two-person review rather than the normal senior review before client approval.\nA changed waiver election requires applying the new election and updating related contribution amounts and caps in step 4.\nA workbook with broken references, external links or no controlled version follows a stop-and-repair route before it can be used.",
+    "evidence_turns": [
+     "doc_2e89b0cdb28714ea5d85006f_s1_r1_8_b1_c1",
+     "doc_2e89b0cdb28714ea5d85006f_s3_r1_4_b1_c1",
+     "t003",
+     "t005",
+     "t007"
+    ],
+    "key": "variations",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant identifies offsets in step 4 as the part needing the most care.",
+    "evidence_turns": [
+     "t003"
+    ],
+    "key": "pain_points",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant says an affected calculation, approval, posting, payment or handoff stays open until the issue is resolved and the record is on file; the fee is not funded, collected or posted in the meantime.\nThe participant does not know the wider business impact; its severity has not been confirmed.",
+    "evidence_turns": [
+     "t007"
+    ],
+    "key": "risk",
+    "status": "partial"
+   },
+   {
+    "answer": "The supplied F05 MC-05 workbook documents steps, checks and open items. The participant confirms the seven steps and their order as the current billing-period route.\nThe workbook calls for a final package in the digital binder Q folder retaining rule versions, inputs, review, approval, funding, posting and reconciliation. It also refers to standalone calculations, notices and workbook copies.\nThe exact digital binder path and retention period are unconfirmed in the workbook.\nA record supporting the applicable rule is needed to document the client's resolution when offsets exceed the gross fee.\nA corrected rules table resolves overlapping effective dates before calculation. A documented written GP decision supports use of a start-date override.\nFor a changed waiver election, the election and rollforward are kept as the record supporting the update.",
+    "evidence_turns": [
+     "doc_2e89b0cdb28714ea5d85006f_s1_r1_8_b1_c1",
+     "doc_2e89b0cdb28714ea5d85006f_s2_r1_7_b1_c1",
+     "doc_2e89b0cdb28714ea5d85006f_s3_r1_4_b1_c1",
+     "t003",
+     "t005",
+     "t007"
+    ],
+    "key": "materials",
+    "status": "partial"
+   },
+   {
+    "answer": "The workbook describes fund- and investor-level management-fee calculation, including offsets, waivers, funding and posting.\nWhether the confirmed seven-step route is general GPFS practice or specific to particular clients is not established.",
+    "evidence_turns": [
+     "doc_2e89b0cdb28714ea5d85006f_s1_r1_8_b1_c1",
+     "t003"
+    ],
+    "key": "scope",
+    "status": "partial"
+   },
+   {
+    "answer": "The workbook says offsets use LPA rules, with monitoring-fee offsets applied in the correct period including any approved delay. Gross calculations must trace to an effective rule and source fee base; side letters, holidays, exclusions, start dates and step-downs are applied where relevant.\nThe workbook leaves Standard Days, annualization, stub and proration conventions, negative-fee treatment, carryforwards and rounding unconfirmed. Waiver interaction with related contributions and offset delay timing are also open.\nThe workbook lists approved posting patterns of expense and cash, expense and payable, or Due to Manager, and requires exact debit and credit accounts to be confirmed before posting. Fund-specific entries and funding methods remain open.\nWhen offsets exceed gross fees, the fee is not automatically floored at zero and the excess is not automatically discarded. The client decides based on the LPA, and a record supporting the rule is required.\nA start-date override can be used only with a documented written decision from the GP, not approval by the preparer.\nThe participant does not know who owns the rules table.\nWorkbook use is blocked when references are broken, external links exist or no controlled version exists, until repair, independent recalculation, review and approval.",
+    "evidence_turns": [
+     "doc_2e89b0cdb28714ea5d85006f_s1_r1_8_b1_c1",
+     "doc_2e89b0cdb28714ea5d85006f_s3_r1_4_b1_c1",
+     "t003",
+     "t005",
+     "t007"
+    ],
+    "key": "rules",
+    "status": "partial"
+   },
+   {
+    "answer": "The workbook calls for client approval of the calculation and describes fund accounting and capital-call teams funding or collecting and posting the approved fee; their exact downstream roles are unspecified.\nWhen offsets exceed gross fees, the client decides the applicable treatment based on the LPA before the net fee is completed.\nThe GP must provide a documented written decision before a start-date override can be used.",
+    "evidence_turns": [
+     "doc_2e89b0cdb28714ea5d85006f_s1_r1_8_b1_c1",
+     "t003",
+     "t005"
+    ],
+    "key": "connections",
+    "status": "partial"
+   },
+   {
+    "answer": "The workbook describes reconciling prior balances and final calculations to the GL and comparing standalone calculations with capital-call, quarterly and later workbook copies.\nThe workbook says source-system reports are unconfirmed.\nThe participant reports a workbook control: broken references, external links or an uncontrolled version prevent its use until repair, independent recalculation, review and approval.",
+    "evidence_turns": [
+     "doc_2e89b0cdb28714ea5d85006f_s1_r1_8_b1_c1",
+     "doc_2e89b0cdb28714ea5d85006f_s3_r1_4_b1_c1",
+     "t007"
+    ],
+    "key": "data_systems",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "volume",
+    "status": "unknown"
+   }
+  ],
+  "coverage": [
+   {
+    "key": "name",
+    "label": "Name & other names",
+    "status": "partial"
+   },
+   {
+    "key": "purpose",
+    "label": "Purpose & result",
+    "status": "partial"
+   },
+   {
+    "key": "trigger",
+    "label": "Start, cadence & deadlines",
+    "status": "partial"
+   },
+   {
+    "key": "completion",
+    "label": "Finished condition",
+    "status": "partial"
+   },
+   {
+    "key": "accountable",
+    "label": "Accountability",
+    "status": "partial"
+   },
+   {
+    "key": "lifecycle",
+    "label": "Items, stages & handoffs",
+    "status": "partial"
+   },
+   {
+    "key": "checks",
+    "label": "Checks, approvals & proof",
+    "status": "partial"
+   },
+   {
+    "key": "variations",
+    "label": "Variations and conditions",
+    "status": "partial"
+   },
+   {
+    "key": "pain_points",
+    "label": "Manual work & pain",
+    "status": "partial"
+   },
+   {
+    "key": "risk",
+    "label": "Consequences of failure",
+    "status": "partial"
+   },
+   {
+    "key": "materials",
+    "label": "Existing materials",
+    "status": "partial"
+   },
+   {
+    "key": "scope",
+    "label": "Scope & entity context",
+    "status": "partial"
+   },
+   {
+    "key": "rules",
+    "label": "Business rules & lineage",
+    "status": "partial"
+   },
+   {
+    "key": "connections",
+    "label": "Connected processes",
+    "status": "partial"
+   },
+   {
+    "key": "data_systems",
+    "label": "Data & systems",
+    "status": "partial"
+   },
+   {
+    "key": "volume",
+    "label": "Volume & effort",
+    "status": "missing"
+   }
+  ],
+  "summary": "The participant describes blocked downstream work when an issue remains unresolved, and adds review, waiver-change and workbook-control exceptions. Who is accountable for the overall fee result?",
+  "focus": "Consequences and calculation exceptions",
+  "parking_lot": [],
+  "connections_out": [
+   {
+    "condition": "Workbook calls for approval of the fee calculation before funding or posting.",
+    "counterpart": "Client",
+    "evidence_turns": [
+     "doc_2e89b0cdb28714ea5d85006f_s1_r1_8_b1_c1"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "The workbook assigns funding or collection and posting of the approved fee to these teams collectively; exact roles are unspecified.",
+    "counterpart": "Fund accounting and capital-call teams",
+    "evidence_turns": [
+     "doc_2e89b0cdb28714ea5d85006f_s1_r1_8_b1_c1"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "Workbook calls for approval of the fee calculation before funding or posting; the participant confirms the seven-step order.",
+    "counterpart": "Client",
+    "evidence_turns": [
+     "doc_2e89b0cdb28714ea5d85006f_s1_r1_8_b1_c1",
+     "t003"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "When offsets exceed gross fees, the client decides the LPA-based treatment before net-fee calculation resumes.",
+    "counterpart": "Client",
+    "evidence_turns": [
+     "t003"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "A documented written GP decision is required to use a start-date override.",
+    "counterpart": "GP",
+    "evidence_turns": [
+     "t005"
+    ],
+    "relationship_type": "requires_approval_from"
+   }
+  ],
+  "taxonomy": [
+   {
+    "evidence_turns": [
+     "doc_2e89b0cdb28714ea5d85006f_s1_r1_8_b1_c1"
+    ],
+    "facet": "entity_type",
+    "note": "Workbook describes fund- and investor-level fees; current scope is unconfirmed.",
+    "value": "fund"
+   },
+   {
+    "evidence_turns": [
+     "doc_2e89b0cdb28714ea5d85006f_s1_r1_8_b1_c1"
+    ],
+    "facet": "functional_area",
+    "note": "Documented management-fee calculation and offsets.",
+    "value": "fees_and_carry"
+   },
+   {
+    "evidence_turns": [
+     "doc_2e89b0cdb28714ea5d85006f_s1_r1_8_b1_c1"
+    ],
+    "facet": "rule_source",
+    "note": "Workbook specifies LPA rules for offsets and permitted funding methods.",
+    "value": "lpa_governing_doc"
+   },
+   {
+    "evidence_turns": [
+     "doc_2e89b0cdb28714ea5d85006f_s1_r1_8_b1_c1"
+    ],
+    "facet": "rule_source",
+    "note": "Workbook references side-letter exceptions and rules.",
+    "value": "side_letter"
+   },
+   {
+    "evidence_turns": [
+     "doc_2e89b0cdb28714ea5d85006f_s1_r1_8_b1_c1"
+    ],
+    "facet": "control_type",
+    "note": "Documented client approval precedes funding or posting; current operation unconfirmed.",
+    "value": "client_approval"
+   },
+   {
+    "evidence_turns": [
+     "doc_2e89b0cdb28714ea5d85006f_s1_r1_8_b1_c1",
+     "doc_2e89b0cdb28714ea5d85006f_s2_r1_7_b1_c1"
+    ],
+    "facet": "control_type",
+    "note": "Workbook describes senior and reviewer checks, including two-person review for specified changes.",
+    "value": "gpfs_supervisory"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "facet": "control_type",
+    "note": "Participant reports a stop and client decision when offsets exceed gross fees.",
+    "value": "exception_escalation"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "facet": "system",
+    "note": "Participant reports a workbook use-control exception; the precise calculation workbook and ownership are not established.",
+    "value": "excel_workbook"
+   }
+  ],
+  "completion": {
+   "allowed": false,
+   "ready_for_final_check": false,
+   "complete": false,
+   "partial": true,
+   "participant_confirmed": false,
+   "blockers": [
+    "role_incomplete:coverage_reviewer",
+    "role_incomplete:process_reviewer",
+    "coverage_result_unbound",
+    "coverage_incomplete",
+    "coverage_unresolved:name",
+    "coverage_unresolved:purpose",
+    "coverage_unresolved:trigger",
+    "coverage_unresolved:completion",
+    "coverage_unresolved:accountable",
+    "coverage_unresolved:lifecycle",
+    "coverage_unresolved:checks",
+    "coverage_unresolved:variations",
+    "coverage_unresolved:pain_points",
+    "coverage_unresolved:risk",
+    "coverage_unresolved:materials",
+    "coverage_unresolved:scope",
+    "coverage_unresolved:rules",
+    "coverage_unresolved:connections",
+    "coverage_unresolved:data_systems",
+    "coverage_unresolved:volume",
+    "process_result_unbound"
+   ],
+   "revision": "c8888791906b12b45e8105572067a9d8d1de8bf5f9f68351c76b73e9a29a1bdb",
+   "run_id": "9145aeeb83574e0e8cc134d2da226f6e"
+  },
+  "coverage_assessment": null
+ },
+ "finished": 1794918884.84623
+}

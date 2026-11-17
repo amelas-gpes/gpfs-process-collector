@@ -1,0 +1,600 @@
+{
+ "case": "STRESS-T13",
+ "port": 8791,
+ "interview_id": "6fcdc75b12064379b85579cec1d062b7",
+ "context": {
+  "process_name": "Expense Processing: T&E Review & Scrubbing (AEA Variant)",
+  "process_owner": "",
+  "objective": "Document how we carry out Expense Processing: T&E Review & Scrubbing (AEA Variant), the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "AEA Concur expense reports become ready for review."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "Talk me through what you do once an AEA Concur expense report is ready for review."
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "First the reviewer adds the report to the Excel review tracker."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What does the reviewer do with the report after adding it to the tracker?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "Cardholder, statement total, submitted amount, report identifier, and status."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "What does the reviewer compare those report details against?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "Receipts and personal-expense classification on each line, then the approvals."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "What does the reviewer verify about the approvals?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "The current AEA rulebook; the receipt threshold is not confirmed yet."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "What does the reviewer check in the approval trail against the AEA rulebook?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "Approvers and statuses in Concur, then screenshots them and saves the report PDF."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "What happens to a report when the reviewer finds an issue?"
+  },
+  {
+   "id": "t014",
+   "role": "user",
+   "text": "Flags it to the submitter or client and records the resolution in the tracker."
+  },
+  {
+   "id": "t015",
+   "role": "assistant",
+   "text": "Once an issue is resolved, how does the reviewer know the report is ready to continue?"
+  },
+  {
+   "id": "t016",
+   "role": "user",
+   "text": "It stays out of the scrubbing batch; only cleared reports go in."
+  },
+  {
+   "id": "t017",
+   "role": "assistant",
+   "text": "What does the reviewer do to scrub reports once they enter the batch?"
+  },
+  {
+   "id": "t018",
+   "role": "assistant",
+   "text": "This capture still has open sections. 15 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794920891.721,
+   "turn": 0,
+   "seconds": 0.019,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794920900.727,
+   "turn": 2,
+   "seconds": 8.956,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794920909.417,
+   "turn": 3,
+   "seconds": 17.65
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794920930.864,
+   "turn": 3,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 39.09
+  },
+  {
+   "kind": "question",
+   "at": 1794920934.303,
+   "turn": 4,
+   "seconds": 3.39,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794920964.438,
+   "turn": 5,
+   "notes_state": "queued",
+   "map_state": "queued",
+   "seconds": 33.52
+  },
+  {
+   "kind": "question",
+   "at": 1794920967.677,
+   "turn": 6,
+   "seconds": 3.166,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794920997.848,
+   "turn": 7,
+   "notes_state": "working",
+   "map_state": "queued",
+   "seconds": 33.34
+  },
+  {
+   "kind": "question",
+   "at": 1794921002.693,
+   "turn": 8,
+   "seconds": 4.773,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794921019.564,
+   "turn": 9,
+   "seconds": 21.64
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794921032.827,
+   "turn": 9,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 34.91
+  },
+  {
+   "kind": "question",
+   "at": 1794921037.889,
+   "turn": 10,
+   "seconds": 4.99,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794921068.005,
+   "turn": 11,
+   "notes_state": "queued",
+   "map_state": "queued",
+   "seconds": 35.11
+  },
+  {
+   "kind": "question",
+   "at": 1794921070.896,
+   "turn": 12,
+   "seconds": 2.823,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794921100.971,
+   "turn": 13,
+   "notes_state": "queued",
+   "map_state": "queued",
+   "seconds": 32.9
+  },
+  {
+   "kind": "question",
+   "at": 1794921103.991,
+   "turn": 14,
+   "seconds": 2.955,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794921134.114,
+   "turn": 15,
+   "notes_state": "queued",
+   "map_state": "queued",
+   "seconds": 33.08
+  },
+  {
+   "kind": "question",
+   "at": 1794921136.022,
+   "turn": 16,
+   "seconds": 1.842,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794921166.127,
+   "turn": 17,
+   "notes_state": "working",
+   "map_state": "queued",
+   "seconds": 31.95
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794921179.003,
+   "turn": 17,
+   "seconds": 12.806,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "queued",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.left_pending",
+   "at": 1794921719.509,
+   "turn": 18,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 553.31
+  }
+ ],
+ "started": 1794920891.701419,
+ "revision": "1b3e2848e010a7102c489f80a17fc5241cc8fa79d527073d0502a90c88df8684",
+ "capture": {
+  "memo_findings": [
+   {
+    "answer": "Expense Processing: T&E Review & Scrubbing (AEA Variant)",
+    "evidence_turns": [
+     "context"
+    ],
+    "key": "name",
+    "status": "captured"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "purpose",
+    "status": "unknown"
+   },
+   {
+    "answer": "The work is triggered when AEA Concur expense reports become ready for review.\nThe cadence, recipient or detector of the ready-for-review reports, and any fixed deadlines are not established.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "trigger",
+    "status": "partial"
+   },
+   {
+    "answer": "Only cleared reports go into the scrubbing batch; reports with an issue stay out.\nHow clearance is determined and what establishes completion of the overall review and scrubbing work remain unclear.",
+    "evidence_turns": [
+     "t014",
+     "t016"
+    ],
+    "key": "completion",
+    "status": "partial"
+   },
+   {
+    "answer": "The reviewer performs the tracker-entry step, but the role accountable for the overall result is not established.",
+    "evidence_turns": [
+     "t004"
+    ],
+    "key": "accountable",
+    "status": "partial"
+   },
+   {
+    "answer": "Once an AEA Concur expense report is ready for review, the reviewer adds the report to the Excel review tracker.\nThe detailed receipt and classification review method, how clearance is determined, subsequent handoff and overall finished condition remain unclear.\nAfter tracker entry, the participant identifies receipts and personal-expense classification on each line, followed by approvals, as review considerations.\nThe reviewer checks approvers and statuses in Concur against the current AEA rulebook, screenshots them and saves the report PDF.\nWhen the reviewer finds an issue, the reviewer flags it to the submitter or client and records its resolution in the tracker. The report stays out of the scrubbing batch; only cleared reports go in.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t008",
+     "t012",
+     "t014",
+     "t016",
+     "t010"
+    ],
+    "key": "lifecycle",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant identifies receipts and personal-expense classification on each line, followed by approvals, in the review.\nThe receipt and personal-expense checks, the approval acceptance criteria, and how approvals are obtained remain unclear.\nThe reviewer checks approvers and statuses in Concur against the current AEA rulebook and screenshots them.\nIssues are flagged to the submitter or client and their resolution is recorded in the tracker; only cleared reports enter the scrubbing batch.",
+    "evidence_turns": [
+     "t008",
+     "t010",
+     "t012",
+     "t014",
+     "t016"
+    ],
+    "key": "checks",
+    "status": "partial"
+   },
+   {
+    "answer": "The specific differences in the AEA variant from any common or other route are not established.",
+    "evidence_turns": [
+     "context"
+    ],
+    "key": "variations",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "pain_points",
+    "status": "unknown"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "risk",
+    "status": "unknown"
+   },
+   {
+    "answer": "The Excel review tracker is used to record the cardholder, statement total, submitted amount, report identifier, and status for a report. The tracker is mentioned but has not been reviewed.\nReceipts are mentioned in connection with reviewing each report line.\nThe current AEA rulebook is referenced for the approval review; it has not been supplied or reviewed in this capture.\nThe reviewer screenshots the Concur approvers and statuses and saves the report PDF. The tracker records issue resolutions.",
+    "evidence_turns": [
+     "t004",
+     "t006",
+     "t008",
+     "t010",
+     "t012",
+     "t014"
+    ],
+    "key": "materials",
+    "status": "partial"
+   },
+   {
+    "answer": "The supplied process name identifies this work as an AEA variant of expense processing: T&E review and scrubbing.",
+    "evidence_turns": [
+     "context"
+    ],
+    "key": "scope",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant identifies the current AEA rulebook as the reference for the approval review. Only cleared reports go into the scrubbing batch.\nThe receipt threshold has not yet been confirmed.",
+    "evidence_turns": [
+     "t010",
+     "t012",
+     "t016"
+    ],
+    "key": "rules",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "connections",
+    "status": "unknown"
+   },
+   {
+    "answer": "The work involves AEA Concur expense reports and an Excel review tracker; the reviewer adds reports to the tracker.\nThe source of each tracker field and any other data entry or system use remain unclear.\nThe reviewer checks approvers and statuses in Concur, screenshots them, saves the report PDF and records issue resolution in the tracker.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t012",
+     "t014"
+    ],
+    "key": "data_systems",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "volume",
+    "status": "unknown"
+   }
+  ],
+  "coverage": [
+   {
+    "key": "name",
+    "label": "Name & other names",
+    "status": "partial"
+   },
+   {
+    "key": "purpose",
+    "label": "Purpose & result",
+    "status": "missing"
+   },
+   {
+    "key": "trigger",
+    "label": "Start, cadence & deadlines",
+    "status": "partial"
+   },
+   {
+    "key": "completion",
+    "label": "Finished condition",
+    "status": "partial"
+   },
+   {
+    "key": "accountable",
+    "label": "Accountability",
+    "status": "partial"
+   },
+   {
+    "key": "lifecycle",
+    "label": "Items, stages & handoffs",
+    "status": "partial"
+   },
+   {
+    "key": "checks",
+    "label": "Checks, approvals & proof",
+    "status": "partial"
+   },
+   {
+    "key": "variations",
+    "label": "Variations and conditions",
+    "status": "partial"
+   },
+   {
+    "key": "pain_points",
+    "label": "Manual work & pain",
+    "status": "missing"
+   },
+   {
+    "key": "risk",
+    "label": "Consequences of failure",
+    "status": "missing"
+   },
+   {
+    "key": "materials",
+    "label": "Existing materials",
+    "status": "partial"
+   },
+   {
+    "key": "scope",
+    "label": "Scope & entity context",
+    "status": "partial"
+   },
+   {
+    "key": "rules",
+    "label": "Business rules & lineage",
+    "status": "partial"
+   },
+   {
+    "key": "connections",
+    "label": "Connected processes",
+    "status": "missing"
+   },
+   {
+    "key": "data_systems",
+    "label": "Data & systems",
+    "status": "partial"
+   },
+   {
+    "key": "volume",
+    "label": "Volume & effort",
+    "status": "missing"
+   }
+  ],
+  "summary": "The reviewer checks Concur approvers and statuses against the current AEA rulebook, captures screenshots and saves the report PDF. Issues are flagged to the submitter or client and their resolution recorded; only cleared reports enter the scrubbing batch. The receipt threshold and clearance criteria remain unclear.",
+  "focus": "Clearing reports for the scrubbing batch",
+  "parking_lot": [],
+  "connections_out": [],
+  "taxonomy": [
+   {
+    "evidence_turns": [
+     "context"
+    ],
+    "facet": "functional_area",
+    "note": "The supplied process name describes expense processing and T&E review; functional-area classification is descriptive of that stated scope.",
+    "value": "internal_operations"
+   },
+   {
+    "evidence_turns": [
+     "context"
+    ],
+    "facet": "client_applicability",
+    "note": "Process title identifies an AEA variant; no further client-specific steps or basis are established.",
+    "value": "client_specific"
+   },
+   {
+    "evidence_turns": [
+     "context"
+    ],
+    "facet": "variant_class",
+    "note": "The supplied process title labels this an AEA Variant; the underlying differences are not yet described.",
+    "value": "client_specific"
+   },
+   {
+    "evidence_turns": [
+     "t004",
+     "t006"
+    ],
+    "facet": "system",
+    "note": "Participant reports an Excel review tracker used to record report details; the workbook has not been reviewed.",
+    "value": "excel_workbook"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "system",
+    "note": "Participant identifies AEA Concur as the source context for expense reports; Concur is not a named controlled system value.",
+    "value": "other"
+   },
+   {
+    "evidence_turns": [
+     "t012",
+     "t014",
+     "t016"
+    ],
+    "facet": "control_type",
+    "note": "Reported reviewer checks approvers and statuses and keeps reports with issues out of the scrubbing batch; the precise clearance criteria remain open.",
+    "value": "gpfs_operational"
+   },
+   {
+    "evidence_turns": [
+     "t010",
+     "t012"
+    ],
+    "facet": "rule_source",
+    "note": "Participant reports using the current AEA rulebook for approval review; it has not been independently reviewed.",
+    "value": "other"
+   }
+  ],
+  "completion": {
+   "allowed": false,
+   "ready_for_final_check": false,
+   "complete": false,
+   "partial": true,
+   "participant_confirmed": false,
+   "blockers": [
+    "role_incomplete:coverage_reviewer",
+    "role_incomplete:process_reviewer",
+    "coverage_result_unbound",
+    "coverage_incomplete",
+    "coverage_unresolved:name",
+    "coverage_unresolved:purpose",
+    "coverage_unresolved:trigger",
+    "coverage_unresolved:completion",
+    "coverage_unresolved:accountable",
+    "coverage_unresolved:lifecycle",
+    "coverage_unresolved:checks",
+    "coverage_unresolved:variations",
+    "coverage_unresolved:pain_points",
+    "coverage_unresolved:risk",
+    "coverage_unresolved:materials",
+    "coverage_unresolved:scope",
+    "coverage_unresolved:rules",
+    "coverage_unresolved:connections",
+    "coverage_unresolved:data_systems",
+    "coverage_unresolved:volume",
+    "process_result_unbound"
+   ],
+   "revision": "ae1933973b8774cd9dc092e8a9a911689dbc7f32afd6176d4612ed9e62ffd109",
+   "run_id": "41c3181a45f143c6a243a1aa980073b5"
+  },
+  "coverage_assessment": null
+ },
+ "finished": 1794921719.509353
+}

@@ -1,0 +1,3612 @@
+{
+ "case": "F01",
+ "port": 8793,
+ "interview_id": "1e8af02148e141e490fd0a3f26c4aa58",
+ "context": {
+  "process_name": "Debt Investment Economics: Loan Workbook, Yields, PIK, OID & Warrants",
+  "process_owner": "",
+  "objective": "Document how we carry out Debt Investment Economics: Loan Workbook, Yields, PIK, OID & Warrants, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "Thanks for sharing. Give me a moment to digest the file. Then I\u2019ll follow up with a question.",
+   "document_event": true,
+   "document_id": "doc_intake"
+  },
+  {
+   "id": "t002",
+   "role": "assistant",
+   "text": "The procedure says calculations are on operational hold until controls and accountable roles are documented. Does that hold reflect how this work is handled today?"
+  },
+  {
+   "id": "t003",
+   "role": "user",
+   "text": "Yes, the hold is the current status. We are not supposed to run the loan, yield, PIK, OID or warrant calculations until the controlled workbook, the contract-term checklist, the independent build check, the approved GL and accounting treatment, the amortization method, the system configuration, the variance thresholds and the accountable roles are all documented. Several of those are still open, including who the process owner and accountable approver are. Beyond that I do not know of any different way it is handled in practice."
+  },
+  {
+   "id": "t004",
+   "role": "assistant",
+   "text": "While the hold remains in place, what work\u2014if any\u2014continues for these investments?"
+  },
+  {
+   "id": "t005",
+   "role": "user",
+   "text": "I do not know. Nothing I have says which work carries on during the hold, so I cannot tell you that. What I can confirm is the normal shape of the work once it runs: an initial workbook build when the final executed loan documents arrive, then a monthly recognition and close cycle, plus updates whenever there is a draw, amendment, rate change, election, default or prepayment."
+  },
+  {
+   "id": "t006",
+   "role": "assistant",
+   "text": "What could happen if these calculations were run before the documented controls and roles are in place?"
+  },
+  {
+   "id": "t007",
+   "role": "user",
+   "text": "Income and principal could be wrong in the books. Terms and formulas are keyed by hand from very long credit agreements, so without an independent check of the initial build the amounts can be materially misstated from the start of the investment through the current period. Unconfirmed amortization conventions or broken references can change income, and a wrong Allvue setup changes the system accruals and journal entries. Unexplained differences keep posting and the reporting close on hold, and the numbers feed the GL, the trial balance and financial reporting."
+  },
+  {
+   "id": "t008",
+   "role": "assistant",
+   "text": "Once the hold is lifted, does this work apply across your debt investments in the same way, or does it vary by fund or client?"
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "This capture still has open sections. 16 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "doc.session",
+   "at": 1794918333.245,
+   "turn": 0,
+   "seconds": 0.028,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.upload",
+   "at": 1794918333.249,
+   "turn": 0,
+   "seconds": 0.004,
+   "status": 202,
+   "retries": 0,
+   "file": "F01 FA-10 full process.pdf",
+   "bytes": 830921
+  },
+  {
+   "kind": "doc.extracted",
+   "at": 1794918336.458,
+   "turn": 0,
+   "seconds": 3.24,
+   "file": "F01 FA-10 full process.pdf",
+   "chunks": 86,
+   "status": "partial",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 84,
+    "total_units": 85,
+    "text_indexed_units": 85,
+    "visual_pending_units": 1,
+    "unit": "pages",
+    "limitations": [
+     "1 pages contain native text plus graphics; text is preserved separately, but graphics and layout still require native visual review."
+    ]
+   }
+  },
+  {
+   "kind": "doc.review_started",
+   "at": 1794918336.458,
+   "turn": 0,
+   "seconds": 3.24,
+   "file": "F01 FA-10 full process.pdf",
+   "chunks": 86,
+   "status": "partial",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 84,
+    "total_units": 85,
+    "text_indexed_units": 85,
+    "visual_pending_units": 1,
+    "unit": "pages",
+    "limitations": [
+     "1 pages contain native text plus graphics; text is preserved separately, but graphics and layout still require native visual review."
+    ]
+   }
+  },
+  {
+   "kind": "doc.review_deep",
+   "at": 1794918344.101,
+   "turn": 0,
+   "seconds": 10.88,
+   "file": "F01 FA-10 full process.pdf",
+   "chunks": 86,
+   "status": "partial",
+   "phase": "deep",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 84,
+    "total_units": 85,
+    "text_indexed_units": 85,
+    "visual_pending_units": 1,
+    "unit": "pages",
+    "limitations": [
+     "1 pages contain native text plus graphics; text is preserved separately, but graphics and layout still require native visual review."
+    ]
+   }
+  },
+  {
+   "kind": "doc.review_complete",
+   "at": 1794918492.533,
+   "turn": 0,
+   "seconds": 159.32,
+   "file": "F01 FA-10 full process.pdf",
+   "chunks": 86,
+   "status": "partial",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 85,
+    "total_units": 85,
+    "text_indexed_units": 85,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": [
+     "AI visual transcriptions are searchable but have not been independently verified."
+    ]
+   }
+  },
+  {
+   "kind": "doc.followup_question",
+   "at": 1794918494.706,
+   "turn": 1,
+   "seconds": 2.173,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.first_question",
+   "at": 1794918494.706,
+   "turn": 2,
+   "seconds": 161.49,
+   "reading": {
+    "omitted_documents": 0,
+    "documents": [
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740",
+      "included_chunks": 48,
+      "total_chunks": 86
+     }
+    ]
+   }
+  },
+  {
+   "kind": "doc.notes_error",
+   "at": 1794918583.139,
+   "turn": 2,
+   "seconds": 90.61,
+   "error": "The provider timed out. Your answers are retained.",
+   "code": "timeout"
+  },
+  {
+   "kind": "doc.left_pending",
+   "at": 1794918585.207,
+   "turn": 2,
+   "notes_state": "error",
+   "map_state": "working",
+   "seconds": 92.67,
+   "error": "The provider timed out. Your answers are retained."
+  },
+  {
+   "kind": "question",
+   "at": 1794918592.61,
+   "turn": 3,
+   "seconds": 1.741,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794918672.02,
+   "turn": 4,
+   "seconds": 81.15
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794918682.864,
+   "turn": 4,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 91.99
+  },
+  {
+   "kind": "question",
+   "at": 1794918689.105,
+   "turn": 5,
+   "seconds": 1.653,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794918721.055,
+   "turn": 6,
+   "seconds": 33.6
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794918779.616,
+   "turn": 6,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 92.16
+  },
+  {
+   "kind": "question",
+   "at": 1794918786.147,
+   "turn": 7,
+   "seconds": 1.755,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794918816.729,
+   "turn": 8,
+   "seconds": 32.34
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794918876.259,
+   "turn": 8,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 91.87
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794918878.385,
+   "turn": 8,
+   "seconds": 2.044,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "working",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.map_ready",
+   "at": 1794919107.553,
+   "turn": 9,
+   "seconds": 231.21,
+   "steps": 20,
+   "connections": 25
+  }
+ ],
+ "started": 1794918330.8070369,
+ "documents": [
+  {
+   "id": "doc_b9e9c0cbc81e5d839e647740",
+   "name": "F01 FA-10 full process.pdf",
+   "kind": "pdf",
+   "size": 830921,
+   "status": "partial",
+   "chunk_count": 86,
+   "analysis": {
+    "phase": "complete",
+    "intent_version": 0,
+    "basis_turn_id": "",
+    "basis_question": "",
+    "request_count": 12,
+    "generated_by": [
+     {
+      "build_id": "713975ca987f099ba0b713812b594415e1273cd802fdd81c77d3aca273de914f",
+      "generated_at": "2026-11-17T12:25:43.911+00:00",
+      "model": "gpt-6.1-terra",
+      "prompt_id": "3cdf9a64520b6eaf",
+      "reasoning_effort": "low",
+      "stage": "document_context_review"
+     },
+     {
+      "build_id": "713975ca987f099ba0b713812b594415e1273cd802fdd81c77d3aca273de914f",
+      "generated_at": "2026-11-17T12:25:58.839+00:00",
+      "model": "gpt-6.1-terra",
+      "prompt_id": "3cdf9a64520b6eaf",
+      "reasoning_effort": "low",
+      "stage": "document_context_review"
+     },
+     {
+      "build_id": "713975ca987f099ba0b713812b594415e1273cd802fdd81c77d3aca273de914f",
+      "generated_at": "2026-11-17T12:26:12.914+00:00",
+      "model": "gpt-6.1-terra",
+      "prompt_id": "3cdf9a64520b6eaf",
+      "reasoning_effort": "low",
+      "stage": "document_context_review"
+     },
+     {
+      "build_id": "713975ca987f099ba0b713812b594415e1273cd802fdd81c77d3aca273de914f",
+      "generated_at": "2026-11-17T12:26:26.305+00:00",
+      "model": "gpt-6.1-terra",
+      "prompt_id": "3cdf9a64520b6eaf",
+      "reasoning_effort": "low",
+      "stage": "document_context_review"
+     },
+     {
+      "build_id": "713975ca987f099ba0b713812b594415e1273cd802fdd81c77d3aca273de914f",
+      "generated_at": "2026-11-17T12:26:39.414+00:00",
+      "model": "gpt-6.1-terra",
+      "prompt_id": "3cdf9a64520b6eaf",
+      "reasoning_effort": "low",
+      "stage": "document_context_review"
+     },
+     {
+      "build_id": "713975ca987f099ba0b713812b594415e1273cd802fdd81c77d3aca273de914f",
+      "generated_at": "2026-11-17T12:26:53.874+00:00",
+      "model": "gpt-6.1-terra",
+      "prompt_id": "3cdf9a64520b6eaf",
+      "reasoning_effort": "low",
+      "stage": "document_context_review"
+     },
+     {
+      "build_id": "713975ca987f099ba0b713812b594415e1273cd802fdd81c77d3aca273de914f",
+      "generated_at": "2026-11-17T12:27:07.040+00:00",
+      "model": "gpt-6.1-terra",
+      "prompt_id": "3cdf9a64520b6eaf",
+      "reasoning_effort": "low",
+      "stage": "document_context_review"
+     },
+     {
+      "build_id": "713975ca987f099ba0b713812b594415e1273cd802fdd81c77d3aca273de914f",
+      "generated_at": "2026-11-17T12:27:21.559+00:00",
+      "model": "gpt-6.1-terra",
+      "prompt_id": "3cdf9a64520b6eaf",
+      "reasoning_effort": "low",
+      "stage": "document_context_review"
+     },
+     {
+      "build_id": "713975ca987f099ba0b713812b594415e1273cd802fdd81c77d3aca273de914f",
+      "generated_at": "2026-11-17T12:27:35.237+00:00",
+      "model": "gpt-6.1-terra",
+      "prompt_id": "3cdf9a64520b6eaf",
+      "reasoning_effort": "low",
+      "stage": "document_context_review"
+     },
+     {
+      "build_id": "713975ca987f099ba0b713812b594415e1273cd802fdd81c77d3aca273de914f",
+      "generated_at": "2026-11-17T12:27:47.186+00:00",
+      "model": "gpt-6.1-terra",
+      "prompt_id": "3cdf9a64520b6eaf",
+      "reasoning_effort": "low",
+      "stage": "document_context_review"
+     },
+     {
+      "build_id": "713975ca987f099ba0b713812b594415e1273cd802fdd81c77d3aca273de914f",
+      "generated_at": "2026-11-17T12:27:59.769+00:00",
+      "model": "gpt-6.1-terra",
+      "prompt_id": "3cdf9a64520b6eaf",
+      "reasoning_effort": "low",
+      "stage": "document_context_review"
+     },
+     {
+      "build_id": "713975ca987f099ba0b713812b594415e1273cd802fdd81c77d3aca273de914f",
+      "generated_at": "2026-11-17T12:28:12.357+00:00",
+      "model": "gpt-6.1-terra",
+      "prompt_id": "3cdf9a64520b6eaf",
+      "reasoning_effort": "low",
+      "stage": "document_context_review"
+     }
+    ],
+    "app_version": "0.32.0",
+    "questions": [
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_c14233cea252a75521dc",
+      "text": "Who is the accountable process owner and who can approve the initial build and release from the operational hold?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p2_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 2"
+       },
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p3_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 3"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_59806bb7cd408b1cd8b0",
+      "text": "Which approved workbook, versioning method and repository should be used, and what are the retention requirements for review evidence?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p6_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 6"
+       },
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p7_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 7"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_2b06929c4acc2f625c30",
+      "text": "How are unresolved cash variances assigned and escalated, including the thresholds and timing for escalation?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p3_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 3"
+       },
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p5_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 5"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_7bb29ec143f4062cd5a6",
+      "text": "What is the entity-specific journal-entry approval route before the Accounting/Fund Team posts?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p7_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 7"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_622f14b5c67966eaca67",
+      "text": "How are Allvue-to-Excel differences investigated, documented and resolved, including who decides whether rounding differences are acceptable?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p9_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 9"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_e4e6d7bc06ba7149a8ef",
+      "text": "How are borrower cash/PIK elections communicated and evidenced, and who updates and checks the affected periods?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p11_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 11"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_3975cd59593ea05d9e5e",
+      "text": "When executed terms do not specify an accounting implementation, how is the applicable approved method identified and its scope, effective date and approval retained?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p15_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 15"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_394e44ff05081c10db60",
+      "text": "How is the stated absence of formal initial-build preparer and checker roles reconciled with the completion requirement for independent review?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p9_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 9"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_69bd1d7b8ac776e14cdf",
+      "text": "How is completion of upstream investment setup and confirmation of funding communicated to the workbook preparer before the build begins?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p19_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 19"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_23b0f99533be41b95992",
+      "text": "Who owns Allvue/Alta Return configuration, and how are configuration changes requested and checked?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p17_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 17"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_e1736f98efc123a6156a",
+      "text": "How are confirmed defaults, prepayments and approved fee calculations communicated to the preparer and reviewer?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p20_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 20"
+       },
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p23_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 23"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_0030b9e3b1c43aefd3c7",
+      "text": "Which information is rekeyed between Excel, Allvue and the GL, and how is that transfer checked?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p17_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 17"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_a803c3a061ae0b270016",
+      "text": "Who approves the warrant amortization convention and amendment-layer method, and how are later draws incorporated and checked against the maturity total?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p26_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 26"
+       },
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p31_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 31"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_4db59b91515308b1ea86",
+      "text": "What approved contract-term and setup checklist is used, and who checks its completeness against executed terms?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p25_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 25"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_fa8233a2a532a19ee666",
+      "text": "How are stub-period boundaries and subsequent realignment checked after a mid-cycle draw or amendment?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p31_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 31"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_a7c2241622479d593ab9",
+      "text": "Which entity-specific GL accounts are used for principal, interest, PIK and warrant amortization, and who confirms the mapping?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p27_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 27"
+       },
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p28_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 28"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_aa03df4a98833d6d8011",
+      "text": "How are changed schedules identified for independent checking, and what evidence is retained of that review?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p39_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 39"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_c1c9f227a3e62889298d",
+      "text": "Who owns unexplained post-recording reconciliation differences, and how are they tracked through resolution or reporting?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p37_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 37"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_9cdab596649f8dc262d4",
+      "text": "Who approves early-payoff gain or loss treatment, and what evidence supports the approval?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p38_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 38"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_994cbdd10e81747b94b0",
+      "text": "How is a hold on affected work recorded and released after client or legal direction resolves an uncertain contract interpretation?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p38_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 38"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_6d8daf8a5e3ab27d0e99",
+      "text": "Who assigns the preparer and independent checker when their exact roles are unspecified, and how is independence established?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p45_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 45"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_cd6d9de5cde83221ec55",
+      "text": "Who owns and approves resolution of an unexplained opening-balance difference before current-period processing resumes?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p47_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 47"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_ce62b18bfaad88573c98",
+      "text": "Which current approved operating guidance and accounting methods govern the process, and who is responsible for approving or updating them?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p41_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 41"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_c1bf9745733d9ecad7f6",
+      "text": "How are conflicts between a cash/PIK election notice and actual receipts resolved, and who authorizes the resulting classification?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p48_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 48"
+       },
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p54_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 54"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_01710b47da3f5453b6b1",
+      "text": "Who owns Allvue security configuration and approves rounding differences against Excel, and what tolerance applies?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p52_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 52"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_7f79e089f1d3259b7b8d",
+      "text": "Who obtains and records written direction at contractual maturity, and how is continued accrual prevented until that direction is available?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p53_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 53"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_618b2440e3fe401a4426",
+      "text": "Should the maturity check separately reconcile OID and warrant amortization to their respective approved allocated costs?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p61_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 61"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_ba0ff005ba72d4b09f78",
+      "text": "Is the reference to FA10-DP-03 in the executed-document completeness failure instruction intentional, or should another escalation procedure apply?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p58_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 58"
+       },
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p57_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 57"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_fb4d92e31f615c733f92",
+      "text": "How are material periods selected for the independent cash-interest recalculation, and who approves that selection?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p60_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 60"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_42d5bfdd8b3010b7f1a3",
+      "text": "Which controlled repository paths and retention periods apply to the workbook, calculation support and review records?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p65_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 65"
+       },
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p67_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 67"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_ff3480767ab38a50068f",
+      "text": "How is an initial-build check failure documented, corrected or escalated under FA10-EX-05, and who authorizes resumption?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p64_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 64"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_682fac5be7db5b0b27cf",
+      "text": "How are client-specific cash-only or PIK variations and their required client and adviser approvals recorded, and who approves any broader policy application?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p71_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 71"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_86d8f3a59162448009e3",
+      "text": "Who coordinates and verifies the upstream and downstream handoffs before an affected calculation or reporting step begins?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p76_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 76"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_a1068e7169ac4dec69b3",
+      "text": "How is the month-end/start-of-month cash-processing bottleneck managed, and who prioritizes work when capacity is constrained?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p79_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 79"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_88463586e3110879b2d1",
+      "text": "Who can approve a supported unresolved schedule, system or cash variance for close, and how is that exception documented?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p79_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 79"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_f95a6e20e584e7120f56",
+      "text": "Who are the designated process owner, preparer, checker and accountable approver, including their escalation responsibilities?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p80_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 80"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_f2d3fa0acd5b00c2ae04",
+      "text": "What scope, review evidence and sign-off authority are required for the independent initial-build check?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p82_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 82"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_5512d38c496eb454da8c",
+      "text": "What entity-specific GL accounts, entry patterns and journal-entry approval routes apply to each investment economics component?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p83_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 83"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_e0b216da717dfd3f4c38",
+      "text": "What approved straight-line OID and warrant conventions apply to periods, rounding and later draws, and who approves them?",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p83_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 83"
+       }
+      ]
+     }
+    ],
+    "observations": [
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_7ebc7f6e941ea1eb7f82",
+      "text": "The process outline spans workbook creation, interest and amortization calculations, cash variances, Allvue accrual validation and period close.",
+      "basis": "stated",
+      "quote": "Step 13 \u2014 Run and validate the Alta Return/Allvue NAV accrual process",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p1_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 1"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_e8f92adc85329645baaf",
+      "text": "The completion criteria call for independent review, reconciliations and a retained, versioned workbook.",
+      "basis": "stated",
+      "quote": "The initial build and current-period changes have a record of independent review.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p64_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 64"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_fe45a17a1d1ab90681ea",
+      "text": "The document says the entity-specific journal-entry approval route remains unconfirmed.",
+      "basis": "stated",
+      "quote": "The entity-specific JE approval route is not yet confirmed",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p21_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 21"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_06de86b4cceb48e9695a",
+      "text": "The document identifies unconfirmed cash-variance thresholds and escalation timing.",
+      "basis": "stated",
+      "quote": "Material\nvariance\nthresholds\nand\nescalation\ntiming for\nexpected-\nversus-\nactual cash",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p85_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 85"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_e87d848a9643398bad6f",
+      "text": "The document places calculations on operational hold until specified controls and accountable roles are documented.",
+      "basis": "stated",
+      "quote": "Do not perform loan, yield, payment-in-kind (PIK), original\nissue discount (OID), or warrant calculations until all required controls are\ndocumented",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p2_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 2"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_12669e4e40ef75026c53",
+      "text": "The initial build depends on completion of FA-09 and receipt of executed documents; subsequent updates can be monthly or event-driven.",
+      "basis": "stated",
+      "quote": "FA-09 purchase and setup must be complete\nfirst",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p3_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 3"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_4095a5fbe564746c12ad",
+      "text": "The process owner, internal approver and accountable approver are not confirmed, although preparer and independent reviewer responsibilities are described.",
+      "basis": "stated",
+      "quote": "the process owner, internal approver and\naccountable approver are not yet confirmed",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p3_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 3"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_68eb451d68a73b250136",
+      "text": "For amendments, draws and stub changes, the described procedure retains a pre-change copy, splits periods at the effective date and records a before-and-after comparison and checker approval.",
+      "basis": "stated",
+      "quote": "before-and-after\ncomparison \u2192 checker\u02bcs approval record",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p5_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 5"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_1feb5019a6200e00757f",
+      "text": "The described handoffs include receipt information from Treasury or cash monitoring, posting by Accounting/Fund Team and system accrual preparation in Allvue.",
+      "basis": "stated",
+      "quote": "the Treasury or cash-monitoring role supplies actual\nreceipts",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p6_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 6"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_1b438f2dd64274aea782",
+      "text": "The workbook template, location and versioning method, and the exact controlled repository path, remain unconfirmed.",
+      "basis": "stated",
+      "quote": "template, location and versioning method not\nconfirmed",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p6_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 6"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_902ec8ce8165b008805a",
+      "text": "The write-up assigns legal and accounting conclusions to client counsel and advisers and calls for approval of nonstandard terms before GL recording.",
+      "basis": "stated",
+      "quote": "Accounting,\nTax or Legal approval is needed for nonstandard terms before\nGL recording",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p7_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 7"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_9aea9dbf719138bf17bd",
+      "text": "The write-up describes manual term entry and formula maintenance in Excel, with risks from incorrect references and day counts.",
+      "basis": "stated",
+      "quote": "formulas are built and amendments updated manually",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p9_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 9"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_8e2e4d5622fb17dd8d90",
+      "text": "The write-up calls for Allvue suggested lines to be compared with Excel on every accrual run and rounding differences documented.",
+      "basis": "stated",
+      "quote": "Allvue suggested lines must be compared to Excel on every accrual run, with rounding differences documented",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p9_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 9"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_e5c3291a1fc6087d2ce6",
+      "text": "The document says no formal preparer and independent-checker role exists for the initial build. This should be reconciled with the earlier completion criterion calling for an independent review record.",
+      "basis": "stated",
+      "quote": "No formal preparer and independent-checker role exists for the initial build",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p9_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 9"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_bee7d894b78dfd559e69",
+      "text": "For PIK debt, the variation specifies contractual capitalization and Allvue Payment Date calculation type; toggles use the election and actual cash by period.",
+      "basis": "stated",
+      "quote": "Use the election\nand actual cash\nby period.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p11_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 11"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_6d0d04ac656573b33348",
+      "text": "Multiple draws require effective-dated principal and warrant allocations; amended loans require split periods and before-and-after comparisons.",
+      "basis": "stated",
+      "quote": "Maintain effective-\ndated principal\nand warrant\nallocations.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p12_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 12"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_76656e7a230a629b6e15",
+      "text": "The variations distinguish warrant allocation from OID and call for separate calculation of triggered fees using executed terms.",
+      "basis": "stated",
+      "quote": "Calculate it\nseparately using\nthe exact\nexecuted terms.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p13_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 13"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_bb64ce722e49c73d6a32",
+      "text": "Where executed terms do not supply accounting implementation, the document calls for a current approved method and prohibits importing specified AEA inputs or an unapproved true-up.",
+      "basis": "stated",
+      "quote": "do not\nimport AEA rates,\naccounts or\nformulas, or the\nunapproved one-\nday true-up\nadjustment.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p15_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 15"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_cdcd772160170bf8c685",
+      "text": "The write-up says unexplained differences hold up posting and reporting close and identifies downstream reporting and distribution dependencies.",
+      "basis": "stated",
+      "quote": "Unexplained differences keep the posting and reporting\nclose on hold",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p9_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 9"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_6d0a5582a7406e6c04e9",
+      "text": "The write-up identifies an initial build, monthly recognition and event-driven updates, and lists completed purchase/setup and assigned preparer and checker among prerequisites.",
+      "basis": "stated",
+      "quote": "Prerequisites:  purchase and setup are complete; executed documents are available;",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p19_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 19"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_d35b99bec451b5d751fe",
+      "text": "The document assigns preparers schedule and reconciliation work and directs independent reviewers to check calculations, amendments, variances and GL/TB reconciliation; role titles and approval levels remain unconfirmed.",
+      "basis": "stated",
+      "quote": "The role title is not yet\nconfirmed",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p20_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 20"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_926e9f5a41a5f360b54a",
+      "text": "The document calls for the exact contractual day-count method and says Actual/360 is an example, not a default.",
+      "basis": "stated",
+      "quote": "Actual/360 is a\nsource example,\nnot a default.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p22_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 22"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_709dccc100cd30c18d71",
+      "text": "Default interest requires client/legal confirmation; exit or prepayment calculations require confirmation of the trigger and calculation inputs.",
+      "basis": "stated",
+      "quote": "Obtain\nclient/legal\nconfirmation\nbefore applying.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p23_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 23"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_e46723fce184c2bdfa5c",
+      "text": "The described recurring inputs include a locked, reconciled prior schedule and GL/TB balances for opening balance reconciliation.",
+      "basis": "stated",
+      "quote": "Prior locked and\nreconciled\nversion",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p23_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 23"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_eecd8c28b4e4e1ebcd65",
+      "text": "The document groups warrant cost allocation with OID operationally, while excluding valuation and legal or tax interpretation from this process.",
+      "basis": "stated",
+      "quote": "Warrant cost allocation that is grouped with OID for operations",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p19_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 19"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_ccc7b1b7493ab1c2fbff",
+      "text": "The document calls for one controlled workbook per investment, but says its template, location and versioning method are unconfirmed.",
+      "basis": "stated",
+      "quote": "Use one\ncontrolled\nworkbook per\ninvestment.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p24_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 24"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_8d47d267e9e69d765508",
+      "text": "The OID/warrant schedule is embedded in the workbook, but its exact periodic convention is unspecified; straight-line use requires approval of the daily or monthly convention and amendment-layer method.",
+      "basis": "stated",
+      "quote": "Use it only after the daily or\nmonthly convention and the\nmethod for adding amendment\nlayers are approved.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p26_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 26"
+       },
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p31_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 31"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_9ec102be876acb31bd4b",
+      "text": "The warrant rule calls for cumulative amortization at maturity to equal approved allocations from inception and later draws; it distinguishes warrant allocation from traditional OID while grouping it operationally with OID.",
+      "basis": "stated",
+      "quote": "by maturity, cumulative\namortization must equal total\nallocated warrant cost.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p31_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 31"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_73ebd9b975be1ab82cb9",
+      "text": "The document sets a source hierarchy and says lower-priority sources cannot override higher-priority sources.",
+      "basis": "stated",
+      "quote": "A lower-priority\nsource cannot override a\nhigher-priority source.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p29_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 29"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_77b250e711231329b3c0",
+      "text": "The income summary supports GL entries and reconciliation; entity-specific accounts and journal-entry routing are not specified.",
+      "basis": "stated",
+      "quote": "Entity-specific\naccounts and\nJE routing are\nnot specified.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p27_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 27"
+       },
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p28_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 28"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_f44828d55b6872b26941",
+      "text": "Stub periods can result from mid-cycle events, and subsequent periods must realign with the contractual schedule.",
+      "basis": "stated",
+      "quote": "Subsequent\nperiods must realign to the\ncontractual schedule.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p31_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 31"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_7378ca12e4bb5a04b865",
+      "text": "The document identifies Excel as the primary calculation file because automation did not support principal changes, PIK and stub periods; it calls for comparing Allvue accruals with Excel before review and posting.",
+      "basis": "stated",
+      "quote": "Compare Allvue\nsuggested accruals with the\nExcel schedule before review\nand posting.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p32_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 32"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_cccc61aa9666f713423e",
+      "text": "The initial workbook requires an independent rebuild or recalculation of key parts, but the reviewer role and review record must be confirmed before use.",
+      "basis": "stated",
+      "quote": "The reviewer\nrole and required review\nrecord must be confirmed\nbefore anyone uses the\nworkbook.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p33_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 33"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_df4e6e0720aaf9d5b63d",
+      "text": "The stated PIK formula uses contractual principal, the PIK rate and the contractual day-count fraction; the result feeds PIK income and the future principal base.",
+      "basis": "stated",
+      "quote": "PIK =\ncontractual principal \u00d7\nPIK rate \u00d7 contractual\nday-count fraction",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p34_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 34"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_173bc8be3dc36628dad7",
+      "text": "The principal roll-forward includes opening principal, draws, repayments, PIK and approved adjustments, and supports subsequent calculations and GL/TB reconciliation.",
+      "basis": "stated",
+      "quote": "Ending principal =\nopening principal +\ndraws \u2212 repayments +\nPIK + approved\nadjustments",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p34_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 34"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_6e9caf63db9f58c74f78",
+      "text": "The document calls for reconciling refreshed supporting files to the GL/TB after accruals and entries are recorded; it says unexplained differences remain open and can affect reporting.",
+      "basis": "stated",
+      "quote": "Unexplained\ndifferences remain open and\ncan affect reporting.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p37_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 37"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_ff6466142dac0468d332",
+      "text": "For uncertain contract interpretation or default, prepayment or make-whole conclusions, the document calls for client or legal direction and a hold on affected work.",
+      "basis": "stated",
+      "quote": "Keep the\naffected accrual, fee, principal,\nand GL-entry work on hold.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p38_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 38"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_4a3148344bbaa69e25b3",
+      "text": "The document calls for approval of early-payoff gain or loss treatment and reconciliation to approved cost allocation and terms.",
+      "basis": "stated",
+      "quote": "obtain approval for early-\npayoff gain or loss treatment.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p38_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 38"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_5c0c962c748654284c1e",
+      "text": "The system-constraint rule calls for version control and independent checks of both initial and changed schedules.",
+      "basis": "stated",
+      "quote": "control\nversions, independently check\ninitial and changed schedules",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p39_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 39"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_4662d26169db3536070f",
+      "text": "The document says executed loan documents govern contractual terms, while a current written approved method governs interpretations or accounting implementation not sufficiently specified by the contract.",
+      "basis": "stated",
+      "quote": "Executed loan documents\ncontrol all contractual terms,\ndates, elections, triggers, and\nmaturity.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p40_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 40"
+       },
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p41_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 41"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_ad2689c3df37cd8ac4ee",
+      "text": "The described Allvue/Alta PIK setup uses Loan security and debt types, Payment Date for PIK capitalization and Accrual for non-PIK. Configuration ownership and tolerance remain unconfirmed.",
+      "basis": "stated",
+      "quote": "configuration\nownership and tolerance are\nnot yet confirmed.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p40_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 40"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_9f822273f06a92973ef7",
+      "text": "The procedure assigns the preparer responsibility for creating a controlled workbook and requires an independent checker to be assigned before the schedule is relied upon; exact roles are unspecified.",
+      "basis": "stated",
+      "quote": "Initial-build reviewer is assigned before the schedule is relied\nupon.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p45_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 45"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_f28097f866aecb353158",
+      "text": "The checker separately records and compares material terms, with citations to executed documents; affected calculations are held for unresolved terms or conflicting amendments.",
+      "basis": "stated",
+      "quote": "Hold affected calculation for an unresolved term or conflicting\namendment.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p46_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 46"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_72913c0663051a3ba760",
+      "text": "Opening principal and prior balances are reconciled against funding, cash and accounting records. The procedure calls for pausing current-period processing when an opening difference is unexplained.",
+      "basis": "stated",
+      "quote": "Pause current-period processing for an unexplained opening\ndifference.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p46_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 46"
+       },
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p47_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 47"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_eb8eea450e79c89f1e53",
+      "text": "The OID/warrant tabs are to record approved allocations, later-draw layers, cumulative amounts and early-payoff balances. The document flags broken AEA Q101/Q102 references and says not to use that client sheet as an approved template.",
+      "basis": "stated",
+      "quote": "AEA Q101/Q102 \n#REF!  makes that example\nunsafe.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p43_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 43"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_5c2a324f6ca1a9c83fec",
+      "text": "The procedure calls for cash interest to use the agreement\u2019s day-count fraction and for an independent recalculation; it warns against assuming a convention.",
+      "basis": "stated",
+      "quote": "Do not use Actual/360 or another convention unless the executed\nterms specify it.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p48_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 48"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_6b916e25b0169266f305",
+      "text": "For cash/PIK toggles, the document calls for comparing the borrower election with actual cash and escalating conflicts or missing information.",
+      "basis": "stated",
+      "quote": "For a toggle, compare borrower election and actual cash receipt; classify the period\ncorrectly as cash or PIK.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p48_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 48"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_0402adf85a5dc58b959c",
+      "text": "The warrant schedule retains tranche-level allocation support and calls for cumulative amortization to equal allocated cost by maturity; periodic convention and amendment layering need approval.",
+      "basis": "stated",
+      "quote": "Exact periodic convention and amendment layering are not\nspecified; obtain accounting/advisor approval.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p49_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 49"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_042151af0154aabf88aa",
+      "text": "For amendments, the procedure calls for a controlled pre-change copy, updates across affected schedules and a checker-approved before-and-after comparison; posting is held for unchecked stub or amendment formulas.",
+      "basis": "stated",
+      "quote": "Stub or amendment formula errors are a major risk; hold posting\nuntil the formulas are checked.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p50_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 50"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_3d952009ba68ea13d46f",
+      "text": "The cash-variance process calls for supported resolution or explicit open status and prohibits changing actual receipts to match expectations.",
+      "basis": "stated",
+      "quote": "Every material variance is quantified, explained, and supported\nor remains explicitly open.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p51_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 51"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_2fea9eb1912773dcf753",
+      "text": "The document calls for comparing system-generated accruals with the reviewed Excel schedule and holding submission for unexplained differences or incorrect PIK configuration.",
+      "basis": "stated",
+      "quote": "Hold submission for unexplained system/Excel difference or\nwrong PIK configuration.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p52_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 52"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_4e7993689cd7351736d5",
+      "text": "At maturity, the document calls for written direction before extending the schedule; close exceptions are to remain open or be explicitly documented with an owner.",
+      "basis": "stated",
+      "quote": "At contractual\nmaturity, obtain written direction on extension, amendment, default, payoff, or continued accrual\nbefore extending the schedule.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p53_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 53"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_12d76904c27830244a6c",
+      "text": "The document calls for a supported warrant allocation on a later draw to be added as a separate amortization layer, with client or accounting adviser involvement.",
+      "basis": "stated",
+      "quote": "Add the\nsupported\nallocation\nand update\nthe\namortizatio\nn as a\nseparate\nlayer.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p56_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 56"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_3ba4b497d3a63d5aa619",
+      "text": "For an Allvue\u2013Excel difference, the document calls for correction or an approved rounding record and prohibits posting an unexplained difference.",
+      "basis": "stated",
+      "quote": "Do not post\nan\nunexplained\ndifference.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p57_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 57"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_7dbfdbe7a0e310d21f13",
+      "text": "The cash-interest check calls for an independent recalculation for selected material periods at initial setup, monthly and after changes.",
+      "basis": "stated",
+      "quote": "Principal\n\u00d7 rate \u00d7\ncontract\nual\nfraction\nagrees\nfor the\nselected\nmaterial\nperiods.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p60_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 60"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_7d8a8204b1a51c767517",
+      "text": "The PIK check calls for confirming the ending principal equation and that later interest uses the correct base.",
+      "basis": "stated",
+      "quote": "Ending\nprincipal\nequation\nagrees\nand\nfuture\ninterest\nuses\ncorrect\nbase.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p60_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 60"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_8d1f76dca93956115cb2",
+      "text": "Inference: The maturity check's scope needs clarification: its purpose refers to OID/warrant amortization, while its completion criterion refers specifically to allocated warrant cost.",
+      "basis": "inferred",
+      "quote": "",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p61_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 61"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_49ff054736ea6ae48313",
+      "text": "The document calls for the detailed cash, PIK, amortization and other approved income to equal the income summary monthly.",
+      "basis": "stated",
+      "quote": "Detailed\ncash +\nPIK +\namortiza\ntion +\nother\napprove\nd\nincome\nequals\nsummar\ny.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p62_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 62"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_ab505cec78f28a24deea",
+      "text": "Inference: The executed-document completeness check's failure instruction references the Allvue\u2013Excel difference procedure; whether that cross-reference is intended is unclear.",
+      "basis": "inferred",
+      "quote": "",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p58_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 58"
+       },
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p57_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 57"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_861f3261a153c6b5aa6d",
+      "text": "The completion criteria call for a life-to-date schedule through maturity, including explicit stubs.",
+      "basis": "stated",
+      "quote": "Life-to-date schedule covers inception through maturity with explicit stubs.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p64_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 64"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_207e9b661bd83d188681",
+      "text": "The document calls for independently rebuilding or recalculating key initial-workbook components before use and recording the review.",
+      "basis": "stated",
+      "quote": "The initial build and current-period changes have a record of independent review.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p64_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 64"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_0297caa345b662e6e9a4",
+      "text": "Completion criteria limit default, prepayment, exit and make-whole features to supported contractual triggers.",
+      "basis": "stated",
+      "quote": "Default/prepayment/exit/make-whole features are included only when contractually triggered and supported.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p64_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 64"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_8caf0cc564e1997ee5ab",
+      "text": "The records table assigns retention of the initial-build check record to the independent checker.",
+      "basis": "stated",
+      "quote": "Record of the\nindependent\ninitial-build\nrebuild or\ncheck.\nIndependent\nchecker",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p67_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 67"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_25f85807ad1797bdb43d",
+      "text": "The records table leaves exact storage paths unconfirmed where Section 6 does not specify them, and retention periods unconfirmed pending Section 16 and the applicable policy.",
+      "basis": "stated",
+      "quote": "The\nexact path is\nnot yet\nconfirmed\nwhere Section\n6 does not\nspecify it.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p65_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 65"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_e553b44b5035bfc3b42b",
+      "text": "Cash-only and PIK debt are listed as client- or fund-specific variations, with written client and applicable adviser approval; broader application requires policy approval.",
+      "basis": "stated",
+      "quote": "Applies only\nto the\nspecific\nclient or\nfund unless\napproved\nas broader\npolicy.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p71_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 71"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_e481456f50ab1f35aa90",
+      "text": "For multiple draws, the document calls for effective-dated principal and warrant allocations; for amended loans, it calls for split periods and before-and-after comparisons.",
+      "basis": "stated",
+      "quote": "Maintain\neffective-\ndated\nprincipal\nand warrant\nallocations.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p72_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 72"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_a5ed6c1760bdfe6dea00",
+      "text": "Warrant allocation and OID are to remain distinct under the approved accounting policy; default, prepayment, exit and make-whole fees are calculated separately using executed terms.",
+      "basis": "stated",
+      "quote": "Keep the\ndifference\nbetween\nwarrant\nallocation\nand OID\nvisible, and\nuse the\napproved\naccounting\npolicy.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p73_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 73"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_14592e07001a4cedb372",
+      "text": "Where executed terms do not supply accounting implementation, the document calls for a current written approved method and says not to import AEA rates, accounts or formulas or the unapproved one-day true-up.",
+      "basis": "stated",
+      "quote": "Do not\nimport AEA\nrates,\naccounts,\nor formulas,\nor the\nunapproved\none-day\ntrue-up\nadjustment",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p75_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 75"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_c7173c300d49569b99c3",
+      "text": "The document identifies upstream purchase/setup, executed documents, client conclusions and actual cash data, and downstream Allvue accrual, GL posting and reporting; it calls for approved handoffs before affected steps.",
+      "basis": "stated",
+      "quote": "Complete the\napproved handoff\nbefore the affected\nstep begins.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p76_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 76"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_65e9249f7367f8f7069f",
+      "text": "When an event changes terms or calculations, the document calls for rebuilding affected periods and refreshing cash, principal, accrual, system, GL and reporting, supported by approval and checker review.",
+      "basis": "stated",
+      "quote": "Rebuild affected\nperiods and refresh\nexpected cash,\nprincipal,\naccrual/amortization,\nsystem, GL, and\nreporting.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p78_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 78"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_d5e24234741e8ada3140",
+      "text": "The document identifies manual formula and day-count risks, an initial-build role gap, undocumented accounting and system details, and month-end/start-of-month capacity pressure.",
+      "basis": "stated",
+      "quote": "The exact accounting entries and accounts, workbook template, OID period convention,\nsystem roles, and approvals are not documented.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p79_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 79"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_65562e09ed1bbf7eb94c",
+      "text": "For unresolved schedule, system or cash variances, the document says closing posting and reporting remains on hold unless an item is explicitly approved and supported.",
+      "basis": "stated",
+      "quote": "unless an item is\nexplicitly approved\nand supported; no\nunexplained difference\nis accepted.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p79_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 79"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_8039471406f222689afe",
+      "text": "The document lists the process owner, preparer, checker and accountable approver as unconfirmed and identifies the service-line governance owner to confirm them.",
+      "basis": "stated",
+      "quote": "Overall\nprocess\nowner,\npreparer\nand\nchecker\nrole titles",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p80_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 80"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_8ee07fec2b75ee33e4db",
+      "text": "Workbook and contract-term checklist templates, location, versioning and retention are listed as open confirmations for the process owner and records-management expert.",
+      "basis": "stated",
+      "quote": "Controlled\nworkbook\nand\ncontract-\nterm\nchecklist\ntemplates,\nlocation,\nversioning,\nand\nretention",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p81_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 81"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_a14c88a48b1b2c3fdbf0",
+      "text": "The required scope, review record and sign-off authority for the independent initial-build check remain unconfirmed.",
+      "basis": "stated",
+      "quote": "Required\ninitial-build\nindependen\nt check\nscope,\nreview\nrecord, and\nsign-off\nauthority",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p82_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 82"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_dffdf7b6c7538b3d2055",
+      "text": "Entity-specific GL accounts, entry patterns and journal-entry approval routing for interest, PIK, OID/warrant amortization, fees and principal are open.",
+      "basis": "stated",
+      "quote": "GL\naccounts,\nentry\npatterns,\nand JE\napproval\nroute.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p83_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 83"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_8952ffaf7cb7c012196a",
+      "text": "The straight-line OID/warrant periodic convention, rounding, later-draw layering and accounting-policy approval are unconfirmed.",
+      "basis": "stated",
+      "quote": "later-draw\nlayering,\nand\naccounting-\npolicy\napproval",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p83_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 83"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_9c7332366c9d57ff2d05",
+      "text": "The Allvue/Alta Return role, configuration ownership, review route, rounding tolerance and posting interface are listed for confirmation by the system owner and process expert.",
+      "basis": "stated",
+      "quote": "Allvue/Alta\nReturn role,\nconfiguratio\nn owner,\nreview\nroute,\nrounding\ntolerance,\nand posting\ninterface.",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p84_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 84"
+       }
+      ]
+     },
+     {
+      "id": "doc_b9e9c0cbc81e5d839e647740_b470a89a6a50ceffbe81",
+      "text": "Material variance thresholds and escalation timing for expected-versus-actual cash remain unconfirmed.",
+      "basis": "stated",
+      "quote": "Material\nvariance\nthresholds\nand\nescalation\ntiming for\nexpected-\nversus-\nactual cash",
+      "sources": [
+       {
+        "source_id": "doc_b9e9c0cbc81e5d839e647740_p85_c1",
+        "label": "F01 FA-10 full process.pdf \u00b7 page 85"
+       }
+      ]
+     }
+    ],
+    "limit_indicator": false,
+    "unreadable_sources": [],
+    "limitations": [],
+    "summary": "FA-10 outlines a debt-investment workbook process covering contractual schedules, cash interest, PIK, OID and warrants, accounting support, review and close. It specifies completion criteria and identifies unconfirmed items, including journal-entry approval routing and cash-variance thresholds. The excerpts describe requirements, not confirmed operating practice.",
+    "summary_basis": "initial_review",
+    "summary_basis_note": "Written from the initial review selection. Later review may have changed coverage; current review status and limitations are shown separately.",
+    "summary_at_review_version": 1,
+    "queries": [
+     "FA-10 operational hold required controls ownership approval",
+     "FA-10 cash variance thresholds escalation and journal entry approval",
+     "FA-10 workbook template versioning retention system configuration",
+     "Allvue accrual comparison rounding differences escalation FA10",
+     "loan accounting policy approval warrant OID amortization exceptions",
+     "PIK toggle borrower election notification workbook update",
+     "FA-10 upstream investment setup dependencies and handoffs",
+     "FA-10 Allvue configuration ownership and rekeying",
+     "FA-10 default prepayment warrant approval exceptions",
+     "warrant amortization daily monthly convention amendment layers approval",
+     "contract term setup checklist template and reviewer",
+     "stub period accrual realignment draw amendment"
+    ],
+    "error": null,
+    "version": 12,
+    "relevance": "relevant",
+    "relevance_reason": "The excerpts directly address the named process, its proposed checks, responsibilities and outstanding confirmations.",
+    "disposition": "relevant",
+    "acknowledgement": "",
+    "question": "Who is accountable for approving the initial workbook and confirming the independent review requirements?",
+    "sources": [
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p2_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 2"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p3_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 3"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p6_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 6"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p7_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 7"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p5_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 5"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p9_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 9"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p11_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 11"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p15_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 15"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p19_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 19"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p17_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 17"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p20_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 20"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p23_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 23"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p26_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 26"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p31_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 31"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p25_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 25"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p27_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 27"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p28_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 28"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p39_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 39"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p37_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 37"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p38_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 38"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p45_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 45"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p47_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 47"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p41_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 41"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p48_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 48"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p54_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 54"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p52_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 52"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p53_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 53"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p61_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 61"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p58_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 58"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p57_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 57"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p60_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 60"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p65_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 65"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p67_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 67"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p64_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 64"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p71_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 71"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p76_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 76"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p79_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 79"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p80_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 80"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p82_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 82"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p83_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 83"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p1_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 1"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p21_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 21"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p85_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 85"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p12_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 12"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p13_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 13"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p22_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 22"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p24_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 24"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p29_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 29"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p32_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 32"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p33_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 33"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p34_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 34"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p40_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 40"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p46_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 46"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p43_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 43"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p49_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 49"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p50_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 50"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p51_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 51"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p56_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 56"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p62_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 62"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p72_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 72"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p73_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 73"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p75_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 75"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p78_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 78"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p81_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 81"
+     },
+     {
+      "source_id": "doc_b9e9c0cbc81e5d839e647740_p84_c1",
+      "label": "F01 FA-10 full process.pdf \u00b7 page 84"
+     }
+    ],
+    "cursor": 86,
+    "reviewed_chunks": 86,
+    "total_chunks": 86,
+    "review_complete": true,
+    "estimated_requests": 11
+   },
+   "coverage": {
+    "indexed_units": 85,
+    "total_units": 85,
+    "text_indexed_units": 85,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": [
+     "AI visual transcriptions are searchable but have not been independently verified."
+    ]
+   },
+   "error": null,
+   "revision": 27,
+   "intent_version": null
+  }
+ ],
+ "revision": "a09caf5cef4528f99970f14af1d6c96b4a3bfc56fe4ae051c52933b1aacb0af6",
+ "capture": {
+  "memo_findings": [
+   {
+    "answer": "The procedure names the work Debt Investment Economics: Loan Workbook, Yields, PIK, OID & Warrants, process FA-10.",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p2_c1"
+    ],
+    "key": "name",
+    "status": "partial"
+   },
+   {
+    "answer": "The documented purpose is one auditable, investment-specific workbook tracking debt economics and monthly income support, reconciled to the GL and trial balance.",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p2_c1"
+    ],
+    "key": "purpose",
+    "status": "partial"
+   },
+   {
+    "answer": "The procedure describes an initial build after a client completes a debt investment, GPFS receives final executed documents, and FA-09 purchase and setup are complete. It describes monthly recognition and reconciliation and event-driven updates for draws, amendments, rate changes, elections and other loan events.\nThe procedure does not record a fixed deadline beyond the monthly cycle and written direction before extending a schedule at maturity.\nThe participant describes an initial workbook build when final executed loan documents arrive, a monthly recognition and close cycle, and updates for draws, amendments, rate changes, elections, defaults or prepayments once the work runs.",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p3_c1",
+     "t005"
+    ],
+    "key": "trigger",
+    "status": "partial"
+   },
+   {
+    "answer": "The documented period-close condition is zero unexplained principal, income, cash, amortization and GL/TB differences, with variances resolved or assigned, checker review retained, and the workbook locked and versioned. A new workbook is not relied on until key terms and period-one principal, PIK and OID have been independently rebuilt or recalculated.",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p3_c1"
+    ],
+    "key": "completion",
+    "status": "partial"
+   },
+   {
+    "answer": "The process owner and accountable approver remain open. The document also leaves preparer and checker titles and the internal approver unconfirmed.",
+    "evidence_turns": [
+     "t003",
+     "doc_b9e9c0cbc81e5d839e647740_p80_c1"
+    ],
+    "key": "accountable",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant confirms the broad post-hold cycle, but the detailed documented workflow has not been confirmed as current practice.\nThe procedure assigns a workbook preparer to create an investment-specific workbook and checklist, record identifying terms and special features, and assign an independent checker. The preparer validates final executed documents and resolves missing, draft or conflicting items; the checker confirms completeness.\nThe documented sequence records and reviews contract terms, reconciles opening balances, builds the life-to-date schedule through maturity, and develops cash-interest, PIK/principal and OID/warrant schedules, including supported nonstandard features when triggered.\nFor amendments, draws or stub changes, the procedure calls for a controlled pre-change copy, effective-date period splits, a before-and-after comparison and checker approval. At maturity, written direction is required before extending the schedule.\nThe procedure compares expected cash with receipts, classifies variances and obtains borrower or client clarification where needed. It requires supported workbook updates and retained resolutions; missing, excess or unidentified cash is escalated without changing actual cash to match expectations.\nThe procedure says the workbook preparer summarizes reviewed income components, reconciles them to detail, prepares journal support and routes it for review. The Accounting/Fund Team posts after approval, followed by reconciliation to the GL and TB.\nThe documented system/accrual preparer runs Security Filter and Suggest Lines in Allvue, reviews suggested entries and compares the system schedule to reviewed Excel, correcting configuration or supporting approved differences before review. Unexplained differences or wrong PIK configuration hold submission.\nThe participant does not know what work, if any, continues while the operational hold remains in place.\nThe documented entity-specific accounts and journal-entry approval route remain unconfirmed.\nThe procedure directs the preparer to calculate period PIK on the contractual principal base, add it to principal on the contractual capitalization date, and use the updated balance in subsequent calculations where required. For toggles, the preparer compares the election with actual cash to classify the period.",
+    "evidence_turns": [
+     "t003",
+     "t005",
+     "doc_b9e9c0cbc81e5d839e647740_p45_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p5_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p53_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p51_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p52_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p21_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p48_c1"
+    ],
+    "key": "lifecycle",
+    "status": "partial"
+   },
+   {
+    "answer": "The procedure requires a separate checker to review terms, independently recalculate cash-interest samples and initial-build key calculations, and check compounding, amortization, amendments, cash variances, system comparison and GL/TB reconciliation. Client or investment-team confirmation and specialist approvals apply to terms and nonstandard treatment.\nThe approved initial-build check scope, review record and sign-off authority remain open, notwithstanding the procedure's stated minimum recalculations. The entity-specific JE approval route and cash-variance thresholds and escalation timing are also unconfirmed.\nThe documented checker independently records and compares material contract terms to the executed documents; the preparer cites the document section or page for each material term. Unresolved terms or conflicting amendments hold the affected calculation.",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p7_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p82_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p83_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p85_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p46_c1"
+    ],
+    "key": "checks",
+    "status": "partial"
+   },
+   {
+    "answer": "The procedure describes loan-term branches rather than named-client practices: cash-only, PIK, borrower cash/PIK elections, multiple draws, amendments, warrant allocation and triggered default or exit features. For PIK it specifies Allvue Payment Date calculation; non-PIK uses Accrual.\nFor amended loans or stub periods, the documented route splits periods and preserves before-and-after comparisons; multiple draws require effective-dated principal and warrant allocations.\nThe procedure does not identify the clients or funds using the listed variations, their extra effort, charging or removal constraints.",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p8_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p12_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p16_c1"
+    ],
+    "key": "variations",
+    "status": "partial"
+   },
+   {
+    "answer": "The procedure describes manually entering terms, building formulas and updating amendments in Excel because the accounting system does not reliably handle principal changes, PIK and stub periods. It identifies month-end and start-of-month cash clustering as a capacity bottleneck.\nThe participant reports that terms and formulas are keyed by hand from very long credit agreements.",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p9_c1",
+     "t007"
+    ],
+    "key": "pain_points",
+    "status": "partial"
+   },
+   {
+    "answer": "The procedure warns that manual terms and formulas can materially misstate income and principal, unconfirmed amortization conventions or broken references can change income, and incorrect system configuration can change accruals and journal entries.\nThe participant says manually keyed terms and formulas from lengthy credit agreements can materially misstate income and principal from investment inception through the current period without an independent initial-build check. Unconfirmed amortization conventions or broken references can change income, and incorrect Allvue setup changes system accruals and journal entries.\nThe participant says unexplained differences keep posting and reporting close on hold; the numbers feed the GL, trial balance and financial reporting.",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p9_c1",
+     "t007"
+    ],
+    "key": "risk",
+    "status": "partial"
+   },
+   {
+    "answer": "Documented artifacts include the executed loan package, contract-term and setup checklist, controlled loan workbook and schedules, cash tracker, income summary, journal support, review evidence and Allvue comparison.\nThe workbook and contract-term checklist templates, location, versioning and retention requirements remain unconfirmed.\nThe supplied FA-10 procedure describes the proposed steps, checks and open confirmations. It also references Allvue setup notes and worked examples; the AEA sheet with broken references is not an approved template.",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p7_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p81_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p10_c1"
+    ],
+    "key": "materials",
+    "status": "partial"
+   },
+   {
+    "answer": "The procedure covers debt-investment schedules, cash and PIK, OID/warrant amortization, cash variances and income support. It excludes investment purchase/setup, valuation beyond the described warrant allocation, legal or tax interpretation, borrower collection and full financial-statement procedures.\nWhether the initial build, monthly cycle and event-driven updates constitute one piece of work or multiple pieces is unconfirmed.",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p19_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p16_c1"
+    ],
+    "key": "scope",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant confirms the operational hold is current: loan, yield, PIK, OID and warrant calculations must not run until the controlled workbook, contract-term checklist, independent build check, approved GL and accounting treatment, amortization method, system configuration, variance thresholds and accountable roles are documented.\nThe procedure says executed loan documents govern contractual terms, dates, elections, triggers and maturity. Where the contract does not specify accounting implementation sufficiently, it calls for the current written client, legal, accounting or auditor-approved method; workbooks and systems are support, not independent authority.\nThe approved OID/warrant period convention, rounding, later-draw layering and accounting-policy approval remain unconfirmed; entity-specific GL accounts and entries are also open.\nThe procedure specifies cash interest as contractual principal multiplied by the cash rate and contractual day-count fraction; it says not to assume a day-count method.",
+    "evidence_turns": [
+     "t003",
+     "doc_b9e9c0cbc81e5d839e647740_p40_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p41_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p83_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p33_c1"
+    ],
+    "key": "rules",
+    "status": "partial"
+   },
+   {
+    "answer": "The documented initial build depends on completed FA-09 investment purchase and setup. Treasury or cash monitoring supplies actual receipt detail, and the Accounting/Fund Team posts reviewed entries.\nThe procedure says results feed GL posting, the trial balance, financial reporting and the FA-13 quarterly workbook.\nHands off to Accounting/Fund Team posting: Reviewed journal entries are posted after approval; route remains unconfirmed.",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p3_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p21_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p6_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p51_c1"
+    ],
+    "key": "connections",
+    "status": "partial"
+   },
+   {
+    "answer": "The procedure identifies Excel as the primary investment-specific calculation file and Alta Return/Allvue NAV for suggested accruals, with GL, trial balance and bank records used for reconciliation.\nAllvue configuration ownership, review route, rounding tolerance and posting interface remain unconfirmed; the procedure does not establish what is rekeyed between Excel, Allvue and the GL.\nThe workbook template, location and versioning method are unconfirmed.",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p6_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p79_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p84_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p9_c1"
+    ],
+    "key": "data_systems",
+    "status": "partial"
+   },
+   {
+    "answer": "The procedure gives a descriptive source-example range of approximately 100 to 1,700 pages for credit agreements, not a service standard.\nNormal investment counts, exception frequency and effort by step are not established in the supplied account.",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p19_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p9_c1"
+    ],
+    "key": "volume",
+    "status": "partial"
+   }
+  ],
+  "coverage": [
+   {
+    "key": "name",
+    "label": "Name & other names",
+    "status": "partial"
+   },
+   {
+    "key": "purpose",
+    "label": "Purpose & result",
+    "status": "partial"
+   },
+   {
+    "key": "trigger",
+    "label": "Start, cadence & deadlines",
+    "status": "partial"
+   },
+   {
+    "key": "completion",
+    "label": "Finished condition",
+    "status": "partial"
+   },
+   {
+    "key": "accountable",
+    "label": "Accountability",
+    "status": "partial"
+   },
+   {
+    "key": "lifecycle",
+    "label": "Items, stages & handoffs",
+    "status": "partial"
+   },
+   {
+    "key": "checks",
+    "label": "Checks, approvals & proof",
+    "status": "partial"
+   },
+   {
+    "key": "variations",
+    "label": "Variations and conditions",
+    "status": "partial"
+   },
+   {
+    "key": "pain_points",
+    "label": "Manual work & pain",
+    "status": "partial"
+   },
+   {
+    "key": "risk",
+    "label": "Consequences of failure",
+    "status": "partial"
+   },
+   {
+    "key": "materials",
+    "label": "Existing materials",
+    "status": "partial"
+   },
+   {
+    "key": "scope",
+    "label": "Scope & entity context",
+    "status": "partial"
+   },
+   {
+    "key": "rules",
+    "label": "Business rules & lineage",
+    "status": "partial"
+   },
+   {
+    "key": "connections",
+    "label": "Connected processes",
+    "status": "partial"
+   },
+   {
+    "key": "data_systems",
+    "label": "Data & systems",
+    "status": "partial"
+   },
+   {
+    "key": "volume",
+    "label": "Volume & effort",
+    "status": "partial"
+   }
+  ],
+  "summary": "The participant identifies material misstatement and delayed close as consequences of uncontrolled calculations. The calculation hold remains current; detailed post-hold practice and accountable roles remain unconfirmed.",
+  "focus": "Consequences of running calculations without controls",
+  "parking_lot": [
+   "Confirm the accountable owner and approver.",
+   "Confirm how the documented workflow applies once the hold is lifted."
+  ],
+  "connections_out": [
+   {
+    "condition": "Before the documented initial build.",
+    "counterpart": "FA-09 investment purchase and setup",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p3_c1"
+    ],
+    "relationship_type": "happens_after"
+   },
+   {
+    "condition": "Actual cash receipt detail supports cash variance tracking.",
+    "counterpart": "Treasury or cash monitoring",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p21_c1"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "Reviewed journal entries are posted after approval; route remains unconfirmed.",
+    "counterpart": "Accounting/Fund Team posting",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p51_c1"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "Documented result feeds financial reporting.",
+    "counterpart": "Financial reporting",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p6_c1"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "Documented result feeds the quarterly workbook process.",
+    "counterpart": "FA-13 quarterly workbook",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p6_c1"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "The participant says the numbers feed financial reporting; unexplained differences hold posting and reporting close.",
+    "counterpart": "Financial reporting",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p6_c1",
+     "t007"
+    ],
+    "relationship_type": "provides_input_to"
+   }
+  ],
+  "taxonomy": [
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p18_c1"
+    ],
+    "facet": "functional_area",
+    "note": "Documented debt-investment accounting and reconciliation work.",
+    "value": "fund_accounting"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p2_c1"
+    ],
+    "facet": "process_level",
+    "note": "Document identifies FA-10 as a process; boundaries between its cycles remain open.",
+    "value": "process"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p79_c1"
+    ],
+    "facet": "system",
+    "note": "Documented primary calculation workbook; controlled template remains unconfirmed.",
+    "value": "excel_workbook"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p52_c1"
+    ],
+    "facet": "system",
+    "note": "Documented Alta Return/Allvue NAV accrual process; configuration ownership remains open.",
+    "value": "allvue"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p7_c1"
+    ],
+    "facet": "control_type",
+    "note": "Document requires an independent checker and reconciliation; roles and approval remain open.",
+    "value": "gpfs_operational"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p17_c1"
+    ],
+    "facet": "control_type",
+    "note": "Document describes client or investment-team confirmation and client approvals for applicable elections and changes.",
+    "value": "client_approval"
+   }
+  ],
+  "completion": {
+   "allowed": false,
+   "ready_for_final_check": false,
+   "complete": false,
+   "partial": true,
+   "participant_confirmed": false,
+   "blockers": [
+    "role_incomplete:coverage_reviewer",
+    "role_incomplete:process_reviewer",
+    "coverage_result_unbound",
+    "coverage_incomplete",
+    "coverage_unresolved:name",
+    "coverage_unresolved:purpose",
+    "coverage_unresolved:trigger",
+    "coverage_unresolved:completion",
+    "coverage_unresolved:accountable",
+    "coverage_unresolved:lifecycle",
+    "coverage_unresolved:checks",
+    "coverage_unresolved:variations",
+    "coverage_unresolved:pain_points",
+    "coverage_unresolved:risk",
+    "coverage_unresolved:materials",
+    "coverage_unresolved:scope",
+    "coverage_unresolved:rules",
+    "coverage_unresolved:connections",
+    "coverage_unresolved:data_systems",
+    "coverage_unresolved:volume",
+    "process_result_unbound"
+   ],
+   "revision": "ea58dd59b853fa31c785a91a726dbd45b695cb38c04e58d088601c6e7609b7d6",
+   "run_id": "6a54bba4bf0b46c28b209adb2f707bf7"
+  },
+  "coverage_assessment": null
+ },
+ "workflow": {
+  "connections": [
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p45_c1"
+    ],
+    "from": "S2",
+    "label": "Initial build",
+    "to": "S3"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p5_c1"
+    ],
+    "from": "S3",
+    "label": "Documented sequence",
+    "to": "S4"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p46_c1"
+    ],
+    "from": "S4",
+    "label": "Validated documents",
+    "to": "S5"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p5_c1"
+    ],
+    "from": "S5",
+    "label": "Documented sequence",
+    "to": "S6"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p47_c1"
+    ],
+    "from": "S6",
+    "label": "Reconciled opening state",
+    "to": "S7"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p5_c1"
+    ],
+    "from": "S7",
+    "label": "Schedule structure",
+    "to": "S8"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p5_c1"
+    ],
+    "from": "S8",
+    "label": "Documented sequence",
+    "to": "S9"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p5_c1"
+    ],
+    "from": "S9",
+    "label": "Documented sequence",
+    "to": "S10"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p5_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p32_c1"
+    ],
+    "from": "S10",
+    "label": "If special feature is triggered",
+    "to": "S12"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p78_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p5_c1"
+    ],
+    "from": "S13",
+    "label": "Refresh affected expected cash",
+    "to": "S15"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p53_c1"
+    ],
+    "from": "S14",
+    "label": "Approved direction changes schedule",
+    "to": "S13"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p53_c1"
+    ],
+    "from": "S18",
+    "label": "After accruals are recorded",
+    "to": "S19"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p46_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p53_c1"
+    ],
+    "from": "S20",
+    "label": "Next period uses prior workbook",
+    "to": "S6"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p5_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p3_c1"
+    ],
+    "from": "S10",
+    "label": "Initial workbook build before independent check",
+    "to": "S11"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p3_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p5_c1"
+    ],
+    "from": "S11",
+    "label": "Initial build checked before relying on its schedule",
+    "to": "S15"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p51_c1"
+    ],
+    "from": "S15",
+    "label": "Cash interest, PIK, OID/warrant, fees, principal and cash variances reviewed",
+    "to": "S16"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p51_c1"
+    ],
+    "from": "S8",
+    "label": "Cash interest, PIK, OID/warrant, fees, principal and cash variances reviewed",
+    "to": "S16"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p51_c1"
+    ],
+    "from": "S9",
+    "label": "Cash interest, PIK, OID/warrant, fees, principal and cash variances reviewed",
+    "to": "S16"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p51_c1"
+    ],
+    "from": "S10",
+    "label": "Cash interest, PIK, OID/warrant, fees, principal and cash variances reviewed",
+    "to": "S16"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p51_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p32_c1"
+    ],
+    "from": "S16",
+    "label": "Entry support prepared AND system accruals compared before review and posting",
+    "to": "S18"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p51_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p32_c1"
+    ],
+    "from": "S17",
+    "label": "Entry support prepared AND system accruals compared before review and posting",
+    "to": "S18"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p52_c1"
+    ],
+    "from": "S18",
+    "label": "Posted entries, system output, actual cash AND updated schedules available",
+    "to": "S20"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p52_c1"
+    ],
+    "from": "S17",
+    "label": "Posted entries, system output, actual cash AND updated schedules available",
+    "to": "S20"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p52_c1"
+    ],
+    "from": "S15",
+    "label": "Posted entries, system output, actual cash AND updated schedules available",
+    "to": "S20"
+   },
+   {
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p53_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p52_c1"
+    ],
+    "from": "S13",
+    "label": "When schedules change: posted entries, system output, actual cash AND updated schedules available",
+    "to": "S20"
+   }
+  ],
+  "open_questions": [
+   "Does any incoming route start S6 (Reconcile opening balances), or must all prerequisites finish?",
+   "Does any incoming route start S15 (Reconcile expected and actual cash), or must all prerequisites finish?",
+   "Does any incoming route start S16 (Prepare income and entry support), or must all prerequisites finish?",
+   "Does any incoming route start S18 (Approve and post entries), or must all prerequisites finish?",
+   "Does any incoming route start S20 (Close and retain workbook), or must all prerequisites finish?",
+   "How does step S1 (Wait for hold prerequisites) connect to the rest of this process, if at all?",
+   "Current status: the participant confirms the operational hold. What work, if any, continues during it? UNKNOWN.",
+   "Who owns the overall result, who can approve release from the hold, and which required controls and roles remain undocumented? UNKNOWN.",
+   "What is the handoff from the hold to calculation work? Receipt of executed documents is not established as waiting for hold release.",
+   "Does the documented post-hold route reflect current practice once the work runs, and what is its basis as general GPFS or client-specific practice? UNKNOWN.",
+   "Which approved workbook and checklist, repository, versioning and retention rules apply? UNKNOWN.",
+   "Who prepares, independently checks and signs off the initial build; what is the confirmed check scope and evidence? FA-10 requires independent checking but says formal roles and sign-off are unconfirmed.",
+   "Which entity-specific accounts, journal approval route, amortization conventions, rounding tolerance, system owner and cash-variance thresholds apply? UNKNOWN.",
+   "How are failures and exceptions escalated, corrected and returned for checking, including approval delays or overrides? UNKNOWN where FA-10 does not specify the outcome.",
+   "How are the documented special-feature, event-driven and maturity routes initiated and rejoined in practice? The exit from special-feature handling and its sequencing with initial checking and monthly close are UNKNOWN.",
+   "How is the required post-accrual review coordinated with period close, and who performs it? Its precise handoff is UNKNOWN; its required comparisons and explanation of differences remain documented.",
+   "What is the confirmed ordering of income preparation and system accrual validation? Both entry support and the system comparison are documented prerequisites to posting, but their relative order is UNKNOWN.",
+   "Which documented variations apply to which clients or funds, and what are their effort, charging and removal constraints? UNKNOWN. FA-10 describes term-driven, client-specific variations, not a confirmed firmwide standard.",
+   "What deadlines, volumes, exception frequencies and step-level effort apply? UNKNOWN.",
+   "Which entity types and downstream processes actually use these outputs, beyond the participant-confirmed GL, trial balance and financial reporting? UNKNOWN.",
+   "Document coverage: all 85 pages have indexed native text; 50 of 86 indexed sections were supplied here. The recorded AI review completed 86 of 86 chunks and was not stopped; there are no unread visual units, although AI visual transcriptions were not independently verified."
+  ],
+  "steps": [
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "All controls and roles specified in the hold are documented; any additional release decision is UNKNOWN.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Participant-confirmed hold; FA-10 lists its prerequisites.",
+    "description": "The participant confirms calculations are currently on hold. All specified controls and accountable roles must be documented before calculations are performed; several remain open. Work continuing during the hold and release authority are UNKNOWN.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003",
+     "t005",
+     "doc_b9e9c0cbc81e5d839e647740_p2_c1"
+    ],
+    "handoff": "The handoff from the hold and release authority are UNKNOWN.",
+    "id": "S1",
+    "input": "Required controls and accountable roles",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p2_c1"
+      ],
+      "field": "control",
+      "text": "Do not perform loan, yield, payment-in-kind (PIK), original\nissue discount (OID), or warrant calculations until all required controls are\ndocumented"
+     }
+    ],
+    "output": "Calculations held until the documented prerequisites are met",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "FA-10 operational hold, page 2",
+    "system": "UNKNOWN",
+    "title": "Wait for hold prerequisites",
+    "type": "wait"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Final executed documents received and FA-09 purchase and setup complete.",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "Client or investment team; FA-09 purchase and setup",
+    "description": "Receipt of final executed loan documents initiates the documented initial build; FA-09 purchase and setup must also be complete. The client or investment team provides the documents, but the receiving role is not identified. Receipt is not shown as waiting for release of the calculation hold.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t005",
+     "doc_b9e9c0cbc81e5d839e647740_p3_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p20_c1"
+    ],
+    "handoff": "Initial build; its relationship to release of the calculation hold remains UNKNOWN.",
+    "id": "S2",
+    "input": "Final executed loan package and completed FA-09 setup",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p20_c1"
+      ],
+      "field": "responsible",
+      "text": "Client or investment\nteam\nProvide final executed\ndocuments and clarify\ninvestment terms,\ncalculations, and\nelections"
+     }
+    ],
+    "output": "Ready input for initial build",
+    "parent_process": "Debt investment administration",
+    "rule_source_ref": "FA-10, pages 3 and 20",
+    "system": "Executed loan documents",
+    "title": "Executed loan documents received",
+    "type": "start"
+   },
+   {
+    "actor": "Assigned workbook preparer",
+    "completion_criteria": "Checker assigned before the schedule is relied on.",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Executed documents and setup",
+    "description": "FA-10 calls for an investment-specific workbook, setup details, special-feature identification and assignment of an independent checker. Role titles and the workbook template are unconfirmed.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p45_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p81_c1"
+    ],
+    "handoff": "Escalate an unresolved role assignment.",
+    "id": "S3",
+    "input": "Executed package and completed setup",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p45_c1"
+      ],
+      "field": "responsible",
+      "text": "Step 1 \u2014 Create the loan workbook and assign an independent reviewer\nWho performs it: Assigned debt-investment workbook preparer."
+     },
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p45_c1"
+      ],
+      "field": "control",
+      "text": "Initial-build reviewer is assigned before the schedule is relied\nupon."
+     }
+    ],
+    "output": "Workbook, checklist and assigned reviewer",
+    "parent_process": "Documented route after hold",
+    "rule_source_ref": "FA-10 step 1",
+    "system": "Loan workbook and setup checklist",
+    "title": "Create workbook and assign checker",
+    "type": "activity"
+   },
+   {
+    "actor": "Workbook preparer; checker confirms completeness",
+    "completion_criteria": "Executed support exists for material terms.",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Client documents and funding support",
+    "description": "FA-10 calls for checking final execution, parties, completeness and funded principal against setup. Missing or conflicting documents are logged for resolution; legal ambiguity goes to client counsel.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p45_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p46_c1"
+    ],
+    "handoff": "Client or counsel resolves missing or ambiguous support.",
+    "id": "S4",
+    "input": "Agreements, schedules, funding and amendment documents",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p45_c1"
+      ],
+      "field": "responsible",
+      "text": "Step 2 \u2014 Validate the executed document set\nWho performs it: Workbook preparer; checker confirms completeness."
+     },
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p46_c1"
+      ],
+      "field": "exception",
+      "text": "Route legal-document ambiguity to client/legal counsel."
+     }
+    ],
+    "output": "Validated document set",
+    "parent_process": "Documented route after hold",
+    "rule_source_ref": "FA-10 step 2",
+    "system": "Document package and checklist",
+    "title": "Validate document package",
+    "type": "activity"
+   },
+   {
+    "actor": "Workbook preparer and independent checker",
+    "completion_criteria": "Material terms agree to executed support and review is recorded.",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Executed agreements and amendments",
+    "description": "FA-10 calls for manual capture of material rates, dates, principal, elections, fees and warrant allocations with source citations. The checker separately records and compares terms; unresolved terms hold affected calculations.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "t007",
+     "doc_b9e9c0cbc81e5d839e647740_p46_c1"
+    ],
+    "handoff": "Escalate unresolved terms or conflicting amendments.",
+    "id": "S5",
+    "input": "Validated executed documents",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p46_c1"
+      ],
+      "field": "responsible",
+      "text": "Who performs it: Workbook preparer; an independent checker records the material terms\nseparately and compares the results."
+     },
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p46_c1"
+      ],
+      "field": "exception",
+      "text": "Hold affected calculation for an unresolved term or conflicting\namendment."
+     }
+    ],
+    "output": "Reviewed, cited term checklist",
+    "parent_process": "Documented route after hold",
+    "rule_source_ref": "FA-10 step 3",
+    "system": "Contract-term checklist and workbook",
+    "title": "Extract and review terms",
+    "type": "activity"
+   },
+   {
+    "actor": "Workbook preparer; checker verifies",
+    "completion_criteria": "No unexplained opening difference.",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "FA-09 funding, prior workbook, cash and GL/TB",
+    "description": "FA-10 calls for reconciling funded principal and prior-period principal, income, PIK and OID/warrant balances. Unexplained opening differences pause current-period processing.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p46_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p47_c1"
+    ],
+    "handoff": "Correct or escalate unresolved differences.",
+    "id": "S6",
+    "input": "Funding, prior workbook and accounting records",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p46_c1"
+      ],
+      "field": "responsible",
+      "text": "Step 4 \u2014 Reconcile opening principal and prior balances\nWho performs it: Workbook preparer; checker verifies."
+     },
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p47_c1"
+      ],
+      "field": "exception",
+      "text": "Pause current-period processing for an unexplained opening\ndifference."
+     }
+    ],
+    "output": "Reconciled opening balances",
+    "parent_process": "Documented route after hold",
+    "rule_source_ref": "FA-10 step 4",
+    "system": "Workbook, GL, trial balance and cash records",
+    "title": "Reconcile opening balances",
+    "type": "activity"
+   },
+   {
+    "actor": "Workbook preparer",
+    "completion_criteria": "Periods cover inception to maturity without gaps or overlaps and match contractual dates.",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Reviewed terms and opening reconciliation",
+    "description": "FA-10 calls for periods from inception through maturity, effective-dated rates, principal movements and expected payments, with explicit stubs. Dates must have no gaps or overlaps.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p47_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p59_c1"
+    ],
+    "handoff": "Escalate uncertain date adjustments or period treatment.",
+    "id": "S7",
+    "input": "Reviewed terms and reconciled opening balances",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p47_c1"
+      ],
+      "field": "responsible",
+      "text": "Step 5 \u2014 Build the contractual schedule from investment start through maturity\nWho performs it: Workbook preparer."
+     },
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p47_c1"
+      ],
+      "field": "control",
+      "text": "Schedule dates cover inception through maturity without\ngaps/overlap and agree to contractual payment dates."
+     }
+    ],
+    "output": "Contractual schedule structure",
+    "parent_process": "Documented route after hold",
+    "rule_source_ref": "FA-10 step 5",
+    "system": "Excel loan workbook",
+    "title": "Build contractual schedule",
+    "type": "activity"
+   },
+   {
+    "actor": "Workbook preparer; independent checker",
+    "completion_criteria": "Inputs trace to reviewed terms and sample recalculation agrees.",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Reviewed contractual terms",
+    "description": "FA-10 specifies contractual principal times cash rate times contractual day-count fraction, splitting periods when required. The checker independently recalculates a sample; no day-count convention is assumed.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "calculated",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p48_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p33_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p47_c1"
+    ],
+    "handoff": "Failed checks are corrected or escalated before affected work continues.",
+    "id": "S8",
+    "input": "Principal, rate, contractual days and effective dates",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p47_c1"
+      ],
+      "field": "responsible",
+      "text": "Step 6 \u2014 Calculate cash interest\nWho performs it: Workbook preparer; the checker reviews the formulas and independently\nrecalculates a sample."
+     }
+    ],
+    "output": "Period and life-to-date expected cash interest",
+    "parent_process": "Documented route after hold",
+    "rule_source_ref": "FA-10 step 6 and rule BR-13",
+    "system": "Excel workbook",
+    "title": "Calculate cash interest",
+    "type": "activity"
+   },
+   {
+    "actor": "Workbook preparer; checker",
+    "completion_criteria": "Principal roll-forward and early compounding agree.",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Contract terms, election and actual cash",
+    "description": "FA-10 calls for calculating PIK, adding it on the contractual capitalization date and using the updated principal where required. For a toggle, compare the election with actual cash; escalate missing or conflicting evidence.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "calculated",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p48_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p60_c1"
+    ],
+    "handoff": "Escalate election or cash conflicts.",
+    "id": "S9",
+    "input": "Principal, PIK rate, dates, day count and election",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p48_c1"
+      ],
+      "field": "responsible",
+      "text": "Step 7 \u2014 Calculate PIK interest and update principal\nWho performs it: Workbook preparer; checker reviews compounding."
+     },
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p48_c1"
+      ],
+      "field": "exception",
+      "text": "Escalate missing election, unexpected cash, or conflict between\nnotice and actual activity."
+     }
+    ],
+    "output": "PIK and principal movement schedule",
+    "parent_process": "Documented route after hold",
+    "rule_source_ref": "FA-10 step 7",
+    "system": "Excel workbook",
+    "title": "Calculate PIK and principal",
+    "type": "activity"
+   },
+   {
+    "actor": "Workbook preparer and checker",
+    "completion_criteria": "Cumulative amount equals approved allocation at maturity.",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Approved allocation and accounting policy",
+    "description": "FA-10 calls for an approved allocation and amortization policy, with cumulative amortization reconciled to allocated cost by maturity. The period convention, later-draw layers and rounding remain unconfirmed.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "calculated",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p5_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p31_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p83_c1"
+    ],
+    "handoff": "Obtain accounting guidance on unconfirmed treatment.",
+    "id": "S10",
+    "input": "Approved cost allocation, dates and accounting policy",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p31_c1"
+      ],
+      "field": "control",
+      "text": "Aggregate approved warrant\nallocations from inception/later\ndraws; by maturity, cumulative\namortization must equal total\nallocated warrant cost."
+     }
+    ],
+    "output": "OID/warrant amortization schedule",
+    "parent_process": "Documented route after hold",
+    "rule_source_ref": "FA-10 step 8 and rules BR-06 to BR-08",
+    "system": "Excel amortization schedule",
+    "title": "Schedule OID and warrants",
+    "type": "activity"
+   },
+   {
+    "actor": "Independent checker",
+    "completion_criteria": "Required independent check completed before reliance; sign-off authority UNKNOWN.",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Initial workbook and executed terms",
+    "description": "FA-10 says the workbook is not relied on until an independent reviewer rebuilds or recalculates key terms and period-one principal, PIK and OID. The formal review scope, record and sign-off authority remain open.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p3_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p82_c1",
+     "t003"
+    ],
+    "handoff": "Correct or escalate failed checks.",
+    "id": "S11",
+    "input": "Initial workbook and cited terms",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p3_c1"
+      ],
+      "field": "responsible",
+      "text": "For a new investment, the workbook is not relied\non until an independent reviewer has rebuilt or recalculated\nthe key terms and the period-1 principal, PIK and OID\ncalculations"
+     }
+    ],
+    "output": "Independent build-check record",
+    "parent_process": "Documented route after hold",
+    "rule_source_ref": "FA-10 completion criteria and GAP-03",
+    "system": "Workbook and review record",
+    "title": "Check initial build independently",
+    "type": "activity"
+   },
+   {
+    "actor": "Workbook preparer; client or advisers as applicable",
+    "completion_criteria": "Applicable treatment and approvals are supported.",
+    "control_type": [
+     "client_review",
+     "exception_escalation"
+    ],
+    "data_origin": "Executed terms and client or legal confirmation",
+    "description": "When triggered, FA-10 calls for supported default, prepayment, exit-fee or make-whole calculations under executed terms and client or legal confirmation. Unclear conclusions hold affected work pending direction.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "calculated",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p5_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p32_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p38_c1"
+    ],
+    "handoff": "Client or legal counsel resolves uncertain triggers or terms; subsequent rejoin is UNKNOWN.",
+    "id": "S12",
+    "input": "Executed terms and confirmed triggering event",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p38_c1"
+      ],
+      "field": "exception",
+      "text": "Obtain\nclient or legal direction; GPFS\nmust not infer the trigger or\ncalculation."
+     }
+    ],
+    "output": "Supported special-feature calculation",
+    "parent_process": "Documented route after hold",
+    "rule_source_ref": "FA-10 step 9 and rule BR-09",
+    "system": "Loan workbook",
+    "title": "Handle special loan features",
+    "type": "activity"
+   },
+   {
+    "actor": "Workbook preparer and checker",
+    "completion_criteria": "No missing or duplicated principal, days or income; checker review retained.",
+    "control_type": [
+     "gpfs_operational",
+     "client_approval"
+    ],
+    "data_origin": "Executed change or written election",
+    "description": "For draws, amendments or other changes, FA-10 calls for a pre-change copy, effective-date split, before-and-after comparison and checker review. Retain the executed source and applicable client approval.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "t005",
+     "doc_b9e9c0cbc81e5d839e647740_p5_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p53_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p61_c1"
+    ],
+    "handoff": "Refresh affected cash, system, GL and reporting support.",
+    "id": "S13",
+    "input": "Executed change or election and effective date",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p53_c1"
+      ],
+      "field": "frequency",
+      "text": "Refresh the controlled life-to-date schedule at\nthe approved monthly or quarterly schedule and whenever a rate, draw, repayment, follow-on,\namendment, cash/PIK election, conversion, default, prepayment, exit, or make-whole event\nchanges the investment terms or calculations."
+     },
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p53_c1"
+      ],
+      "field": "control",
+      "text": "Retain the executed source, effective date,\nbefore-and-after comparison, client approval, and record of checker review."
+     }
+    ],
+    "output": "Updated schedule and comparison",
+    "parent_process": "Documented event-driven route after hold",
+    "rule_source_ref": "FA-10 step 10",
+    "system": "Controlled loan workbook",
+    "title": "Update changed loan terms",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Written direction or applicable approval retained.",
+    "control_type": [
+     "client_approval",
+     "exception_escalation"
+    ],
+    "data_origin": "Client direction and approved accounting treatment",
+    "description": "FA-10 calls for written direction before extending a schedule at maturity. At early payoff, identify remaining unamortized amounts and obtain accounting/client approval of gain-or-loss treatment. The performer obtaining these is not identified in the cited requirement.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p53_c1"
+    ],
+    "handoff": "Update the affected schedule and accounting support.",
+    "id": "S14",
+    "input": "Maturity or early-payoff event",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p53_c1"
+      ],
+      "field": "control",
+      "text": "At contractual\nmaturity, obtain written direction on extension, amendment, default, payoff, or continued accrual\nbefore extending the schedule."
+     },
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p53_c1"
+      ],
+      "field": "control",
+      "text": "At early payoff, separately identify any remaining unamortized amount and obtain\naccounting/client approval for realized-gain/loss treatment."
+     }
+    ],
+    "output": "Supported direction or payoff treatment",
+    "parent_process": "Documented event-driven route after hold",
+    "rule_source_ref": "FA-10 additional requirements",
+    "system": "Loan workbook",
+    "title": "Resolve maturity or payoff",
+    "type": "activity"
+   },
+   {
+    "actor": "Workbook preparer; Treasury or cash-monitoring role supplies receipts",
+    "completion_criteria": "Material differences are supported or explicitly open.",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Workbook, bank records and Treasury",
+    "description": "FA-10 calls for comparing expected and actual receipts, classifying differences and obtaining clarification where needed. Missing, excess or unidentified cash is escalated; actual cash is not changed to match expected cash.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p5_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p6_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p51_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p20_c1"
+    ],
+    "handoff": "Treasury supplies receipt detail; unresolved differences are escalated.",
+    "id": "S15",
+    "input": "Expected schedule and actual cash receipts",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p6_c1"
+      ],
+      "field": "responsible",
+      "text": "the Treasury or cash-monitoring role supplies actual\nreceipts"
+     },
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p51_c1"
+      ],
+      "field": "exception",
+      "text": "Escalate missing, excess, or unidentified cash; do not change the\nactual amount to match the expected amount."
+     }
+    ],
+    "output": "Cash reconciliation and variance log",
+    "parent_process": "Documented monthly route after hold",
+    "rule_source_ref": "FA-10 step 11",
+    "system": "Cash tracker, bank support and workbook",
+    "title": "Reconcile expected and actual cash",
+    "type": "activity"
+   },
+   {
+    "actor": "Workbook preparer; checker",
+    "completion_criteria": "Summary agrees to detailed schedules.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Workbook schedules and approved accounting guidance",
+    "description": "FA-10 calls for summarizing reviewed income components, reconciling them to schedules and preparing entry support using approved accounts. Entity-specific accounts and entry approval routing are unconfirmed.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p51_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p83_c1"
+    ],
+    "handoff": "Route entry support for review and approval.",
+    "id": "S16",
+    "input": "Reviewed cash interest, PIK, OID/warrant, fees, principal and cash variances",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p51_c1"
+      ],
+      "field": "responsible",
+      "text": "Step 12 \u2014 Prepare the monthly income summary and accounting support\nWho performs it: Workbook preparer; checker reviews; Accounting/Fund Team posts."
+     },
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p51_c1"
+      ],
+      "field": "frequency",
+      "text": "Step 12 \u2014 Prepare the monthly income summary and accounting support"
+     }
+    ],
+    "output": "Income summary and entry support",
+    "parent_process": "Documented monthly route after hold",
+    "rule_source_ref": "FA-10 step 12",
+    "system": "Income summary and JE support",
+    "title": "Prepare income and entry support",
+    "type": "activity"
+   },
+   {
+    "actor": "Assigned system/accrual preparer; checker",
+    "completion_criteria": "System agrees to Excel except documented approved rounding.",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Reviewed Excel schedule and system configuration",
+    "description": "FA-10 specifies loan security settings, Payment Date for PIK and Accrual for non-PIK, then Security Filter and Suggest Lines. Review suggested entries against Excel, document rounding and hold unexplained differences or incorrect PIK configuration.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "system_generated",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p52_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p32_c1"
+    ],
+    "handoff": "Submit for review after correcting configuration or supporting differences.",
+    "id": "S17",
+    "input": "Reviewed Excel schedule and configured security",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p52_c1"
+      ],
+      "field": "responsible",
+      "text": "Who performs it: Assigned system/accrual preparer; checker reviews. Exact role title is not\nspecified."
+     },
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p52_c1"
+      ],
+      "field": "exception",
+      "text": "Hold submission for unexplained system/Excel difference or\nwrong PIK configuration."
+     }
+    ],
+    "output": "Reviewed suggested lines and comparison",
+    "parent_process": "Documented monthly route after hold",
+    "rule_source_ref": "FA-10 step 13",
+    "system": "Alta Return/Allvue NAV and Excel",
+    "title": "Validate system accruals",
+    "type": "activity"
+   },
+   {
+    "actor": "Checker and Accounting/Fund Team; approver UNKNOWN",
+    "completion_criteria": "Detail, income summary and posted GL have no unexplained difference.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Reviewed income summary and entry support",
+    "description": "FA-10 calls for entry review and approval before the Accounting/Fund Team posts, followed by reconciliation to the GL and trial balance. The entity-specific approval route is unconfirmed.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p51_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p21_c1"
+    ],
+    "handoff": "Accounting/Fund Team records the reviewed entry.",
+    "id": "S18",
+    "input": "Reviewed income and entry support; compared system accruals",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p21_c1"
+      ],
+      "field": "responsible",
+      "text": "Accounting or Fund\nTeam\nRecord reviewed\nincome and accrual\njournal entries (JEs) in\nthe GL and maintain\nthe GL, TB, and\ninvestment records."
+     },
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p51_c1"
+      ],
+      "field": "control",
+      "text": "Route the entry for review and post it after approval."
+     }
+    ],
+    "output": "Posted entries and GL/TB reconciliation",
+    "parent_process": "Documented monthly route after hold",
+    "rule_source_ref": "FA-10 step 12",
+    "system": "GL and trial balance",
+    "title": "Approve and post entries",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Required comparisons and inspections performed and every difference explained; unexplained differences remain open.",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "System, workbook and GL/TB",
+    "description": "After recording accruals, FA-10 requires refreshing support and comparing loan and applicable entity or investor totals to the GL, trial balance and income summary. Inspect formulas and setup notes and explain every difference; unexplained differences remain open. The performer and precise relationship to period close are UNKNOWN.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p53_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p37_c1"
+    ],
+    "handoff": "Unexplained differences affect reporting close; exact handoff is UNKNOWN.",
+    "id": "S19",
+    "input": "Recorded accruals and supporting files",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p53_c1"
+      ],
+      "field": "control",
+      "text": "Inspect workbook\nformulas and system setup notes, and explain every difference."
+     }
+    ],
+    "output": "Refreshed support and reconciliation",
+    "parent_process": "Documented monthly route after hold",
+    "rule_source_ref": "FA-10 review after recording accruals",
+    "system": "Investment, data-cube and financial-statement support; GL/TB",
+    "title": "Review recorded accruals",
+    "type": "activity"
+   },
+   {
+    "actor": "Workbook preparer and independent checker",
+    "completion_criteria": "Zero unexplained differences; open variances resolved or assigned; current-period review retained; workbook locked and versioned.",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Workbook, cash, system and GL/TB records",
+    "description": "FA-10 calls for reconciling principal, income, cash and amortization, resolving or assigning variances, retaining checker review and locking and versioning the workbook. Keep the period open or document owned exceptions; no unexplained difference is accepted.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "doc_b9e9c0cbc81e5d839e647740_p52_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p53_c1",
+     "doc_b9e9c0cbc81e5d839e647740_p3_c1"
+    ],
+    "handoff": "Workbook is available for the next period; results feed financial reporting.",
+    "id": "S20",
+    "input": "Posted entries, system output, actual cash and updated schedules",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p52_c1"
+      ],
+      "field": "responsible",
+      "text": "Step 14 \u2014 Complete the monthly or period close and retain the controlled workbook\nWho performs it: Workbook preparer and independent checker."
+     },
+     {
+      "evidence_turns": [
+       "doc_b9e9c0cbc81e5d839e647740_p53_c1"
+      ],
+      "field": "exception",
+      "text": "Keep the period open or explicitly document owned exceptions;\ndo not overwrite unresolved items."
+     }
+    ],
+    "output": "Closed period package and controlled workbook",
+    "parent_process": "Documented monthly route after hold",
+    "rule_source_ref": "FA-10 step 14",
+    "system": "Workbook, close checklist, GL/TB and bank records",
+    "title": "Close and retain workbook",
+    "type": "activity"
+   }
+  ],
+  "title": "Debt Investment Economics"
+ },
+ "workflow_revision": "a09caf5cef4528f99970f14af1d6c96b4a3bfc56fe4ae051c52933b1aacb0af6",
+ "finished": 1794919107.553558,
+ "graph_checks": {
+  "steps": 20,
+  "connections": 25,
+  "types": {
+   "wait": 1,
+   "start": 1,
+   "activity": 18
+  },
+  "components": 2,
+  "isolated_steps": [
+   "S1"
+  ],
+  "entry_points": [
+   "S1",
+   "S2",
+   "S14",
+   "S17"
+  ],
+  "typed_start": [
+   "S2"
+  ],
+  "exit_points": [
+   "S1",
+   "S12",
+   "S19"
+  ],
+  "typed_end": [],
+  "decisions_with_under_two_exits": [],
+  "decision_exits_without_label": [],
+  "non_decision_with_multiple_exits": [
+   "S8",
+   "S9",
+   "S10",
+   "S13",
+   "S15",
+   "S17",
+   "S18"
+  ],
+  "steps_without_actor": [],
+  "actors": [
+   "Assigned system/accrual preparer; checker",
+   "Assigned workbook preparer",
+   "Checker and Accounting/Fund Team; approver UNKNOWN",
+   "Independent checker",
+   "UNKNOWN",
+   "Workbook preparer",
+   "Workbook preparer and checker",
+   "Workbook preparer and independent checker",
+   "Workbook preparer; Treasury or cash-monitoring role supplies receipts",
+   "Workbook preparer; checker",
+   "Workbook preparer; checker confirms completeness",
+   "Workbook preparer; checker verifies",
+   "Workbook preparer; client or advisers as applicable",
+   "Workbook preparer; independent checker"
+  ],
+  "open_questions": 21
+ }
+}

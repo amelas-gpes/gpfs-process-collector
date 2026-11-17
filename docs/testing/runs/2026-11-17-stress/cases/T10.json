@@ -1,0 +1,608 @@
+{
+ "case": "T10",
+ "port": 8791,
+ "interview_id": "3192c9c2c76d4dc8b017974b706d50ef",
+ "context": {
+  "process_name": "Two-Ledger Allocation Framework (Capital vs Carry Interest)",
+  "process_owner": "",
+  "objective": "Document how we carry out Two-Ledger Allocation Framework (Capital vs Carry Interest), the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "It is less a single trigger and more a framework we apply whenever GP vehicle economics have to be split among members. That happens on each periodic allocation, on each capital call or distribution event, or when there is an approved change to the member population that affects GP economics. The core idea is that every member has two separate interests: a capital interest, which is allocated on approved commitment or contribution information, and a carry interest, which allocates the approved vehicle-level carry amount under approved carry schedules. We keep those in two separate ledgers and only combine them by member at the end, because a percentage from one ledger can never stand in for the percentage in the other. Before any calculating we need the approved event total or the amount passed down from the upstream process in hand. There is no contractual deadline or cutoff established for it."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "Talk me through how you keep the capital and carry ledgers separate and allocate each one for an event."
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "Conceptually, a few rules govern it. Governing documents outrank client elections, internal practice, systems, workbooks and what people remember; if they conflict, processing stops until the right authority resolves it. The capital ledger uses only the client-approved method, which is either whole-population, deal, or tranche, and for a realized event we use only the approved contributions tied to that event, deal or tranche. The carry ledger is always life-to-date: we calculate carry from inception through the current period under each applicable schedule and subtract all carry recorded in prior periods, and the remainder is the current-period entry. Calculating only the current period is not acceptable. The two ledgers sit in separate sections of an Excel allocation workbook and are combined by member only after each is done. Any reallocation between members has to net to zero in each affected ledger, and a member's reduction can only go to recipients the client names. Members can validly move in opposite directions, so we explain those results rather than force them to look uniform. I, as the GPFS Preparer, calculate both ledgers and a GPFS Reviewer independently recalculates."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "When the independent recalculation does not match, what happens before the allocation can proceed?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "Every unexplained difference has to be investigated and resolved, because no tolerance for a difference has ever been approved, so we require exact reconciliation and no shortcuts. What we do depends on where the mismatch is. On the capital side, if contributions, event population and allocated totals do not agree, and the cause is missing or unreliable deal or tranche tags or mapping, we stop work on that component and get corrected data or an approved mapping from the client or source provider; we do not infer it, and we do not record the entry or publish. On the carry side, if life-to-date carry minus prior recorded carry does not give the current-period entry, we stop and reconcile. If capital plus carry does not equal the combined member schedule and the approved event total, we investigate and do not force the result. The Reviewer stops release if a difference is unexplained, the basis is unsupported, or records are incomplete. Who formally approves and releases is not confirmed, I do not know that."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "What can happen if an allocation is released with an unexplained error?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "GP economics could be created or lost if a reallocation does not net to zero, the current-period carry entry could be wrong, or the published allocation might not match the approved result. That matters because the event allocation feeds the GP workbook and the capital call or distribution process before notices go out or cash moves. Unusual results might also not be reproducible later. How to correct something already released is not defined, I do not know that. Since order matters here, the sequence is seven steps. One, I confirm the event and governing basis, set up separate capital and carry sections, and record the source period and purpose, which starts the event workpaper. Two, I reconcile member and schedule changes, confirm effective dates and components covered, and freeze the dated approved versions, with the client confirming; that gives a locked input set. Three, I calculate the capital-interest ledger. Four, I calculate the carry-interest ledger, giving the carry rollforward and current-period entry. Five, I combine results by member, reconcile to the event total and explain members moving in different directions, with the Reviewer involved and the client confirming when the intended result is unclear. Six, if there is an approved reallocation, I apply equal and opposite member changes and prove net zero per affected ledger, with the client naming recipients. Seven, the Reviewer completes the independent review, the approved version is locked, it is used to update the GP workbook or the downstream capital call or distribution file, the output is reconciled to the locked package, and the records are kept."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "What upstream process provides the approved event total, and how do you know it is ready to use?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "The event total comes from the approved source event file, or as a handoff from the waterfall and clawback process, which gives the approved vehicle-level carry or holdback result, or from the quarterly GP workbook process. It is ready when it is final and approved and I have confirmed it matches the correct event and period. Two other upstream feeds matter too: the member changes process gives approved member changes before the affected capital allocation, and the carry vesting process gives approved points and effective schedules before the affected carry allocation. On the exception paths: if the governing basis is absent, ambiguous or conflicts with a client instruction, I record the conflict and get a current interpretation from the governing authority, an adviser or the client, and calculation, entry and release stay blocked until there is a written resolution, then we continue from confirming the basis. If a carry schedule is missing, overlapping, conflicting or out of date, the affected carry calculation stops, the client supplies a corrected approved schedule set, and we recalculate carry and all affected downstream outputs. If a source, schedule, population or output changes after work starts or after review, every affected calculation and reconciliation is repeated and any unreleased output is stopped; who decides on correction or reissue is not confirmed, I do not know. The work is finished when the final output agrees with the locked reviewed package at total and member level and the handoff is done."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "Does this framework have another name used by your team or in a checklist or system?"
+  },
+  {
+   "id": "t012",
+   "role": "assistant",
+   "text": "This capture still has open sections. 13 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794919478.485,
+   "turn": 0,
+   "seconds": 0.024,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794919487.092,
+   "turn": 2,
+   "seconds": 2.718,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919498.355,
+   "turn": 3,
+   "seconds": 13.98
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919527.549,
+   "turn": 3,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 43.17
+  },
+  {
+   "kind": "question",
+   "at": 1794919537.226,
+   "turn": 4,
+   "seconds": 2.754,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919569.396,
+   "turn": 5,
+   "seconds": 34.92
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919577.588,
+   "turn": 5,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 43.12
+  },
+  {
+   "kind": "question",
+   "at": 1794919584.782,
+   "turn": 6,
+   "seconds": 1.169,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919608.295,
+   "turn": 7,
+   "seconds": 24.68
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919625.251,
+   "turn": 7,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 41.64
+  },
+  {
+   "kind": "question",
+   "at": 1794919637.77,
+   "turn": 8,
+   "seconds": 2.807,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919669.017,
+   "turn": 9,
+   "seconds": 34.05
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919678.242,
+   "turn": 9,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 43.28
+  },
+  {
+   "kind": "question",
+   "at": 1794919688.489,
+   "turn": 10,
+   "seconds": 2.337,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919720.2,
+   "turn": 11,
+   "seconds": 34.05
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919728.915,
+   "turn": 11,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 42.76
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794919733.915,
+   "turn": 11,
+   "seconds": 2.027,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "working",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.map_error",
+   "at": 1794919871.654,
+   "turn": 12,
+   "seconds": 139.77,
+   "error": "The provider timed out. Your answers are retained.",
+   "code": "timeout"
+  },
+  {
+   "kind": "wrap.map_error",
+   "at": 1794919874.797,
+   "turn": 12,
+   "seconds": 142.91,
+   "error": "The provider timed out. Your answers are retained.",
+   "code": "timeout"
+  }
+ ],
+ "started": 1794919478.460545,
+ "revision": "ce19ef59d3144aad4c7271b5492ac5db1a350d44cda056cf3215e543a5ce0fcd",
+ "capture": {
+  "memo_findings": [
+   {
+    "answer": "Two-Ledger Allocation Framework (Capital vs Carry Interest)",
+    "evidence_turns": [
+     "context"
+    ],
+    "key": "name",
+    "status": "partial"
+   },
+   {
+    "answer": "The framework splits GP vehicle economics among members using separate capital and carry interests.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "purpose",
+    "status": "captured"
+   },
+   {
+    "answer": "The framework is applied on each periodic allocation, each capital call or distribution event, and when an approved change to the member population affects GP economics. Before calculating, the approved event total or amount passed down from an upstream process must be in hand; no contractual deadline or cutoff is established.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "trigger",
+    "status": "partial"
+   },
+   {
+    "answer": "The two completed ledgers are combined by member at the end of the calculation.\nExact reconciliation is required, and the Reviewer stops release for unexplained differences, an unsupported basis or incomplete records. For a capital mismatch caused by missing or unreliable tags or mapping, the entry is not recorded or published while the component is stopped.\nCompletion includes independent review, locking the approved version, updating the GP workbook or downstream capital call or distribution file, reconciling output to the locked package, and keeping records.\nThe work is finished when the final output agrees with the locked reviewed package at total and member level and the handoff is done.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010"
+    ],
+    "key": "completion",
+    "status": "captured"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "accountable",
+    "status": "unknown"
+   },
+   {
+    "answer": "For an allocation, call, distribution, or approved member-population change affecting GP economics, the framework keeps capital and carry interests in separate ledgers and combines them by member only at the end.\nThe GPFS Preparer calculates both ledgers in separate sections of an Excel allocation workbook; the GPFS Reviewer independently recalculates. The ledgers are combined by member only after each is done.\nFor a realized event, the capital ledger uses approved contributions tied to that event, deal or tranche. Carry is calculated from inception through the current period under each applicable schedule, less all carry recorded in prior periods, to determine the current-period entry.\nIf governing documents conflict with lower-ranking sources, processing stops until the right authority resolves the conflict. Opposite member movements are explained rather than forced to look uniform.\nIf a capital mismatch is caused by missing or unreliable deal or tranche tags or mapping, work stops on that component until corrected data or an approved mapping is obtained from the client or source provider. The mapping is not inferred, and the entry is not recorded or published.\nIf life-to-date carry less prior recorded carry does not equal the current-period entry, work stops and the carry is reconciled. If capital plus carry does not equal the combined member schedule and approved event total, the difference is investigated rather than forced.\nThe GPFS Preparer confirms the event and governing basis, sets up separate capital and carry sections, and records the source period and purpose to start the event workpaper.\nThe Preparer reconciles member and schedule changes, confirms effective dates and covered components, and freezes dated approved versions with client confirmation to produce a locked input set.\nThe Preparer calculates capital first, then carry, producing the carry rollforward and current-period entry. The Preparer combines results by member, reconciles them to the event total and explains opposite movements, with Reviewer involvement and client confirmation when the intended result is unclear.\nIf a reallocation is approved, the Preparer applies equal and opposite member changes and proves net zero in each affected ledger; the client names recipients.\nThe Reviewer completes independent review, the approved version is locked, and it is used to update the GP workbook or downstream capital call or distribution file. The output is reconciled to the locked package and records are retained.\nThe participant does not know how an allocation already released is corrected; the correction procedure is not defined.\nIf the governing basis is absent, ambiguous or conflicts with a client instruction, the Preparer records the conflict and obtains a current interpretation from the governing authority, an adviser or the client. Calculation, entry and release remain blocked until written resolution, then work resumes by confirming the basis.\nIf a carry schedule is missing, overlapping, conflicting or out of date, the affected carry calculation stops. The client supplies a corrected approved schedule set, and carry and all affected downstream outputs are recalculated.\nIf a source, schedule, population or output changes after work starts or after review, every affected calculation and reconciliation is repeated and any unreleased output is stopped.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010"
+    ],
+    "key": "lifecycle",
+    "status": "partial"
+   },
+   {
+    "answer": "A GPFS Reviewer independently recalculates both ledgers prepared by the GPFS Preparer.\nEvery unexplained difference must be investigated and resolved. No difference tolerance has been approved, so exact reconciliation is required. The GPFS Reviewer stops release for an unexplained difference, unsupported basis or incomplete records.\nChecks compare contributions, event population and allocated totals on the capital side; life-to-date carry less prior recorded carry against the current-period entry; and capital plus carry against the combined member schedule and approved event total.\nThe participant does not know who formally approves and releases the allocation.\nThe client confirms the dated approved input versions. The Reviewer is involved in the combined member reconciliation, and the client confirms when the intended result is unclear.\nThe Preparer confirms that the event amount is final, approved and matches the correct event and period. Changes after work starts or review require all affected calculations and reconciliations to be repeated, with unreleased output stopped.",
+    "evidence_turns": [
+     "t004",
+     "t006",
+     "t008",
+     "t010"
+    ],
+    "key": "checks",
+    "status": "partial"
+   },
+   {
+    "answer": "The capital calculation uses the client-approved whole-population, deal or tranche method; the method changes the basis applied.\nWhen deal or tranche tags or mappings are missing or unreliable and cause a capital mismatch, the affected component follows a stop-and-correct route rather than proceeding on inferred mapping.\nMissing, overlapping, conflicting or outdated carry schedules require a stop, client-supplied corrected approved schedules and recalculation of carry and affected downstream outputs.",
+    "evidence_turns": [
+     "t004",
+     "t006",
+     "t010"
+    ],
+    "key": "variations",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "pain_points",
+    "status": "unknown"
+   },
+   {
+    "answer": "A reallocation that fails to net to zero could create or lose GP economics; the carry entry could be wrong, or the published allocation could differ from the approved result. Unusual results might not be reproducible later.",
+    "evidence_turns": [
+     "t008"
+    ],
+    "key": "risk",
+    "status": "captured"
+   },
+   {
+    "answer": "An Excel allocation workbook contains separate sections for the capital and carry ledgers. Approved carry schedules and approved commitment or contribution information supply allocation bases.\nGoverning documents are the reported highest-ranking rule source; no document was supplied for review.\nThe combined member schedule and approved event total are used in the capital-plus-carry tie-out; approved mapping or corrected data can resolve a capital component stopped for unreliable tags or mapping.\nThe event workpaper records the source period and purpose. Dated approved member and schedule versions form the locked input set; the approved version and locked package support the final output reconciliation.\nThe approved source event file can provide the event total. Approved member changes and carry points and effective schedules are upstream inputs; written resolution documents a governing-basis exception.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010"
+    ],
+    "key": "materials",
+    "status": "partial"
+   },
+   {
+    "answer": "The framework concerns splitting GP vehicle economics among members, with separate capital-interest and carry-interest ledgers.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "scope",
+    "status": "partial"
+   },
+   {
+    "answer": "Capital interest is allocated using approved commitment or contribution information; carry interest allocates the approved vehicle-level carry amount under approved carry schedules. The percentages in the two ledgers are not interchangeable.\nGoverning documents outrank client elections, internal practice, systems, workbooks and institutional memory. When they conflict, processing stops until the right authority resolves the conflict.\nThe capital ledger uses only the client-approved method: whole-population, deal or tranche. For a realized event, only approved contributions tied to that event, deal or tranche are used.\nCarry is always calculated life-to-date under each applicable schedule, subtracting all prior-period recorded carry to obtain the current-period entry; calculating only the current period is unacceptable.\nAny member reallocation must net to zero in each affected ledger, and a member's reduction can go only to recipients named by the client. Opposite member movements are valid and are explained rather than forced to look uniform.\nNo tolerance for reconciliation differences has been approved; exact reconciliation is required, and missing or unreliable deal or tranche mapping must not be inferred.\nThe procedure for correcting an already released allocation is not defined; the participant does not know it.\nAn absent, ambiguous or conflicting governing basis blocks calculation, entry and release until there is a written resolution; the Preparer obtains a current interpretation from the governing authority, an adviser or the client.\nThe participant does not know who decides on correction or reissue when a source, schedule, population or output changes after work starts or review.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010"
+    ],
+    "key": "rules",
+    "status": "partial"
+   },
+   {
+    "answer": "The event total comes from an approved source event file, a handoff from the waterfall and clawback process providing approved vehicle-level carry or holdback, or the quarterly GP workbook process. The Preparer confirms it is final, approved and matches the event and period.\nThe event allocation feeds the capital call or distribution process before notices go out or cash moves; the approved version is used to update the downstream capital call or distribution file.\nThe member changes process supplies approved changes before the affected capital allocation; the carry vesting process supplies approved points and effective schedules before the affected carry allocation.",
+    "evidence_turns": [
+     "t010",
+     "t008"
+    ],
+    "key": "connections",
+    "status": "partial"
+   },
+   {
+    "answer": "Capital and carry ledgers occupy separate sections of an Excel allocation workbook and are combined by member after each is done.\nThe approved allocation version is used to update the GP workbook or downstream capital call or distribution file; the resulting output is reconciled to the locked package.",
+    "evidence_turns": [
+     "t004",
+     "t008"
+    ],
+    "key": "data_systems",
+    "status": "partial"
+   },
+   {
+    "answer": "The framework is applied on each periodic allocation and on each capital call or distribution event; no numeric volume or effort estimate was provided.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "volume",
+    "status": "partial"
+   }
+  ],
+  "coverage": [
+   {
+    "key": "name",
+    "label": "Name & other names",
+    "status": "partial"
+   },
+   {
+    "key": "purpose",
+    "label": "Purpose & result",
+    "status": "partial"
+   },
+   {
+    "key": "trigger",
+    "label": "Start, cadence & deadlines",
+    "status": "partial"
+   },
+   {
+    "key": "completion",
+    "label": "Finished condition",
+    "status": "partial"
+   },
+   {
+    "key": "accountable",
+    "label": "Accountability",
+    "status": "missing"
+   },
+   {
+    "key": "lifecycle",
+    "label": "Items, stages & handoffs",
+    "status": "partial"
+   },
+   {
+    "key": "checks",
+    "label": "Checks, approvals & proof",
+    "status": "partial"
+   },
+   {
+    "key": "variations",
+    "label": "Variations and conditions",
+    "status": "partial"
+   },
+   {
+    "key": "pain_points",
+    "label": "Manual work & pain",
+    "status": "missing"
+   },
+   {
+    "key": "risk",
+    "label": "Consequences of failure",
+    "status": "partial"
+   },
+   {
+    "key": "materials",
+    "label": "Existing materials",
+    "status": "partial"
+   },
+   {
+    "key": "scope",
+    "label": "Scope & entity context",
+    "status": "partial"
+   },
+   {
+    "key": "rules",
+    "label": "Business rules & lineage",
+    "status": "partial"
+   },
+   {
+    "key": "connections",
+    "label": "Connected processes",
+    "status": "partial"
+   },
+   {
+    "key": "data_systems",
+    "label": "Data & systems",
+    "status": "partial"
+   },
+   {
+    "key": "volume",
+    "label": "Volume & effort",
+    "status": "partial"
+   }
+  ],
+  "summary": "The participant identified upstream event and member inputs, described exception and rework routes, and defined completion as total- and member-level agreement with the locked reviewed package plus handoff. Formal release and correction authority remain unknown.",
+  "focus": "Upstream inputs, exceptions and completion",
+  "parking_lot": [],
+  "connections_out": [
+   {
+    "condition": "Event allocation feeds the process before notices or cash movement; the approved version updates the downstream file.",
+    "counterpart": "Capital call or distribution process",
+    "evidence_turns": [
+     "t008"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "May supply the approved vehicle-level carry or holdback result as the event amount.",
+    "counterpart": "Waterfall and clawback process",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "May supply the event total.",
+    "counterpart": "Quarterly GP workbook process",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "Approved member changes are supplied before the affected capital allocation.",
+    "counterpart": "Member changes process",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "Approved points and effective schedules are supplied before the affected carry allocation.",
+    "counterpart": "Carry vesting process",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "consumes"
+   }
+  ],
+  "taxonomy": [
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "entity_type",
+    "note": "Participant describes GP vehicle economics and member carry interests; classification reflects reported scope.",
+    "value": "gp_carry"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "functional_area",
+    "note": "Reported work allocates vehicle-level carry amounts alongside capital interests; this is a descriptive classification.",
+    "value": "fees_and_carry"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "functional_area",
+    "note": "Reported framework allocates GP vehicle economics among members.",
+    "value": "allocations"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "system",
+    "note": "Participant reports separate ledger sections in an Excel allocation workbook.",
+    "value": "excel_workbook"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "rule_source",
+    "note": "Governing documents are reported as the highest-ranking source; documents were not independently reviewed.",
+    "value": "lpa_governing_doc"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "control_type",
+    "note": "GPFS Reviewer independently recalculates both ledgers; reviewer seniority is not stated.",
+    "value": "gpfs_supervisory"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "control_type",
+    "note": "Processing stops for a source conflict until the right authority resolves it.",
+    "value": "exception_escalation"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "variant_class",
+    "note": "Capital method is client-approved and can be whole-population, deal or tranche; broader standard is not established.",
+    "value": "client_specific"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "facet": "control_type",
+    "note": "Client confirms dated approved input versions and confirms unclear intended results; formal allocation approval remains unconfirmed.",
+    "value": "client_review"
+   }
+  ],
+  "completion": {
+   "allowed": false,
+   "ready_for_final_check": false,
+   "complete": false,
+   "partial": true,
+   "participant_confirmed": false,
+   "blockers": [
+    "role_incomplete:coverage_reviewer",
+    "role_incomplete:process_reviewer",
+    "coverage_result_unbound",
+    "coverage_incomplete",
+    "coverage_unresolved:name",
+    "coverage_unresolved:purpose",
+    "coverage_unresolved:trigger",
+    "coverage_unresolved:completion",
+    "coverage_unresolved:accountable",
+    "coverage_unresolved:lifecycle",
+    "coverage_unresolved:checks",
+    "coverage_unresolved:variations",
+    "coverage_unresolved:pain_points",
+    "coverage_unresolved:risk",
+    "coverage_unresolved:materials",
+    "coverage_unresolved:scope",
+    "coverage_unresolved:rules",
+    "coverage_unresolved:connections",
+    "coverage_unresolved:data_systems",
+    "coverage_unresolved:volume",
+    "process_result_unbound"
+   ],
+   "revision": "83d75c1d9a97803e675ff22682157e78fb7029d70d19b4feafa0efccf4be5543",
+   "run_id": "e80fddb2585943e4a318748d2cc81acf"
+  },
+  "coverage_assessment": null
+ },
+ "finished": 1794919874.797475
+}

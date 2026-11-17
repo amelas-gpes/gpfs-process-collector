@@ -1,0 +1,1027 @@
+{
+ "case": "F08",
+ "port": 8791,
+ "interview_id": "fe65e704a533463cad72955ba48a7d10",
+ "context": {
+  "process_name": "Quarterly Workbook Preparation & Binder",
+  "process_owner": "",
+  "objective": "Document how we carry out Quarterly Workbook Preparation & Binder, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "Thanks for sharing. Give me a moment to digest the file. Then I\u2019ll follow up with a question.",
+   "document_event": true,
+   "document_id": "doc_intake"
+  },
+  {
+   "id": "t002",
+   "role": "assistant",
+   "text": "The CSV lists building statement and lead-sheet support, running Check of Checks and clearing-account controls, then assembling binder support. Does that sequence reflect how this work is done today?"
+  },
+  {
+   "id": "t003",
+   "role": "user",
+   "text": "Yes, that order is right for those three, but they are from the middle and there are steps between them. After I build the statement and lead-sheet support, I record the quarter-specific accrual support, and only then run the Check of Checks and the clearing-account controls. After that comes the partner capital account and allocation checks, and then I assemble the binder support. I am the Fund Accountant and I do all of those."
+  },
+  {
+   "id": "t004",
+   "role": "assistant",
+   "text": "What does the Check of Checks compare in the quarterly workbook?"
+  },
+  {
+   "id": "t005",
+   "role": "user",
+   "text": "It runs on the Check Sheet macro tab. I confirm there is an H-check or a V-check for every active general ledger account and that every check equals zero. In the same step I confirm the two clearing accounts, Other Payable 20090 and Investment Payable 20080, net to zero. Anything that is not zero I investigate and correct. I could not tell you the difference between an H-check and a V-check, that is not defined anywhere I know of."
+  },
+  {
+   "id": "t006",
+   "role": "assistant",
+   "text": "What do you compare in the partner capital account and allocation checks?"
+  },
+  {
+   "id": "t007",
+   "role": "user",
+   "text": "On the M.1 tab I foot the first, the last and some randomly selected partner capital account samples and confirm the difference columns total zero. Then I confirm that investors with identical commitments have identical capital account and unfunded commitment balances. If they differ, either there is a documented reason in the governing terms, which I document and get reviewed, or the allocation gets corrected; the Controller and the client decide that as applicable, and it has to be resolved before the checks can be approved. I also review the distribution waterfall through the GP carried-interest step, and I send the independent recalculation requirements over to the FA-14 process. The Controller reviews these checks. How the random samples are picked and how many is not confirmed, I do not know that; it varies by fund. I should also give you the beginning, since I started in the middle. The whole thing starts when the quarterly close begins and current-period general ledger data and the client-approved method are available. First I review the limited partnership agreement and update the Activities and Tax Activities tabs: static fields, period-activity flags and tax fields. Every client-specific rule has to point to its governing document or approved source; if the method is unclear or conflicting I escalate to the Controller and the client. Second I copy the approved prior-quarter workbook and roll it forward, load the current trial balance, record the trial balance report run date and username, and confirm the correct entity and reporting period. If the entity, period or report source details cannot be confirmed, I stop. Third is the statement and lead-sheet build: I link the balance sheet, schedule of investments, income statement, partners capital and cash flow tabs to the trial balance, prepare lead sheets by account category, link each controlled balance to its source support instead of typing it in, and identify every active GL account that needs an H-check or V-check. Fourth, accruals: for Q1 to Q3 I calculate audit and tax accruals from the prior-year engagement letter only when that practice is approved, and in Q4 I true them up to the current engagement letters. If a letter is missing or there is an unusual component I get confirmation from the Controller and the client before going on."
+  },
+  {
+   "id": "t008",
+   "role": "assistant",
+   "text": "Once you assemble the binder support, what happens to it next?"
+  },
+  {
+   "id": "t009",
+   "role": "user",
+   "text": "For the binder I collect engagement letters, DTM packages and transaction documents, as much as possible in advance of quarter-end, and route each record to its binder category in the digital binder. The reviewer, which is the Controller, has to confirm the binder is complete before the process continues. If support is missing I record it and escalate it; who is allowed to approve proceeding without it is not specified, so I do not know. After that is the last step: I complete my preparer review, then submit the workbook to the Controller, who reviews the workbook and checklist results and returns comments that I resolve. Then the Director does a final review, but only when the complexity of the close requires it. Then I run the File Cleanup macro, only on the copy that will go outside the firm, to remove sensitive internal data. I validate the cleaned copy, and if the macro changed required data, the approved file is restored and the change is investigated; the Controller decides that. The detailed validation steps after cleanup are not confirmed. Finally I hand off the reviewed workbook and validated external copy to statement production, FA-12, and the binder support to the binder process, FA-15A, and that is the end. One more rule: if anything in the workbook changes after the Check of Checks was run, the Check of Checks has to be regenerated, re-reviewed and re-signed. There is no documented deadline, and who formally approves the workbook is not confirmed."
+  },
+  {
+   "id": "t010",
+   "role": "assistant",
+   "text": "What could happen if a workbook error is not caught before the reviewed workbook is handed off?"
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "This capture still has open sections. 14 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "doc.session",
+   "at": 1794919916.316,
+   "turn": 0,
+   "seconds": 0.029,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.upload",
+   "at": 1794919916.318,
+   "turn": 0,
+   "seconds": 0.002,
+   "status": 202,
+   "retries": 0,
+   "file": "F08 FA-13 three steps.csv",
+   "bytes": 133
+  },
+  {
+   "kind": "doc.extracted",
+   "at": 1794919916.839,
+   "turn": 0,
+   "seconds": 0.55,
+   "file": "F08 FA-13 three steps.csv",
+   "chunks": 1,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 4,
+    "total_units": 4,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_started",
+   "at": 1794919916.839,
+   "turn": 0,
+   "seconds": 0.55,
+   "file": "F08 FA-13 three steps.csv",
+   "chunks": 1,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 4,
+    "total_units": 4,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_deep",
+   "at": 1794919920.962,
+   "turn": 0,
+   "seconds": 4.67,
+   "file": "F08 FA-13 three steps.csv",
+   "chunks": 1,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 4,
+    "total_units": 4,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_complete",
+   "at": 1794919920.962,
+   "turn": 0,
+   "seconds": 4.67,
+   "file": "F08 FA-13 three steps.csv",
+   "chunks": 1,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 4,
+    "total_units": 4,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.followup_question",
+   "at": 1794919923.217,
+   "turn": 1,
+   "seconds": 2.256,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.first_question",
+   "at": 1794919923.218,
+   "turn": 2,
+   "seconds": 6.93,
+   "reading": {
+    "omitted_documents": 0,
+    "documents": [
+     {
+      "id": "doc_aa03c24645ca65c5c4f289aa",
+      "included_chunks": 1,
+      "total_chunks": 1
+     }
+    ]
+   }
+  },
+  {
+   "kind": "doc.notes_ready",
+   "at": 1794919937.115,
+   "turn": 2,
+   "seconds": 16.15
+  },
+  {
+   "kind": "doc.map_ready",
+   "at": 1794919959.857,
+   "turn": 2,
+   "seconds": 38.89,
+   "steps": 3,
+   "connections": 2
+  },
+  {
+   "kind": "question",
+   "at": 1794919967.064,
+   "turn": 3,
+   "seconds": 2.402,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919982.536,
+   "turn": 4,
+   "seconds": 17.87
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794920012.411,
+   "turn": 4,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 47.75
+  },
+  {
+   "kind": "question",
+   "at": 1794920019.394,
+   "turn": 5,
+   "seconds": 2.266,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794920043.138,
+   "turn": 6,
+   "seconds": 26.01
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794920054.954,
+   "turn": 6,
+   "seconds": 37.83,
+   "steps": 5,
+   "connections": 4
+  },
+  {
+   "kind": "question",
+   "at": 1794920066.008,
+   "turn": 7,
+   "seconds": 1.969,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794920111.339,
+   "turn": 8,
+   "notes_state": "working",
+   "map_state": "working",
+   "seconds": 47.3
+  },
+  {
+   "kind": "question",
+   "at": 1794920120.556,
+   "turn": 9,
+   "seconds": 2.394,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794920161.162,
+   "turn": 10,
+   "seconds": 43.0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794920165.781,
+   "turn": 10,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 47.62
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794920171.167,
+   "turn": 10,
+   "seconds": 2.035,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "working",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.map_error",
+   "at": 1794920350.343,
+   "turn": 11,
+   "seconds": 181.21,
+   "error": "The provider timed out. Your answers are retained.",
+   "code": "timeout"
+  },
+  {
+   "kind": "wrap.map_error",
+   "at": 1794920353.397,
+   "turn": 11,
+   "seconds": 184.26,
+   "error": "The provider timed out. Your answers are retained.",
+   "code": "timeout"
+  }
+ ],
+ "started": 1794919914.2557921,
+ "documents": [
+  {
+   "id": "doc_aa03c24645ca65c5c4f289aa",
+   "name": "F08 FA-13 three steps.csv",
+   "kind": "csv",
+   "size": 133,
+   "status": "ready",
+   "chunk_count": 1,
+   "analysis": {
+    "phase": "complete",
+    "intent_version": 0,
+    "basis_turn_id": "",
+    "basis_question": "",
+    "request_count": 1,
+    "generated_by": [
+     {
+      "build_id": "713975ca987f099ba0b713812b594415e1273cd802fdd81c77d3aca273de914f",
+      "generated_at": "2026-11-17T12:52:00.655+00:00",
+      "model": "gpt-6.1-terra",
+      "prompt_id": "3cdf9a64520b6eaf",
+      "reasoning_effort": "low",
+      "stage": "document_context_review"
+     }
+    ],
+    "app_version": "0.32.0",
+    "questions": [],
+    "observations": [
+     {
+      "id": "doc_aa03c24645ca65c5c4f289aa_3409638707cc88727b0c",
+      "text": "The CSV lists building statement and lead-sheet support as a step.",
+      "basis": "stated",
+      "quote": "Build statement and lead-sheet support",
+      "sources": [
+       {
+        "source_id": "doc_aa03c24645ca65c5c4f289aa_s1_r1_4_b1_c1",
+        "label": "F08 FA-13 three steps.csv \u00b7 CSV!A1:A4"
+       }
+      ]
+     },
+     {
+      "id": "doc_aa03c24645ca65c5c4f289aa_be9de5ca03b7ce44b7de",
+      "text": "It lists running Check of Checks and clearing-account controls, followed by assembling binder support.",
+      "basis": "stated",
+      "quote": "Run Check of Checks and clearing-account controls",
+      "sources": [
+       {
+        "source_id": "doc_aa03c24645ca65c5c4f289aa_s1_r1_4_b1_c1",
+        "label": "F08 FA-13 three steps.csv \u00b7 CSV!A1:A4"
+       }
+      ]
+     }
+    ],
+    "limit_indicator": false,
+    "unreadable_sources": [],
+    "limitations": [],
+    "summary": "The CSV lists three steps for preparing statement and lead-sheet support, running checks and clearing-account controls, and assembling binder support. It does not describe responsibilities, detailed procedures, or how exceptions are resolved.",
+    "summary_basis": "initial_review",
+    "summary_basis_note": "Written from the initial review selection. Later review may have changed coverage; current review status and limitations are shown separately.",
+    "summary_at_review_version": 1,
+    "queries": [],
+    "error": null,
+    "version": 1,
+    "relevance": "relevant",
+    "relevance_reason": "The listed steps directly relate to quarterly workbook preparation, controls, and binder assembly.",
+    "disposition": "relevant",
+    "acknowledgement": "",
+    "question": "",
+    "sources": [
+     {
+      "source_id": "doc_aa03c24645ca65c5c4f289aa_s1_r1_4_b1_c1",
+      "label": "F08 FA-13 three steps.csv \u00b7 CSV!A1:A4"
+     }
+    ],
+    "cursor": 1,
+    "reviewed_chunks": 1,
+    "total_chunks": 1,
+    "review_complete": true,
+    "estimated_requests": 1
+   },
+   "coverage": {
+    "indexed_units": 4,
+    "total_units": 4,
+    "limitations": []
+   },
+   "error": null,
+   "revision": 4,
+   "intent_version": null
+  }
+ ],
+ "revision": "7e2cc9f6980dfe374cc793e917efc3f4f2017c8d83d844b90988c225266b3981",
+ "capture": {
+  "memo_findings": [
+   {
+    "answer": "The intake names the work Quarterly Workbook Preparation & Binder.",
+    "evidence_turns": [
+     "context"
+    ],
+    "key": "name",
+    "status": "partial"
+   },
+   {
+    "answer": "The work prepares a reviewed quarterly workbook, a validated external copy and binder support for downstream statement production and the binder process.",
+    "evidence_turns": [
+     "t009"
+    ],
+    "key": "purpose",
+    "status": "captured"
+   },
+   {
+    "answer": "The work starts when the quarterly close begins and current-period general ledger data and the client-approved method are available.\nThe participant reports that there is no documented deadline.",
+    "evidence_turns": [
+     "t007",
+     "t009"
+    ],
+    "key": "trigger",
+    "status": "partial"
+   },
+   {
+    "answer": "The process ends when the Fund Accountant hands the reviewed workbook and validated external copy to statement production, FA-12, and binder support to the binder process, FA-15A.",
+    "evidence_turns": [
+     "t009"
+    ],
+    "key": "completion",
+    "status": "captured"
+   },
+   {
+    "answer": "The participant is the Fund Accountant and performs the described middle steps.\nOverall accountability for the result has not been established.",
+    "evidence_turns": [
+     "t003"
+    ],
+    "key": "accountable",
+    "status": "partial"
+   },
+   {
+    "answer": "The Fund Accountant describes a middle portion of the work: build statement and lead-sheet support, record quarter-specific accrual support, run Check of Checks and clearing-account controls, perform partner capital account and allocation checks, then assemble binder support. The Fund Accountant performs all these steps.\nDuring the Check of Checks and clearing-account control step, the Fund Accountant investigates and corrects anything that is not zero.\nFirst, the Fund Accountant reviews the limited partnership agreement and updates the Activities and Tax Activities tabs for static fields, period-activity flags and tax fields. Unclear or conflicting methods are escalated to the Controller and client.\nSecond, the Fund Accountant copies and rolls forward the approved prior-quarter workbook, loads the current trial balance, records the report run date and username, and confirms the entity and reporting period. The Fund Accountant stops if entity, period or report source details cannot be confirmed.\nThird, the Fund Accountant links the balance sheet, schedule of investments, income statement, partners capital and cash flow tabs to the trial balance; prepares lead sheets by account category; links controlled balances to source support instead of typing them; and identifies active GL accounts needing an H-check or V-check.\nFourth, for Q1\u2013Q3 the Fund Accountant calculates audit and tax accruals from the prior-year engagement letter only when that practice is approved; in Q4 the Fund Accountant trues them up to current engagement letters. A missing letter or unusual component requires Controller and client confirmation before proceeding.\nOn M.1 the Fund Accountant foots the first, last and some randomly selected partner capital account samples, checks that difference columns total zero, and compares capital account and unfunded commitment balances for investors with identical commitments.\nFor differing balances, the Fund Accountant documents a reason in governing terms and gets it reviewed, or the allocation is corrected; the Controller and client decide as applicable. The difference must be resolved before the checks can be approved. The Fund Accountant reviews the waterfall through GP carried interest, sends independent recalculation requirements to FA-14, and the Controller reviews the checks.\nThe Fund Accountant collects engagement letters, DTM packages and transaction documents, as far as possible before quarter-end, and routes each record to its category in the digital binder. The Controller must confirm the binder is complete before the process continues; missing support is recorded and escalated.\nAfter binder confirmation, the Fund Accountant completes preparer review and submits the workbook to the Controller, who reviews the workbook and checklist results and returns comments for the Fund Accountant to resolve. The Director performs final review only when close complexity requires it.\nThe Fund Accountant runs the File Cleanup macro only on the copy going outside the firm to remove sensitive internal data, then validates it. If required data changed, the approved file is restored and the change investigated; the Controller decides that.\nThe detailed validation steps after cleanup are not confirmed.",
+    "evidence_turns": [
+     "t003",
+     "t005",
+     "t007",
+     "t009"
+    ],
+    "key": "lifecycle",
+    "status": "partial"
+   },
+   {
+    "answer": "The Fund Accountant runs Check of Checks and clearing-account controls after recording accrual support, then performs partner capital account and allocation checks before assembling binder support.\nThe Fund Accountant does not know how random partner capital samples are selected or how many are taken; these vary by fund.\nOn the Check Sheet macro tab, the Fund Accountant confirms every active general ledger account has an H-check or V-check and that every check equals zero. In the same step, the Fund Accountant confirms Other Payable 20090 and Investment Payable 20080 net to zero.\nThe Fund Accountant investigates and corrects anything that is not zero.\nThe Fund Accountant foots first, last and random partner capital samples on M.1 and confirms difference columns total zero, then checks equal commitments have equal capital account and unfunded commitment balances. The Controller reviews these checks.\nDifferences between equal-commitment investors must be resolved before approval: a governing-terms reason is documented and reviewed, or the allocation is corrected, with the Controller and client deciding as applicable.\nThe Fund Accountant confirms the entity and reporting period and stops if entity, period or trial balance report source details cannot be confirmed.\nThe Controller confirms binder completeness before continuation. The Fund Accountant records and escalates missing support.\nWho may approve proceeding without missing binder support is unspecified and unknown to the participant.\nThe Fund Accountant performs preparer review; the Controller reviews the workbook and checklist results and returns comments for resolution. A Director performs final review when close complexity requires it.\nThe Fund Accountant validates the cleaned external copy. If cleanup changed required data, the approved file is restored and the change investigated, with the Controller deciding that.\nDetailed post-cleanup validation steps and the formal workbook approver are not confirmed.\nAny workbook change after the Check of Checks requires that check to be regenerated, re-reviewed and re-signed.",
+    "evidence_turns": [
+     "t003",
+     "t007",
+     "t005",
+     "t009"
+    ],
+    "key": "checks",
+    "status": "partial"
+   },
+   {
+    "answer": "Accrual work differs by quarter: approved prior-year engagement letter practice is used in Q1\u2013Q3, while Q4 is trued up to current engagement letters.\nRandom sample selection and count vary by fund, but the Fund Accountant does not know how the samples are picked or how many are taken.\nA Director's final review is added when the complexity of the close requires it.",
+    "evidence_turns": [
+     "t007",
+     "t009"
+    ],
+    "key": "variations",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "pain_points",
+    "status": "unknown"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "risk",
+    "status": "unknown"
+   },
+   {
+    "answer": "The CSV identifies statement and lead-sheet support to be built and support to be assembled for the binder.\nThe Fund Accountant records quarter-specific accrual support as part of the workbook and binder work.\nThe quarterly workbook contains a Check Sheet macro tab on which the Check of Checks runs.\nThe Fund Accountant reviews the limited partnership agreement, uses approved prior-quarter workbook and current trial balance, and uses prior-year or current engagement letters for accruals as applicable.\nThe workbook includes Activities, Tax Activities and M.1 tabs and financial statement tabs; the Fund Accountant also prepares account-category lead sheets linked to support.\nBinder support includes engagement letters, DTM packages and transaction documents, routed by category in a digital binder. The Controller also reviews checklist results alongside the workbook.",
+    "evidence_turns": [
+     "doc_aa03c24645ca65c5c4f289aa_s1_r1_4_b1_c1",
+     "t003",
+     "t005",
+     "t007",
+     "t009"
+    ],
+    "key": "materials",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant is a Fund Accountant and performs the described workbook and binder steps, including partner capital account and allocation checks.",
+    "evidence_turns": [
+     "t003"
+    ],
+    "key": "scope",
+    "status": "partial"
+   },
+   {
+    "answer": "The Fund Accountant checks that each active general ledger account has an H-check or V-check, all checks equal zero, and the two named clearing accounts net to zero.\nThe Fund Accountant cannot explain the difference between an H-check and a V-check and knows of no definition.\nEvery client-specific rule must point to its governing document or approved source. The Fund Accountant escalates unclear or conflicting methods to the Controller and client.\nPrior-year engagement letters are used for Q1\u2013Q3 audit and tax accruals only when that practice is approved; Q4 accruals are trued up to current engagement letters. Missing letters or unusual components require Controller and client confirmation before proceeding.\nEqual-commitment investors should have equal capital account and unfunded commitment balances unless a documented governing-terms reason is reviewed; otherwise the allocation is corrected as decided by the Controller and client as applicable.\nA workbook change after the Check of Checks triggers regeneration, re-review and re-signing of that check.\nController confirmation that the binder is complete is required before the process continues.",
+    "evidence_turns": [
+     "t005",
+     "t007",
+     "t009"
+    ],
+    "key": "rules",
+    "status": "partial"
+   },
+   {
+    "answer": "The Fund Accountant sends independent recalculation requirements to the FA-14 process after reviewing the distribution waterfall through the GP carried-interest step.\nThe Fund Accountant hands the reviewed workbook and validated external copy to statement production, FA-12, at the end of this process.\nThe Fund Accountant hands binder support to the binder process, FA-15A, at the end of this process.",
+    "evidence_turns": [
+     "t007",
+     "t009"
+    ],
+    "key": "connections",
+    "status": "partial"
+   },
+   {
+    "answer": "The Check of Checks runs on the workbook's Check Sheet macro tab.\nThe Fund Accountant rolls forward an approved prior-quarter workbook, loads the current trial balance and records its report run date and username. Controlled balances are linked to source support rather than typed in.\nBinder records are routed to categories in a digital binder. The File Cleanup macro removes sensitive internal data from the external workbook copy.",
+    "evidence_turns": [
+     "t005",
+     "t007",
+     "t009"
+    ],
+    "key": "data_systems",
+    "status": "partial"
+   },
+   {
+    "answer": "The Fund Accountant does not know the number of random partner capital samples; the number varies by fund.",
+    "evidence_turns": [
+     "t007"
+    ],
+    "key": "volume",
+    "status": "partial"
+   }
+  ],
+  "coverage": [
+   {
+    "key": "name",
+    "label": "Name & other names",
+    "status": "partial"
+   },
+   {
+    "key": "purpose",
+    "label": "Purpose & result",
+    "status": "partial"
+   },
+   {
+    "key": "trigger",
+    "label": "Start, cadence & deadlines",
+    "status": "partial"
+   },
+   {
+    "key": "completion",
+    "label": "Finished condition",
+    "status": "partial"
+   },
+   {
+    "key": "accountable",
+    "label": "Accountability",
+    "status": "partial"
+   },
+   {
+    "key": "lifecycle",
+    "label": "Items, stages & handoffs",
+    "status": "partial"
+   },
+   {
+    "key": "checks",
+    "label": "Checks, approvals & proof",
+    "status": "partial"
+   },
+   {
+    "key": "variations",
+    "label": "Variations and conditions",
+    "status": "partial"
+   },
+   {
+    "key": "pain_points",
+    "label": "Manual work & pain",
+    "status": "missing"
+   },
+   {
+    "key": "risk",
+    "label": "Consequences of failure",
+    "status": "missing"
+   },
+   {
+    "key": "materials",
+    "label": "Existing materials",
+    "status": "partial"
+   },
+   {
+    "key": "scope",
+    "label": "Scope & entity context",
+    "status": "partial"
+   },
+   {
+    "key": "rules",
+    "label": "Business rules & lineage",
+    "status": "partial"
+   },
+   {
+    "key": "connections",
+    "label": "Connected processes",
+    "status": "partial"
+   },
+   {
+    "key": "data_systems",
+    "label": "Data & systems",
+    "status": "partial"
+   },
+   {
+    "key": "volume",
+    "label": "Volume & effort",
+    "status": "partial"
+   }
+  ],
+  "summary": "The Fund Accountant described binder assembly, Controller review, conditional Director review, external-copy cleanup and the final handoffs. Missing-support authorization, formal workbook approval and detailed cleanup validation remain unconfirmed.",
+  "focus": "Binder review, cleanup and final handoffs",
+  "parking_lot": [],
+  "connections_out": [
+   {
+    "condition": "The Fund Accountant sends independent recalculation requirements after reviewing the distribution waterfall through the GP carried-interest step.",
+    "counterpart": "FA-14",
+    "evidence_turns": [
+     "t007"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "Reviewed workbook and validated external copy are handed off at the end.",
+    "counterpart": "Statement production, FA-12",
+    "evidence_turns": [
+     "t009"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "Binder support is handed off at the end.",
+    "counterpart": "Binder process, FA-15A",
+    "evidence_turns": [
+     "t009"
+    ],
+    "relationship_type": "hands_off_to"
+   }
+  ],
+  "taxonomy": [
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "facet": "functional_area",
+    "note": "The participant identifies as Fund Accountant and performs the reported steps.",
+    "value": "fund_accounting"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "facet": "entity_type",
+    "note": "Fund accounting context reported by the participant; exact entity scope remains to be established.",
+    "value": "fund"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "facet": "control_type",
+    "note": "Fund Accountant reports checking account coverage and zero balances and correcting nonzero items.",
+    "value": "gpfs_operational"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "facet": "entity_type",
+    "note": "Reported waterfall review extends through the GP carried-interest step; broader entity scope is not established.",
+    "value": "gp_carry"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "facet": "rule_source",
+    "note": "Participant reviews the limited partnership agreement and cites governing terms for differences.",
+    "value": "lpa_governing_doc"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "facet": "rule_source",
+    "note": "Engagement letters are the reported accrual source, subject to approval and quarter-specific treatment.",
+    "value": "other"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "facet": "control_type",
+    "note": "The Controller reviews the partner capital and allocation checks.",
+    "value": "gpfs_supervisory"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "facet": "control_type",
+    "note": "Unclear or conflicting methods are escalated to the Controller and client.",
+    "value": "exception_escalation"
+   }
+  ],
+  "completion": {
+   "allowed": false,
+   "ready_for_final_check": false,
+   "complete": false,
+   "partial": true,
+   "participant_confirmed": false,
+   "blockers": [
+    "role_incomplete:coverage_reviewer",
+    "role_incomplete:process_reviewer",
+    "coverage_result_unbound",
+    "coverage_incomplete",
+    "coverage_unresolved:name",
+    "coverage_unresolved:purpose",
+    "coverage_unresolved:trigger",
+    "coverage_unresolved:completion",
+    "coverage_unresolved:accountable",
+    "coverage_unresolved:lifecycle",
+    "coverage_unresolved:checks",
+    "coverage_unresolved:variations",
+    "coverage_unresolved:pain_points",
+    "coverage_unresolved:risk",
+    "coverage_unresolved:materials",
+    "coverage_unresolved:scope",
+    "coverage_unresolved:rules",
+    "coverage_unresolved:connections",
+    "coverage_unresolved:data_systems",
+    "coverage_unresolved:volume",
+    "process_result_unbound"
+   ],
+   "revision": "eef86ad4be1e19c7f9088949113d5b70b1715cfadd345c226aa271fa032eefad",
+   "run_id": "ba282031a77146e7acf22f9011177b44"
+  },
+  "coverage_assessment": null
+ },
+ "workflow": {
+  "connections": [
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "from": "S1",
+    "label": "Then",
+    "to": "S4"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "from": "S4",
+    "label": "Then",
+    "to": "S2"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "from": "S2",
+    "label": "Then",
+    "to": "S5"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "from": "S5",
+    "label": "Then",
+    "to": "S3"
+   }
+  ],
+  "open_questions": [
+   "What starts the work, who receives the initiating input, and what happens before statement and lead-sheet support is built?",
+   "What cadence and deadlines apply, and who is accountable for the overall result?",
+   "What inputs, systems and workpapers are used at each step? What happens after binder support is assembled, and how is completion evidenced?",
+   "What do the partner capital account and allocation checks examine, who reviews results, and where is evidence retained?",
+   "What happens if an active account lacks a check, and how are corrections rechecked before work advances?",
+   "The Fund Accountant does not know the difference between H-checks and V-checks. Is that distinction defined by someone or in another source?",
+   "Which entities or clients are in scope, and are there meaningful variations from this route? Is this general GPFS practice or the participant's own route?",
+   "What rules or other materials govern the work, and who interprets them?",
+   "Where are the main manual effort and risks, and what are the normal volumes and peak periods?"
+  ],
+  "steps": [
+   {
+    "actor": "Fund Accountant",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [],
+    "data_origin": "UNKNOWN",
+    "description": "The Fund Accountant builds statement and lead-sheet support. This is a middle step, not the start of the process.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003",
+     "doc_aa03c24645ca65c5c4f289aa_s1_r1_4_b1_c1"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S1",
+    "input": "UNKNOWN",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "responsible",
+      "text": "After I build the statement and lead-sheet support, I record the quarter-specific accrual support, and only then run the Check of Checks and the clearing-account controls. After that comes the partner capital account and allocation checks, and then I assemble the binder support. I am the Fund Accountant and I do all of those."
+     }
+    ],
+    "output": "Statement and lead-sheet support",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Build statement and lead-sheet support",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund Accountant",
+    "completion_criteria": "Confirm check coverage and zero balances; investigate and correct anything nonzero. Handling of missing checks and release conditions are UNKNOWN.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "UNKNOWN",
+    "description": "The Fund Accountant confirms an H-check or V-check exists for every active general ledger account and that every check equals zero. In the same step, they confirm the Other Payable and Investment Payable clearing accounts net to zero, and investigate and correct anything nonzero.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003",
+     "t005",
+     "doc_aa03c24645ca65c5c4f289aa_s1_r1_4_b1_c1"
+    ],
+    "handoff": "Partner capital account and allocation checks follow; handoff details UNKNOWN.",
+    "id": "S2",
+    "input": "Active general ledger accounts and clearing-account balances",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "responsible",
+      "text": "After I build the statement and lead-sheet support, I record the quarter-specific accrual support, and only then run the Check of Checks and the clearing-account controls. After that comes the partner capital account and allocation checks, and then I assemble the binder support. I am the Fund Accountant and I do all of those."
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "system",
+      "text": "It runs on the Check Sheet macro tab."
+     },
+     {
+      "evidence_turns": [
+       "doc_aa03c24645ca65c5c4f289aa_s1_r1_4_b1_c1"
+      ],
+      "field": "control",
+      "text": "Run Check of Checks"
+     },
+     {
+      "evidence_turns": [
+       "doc_aa03c24645ca65c5c4f289aa_s1_r1_4_b1_c1"
+      ],
+      "field": "control",
+      "text": "clearing-account controls"
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "control",
+      "text": "I confirm there is an H-check or a V-check for every active general ledger account and that every check equals zero."
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "control",
+      "text": "In the same step I confirm the two clearing accounts, Other Payable 20090 and Investment Payable 20080, net to zero."
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "exception",
+      "text": "Anything that is not zero I investigate and correct."
+     }
+    ],
+    "output": "Check results and corrections; retained evidence UNKNOWN",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Participant-reported checks; the CSV lists the control step without details.",
+    "system": "Quarterly workbook, Check Sheet macro tab",
+    "title": "Run checks and clearing controls",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund Accountant",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [],
+    "data_origin": "UNKNOWN",
+    "description": "Assemble binder support after the partner capital account and allocation checks.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003",
+     "doc_aa03c24645ca65c5c4f289aa_s1_r1_4_b1_c1"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S3",
+    "input": "UNKNOWN",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "responsible",
+      "text": "After that comes the partner capital account and allocation checks, and then I assemble the binder support. I am the Fund Accountant and I do all of those."
+     }
+    ],
+    "output": "Binder support",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Assemble binder support",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund Accountant",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [],
+    "data_origin": "UNKNOWN",
+    "description": "Record quarter-specific accrual support after building statement and lead-sheet support.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S4",
+    "input": "UNKNOWN",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "responsible",
+      "text": "After I build the statement and lead-sheet support, I record the quarter-specific accrual support, and only then run the Check of Checks and the clearing-account controls. After that comes the partner capital account and allocation checks, and then I assemble the binder support. I am the Fund Accountant and I do all of those."
+     }
+    ],
+    "output": "Recorded accrual support",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Record quarter-specific accrual support",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund Accountant",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [],
+    "data_origin": "UNKNOWN",
+    "description": "Perform partner capital account and allocation checks after the clearing-account controls.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S5",
+    "input": "UNKNOWN",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "responsible",
+      "text": "After that comes the partner capital account and allocation checks, and then I assemble the binder support. I am the Fund Accountant and I do all of those."
+     },
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "control",
+      "text": "partner capital account and allocation checks"
+     }
+    ],
+    "output": "UNKNOWN",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Check partner capital and allocations",
+    "type": "activity"
+   }
+  ],
+  "title": "Quarterly Workbook Preparation & Binder"
+ },
+ "workflow_revision": "07e7bc645e244b6198042db630fb76694d4345eaf795c97626ce704f6db06b3e",
+ "finished": 1794920353.396547,
+ "graph_checks": {
+  "steps": 5,
+  "connections": 4,
+  "types": {
+   "activity": 5
+  },
+  "components": 1,
+  "isolated_steps": [],
+  "entry_points": [
+   "S1"
+  ],
+  "typed_start": [],
+  "exit_points": [
+   "S3"
+  ],
+  "typed_end": [],
+  "decisions_with_under_two_exits": [],
+  "decision_exits_without_label": [],
+  "non_decision_with_multiple_exits": [],
+  "steps_without_actor": [],
+  "actors": [
+   "Fund Accountant"
+  ],
+  "open_questions": 9
+ }
+}

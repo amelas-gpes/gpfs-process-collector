@@ -1,4 +1,4 @@
-"""Regression cases for docs/testing/process-capture-2026-11-16 that have no suite of their own.
+"""Regression cases for docs/testing/runs/2026-11-16-process-capture that have no suite of their own.
 
 Finding 1 (server side): a file whose text is indexed while no review has reported a phase.
 Finding 5: a citation a model got wrong is settled internally; the map is not refused for it.
@@ -26,7 +26,7 @@ from test_pdf_page_furniture import TABLE, pdf_bytes, text_commands
 ROOT = Path(__file__).resolve().parents[1]
 documents = server.documents
 document_service = server.local_module("document_service", "document_service.py")
-SAMPLES = ROOT / 'docs' / 'testing' / 'process-capture-2026-11-16' / 'uploads' / 'inputs'
+SAMPLES = ROOT / 'docs' / 'testing' / 'runs' / '2026-11-16-process-capture' / 'uploads' / 'inputs'
 U1 = 'I prepare the discovery board, prioritize ideas, update them, then attach a Jira ticket or Confluence document.'
 U2 = ('Sorry, the first step was not checking the discovery board. Change it to get water and put my mind at ease '
       'before I start.')

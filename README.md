@@ -147,7 +147,7 @@ The tool cannot guarantee that every relevant fact has been elicited or interpre
 
 ## Live process testing
 
-The November 2026 regression set includes the source process library, 21 reopenable test interviews and 10 upload variants. Use the answer keys, baseline timings and acceptance checks when testing changes to the interviewer or document analysis. [Process capture findings and replay instructions](docs/testing/process-capture-2026-11-16/README.md)
+The process library used as the source of truth for live tests, a participant harness and the dated results of earlier runs are under `docs/testing`. A new test needs only the library and the harness; earlier runs are there to compare against. [Testing index](docs/testing/README.md) · [Planned enhancements](docs/enhancements/README.md)
 
 ## Offline tests
 

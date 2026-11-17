@@ -1,0 +1,688 @@
+{
+ "case": "T12",
+ "port": 8796,
+ "interview_id": "c0a9df0e1b1746b78b5359740c32e29e",
+ "context": {
+  "process_name": "Due From Funds & Portfolio Companies Billing",
+  "process_owner": "",
+  "objective": "Document how we carry out Due From Funds & Portfolio Companies Billing, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "Oh, well, nothing dramatic starts it, honestly. Nobody emails us to say go. It is just the internal close calendar, at the end of each billing period, which for this client, One Rock, is quarterly, and it always lands right on top of month-end when everybody is already drowning. I swear month-end is designed by someone who hates accountants. Anyway, the fund side goes first, it follows the upstream source package and it is less complicated, and the portfolio company billing usually comes after. Before I really begin I make sure the Sage receivable activity for the period is there, the prior approved workbooks, the support in Box, the client Expense Tracker, the customer parent fields in Sage AR, and that the reviewer and client collaboration channels are available. My cousin once started baking a wedding cake before checking she had eggs, total disaster, and that is exactly how I think about this. Then the first real thing I do, as the preparer, is record the billing period and populations, copy last period's fund workbook and portfolio company workbook into the current cycle location, update the period references, including the transaction report header on all the roughly 25 to 27 portfolio tabs, and confirm fund tabs, affiliate tabs, portfolio tabs, the Notes tab, formulas and pivots are all there. If an entity is missing or extra, I confirm the population before loading any data."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "Once the population is confirmed, how do you load the period\u2019s data into the workbooks?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "Right, so for the fund side, I run the Sage general ledger for accounts 1101 through 1105, the full billing period, with the location filter. I export it to Excel and honestly the export is ugly, I have to wrap text and strip out all the merge and center formatting. Whoever designed that report layout, I would like a word. Then I add a net column, debit minus credit, fill it down through every account section, paste it as values, and only then delete the original debit and credit columns. Next I remove every row where the document number starts with Invoice, because those are prior invoices and you would bill them twice otherwise. Then I sum what is left by account and compare it to the Sage ending balance. If there is any difference at all, I stop, I do not populate the fund tabs. Reminds me of my old car, the fuel gauge was off by a quarter tank and I ignored it once, never again. Once it ties, I add blank rows to each fund tab, copy transaction dates through net amount, not the Sage running balances, remove unused rows, extend the running balance and sum formulas, and check each tab agrees to its Per Sage amount. I never force a tie with an unexplained manual entry. I leave the GL coding column blank for the internal fund team and mark the finished account sections in my source file so nothing gets processed twice. Affiliates come after that."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "How do you handle the affiliate billing after the fund account sections are complete?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "Affiliates, yes. So I pull the whole Due From Affiliates account out of Sage with no customer filter, and clean it the same way as the fund export, net column, values, prior Invoice rows out. Then I build a pivot, Customer Name in the rows, Transaction Amount as the values. I exclude the GP entities, old funds we no longer bill, and anything out of population, but only under confirmed population rules, I do not just decide that myself. Then I populate each affiliate tab. And here is the bit people skip when it is month-end and the coffee machine is broken again, which it was all of last quarter by the way: I run a separate Sage report for every single affiliate and check the tab agrees with it. The grouped report alone is not good enough because it can miss backdated entries. If the grouped and the individual differ, I use the individual one to investigate, document it, and the reviewer decides, and that tab stays open until it is resolved. After that I gather support: sort by document number, pull invoice PDFs and allocation support from the vendor folders in Box, journal support from Sage or email, credits and refunds from email, all into one consolidated cycle folder, cross-referenced to the workbook lines. If backup is missing I have to find it before anything gets submitted. My neighbour keeps receipts in a shoebox, drives me mad."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "Who receives the consolidated billing package when it is submitted?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "It goes through a chain, it is not one person. First our own reviewer looks at the Sage reconciliations and any unusual items or missing support. They do not re-review the vendor invoice support itself, because those invoices already had two approvals in Mineral Tree upstream. Then the internal fund team reviews the package, fills in the general ledger coding I left blank, and writes their questions on the Notes tab. I resolve those notes and send questions to the client where needed. Then I put the package in the Client Collaboration folder and notify One Rock. They send feedback by email, I record it, update the workbook, and we go round again until they give final approval. If their feedback changes an amount I redo all the reconciliations and get approval again, every time, which at month-end feels like painting a bridge. My uncle actually painted bridges, said you never finish. How fast they have to turn it around, or the exact wording of final approval, I honestly do not know, nobody has ever told me. After approval I create the AR invoices in Sage, either updating a prior invoice or by an approved bulk import, dated the first of the month after period end, reference quarter and year with the memo matching. I print and save each one by entity name, invoice number and amount, they get an internal review, then go to the fund team, who send the payment request to Treasury. We ask for copies of the payment notifications so cash can be matched."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "What does this billing work ultimately provide to One Rock?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "In the end One Rock gets approved, reconciled workbooks, printed invoices for the funds, affiliates and portfolio companies, the per-company deal team files and an updated Expense Tracker. But we have not covered the portfolio company half, and that is the monster. I pull Sage account 1201 for the quarter, no customer or location filter, clean it like before, plus drop the department column and the 1201 summary header row, take out prior Invoice rows, pivot by customer, and exclude approved write-offs, supported, never just deleted. Then for every add-on I check the parent in Sage AR and combine it with the parent tab, paste rows in, refresh the expense type pivot, and tie each tab to its own individual Sage report. Do Not Bill items stay in the detail so it ties to Sage but come out of the billable total. Who approves a Do Not Bill, I do not know. Same review chain, then one Excel per company, current quarter only, for the deal teams. Then I update the Expense Tracker and tie the net to Sage. Accrued balance versus credit, I still need One Rock to confirm what they mean. Last, I group classes into Professional Fees, Other Expenses, Meals and Travel, bulk import, check each invoice is one page. If the entity is reserve funded, the invoice goes straight to Treasury, otherwise the normal payment chain. My dentist bills faster than this, honestly, month-end or not."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "What does One Rock need to clarify about the accrued balance versus credit in the Expense Tracker?"
+  },
+  {
+   "id": "t012",
+   "role": "assistant",
+   "text": "This capture still has open sections. 14 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794919436.282,
+   "turn": 0,
+   "seconds": 0.024,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794919447.046,
+   "turn": 2,
+   "seconds": 2.232,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919467.523,
+   "turn": 3,
+   "seconds": 22.71
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919492.128,
+   "turn": 3,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 47.31
+  },
+  {
+   "kind": "question",
+   "at": 1794919500.982,
+   "turn": 4,
+   "seconds": 1.706,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919533.137,
+   "turn": 5,
+   "seconds": 33.86
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919546.461,
+   "turn": 5,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 47.19
+  },
+  {
+   "kind": "question",
+   "at": 1794919557.213,
+   "turn": 6,
+   "seconds": 3.334,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919581.772,
+   "turn": 7,
+   "seconds": 27.89
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919602.336,
+   "turn": 7,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 48.46
+  },
+  {
+   "kind": "question",
+   "at": 1794919611.552,
+   "turn": 8,
+   "seconds": 1.621,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919655.514,
+   "turn": 9,
+   "seconds": 45.58
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919657.039,
+   "turn": 9,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 47.11
+  },
+  {
+   "kind": "question",
+   "at": 1794919667.04,
+   "turn": 10,
+   "seconds": 1.89,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919704.36,
+   "turn": 11,
+   "seconds": 39.21
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919712.083,
+   "turn": 11,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 46.93
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794919716.868,
+   "turn": 11,
+   "seconds": 2.024,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "queued",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.map_error",
+   "at": 1794919854.717,
+   "turn": 12,
+   "seconds": 139.87,
+   "error": "The workflow could not update. Your answers are retained."
+  },
+  {
+   "kind": "wrap.map_error",
+   "at": 1794919857.774,
+   "turn": 12,
+   "seconds": 142.93,
+   "error": "The workflow could not update. Your answers are retained."
+  }
+ ],
+ "started": 1794919436.257681,
+ "revision": "0143104f40c57849613e7e19651dd0467bdc65c755d700bd4546b741c3b558fe",
+ "capture": {
+  "memo_findings": [
+   {
+    "answer": "Due From Funds & Portfolio Companies Billing",
+    "evidence_turns": [
+     "context"
+    ],
+    "key": "name",
+    "status": "captured"
+   },
+   {
+    "answer": "The described work produces approved billing and Sage AR invoices for funds and portfolio companies.\nOne Rock receives approved, reconciled workbooks, printed invoices for funds, affiliates and portfolio companies, per-company deal team files and an updated Expense Tracker.",
+    "evidence_turns": [
+     "context",
+     "t008",
+     "t010"
+    ],
+    "key": "purpose",
+    "status": "captured"
+   },
+   {
+    "answer": "For One Rock, the work is initiated by the internal close calendar at the end of each quarterly billing period; the participant says nobody emails to start it. The cycle coincides with month-end.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "trigger",
+    "status": "partial"
+   },
+   {
+    "answer": "After client approval, invoices are created, saved and internally reviewed; the fund team sends the payment request to Treasury, and payment notifications are requested for cash matching.\nThe observable final closeout condition, including whether cash matching must be completed, is not established.\nThe participant identifies approved, reconciled workbooks, printed invoices for the three populations, per-company deal team files and an updated Expense Tracker as the end deliverables.",
+    "evidence_turns": [
+     "t008",
+     "t010"
+    ],
+    "key": "completion",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant is the preparer for the described workbook preparation and fund data loading.\nThe role accountable for the overall billing result is not established.",
+    "evidence_turns": [
+     "t002",
+     "t004"
+    ],
+    "key": "accountable",
+    "status": "partial"
+   },
+   {
+    "answer": "The fund side goes first and follows the upstream source package; the participant describes it as less complicated. Portfolio company billing usually follows the fund side.\nBefore loading data, the preparer records the billing period and populations, copies the prior-period fund and portfolio company workbooks into the current-cycle location, updates period references\u2014including the transaction report header on roughly 25 to 27 portfolio tabs\u2014and checks that expected tabs, formulas and pivots are present. If an entity is missing or extra, the population is confirmed before data is loaded.\nFor the fund side, the preparer runs the Sage general ledger for accounts 1101\u20131105 for the full billing period with the location filter, exports it to Excel, wraps text and removes merge-and-center formatting.\nThe preparer adds a net column as debit minus credit, fills it through every account section and pastes it as values before deleting the debit and credit columns. The preparer then removes rows whose document number starts with Invoice to avoid rebilling prior invoices.\nThe preparer sums the remaining rows by account and compares them to the Sage ending balance. Any difference stops fund-tab population.\nOnce tied, the preparer adds blank rows to each fund tab, copies transaction dates through net amount but not Sage running balances, removes unused rows, extends running-balance and sum formulas, and checks each tab against its Per Sage amount.\nThe preparer leaves the GL coding column blank for the internal fund team and marks finished account sections in the source file to avoid processing them twice. Affiliates follow.\nAfter the fund account sections, the preparer pulls the entire Due From Affiliates account from Sage without a customer filter, cleans it as for the fund export, calculates and values net amounts, and removes prior Invoice rows.\nThe preparer builds a pivot with Customer Name in rows and Transaction Amount as values, excludes GP entities, old funds no longer billed and other out-of-population items only under confirmed population rules, then populates each affiliate tab.\nThe preparer runs a separate Sage report for every affiliate and checks its tab against it. If the grouped and individual reports differ, the preparer uses the individual report to investigate and document the difference; the reviewer decides, and the tab stays open until resolved.\nAfter affiliate checks, the preparer sorts by document number and gathers invoice PDFs and allocation support from vendor folders in Box, journal support from Sage or email, and credits and refunds from email into a consolidated cycle folder, cross-referenced to workbook lines. Missing backup must be found before anything is submitted.\nThe team's reviewer first examines Sage reconciliations, unusual items and missing support. The internal fund team then reviews the package, fills in GL coding and records questions on the Notes tab; the preparer resolves the notes and asks the client questions where needed.\nThe preparer places the package in the Client Collaboration folder and notifies One Rock. The client emails feedback; the preparer records it and updates the workbook until final approval. If feedback changes an amount, the preparer repeats all reconciliations and obtains approval again.\nAfter approval, the preparer creates Sage AR invoices by updating a prior invoice or using an approved bulk import. Invoices are dated the first of the month after period end, reference quarter and year, and have a matching memo. The preparer prints and saves each by entity name, invoice number and amount; after internal review they go to the fund team, which sends the payment request to Treasury. Copies of payment notifications are requested for cash matching.\nFor portfolio companies, the preparer pulls Sage account 1201 for the quarter without customer or location filters, cleans it as before, drops the department column and 1201 summary header, removes prior Invoice rows, pivots by customer and excludes supported, approved write-offs.\nFor each add-on, the preparer checks its parent in Sage AR and combines it with the parent tab, pastes rows, refreshes the expense-type pivot and ties each tab to its individual Sage report. Do Not Bill items remain in detail for the Sage tie but are excluded from the billable total.\nPortfolio billing follows the same review chain, then the preparer creates one current-quarter Excel file per company for deal teams, updates the Expense Tracker and ties its net to Sage.\nThe preparer groups classes into Professional Fees, Other Expenses, Meals and Travel, uses bulk import and checks that each invoice is one page. Reserve-funded entity invoices go straight to Treasury; otherwise the normal payment chain applies.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010"
+    ],
+    "key": "lifecycle",
+    "status": "partial"
+   },
+   {
+    "answer": "Before loading data, the preparer checks that fund tabs, affiliate tabs, portfolio tabs, the Notes tab, formulas and pivots are present. If the entity population is missing or extra, the preparer confirms the population before loading.\nThe preparer compares account sums after invoice-row removal to Sage ending balances and stops fund-tab population for any difference; each populated tab is checked against its Per Sage amount. The preparer does not force a tie with an unexplained manual entry.\nThe preparer checks each affiliate tab against a separate Sage report because the grouped report can miss backdated entries. Differences are investigated and documented by the preparer, decided by the reviewer, and keep the tab open until resolved.\nThe preparer must find missing backup before submitting anything.\nThe team's reviewer examines reconciliations, unusual items and missing support but does not re-review vendor invoice support; the participant reports that those invoices already received two approvals upstream in Mineral Tree. The internal fund team subsequently reviews the package and records questions.\nOne Rock gives final approval before Sage AR invoices are created. Amount changes prompted by client feedback require all reconciliations to be redone and approval obtained again. Each invoice also receives an internal review before going to the fund team.\nThe participant does not know the exact wording of final client approval or the expected client turnaround time.\nThe internal invoice reviewer's role and specific checks are not established.\nThe preparer checks every portfolio tab against its individual Sage report, ties the Expense Tracker net to Sage and checks each invoice is one page.\nThe participant does not know who approves a Do Not Bill item.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010"
+    ],
+    "key": "checks",
+    "status": "partial"
+   },
+   {
+    "answer": "For One Rock, billing is quarterly and coincides with month-end.\nWhether One Rock's cadence differs from a general route is not established.\nFor a reserve-funded entity, its invoice goes directly to Treasury; otherwise it follows the normal payment chain.",
+    "evidence_turns": [
+     "t002",
+     "t010"
+    ],
+    "key": "variations",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant reports that the quarterly One Rock billing period coincides with month-end, when the team is already very busy.\nThe preparer reports that the Sage export requires wrapping text and removing merge-and-center formatting.\nThe preparer describes repeated reconciliation and reapproval after client amount changes as burdensome at month-end.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t008"
+    ],
+    "key": "pain_points",
+    "status": "partial"
+   },
+   {
+    "answer": "Including prior invoice rows would bill them twice, according to the preparer.\nThe participant reports that a grouped affiliate report can miss backdated entries.",
+    "evidence_turns": [
+     "t004",
+     "t006"
+    ],
+    "key": "risk",
+    "status": "partial"
+   },
+   {
+    "answer": "Before beginning, the participant checks for Sage receivable activity for the period, prior approved workbooks, support in Box, the client Expense Tracker, customer parent fields in Sage AR, and available reviewer and client collaboration channels. The participant copies the prior-period fund and portfolio company workbooks to the current-cycle location and updates period references.\nThe exported Sage GL source file is prepared in Excel and its finished account sections are marked to prevent duplicate processing.\nThe affiliate work uses grouped and individual Sage reports, affiliate workbook tabs and a consolidated cycle folder of backup cross-referenced to workbook lines. Backup includes invoice PDFs, allocation support, journal support, credits and refunds.\nThe package includes a workbook with a Notes tab for fund-team questions. Client feedback arrives by email and is recorded; the preparer prints and saves invoices by entity name, invoice number and amount. Payment notification copies are requested for cash matching.\nPortfolio work uses the account 1201 export, individual company Sage reports, portfolio tabs, current-quarter per-company Excel files for deal teams, and the client Expense Tracker.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010"
+    ],
+    "key": "materials",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant describes fund-side and portfolio-company billing for client One Rock. The workbooks include fund, affiliate and portfolio tabs; the specific entity population is recorded, and missing or extra entities prompt confirmation before data loading.\nAffiliate billing is included after the fund account sections. The confirmed population rules exclude GP entities, old funds no longer billed and other out-of-population items.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006"
+    ],
+    "key": "scope",
+    "status": "partial"
+   },
+   {
+    "answer": "The preparer calculates net as debit minus credit and excludes rows with document numbers beginning Invoice because they are prior invoices that would otherwise be billed twice. Unexplained manual entries are not used to force a tie.\nAffiliate exclusions, including GP entities and old funds no longer billed, are made only under confirmed population rules, not at the preparer's independent discretion.\nMissing backup must be found before submission, and an affiliate tab with a grouped-versus-individual report difference remains open until the issue is resolved.\nClient final approval precedes invoice creation; any client feedback changing an amount requires the preparer to redo all reconciliations and obtain approval again. Invoices carry the first-of-next-month date, quarter and year reference, and matching memo.\nPortfolio write-offs are excluded only when approved and supported. Do Not Bill items remain in transaction detail for the Sage tie but are excluded from the billable total.\nOne Rock still needs to confirm what accrued balance versus credit means in the Expense Tracker.",
+    "evidence_turns": [
+     "t004",
+     "t006",
+     "t008",
+     "t010"
+    ],
+    "key": "rules",
+    "status": "partial"
+   },
+   {
+    "answer": "Fund-side billing follows an upstream source package; portfolio company billing usually follows the fund side.\nFund-side billing follows the upstream source package.\nThe upstream package's originating process, contents and exact handoff remain unidentified.\nThe participant reports that vendor invoices have already received two approvals in Mineral Tree upstream; the billing reviewer does not repeat that vendor-support review.\nThe internal fund team reviews and codes the package and later receives internally reviewed invoices, then sends the payment request to Treasury.\nOne Rock reviews the package, sends feedback and gives final approval before invoice creation.\nUses the output of upstream source package (originating process not identified): Fund-side billing follows the package; exact handoff and package contents are not established.\nHappens after Vendor invoice approvals in Mineral Tree: Vendor invoices reportedly receive two approvals upstream; billing review does not repeat vendor support review.\nCurrent-quarter per-company Excel files are prepared for deal teams. Reserve-funded entity invoices go straight to Treasury; other invoices follow the normal payment chain.",
+    "evidence_turns": [
+     "t002",
+     "t008",
+     "t010"
+    ],
+    "key": "connections",
+    "status": "partial"
+   },
+   {
+    "answer": "The preparer checks Sage receivable activity and customer parent fields in Sage AR, uses Box support and the client Expense Tracker, and copies prior-period workbooks to the current-cycle location.\nThe current-cycle workbook location is not identified.\nThe preparer exports the filtered Sage GL to Excel, calculates and values the net column, and copies selected transaction fields into fund tabs.\nFor affiliates, the preparer pulls an unfiltered Sage account report, builds a customer pivot and checks tabs using individual Sage reports. Support comes from Box vendor folders, Sage and email and is consolidated in a cycle folder.\nThe preparer uses the Client Collaboration folder for the package, records emailed client feedback and updates the workbook, then creates approved AR invoices in Sage through prior-invoice updates or an approved bulk import.\nThe preparer uses Sage AR parent fields to combine add-ons with parent tabs, refreshes Excel expense-type pivots and bulk imports invoices.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010"
+    ],
+    "key": "data_systems",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant estimates there are roughly 25 to 27 portfolio tabs whose transaction report headers are updated each cycle.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "volume",
+    "status": "partial"
+   }
+  ],
+  "coverage": [
+   {
+    "key": "name",
+    "label": "Name & other names",
+    "status": "partial"
+   },
+   {
+    "key": "purpose",
+    "label": "Purpose & result",
+    "status": "partial"
+   },
+   {
+    "key": "trigger",
+    "label": "Start, cadence & deadlines",
+    "status": "partial"
+   },
+   {
+    "key": "completion",
+    "label": "Finished condition",
+    "status": "partial"
+   },
+   {
+    "key": "accountable",
+    "label": "Accountability",
+    "status": "partial"
+   },
+   {
+    "key": "lifecycle",
+    "label": "Items, stages & handoffs",
+    "status": "partial"
+   },
+   {
+    "key": "checks",
+    "label": "Checks, approvals & proof",
+    "status": "partial"
+   },
+   {
+    "key": "variations",
+    "label": "Variations and conditions",
+    "status": "partial"
+   },
+   {
+    "key": "pain_points",
+    "label": "Manual work & pain",
+    "status": "partial"
+   },
+   {
+    "key": "risk",
+    "label": "Consequences of failure",
+    "status": "partial"
+   },
+   {
+    "key": "materials",
+    "label": "Existing materials",
+    "status": "partial"
+   },
+   {
+    "key": "scope",
+    "label": "Scope & entity context",
+    "status": "partial"
+   },
+   {
+    "key": "rules",
+    "label": "Business rules & lineage",
+    "status": "partial"
+   },
+   {
+    "key": "connections",
+    "label": "Connected processes",
+    "status": "partial"
+   },
+   {
+    "key": "data_systems",
+    "label": "Data & systems",
+    "status": "partial"
+   },
+   {
+    "key": "volume",
+    "label": "Volume & effort",
+    "status": "partial"
+   }
+  ],
+  "summary": "The participant described portfolio-company billing, including parent grouping, individual Sage ties, Do Not Bill treatment, deal-team files and the reserve-funded Treasury route. One Rock must clarify accrued balance versus credit; the Do Not Bill approver is unknown.",
+  "focus": "Portfolio-company billing and Expense Tracker",
+  "parking_lot": [
+   "One Rock confirmation of accrued balance versus credit in the Expense Tracker",
+   "Who approves Do Not Bill items"
+  ],
+  "connections_out": [
+   {
+    "condition": "Fund-side billing follows the package; exact handoff and package contents are not established.",
+    "counterpart": "upstream source package (originating process not identified)",
+    "evidence_turns": [
+     "t002"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "Portfolio company billing usually follows the fund side.",
+    "counterpart": "fund-side billing",
+    "evidence_turns": [
+     "t002"
+    ],
+    "relationship_type": "happens_after"
+   },
+   {
+    "condition": "Vendor invoices reportedly receive two approvals upstream; billing review does not repeat vendor support review.",
+    "counterpart": "Vendor invoice approvals in Mineral Tree",
+    "evidence_turns": [
+     "t008"
+    ],
+    "relationship_type": "happens_after"
+   },
+   {
+    "condition": "The fund team reviews and codes the package and later receives internally reviewed invoices.",
+    "counterpart": "Internal fund team",
+    "evidence_turns": [
+     "t008"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "Final client approval is required before Sage AR invoice creation; amount changes require reapproval.",
+    "counterpart": "One Rock",
+    "evidence_turns": [
+     "t008"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "The fund team sends Treasury a payment request after receiving the internally reviewed invoices.",
+    "counterpart": "Treasury",
+    "evidence_turns": [
+     "t008"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "The fund team sends Treasury a payment request after receiving internally reviewed invoices; reserve-funded entity invoices go straight to Treasury.",
+    "counterpart": "Treasury",
+    "evidence_turns": [
+     "t008",
+     "t010"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "One current-quarter Excel file per portfolio company is prepared for the deal teams.",
+    "counterpart": "Deal teams",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "provides_input_to"
+   }
+  ],
+  "taxonomy": [
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "entity_type",
+    "note": "Fund-side billing is explicitly in scope; participant-described process context, not independently verified.",
+    "value": "fund"
+   },
+   {
+    "evidence_turns": [
+     "context",
+     "t002"
+    ],
+    "facet": "functional_area",
+    "note": "Due-from-funds and portfolio-company billing is the described work; no more specific controlled functional-area classification is established.",
+    "value": "other"
+   },
+   {
+    "evidence_turns": [
+     "context",
+     "t002"
+    ],
+    "facet": "process_level",
+    "note": "The supplied process name identifies the overall billing process; participant describes fund-side and portfolio-company work within it.",
+    "value": "process"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "client_applicability",
+    "note": "The reported quarterly cadence is explicitly for One Rock; whether it differs from a general GPFS route is not established.",
+    "value": "client_specific"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "system",
+    "note": "Participant reports Sage receivable activity and Sage AR; Sage is not separately listed in the controlled vocabulary.",
+    "value": "other"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "system",
+    "note": "Prior-period fund and portfolio company workbooks are copied and updated for the current cycle; participant-described use.",
+    "value": "excel_workbook"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "control_type",
+    "note": "Participant reports preparer reconciliation and a stop on any difference before fund-tab population.",
+    "value": "gpfs_operational"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "facet": "system",
+    "note": "Box vendor folders hold invoice PDFs and allocation support; Box is not separately listed.",
+    "value": "other"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "facet": "system",
+    "note": "Email is a reported source of journal support, credits and refunds.",
+    "value": "email"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "facet": "control_type",
+    "note": "The reviewer decides investigated and documented affiliate report discrepancies; role affiliation is reported in the team's workflow.",
+    "value": "gpfs_supervisory"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "facet": "control_type",
+    "note": "One Rock's final approval precedes invoice creation; amount changes require renewed approval.",
+    "value": "client_approval"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "facet": "control_type",
+    "note": "One Rock provides feedback on the billing package.",
+    "value": "client_review"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "facet": "system",
+    "note": "Mineral Tree is reported as the upstream vendor invoice approval system.",
+    "value": "other"
+   },
+   {
+    "evidence_turns": [
+     "t010"
+    ],
+    "facet": "variant_class",
+    "note": "Participant reports a direct Treasury invoice route when the entity is reserve funded, versus the normal payment chain otherwise.",
+    "value": "structural"
+   }
+  ],
+  "completion": {
+   "allowed": false,
+   "ready_for_final_check": false,
+   "complete": false,
+   "partial": true,
+   "participant_confirmed": false,
+   "blockers": [
+    "role_incomplete:coverage_reviewer",
+    "role_incomplete:process_reviewer",
+    "coverage_result_unbound",
+    "coverage_incomplete",
+    "coverage_unresolved:name",
+    "coverage_unresolved:purpose",
+    "coverage_unresolved:trigger",
+    "coverage_unresolved:completion",
+    "coverage_unresolved:accountable",
+    "coverage_unresolved:lifecycle",
+    "coverage_unresolved:checks",
+    "coverage_unresolved:variations",
+    "coverage_unresolved:pain_points",
+    "coverage_unresolved:risk",
+    "coverage_unresolved:materials",
+    "coverage_unresolved:scope",
+    "coverage_unresolved:rules",
+    "coverage_unresolved:connections",
+    "coverage_unresolved:data_systems",
+    "coverage_unresolved:volume",
+    "process_result_unbound"
+   ],
+   "revision": "867119b355374bea0277bbc1695bd0edf1f8c37f099090017ab2cb968c3032e1",
+   "run_id": "f6eb87cc5452440a82e4f54188181cc3"
+  },
+  "coverage_assessment": null
+ },
+ "finished": 1794919857.7744782
+}

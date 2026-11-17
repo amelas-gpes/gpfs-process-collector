@@ -1,0 +1,2044 @@
+{
+ "case": "F04",
+ "port": 8792,
+ "interview_id": "6d295ef782d744d79beac4d796b2d6a3",
+ "context": {
+  "process_name": "LOC Draw & Repayment Execution",
+  "process_owner": "",
+  "objective": "Document how we carry out LOC Draw & Repayment Execution, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "Thanks for sharing. Give me a moment to digest the file. Then I\u2019ll follow up with a question.",
+   "document_event": true,
+   "document_id": "doc_intake"
+  },
+  {
+   "id": "t002",
+   "role": "assistant",
+   "text": "The document says rejected, partial, or misapplied activity is resolved during reconciliation. What does the team do when one occurs?"
+  },
+  {
+   "id": "t003",
+   "role": "user",
+   "text": "When what was executed differs from what was approved, Treasury and the fund team investigate it, correct it, reconcile again and escalate. We do not close the event until the cash, the lender record, the GL and the approved amount all agree, so after the correction it goes back to the comparison of executed amount against the approved instruction. The reconciliation itself is the record we keep. I do not know how much of a difference is tolerated or who formally signs off completion, and I do not know exactly who it gets escalated to, those have not been confirmed."
+  },
+  {
+   "id": "t004",
+   "role": "assistant",
+   "text": "When execution differs from the approved instruction, what practical impact does that have while the event remains open?"
+  },
+  {
+   "id": "t005",
+   "role": "user",
+   "text": "Anything it touches stays open until it is resolved, meaning any affected routing, approval, calculation, accounting, payment, reporting or handoff. Beyond that I cannot give you a more specific impact. The other big stop point is earlier, at the capacity and compliance check: if draw capacity or compliance status is not available, we do not submit the draw request at all. It is a hard stop, the draw stays blocked and it gets resolved through the facility compliance process, with the client, a Director or the lender deciding as applicable. Only once that is resolved and documented do we carry on to the funding path. The capacity test is the record."
+  },
+  {
+   "id": "t006",
+   "role": "assistant",
+   "text": "How does the team obtain the documented capacity and compliance status before deciding whether a draw can proceed?"
+  },
+  {
+   "id": "t007",
+   "role": "user",
+   "text": "It comes from the facility compliance preparer and reviewer, off the compliance certificate and the facility tracker, and it has to be current as of the proposed draw or repayment date. I do not know the exact file location or who reviews that check separately. Two more decision points while we are on it. First, at the funding path step for a repayment: if available cash is not sufficient, the client decides between calling capital, using approved distribution proceeds, or deferring if the facility terms permit, otherwise we escalate, and we only proceed once that decision is made and recorded, then we go on to the principal and interest calculation. Who owns that internally has not been specified. Second, during client review: if the event date changes, or the client changes the amount or timing, the preparer refreshes the projected interest, updates the model and the capital activity inputs, and the affected review and client approval are repeated before anything goes to the GL or Treasury."
+  },
+  {
+   "id": "t008",
+   "role": "assistant",
+   "text": "For repayment, what sources and calculation basis does the preparer use to determine principal and interest?"
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "This capture still has open sections. 16 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "doc.session",
+   "at": 1794918674.164,
+   "turn": 0,
+   "seconds": 0.026,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.upload",
+   "at": 1794918674.168,
+   "turn": 0,
+   "seconds": 0.003,
+   "status": 202,
+   "retries": 0,
+   "file": "F04 FA-19A full steps.csv",
+   "bytes": 8416
+  },
+  {
+   "kind": "doc.extracted",
+   "at": 1794918674.684,
+   "turn": 0,
+   "seconds": 0.55,
+   "file": "F04 FA-19A full steps.csv",
+   "chunks": 2,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 38,
+    "total_units": 38,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_started",
+   "at": 1794918674.684,
+   "turn": 0,
+   "seconds": 0.55,
+   "file": "F04 FA-19A full steps.csv",
+   "chunks": 2,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 38,
+    "total_units": 38,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_deep",
+   "at": 1794918679.802,
+   "turn": 0,
+   "seconds": 5.66,
+   "file": "F04 FA-19A full steps.csv",
+   "chunks": 2,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 38,
+    "total_units": 38,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_complete",
+   "at": 1794918679.802,
+   "turn": 0,
+   "seconds": 5.66,
+   "file": "F04 FA-19A full steps.csv",
+   "chunks": 2,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 38,
+    "total_units": 38,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.followup_question",
+   "at": 1794918684.133,
+   "turn": 1,
+   "seconds": 4.331,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.first_question",
+   "at": 1794918684.133,
+   "turn": 2,
+   "seconds": 9.99,
+   "reading": {
+    "omitted_documents": 0,
+    "documents": [
+     {
+      "id": "doc_3c0aea3e72fdc246a13b1e76",
+      "included_chunks": 2,
+      "total_chunks": 2
+     }
+    ]
+   }
+  },
+  {
+   "kind": "doc.left_pending",
+   "at": 1794918744.514,
+   "turn": 2,
+   "notes_state": "working",
+   "map_state": "working",
+   "seconds": 64.71
+  },
+  {
+   "kind": "question",
+   "at": 1794918751.282,
+   "turn": 3,
+   "seconds": 1.538,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794918811.539,
+   "turn": 4,
+   "notes_state": "working",
+   "map_state": "working",
+   "seconds": 61.8
+  },
+  {
+   "kind": "question",
+   "at": 1794918818.695,
+   "turn": 5,
+   "seconds": 1.572,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794918879.135,
+   "turn": 6,
+   "notes_state": "working",
+   "map_state": "working",
+   "seconds": 62.01
+  },
+  {
+   "kind": "question",
+   "at": 1794918887.56,
+   "turn": 7,
+   "seconds": 1.812,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794918947.572,
+   "turn": 8,
+   "notes_state": "queued",
+   "map_state": "working",
+   "seconds": 61.82
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794919027.563,
+   "turn": 8,
+   "seconds": 77.024,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "working",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.map_ready",
+   "at": 1794919150.813,
+   "turn": 9,
+   "seconds": 200.27,
+   "steps": 24,
+   "connections": 33
+  }
+ ],
+ "started": 1794918672.305992,
+ "documents": [
+  {
+   "id": "doc_3c0aea3e72fdc246a13b1e76",
+   "name": "F04 FA-19A full steps.csv",
+   "kind": "csv",
+   "size": 8416,
+   "status": "ready",
+   "chunk_count": 2,
+   "analysis": {
+    "phase": "complete",
+    "intent_version": 0,
+    "basis_turn_id": "",
+    "basis_question": "",
+    "request_count": 1,
+    "generated_by": [
+     {
+      "build_id": "713975ca987f099ba0b713812b594415e1273cd802fdd81c77d3aca273de914f",
+      "generated_at": "2026-11-17T12:31:19.722+00:00",
+      "model": "gpt-6.1-terra",
+      "prompt_id": "3cdf9a64520b6eaf",
+      "reasoning_effort": "low",
+      "stage": "document_context_review"
+     }
+    ],
+    "app_version": "0.32.0",
+    "questions": [],
+    "observations": [
+     {
+      "id": "doc_3c0aea3e72fdc246a13b1e76_09e9531a0ebf648729ca",
+      "text": "The document calls for capacity and compliance checks before determining the funding path.",
+      "basis": "stated",
+      "quote": "Confirm available borrowing capacity for a draw.",
+      "sources": [
+       {
+        "source_id": "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1",
+        "label": "F04 FA-19A full steps.csv \u00b7 CSV!A1:F25"
+       }
+      ]
+     },
+     {
+      "id": "doc_3c0aea3e72fdc246a13b1e76_6d31720425991dec5830",
+      "text": "Draw-request responsibilities are not yet confirmed.",
+      "basis": "stated",
+      "quote": "D18=Not yet confirmed",
+      "sources": [
+       {
+        "source_id": "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1",
+        "label": "F04 FA-19A full steps.csv \u00b7 CSV!A1:F25"
+       }
+      ]
+     },
+     {
+      "id": "doc_3c0aea3e72fdc246a13b1e76_57db095c7a68e2d9905e",
+      "text": "Repayment execution includes payment, independent callback and approval checks; the exact reconciliation reviewer is unspecified.",
+      "basis": "stated",
+      "quote": "Fund team and Treasury; the exact reviewer has not been specified",
+      "sources": [
+       {
+        "source_id": "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1",
+        "label": "F04 FA-19A full steps.csv \u00b7 CSV!A26:F38"
+       }
+      ]
+     }
+    ],
+    "limit_indicator": false,
+    "unreadable_sources": [],
+    "limitations": [],
+    "summary": "The CSV outlines LOC draw and repayment steps from event validation and facility compliance through funding, calculation, approvals, cash movement and reconciliation. It identifies related processes and checks, but leaves draw-request responsibility and the exact reconciliation reviewer unconfirmed.",
+    "summary_basis": "initial_review",
+    "summary_basis_note": "Written from the initial review selection. Later review may have changed coverage; current review status and limitations are shown separately.",
+    "summary_at_review_version": 1,
+    "queries": [],
+    "error": null,
+    "version": 1,
+    "relevance": "relevant",
+    "relevance_reason": "The documented steps directly address the stated LOC draw and repayment process, its checks, dependencies and outstanding responsibilities.",
+    "disposition": "relevant",
+    "acknowledgement": "",
+    "question": "",
+    "sources": [
+     {
+      "source_id": "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1",
+      "label": "F04 FA-19A full steps.csv \u00b7 CSV!A1:F25"
+     },
+     {
+      "source_id": "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1",
+      "label": "F04 FA-19A full steps.csv \u00b7 CSV!A26:F38"
+     }
+    ],
+    "cursor": 2,
+    "reviewed_chunks": 2,
+    "total_chunks": 2,
+    "review_complete": true,
+    "estimated_requests": 1
+   },
+   "coverage": {
+    "indexed_units": 38,
+    "total_units": 38,
+    "limitations": []
+   },
+   "error": null,
+   "revision": 4,
+   "intent_version": null
+  }
+ ],
+ "revision": "c6956c4aea5e4f5a3c7ef11d7b0bbba421376ade39ec06cb1fe3ca334c097185",
+ "capture": {
+  "memo_findings": [
+   {
+    "answer": "The documented name is LOC Draw & Repayment Execution.",
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+    ],
+    "key": "name",
+    "status": "partial"
+   },
+   {
+    "answer": "The documented outcome is an executed and reconciled LOC draw or repayment.",
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "key": "purpose",
+    "status": "partial"
+   },
+   {
+    "answer": "The procedure says the fund and capital-activity team records whether the event trigger is contractual, lender-driven, or client-planned. The precise initiating event, cadence and deadlines are not established.",
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+    ],
+    "key": "trigger",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant says the event stays open until cash, lender record, GL and approved amount agree. The reconciliation is the retained record.\nThe participant does not know the permitted difference or who formally signs off completion.",
+    "evidence_turns": [
+     "t003"
+    ],
+    "key": "completion",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "accountable",
+    "status": "unknown"
+   },
+   {
+    "answer": "The procedure says the fund and capital-activity team identifies the event type and confirms the legal facility, borrowing entity, purpose, requested date and required amount and date if known.\nFacility compliance provides capacity and compliance status from the compliance certificate and facility tracker, current as of the proposed draw or repayment date. If draw capacity or compliance status is unavailable, the draw request is not submitted; the facility compliance process resolves and documents the issue before the funding path proceeds, with the client, a Director or lender deciding as applicable.\nFor a repayment with insufficient cash, the client decides between calling capital, using approved distribution proceeds or deferring if facility terms permit; otherwise the matter is escalated. The decision must be recorded before proceeding to principal and interest calculation. Internal ownership is unspecified.\nThe procedure says the fund and capital-activity preparer compares repayment principal with lender and facility records, confirms cash versus capitalized interest, pulls actual interest through the last approved date, commonly quarter-end, and projects it through the event date. The preparer documents rates, sourced day-count assumptions and dates, then adds principal, accrued and projected interest.\nFor a draw, the procedure calls for a loan request with amount, purpose and applicable repayment terms, matched to capacity and compliance records, signed internally and by the client as required, then submitted to the lender through the approved channel with a submission record retained. The responsible performer is not yet confirmed in the procedure.\nThe procedure says the fund and capital-activity team enters repayment and interest in FA-01 inputs when capital is required, models cash before, during and after the event, and aligns distribution-proceeds timing without treating projected proceeds as received cash.\nThe procedure describes client review of principal, interest basis, estimate period, funding path and timing, followed by approval and a final instruction. If the date, amount or timing changes, the participant says the preparer refreshes projected interest and updates the model and capital activity inputs; affected review and client approval are repeated before GL or Treasury.\nThe procedure assigns GL initiation or posting to the fund team or GL preparer, then cash movement to Treasury. For repayment it specifies payment, independent callback and approval checks; for a draw it requires receipt confirmation before proceeds are treated as available cash.\nWhen execution differs from approval, Treasury and the fund team investigate, correct, reconcile again and escalate, returning to the executed-versus-approved comparison. The escalation recipient is unconfirmed.\nThe procedure says fund team and Treasury update principal, accrued interest, maturity and duration dates or measures, the facility tracker and FA-16 categorized cash, and file facility documents, model, approval, GL record, bank record and reconciliation.",
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1",
+     "t005",
+     "t007",
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1",
+     "t003"
+    ],
+    "key": "lifecycle",
+    "status": "partial"
+   },
+   {
+    "answer": "The procedure assigns facility compliance preparer and reviewer the capacity check and confirmation that covenant, LPA, maturity, duration, concentration or certification issues do not block the event; they identify required lender and client forms and approvals.\nThe capacity test is the retained record; a draw cannot be submitted while capacity or compliance status is unavailable. Changes to the client-reviewed event require repeated affected review and client approval before GL or Treasury.\nThe participant does not know who separately reviews the capacity check, the reconciliation tolerance or completion sign-off. The procedure does not specify the exact reconciliation reviewer.",
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1",
+     "t005",
+     "t007",
+     "t003",
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "key": "checks",
+    "status": "partial"
+   },
+   {
+    "answer": "Draws require a capacity-gated lender request and receipt confirmation; repayments follow a cash sufficiency decision and principal-and-interest calculation, with payment and callback checks. These are documented and reported event-type branches, not an established client-specific variation.",
+    "evidence_turns": [
+     "t005",
+     "t007",
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "key": "variations",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "pain_points",
+    "status": "unknown"
+   },
+   {
+    "answer": "The participant says affected routing, approval, calculation, accounting, payment, reporting or handoff stays open until an execution difference is resolved; they cannot specify a more precise impact.",
+    "evidence_turns": [
+     "t005"
+    ],
+    "key": "risk",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant identifies the compliance certificate and facility tracker as sources for current status, and the capacity test and reconciliation as retained records. The exact file location is unknown to the participant.\nThe supplied CSV describes the procedure but is unconfirmed. It calls for retention of the draw submission record and model basis, and filing of facility documents, model, approval, GL record, bank record and reconciliation.",
+    "evidence_turns": [
+     "t003",
+     "t005",
+     "t007",
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1",
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "key": "materials",
+    "status": "partial"
+   },
+   {
+    "answer": "The procedure covers LOC draws and repayments, including investment funding and repayment of fees previously funded by LOC. It directs the team to identify the borrowing entity; the full entity and client applicability is not established.",
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+    ],
+    "key": "scope",
+    "status": "partial"
+   },
+   {
+    "answer": "Status must be current as of the proposed draw or repayment date. A draw is blocked until unavailable capacity or compliance status is resolved and documented. Repayment deferral is an option only if facility terms permit it.\nThe procedure calls for documented rates, source-supported day-count assumptions, dates and calculation basis for projected interest. The specific economic terms, sources and implementation remain to be established.",
+    "evidence_turns": [
+     "t005",
+     "t007",
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+    ],
+    "key": "rules",
+    "status": "partial"
+   },
+   {
+    "answer": "Facility compliance (FA-19B) supplies capacity and compliance status; unavailable status is resolved through that process before the funding path proceeds.\nThe procedure feeds capital-activity (FA-01) inputs when capital is required, uses payment (FA-17) checks for repayment, and updates working-capital (FA-16) categorized cash. It directs GL initiation or posting under the applicable accounting process and then Treasury execution.\nClient approval is required before the instruction is final; if the date, amount or timing changes, affected review and client approval recur before GL or Treasury.\nProvides input to Capital activity (FA-01): When capital is required, repayment and interest enter event inputs.\nProvides input to Working capital (FA-16): Update categorized cash during reconciliation and closure.",
+    "evidence_turns": [
+     "t005",
+     "t007",
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1",
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "key": "connections",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant identifies the compliance certificate and facility tracker as status sources and a model and capital activity inputs updated after a change. The exact file location is unknown to them; system ownership and calculation implementation are not established.",
+    "evidence_turns": [
+     "t007"
+    ],
+    "key": "data_systems",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "volume",
+    "status": "unknown"
+   }
+  ],
+  "coverage": [
+   {
+    "key": "name",
+    "label": "Name & other names",
+    "status": "partial"
+   },
+   {
+    "key": "purpose",
+    "label": "Purpose & result",
+    "status": "partial"
+   },
+   {
+    "key": "trigger",
+    "label": "Start, cadence & deadlines",
+    "status": "partial"
+   },
+   {
+    "key": "completion",
+    "label": "Finished condition",
+    "status": "partial"
+   },
+   {
+    "key": "accountable",
+    "label": "Accountability",
+    "status": "missing"
+   },
+   {
+    "key": "lifecycle",
+    "label": "Items, stages & handoffs",
+    "status": "partial"
+   },
+   {
+    "key": "checks",
+    "label": "Checks, approvals & proof",
+    "status": "partial"
+   },
+   {
+    "key": "variations",
+    "label": "Variations and conditions",
+    "status": "partial"
+   },
+   {
+    "key": "pain_points",
+    "label": "Manual work & pain",
+    "status": "missing"
+   },
+   {
+    "key": "risk",
+    "label": "Consequences of failure",
+    "status": "partial"
+   },
+   {
+    "key": "materials",
+    "label": "Existing materials",
+    "status": "partial"
+   },
+   {
+    "key": "scope",
+    "label": "Scope & entity context",
+    "status": "partial"
+   },
+   {
+    "key": "rules",
+    "label": "Business rules & lineage",
+    "status": "partial"
+   },
+   {
+    "key": "connections",
+    "label": "Connected processes",
+    "status": "partial"
+   },
+   {
+    "key": "data_systems",
+    "label": "Data & systems",
+    "status": "partial"
+   },
+   {
+    "key": "volume",
+    "label": "Volume & effort",
+    "status": "missing"
+   }
+  ],
+  "summary": "The participant described the current-status gate, insufficient-cash repayment decision and repeated approval after changes. What does the preparer use to calculate projected interest when the event date changes?",
+  "focus": "Repayment funding and changes during client review",
+  "parking_lot": [
+   "Initiating event, cadence and deadlines",
+   "Accountable role and draw-request performer",
+   "Reconciliation tolerance, formal sign-off and escalation recipient",
+   "Confirm the supplied procedure reflects current practice"
+  ],
+  "connections_out": [
+   {
+    "condition": "Current capacity and compliance status before funding path; unavailable status resolved through facility compliance.",
+    "counterpart": "Facility compliance (FA-19B)",
+    "evidence_turns": [
+     "t005",
+     "t007",
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "When capital is required, repayment and interest enter event inputs.",
+    "counterpart": "Capital activity (FA-01)",
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "Following client approval and accounting initiation or posting, for cash movement.",
+    "counterpart": "Treasury",
+    "evidence_turns": [
+     "t007",
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "Update categorized cash during reconciliation and closure.",
+    "counterpart": "Working capital (FA-16)",
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "Approval of the event instruction; repeat affected approval following changes before GL or Treasury.",
+    "counterpart": "Client",
+    "evidence_turns": [
+     "t007",
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "Repayment requires payment, independent callback and approval checks.",
+    "counterpart": "Payment (FA-17)",
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "relationship_type": "consumes"
+   }
+  ],
+  "taxonomy": [
+   {
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+    ],
+    "facet": "entity_type",
+    "note": "Fund team and borrowing entity appear in the documented procedure; complete entity scope is not established.",
+    "value": "fund"
+   },
+   {
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "facet": "functional_area",
+    "note": "Documented cash execution and repayment payment checks.",
+    "value": "treasury_payments"
+   },
+   {
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "facet": "functional_area",
+    "note": "Documented GL initiation and reconciliation.",
+    "value": "fund_accounting"
+   },
+   {
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+    ],
+    "facet": "functional_area",
+    "note": "Capital activity inputs are used when capital is required.",
+    "value": "capital_activity"
+   },
+   {
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+    ],
+    "facet": "rule_source",
+    "note": "The procedure lists LPA and facility constraints in compliance checks; specific terms have not been reviewed.",
+    "value": "lpa_governing_doc"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "facet": "control_type",
+    "note": "Participant reports repeated client approval before GL or Treasury after changes.",
+    "value": "client_approval"
+   },
+   {
+    "evidence_turns": [
+     "t003",
+     "t007"
+    ],
+    "facet": "control_type",
+    "note": "Participant reports escalation for execution differences and certain insufficient-cash decisions; recipients are not fully specified.",
+    "value": "exception_escalation"
+   },
+   {
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+    ],
+    "facet": "process_level",
+    "note": "The supplied procedure identifies LOC draw and repayment execution as a process.",
+    "value": "process"
+   }
+  ],
+  "completion": {
+   "allowed": false,
+   "ready_for_final_check": false,
+   "complete": false,
+   "partial": true,
+   "participant_confirmed": false,
+   "blockers": [
+    "role_incomplete:coverage_reviewer",
+    "role_incomplete:process_reviewer",
+    "coverage_result_unbound",
+    "coverage_incomplete",
+    "coverage_unresolved:name",
+    "coverage_unresolved:purpose",
+    "coverage_unresolved:trigger",
+    "coverage_unresolved:completion",
+    "coverage_unresolved:accountable",
+    "coverage_unresolved:lifecycle",
+    "coverage_unresolved:checks",
+    "coverage_unresolved:variations",
+    "coverage_unresolved:pain_points",
+    "coverage_unresolved:risk",
+    "coverage_unresolved:materials",
+    "coverage_unresolved:scope",
+    "coverage_unresolved:rules",
+    "coverage_unresolved:connections",
+    "coverage_unresolved:data_systems",
+    "coverage_unresolved:volume",
+    "process_result_unbound"
+   ],
+   "revision": "6838dc18f0531434959399d20bef53a8a36dfcbee751724665b84dfa0f9ae4d9",
+   "run_id": "7500d9ab31f64626b9645dfdd0cc4421"
+  },
+  "coverage_assessment": null
+ },
+ "workflow": {
+  "connections": [
+   {
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+    ],
+    "from": "S1",
+    "label": "Documented sequence",
+    "to": "S2"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "from": "S3",
+    "label": "Draw capacity or compliance status unavailable",
+    "to": "S4"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "from": "S4",
+    "label": "Resolved and documented",
+    "to": "S5"
+   },
+   {
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+    ],
+    "from": "S5",
+    "label": "Repayment",
+    "to": "S6"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "from": "S6",
+    "label": "Insufficient cash",
+    "to": "S7"
+   },
+   {
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+    ],
+    "from": "S6",
+    "label": "Sufficient cash",
+    "to": "S8"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "from": "S7",
+    "label": "Decision made and recorded",
+    "to": "S8"
+   },
+   {
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+    ],
+    "from": "S5",
+    "label": "Draw",
+    "to": "S9"
+   },
+   {
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+    ],
+    "from": "S9",
+    "label": "Required signatures obtained",
+    "to": "S10"
+   },
+   {
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+    ],
+    "from": "S8",
+    "label": "Documented sequence",
+    "to": "S11"
+   },
+   {
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+    ],
+    "from": "S10",
+    "label": "Documented sequence",
+    "to": "S11"
+   },
+   {
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1",
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "from": "S11",
+    "label": "Documented sequence",
+    "to": "S12"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "from": "S12",
+    "label": "Date, amount or timing changes",
+    "to": "S13"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "from": "S13",
+    "label": "Repeat affected review",
+    "to": "S12"
+   },
+   {
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "from": "S12",
+    "label": "Obtain client approval",
+    "to": "S14"
+   },
+   {
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1",
+     "t007"
+    ],
+    "from": "S14",
+    "label": "Final instruction",
+    "to": "S15"
+   },
+   {
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "from": "S15",
+    "label": "Repayment",
+    "to": "S16"
+   },
+   {
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "from": "S16",
+    "label": "Checks completed",
+    "to": "S17"
+   },
+   {
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "from": "S15",
+    "label": "Draw",
+    "to": "S17"
+   },
+   {
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "from": "S17",
+    "label": "Reconcile execution",
+    "to": "S18"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "from": "S18",
+    "label": "Execution differs from approval",
+    "to": "S19"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "from": "S19",
+    "label": "After correction",
+    "to": "S18"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "from": "S2",
+    "label": "Draw: check status",
+    "to": "S3"
+   },
+   {
+    "evidence_turns": [
+     "t005",
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+    ],
+    "from": "S3",
+    "label": "Draw: status available",
+    "to": "S5"
+   },
+   {
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+    ],
+    "from": "S2",
+    "label": "Repayment: documented sequence",
+    "to": "S5"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "from": "S7",
+    "label": "No funding choice can proceed",
+    "to": "S23"
+   },
+   {
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "from": "S17",
+    "label": "Documented reconciliation stage",
+    "to": "S20"
+   },
+   {
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "from": "S17",
+    "label": "Documented reconciliation stage",
+    "to": "S21"
+   },
+   {
+    "evidence_turns": [
+     "t003",
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "from": "S18",
+    "label": "Records agree, updates made and documents filed",
+    "to": "S22"
+   },
+   {
+    "evidence_turns": [
+     "t003",
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "from": "S20",
+    "label": "Records agree, updates made and documents filed",
+    "to": "S22"
+   },
+   {
+    "evidence_turns": [
+     "t003",
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "from": "S21",
+    "label": "Records agree, updates made and documents filed",
+    "to": "S22"
+   },
+   {
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "from": "S17",
+    "label": "Rejected, partial or misapplied activity",
+    "to": "S24"
+   },
+   {
+    "evidence_turns": [
+     "t003",
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "from": "S24",
+    "label": "Records agree, updates made, documents filed and applicable rejected, partial or misapplied activity resolved",
+    "to": "S22"
+   }
+  ],
+  "open_questions": [
+   "Does any incoming route start S5 (Determine funding path), or must all prerequisites finish?",
+   "Does any incoming route start S8 (Calculate repayment amount), or must all prerequisites finish?",
+   "Does any incoming route start S11 (Include event in capital activity), or must all prerequisites finish?",
+   "Does any incoming route start S12 (Review with client), or must all prerequisites finish?",
+   "Are the outgoing paths from S17 (Execute cash movement) alternatives, or must they all occur?",
+   "Does any incoming route start S17 (Execute cash movement), or must all prerequisites finish?",
+   "Does any incoming route start S22 (Close reconciled event), or must all prerequisites finish?",
+   "Does the CSV reflect current practice across the intended scope, and what is the participant's basis for describing any route as general GPFS practice?",
+   "The CSV has indexed text for all 38 units and both indexed sections were supplied; AI review is complete for both chunks, with no unread visuals. The documented steps remain unconfirmed as current practice.",
+   "What initiates and supplies a ready event request, who receives it, and what cadence or deadlines apply?",
+   "Who is accountable for the overall result, and which entity types and clients does this process cover?",
+   "Who prepares and submits a draw request, who reviews capacity separately, and where are the capacity test and event file stored?",
+   "When repayment is deferred, where does the event wait and when does calculation resume? Who owns or receives an escalation if no funding choice can proceed, and what happens after escalation?",
+   "What do the internal and client reviewers check, what approvals or thresholds apply, and how are failed checks, overrides and delays handled?",
+   "What calculation sources, rounding, prior-period treatment, tie-outs and correction rules apply, and who interprets conflicting facility or client instructions?",
+   "Is the documented ordering of draw submission before the later client review current, and how does it relate to any change arising during that review?",
+   "What reconciliation tolerance, escalation recipient, reviewer and formal completion sign-off apply?",
+   "Are facility and working-capital updates always made only after reconciliation agrees, or can they occur earlier? What is their ordering relative to filing?",
+   "How are rejected, partial or misapplied activities identified and routed when they are not execution differences, and where does their resolution rejoin the completion process?",
+   "What systems are authoritative for the event, calculations and approvals; which entries are manual or imported; and who consumes the closed event next?",
+   "What client or facility variations, effort, charging or removal constraints apply, if any?",
+   "What are the normal volumes, peaks, exception frequency, most time-consuming work and practical consequences beyond the reported open items?"
+  ],
+  "steps": [
+   {
+    "actor": "Fund and capital-activity team",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "Event request; detailed origin UNKNOWN",
+    "description": "The CSV says to identify the event type, confirm the facility, borrowing entity, purpose, requested date and amount where known, and record the trigger type.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S1",
+    "input": "Event request",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+      ],
+      "field": "responsible",
+      "text": "D2=Fund and capital-activity team | E2=Identify whether the event is a draw, repayment, anticipated investment funding, or repayment of fees previously funded by LOC."
+     }
+    ],
+    "output": "Validated event request",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F04 FA-19A full steps.csv",
+    "system": "UNKNOWN",
+    "title": "Validate the event",
+    "type": "activity"
+   },
+   {
+    "actor": "Facility compliance preparer and reviewer",
+    "completion_criteria": "Current status documented for the proposed draw or repayment date",
+    "control_type": [
+     "gpfs_operational",
+     "gpfs_supervisory"
+    ],
+    "data_origin": "Facility compliance preparer and reviewer",
+    "description": "The participant says status comes from the compliance certificate and facility tracker and must be current as of the proposed event date. The CSV calls for checking draw capacity, potential compliance blockers and required forms and approvals.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t005",
+     "t007",
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+    ],
+    "handoff": "Draw status decision or documented repayment funding path",
+    "id": "S2",
+    "input": "Compliance certificate and facility tracker",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+      ],
+      "field": "responsible",
+      "text": "D5=Facility compliance (FA-19B) preparer and reviewer | E5=Confirm available borrowing capacity for a draw."
+     },
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "deadline",
+      "text": "it has to be current as of the proposed draw or repayment date."
+     },
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "system",
+      "text": "the facility tracker"
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "control",
+      "text": "The capacity test is the record."
+     }
+    ],
+    "output": "Capacity and compliance check",
+    "parent_process": "Facility compliance FA-19B",
+    "rule_source_ref": "F04 FA-19A full steps.csv; participant account",
+    "system": "Facility tracker",
+    "title": "Check facility capacity and compliance",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Availability outcome known",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Capacity and compliance check",
+    "description": "The participant reports a hard stop on draw submission when capacity or compliance status is unavailable. No equivalent repayment hard stop was reported.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t005"
+    ],
+    "handoff": "Facility compliance if blocked; funding path if available",
+    "id": "S3",
+    "input": "Draw capacity and compliance status",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "control",
+      "text": "if draw capacity or compliance status is not available, we do not submit the draw request at all."
+     }
+    ],
+    "output": "Available or unavailable status",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Participant account",
+    "system": "UNKNOWN",
+    "title": "Draw status available?",
+    "type": "decision"
+   },
+   {
+    "actor": "Client, Director or lender, as applicable",
+    "completion_criteria": "Resolution documented",
+    "control_type": [
+     "exception_escalation"
+    ],
+    "data_origin": "Facility compliance process",
+    "description": "The draw remains blocked and is resolved through facility compliance; the funding path resumes only after resolution is documented.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t005"
+    ],
+    "handoff": "Funding path",
+    "id": "S4",
+    "input": "Unavailable capacity or compliance status",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "responsible",
+      "text": "it gets resolved through the facility compliance process, with the client, a Director or the lender deciding as applicable."
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "control",
+      "text": "Only once that is resolved and documented do we carry on to the funding path."
+     }
+    ],
+    "output": "Documented resolution",
+    "parent_process": "Facility compliance",
+    "rule_source_ref": "Participant account",
+    "system": "UNKNOWN",
+    "title": "Resolve blocked draw",
+    "type": "subprocess"
+   },
+   {
+    "actor": "Fund and capital-activity team with the client",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "client_approval"
+    ],
+    "data_origin": "Fund team and client",
+    "description": "The CSV calls for determining the funding path, including draw purpose and use and client timing and amount decisions. Repayment cash sufficiency and any insufficient-cash decision are represented separately.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1",
+     "t007"
+    ],
+    "handoff": "Repayment cash assessment or draw request",
+    "id": "S5",
+    "input": "Validated event and capacity/compliance status",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+      ],
+      "field": "responsible",
+      "text": "D10=Fund and capital-activity team with the client | E10=For a draw, confirm the approved purpose and planned use of the funds."
+     }
+    ],
+    "output": "Funding-path work",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F04 FA-19A full steps.csv",
+    "system": "UNKNOWN",
+    "title": "Determine funding path",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund and capital-activity team with the client",
+    "completion_criteria": "Cash sufficiency outcome known",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Available cash; source UNKNOWN",
+    "description": "For repayment, assess whether available cash is sufficient.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1",
+     "t007"
+    ],
+    "handoff": "Repayment calculation or client funding decision",
+    "id": "S6",
+    "input": "Available cash",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+      ],
+      "field": "responsible",
+      "text": "D8=Fund and capital-activity team with the client | E8=For repayment, determine whether available cash is sufficient."
+     }
+    ],
+    "output": "Cash sufficiency outcome",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F04 FA-19A full steps.csv; participant account",
+    "system": "UNKNOWN",
+    "title": "Repayment cash sufficient?",
+    "type": "decision"
+   },
+   {
+    "actor": "Client; internal owner UNKNOWN",
+    "completion_criteria": "A decision is made and recorded, or the escalation condition is identified",
+    "control_type": [
+     "client_approval",
+     "exception_escalation"
+    ],
+    "data_origin": "Client decision",
+    "description": "If cash is insufficient, the client decides between calling capital, using approved distribution proceeds or deferring if facility terms permit; otherwise the matter is escalated.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t007"
+    ],
+    "handoff": "Calculation after a recorded decision; otherwise escalation",
+    "id": "S7",
+    "input": "Insufficient available cash",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "responsible",
+      "text": "the client decides between calling capital, using approved distribution proceeds, or deferring if the facility terms permit, otherwise we escalate"
+     },
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "control",
+      "text": "we only proceed once that decision is made and recorded, then we go on to the principal and interest calculation."
+     }
+    ],
+    "output": "Recorded funding decision or escalation outcome",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Participant account; facility terms referenced by participant",
+    "system": "UNKNOWN",
+    "title": "Which repayment funding option?",
+    "type": "decision"
+   },
+   {
+    "actor": "Fund and capital-activity preparer",
+    "completion_criteria": "Calculation basis documented",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Lender and facility records; interest sources UNKNOWN",
+    "description": "The CSV says to compare principal with lender and facility records, determine whether interest is paid or capitalized, pull actual interest through the last approved date and project it to the event date. Document rates, source-supported day count, dates and basis, then add principal and accrued and projected interest.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "calculated",
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1",
+     "t007"
+    ],
+    "handoff": "Capital activity and client review",
+    "id": "S8",
+    "input": "Lender and facility records, actual interest, rates and dates",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+      ],
+      "field": "responsible",
+      "text": "D12=Fund and capital-activity preparer | E12=Compare the principal with lender and facility records."
+     },
+     {
+      "evidence_turns": [
+       "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+      ],
+      "field": "control",
+      "text": "Document the rates, source-supported day-count assumptions, dates, and calculation basis."
+     }
+    ],
+    "output": "Supported repayment amount",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F04 FA-19A full steps.csv",
+    "system": "UNKNOWN",
+    "title": "Calculate repayment amount",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Required signatures obtained",
+    "control_type": [
+     "gpfs_operational",
+     "client_approval"
+    ],
+    "data_origin": "Event and compliance records",
+    "description": "The CSV calls for completing the loan request with amount, purpose and applicable repayment terms, matching it to capacity and compliance records, and obtaining required internal and client signatures.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+    ],
+    "handoff": "Lender submission",
+    "id": "S9",
+    "input": "Draw details and capacity/compliance records",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+      ],
+      "field": "control",
+      "text": "Match the form data with the capacity and compliance records."
+     },
+     {
+      "evidence_turns": [
+       "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+      ],
+      "field": "control",
+      "text": "Obtain the required internal and client signatures."
+     }
+    ],
+    "output": "Signed draw request",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F04 FA-19A full steps.csv",
+    "system": "UNKNOWN",
+    "title": "Prepare draw request",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Request submitted and record retained",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Prepared draw request",
+    "description": "The CSV calls for submitting the request to the lender and retaining the submission record. Unavailable capacity or compliance status blocks submission.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1",
+     "t005"
+    ],
+    "handoff": "Lender",
+    "id": "S10",
+    "input": "Signed draw request",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+      ],
+      "field": "control",
+      "text": "Submit the request to the lender through the approved channel and keep the submission record."
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "exception",
+      "text": "if draw capacity or compliance status is not available, we do not submit the draw request at all."
+     }
+    ],
+    "output": "Submitted request and submission record",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F04 FA-19A full steps.csv; participant account",
+    "system": "Approved lender channel; exact channel UNKNOWN",
+    "title": "Submit draw request",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund and capital-activity team",
+    "completion_criteria": "Model basis retained with event file",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Event and funding information",
+    "description": "The CSV says to enter repayment and interest in capital-event inputs when capital is required and model cash before, during and after the event. Align distribution-proceeds timing without treating projected proceeds as received cash, and retain the model basis with the event file.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+    ],
+    "handoff": "Client review",
+    "id": "S11",
+    "input": "Event amount, funding path and timing",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+      ],
+      "field": "responsible",
+      "text": "D22=Fund and capital-activity team | E22=Enter the repayment and interest in capital-activity (FA-01) event inputs when capital is required."
+     },
+     {
+      "evidence_turns": [
+       "doc_3c0aea3e72fdc246a13b1e76_s1_r1_25_b1_c1"
+      ],
+      "field": "control",
+      "text": "If repayment depends on distribution proceeds, align the timing without treating projected proceeds as received cash."
+     }
+    ],
+    "output": "Capital-event inputs and cash plan",
+    "parent_process": "Capital activity FA-01",
+    "rule_source_ref": "F04 FA-19A full steps.csv",
+    "system": "Capital activity FA-01 and cash model",
+    "title": "Include event in capital activity",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund and capital-activity team and client",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "client_review"
+    ],
+    "data_origin": "Event calculation and cash model",
+    "description": "The CSV calls for presenting principal, interest basis, estimate period, funding path and timing, recording comments and updating the model.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "handoff": "Client approval or refresh",
+    "id": "S12",
+    "input": "Event amount, calculation and funding plan",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+      ],
+      "field": "responsible",
+      "text": "D26=Fund and capital-activity team and client | E26=Present principal, interest basis, estimate period, funding path, and timing."
+     }
+    ],
+    "output": "Client comments and reviewed event",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F04 FA-19A full steps.csv",
+    "system": "UNKNOWN",
+    "title": "Review with client",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "Interest, model and capital activity inputs refreshed",
+    "control_type": [
+     "gpfs_operational",
+     "client_review",
+     "client_approval"
+    ],
+    "data_origin": "Client change or changed event date",
+    "description": "If the event date changes or the client changes amount or timing, the preparer refreshes projected interest and updates the model and capital activity inputs. Affected review and client approval must then be repeated before GL or Treasury.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "calculated",
+    "evidence_turns": [
+     "t007"
+    ],
+    "handoff": "Affected review and client approval",
+    "id": "S13",
+    "input": "Changed date, amount or timing",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "responsible",
+      "text": "the preparer refreshes the projected interest, updates the model and the capital activity inputs"
+     },
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "control",
+      "text": "the affected review and client approval are repeated before anything goes to the GL or Treasury."
+     }
+    ],
+    "output": "Refreshed interest, model and capital activity inputs",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Participant account",
+    "system": "Model and capital activity inputs",
+    "title": "Refresh changed event",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund and capital-activity team and client",
+    "completion_criteria": "Approval obtained and instruction marked final",
+    "control_type": [
+     "client_approval"
+    ],
+    "data_origin": "Client review",
+    "description": "The CSV calls for obtaining client approval and marking the instruction final. Affected review and approval must be repeated after relevant changes before GL or Treasury.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1",
+     "t007"
+    ],
+    "handoff": "GL and Treasury",
+    "id": "S14",
+    "input": "Reviewed event amount and date",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+      ],
+      "field": "responsible",
+      "text": "D29=Fund and capital-activity team and client | E29=Obtain approval and mark the instruction as final."
+     },
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "control",
+      "text": "the affected review and client approval are repeated before anything goes to the GL or Treasury."
+     }
+    ],
+    "output": "Client-approved final instruction",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F04 FA-19A full steps.csv; participant account",
+    "system": "UNKNOWN",
+    "title": "Finalize client approval",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund team or GL preparer",
+    "completion_criteria": "Entry initiated or posted",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Approved event",
+    "description": "The CSV says to initiate or post the required GL entry under the applicable accounting process.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1",
+     "t007"
+    ],
+    "handoff": "Treasury",
+    "id": "S15",
+    "input": "Final approved instruction",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+      ],
+      "field": "responsible",
+      "text": "D30=Fund team or GL preparer, then Treasury | E30=Initiate or post the required GL entry under the applicable accounting process."
+     }
+    ],
+    "output": "GL entry initiated or posted",
+    "parent_process": "Applicable accounting process",
+    "rule_source_ref": "F04 FA-19A full steps.csv",
+    "system": "GL; specific system UNKNOWN",
+    "title": "Initiate accounting entry",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund team or GL preparer, then Treasury; exact check roles UNKNOWN",
+    "completion_criteria": "Payment, callback and approval checks completed",
+    "control_type": [
+     "gpfs_operational",
+     "gpfs_supervisory"
+    ],
+    "data_origin": "Approved repayment instruction",
+    "description": "For repayment, the CSV calls for payment, independent phone-verification callback and approval checks.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "handoff": "Cash movement",
+    "id": "S16",
+    "input": "Approved repayment instruction",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+      ],
+      "field": "responsible",
+      "text": "D31=Fund team or GL preparer, then Treasury | E31=Complete the payment (FA-17), independent phone-verification (callback), and approval checks for repayment."
+     },
+     {
+      "evidence_turns": [
+       "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+      ],
+      "field": "control",
+      "text": "Complete the payment (FA-17), independent phone-verification (callback), and approval checks for repayment."
+     }
+    ],
+    "output": "Completed payment checks",
+    "parent_process": "Payment FA-17",
+    "rule_source_ref": "F04 FA-19A full steps.csv",
+    "system": "Payment process FA-17",
+    "title": "Complete repayment payment checks",
+    "type": "activity"
+   },
+   {
+    "actor": "Treasury",
+    "completion_criteria": "Cash movement executed; draw receipt must be confirmed before proceeds are treated as available cash",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Final instruction and lender or bank records",
+    "description": "The CSV calls for executing the lender or bank cash movement. For a draw, confirm receipt before treating proceeds as available cash.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "handoff": "Fund team and Treasury for reconciliation",
+    "id": "S17",
+    "input": "Approved instruction and applicable checks",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+      ],
+      "field": "responsible",
+      "text": "D32=Fund team or GL preparer, then Treasury | E32=Execute the lender or bank cash movement."
+     },
+     {
+      "evidence_turns": [
+       "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+      ],
+      "field": "control",
+      "text": "For a draw, confirm receipt before treating proceeds as cash available."
+     }
+    ],
+    "output": "Executed cash movement",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F04 FA-19A full steps.csv",
+    "system": "Lender or bank; specific system UNKNOWN",
+    "title": "Execute cash movement",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund team and Treasury; exact reviewer UNKNOWN",
+    "completion_criteria": "Comparison outcome known",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Execution, cash, lender, GL and approval records",
+    "description": "Compare the executed amount with the approved request or repayment instruction. The event remains open until cash, lender record, GL and approved amount all agree; reconciliation is the retained record.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003",
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "handoff": "Correction and escalation if different; agreement is required for closure",
+    "id": "S18",
+    "input": "Executed amount, approval, cash, lender record and GL",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+      ],
+      "field": "responsible",
+      "text": "D34=Fund team and Treasury; the exact reviewer has not been specified | E34=Compare the executed amount with the approved request or repayment instruction."
+     },
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "control",
+      "text": "We do not close the event until the cash, the lender record, the GL and the approved amount all agree"
+     },
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "control",
+      "text": "The reconciliation itself is the record we keep."
+     }
+    ],
+    "output": "Reconciliation and comparison outcome",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F04 FA-19A full steps.csv; participant account",
+    "system": "UNKNOWN",
+    "title": "Does execution match approval?",
+    "type": "decision"
+   },
+   {
+    "actor": "Treasury and fund team",
+    "completion_criteria": "Return to comparison after correction; event stays open until records agree",
+    "control_type": [
+     "exception_escalation",
+     "gpfs_operational"
+    ],
+    "data_origin": "Reconciliation",
+    "description": "Investigate, correct, reconcile again and escalate a difference between execution and approval. Affected routing, approval, calculation, accounting, payment, reporting and handoffs remain open until resolved.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003",
+     "t005"
+    ],
+    "handoff": "Comparison against approved instruction",
+    "id": "S19",
+    "input": "Execution difference",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "responsible",
+      "text": "When what was executed differs from what was approved, Treasury and the fund team investigate it, correct it, reconcile again and escalate."
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "exception",
+      "text": "Anything it touches stays open until it is resolved, meaning any affected routing, approval, calculation, accounting, payment, reporting or handoff."
+     }
+    ],
+    "output": "Corrected activity for comparison",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Participant account",
+    "system": "UNKNOWN",
+    "title": "Correct execution difference",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund team and Treasury; exact responsibilities UNKNOWN",
+    "completion_criteria": "Updates made",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Executed event",
+    "description": "The CSV calls for updating principal, accrued interest, maturity and duration dates or measures, the facility tracker and categorized working-capital cash. Its ordering relative to reconciliation agreement is unconfirmed.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "handoff": "Required for documented event completion",
+    "id": "S20",
+    "input": "Executed event",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+      ],
+      "field": "responsible",
+      "text": "D35=Fund team and Treasury; the exact reviewer has not been specified | E35=Update the principal, accrued interest, maturity and duration dates or measures, and facility tracker."
+     },
+     {
+      "evidence_turns": [
+       "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+      ],
+      "field": "system",
+      "text": "facility tracker"
+     }
+    ],
+    "output": "Updated facility and working-capital records",
+    "parent_process": "Working capital FA-16",
+    "rule_source_ref": "F04 FA-19A full steps.csv",
+    "system": "Facility tracker and working-capital FA-16",
+    "title": "Update facility and cash records",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund team and Treasury; exact responsibilities UNKNOWN",
+    "completion_criteria": "Documents filed",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Facility, model, approval, GL, bank and reconciliation records",
+    "description": "The CSV calls for filing facility documents, model, approval, GL and bank records and reconciliation. The relative timing of filing and the other completion checks is not specified.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "handoff": "Required for documented event completion",
+    "id": "S21",
+    "input": "Facility, model, approval, GL, bank and reconciliation records",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+      ],
+      "field": "responsible",
+      "text": "D38=Fund team and Treasury; the exact reviewer has not been specified | E38=File the facility documents, model, approval, GL record, bank record, and reconciliation."
+     }
+    ],
+    "output": "Filed event documentation",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F04 FA-19A full steps.csv",
+    "system": "Event file; exact location UNKNOWN",
+    "title": "File event documentation",
+    "type": "document"
+   },
+   {
+    "actor": "UNKNOWN; formal sign-off unconfirmed",
+    "completion_criteria": "Records agree; required updates and filing completed; rejected, partial or misapplied activity resolved where applicable. Formal sign-off UNKNOWN.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Reconciliation and event records",
+    "description": "The participant requires cash, lender record, GL and approved amount to agree before closure. The CSV also includes facility and working-capital updates, resolution of rejected, partial or misapplied activity, and filing in the completed and reconciled event.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003",
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "handoff": "Downstream consumer UNKNOWN",
+    "id": "S22",
+    "input": "Reconciliation, updates and event documentation",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "control",
+      "text": "We do not close the event until the cash, the lender record, the GL and the approved amount all agree"
+     }
+    ],
+    "output": "Completed and reconciled draw or repayment",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Participant account; F04 FA-19A full steps.csv",
+    "system": "UNKNOWN",
+    "title": "Close reconciled event",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "exception_escalation"
+    ],
+    "data_origin": "Repayment funding decision",
+    "description": "If no stated funding choice can proceed, the participant says to escalate. The recipient and subsequent handoff are unconfirmed.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t007"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S23",
+    "input": "Insufficient repayment cash and no available stated funding choice",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "exception",
+      "text": "the client decides between calling capital, using approved distribution proceeds, or deferring if the facility terms permit, otherwise we escalate"
+     }
+    ],
+    "output": "Escalation",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Participant account",
+    "system": "UNKNOWN",
+    "title": "Escalate funding exception",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund team and Treasury; exact responsibilities UNKNOWN",
+    "completion_criteria": "Activity resolved",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Execution activity",
+    "description": "The CSV calls for resolving rejected, partial or misapplied activity during reconciliation. The entry and subsequent handoff for cases not captured by the participant's execution-difference route are unconfirmed.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S24",
+    "input": "Rejected, partial or misapplied activity",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_3c0aea3e72fdc246a13b1e76_s1_r26_38_b2_c1"
+      ],
+      "field": "responsible",
+      "text": "D37=Fund team and Treasury; the exact reviewer has not been specified | E37=Resolve rejected, partial, or misapplied activity."
+     }
+    ],
+    "output": "Resolved activity",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F04 FA-19A full steps.csv",
+    "system": "UNKNOWN",
+    "title": "Resolve other execution exceptions",
+    "type": "activity"
+   }
+  ],
+  "title": "LOC Draw & Repayment Execution"
+ },
+ "workflow_revision": "c6956c4aea5e4f5a3c7ef11d7b0bbba421376ade39ec06cb1fe3ca334c097185",
+ "finished": 1794919150.812684,
+ "graph_checks": {
+  "steps": 24,
+  "connections": 33,
+  "types": {
+   "activity": 18,
+   "decision": 4,
+   "subprocess": 1,
+   "document": 1
+  },
+  "components": 1,
+  "isolated_steps": [],
+  "entry_points": [
+   "S1"
+  ],
+  "typed_start": [],
+  "exit_points": [
+   "S22",
+   "S23"
+  ],
+  "typed_end": [],
+  "decisions_with_under_two_exits": [],
+  "decision_exits_without_label": [],
+  "non_decision_with_multiple_exits": [
+   "S2",
+   "S5",
+   "S12",
+   "S15",
+   "S17"
+  ],
+  "steps_without_actor": [],
+  "actors": [
+   "Client, Director or lender, as applicable",
+   "Client; internal owner UNKNOWN",
+   "Facility compliance preparer and reviewer",
+   "Fund and capital-activity preparer",
+   "Fund and capital-activity team",
+   "Fund and capital-activity team and client",
+   "Fund and capital-activity team with the client",
+   "Fund team and Treasury; exact responsibilities UNKNOWN",
+   "Fund team and Treasury; exact reviewer UNKNOWN",
+   "Fund team or GL preparer",
+   "Fund team or GL preparer, then Treasury; exact check roles UNKNOWN",
+   "Preparer",
+   "Treasury",
+   "Treasury and fund team",
+   "UNKNOWN",
+   "UNKNOWN; formal sign-off unconfirmed"
+  ],
+  "open_questions": 22
+ }
+}

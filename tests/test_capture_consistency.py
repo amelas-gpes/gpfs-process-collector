@@ -1,4 +1,4 @@
-"""One capture must not contradict itself (findings 8, 9 and 11 of docs/testing/process-capture-2026-11-16).
+"""One capture must not contradict itself (findings 8, 9 and 11 of docs/testing/runs/2026-11-16-process-capture).
 
 - A handoff recorded as a structured link while the Connections note still read "unknown".
 - The same escalation recorded twice because the participant described it in two wordings.

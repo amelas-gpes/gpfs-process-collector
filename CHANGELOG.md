@@ -9,6 +9,12 @@ working tree). See [docs/DESKTOP.md](docs/DESKTOP.md#which-build-is-running).
 
 ## Unreleased
 
+Testing material reorganized; no change to the app.
+
+- `docs/testing` now separates what a new test needs from what earlier tests left behind: the business process library in `process-library/`, the participant harness in `harness/`, and one dated folder per past run under `runs/`. The November 16 run moved to `docs/testing/runs/2026-11-16-process-capture`. [Testing index](docs/testing/README.md)
+- Added the results of the November 17 stress run: 30 processes across typed, file and voice interviews. [Results](docs/testing/runs/2026-11-17-stress/README.md)
+- Added `docs/enhancements` for planned work, with a brief for making the workflow diagram fast, reliable and standard. [Planned enhancements](docs/enhancements/README.md)
+
 A cleaner interview workspace: the same information, said once and in fewer words.
 
 - **Notes shows one status line.** The panel stacked up to four lines (“final check not yet run”, the pre-check count, which answers the notes include, and the workflow’s “Updating…”). Each source now marks what it reports, and the panel shows one: trouble first, then work in progress, then what the notes include. The figure is marked “Checked” once the final check has run.
@@ -23,7 +29,7 @@ A cleaner interview workspace: the same information, said once and in fewer word
 - **Assets says what is needed to add a file.** The extraction limits and the full notice about what the AI service receives open from one line below the list.
 - The Workspace tab is **Summary**; the Save copy description is one sentence.
 
-Fixes for the thirteen findings of the November 16 process-capture run. [Findings, acceptance checks and replay cases](docs/testing/process-capture-2026-11-16/README.md)
+Fixes for the thirteen findings of the November 16 process-capture run. [Findings, acceptance checks and replay cases](docs/testing/runs/2026-11-16-process-capture/README.md)
 
 - **File review no longer stalls on “Reading your files.”** Status polling continues between a file being indexed and its review reporting a phase, and for as long as a file intake is waiting on its files. A file left indexed without a review phase is reviewed on the next poll. (Finding 1)
 - **A map is checked for parts its route passes by before it is published.** A check, a selection or a hold that no connection reaches, and a step whose stated input no route supplies, are found without reading any source. The sources are asked once how those parts join; a connection is added only with a quoted passage from a source it cites, and a direct arrow is rerouted only when the verified connections lead through the part that was detached. What the sources do not settle is named in the open questions. The routing policy now says that a gate lies on the route it governs and that one statement listing actions in order reports that order. (Finding 2)

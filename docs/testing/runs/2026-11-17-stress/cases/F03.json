@@ -1,0 +1,1717 @@
+{
+ "case": "F03",
+ "port": 8791,
+ "interview_id": "4b0700fc17094f4e92dcaf28c57248e1",
+ "context": {
+  "process_name": "European Bank Account Administration",
+  "process_owner": "",
+  "objective": "Document how we carry out European Bank Account Administration, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "Thanks for sharing. Give me a moment to digest the file. Then I\u2019ll follow up with a question.",
+   "document_event": true,
+   "document_id": "doc_intake"
+  },
+  {
+   "id": "t002",
+   "role": "assistant",
+   "text": "The excerpt in \u201cF03 FA-18A one page.pdf\u201d describes confirming the request, entity and regional route, and says Compliance or Legal must confirm whether the Rule 4.1 notification path applies. Does that reflect how European bank-account requests are handled today?"
+  },
+  {
+   "id": "t003",
+   "role": "user",
+   "text": "Yes, that is how it starts. The Fund Administrator confirms whether it is a new account, a bank transition, a mandate change or a signatory refresh, confirms the legal entity and jurisdiction, identifies the regional review chain and records the business need and target timing. What the page does not show is what comes next. The Fund Administrator, with input from Fund Accounting and the client, assembles the bank package: the expected activity profile, the investor profile from approved KYC and AML sources, the economic purpose, the applicable regulatory thresholds, and the bank-specific forms, without changing approved facts. Then the Fund Administrator, Treasury and a regional reviewer confirm the KYC and CDD status against the regional Excel schedule, and prepare the bank mandate and signatory information. For a bank transition the mandate and signatories are refreshed, not reused without review. If there is a CDD block or a PEP concern we stop the setup and escalate it to Compliance and regional governance, and we do not go on until it is resolved and the decision is recorded."
+  },
+  {
+   "id": "t004",
+   "role": "assistant",
+   "text": "Once the mandate and signatory information are prepared, what happens next in the account setup?"
+  },
+  {
+   "id": "t005",
+   "role": "user",
+   "text": "Next the complete package goes through the regional review chain: Administration, Fund Accounting, the Controller and the Head of Jurisdiction. Review comments are resolved, and the required regional approval has to be in place before anything is submitted. Then the package is submitted through the bank-approved channel and the submission record is kept. I do not know exactly who does the submitting, that is not defined. If a signatory or mandate mismatch is found, it is corrected before submission. After submission the bank may come back with queries. The Fund Administrator and the regional reviewers record the query in the query log, prepare the response from approved records only, never a speculative answer, and get regional or client approval if any facts changed or extra written confirmations are needed. Then we keep the response and decision record. If the bank has no queries we just wait for the bank confirmation."
+  },
+  {
+   "id": "t006",
+   "role": "assistant",
+   "text": "Once the bank confirmation arrives, what marks the account setup as complete and what happens to the account next?"
+  },
+  {
+   "id": "t007",
+   "role": "user",
+   "text": "Once the bank confirms the opening or transition, Treasury or the Fund Administrator, the exact owner is not defined, confirms the account identity and status from the bank records, and checks that the mandate and signatories set up at the bank match the approved package. Then Treasury confirms the account is visible in Kyriba, when the account is in scope for Kyriba. If it is not visible, that is escalated, Treasury consolidated visibility is not marked complete, and we do not proceed to handoff until it is resolved and recorded. I do not know who the Treasury owner for that escalation is. After that the approved operational records are updated, without storing unredacted bank data outside authorized locations. The last step is done by the Fund Administrator or Treasury: store the approved package, mandate, signatory information, bank confirmation, review records and Kyriba records in the digital records binder, notify the authorized users in payment operations that the account is operational, and record any restrictions that are not yet resolved. It is finished when the records are stored and the handoff to Operations is complete. The exact notification list and the retention period are not defined, so I cannot tell you those."
+  },
+  {
+   "id": "t008",
+   "role": "assistant",
+   "text": "What does this work enable for the fund or its operations once the account is handed off?"
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "This capture still has open sections. 14 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "doc.session",
+   "at": 1794918482.319,
+   "turn": 0,
+   "seconds": 0.026,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.upload",
+   "at": 1794918482.322,
+   "turn": 0,
+   "seconds": 0.003,
+   "status": 202,
+   "retries": 0,
+   "file": "F03 FA-18A one page.pdf",
+   "bytes": 211277
+  },
+  {
+   "kind": "doc.extracted",
+   "at": 1794918482.835,
+   "turn": 0,
+   "seconds": 0.54,
+   "file": "F03 FA-18A one page.pdf",
+   "chunks": 1,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 1,
+    "total_units": 1,
+    "text_indexed_units": 1,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_started",
+   "at": 1794918482.835,
+   "turn": 0,
+   "seconds": 0.54,
+   "file": "F03 FA-18A one page.pdf",
+   "chunks": 1,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 1,
+    "total_units": 1,
+    "text_indexed_units": 1,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_deep",
+   "at": 1794918490.589,
+   "turn": 0,
+   "seconds": 8.3,
+   "file": "F03 FA-18A one page.pdf",
+   "chunks": 1,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 1,
+    "total_units": 1,
+    "text_indexed_units": 1,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_complete",
+   "at": 1794918490.589,
+   "turn": 0,
+   "seconds": 8.3,
+   "file": "F03 FA-18A one page.pdf",
+   "chunks": 1,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 1,
+    "total_units": 1,
+    "text_indexed_units": 1,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.followup_question",
+   "at": 1794918492.586,
+   "turn": 1,
+   "seconds": 1.997,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.first_question",
+   "at": 1794918492.586,
+   "turn": 2,
+   "seconds": 10.29,
+   "reading": {
+    "omitted_documents": 0,
+    "documents": [
+     {
+      "id": "doc_06145fe628ba26873f951855",
+      "included_chunks": 1,
+      "total_chunks": 1
+     }
+    ]
+   }
+  },
+  {
+   "kind": "doc.notes_ready",
+   "at": 1794918523.521,
+   "turn": 2,
+   "seconds": 32.93
+  },
+  {
+   "kind": "doc.left_pending",
+   "at": 1794918553.002,
+   "turn": 2,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 62.41
+  },
+  {
+   "kind": "question",
+   "at": 1794918561.287,
+   "turn": 3,
+   "seconds": 2.002,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794918599.874,
+   "turn": 4,
+   "seconds": 40.59
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794918621.53,
+   "turn": 4,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 62.24
+  },
+  {
+   "kind": "question",
+   "at": 1794918628.787,
+   "turn": 5,
+   "seconds": 1.87,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794918656.055,
+   "turn": 6,
+   "seconds": 29.14
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794918689.033,
+   "turn": 6,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 62.12
+  },
+  {
+   "kind": "question",
+   "at": 1794918698.949,
+   "turn": 7,
+   "seconds": 2.983,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794918730.275,
+   "turn": 8,
+   "seconds": 34.31
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794918759.245,
+   "turn": 8,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 63.28
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794918764.664,
+   "turn": 8,
+   "seconds": 2.026,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "working",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.map_ready",
+   "at": 1794918896.438,
+   "turn": 9,
+   "seconds": 133.8,
+   "steps": 18,
+   "connections": 16
+  }
+ ],
+ "started": 1794918479.5709388,
+ "documents": [
+  {
+   "id": "doc_06145fe628ba26873f951855",
+   "name": "F03 FA-18A one page.pdf",
+   "kind": "pdf",
+   "size": 211277,
+   "status": "ready",
+   "chunk_count": 1,
+   "analysis": {
+    "phase": "complete",
+    "intent_version": 0,
+    "basis_turn_id": "",
+    "basis_question": "",
+    "request_count": 1,
+    "generated_by": [
+     {
+      "build_id": "713975ca987f099ba0b713812b594415e1273cd802fdd81c77d3aca273de914f",
+      "generated_at": "2026-11-17T12:28:10.452+00:00",
+      "model": "gpt-6.1-terra",
+      "prompt_id": "3cdf9a64520b6eaf",
+      "reasoning_effort": "low",
+      "stage": "document_context_review"
+     }
+    ],
+    "app_version": "0.32.0",
+    "questions": [],
+    "observations": [
+     {
+      "id": "doc_06145fe628ba26873f951855_aa5bb8ac284047b28124",
+      "text": "The procedure assigns initial request and regional route confirmation to the Fund Administrator or regional administration role, including confirmation of the entity and jurisdiction before submission.",
+      "basis": "stated",
+      "quote": "Who performs this step: Fund Administrator or regional administration role",
+      "sources": [
+       {
+        "source_id": "doc_06145fe628ba26873f951855_p1_c1",
+        "label": "F03 FA-18A one page.pdf \u00b7 page 1"
+       }
+      ]
+     },
+     {
+      "id": "doc_06145fe628ba26873f951855_9970730d86ca14caf8e2",
+      "text": "The excerpt calls for Compliance or Legal confirmation before following a Rule 4.1 notification path.",
+      "basis": "stated",
+      "quote": "Follow a Rule 4.1 notification path only after Compliance or Legal confirms",
+      "sources": [
+       {
+        "source_id": "doc_06145fe628ba26873f951855_p1_c1",
+        "label": "F03 FA-18A one page.pdf \u00b7 page 1"
+       }
+      ]
+     },
+     {
+      "id": "doc_06145fe628ba26873f951855_ac8b92770076f851a7c5",
+      "text": "Kyriba scope, setup and monitoring requirements are identified as unconfirmed, with current Treasury owner confirmation requested.",
+      "basis": "stated",
+      "quote": "The exact scope, setup, and monitoring requirements are not confirmed.",
+      "sources": [
+       {
+        "source_id": "doc_06145fe628ba26873f951855_p1_c1",
+        "label": "F03 FA-18A one page.pdf \u00b7 page 1"
+       }
+      ]
+     }
+    ],
+    "limit_indicator": false,
+    "unreadable_sources": [],
+    "limitations": [],
+    "summary": "The excerpt describes initial routing for European bank account requests, a conditional Guernsey notification path, and unconfirmed Kyriba scope, setup and monitoring requirements. It does not specify the request or approval form or its owner.",
+    "summary_basis": "initial_review",
+    "summary_basis_note": "Written from the initial review selection. Later review may have changed coverage; current review status and limitations are shown separately.",
+    "summary_at_review_version": 1,
+    "queries": [],
+    "error": null,
+    "version": 1,
+    "relevance": "relevant",
+    "relevance_reason": "The excerpt directly addresses request routing, checks and unresolved requirements for European Bank Account Administration.",
+    "disposition": "relevant",
+    "acknowledgement": "",
+    "question": "Who owns the request or approval form when a request is blocked or an exception occurs?",
+    "sources": [
+     {
+      "source_id": "doc_06145fe628ba26873f951855_p1_c1",
+      "label": "F03 FA-18A one page.pdf \u00b7 page 1"
+     }
+    ],
+    "cursor": 1,
+    "reviewed_chunks": 1,
+    "total_chunks": 1,
+    "review_complete": true,
+    "estimated_requests": 1
+   },
+   "coverage": {
+    "indexed_units": 1,
+    "total_units": 1,
+    "text_indexed_units": 1,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   },
+   "error": null,
+   "revision": 4,
+   "intent_version": null
+  }
+ ],
+ "revision": "c93e3ed25a76a8b07a39431c5c02cbb4dc9acfbbf61eaa0310a5a37c7542f8fc",
+ "capture": {
+  "memo_findings": [
+   {
+    "answer": "The intake names the work European Bank Account Administration.",
+    "evidence_turns": [
+     "context"
+    ],
+    "key": "name",
+    "status": "partial"
+   },
+   {
+    "answer": "The work brings an opened or transitioned bank account to operational handoff with its supporting records stored.",
+    "evidence_turns": [
+     "t007"
+    ],
+    "key": "purpose",
+    "status": "captured"
+   },
+   {
+    "answer": "The document identifies new accounts, bank transitions, mandate changes and signatory refreshes as event types to confirm. It requires an approved request and entity information before the initial step.",
+    "evidence_turns": [
+     "doc_06145fe628ba26873f951855_p1_c1"
+    ],
+    "key": "trigger",
+    "status": "partial"
+   },
+   {
+    "answer": "The work is finished when the records are stored and the handoff to Operations is complete.",
+    "evidence_turns": [
+     "t007"
+    ],
+    "key": "completion",
+    "status": "captured"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "accountable",
+    "status": "unknown"
+   },
+   {
+    "answer": "The document assigns initial request and regional route confirmation to a Fund Administrator or regional administration role. The role confirms the event, legal entity and jurisdiction, identifies the regional review chain, and records the business need and target timing. The stated output is a confirmed request and regional route.\nFor the conditional Guernsey notification path, the document requires Compliance or Legal confirmation before the path is followed.\nThe participant confirms that the Fund Administrator starts by identifying the request type, legal entity, jurisdiction and regional review chain, and recording the business need and target timing.\nWith input from Fund Accounting and the client, the Fund Administrator assembles the bank package: expected activity profile, investor profile from approved KYC and AML sources, economic purpose, applicable regulatory thresholds and bank-specific forms, without changing approved facts.\nNext, the Fund Administrator, Treasury and a regional reviewer confirm KYC and CDD status against the regional Excel schedule and prepare bank mandate and signatory information. For a bank transition, the mandate and signatories are refreshed rather than reused without review.\nA CDD block or PEP concern stops setup and is escalated to Compliance and regional governance. Setup does not continue until the issue is resolved and the decision recorded.\nThe complete package goes through regional review by Administration, Fund Accounting, the Controller and the Head of Jurisdiction. Review comments are resolved and required regional approval obtained before submission through the bank-approved channel; the submission record is kept.\nA signatory or mandate mismatch is corrected before submission. If the bank raises a query, the Fund Administrator and regional reviewers log it and prepare a response from approved records, obtaining regional or client approval if facts changed or extra written confirmations are needed; the response and decision record are kept. If there are no queries, the team waits for bank confirmation.\nThe participant does not know who submits the package; the submitting role is not defined.\nAfter bank confirmation of opening or transition, Treasury or the Fund Administrator confirms account identity and status from bank records and checks the bank's mandate and signatories against the approved package. The exact owner is undefined.\nFor accounts in Kyriba scope, Treasury confirms visibility. If the account is not visible, it is escalated, Treasury consolidated visibility is not marked complete, and handoff waits until the issue is resolved and recorded.\nAfter the visibility step, approved operational records are updated without storing unredacted bank data outside authorized locations. The Fund Administrator or Treasury stores the approved package and associated records in the digital records binder, notifies authorized payment operations users that the account is operational, and records unresolved restrictions.\nThe Treasury owner for escalation of an account not visible in Kyriba is not known to the participant.",
+    "evidence_turns": [
+     "doc_06145fe628ba26873f951855_p1_c1",
+     "t003",
+     "t005",
+     "t007"
+    ],
+    "key": "lifecycle",
+    "status": "partial"
+   },
+   {
+    "answer": "The document requires confirmation of the correct entity and jurisdiction before submission.\nThe Fund Administrator, Treasury and a regional reviewer confirm KYC and CDD status against the regional Excel schedule. A CDD block or PEP concern requires escalation and a recorded resolution before setup continues.\nRegional review comments must be resolved and the required regional approval obtained before submission. Signatory or mandate mismatches are corrected before submission.\nBank-query responses use approved records, not speculative answers. Regional or client approval is obtained if facts changed or extra written confirmations are needed, and the response and decision record are retained.\nTreasury or the Fund Administrator verifies account identity and status against bank records and compares the bank's mandate and signatories with the approved package. Treasury checks Kyriba visibility for in-scope accounts; an unresolved visibility issue blocks handoff.",
+    "evidence_turns": [
+     "doc_06145fe628ba26873f951855_p1_c1",
+     "t003",
+     "t005",
+     "t007"
+    ],
+    "key": "checks",
+    "status": "partial"
+   },
+   {
+    "answer": "The document describes a conditional Guernsey Rule 4.1 notification path, subject to Compliance or Legal confirmation of the rule and notification details.\nFor a bank transition, the mandate and signatories are refreshed rather than reused without review.\nTreasury's Kyriba visibility confirmation applies when an account is in scope for Kyriba.",
+    "evidence_turns": [
+     "doc_06145fe628ba26873f951855_p1_c1",
+     "t003",
+     "t007"
+    ],
+    "key": "variations",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "pain_points",
+    "status": "unknown"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "risk",
+    "status": "unknown"
+   },
+   {
+    "answer": "The document names an account-opening or transition request record as the working file and calls for retention of the confirmed request and regional route.\nThe document does not specify the request or approval form or its owner.\nThe document calls for a retained validation record following current Treasury owner confirmation of Kyriba requirements.\nThe bank package contains expected activity and investor profiles, economic purpose, applicable regulatory thresholds and bank-specific forms. The team also prepares mandate and signatory information.\nA regional Excel schedule is used to confirm KYC and CDD status; decisions resolving CDD blocks or PEP concerns are recorded.\nThe submission record is kept. The query log records bank queries, and responses and decision records are retained.\nThe digital records binder holds the approved package, mandate, signatory information, bank confirmation, review records and Kyriba records.\nThe retention period is undefined; the participant cannot provide it.",
+    "evidence_turns": [
+     "doc_06145fe628ba26873f951855_p1_c1",
+     "t003",
+     "t005",
+     "t007"
+    ],
+    "key": "materials",
+    "status": "partial"
+   },
+   {
+    "answer": "The work is European Bank Account Administration. The participant confirms initial routing for new accounts, bank transitions, mandate changes and signatory refreshes; the procedure also describes a conditional Guernsey notification route.",
+    "evidence_turns": [
+     "context",
+     "t003",
+     "doc_06145fe628ba26873f951855_p1_c1"
+    ],
+    "key": "scope",
+    "status": "partial"
+   },
+   {
+    "answer": "The document says the GFSC-hosted consolidated Capital Adequacy Rules and Guidance is not authoritative and has no legal effect. It directs that a Rule 4.1 notification path be followed only after Compliance or Legal confirms applicability, trigger, form, owner and destination.\nThe bank package uses the investor profile from approved KYC and AML sources and is assembled without changing approved facts.\nA CDD block or PEP concern prevents continuation until the issue is resolved and the decision recorded; bank-transition mandates and signatories are not reused without review.\nRequired regional approval precedes submission; query responses must use approved records and require regional or client approval when facts changed or extra written confirmations are needed.\nUnredacted bank data must not be stored outside authorized locations. An in-scope account's unresolved Kyriba visibility issue prevents handoff until resolved and recorded.",
+    "evidence_turns": [
+     "doc_06145fe628ba26873f951855_p1_c1",
+     "t003",
+     "t005",
+     "t007"
+    ],
+    "key": "rules",
+    "status": "partial"
+   },
+   {
+    "answer": "Fund Accounting and the client provide input to the Fund Administrator's bank-package assembly.\nCDD blocks and PEP concerns are escalated to Compliance and regional governance; setup waits for resolution and a recorded decision.\nThe package is submitted to the bank through its approved channel. The bank may raise queries or provide confirmation.\nRegional approval is required before submission; regional or client approval is obtained for bank-query responses when facts changed or extra written confirmations are needed.\nRequires approval from Regional review chain: Required regional approval before submission; regional approval is also one possible route for qualifying bank-query responses.\nThe Fund Administrator or Treasury notifies authorized users in payment operations that the account is operational; completion requires handoff to Operations.\nThe exact Operations notification list is undefined; the participant cannot provide it.",
+    "evidence_turns": [
+     "t003",
+     "t005",
+     "t007"
+    ],
+    "key": "connections",
+    "status": "partial"
+   },
+   {
+    "answer": "The document says Kyriba's exact scope, setup and monitoring requirements are unconfirmed. It calls for current confirmation from the Treasury owner and retention of the validation record.\nThe team checks KYC and CDD status against a regional Excel schedule; the investor profile comes from approved KYC and AML sources.\nTreasury checks Kyriba for visibility of accounts in scope. Approved operational records are updated and the specified supporting records are stored in a digital records binder.",
+    "evidence_turns": [
+     "doc_06145fe628ba26873f951855_p1_c1",
+     "t003",
+     "t007"
+    ],
+    "key": "data_systems",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "volume",
+    "status": "unknown"
+   }
+  ],
+  "coverage": [
+   {
+    "key": "name",
+    "label": "Name & other names",
+    "status": "partial"
+   },
+   {
+    "key": "purpose",
+    "label": "Purpose & result",
+    "status": "partial"
+   },
+   {
+    "key": "trigger",
+    "label": "Start, cadence & deadlines",
+    "status": "partial"
+   },
+   {
+    "key": "completion",
+    "label": "Finished condition",
+    "status": "partial"
+   },
+   {
+    "key": "accountable",
+    "label": "Accountability",
+    "status": "missing"
+   },
+   {
+    "key": "lifecycle",
+    "label": "Items, stages & handoffs",
+    "status": "partial"
+   },
+   {
+    "key": "checks",
+    "label": "Checks, approvals & proof",
+    "status": "partial"
+   },
+   {
+    "key": "variations",
+    "label": "Variations and conditions",
+    "status": "partial"
+   },
+   {
+    "key": "pain_points",
+    "label": "Manual work & pain",
+    "status": "missing"
+   },
+   {
+    "key": "risk",
+    "label": "Consequences of failure",
+    "status": "missing"
+   },
+   {
+    "key": "materials",
+    "label": "Existing materials",
+    "status": "partial"
+   },
+   {
+    "key": "scope",
+    "label": "Scope & entity context",
+    "status": "partial"
+   },
+   {
+    "key": "rules",
+    "label": "Business rules & lineage",
+    "status": "partial"
+   },
+   {
+    "key": "connections",
+    "label": "Connected processes",
+    "status": "partial"
+   },
+   {
+    "key": "data_systems",
+    "label": "Data & systems",
+    "status": "partial"
+   },
+   {
+    "key": "volume",
+    "label": "Volume & effort",
+    "status": "missing"
+   }
+  ],
+  "summary": "After bank confirmation, the team checks bank records and, where applicable, Kyriba visibility. Records are stored and Operations is notified; completion requires the handoff. Several ownership and Kyriba details remain undefined.",
+  "focus": "Post-confirmation checks and Operations handoff",
+  "parking_lot": [
+   "Confirm Kyriba scope, setup and monitoring requirements with the Treasury owner.",
+   "Clarify the request or approval form and its owner.",
+   "Confirm the Guernsey Rule 4.1 notification conditions and ownership."
+  ],
+  "connections_out": [
+   {
+    "condition": "Provides input to bank-package assembly.",
+    "counterpart": "Fund Accounting",
+    "evidence_turns": [
+     "t003"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "Provides input to bank-package assembly.",
+    "counterpart": "Client",
+    "evidence_turns": [
+     "t003"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "Escalation of a CDD block or PEP concern.",
+    "counterpart": "Compliance",
+    "evidence_turns": [
+     "t003"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "Escalation of a CDD block or PEP concern.",
+    "counterpart": "Regional governance",
+    "evidence_turns": [
+     "t003"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "The approved package is submitted through the bank-approved channel; the bank may raise queries or provide confirmation.",
+    "counterpart": "Bank",
+    "evidence_turns": [
+     "t005"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "Required regional approval before submission; regional approval is also one possible route for qualifying bank-query responses.",
+    "counterpart": "Regional review chain",
+    "evidence_turns": [
+     "t005"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "Client approval is an alternative to regional approval for bank-query responses if facts changed or extra written confirmations are needed.",
+    "counterpart": "Client",
+    "evidence_turns": [
+     "t005"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "The Fund Administrator or Treasury notifies authorized payment operations users that the account is operational; handoff follows the required checks.",
+    "counterpart": "Operations",
+    "evidence_turns": [
+     "t007"
+    ],
+    "relationship_type": "hands_off_to"
+   }
+  ],
+  "taxonomy": [
+   {
+    "evidence_turns": [
+     "context",
+     "doc_06145fe628ba26873f951855_p1_c1"
+    ],
+    "facet": "functional_area",
+    "note": "Documented bank account administration and Kyriba context; current practice unconfirmed.",
+    "value": "treasury_payments"
+   },
+   {
+    "evidence_turns": [
+     "doc_06145fe628ba26873f951855_p1_c1"
+    ],
+    "facet": "system",
+    "note": "Kyriba is named in the document; its scope, setup and monitoring requirements are unconfirmed.",
+    "value": "other"
+   },
+   {
+    "evidence_turns": [
+     "doc_06145fe628ba26873f951855_p1_c1"
+    ],
+    "facet": "control_type",
+    "note": "The document requires entity and jurisdiction confirmation before submission; current practice unconfirmed.",
+    "value": "gpfs_operational"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "facet": "system",
+    "note": "Participant reports a regional Excel schedule used for KYC and CDD status checks.",
+    "value": "excel_workbook"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "facet": "control_type",
+    "note": "CDD blocks and PEP concerns are escalated to Compliance and regional governance, with setup stopped pending recorded resolution.",
+    "value": "exception_escalation"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "facet": "functional_area",
+    "note": "Reported KYC and CDD checks and compliance escalation within bank-account administration.",
+    "value": "compliance_regulatory"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "facet": "control_type",
+    "note": "Participant reports regional review and required approval before submission.",
+    "value": "gpfs_supervisory"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "facet": "control_type",
+    "note": "Client or regional approval is obtained for query responses when facts changed or additional written confirmations are needed; the choice between them is not specified.",
+    "value": "client_approval"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "facet": "control_type",
+    "note": "Participant reports escalation and a handoff block for an in-scope account missing from Kyriba.",
+    "value": "exception_escalation"
+   }
+  ],
+  "completion": {
+   "allowed": false,
+   "ready_for_final_check": false,
+   "complete": false,
+   "partial": true,
+   "participant_confirmed": false,
+   "blockers": [
+    "role_incomplete:coverage_reviewer",
+    "role_incomplete:process_reviewer",
+    "coverage_result_unbound",
+    "coverage_incomplete",
+    "coverage_unresolved:name",
+    "coverage_unresolved:purpose",
+    "coverage_unresolved:trigger",
+    "coverage_unresolved:completion",
+    "coverage_unresolved:accountable",
+    "coverage_unresolved:lifecycle",
+    "coverage_unresolved:checks",
+    "coverage_unresolved:variations",
+    "coverage_unresolved:pain_points",
+    "coverage_unresolved:risk",
+    "coverage_unresolved:materials",
+    "coverage_unresolved:scope",
+    "coverage_unresolved:rules",
+    "coverage_unresolved:connections",
+    "coverage_unresolved:data_systems",
+    "coverage_unresolved:volume",
+    "process_result_unbound"
+   ],
+   "revision": "cd7079ce5983a2e4e221f7d1c334396ff435eeae24177641dd9c7d6f5b7c75b0",
+   "run_id": "29394c64a70248f48f2ab4e5b43bdada"
+  },
+  "coverage_assessment": null
+ },
+ "workflow": {
+  "connections": [
+   {
+    "evidence_turns": [
+     "doc_06145fe628ba26873f951855_p1_c1"
+    ],
+    "from": "S2",
+    "label": "Only after the specified confirmation",
+    "to": "S3"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "from": "S1",
+    "label": "After request and route confirmation",
+    "to": "S5"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "from": "S5",
+    "label": "After package assembly",
+    "to": "S6"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "from": "S6",
+    "label": "KYC and CDD status checked",
+    "to": "S7"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "from": "S7",
+    "label": "CDD block or PEP concern",
+    "to": "S8"
+   },
+   {
+    "evidence_turns": [
+     "t003",
+     "t005"
+    ],
+    "from": "S7",
+    "label": "No CDD block or PEP concern",
+    "to": "S9"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "from": "S10",
+    "label": "After submission",
+    "to": "S11"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "from": "S11",
+    "label": "Bank query",
+    "to": "S12"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "from": "S11",
+    "label": "Bank confirms opening or transition",
+    "to": "S13"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "from": "S13",
+    "label": "After bank-record checks",
+    "to": "S14"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "from": "S14",
+    "label": "In scope but not visible",
+    "to": "S15"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "from": "S14",
+    "label": "Visible or not in Kyriba scope",
+    "to": "S16"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "from": "S15",
+    "label": "Resolved and recorded",
+    "to": "S16"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "from": "S16",
+    "label": "After operational records update",
+    "to": "S17"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "from": "S9",
+    "label": "Regional approval in place and any identified mismatch corrected",
+    "to": "S10"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "from": "S18",
+    "label": "Regional approval in place and any identified mismatch corrected",
+    "to": "S10"
+   }
+  ],
+  "open_questions": [
+   "Are there other outcomes from decision S2 (Are Rule 4.1 details confirmed?), and where do they lead?",
+   "Does any incoming route start S10 (Submit package to bank), or must all prerequisites finish?",
+   "Does any incoming route start S16 (Update operational records), or must all prerequisites finish?",
+   "How does step S4 (Confirm Kyriba requirements) connect to the rest of this process, if at all?",
+   "Are the routes containing S1 (Confirm request and route) and S2 (Are Rule 4.1 details confirmed?) separate, or is there a reported handoff between them?",
+   "What initiates a request, who receives it, and what are the normal cadence and deadlines?",
+   "Who is accountable for the overall result, and who submits the package and updates the operational records?",
+   "Where does a resolved CDD or PEP escalation return, and who records the decision?",
+   "Where can a pre-submission signatory or mandate mismatch be identified, who corrects it, and how does correction relate to regional review?",
+   "What happens if the bank's mandate or signatories do not match the approved package after confirmation?",
+   "What does each regional reviewer check, where is review evidence retained, and what happens if approval is delayed or rejected?",
+   "Who decides whether regional or client approval is needed for a bank-query response, who sends the response, and what is the next handoff after the response and decision record are kept?",
+   "When does the documented Rule 4.1 confirmation arise in current practice, and what happens if it is delayed or not applicable?",
+   "How does the documented Treasury confirmation of Kyriba requirements connect to the current flow, and what determines Kyriba scope?",
+   "Who owns Kyriba visibility escalation, and who records its resolution?",
+   "What are the authorized notification list, retention period and locations for submission, query and decision records?",
+   "Which entity and client types are covered, and is this general GPFS practice or a client-specific route? What is the basis for that scope?",
+   "Apart from bank transitions and Kyriba scope, what variations change the work, effort, charging or removal constraints?",
+   "What rule sources and interpreters determine the package thresholds and other requirements, and how are conflicts resolved?",
+   "What manual friction, material risks, volumes, peaks and exception frequency are reported?"
+  ],
+  "steps": [
+   {
+    "actor": "Fund Administrator",
+    "completion_criteria": "Request type, entity, jurisdiction and regional route confirmed; business need and target timing recorded.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Request and entity information",
+    "description": "Confirm the request type, legal entity and jurisdiction, identify the regional review chain, and record the business need and target timing. The document also calls for checking the entity and jurisdiction before submission.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003",
+     "doc_06145fe628ba26873f951855_p1_c1"
+    ],
+    "handoff": "Fund Administrator assembles the package",
+    "id": "S1",
+    "input": "Approved request and entity information, per document",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "responsible",
+      "text": "The Fund Administrator confirms whether it is a new account, a bank transition, a mandate change or a signatory refresh, confirms the legal entity and jurisdiction, identifies the regional review chain and records the business need and target timing."
+     },
+     {
+      "evidence_turns": [
+       "doc_06145fe628ba26873f951855_p1_c1"
+      ],
+      "field": "system",
+      "text": "System or working file: Account-opening or transition request record"
+     },
+     {
+      "evidence_turns": [
+       "doc_06145fe628ba26873f951855_p1_c1"
+      ],
+      "field": "control",
+      "text": "Required check or approval: Confirm the correct entity and jurisdiction before submission."
+     },
+     {
+      "evidence_turns": [
+       "doc_06145fe628ba26873f951855_p1_c1"
+      ],
+      "field": "exception",
+      "text": "If blocked or an exception occurs: The request or approval form and its owner are not\nspecified."
+     }
+    ],
+    "output": "Confirmed request and regional route",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F03 FA-18A one page.pdf, page 1",
+    "system": "Account-opening or transition request record",
+    "title": "Confirm request and route",
+    "type": "activity"
+   },
+   {
+    "actor": "Compliance or Legal confirms; action owner UNKNOWN",
+    "completion_criteria": "Confirmation outcome known. Following the notification path requires confirmation of all specified points.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Compliance or Legal confirmation",
+    "description": "The document says to obtain Compliance or Legal confirmation of Rule 4.1 applicability, notification trigger, form, action owner and destination before following a notification path. It notes that the GFSC-hosted consolidated text is not authoritative and has no legal effect.",
+    "entity_scope": [
+     "other"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_06145fe628ba26873f951855_p1_c1"
+    ],
+    "handoff": "Notification action owner: UNKNOWN",
+    "id": "S2",
+    "input": "Relevant Guernsey circumstances: UNKNOWN",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_06145fe628ba26873f951855_p1_c1"
+      ],
+      "field": "control",
+      "text": "Follow a Rule 4.1 notification\npath only after Compliance or Legal confirms that the rule applies, what triggers notification,\nwhich form to use, who owns the action, and where to send it."
+     }
+    ],
+    "output": "Confirmation of the notification basis and route, or an UNKNOWN outcome",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F03 FA-18A one page.pdf, page 1",
+    "system": "UNKNOWN",
+    "title": "Are Rule 4.1 details confirmed?",
+    "type": "decision"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "Compliance or Legal confirmation",
+    "description": "The document permits the Rule 4.1 notification path only after the specified Compliance or Legal confirmation. The notification action and its outcome are otherwise UNKNOWN.",
+    "entity_scope": [
+     "other"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_06145fe628ba26873f951855_p1_c1"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S3",
+    "input": "Confirmed applicability, trigger, form, owner and destination",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_06145fe628ba26873f951855_p1_c1"
+      ],
+      "field": "control",
+      "text": "Follow a Rule 4.1 notification\npath only after Compliance or Legal confirms that the rule applies, what triggers notification,\nwhich form to use, who owns the action, and where to send it."
+     }
+    ],
+    "output": "UNKNOWN",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F03 FA-18A one page.pdf, page 1",
+    "system": "UNKNOWN",
+    "title": "Follow confirmed notification path",
+    "type": "activity"
+   },
+   {
+    "actor": "Treasury owner confirms; requester UNKNOWN",
+    "completion_criteria": "Confirmation obtained and validation record kept, per document",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Treasury owner and bank knowledge",
+    "description": "The document calls for current Treasury owner confirmation and retention of the validation record. It says the exact account scope, setup and monitoring requirements are not confirmed.",
+    "entity_scope": [
+     "other"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_06145fe628ba26873f951855_p1_c1"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S4",
+    "input": "Kyriba information and staff knowledge about the bank",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_06145fe628ba26873f951855_p1_c1"
+      ],
+      "field": "system",
+      "text": "Kyriba and staff\nknowledge about the\nbank"
+     },
+     {
+      "evidence_turns": [
+       "doc_06145fe628ba26873f951855_p1_c1"
+      ],
+      "field": "control",
+      "text": "Get current\nconfirmation from the\nTreasury owner and\nkeep the validation\nrecord."
+     }
+    ],
+    "output": "Treasury confirmation and validation record",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F03 FA-18A one page.pdf, page 1",
+    "system": "Kyriba",
+    "title": "Confirm Kyriba requirements",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund Administrator, with Fund Accounting and client input",
+    "completion_criteria": "Package assembled without changing approved facts",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Approved KYC and AML sources, Fund Accounting and client",
+    "description": "Assemble the expected activity and investor profiles, economic purpose, applicable regulatory thresholds and bank-specific forms. Use approved KYC and AML sources without changing approved facts.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003"
+    ],
+    "handoff": "Fund Administrator, Treasury and regional reviewer confirm KYC and CDD status",
+    "id": "S5",
+    "input": "Approved KYC and AML sources and input from Fund Accounting and client",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "responsible",
+      "text": "The Fund Administrator, with input from Fund Accounting and the client, assembles the bank package: the expected activity profile, the investor profile from approved KYC and AML sources, the economic purpose, the applicable regulatory thresholds, and the bank-specific forms, without changing approved facts."
+     },
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "control",
+      "text": "the investor profile from approved KYC and AML sources"
+     },
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "control",
+      "text": "without changing approved facts."
+     }
+    ],
+    "output": "Bank package",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Assemble bank package",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund Administrator, Treasury and regional reviewer",
+    "completion_criteria": "Status checked and mandate and signatory information prepared",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Regional Excel schedule",
+    "description": "Confirm KYC and CDD status against the regional schedule and prepare the mandate and signatory information. For a bank transition, refresh the mandate and signatories rather than reuse them without review.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003"
+    ],
+    "handoff": "Assess any CDD block or PEP concern",
+    "id": "S6",
+    "input": "Bank package and regional KYC and CDD schedule",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "responsible",
+      "text": "Then the Fund Administrator, Treasury and a regional reviewer confirm the KYC and CDD status against the regional Excel schedule, and prepare the bank mandate and signatory information."
+     },
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "system",
+      "text": "the regional Excel schedule"
+     },
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "control",
+      "text": "For a bank transition the mandate and signatories are refreshed, not reused without review."
+     }
+    ],
+    "output": "Confirmed status and prepared mandate and signatory information",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Regional Excel schedule",
+    "title": "Confirm KYC and prepare mandate",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund Administrator, Treasury and regional reviewer",
+    "completion_criteria": "Concern or absence of concern identified",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "KYC and CDD status",
+    "description": "A CDD block or PEP concern stops the setup and requires escalation.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003"
+    ],
+    "handoff": "Compliance and regional governance if blocked",
+    "id": "S7",
+    "input": "KYC and CDD status",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "exception",
+      "text": "If there is a CDD block or a PEP concern we stop the setup and escalate it to Compliance and regional governance, and we do not go on until it is resolved and the decision is recorded."
+     }
+    ],
+    "output": "Escalation or regional review",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Regional Excel schedule",
+    "title": "Is there a CDD or PEP concern?",
+    "type": "decision"
+   },
+   {
+    "actor": "Escalation initiator and resolution owner UNKNOWN; Compliance and regional governance are escalation recipients",
+    "completion_criteria": "Concern resolved and decision recorded",
+    "control_type": [
+     "exception_escalation"
+    ],
+    "data_origin": "KYC and CDD review",
+    "description": "Stop setup and escalate the CDD block or PEP concern. Do not continue until it is resolved and the decision is recorded.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003"
+    ],
+    "handoff": "Return point after resolution UNKNOWN",
+    "id": "S8",
+    "input": "CDD block or PEP concern",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "exception",
+      "text": "If there is a CDD block or a PEP concern we stop the setup and escalate it to Compliance and regional governance, and we do not go on until it is resolved and the decision is recorded."
+     }
+    ],
+    "output": "Recorded resolution and decision",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Resolve CDD or PEP escalation",
+    "type": "activity"
+   },
+   {
+    "actor": "Administration, Fund Accounting, Controller and Head of Jurisdiction",
+    "completion_criteria": "Review comments resolved and required regional approval obtained",
+    "control_type": [
+     "gpfs_operational",
+     "gpfs_supervisory"
+    ],
+    "data_origin": "Bank package and regional review comments",
+    "description": "The complete package goes through the regional review chain and review comments are resolved. Required regional approval must be in place before submission.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t005"
+    ],
+    "handoff": "Package proceeds to submission subject also to correction of any identified mismatch",
+    "id": "S9",
+    "input": "Complete bank package",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "responsible",
+      "text": "Next the complete package goes through the regional review chain: Administration, Fund Accounting, the Controller and the Head of Jurisdiction."
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "control",
+      "text": "Review comments are resolved, and the required regional approval has to be in place before anything is submitted."
+     }
+    ],
+    "output": "Reviewed and regionally approved package",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Complete regional review",
+    "type": "activity"
+   },
+   {
+    "actor": "Submitter UNKNOWN",
+    "completion_criteria": "Package submitted and submission record kept",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Approved bank package",
+    "description": "Submit the approved package through the bank-approved channel and retain the submission record. Regional approval and correction of any identified signatory or mandate mismatch are prerequisites.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t005"
+    ],
+    "handoff": "Await bank queries or confirmation",
+    "id": "S10",
+    "input": "Regionally approved package with any identified mismatch corrected",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "system",
+      "text": "Then the package is submitted through the bank-approved channel and the submission record is kept."
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "control",
+      "text": "Review comments are resolved, and the required regional approval has to be in place before anything is submitted."
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "control",
+      "text": "If a signatory or mandate mismatch is found, it is corrected before submission."
+     }
+    ],
+    "output": "Bank submission and retained submission record",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Bank-approved channel",
+    "title": "Submit package to bank",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Bank query or confirmation received",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "Bank",
+    "description": "After submission, the bank may raise queries; if there are none, wait for bank confirmation.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t005",
+     "t007"
+    ],
+    "handoff": "Queries go to the Fund Administrator and regional reviewers; confirmation leads to bank-record checks",
+    "id": "S11",
+    "input": "Submitted bank package",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "exception",
+      "text": "After submission the bank may come back with queries."
+     }
+    ],
+    "output": "Bank query or confirmation",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Await bank response",
+    "type": "wait"
+   },
+   {
+    "actor": "Fund Administrator and regional reviewers",
+    "completion_criteria": "Approval obtained if required, and response and decision record kept",
+    "control_type": [
+     "gpfs_operational",
+     "client_approval"
+    ],
+    "data_origin": "Bank query and approved records",
+    "description": "Record the query and prepare a response from approved records only, not speculation. Obtain regional or client approval if facts changed or extra written confirmations are needed, and retain the response and decision record.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t005"
+    ],
+    "handoff": "Next handoff and exact response sender UNKNOWN",
+    "id": "S12",
+    "input": "Bank query and approved records",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "responsible",
+      "text": "The Fund Administrator and the regional reviewers record the query in the query log, prepare the response from approved records only, never a speculative answer, and get regional or client approval if any facts changed or extra written confirmations are needed."
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "system",
+      "text": "record the query in the query log"
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "control",
+      "text": "prepare the response from approved records only, never a speculative answer"
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "control",
+      "text": "get regional or client approval if any facts changed or extra written confirmations are needed."
+     }
+    ],
+    "output": "Prepared response and retained decision record",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Query log",
+    "title": "Respond to bank queries",
+    "type": "activity"
+   },
+   {
+    "actor": "Treasury or Fund Administrator; exact owner UNKNOWN",
+    "completion_criteria": "Identity, status, mandate and signatories checked",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Bank records and approved package",
+    "description": "After bank confirmation of opening or transition, confirm the account identity and status from bank records and check that the bank mandate and signatories match the approved package.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t007"
+    ],
+    "handoff": "Treasury checks Kyriba visibility where in scope",
+    "id": "S13",
+    "input": "Bank confirmation, bank records and approved package",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "responsible",
+      "text": "Once the bank confirms the opening or transition, Treasury or the Fund Administrator, the exact owner is not defined, confirms the account identity and status from the bank records, and checks that the mandate and signatories set up at the bank match the approved package."
+     },
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "control",
+      "text": "checks that the mandate and signatories set up at the bank match the approved package."
+     }
+    ],
+    "output": "Confirmed identity and status and checked mandate and signatories",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Bank records",
+    "title": "Verify bank confirmation",
+    "type": "activity"
+   },
+   {
+    "actor": "Treasury",
+    "completion_criteria": "Scope and, where applicable, visibility outcome known",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Kyriba",
+    "description": "For an account in Kyriba scope, Treasury confirms visibility. If it is not visible, consolidated visibility is not marked complete and handoff is blocked pending resolution and recording.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t007"
+    ],
+    "handoff": "Visibility issue escalated; otherwise update operational records",
+    "id": "S14",
+    "input": "Confirmed account and Kyriba scope",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "responsible",
+      "text": "Then Treasury confirms the account is visible in Kyriba, when the account is in scope for Kyriba."
+     },
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "system",
+      "text": "Then Treasury confirms the account is visible in Kyriba, when the account is in scope for Kyriba."
+     },
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "exception",
+      "text": "If it is not visible, that is escalated, Treasury consolidated visibility is not marked complete, and we do not proceed to handoff until it is resolved and recorded."
+     }
+    ],
+    "output": "Visibility outcome or out-of-scope route",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Kyriba",
+    "title": "Is the in-scope account visible?",
+    "type": "decision"
+   },
+   {
+    "actor": "Treasury escalation owner UNKNOWN",
+    "completion_criteria": "Issue resolved and recorded",
+    "control_type": [
+     "exception_escalation"
+    ],
+    "data_origin": "Kyriba visibility check",
+    "description": "Escalate an account that is not visible in Kyriba. Hold handoff until the issue is resolved and recorded.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t007"
+    ],
+    "handoff": "Proceed after resolution",
+    "id": "S15",
+    "input": "Missing Kyriba visibility",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "exception",
+      "text": "If it is not visible, that is escalated, Treasury consolidated visibility is not marked complete, and we do not proceed to handoff until it is resolved and recorded."
+     }
+    ],
+    "output": "Recorded resolution",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Kyriba",
+    "title": "Resolve visibility issue",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Approved operational records updated",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Bank confirmation and approved package",
+    "description": "Update approved operational records without storing unredacted bank data outside authorized locations.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t007"
+    ],
+    "handoff": "Store final records and notify payment operations",
+    "id": "S16",
+    "input": "Confirmed account information",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "control",
+      "text": "After that the approved operational records are updated, without storing unredacted bank data outside authorized locations."
+     }
+    ],
+    "output": "Updated operational records",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Approved operational records",
+    "title": "Update operational records",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund Administrator or Treasury",
+    "completion_criteria": "Records stored and handoff to Operations complete",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Approved package, bank confirmation, review and Kyriba records",
+    "description": "Store the approved package, mandate, signatory information, bank confirmation, review records and Kyriba records; notify authorized payment operations users that the account is operational and record unresolved restrictions.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t007"
+    ],
+    "handoff": "Authorized payment operations users",
+    "id": "S17",
+    "input": "Approved package, confirmations, review and Kyriba records",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "responsible",
+      "text": "The last step is done by the Fund Administrator or Treasury: store the approved package, mandate, signatory information, bank confirmation, review records and Kyriba records in the digital records binder, notify the authorized users in payment operations that the account is operational, and record any restrictions that are not yet resolved."
+     },
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "system",
+      "text": "store the approved package, mandate, signatory information, bank confirmation, review records and Kyriba records in the digital records binder"
+     }
+    ],
+    "output": "Stored records, recorded restrictions and Operations notification",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Digital records binder",
+    "title": "Store records and hand off",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Identified mismatch corrected before submission",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "UNKNOWN",
+    "description": "If a signatory or mandate mismatch is found, correct it before submission. The point at which it is found and its relationship to regional review are not specified.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t005"
+    ],
+    "handoff": "Submission also requires regional approval",
+    "id": "S18",
+    "input": "Identified signatory or mandate mismatch",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "control",
+      "text": "If a signatory or mandate mismatch is found, it is corrected before submission."
+     }
+    ],
+    "output": "Corrected mismatch",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Correct identified mandate mismatch",
+    "type": "activity"
+   }
+  ],
+  "title": "European Bank Account Administration"
+ },
+ "workflow_revision": "c93e3ed25a76a8b07a39431c5c02cbb4dc9acfbbf61eaa0310a5a37c7542f8fc",
+ "finished": 1794918896.437695,
+ "graph_checks": {
+  "steps": 18,
+  "connections": 16,
+  "types": {
+   "activity": 14,
+   "decision": 3,
+   "wait": 1
+  },
+  "components": 3,
+  "isolated_steps": [
+   "S4"
+  ],
+  "entry_points": [
+   "S1",
+   "S2",
+   "S4",
+   "S18"
+  ],
+  "typed_start": [],
+  "exit_points": [
+   "S3",
+   "S4",
+   "S8",
+   "S12",
+   "S17"
+  ],
+  "typed_end": [],
+  "decisions_with_under_two_exits": [
+   "S2"
+  ],
+  "decision_exits_without_label": [],
+  "non_decision_with_multiple_exits": [
+   "S11"
+  ],
+  "steps_without_actor": [],
+  "actors": [
+   "Administration, Fund Accounting, Controller and Head of Jurisdiction",
+   "Compliance or Legal confirms; action owner UNKNOWN",
+   "Escalation initiator and resolution owner UNKNOWN; Compliance and regional governance are escalation recipients",
+   "Fund Administrator",
+   "Fund Administrator and regional reviewers",
+   "Fund Administrator or Treasury",
+   "Fund Administrator, Treasury and regional reviewer",
+   "Fund Administrator, with Fund Accounting and client input",
+   "Submitter UNKNOWN",
+   "Treasury",
+   "Treasury escalation owner UNKNOWN",
+   "Treasury or Fund Administrator; exact owner UNKNOWN",
+   "Treasury owner confirms; requester UNKNOWN",
+   "UNKNOWN"
+  ],
+  "open_questions": 20
+ }
+}

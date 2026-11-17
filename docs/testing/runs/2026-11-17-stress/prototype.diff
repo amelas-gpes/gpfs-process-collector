@@ -1,0 +1,83 @@
+--- app/concurrent_interview.py	2026-11-16 22:12:40
++++ proto/concurrent_interview.py	2026-11-17 08:28:17
+@@ -272,7 +272,12 @@
+                 raise self.api.APIError("This conversation has ended.", 409, category="conversation_expired")
+             if revision != session["revision"] or force:
+                 if revision != session["revision"]:
+-                    self._cancel_map(session)
++                    # PROTOTYPE: the map being drawn is left to finish. It is published as a
++                    # checkpoint ("through answer N") and becomes the baseline of the next
++                    # update, instead of being thrown away and drawn again from nothing.
++                    if session["graph_pending"]:
++                        raw_trace.emit("worker.workflow.discarded", {"revision": session["graph_pending"][1], "state": "queued"})
++                    session["graph_pending"] = None
+                 session["revision"] = revision
+                 session["generation"] += 1
+                 # One pending snapshot replaces all intermediate pending answers.
+@@ -561,8 +566,26 @@
+     def _build_graph(self, session, generation, revision, work, payload, baseline):
+         raw_trace.emit("worker.workflow.started", {"revision": revision, "generation": generation,
+             "uses_baseline": bool(baseline)})
++        def earlier_state_of_this_account():
++            now = (session.get("source_payload") or {}).get("turns") or []
++            mine = [turn for turn in payload["turns"] if turn.get("role") == "user"]
++            theirs = [turn for turn in now if turn.get("role") == "user"]
++            return bool(mine) and theirs[:len(mine)] == mine
++        def through():
++            return next((turn["id"] for turn in reversed(payload["turns"]) if turn.get("role") == "user"), None)
++        def drawn(capture):
++            # PROTOTYPE: the validated map as drawn, shown while its source audit runs.
++            with self._lock:
++                if self._closed or not earlier_state_of_this_account():
++                    return
++                session["workflow_provisional"] = {"revision": revision, "through_turn_id": through(), "audited": False,
++                    "workflow_capture": copy.deepcopy({key: capture[key] for key in ("workflow", "summary", "focus", "memo_findings", "parking_lot") if key in capture})}
++            raw_trace.emit("worker.workflow.provisional", {"revision": revision, "generation": generation})
++            with self._changed:
++                self._changed.notify_all()
+         try:
+             self._sources(payload)
++            work["_on_drawn"] = drawn
+             graph = self.client.coordinator.workflow(work)
+             self._sources(payload)
+             with self._lock:
+@@ -571,6 +594,13 @@
+                     session.update(workflow_capture=copy.deepcopy(graph), workflow_revision=revision,
+                                    workflow_turns=copy.deepcopy(payload["turns"]),
+                                    workflow_state="ready", workflow_error=None)
++                elif not self._closed and earlier_state_of_this_account():
++                    # PROTOTYPE: an audited map of an earlier answer is a checkpoint and the
++                    # baseline of the next update; it is never reported as the current map.
++                    session.update(workflow_capture=copy.deepcopy(graph), workflow_revision=revision,
++                                   workflow_turns=copy.deepcopy(payload["turns"]))
++                    session["workflow_provisional"] = {"revision": revision, "through_turn_id": through(), "audited": True,
++                        "workflow_capture": copy.deepcopy({key: graph[key] for key in ("workflow", "summary", "focus", "memo_findings", "parking_lot") if key in graph})}
+             raw_trace.emit("worker.workflow.published" if current else "worker.workflow.discarded",
+                 {"revision": revision, "generation": generation,
+                  "content": {key: graph[key] for key in ("workflow", "summary", "focus", "memo_findings", "parking_lot") if key in graph}})
+@@ -612,6 +642,9 @@
+                 result["checkpoint"] = copy.deepcopy(session["checkpoint"])
+             if current and session["workflow_revision"] == revision and session["workflow_capture"]:
+                 result["workflow_capture"] = copy.deepcopy(session["workflow_capture"])
++            elif current and session.get("workflow_provisional"):
++                # PROTOTYPE: the newest map there is, labelled with the answer it goes through.
++                result["workflow_provisional"] = copy.deepcopy(session["workflow_provisional"])
+             elif current and result.get("capture_preserved") and session.get("workflow_capture") and self._map_baseline(session, session.get("source_payload") or {}):
+                 result["workflow_capture"] = copy.deepcopy(session["workflow_capture"])
+                 result["workflow_preserved"] = True
+--- app/interview_orchestrator.py	2026-11-16 23:51:42
++++ proto/interview_orchestrator.py	2026-11-17 08:28:17
+@@ -1650,6 +1650,13 @@
+                 raise api.APIError("This workflow was cancelled or replaced. Your map is retained.", 409) from error
+         proposed = map_role("lead_interviewer", initial_workflow)
+         update, capture = proposed["update"], proposed["capture"]
++        # PROTOTYPE: the drawn and validated map is handed to the caller before its audit.
++        on_drawn = payload.get("_on_drawn")
++        if callable(on_drawn) and not (run.public_status()["cancelled"] or run.public_status()["stale"]):
++            try:
++                on_drawn(capture)
++            except Exception:
++                pass
+         def audited_workflow():
+             proposals = api.proposed_routes_to_verify(update, previous)
+             audit = self.client.structured(api.WORKFLOW_AUDIT_INSTRUCTIONS,

@@ -1,0 +1,1621 @@
+{
+ "case": "F07",
+ "port": 8796,
+ "interview_id": "2de990d253c246dfaaf4bded059ef2f5",
+ "context": {
+  "process_name": "Due to Manager: Expense Transfer",
+  "process_owner": "",
+  "objective": "Document how we carry out Due to Manager: Expense Transfer, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "Thanks for sharing. Give me a moment to digest the file. Then I\u2019ll follow up with a question.",
+   "document_event": true,
+   "document_id": "doc_intake"
+  },
+  {
+   "id": "t002",
+   "role": "assistant",
+   "text": "The procedure describes reconciling source, prepared, and fund-system totals and retaining a reviewer\u2019s record, but leaves the allowed difference and reviewer role unspecified. Does that description reflect how this work is carried out today?"
+  },
+  {
+   "id": "t003",
+   "role": "user",
+   "text": "Yes, that matches what we do. After the data is recorded in the fund system, the preparer and the reviewer confirm that the source totals, the prepared totals and the totals recorded in the fund system all agree, check that vendor and category records match, and investigate any combined or rejected lines. All exceptions get resolved and we keep the reviewer sign-off or review record. The rule is that no unexplained difference can remain in the totals or the set of records. If they do not reconcile, we resolve the difference before anything goes to billing, and the GPFS reviewer or the client decides as needed. I do not know of any allowed difference amount, and the exact reviewer role is not defined, so I cannot tell you either of those."
+  },
+  {
+   "id": "t004",
+   "role": "assistant",
+   "text": "What typically prompts the management company to send the expense set for this transfer?"
+  },
+  {
+   "id": "t005",
+   "role": "user",
+   "text": "It starts when the management company has bills or expenses to allocate to the funds and gives the fund team an organized expense file. The timing depends on the client. In the US reimbursement model the management company pays the expenses and bills the funds quarterly, but the schedule has to be confirmed for each client, so I cannot give you one fixed calendar. Before we start we confirm the export is complete, the expense categories and client mapping are available, vendor names and codes match the target system or have documented exceptions, the required approvals and supporting documents are available, and the preparer has access to the target fund system."
+  },
+  {
+   "id": "t006",
+   "role": "assistant",
+   "text": "What does completing this transfer enable for the funds or the management company?"
+  },
+  {
+   "id": "t007",
+   "role": "user",
+   "text": "It gets the expenses the management company paid into the fund accounting records so the correct funds record or reimburse the amounts they owe to the manager. The process ends when the approved due-to-manager data set is recorded in the fund accounting system and the reviewed package is sent on to the client billing or invoicing process, where the funds or portfolio companies get billed later. Before that handoff the reviewer confirms the items and totals sent to billing match the reviewed data set, and we keep the completion communication and record where the package is stored. One more rule: if any row, mapping or total changes during preparation or review, we repeat the full check from the source data through preparation and fund-system entry and get the final version approved again. The standard approval sequence and the package storage location are not defined, so I do not know those."
+  },
+  {
+   "id": "t008",
+   "role": "assistant",
+   "text": "What can go wrong for the funds or management company if this transfer or billing handoff is delayed or incorrect?"
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "This capture still has open sections. 16 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "doc.session",
+   "at": 1794918422.057,
+   "turn": 0,
+   "seconds": 0.027,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.upload",
+   "at": 1794918422.06,
+   "turn": 0,
+   "seconds": 0.003,
+   "status": 202,
+   "retries": 0,
+   "file": "F07 MC-02 procedure.pdf",
+   "bytes": 229358
+  },
+  {
+   "kind": "doc.upload",
+   "at": 1794918422.065,
+   "turn": 0,
+   "seconds": 0.004,
+   "status": 202,
+   "retries": 0,
+   "file": "F07 MC-02 roles.csv",
+   "bytes": 901
+  },
+  {
+   "kind": "doc.extracted",
+   "at": 1794918422.577,
+   "turn": 0,
+   "seconds": 0.55,
+   "file": "F07 MC-02 procedure.pdf",
+   "chunks": 5,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 5,
+    "total_units": 5,
+    "text_indexed_units": 5,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_started",
+   "at": 1794918422.577,
+   "turn": 0,
+   "seconds": 0.55,
+   "file": "F07 MC-02 procedure.pdf",
+   "chunks": 5,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 5,
+    "total_units": 5,
+    "text_indexed_units": 5,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_deep",
+   "at": 1794918428.201,
+   "turn": 0,
+   "seconds": 6.17,
+   "file": "F07 MC-02 procedure.pdf",
+   "chunks": 5,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 5,
+    "total_units": 5,
+    "text_indexed_units": 5,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_complete",
+   "at": 1794918428.201,
+   "turn": 0,
+   "seconds": 6.17,
+   "file": "F07 MC-02 procedure.pdf",
+   "chunks": 5,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 5,
+    "total_units": 5,
+    "text_indexed_units": 5,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.extracted",
+   "at": 1794918428.707,
+   "turn": 0,
+   "seconds": 6.68,
+   "file": "F07 MC-02 roles.csv",
+   "chunks": 1,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 7,
+    "total_units": 7,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_started",
+   "at": 1794918428.707,
+   "turn": 0,
+   "seconds": 6.68,
+   "file": "F07 MC-02 roles.csv",
+   "chunks": 1,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 7,
+    "total_units": 7,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_deep",
+   "at": 1794918433.314,
+   "turn": 0,
+   "seconds": 11.28,
+   "file": "F07 MC-02 roles.csv",
+   "chunks": 1,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 7,
+    "total_units": 7,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_complete",
+   "at": 1794918433.314,
+   "turn": 0,
+   "seconds": 11.28,
+   "file": "F07 MC-02 roles.csv",
+   "chunks": 1,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 7,
+    "total_units": 7,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.followup_question",
+   "at": 1794918435.478,
+   "turn": 1,
+   "seconds": 2.165,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.first_question",
+   "at": 1794918435.478,
+   "turn": 2,
+   "seconds": 13.45,
+   "reading": {
+    "omitted_documents": 0,
+    "documents": [
+     {
+      "id": "doc_c7e734ef3334f54685042252",
+      "included_chunks": 5,
+      "total_chunks": 5
+     },
+     {
+      "id": "doc_96d9d87d517330c817b19a56",
+      "included_chunks": 1,
+      "total_chunks": 1
+     }
+    ]
+   }
+  },
+  {
+   "kind": "doc.left_pending",
+   "at": 1794918495.537,
+   "turn": 2,
+   "notes_state": "working",
+   "map_state": "working",
+   "seconds": 62.22
+  },
+  {
+   "kind": "question",
+   "at": 1794918503.034,
+   "turn": 3,
+   "seconds": 1.913,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794918528.81,
+   "turn": 4,
+   "seconds": 27.69
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794918563.433,
+   "turn": 4,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 62.31
+  },
+  {
+   "kind": "question",
+   "at": 1794918569.892,
+   "turn": 5,
+   "seconds": 1.895,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794918600.254,
+   "turn": 6,
+   "seconds": 32.26
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794918630.245,
+   "turn": 6,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 62.25
+  },
+  {
+   "kind": "question",
+   "at": 1794918637.498,
+   "turn": 7,
+   "seconds": 1.861,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794918669.954,
+   "turn": 8,
+   "seconds": 34.32
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794918697.803,
+   "turn": 8,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 62.17
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794918702.514,
+   "turn": 8,
+   "seconds": 2.033,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "working",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.map_ready",
+   "at": 1794918843.656,
+   "turn": 9,
+   "seconds": 143.18,
+   "steps": 11,
+   "connections": 13
+  }
+ ],
+ "started": 1794918419.842829,
+ "documents": [
+  {
+   "id": "doc_c7e734ef3334f54685042252",
+   "name": "F07 MC-02 procedure.pdf",
+   "kind": "pdf",
+   "size": 229358,
+   "status": "ready",
+   "chunk_count": 5,
+   "analysis": {
+    "phase": "complete",
+    "intent_version": 0,
+    "basis_turn_id": "",
+    "basis_question": "",
+    "request_count": 1,
+    "generated_by": [
+     {
+      "build_id": "713975ca987f099ba0b713812b594415e1273cd802fdd81c77d3aca273de914f",
+      "generated_at": "2026-11-17T12:27:08.188+00:00",
+      "model": "gpt-6.1-terra",
+      "prompt_id": "3cdf9a64520b6eaf",
+      "reasoning_effort": "low",
+      "stage": "document_context_review"
+     }
+    ],
+    "app_version": "0.32.0",
+    "questions": [],
+    "observations": [
+     {
+      "id": "doc_c7e734ef3334f54685042252_073ff7327a233f7e4625",
+      "text": "The procedure calls for source totals to be checked against a management-company control total, with missing totals clarified.",
+      "basis": "stated",
+      "quote": "Compare the source totals with the control total",
+      "sources": [
+       {
+        "source_id": "doc_c7e734ef3334f54685042252_p2_c1",
+        "label": "F07 MC-02 procedure.pdf \u00b7 page 2"
+       }
+      ]
+     },
+     {
+      "id": "doc_c7e734ef3334f54685042252_76bf97cad0723197a2ef",
+      "text": "The procedure requires reconciliation and a review record, but does not specify the allowed difference or exact reviewer role.",
+      "basis": "stated",
+      "quote": "The allowed difference and exact reviewer role are not specified.",
+      "sources": [
+       {
+        "source_id": "doc_c7e734ef3334f54685042252_p4_c1",
+        "label": "F07 MC-02 procedure.pdf \u00b7 page 4"
+       }
+      ]
+     }
+    ],
+    "limit_indicator": false,
+    "unreadable_sources": [],
+    "limitations": [],
+    "summary": "The procedure describes intake, mapping checks, recording, reconciliation and billing handoff for the expense transfer. It identifies required checks, exception handling and roles, while leaving several client-specific details and approvals unconfirmed.",
+    "summary_basis": "initial_review",
+    "summary_basis_note": "Written from the initial review selection. Later review may have changed coverage; current review status and limitations are shown separately.",
+    "summary_at_review_version": 1,
+    "queries": [],
+    "error": null,
+    "version": 1,
+    "relevance": "relevant",
+    "relevance_reason": "The excerpts directly address the expense-transfer process, its documented checks and responsibilities, and items requiring confirmation.",
+    "disposition": "relevant",
+    "acknowledgement": "",
+    "question": "",
+    "sources": [
+     {
+      "source_id": "doc_c7e734ef3334f54685042252_p2_c1",
+      "label": "F07 MC-02 procedure.pdf \u00b7 page 2"
+     },
+     {
+      "source_id": "doc_c7e734ef3334f54685042252_p4_c1",
+      "label": "F07 MC-02 procedure.pdf \u00b7 page 4"
+     }
+    ],
+    "cursor": 5,
+    "reviewed_chunks": 5,
+    "total_chunks": 5,
+    "review_complete": true,
+    "estimated_requests": 1
+   },
+   "coverage": {
+    "indexed_units": 5,
+    "total_units": 5,
+    "text_indexed_units": 5,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   },
+   "error": null,
+   "revision": 4,
+   "intent_version": null
+  },
+  {
+   "id": "doc_96d9d87d517330c817b19a56",
+   "name": "F07 MC-02 roles.csv",
+   "kind": "csv",
+   "size": 901,
+   "status": "ready",
+   "chunk_count": 1,
+   "analysis": {
+    "phase": "complete",
+    "intent_version": 0,
+    "basis_turn_id": "",
+    "basis_question": "",
+    "request_count": 1,
+    "generated_by": [
+     {
+      "build_id": "713975ca987f099ba0b713812b594415e1273cd802fdd81c77d3aca273de914f",
+      "generated_at": "2026-11-17T12:27:12.962+00:00",
+      "model": "gpt-6.1-terra",
+      "prompt_id": "3cdf9a64520b6eaf",
+      "reasoning_effort": "low",
+      "stage": "document_context_review"
+     }
+    ],
+    "app_version": "0.32.0",
+    "questions": [],
+    "observations": [
+     {
+      "id": "doc_96d9d87d517330c817b19a56_d65b411e844a46a3a34d",
+      "text": "The GPFS fund-team preparer checks, maps, enters or uploads, reconciles and retains the DTM data set; the table says they must not create a mapping or vendor record without approval or supporting documentation.",
+      "basis": "stated",
+      "quote": "must not create a mapping or vendor record without approval or supporting documentation",
+      "sources": [
+       {
+        "source_id": "doc_96d9d87d517330c817b19a56_s1_r1_7_b1_c1",
+        "label": "F07 MC-02 roles.csv \u00b7 CSV!A1:C7"
+       }
+      ]
+     },
+     {
+      "id": "doc_96d9d87d517330c817b19a56_767ffac1a3cc382a8055",
+      "text": "The process owner and internal approver are both listed as not yet confirmed.",
+      "basis": "stated",
+      "quote": "A6=Process owner | B6=Not yet confirmed | C6=Not yet confirmed",
+      "sources": [
+       {
+        "source_id": "doc_96d9d87d517330c817b19a56_s1_r1_7_b1_c1",
+        "label": "F07 MC-02 roles.csv \u00b7 CSV!A1:C7"
+       }
+      ]
+     }
+    ],
+    "limit_indicator": false,
+    "unreadable_sources": [],
+    "limitations": [],
+    "summary": "The roles table describes responsibilities for preparing, reviewing and confirming the Due to Manager data set. Exact role titles, approval authority, sign-off records and the process owner remain unspecified or unconfirmed.",
+    "summary_basis": "initial_review",
+    "summary_basis_note": "Written from the initial review selection. Later review may have changed coverage; current review status and limitations are shown separately.",
+    "summary_at_review_version": 1,
+    "queries": [],
+    "error": null,
+    "version": 1,
+    "relevance": "relevant",
+    "relevance_reason": "The table directly addresses responsibilities and approval-related gaps for the expense transfer process.",
+    "disposition": "relevant",
+    "acknowledgement": "",
+    "question": "",
+    "sources": [
+     {
+      "source_id": "doc_96d9d87d517330c817b19a56_s1_r1_7_b1_c1",
+      "label": "F07 MC-02 roles.csv \u00b7 CSV!A1:C7"
+     }
+    ],
+    "cursor": 1,
+    "reviewed_chunks": 1,
+    "total_chunks": 1,
+    "review_complete": true,
+    "estimated_requests": 1
+   },
+   "coverage": {
+    "indexed_units": 7,
+    "total_units": 7,
+    "limitations": []
+   },
+   "error": null,
+   "revision": 4,
+   "intent_version": null
+  }
+ ],
+ "revision": "210a685167e5ca14aceb9f8b35cc0ce175193a5ef1484c43e29bce75fea1ec26",
+ "capture": {
+  "memo_findings": [
+   {
+    "answer": "The supplied process name is Due to Manager: Expense Transfer; the procedure abbreviates it DTM and identifies it as MC-02.",
+    "evidence_turns": [
+     "context",
+     "doc_c7e734ef3334f54685042252_p2_c1"
+    ],
+    "key": "name",
+    "status": "partial"
+   },
+   {
+    "answer": "The documented work records and reviews management-company expense data in the fund system and passes an approved package to billing.\nThe transfer puts management-company-paid expenses into fund accounting records so the correct funds record or reimburse amounts owed to the manager.",
+    "evidence_turns": [
+     "doc_c7e734ef3334f54685042252_p3_c1",
+     "doc_c7e734ef3334f54685042252_p4_c1",
+     "t007"
+    ],
+    "key": "purpose",
+    "status": "partial"
+   },
+   {
+    "answer": "The work starts when the management company has bills or expenses to allocate to funds and gives the fund team an organized expense file. Timing depends on the client.\nIn the US reimbursement model, the management company pays expenses and bills the funds quarterly; the schedule must be confirmed for each client rather than assumed to be a fixed calendar.\nThe applicable schedule and any fixed deadlines must be confirmed for each client.",
+    "evidence_turns": [
+     "t005"
+    ],
+    "key": "trigger",
+    "status": "partial"
+   },
+   {
+    "answer": "The procedure's completion output is a complete DTM package and confirmation that the next process accepted it; totals sent to billing must match the reviewed data set.\nThe participant says the process ends when the approved due-to-manager data set is recorded in the fund accounting system and the reviewed package is sent to client billing or invoicing; funds or portfolio companies are billed later.\nThe procedure requires confirmation of next-process acceptance, while the participant identifies sending the package as the finish; whether acceptance is part of actual completion needs clarification.",
+    "evidence_turns": [
+     "doc_c7e734ef3334f54685042252_p4_c1",
+     "t007"
+    ],
+    "key": "completion",
+    "status": "partial"
+   },
+   {
+    "answer": "The roles table says the process owner and internal approver are not yet confirmed.",
+    "evidence_turns": [
+     "doc_96d9d87d517330c817b19a56_s1_r1_7_b1_c1"
+    ],
+    "key": "accountable",
+    "status": "partial"
+   },
+   {
+    "answer": "The roles table assigns the management-company accounting preparer responsibility for recording expenses, assigning source categories and producing the export.\nThe procedure directs the GPFS fund-team preparer to log the source system, period, entities and file version, check expected expenses and categories, and compare source totals to the management-company control total. Missing control totals or unclear records are referred to the management company.\nThe documented GPFS preparer and reviewer check categories against approved fund categories, identify missing or inconsistently coded vendors, resolve unmatched or duplicate vendors through the approved vendor-record process, and confirm the mapping version and applicable period.\nThe preparer confirms the client-validated entry method, target system and access, with confirmation from the client or process owner. The preparer applies approved mappings and preserves vendor detail where supported; manual entries retain source links, while an approved upload uses a validated template and required client-dependent checks. Results and rejected items are recorded.\nThe preparer and reviewer reconcile source, prepared and fund-system totals and vendor and category records, investigate combined or rejected lines, and resolve exceptions. Where approved system design supports it, they confirm whether amounts are owed to the manager or an affiliate.\nThe documented preparer and reviewer, with client-specific roles, assemble the approved data, mapping, reconciliation, support and review record; send the approved items to billing or the client's invoicing or distribution process; and retain the completion communication and package location.\nClient-specific schedules and practical implementation of the documented preparation and entry steps remain to be confirmed.\nThe participant confirms that after recording in the fund system, the preparer and reviewer compare source, prepared and recorded totals, check vendor and category records, investigate combined or rejected lines and resolve exceptions. Differences are resolved before anything goes to billing, with the GPFS reviewer or client deciding as needed.\nBefore starting, the team confirms export completeness, availability of expense categories and client mapping, matching vendor names and codes or documented exceptions, required approvals and supporting documents, and preparer access to the target fund system.\nIf any row, mapping or total changes during preparation or review, the team repeats the full check from source data through preparation and fund-system entry and obtains approval again for the final version.",
+    "evidence_turns": [
+     "doc_96d9d87d517330c817b19a56_s1_r1_7_b1_c1",
+     "doc_c7e734ef3334f54685042252_p2_c1",
+     "doc_c7e734ef3334f54685042252_p3_c1",
+     "doc_c7e734ef3334f54685042252_p4_c1",
+     "t005",
+     "t007",
+     "t003"
+    ],
+    "key": "lifecycle",
+    "status": "partial"
+   },
+   {
+    "answer": "The procedure requires documentation of intake period, entities and totals before preparation; unapproved vendor or category mappings must not be applied. Rejected lines must appear in the exception log, and recorded rows and totals must match approved prepared data.\nThe procedure requires no unexplained difference in totals or records and retention of reviewer sign-off or a review record. For an unapproved mapping mismatch, it directs the team to stop the affected item until resolution is documented.\nThe exact reviewer role, allowed difference, new-vendor approval process and standard package approval sequence are not specified or confirmed in the procedure.\nThe participant confirms the preparer and reviewer reconcile the three sets of totals and vendor and category records, investigate combined or rejected lines, resolve exceptions and retain reviewer sign-off or a review record. No unexplained difference may remain in totals or records.\nThe participant does not know of a numerical allowed difference and says the exact reviewer role is not defined.\nThe participant reports pre-start checks for a complete export, available categories and mapping, matched vendor names and codes or documented exceptions, required approvals and support, and preparer system access.\nBefore handoff, the reviewer confirms that the items and totals sent to billing match the reviewed data set.\nWhen a row, mapping or total changes during preparation or review, the full source-to-entry check is repeated and the final version is approved again.",
+    "evidence_turns": [
+     "doc_c7e734ef3334f54685042252_p2_c1",
+     "doc_c7e734ef3334f54685042252_p3_c1",
+     "doc_c7e734ef3334f54685042252_p4_c1",
+     "doc_c7e734ef3334f54685042252_p5_c1",
+     "t003",
+     "t005",
+     "t007"
+    ],
+    "key": "checks",
+    "status": "partial"
+   },
+   {
+    "answer": "The procedure describes client-validated manual entry, upload or another approved method; upload checks depend on the client. It says the One Rock method cannot be assumed for another client.\nTiming varies by client. The participant describes quarterly fund billing in the US reimbursement model, but says each client's schedule must be confirmed.",
+    "evidence_turns": [
+     "doc_c7e734ef3334f54685042252_p1_c1",
+     "doc_c7e734ef3334f54685042252_p3_c1",
+     "t005"
+    ],
+    "key": "variations",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "pain_points",
+    "status": "unknown"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "risk",
+    "status": "unknown"
+   },
+   {
+    "answer": "The documented working artifacts include the management-company export and support, intake checklist, client mapping, vendor and mapping exception log, upload template, DTM reconciliation, fund-system report and review record.\nThe supplied procedure distinguishes supporting operating instructions, which require current-owner approval, from client and design files that show examples or proposed design and do not establish current general requirements without approval.\nThe management company supplies an organized expense file to the fund team. The participant also identifies client mapping, documented vendor exceptions, approvals and supporting documents as intake readiness materials.\nThe team retains the completion communication and records where the reviewed package is stored.\nThe participant says the package storage location is not defined.",
+    "evidence_turns": [
+     "doc_c7e734ef3334f54685042252_p2_c1",
+     "doc_c7e734ef3334f54685042252_p3_c1",
+     "doc_c7e734ef3334f54685042252_p4_c1",
+     "doc_c7e734ef3334f54685042252_p1_c1",
+     "t005",
+     "t007"
+    ],
+    "key": "materials",
+    "status": "partial"
+   },
+   {
+    "answer": "The procedure describes a GPFS fund-team process using management-company expense data, with client-specific mapping and entry methods, and labels its baseline current documented GPFS practice. The participant confirmed the reconciliation and review description, not the entire procedure.",
+    "evidence_turns": [
+     "doc_c7e734ef3334f54685042252_p1_c1",
+     "doc_c7e734ef3334f54685042252_p2_c1",
+     "t003"
+    ],
+    "key": "scope",
+    "status": "partial"
+   },
+   {
+    "answer": "The procedure says the client-approved method sets category and vendor mapping, allocations, included records, support, entry method and target fields. A detailed client-specific procedure, when applicable, requires completion and a completion record before proceeding.\nThe participant states that no unexplained difference can remain in totals or records, and a reconciliation difference must be resolved before billing.\nBefore work starts, vendor names and codes must match the target system or have documented exceptions; required approvals and supporting documents must be available.\nA change to any row, mapping or total during preparation or review requires a full source-to-fund-system recheck and renewed final-version approval.",
+    "evidence_turns": [
+     "doc_c7e734ef3334f54685042252_p1_c1",
+     "doc_c7e734ef3334f54685042252_p5_c1",
+     "t003",
+     "t005",
+     "t007"
+    ],
+    "key": "rules",
+    "status": "partial"
+   },
+   {
+    "answer": "The process consumes the management-company accounting preparer's expense export and sends an approved package to billing or the client's invoicing or distribution process. The procedure requires confirmation of acceptance by the next process.\nUses the output of Management-company accounting expense preparation: Expense export and supporting data for the period.\nHands off to Billing or client invoicing or distribution process: Approved package after review; next-process acceptance is required.\nThe participant confirms that reconciliation differences are resolved before anything goes to billing.\nHands off to Billing or client invoicing or distribution process: Approved package after review; reconciliation differences must be resolved before billing, and the procedure requires next-process acceptance.\nUses the output of Management-company accounting expense preparation: The management company supplies the fund team an organized expense file when it has bills or expenses to allocate to funds.\nThe participant says the reviewed package is sent to client billing or invoicing after recording; the reviewer checks that its items and totals match the reviewed data set.\nHands off to Billing or client invoicing or distribution process: The reviewed package is sent after fund-system recording; differences are resolved and the reviewer checks items and totals. The procedure also requires next-process acceptance.",
+    "evidence_turns": [
+     "doc_96d9d87d517330c817b19a56_s1_r1_7_b1_c1",
+     "doc_c7e734ef3334f54685042252_p4_c1",
+     "doc_c7e734ef3334f54685042252_p2_c1",
+     "t003",
+     "t005",
+     "t007"
+    ],
+    "key": "connections",
+    "status": "partial"
+   },
+   {
+    "answer": "The procedure lists an Excel export and describes manual entry in Allvue or Entrilia or a validated upload. It cautions that the actual target system must be confirmed and Intralinks should not be assumed to be it.",
+    "evidence_turns": [
+     "doc_c7e734ef3334f54685042252_p2_c1",
+     "doc_c7e734ef3334f54685042252_p3_c1"
+    ],
+    "key": "data_systems",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "volume",
+    "status": "unknown"
+   }
+  ],
+  "coverage": [
+   {
+    "key": "name",
+    "label": "Name & other names",
+    "status": "partial"
+   },
+   {
+    "key": "purpose",
+    "label": "Purpose & result",
+    "status": "partial"
+   },
+   {
+    "key": "trigger",
+    "label": "Start, cadence & deadlines",
+    "status": "partial"
+   },
+   {
+    "key": "completion",
+    "label": "Finished condition",
+    "status": "partial"
+   },
+   {
+    "key": "accountable",
+    "label": "Accountability",
+    "status": "partial"
+   },
+   {
+    "key": "lifecycle",
+    "label": "Items, stages & handoffs",
+    "status": "partial"
+   },
+   {
+    "key": "checks",
+    "label": "Checks, approvals & proof",
+    "status": "partial"
+   },
+   {
+    "key": "variations",
+    "label": "Variations and conditions",
+    "status": "partial"
+   },
+   {
+    "key": "pain_points",
+    "label": "Manual work & pain",
+    "status": "missing"
+   },
+   {
+    "key": "risk",
+    "label": "Consequences of failure",
+    "status": "missing"
+   },
+   {
+    "key": "materials",
+    "label": "Existing materials",
+    "status": "partial"
+   },
+   {
+    "key": "scope",
+    "label": "Scope & entity context",
+    "status": "partial"
+   },
+   {
+    "key": "rules",
+    "label": "Business rules & lineage",
+    "status": "partial"
+   },
+   {
+    "key": "connections",
+    "label": "Connected processes",
+    "status": "partial"
+   },
+   {
+    "key": "data_systems",
+    "label": "Data & systems",
+    "status": "partial"
+   },
+   {
+    "key": "volume",
+    "label": "Volume & effort",
+    "status": "missing"
+   }
+  ],
+  "summary": "The participant described the transfer\u2019s purpose and finish, the billing handoff check, and the full recheck and reapproval required after changes. What most often stops this work or sends it back?",
+  "focus": "Completion, billing handoff and changes",
+  "parking_lot": [],
+  "connections_out": [
+   {
+    "condition": "Expense export and supporting data for the period.",
+    "counterpart": "Management-company accounting expense preparation",
+    "evidence_turns": [
+     "doc_96d9d87d517330c817b19a56_s1_r1_7_b1_c1",
+     "doc_c7e734ef3334f54685042252_p2_c1"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "Approved package after review; next-process acceptance is required.",
+    "counterpart": "Billing or client invoicing or distribution process",
+    "evidence_turns": [
+     "doc_c7e734ef3334f54685042252_p4_c1"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "Approved package after review; reconciliation differences must be resolved before billing, and the procedure requires next-process acceptance.",
+    "counterpart": "Billing or client invoicing or distribution process",
+    "evidence_turns": [
+     "doc_c7e734ef3334f54685042252_p4_c1",
+     "t003"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "The management company supplies the fund team an organized expense file when it has bills or expenses to allocate to funds.",
+    "counterpart": "Management-company accounting expense preparation",
+    "evidence_turns": [
+     "doc_96d9d87d517330c817b19a56_s1_r1_7_b1_c1",
+     "doc_c7e734ef3334f54685042252_p2_c1",
+     "t005"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "The reviewed package is sent after fund-system recording; differences are resolved and the reviewer checks items and totals. The procedure also requires next-process acceptance.",
+    "counterpart": "Billing or client invoicing or distribution process",
+    "evidence_turns": [
+     "doc_c7e734ef3334f54685042252_p4_c1",
+     "t003",
+     "t007"
+    ],
+    "relationship_type": "hands_off_to"
+   }
+  ],
+  "taxonomy": [
+   {
+    "evidence_turns": [
+     "doc_c7e734ef3334f54685042252_p3_c1"
+    ],
+    "facet": "entity_type",
+    "note": "Documented fund-team recording.",
+    "value": "fund"
+   },
+   {
+    "evidence_turns": [
+     "doc_c7e734ef3334f54685042252_p2_c1"
+    ],
+    "facet": "entity_type",
+    "note": "Management-company expense source.",
+    "value": "manco"
+   },
+   {
+    "evidence_turns": [
+     "doc_c7e734ef3334f54685042252_p3_c1",
+     "doc_c7e734ef3334f54685042252_p4_c1"
+    ],
+    "facet": "functional_area",
+    "note": "Documented GPFS fund-team recording and reconciliation.",
+    "value": "fund_accounting"
+   },
+   {
+    "evidence_turns": [
+     "doc_c7e734ef3334f54685042252_p1_c1"
+    ],
+    "facet": "rule_source",
+    "note": "Documented client-approved mapping and entry method.",
+    "value": "client_methodology"
+   },
+   {
+    "evidence_turns": [
+     "doc_c7e734ef3334f54685042252_p3_c1"
+    ],
+    "facet": "system",
+    "note": "Listed as a possible manual-entry system; actual target unconfirmed.",
+    "value": "allvue"
+   },
+   {
+    "evidence_turns": [
+     "doc_c7e734ef3334f54685042252_p3_c1"
+    ],
+    "facet": "system",
+    "note": "Listed as a possible manual-entry system; actual target unconfirmed.",
+    "value": "entrilia"
+   },
+   {
+    "evidence_turns": [
+     "doc_c7e734ef3334f54685042252_p2_c1",
+     "doc_c7e734ef3334f54685042252_p4_c1"
+    ],
+    "facet": "control_type",
+    "note": "Documented intake, mapping and reconciliation checks.",
+    "value": "gpfs_operational"
+   }
+  ],
+  "completion": {
+   "allowed": false,
+   "ready_for_final_check": false,
+   "complete": false,
+   "partial": true,
+   "participant_confirmed": false,
+   "blockers": [
+    "role_incomplete:coverage_reviewer",
+    "role_incomplete:process_reviewer",
+    "coverage_result_unbound",
+    "coverage_incomplete",
+    "coverage_unresolved:name",
+    "coverage_unresolved:purpose",
+    "coverage_unresolved:trigger",
+    "coverage_unresolved:completion",
+    "coverage_unresolved:accountable",
+    "coverage_unresolved:lifecycle",
+    "coverage_unresolved:checks",
+    "coverage_unresolved:variations",
+    "coverage_unresolved:pain_points",
+    "coverage_unresolved:risk",
+    "coverage_unresolved:materials",
+    "coverage_unresolved:scope",
+    "coverage_unresolved:rules",
+    "coverage_unresolved:connections",
+    "coverage_unresolved:data_systems",
+    "coverage_unresolved:volume",
+    "process_result_unbound"
+   ],
+   "revision": "b1b098d8578a67cfe61d0f50a0c35e3ced7aa66ec031b45e567e04c9598d98a2",
+   "run_id": "12c77d716fe54409a7d5042b51c6adba"
+  },
+  "coverage_assessment": null
+ },
+ "workflow": {
+  "connections": [
+   {
+    "evidence_turns": [
+     "t005",
+     "doc_c7e734ef3334f54685042252_p2_c1"
+    ],
+    "from": "S1",
+    "label": "File received",
+    "to": "S2"
+   },
+   {
+    "evidence_turns": [
+     "doc_c7e734ef3334f54685042252_p2_c1"
+    ],
+    "from": "S2",
+    "label": "Intake checked",
+    "to": "S3"
+   },
+   {
+    "evidence_turns": [
+     "doc_c7e734ef3334f54685042252_p2_c1",
+     "doc_c7e734ef3334f54685042252_p3_c1"
+    ],
+    "from": "S3",
+    "label": "Mapping readiness checked",
+    "to": "S4"
+   },
+   {
+    "evidence_turns": [
+     "doc_c7e734ef3334f54685042252_p3_c1"
+    ],
+    "from": "S4",
+    "label": "Client-validated method confirmed",
+    "to": "S5"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "from": "S5",
+    "label": "Data recorded",
+    "to": "S6"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "from": "S6",
+    "label": "Difference or exception found",
+    "to": "S7"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "from": "S9",
+    "label": "Billing items and totals confirmed",
+    "to": "S10"
+   },
+   {
+    "evidence_turns": [
+     "t003",
+     "doc_c7e734ef3334f54685042252_p4_c1"
+    ],
+    "from": "S6",
+    "label": "Reviewed entries and resolved exceptions AND approved data set",
+    "to": "S9"
+   },
+   {
+    "evidence_turns": [
+     "t003",
+     "doc_c7e734ef3334f54685042252_p4_c1"
+    ],
+    "from": "S8",
+    "label": "Reviewed entries and resolved exceptions AND approved data set",
+    "to": "S9"
+   },
+   {
+    "evidence_turns": [
+     "t003",
+     "doc_c7e734ef3334f54685042252_p4_c1"
+    ],
+    "from": "S7",
+    "label": "If exceptions found: resolved exceptions AND reviewed entries AND approved data set",
+    "to": "S9"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "from": "S5",
+    "label": "Row, mapping or total changes during preparation",
+    "to": "S11"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "from": "S6",
+    "label": "Row, mapping or total changes during review",
+    "to": "S11"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "from": "S11",
+    "label": "Full check repeated after change",
+    "to": "S8"
+   }
+  ],
+  "open_questions": [
+   "Are there other outcomes from decision S4 (Which approved entry method applies?), and where do they lead?",
+   "Does any incoming route start S9 (Prepare billing package), or must all prerequisites finish?",
+   "Does any incoming route start S11 (Repeat full check after change), or must all prerequisites finish?",
+   "Which documented intake, mapping, entry and package steps reflect current practice, and which vary by client?",
+   "Who is accountable for the overall process, and who approves the final data set in what sequence?",
+   "What is the current target fund system and authoritative record, and which clients use manual entry or upload?",
+   "How are missing control totals, vendor or mapping exceptions and failed checks resolved, approved and recorded in practice?",
+   "Where are the review record, completion communication and package stored, and is billing acceptance confirmed in practice?",
+   "What client-specific differences change the work, effort or deadlines, and are any charged for or constrained from removal?",
+   "Who interprets conflicting client rules or mappings, and where is that interpretation recorded?",
+   "What are the main manual difficulties, material risks, volumes, peaks and approximate exception frequency?",
+   "Is this a general GPFS route or a client-specific account, and what is the participant's basis for that scope?",
+   "Are material allocation calculations performed within this transfer, or supplied by an upstream process?",
+   "After an exception is resolved, where does the work resume when no row, mapping or total has changed?",
+   "How are approval and reconciliation coordinated before package preparation when no change triggers reapproval?"
+  ],
+  "steps": [
+   {
+    "actor": "Management company and GPFS fund team",
+    "completion_criteria": "Fund team receives the file.",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "Management company",
+    "description": "The management company gives the fund team an organized expense file when it has bills or expenses to allocate to funds.",
+    "entity_scope": [
+     "manco",
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t005"
+    ],
+    "handoff": "Management company to fund team",
+    "id": "S1",
+    "input": "Management-company bills or expenses",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "responsible",
+      "text": "It starts when the management company has bills or expenses to allocate to the funds and gives the fund team an organized expense file."
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "frequency",
+      "text": "The timing depends on the client."
+     }
+    ],
+    "output": "Organized expense file",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Receive expense file",
+    "type": "start"
+   },
+   {
+    "actor": "GPFS fund-team preparer",
+    "completion_criteria": "Required inputs and access are available; documented intake checks are complete.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Management-company export and client mapping",
+    "description": "Confirm export completeness, categories, client mapping, vendor names and codes or documented exceptions, approvals, supporting documents and system access. The procedure calls for logging the source, period, entities and version, comparing source totals with the management-company control total, and clarifying missing totals or unclear records.",
+    "entity_scope": [
+     "manco",
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t005",
+     "doc_c7e734ef3334f54685042252_p2_c1"
+    ],
+    "handoff": "Ready for mapping checks",
+    "id": "S2",
+    "input": "Expense export, mappings, approvals and supporting documents",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_c7e734ef3334f54685042252_p2_c1"
+      ],
+      "field": "responsible",
+      "text": "Who performs this step: GPFS fund-team preparer."
+     },
+     {
+      "evidence_turns": [
+       "doc_c7e734ef3334f54685042252_p2_c1"
+      ],
+      "field": "system",
+      "text": "System or working file: Excel export and intake checklist."
+     },
+     {
+      "evidence_turns": [
+       "doc_c7e734ef3334f54685042252_p2_c1"
+      ],
+      "field": "control",
+      "text": "Required check or approval: Document the period, entities, and source totals before\npreparing the data."
+     },
+     {
+      "evidence_turns": [
+       "doc_c7e734ef3334f54685042252_p2_c1"
+      ],
+      "field": "exception",
+      "text": "If something goes wrong: Ask the management company to clarify any missing control total\nor unclear set of records."
+     }
+    ],
+    "output": "Checked and logged source package",
+    "parent_process": "Due to Manager: Expense Transfer",
+    "rule_source_ref": "F07 MC-02 procedure, page 2",
+    "system": "Excel export and intake checklist, per procedure",
+    "title": "Confirm intake readiness",
+    "type": "activity"
+   },
+   {
+    "actor": "GPFS preparer and reviewer",
+    "completion_criteria": "Mapping readiness is checked; affected items with mismatches do not proceed until resolved and documented, per procedure.",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Client mapping and vendor records",
+    "description": "The procedure calls for checking category completeness and approved mappings, identifying missing or inconsistent vendors, and confirming mapping version and period. Document exceptions and do not apply unapproved mappings. Stop an affected item with a vendor or category mismatch until it is resolved and the resolution documented.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t005",
+     "doc_c7e734ef3334f54685042252_p2_c1",
+     "doc_c7e734ef3334f54685042252_p5_c1"
+    ],
+    "handoff": "Checked data to method selection",
+    "id": "S3",
+    "input": "Export, categories, vendor records and client mapping",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_c7e734ef3334f54685042252_p2_c1"
+      ],
+      "field": "responsible",
+      "text": "Who performs this step: GPFS preparer and reviewer."
+     },
+     {
+      "evidence_turns": [
+       "doc_c7e734ef3334f54685042252_p2_c1"
+      ],
+      "field": "system",
+      "text": "System or working file: Vendor and mapping exception log."
+     },
+     {
+      "evidence_turns": [
+       "doc_c7e734ef3334f54685042252_p2_c1"
+      ],
+      "field": "control",
+      "text": "Required check or approval: Do not apply an unapproved vendor or category mapping.\nDocument every exception."
+     },
+     {
+      "evidence_turns": [
+       "doc_c7e734ef3334f54685042252_p2_c1"
+      ],
+      "field": "exception",
+      "text": "If something goes wrong: The approval process for a new vendor or vendor-record change\nis not yet confirmed; the process owner or appropriate process expert should confirm it."
+     }
+    ],
+    "output": "Checked data with exceptions marked",
+    "parent_process": "Due to Manager: Expense Transfer",
+    "rule_source_ref": "F07 MC-02 procedure, pages 2 and 5",
+    "system": "Vendor and mapping exception log, per procedure",
+    "title": "Check mappings and vendors",
+    "type": "activity"
+   },
+   {
+    "actor": "GPFS preparer; client or process owner confirms",
+    "completion_criteria": "Method and access confirmed for the client, per procedure.",
+    "control_type": [
+     "client_approval",
+     "gpfs_operational"
+    ],
+    "data_origin": "Client-specific procedure",
+    "description": "The procedure calls for confirming the client-validated manual, upload or other approved method, target system and preparer access. The current target system and method are UNKNOWN.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_c7e734ef3334f54685042252_p3_c1",
+     "t005"
+    ],
+    "handoff": "Preparer uses the confirmed method",
+    "id": "S4",
+    "input": "Checked data and client procedure",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_c7e734ef3334f54685042252_p3_c1"
+      ],
+      "field": "responsible",
+      "text": "Who performs this step: GPFS preparer; the client or process owner provides confirmation."
+     },
+     {
+      "evidence_turns": [
+       "doc_c7e734ef3334f54685042252_p3_c1"
+      ],
+      "field": "system",
+      "text": "System or working file: Client-specific written procedure and mapping file."
+     },
+     {
+      "evidence_turns": [
+       "doc_c7e734ef3334f54685042252_p3_c1"
+      ],
+      "field": "control",
+      "text": "Required check or approval: Use only a method that has been validated for the client."
+     },
+     {
+      "evidence_turns": [
+       "doc_c7e734ef3334f54685042252_p3_c1"
+      ],
+      "field": "exception",
+      "text": "If something goes wrong: Do not treat \u201cIntralinks\u201d as the target fund system until the name\nis confirmed."
+     }
+    ],
+    "output": "Documented approved method",
+    "parent_process": "Due to Manager: Expense Transfer",
+    "rule_source_ref": "F07 MC-02 procedure, page 3",
+    "system": "Client-specific procedure and mapping file",
+    "title": "Which approved entry method applies?",
+    "type": "decision"
+   },
+   {
+    "actor": "GPFS fund-team preparer",
+    "completion_criteria": "For normal completion, recorded rows and totals match approved prepared data and rejected lines are logged, per procedure. A change during preparation triggers the repeat check.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Management-company export and approved mapping",
+    "description": "The procedure calls for applying approved field and category mappings, retaining supported vendor detail and recording entry or import results and rejected items. For manual entry it calls for source traceability; for upload it calls for a validated template and client-specific checks. A change during preparation triggers a full repeat check.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_c7e734ef3334f54685042252_p3_c1",
+     "t003",
+     "t007"
+    ],
+    "handoff": "Recorded data to reconciliation; changed data to repeat check",
+    "id": "S5",
+    "input": "Approved method, mapping and vendor list",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_c7e734ef3334f54685042252_p3_c1"
+      ],
+      "field": "responsible",
+      "text": "Who performs this step: GPFS fund-team preparer."
+     },
+     {
+      "evidence_turns": [
+       "doc_c7e734ef3334f54685042252_p3_c1"
+      ],
+      "field": "system",
+      "text": "System or working file: Mapping working file, upload template, and Allvue or Entrilia."
+     },
+     {
+      "evidence_turns": [
+       "doc_c7e734ef3334f54685042252_p3_c1"
+      ],
+      "field": "control",
+      "text": "Required check or approval: The recorded rows and totals match the approved prepared\ndata, and every rejected line appears in the exception log."
+     },
+     {
+      "evidence_turns": [
+       "doc_c7e734ef3334f54685042252_p3_c1"
+      ],
+      "field": "exception",
+      "text": "If something goes wrong: Do not create unsupported details when the vendor master or\ntarget fields are unavailable."
+     }
+    ],
+    "output": "Fund-system data set and exception report, or a change requiring a repeat check",
+    "parent_process": "Due to Manager: Expense Transfer",
+    "rule_source_ref": "F07 MC-02 procedure, page 3",
+    "system": "Target fund accounting system UNKNOWN",
+    "title": "Prepare and record data",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer and reviewer",
+    "completion_criteria": "The review outcome is known. Before billing, all exceptions must be resolved and no unexplained difference may remain in totals or records. Changes during review trigger the repeat check.",
+    "control_type": [
+     "gpfs_operational",
+     "gpfs_supervisory"
+    ],
+    "data_origin": "Source, preparation and fund-system records",
+    "description": "After recording, compare source, prepared and fund-system totals; check vendor and category records; and investigate combined or rejected lines. Resolve exceptions and retain the reviewer sign-off or review record. The procedure also requires confirming whether amounts are owed to the manager or an affiliate where the approved system design supports it.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003",
+     "t007",
+     "doc_c7e734ef3334f54685042252_p4_c1"
+    ],
+    "handoff": "Exceptions for resolution; changes for repeat check; reviewed data for the billing package",
+    "id": "S6",
+    "input": "Source export, prepared data and recorded entries",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_c7e734ef3334f54685042252_p4_c1"
+      ],
+      "field": "responsible",
+      "text": "Who performs this step: GPFS preparer and reviewer."
+     },
+     {
+      "evidence_turns": [
+       "doc_c7e734ef3334f54685042252_p4_c1"
+      ],
+      "field": "system",
+      "text": "System or working file: DTM reconciliation and fund-system report."
+     },
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "control",
+      "text": "The rule is that no unexplained difference can remain in the totals or the set of records."
+     },
+     {
+      "evidence_turns": [
+       "doc_c7e734ef3334f54685042252_p4_c1"
+      ],
+      "field": "control",
+      "text": "d. Resolve all exceptions and keep the reviewer\u02bcs sign-off or review record."
+     }
+    ],
+    "output": "Reviewed entries and review record, or identified exceptions or changes",
+    "parent_process": "Due to Manager: Expense Transfer",
+    "rule_source_ref": "Participant account and F07 MC-02 procedure, page 4",
+    "system": "Fund accounting system; DTM reconciliation and fund-system report per procedure",
+    "title": "Reconcile and review entries",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN; GPFS reviewer or client decides as needed",
+    "completion_criteria": "No unexplained difference remains.",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Reconciliation",
+    "description": "Resolve differences before anything goes to billing. The participant does not know an allowed difference amount.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003"
+    ],
+    "handoff": "UNKNOWN; resolution is required before billing",
+    "id": "S7",
+    "input": "Differences or other exceptions",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "exception",
+      "text": "If they do not reconcile, we resolve the difference before anything goes to billing, and the GPFS reviewer or the client decides as needed."
+     }
+    ],
+    "output": "Resolved exceptions",
+    "parent_process": "Due to Manager: Expense Transfer",
+    "rule_source_ref": "Participant account",
+    "system": "UNKNOWN",
+    "title": "Resolve reconciliation exceptions",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Final version approved; after a change, the full check has been repeated before reapproval.",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "Prepared data set",
+    "description": "The completed data set must be approved. Following a preparation or review change, the full check is repeated and the final version approved again. The standard approval sequence is not defined.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t007"
+    ],
+    "handoff": "Approved data for billing package",
+    "id": "S8",
+    "input": "Final data set",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "control",
+      "text": "if any row, mapping or total changes during preparation or review, we repeat the full check from the source data through preparation and fund-system entry and get the final version approved again."
+     }
+    ],
+    "output": "Approved data set",
+    "parent_process": "Due to Manager: Expense Transfer",
+    "rule_source_ref": "Participant account",
+    "system": "UNKNOWN",
+    "title": "Approve final data set",
+    "type": "activity"
+   },
+   {
+    "actor": "GPFS preparer and reviewer; client-specific roles per procedure",
+    "completion_criteria": "Items and totals sent to billing match the reviewed data set. Applicable client-specific required actions are complete and their completion records available, per procedure.",
+    "control_type": [
+     "gpfs_operational",
+     "gpfs_supervisory"
+    ],
+    "data_origin": "Reviewed fund-system entries and supporting documents",
+    "description": "The procedure calls for assembling the approved data, mapping, reconciliation, supporting documents and review record. Before handoff, the reviewer confirms billing items and totals match the reviewed data set. Where a detailed client-specific procedure applies, the documented requirement is to complete its required action and have the completion record available before proceeding.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t007",
+     "doc_c7e734ef3334f54685042252_p4_c1",
+     "doc_c7e734ef3334f54685042252_p5_c1"
+    ],
+    "handoff": "Package to client billing or invoicing",
+    "id": "S9",
+    "input": "Approved data set, review record and supporting documents",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_c7e734ef3334f54685042252_p4_c1"
+      ],
+      "field": "responsible",
+      "text": "Who performs this step: GPFS preparer and reviewer; client-specific roles also apply."
+     },
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "responsible",
+      "text": "Before that handoff the reviewer confirms the items and totals sent to billing match the reviewed data set"
+     },
+     {
+      "evidence_turns": [
+       "doc_c7e734ef3334f54685042252_p5_c1"
+      ],
+      "field": "control",
+      "text": "Proceed\nonly after\nthe required\naction is\ncomplete\nand the\nrecord\nshowing\ncompletion\nis available."
+     }
+    ],
+    "output": "Reviewed billing package",
+    "parent_process": "Due to Manager: Expense Transfer",
+    "rule_source_ref": "Participant account and F07 MC-02 procedure, pages 4\u20135",
+    "system": "Client package; storage location UNKNOWN",
+    "title": "Prepare billing package",
+    "type": "activity"
+   },
+   {
+    "actor": "GPFS preparer and reviewer; client-specific roles per procedure",
+    "completion_criteria": "The participant's stated end is the approved recorded data and reviewed package sent; retain the completion communication and record the package location. The procedure additionally requires confirmation of acceptance by the next process.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Reviewed package",
+    "description": "Send the reviewed package to client billing or invoicing, retain the completion communication and record the package location. The participant describes the process ending on the recorded approved data and package handoff; the procedure additionally requires confirmation that the next process accepted the package.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t007",
+     "doc_c7e734ef3334f54685042252_p4_c1"
+    ],
+    "handoff": "Client billing or invoicing process bills funds or portfolio companies later",
+    "id": "S10",
+    "input": "Reviewed billing package",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_c7e734ef3334f54685042252_p4_c1"
+      ],
+      "field": "responsible",
+      "text": "Who performs this step: GPFS preparer and reviewer; client-specific roles also apply."
+     },
+     {
+      "evidence_turns": [
+       "doc_c7e734ef3334f54685042252_p4_c1"
+      ],
+      "field": "control",
+      "text": "Output and record to keep: Complete DTM package and confirmation that the next process\naccepted it."
+     }
+    ],
+    "output": "Package delivered, completion communication retained and package location recorded; acceptance confirmation required by the procedure",
+    "parent_process": "Due to Manager: Expense Transfer",
+    "rule_source_ref": "Participant account and F07 MC-02 procedure, page 4",
+    "system": "UNKNOWN",
+    "title": "Send package to billing",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "The full check from source data through preparation and fund-system entry has been repeated.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Source data, preparation and fund-system entry",
+    "description": "If any row, mapping or total changes during preparation or review, repeat the full check from source data through preparation and fund-system entry.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t007"
+    ],
+    "handoff": "Final version for approval again",
+    "id": "S11",
+    "input": "Changed row, mapping or total and source-through-entry data",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "control",
+      "text": "if any row, mapping or total changes during preparation or review, we repeat the full check from the source data through preparation and fund-system entry and get the final version approved again."
+     }
+    ],
+    "output": "Repeated full check",
+    "parent_process": "Due to Manager: Expense Transfer",
+    "rule_source_ref": "Participant account",
+    "system": "Fund accounting system",
+    "title": "Repeat full check after change",
+    "type": "activity"
+   }
+  ],
+  "title": "Due to Manager: Expense Transfer"
+ },
+ "workflow_revision": "210a685167e5ca14aceb9f8b35cc0ce175193a5ef1484c43e29bce75fea1ec26",
+ "finished": 1794918843.656287,
+ "graph_checks": {
+  "steps": 11,
+  "connections": 13,
+  "types": {
+   "start": 1,
+   "activity": 9,
+   "decision": 1
+  },
+  "components": 1,
+  "isolated_steps": [],
+  "entry_points": [
+   "S1"
+  ],
+  "typed_start": [
+   "S1"
+  ],
+  "exit_points": [
+   "S10"
+  ],
+  "typed_end": [],
+  "decisions_with_under_two_exits": [
+   "S4"
+  ],
+  "decision_exits_without_label": [],
+  "non_decision_with_multiple_exits": [
+   "S5",
+   "S6"
+  ],
+  "steps_without_actor": [],
+  "actors": [
+   "GPFS fund-team preparer",
+   "GPFS preparer and reviewer",
+   "GPFS preparer and reviewer; client-specific roles per procedure",
+   "GPFS preparer; client or process owner confirms",
+   "Management company and GPFS fund team",
+   "Preparer and reviewer",
+   "UNKNOWN",
+   "UNKNOWN; GPFS reviewer or client decides as needed"
+  ],
+  "open_questions": 15
+ }
+}

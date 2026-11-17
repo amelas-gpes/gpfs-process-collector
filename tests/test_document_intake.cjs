@@ -229,7 +229,7 @@ async function check(name,run){try{await run();results.push({name,passed:true});
   h.intake.begin({batchId:"new"});h.intake.observe(state([file("new")],{scope:"new_scope"}));h.intake.settle("new");await tick();assert.equal(h.intake.phase,"error");assert.equal(h.calls.begin.length,2);
   old.reject(Error("Old voice session stopped late"));await tick();failBaseline=false;h.intake.retry();await tick();assert.equal(h.calls.begin.length,2,"An obsolete pause rejection must not mark the new cycle's successful pause as failed");assert.equal(h.calls.complete.length,1);
  });
- // Finding 4 of docs/testing/process-capture-2026-11-16: the file's own question is asked as soon
+ // Finding 4 of docs/testing/runs/2026-11-16-process-capture: the file's own question is asked as soon
  // as the file is read; the baseline is no longer a stage the participant waits for.
  await check("a provisional question is asked once the file is read, without building a baseline first",async()=>{
   const question=deferred(),h=setup({provisional:()=>question.promise});

@@ -1,0 +1,737 @@
+{
+ "case": "A-T11",
+ "port": 8795,
+ "interview_id": "cdfc2658c629434693f7e923aceaf620",
+ "context": {
+  "process_name": "Carried Interest Waterfall & Clawback",
+  "process_owner": "",
+  "objective": "Document how we carry out Carried Interest Waterfall & Clawback, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "Three things can start it: a realization event under the fund's governing terms, a required interim clawback test, or final liquidation. The exact interim testing schedule is not confirmed, so I cannot tell you how often the interim tests fall. Once one of those triggers happens, I as the GP Fund Solutions preparer do the first step: I confirm the trigger, identify whether the fund is a whole-fund (European) or deal-by-deal (American) structure, identify which calculation layer I am doing (cash distribution waterfall, taxable income allocation, tax distribution, or a hypothetical, interim or final clawback), record every applicable term and definition from the current limited partnership agreement and amendments, and confirm the version-controlled Excel waterfall model and the as-of date. The output is locked calculation instructions. There are two decisions here. First: is the structure or a governing tier term missing or unclear? If yes, I stop, Legal or the Client gives a current interpretation, the version-controlled model is updated, and the affected model and results are recalculated; if no, I carry on. Second: is the calculation layer or purpose unclear, or have layers been combined? If yes, I stop work on that output, the Client or adviser defines it, and each layer is prepared separately; if no, I go on to step two, collecting and reconciling the cumulative inputs."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "What cumulative inputs do you collect and reconcile in step two?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "Step two is mine as preparer. I collect the cumulative inputs: cumulative contributions and distributions from the accounting system and general ledger, proceeds and applicable basis, fees, expenses and valuation from the approved transaction, accounting and valuation sources, plus prior carried interest, holdback and clawback from the accounting records and the prior approved model. Then I match opening balances, prior carried interest, holdback and clawback to the general ledger and to the prior approved model. The output is a reconciled input package, and the reviewer reviews that reconciliation. The decision: do the opening or cumulative data reconcile with no unexplained difference? If no, I stop, the calculation is delayed, and the source difference has to be resolved before any calculation, with the reviewer or Accounting deciding; once resolved I come back to the reconciliation. If yes, I move to step three, the fund-specific waterfall. I do not know the exact accounting systems or report names, and the tolerance for a difference that needs action has not been confirmed. Step three, also me: using the locked terms and reconciled inputs I apply only the governing tiers, rates, affected groups and timing in the model, keep each calculation layer separate, and prepare bridge reconciliations for any complex features. Output is a waterfall output for each calculation layer. Decision there: does a complex feature affect the model, like recycling, distributions in kind, permanent unrealized losses, hurdles, blocker entities, notes or loans, or class differences? If yes, I stop until it is supported: I apply only the governing treatment, prepare the reconciliation of valuation, tax, conversion and clawback effects, and the Client and the applicable adviser approve it, which may change model tiers and downstream results; then I continue. If no, I go straight on to step four, the holdback."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "Talk me through how you determine the holdback in step four?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "Step four is me as preparer, starting from the approved gross carried interest and the holdback terms. A holdback is carried interest that is temporarily withheld. I calculate gross carried interest, the holdback, and net distributable carried interest, where gross realized carry equals net distributable carry plus holdback. I update the holdback schedule of changes and the effect on member capital, and I document the objective release conditions. Output is the holdback calculation and schedule of changes. I only use the approved percentage, accounting treatment, risk test and objective release criteria, never an example range. One rule first: if the fund is not yet in a cash-carry position, cash carry is not distributed at all. The check I run is that gross carry equals net distribution plus holdback and that every release meets documented, approved criteria. The decision: is a holdback required or is a release being requested? If a release is requested and the approved terms, risk test, schedule of changes and release approval are not all complete, the release stops, the carried interest stays held and it stays open with the wind-down process. If they are complete the release can go ahead. Who owns that holdback decision is not confirmed, and I do not know the actual percentage, the risk test, or who reviews the holdback schedule; those are all open. Either way I then go to step five, the clawback test. That is me plus the designated external tax adviser, at each required test point. I calculate the difference between cumulative carry received and cumulative carry entitlement. Decision: does a gross clawback exist, meaning carry received exceeds entitlement? If no, I record the gross analysis and go to step six. If yes, I obtain the tax adviser's separate tax adjustment and the governing approval, keep the gross and after-tax calculations separate, and keep the assumptions and as-of date; the Tax adviser or the Client decides, and settlement is stopped without that support. Output is the gross and approved after-tax analyses, then on to step six."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "What happens to the gross and approved after-tax clawback analyses in step six?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "That takes me into step six, the last one: review, approve, post and hand off. It only starts when the package is complete with no blocking exception. In order: first the reviewer independently reviews my work, every changed input, formula, link, assumption and calculation-layer output, and checks all tiers reproduce the approved calculation instructions; the record is the model change log and sign-off. If that review fails, we stop and I correct it, then it is reviewed again. If it passes, the model is locked. Next the approvals: the Client approves the exact version-controlled model version, the as-of date and the final result; the designated tax adviser approves the separate tax adjustment; and Legal or Compliance give an interpretation when one is required. Then the accounting and posting role posts only the approved result under the approved accounting entry and reconciles it. The posting role checks, before and after posting, that amounts posted, distributed, disclosed or sent for member allocation match the exact model version approved by the Client or adviser with no unresolved comment. If that check fails, stop, and reverse or correct under the approved procedure. If required accounts or approvals are missing, posting stops. If it passes, I hand off the approved results and keep the supporting records, and that is the end. One more exception that can come up anywhere: if an outdated regulatory statement or an unsupported calculation or tax treatment appears, we stop using that material and get current validation from Legal, Compliance or Tax; nothing is posted, disclosed or released on stale material. I do not know who has formal internal authority to approve, post or release, or who exactly holds the posting role; that is not established."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "What happens if a waterfall or clawback result is incorrect or delayed?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "I cannot give you measured consequences, I do not know of a documented dollar impact or a tolerance; the materiality tolerance is not confirmed. What I can say is what the process says to do: if posted, distributed, disclosed or member-allocation amounts do not match the exact approved model version, we stop and reverse or correct under the approved procedure. The reason it matters is that the result feeds other work downstream: the approved net distribution or tax distribution result goes to the teams that execute distributions, the approved vehicle-level carry and holdback result goes to member allocation, the holdback and clawback schedule of changes and release status goes to wind-down until the objective release or settlement is complete, and approved disclosure support goes out only after current Accounting or Legal approval. So a wrong number would flow into distributions, member allocations and disclosure. And on the clawback side, if cumulative carry received ends up above cumulative entitlement, that is a repayment obligation. The known risk points are the fund-specific Excel models: formula errors, broken links, incorrect versions and hidden assumptions, which is why formula changes need version control and independent review. The settlement accounting entries for a clawback are not established, so I do not know how a repayment would actually be booked."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "Is this the general GPFS route, or does it apply only to particular clients or funds?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "I do not have counts, so I cannot say which is most frequent. The things that stop it, besides unreconciled data and unclear terms, are: the model not being version controlled; tax or legal assumptions that lack support; examples being treated as rules, for instance using an example preferred return rate or example split or example holdback range as a default, where the reviewer stops the process; a complex feature without an approved bridge reconciliation; a holdback release requested without complete approved terms, risk test, schedule of changes and release approval, in which case the carry stays held; a gross clawback without the tax adviser's supported adjustment, where settlement stops; the reviewer's model review failing, which sends it back to me to correct; required accounts or approvals missing at posting; and outdated or legally vacated regulatory material turning up, which goes to Legal, Compliance or Tax for current validation. I should also be honest that a lot is still open: there is no named process owner, model owner, internal approver or posting and release role, no confirmed deadlines, client cutoff, repositories, file naming or retention period, and the fund-specific tiers, rates and holdback and after-tax clawback mechanics have to come from current governing instructions before a fund-specific calculation or release can go ahead. As preparer I must not interpret unresolved governing, tax or legal terms myself; I escalate any conflict between the model and the governing terms, any complex feature, or any result that does not reconcile."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "Does this describe a general GPFS route, or work specific to particular clients or funds?"
+  },
+  {
+   "id": "t014",
+   "role": "assistant",
+   "text": "This capture still has open sections. 14 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794922479.417,
+   "turn": 0,
+   "seconds": 0.027,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794922481.664,
+   "turn": 2,
+   "seconds": 2.195,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794922515.327,
+   "turn": 3,
+   "seconds": 35.86
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794922527.109,
+   "turn": 3,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 47.64
+  },
+  {
+   "kind": "question",
+   "at": 1794922529.453,
+   "turn": 4,
+   "seconds": 2.296,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794922571.296,
+   "turn": 5,
+   "seconds": 44.14
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794922574.875,
+   "turn": 5,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 47.72
+  },
+  {
+   "kind": "question",
+   "at": 1794922576.892,
+   "turn": 6,
+   "seconds": 1.965,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794922622.373,
+   "turn": 7,
+   "notes_state": "working",
+   "map_state": "queued",
+   "seconds": 47.45
+  },
+  {
+   "kind": "question",
+   "at": 1794922625.14,
+   "turn": 8,
+   "seconds": 2.69,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794922668.796,
+   "turn": 9,
+   "seconds": 46.35
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794922670.338,
+   "turn": 9,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 47.89
+  },
+  {
+   "kind": "question",
+   "at": 1794922673.565,
+   "turn": 10,
+   "seconds": 3.151,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794922701.169,
+   "turn": 11,
+   "seconds": 30.76
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794922718.588,
+   "turn": 11,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 48.17
+  },
+  {
+   "kind": "question",
+   "at": 1794922721.46,
+   "turn": 12,
+   "seconds": 2.798,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794922750.029,
+   "turn": 13,
+   "seconds": 31.37
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794922766.464,
+   "turn": 13,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 47.8
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794922768.56,
+   "turn": 13,
+   "seconds": 2.027,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "working",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.map_error",
+   "at": 1794923086.465,
+   "turn": 14,
+   "seconds": 319.93,
+   "error": "The provider timed out. Your answers are retained.",
+   "code": "timeout"
+  }
+ ],
+ "started": 1794922479.389993,
+ "revision": "e605d569226c9679075c12fd9758f23057c8975678fe54f30020cec4dcc1f939",
+ "capture": {
+  "memo_findings": [
+   {
+    "answer": "Carried Interest Waterfall & Clawback",
+    "evidence_turns": [
+     "context"
+    ],
+    "key": "name",
+    "status": "captured"
+   },
+   {
+    "answer": "The work produces approved carried-interest waterfall or clawback results for posting and handoff, supported by calculation records.",
+    "evidence_turns": [
+     "t006",
+     "t008"
+    ],
+    "key": "purpose",
+    "status": "captured"
+   },
+   {
+    "answer": "Work can start from a realization event under the fund's governing terms, a required interim clawback test, or final liquidation.\nThe schedule and frequency of interim clawback tests are not confirmed.\nDeadlines and client cutoff are not confirmed.",
+    "evidence_turns": [
+     "t002",
+     "t012"
+    ],
+    "key": "trigger",
+    "status": "partial"
+   },
+   {
+    "answer": "After the approved result is posted and reconciled and the posting check passes, the preparer hands off the approved results and keeps the supporting records; the participant identifies this as the end.\nThe methods of final results handoff and how receipt is confirmed remain unspecified.",
+    "evidence_turns": [
+     "t008",
+     "t010"
+    ],
+    "key": "completion",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant identifies themself as the GP Fund Solutions preparer and says they perform the first step after a trigger occurs.\nThe role accountable for the overall result, distinct from the preparer, has not been established.\nFormal internal authority to approve, post or release and the identity of the posting role are not established.",
+    "evidence_turns": [
+     "t002",
+     "t008"
+    ],
+    "key": "accountable",
+    "status": "partial"
+   },
+   {
+    "answer": "After a trigger, the GP Fund Solutions preparer confirms it; identifies whether the fund is whole-fund (European) or deal-by-deal (American); identifies the calculation layer; records applicable terms and definitions from the current LPA and amendments; and confirms the version-controlled Excel waterfall model and as-of date. This produces locked calculation instructions.\nIf the structure or a governing tier term is missing or unclear, work stops until Legal or the Client provides a current interpretation; the version-controlled model is updated and the affected model and results are recalculated. If the structure and term are clear, the preparer continues.\nIf the calculation layer or purpose is unclear, or layers have been combined, work on that output stops until the Client or adviser defines it; each layer is then prepared separately. If clear, the preparer proceeds to step two, collecting and reconciling cumulative inputs.\nIn step two, the preparer collects cumulative contributions and distributions from the accounting system and general ledger; proceeds, applicable basis, fees, expenses and valuation from approved transaction, accounting and valuation sources; and prior carried interest, holdback and clawback from accounting records and the prior approved model. The preparer matches opening balances, prior carry, holdback and clawback to the general ledger and prior approved model, producing a reconciled input package that the reviewer reviews.\nIf opening or cumulative data have an unexplained difference, the preparer stops and the calculation is delayed. The source difference must be resolved before calculation, with the reviewer or Accounting deciding; the preparer then returns to reconciliation. If data reconcile, the preparer proceeds to the fund-specific waterfall.\nIn step three, the preparer uses locked terms and reconciled inputs to apply governing tiers, rates, affected groups and timing in the model, keeps layers separate, and prepares bridge reconciliations for complex features. The output is a waterfall output for each calculation layer.\nIf a complex feature affects the model, the preparer stops until it is supported, applies the governing treatment and reconciles valuation, tax, conversion and clawback effects. The Client and applicable adviser approve it; model tiers and downstream results may change before the preparer continues. Without a complex feature, the preparer proceeds to step four, holdback.\nIn step four the preparer starts from approved gross carried interest and holdback terms, calculates gross carry, holdback and net distributable carry, updates the holdback schedule of changes and effect on member capital, and documents objective release conditions. The output is the holdback calculation and schedule.\nIf a release is requested without complete approved terms, risk test, schedule of changes and release approval, release stops, carry remains held and the matter stays open with the wind-down process. If all are complete, release can proceed. Either way the preparer goes to the clawback test.\nAt each required test point, the preparer and designated external tax adviser perform step five. The preparer calculates cumulative carry received minus cumulative entitlement. If no gross clawback exists, the preparer records the gross analysis and goes to step six.\nIf carry received exceeds entitlement, the preparer obtains the tax adviser's separate tax adjustment and governing approval, keeps gross and after-tax calculations separate, and retains assumptions and the as-of date. The Tax adviser or Client decides; settlement stops without that support. The outputs are gross and approved after-tax analyses, followed by step six.\nStep six starts only with a complete package and no blocking exception. The reviewer independently reviews changed inputs, formulas, links, assumptions and layer outputs, and checks that tiers reproduce the approved instructions. If review fails, work stops, the preparer corrects it and it is reviewed again; if it passes, the model is locked.\nAfter model lock, the Client approves the exact model version, as-of date and final result; the designated tax adviser approves the separate tax adjustment, and Legal or Compliance interprets when required. The accounting and posting role then posts and reconciles only the approved result under the approved accounting entry.\nThe posting role checks before and after posting that amounts posted, distributed, disclosed or sent for member allocation match the exact Client- or adviser-approved model version without unresolved comment. A failed check stops work and triggers reversal or correction under the approved procedure; missing required accounts or approvals also stops posting. After a pass, the preparer hands off approved results and retains supporting records.\nAt any point, outdated regulatory statements or unsupported calculation or tax treatments cause use of the material to stop pending current validation from Legal, Compliance or Tax; nothing is posted, disclosed or released on stale material.\nThe approved net or tax distribution result goes to distribution execution teams, vehicle-level carry and holdback to member allocation, and the schedule of changes and release status to wind-down until release or settlement is complete. Disclosure support goes out only after current Accounting or Legal approval.\nA model that is not version controlled stops the process. The reviewer also stops it if examples, such as preferred return rates, splits or holdback ranges, are treated as default rules.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010",
+     "t012"
+    ],
+    "key": "lifecycle",
+    "status": "partial"
+   },
+   {
+    "answer": "The preparer checks whether the fund structure or a governing tier term is missing or unclear. If so, work stops pending a current interpretation from Legal or the Client, followed by a model update and recalculation of affected model and results.\nThe preparer checks whether the calculation layer or purpose is unclear, or whether layers have been combined. If so, work on that output stops until the Client or adviser defines it, and each layer is prepared separately.\nWho gives the current interpretation when both Legal and the Client may do so, and what evidence records that interpretation and the recalculation, are not established.\nThe reviewer reviews the input reconciliation. Unexplained opening or cumulative differences stop calculation until resolved, with the reviewer or Accounting deciding.\nWhen a complex feature affects the model, the Client and applicable adviser approve its supported treatment after the preparer reconciles valuation, tax, conversion and clawback effects.\nThe preparer checks that gross carry equals net distribution plus holdback and that every release meets documented, approved criteria. A requested release cannot proceed without the approved terms, risk test, schedule of changes and release approval.\nThe holdback decision owner and reviewer of the holdback schedule are unconfirmed or unknown.\nThe reviewer independently checks every changed input, formula, link, assumption and calculation-layer output and whether all tiers reproduce approved instructions. The model change log and sign-off record the review; failed review requires preparer correction and re-review before lock.\nThe Client approves the precise version-controlled model, as-of date and final result; the designated tax adviser approves the separate tax adjustment. Posting is blocked by missing required approvals or accounts, and a failed pre- or post-posting match requires a stop and approved reversal or correction.\nCurrent Accounting or Legal approval is required before approved disclosure support goes out.\nThe reviewer stops the process when example rates, splits or holdback ranges are treated as default rules; an unversioned model or unsupported tax or legal assumptions also stop the work.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010",
+     "t012"
+    ],
+    "key": "checks",
+    "status": "partial"
+   },
+   {
+    "answer": "The preparer identifies whether the fund is whole-fund (European) or deal-by-deal (American); these are reported fund-structure alternatives relevant to the work.\nThe preparer identifies which layer is being calculated: cash distribution waterfall, taxable income allocation, tax distribution, or hypothetical, interim, or final clawback. If layers have been combined, the Client or adviser defines the purpose and each layer is prepared separately.\nComplex features can change the work: recycling, distributions in kind, permanent unrealized losses, hurdles, blocker entities, notes or loans, and class differences can require supported governing treatment, bridge reconciliation and Client and applicable adviser approval, potentially changing model tiers and downstream results.\nThe clawback route differs by result: no gross clawback leads to recording the gross analysis; a gross clawback requires a separate tax adjustment and governing approval before supported settlement.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006"
+    ],
+    "key": "variations",
+    "status": "partial"
+   },
+   {
+    "answer": "The most frequent cause of stoppage or return, and the effort involved, have not been established.\nUnexplained input differences stop and delay the calculation until resolved; the preparer then repeats the reconciliation.\nThe participant lists unversioned models, unsupported tax or legal assumptions, examples treated as rules, missing complex-feature bridge approval and incomplete release or clawback support among causes of stoppage, but cannot rank them by frequency.",
+    "evidence_turns": [
+     "t004",
+     "t012"
+    ],
+    "key": "pain_points",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant says an incorrect result could flow into distributions, member allocations and disclosure. Cumulative carry received above entitlement is a repayment obligation.\nThe participant identifies formula errors, broken links, incorrect versions and hidden assumptions in fund-specific Excel models as risk points; formula changes require version control and independent review.\nThe participant cannot provide measured consequences or a documented dollar impact; the materiality tolerance is not confirmed.",
+    "evidence_turns": [
+     "t010"
+    ],
+    "key": "risk",
+    "status": "partial"
+   },
+   {
+    "answer": "The current limited partnership agreement and amendments supply applicable terms and definitions. A version-controlled Excel waterfall model is confirmed and updated when a governing interpretation requires it.\nThe prior approved model and general ledger support the opening-balance and prior carry, holdback and clawback reconciliation. The preparer produces a reconciled input package and bridge reconciliations for complex features.\nThe preparer produces a holdback calculation and schedule of changes, including the effect on member capital, and documents objective release conditions. The clawback work produces a gross analysis and, when applicable, an approved after-tax analysis with assumptions and as-of date.\nThe model change log and sign-off record the independent review. The preparer retains supporting records after handing off the approved results; their storage location is not stated.\nThe holdback and clawback schedule of changes and release status support wind-down; approved disclosure support is sent out after current Accounting or Legal approval.\nRepositories, file naming and retention period are not confirmed.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010",
+     "t012"
+    ],
+    "key": "materials",
+    "status": "partial"
+   },
+   {
+    "answer": "The described work concerns fund carried-interest waterfall and clawback calculations and identifies whole-fund (European) and deal-by-deal (American) fund structures, with distinct possible calculation layers.\nWhether the described route is general GPFS practice or specific to a client, and how many funds or entities it applies to, have not been established.",
+    "evidence_turns": [
+     "context",
+     "t002"
+    ],
+    "key": "scope",
+    "status": "partial"
+   },
+   {
+    "answer": "The preparer records every applicable term and definition from the current limited partnership agreement and amendments. If a governing tier term is missing or unclear, Legal or the Client provides a current interpretation; the model is then updated and affected calculations are recalculated.\nFund-specific tier economics and detailed after-tax clawback treatment must come from current governing instructions. Who resolves escalated model-versus-terms conflicts and how interpretations are recorded remain unspecified.\nThe preparer applies only governing tiers, rates, affected groups and timing, keeps calculation layers separate, and applies the governing treatment to complex features.\nHoldback is temporarily withheld carried interest; gross realized carry equals net distributable carry plus holdback. The preparer uses only the approved percentage, accounting treatment, risk test and objective release criteria. Cash carry is not distributed when the fund is not yet in a cash-carry position.\nA gross clawback exists when cumulative carry received exceeds cumulative carry entitlement. The gross and after-tax calculations are kept separate, with a tax adviser adjustment and governing approval required for the after-tax route.\nThe participant does not know the actual holdback percentage or risk test.\nOnly the approved result is posted under the approved accounting entry. Posted, distributed, disclosed or member-allocation amounts must match the exact Client- or adviser-approved model version with no unresolved comment.\nOutdated regulatory statements or unsupported calculation or tax treatments must not be used until Legal, Compliance or Tax provides current validation; stale material cannot support posting, disclosure or release.\nDisclosure support is sent out only after current Accounting or Legal approval.\nClawback settlement accounting entries are not established; the participant does not know how repayment would be booked.\nThe preparer must not interpret unresolved governing, tax or legal terms, and escalates conflicts between the model and governing terms, complex features and unreconciled results.",
+    "evidence_turns": [
+     "t002",
+     "t012",
+     "t004",
+     "t006",
+     "t008",
+     "t010"
+    ],
+    "key": "rules",
+    "status": "partial"
+   },
+   {
+    "answer": "If a governing structure or tier term needs clarification, Legal or the Client provides the preparer a current interpretation; the named recipient is not further specified.\nIf calculation-layer purpose is unclear or layers have been combined, the Client or adviser defines it before each layer is prepared separately.\nUses the output of current interpretation from Legal or the Client: When a fund structure or governing tier term is missing or unclear.\nUses the output of calculation-layer or purpose definition from the Client or adviser: When the calculation layer or purpose is unclear, or layers have been combined.\nThe process consumes accounting system and general ledger information, approved transaction, accounting and valuation sources, and the prior approved model for its cumulative inputs and reconciliation.\nWhen a complex feature affects the model, the Client and applicable adviser approve its supported treatment before the preparer continues.\nFor a gross clawback, the preparer obtains a separate tax adjustment from the designated external tax adviser; the Tax adviser or Client decides and governing approval is required before supported settlement.\nAn incomplete requested holdback release remains open with the wind-down process while carried interest stays held.\nFinal approval requires the Client's approval of the exact model version, as-of date and result, and the designated tax adviser's approval of the separate tax adjustment.\nLegal or Compliance gives an interpretation when required. If stale regulatory material or unsupported calculation or tax treatment appears, current validation is obtained from Legal, Compliance or Tax before posting, disclosure or release.\nThe approved net distribution or tax distribution result goes to the teams executing distributions; the approved vehicle-level carry and holdback result goes to member allocation.\nThe holdback and clawback schedule of changes and release status go to wind-down until objective release or settlement is complete.\nApproved disclosure support goes out only after current Accounting or Legal approval; its receiving party is not identified.\nProvides input to Teams that execute distributions: Approved net distribution or tax distribution result.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010"
+    ],
+    "key": "connections",
+    "status": "partial"
+   },
+   {
+    "answer": "The preparer confirms a version-controlled Excel waterfall model; after a missing or unclear governing tier term is interpreted, the model is updated and affected model and results recalculated.\nModel logic ownership and storage location have not been identified.\nThe participant does not know the exact accounting systems or report names; the tolerance for differences requiring action is unconfirmed.",
+    "evidence_turns": [
+     "t002",
+     "t004"
+    ],
+    "key": "data_systems",
+    "status": "partial"
+   },
+   {
+    "answer": "Apart from the unconfirmed interim-test schedule, workload counts, peaks, exception frequency, and effort have not been described.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "volume",
+    "status": "partial"
+   }
+  ],
+  "coverage": [
+   {
+    "key": "name",
+    "label": "Name & other names",
+    "status": "partial"
+   },
+   {
+    "key": "purpose",
+    "label": "Purpose & result",
+    "status": "partial"
+   },
+   {
+    "key": "trigger",
+    "label": "Start, cadence & deadlines",
+    "status": "partial"
+   },
+   {
+    "key": "completion",
+    "label": "Finished condition",
+    "status": "partial"
+   },
+   {
+    "key": "accountable",
+    "label": "Accountability",
+    "status": "partial"
+   },
+   {
+    "key": "lifecycle",
+    "label": "Items, stages & handoffs",
+    "status": "partial"
+   },
+   {
+    "key": "checks",
+    "label": "Checks, approvals & proof",
+    "status": "partial"
+   },
+   {
+    "key": "variations",
+    "label": "Variations and conditions",
+    "status": "partial"
+   },
+   {
+    "key": "pain_points",
+    "label": "Manual work & pain",
+    "status": "partial"
+   },
+   {
+    "key": "risk",
+    "label": "Consequences of failure",
+    "status": "partial"
+   },
+   {
+    "key": "materials",
+    "label": "Existing materials",
+    "status": "partial"
+   },
+   {
+    "key": "scope",
+    "label": "Scope & entity context",
+    "status": "partial"
+   },
+   {
+    "key": "rules",
+    "label": "Business rules & lineage",
+    "status": "partial"
+   },
+   {
+    "key": "connections",
+    "label": "Connected processes",
+    "status": "partial"
+   },
+   {
+    "key": "data_systems",
+    "label": "Data & systems",
+    "status": "partial"
+   },
+   {
+    "key": "volume",
+    "label": "Volume & effort",
+    "status": "partial"
+   }
+  ],
+  "summary": "The participant lists several stoppage causes but cannot rank them without counts. Model ownership, internal authorities, deadlines and record locations remain open; fund-specific mechanics require current governing instructions.",
+  "focus": "Applicability across clients and funds",
+  "parking_lot": [],
+  "connections_out": [
+   {
+    "condition": "When a fund structure or governing tier term is missing or unclear.",
+    "counterpart": "current interpretation from Legal or the Client",
+    "evidence_turns": [
+     "t002"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "When the calculation layer or purpose is unclear, or layers have been combined.",
+    "counterpart": "calculation-layer or purpose definition from the Client or adviser",
+    "evidence_turns": [
+     "t002"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "Cumulative input collection and reconciliation.",
+    "counterpart": "Accounting system and general ledger",
+    "evidence_turns": [
+     "t004"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "Inputs for proceeds, basis, fees, expenses and valuation.",
+    "counterpart": "Approved transaction, accounting and valuation sources",
+    "evidence_turns": [
+     "t004"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "When a complex feature affects the model.",
+    "counterpart": "Client and applicable adviser",
+    "evidence_turns": [
+     "t004"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "A gross clawback requires the adviser's separate tax adjustment.",
+    "counterpart": "Designated external tax adviser",
+    "evidence_turns": [
+     "t006"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "Final approval of the exact model version, as-of date and final result.",
+    "counterpart": "Client",
+    "evidence_turns": [
+     "t008"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "Approval of the separate tax adjustment.",
+    "counterpart": "Designated tax adviser",
+    "evidence_turns": [
+     "t008"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "Current validation when regulatory material is outdated or calculation or tax treatment is unsupported.",
+    "counterpart": "Legal, Compliance or Tax",
+    "evidence_turns": [
+     "t008"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "Interpretation when required in final review and approval.",
+    "counterpart": "Legal or Compliance",
+    "evidence_turns": [
+     "t008"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "An incomplete requested holdback release remains open with wind-down while carry stays held.",
+    "counterpart": "Wind-down process",
+    "evidence_turns": [
+     "t006"
+    ],
+    "relationship_type": "parallel_with"
+   },
+   {
+    "condition": "Approved net distribution or tax distribution result.",
+    "counterpart": "Teams that execute distributions",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "Approved vehicle-level carry and holdback result.",
+    "counterpart": "Member allocation",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "Holdback and clawback schedule of changes and release status until objective release or settlement is complete.",
+    "counterpart": "Wind-down process",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "Current approval before disclosure support goes out.",
+    "counterpart": "Accounting or Legal",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "requires_approval_from"
+   }
+  ],
+  "taxonomy": [
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "entity_type",
+    "note": "The reported work identifies a fund and its governing terms; this is a reported scope classification.",
+    "value": "fund"
+   },
+   {
+    "evidence_turns": [
+     "context"
+    ],
+    "facet": "functional_area",
+    "note": "Reported activity is a carried-interest waterfall and clawback calculation.",
+    "value": "fees_and_carry"
+   },
+   {
+    "evidence_turns": [
+     "context",
+     "t002"
+    ],
+    "facet": "process_level",
+    "note": "The named work is Carried Interest Waterfall & Clawback; the participant describes its initiating events and initial route.",
+    "value": "process"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "system",
+    "note": "A version-controlled Excel waterfall model is reported as used; no independent verification is asserted.",
+    "value": "excel_workbook"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "rule_source",
+    "note": "Applicable terms and definitions are reported as recorded from the current limited partnership agreement and amendments.",
+    "value": "lpa_governing_doc"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "control_type",
+    "note": "Reported preparer reconciliation of input balances and prior amounts.",
+    "value": "gpfs_operational"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "control_type",
+    "note": "A reviewer reviews the reconciliation; reviewer role seniority is not otherwise specified.",
+    "value": "gpfs_supervisory"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "control_type",
+    "note": "Client and applicable adviser approve supported treatment when a complex feature affects the model.",
+    "value": "client_approval"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "system",
+    "note": "Accounting system and general ledger are reported sources; exact systems and report names are unknown.",
+    "value": "other"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "facet": "functional_area",
+    "note": "The reported clawback route uses a separate external tax adviser adjustment; it is not a full tax-process description.",
+    "value": "tax"
+   },
+   {
+    "evidence_turns": [
+     "t012"
+    ],
+    "facet": "control_type",
+    "note": "The preparer reports escalation of model-versus-terms conflicts, complex features and unreconciled results.",
+    "value": "exception_escalation"
+   }
+  ],
+  "completion": {
+   "allowed": false,
+   "ready_for_final_check": false,
+   "complete": false,
+   "partial": true,
+   "participant_confirmed": false,
+   "blockers": [
+    "role_incomplete:coverage_reviewer",
+    "role_incomplete:process_reviewer",
+    "coverage_result_unbound",
+    "coverage_incomplete",
+    "coverage_unresolved:name",
+    "coverage_unresolved:purpose",
+    "coverage_unresolved:trigger",
+    "coverage_unresolved:completion",
+    "coverage_unresolved:accountable",
+    "coverage_unresolved:lifecycle",
+    "coverage_unresolved:checks",
+    "coverage_unresolved:variations",
+    "coverage_unresolved:pain_points",
+    "coverage_unresolved:risk",
+    "coverage_unresolved:materials",
+    "coverage_unresolved:scope",
+    "coverage_unresolved:rules",
+    "coverage_unresolved:connections",
+    "coverage_unresolved:data_systems",
+    "coverage_unresolved:volume",
+    "process_result_unbound"
+   ],
+   "revision": "82decb7288255639bb74ba6e4b551f7e44adfbde6b5b3da4bb7a79ead6cde5a2",
+   "run_id": "eb7ab90faca8472d833e62beedfe7b51"
+  },
+  "coverage_assessment": null
+ },
+ "finished": 1794923086.4651892
+}

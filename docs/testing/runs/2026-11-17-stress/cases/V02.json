@@ -1,0 +1,1293 @@
+{
+ "case": "V02",
+ "port": 8791,
+ "interview_id": "2232920bee7c405d9786303b5dd9b42c",
+ "context": {
+  "process_name": "KYC & Sanctions Screening",
+  "process_owner": "",
+  "objective": "Document how we carry out KYC & Sanctions Screening, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "Usually a new investor comes in with a subscription, or something changes on an existing one, like ownership or a transfer. Then we open a KYC case for it."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "Talk me through what happens in the KYC case after you open it."
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "We get the documents in and check them, work out who really owns the investor, then run the names through screening and if something pops up the AML reviewer looks at it. After that it gets a risk rating and someone signs off before any money is accepted."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "When you check the documents, what are you comparing them against?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "Mostly against the checklist of what that kind of investor needs, and against each other, so the legal names, jurisdiction and addresses line up. If something is missing or expired, we note it and ask the investor to fix it, and it stays blocked until then."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "What are the investor names screened against?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "Sanctions lists, SOFAC and the global ones, and we do that in Exiger. We also look at politically exposed persons and bad press on the investor, the owners and whoever controls it."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "When screening produces a match, what does the AML reviewer assess and how is the result resolved?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "They compare the identifiers to decide if it is a false positive or a real match, and write down the decision. If it is a false positive, we carry on, but a real or unresolved match stays blocked and goes to the compliance officer. What exactly happens after a confirmed match, like reporting? I am not sure, that has not been settled."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "What guides the risk rating once the screening review is resolved?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "Things like the jurisdiction, how complicated the structure is, any political exposure, sanctions links and bad press. The rating decides who has to approve and how often we review. Then the AML reviewer signs off, we tell the teams it is cleared or blocked, file the records, and it goes into ongoing monitoring."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "What marks the KYC case as complete after the risk rating and sign-off?"
+  },
+  {
+   "id": "t014",
+   "role": "assistant",
+   "text": "This capture still has open sections. 16 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794918944.63,
+   "turn": 0,
+   "seconds": 0.024,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794918951.593,
+   "turn": 1,
+   "seconds": 1.8,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 9.0,
+   "audio_bytes": 287346,
+   "wer": 0.0,
+   "spoken": "Usually a new investor comes in with a subscription, or something changes on an existing one, like ownership or a transfer. Then we open a KYC case for it.",
+   "heard": "Usually a new investor comes in with a subscription, or something changes on an existing one, like ownership or a transfer. Then we open a KYC case for it."
+  },
+  {
+   "kind": "question",
+   "at": 1794918953.087,
+   "turn": 2,
+   "seconds": 1.494,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794918960.696,
+   "turn": 3,
+   "seconds": 9.1
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794918976.475,
+   "turn": 3,
+   "seconds": 24.88,
+   "steps": 2,
+   "connections": 1
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794918982.999,
+   "turn": 3,
+   "seconds": 0.946,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 13.0,
+   "audio_bytes": 414638,
+   "wer": 0.0,
+   "spoken": "We get the documents in and check them, work out who really owns the investor, then run the names through screening and if something pops up the AML reviewer looks at it. After that it gets a risk rating and someone signs off before any money is accepted.",
+   "heard": "We get the documents in and check them, work out who really owns the investor, then run the names through screening and if something pops up the AML reviewer looks at it. After that it gets a risk rating and someone signs off before any money is accepted."
+  },
+  {
+   "kind": "question",
+   "at": 1794918985.103,
+   "turn": 4,
+   "seconds": 2.103,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919004.419,
+   "turn": 5,
+   "seconds": 21.42
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919015.106,
+   "turn": 5,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 32.11
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794919022.175,
+   "turn": 5,
+   "seconds": 1.402,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 14.0,
+   "audio_bytes": 447778,
+   "wer": 0.0,
+   "spoken": "Mostly against the checklist of what that kind of investor needs, and against each other, so the legal names, jurisdiction and addresses line up. If something is missing or expired we note it and ask the investor to fix it, and it stays blocked until then.",
+   "heard": "Mostly against the checklist of what that kind of investor needs, and against each other, so the legal names, jurisdiction and addresses line up. If something is missing or expired, we note it and ask the investor to fix it, and it stays blocked until then."
+  },
+  {
+   "kind": "question",
+   "at": 1794919024.238,
+   "turn": 6,
+   "seconds": 2.062,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919041.496,
+   "turn": 7,
+   "seconds": 19.32
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919054.712,
+   "turn": 7,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 32.54
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794919061.091,
+   "turn": 7,
+   "seconds": 1.102,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 10.9,
+   "audio_bytes": 348986,
+   "wer": 0.061,
+   "spoken": "Sanctions lists, so OFAC and the global ones, and we do that in Exiger. We also look at politically exposed persons and bad press on the investor, the owners and whoever controls it.",
+   "heard": "Sanctions lists, SOFAC and the global ones, and we do that in Exiger. We also look at politically exposed persons and bad press on the investor, the owners and whoever controls it."
+  },
+  {
+   "kind": "question",
+   "at": 1794919063.379,
+   "turn": 8,
+   "seconds": 2.287,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919071.008,
+   "turn": 9,
+   "seconds": 9.92
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919093.859,
+   "turn": 9,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 32.77
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794919102.194,
+   "turn": 9,
+   "seconds": 1.622,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 18.9,
+   "audio_bytes": 605292,
+   "wer": 0.0,
+   "spoken": "They compare the identifiers to decide if it is a false positive or a real match, and write down the decision. If it is a false positive we carry on, but a real or unresolved match stays blocked and goes to the Compliance Officer. What exactly happens after a confirmed match, like reporting, I am not sure, that has not been settled.",
+   "heard": "They compare the identifiers to decide if it is a false positive or a real match, and write down the decision. If it is a false positive, we carry on, but a real or unresolved match stays blocked and goes to the compliance officer. What exactly happens after a confirmed match, like reporting? I am not sure, that has not been settled."
+  },
+  {
+   "kind": "question",
+   "at": 1794919104.642,
+   "turn": 10,
+   "seconds": 2.446,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919124.445,
+   "turn": 11,
+   "seconds": 22.25
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919135.138,
+   "turn": 11,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 32.94
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794919142.353,
+   "turn": 11,
+   "seconds": 1.401,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 18.1,
+   "audio_bytes": 579624,
+   "wer": 0.0,
+   "spoken": "Things like the jurisdiction, how complicated the structure is, any political exposure, sanctions links and bad press. The rating decides who has to approve and how often we review. Then the AML reviewer signs off, we tell the teams it is cleared or blocked, file the records, and it goes into ongoing monitoring.",
+   "heard": "Things like the jurisdiction, how complicated the structure is, any political exposure, sanctions links and bad press. The rating decides who has to approve and how often we review. Then the AML reviewer signs off, we tell the teams it is cleared or blocked, file the records, and it goes into ongoing monitoring."
+  },
+  {
+   "kind": "question",
+   "at": 1794919143.613,
+   "turn": 12,
+   "seconds": 1.259,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919165.445,
+   "turn": 13,
+   "seconds": 23.09
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919174.083,
+   "turn": 13,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 31.73
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794919179.294,
+   "turn": 13,
+   "seconds": 2.02,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "working",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.map_ready",
+   "at": 1794919427.864,
+   "turn": 14,
+   "seconds": 250.59,
+   "steps": 17,
+   "connections": 17
+  }
+ ],
+ "started": 1794918944.605449,
+ "revision": "56ad01d007133980e18b34280062e0aae92336219f26654a662fc1bde90a8483",
+ "capture": {
+  "memo_findings": [
+   {
+    "answer": "KYC & Sanctions Screening",
+    "evidence_turns": [
+     "context"
+    ],
+    "key": "name",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "purpose",
+    "status": "unknown"
+   },
+   {
+    "answer": "Work usually starts when a new investor comes in with a subscription, or when something changes on an existing investor subscription, such as ownership or a transfer.\nThe usual cadence and any fixed deadline for starting or completing work have not been established.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "trigger",
+    "status": "partial"
+   },
+   {
+    "answer": "A risk rating and sign-off follow screening, with sign-off occurring before any money is accepted.\nWhether the reported sign-off, notification, filing and transition to monitoring constitute formal case closure remains to be established.\nThe participant reports AML reviewer sign-off, notification of teams that the case is cleared or blocked, filing of records and transition into ongoing monitoring.",
+    "evidence_turns": [
+     "t004",
+     "t012"
+    ],
+    "key": "completion",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "accountable",
+    "status": "unknown"
+   },
+   {
+    "answer": "A KYC case is opened for a new investor subscription or a change to an existing investor.\nThe role that opens the KYC case has not been identified.\nThe team gets and checks documents, determines who really owns the investor, and screens names. If screening produces a result, the AML reviewer looks at it; afterward the case gets a risk rating and someone signs off before money is accepted.\nIf a document is missing or expired, the team notes it and asks the investor to fix it; the case stays blocked until then.\nThe AML reviewer compares identifiers and records whether a screening match is a false positive or real. For a false positive, the team carries on; a real or unresolved match remains blocked and goes to the compliance officer.\nThe participant is unsure what happens after a confirmed match, including reporting, and says this has not been settled.\nThe risk rating takes into account jurisdiction, structural complexity, political exposure, sanctions links and bad press. The AML reviewer then signs off; the team tells teams whether the case is cleared or blocked, files records and moves it into ongoing monitoring.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t010",
+     "t012"
+    ],
+    "key": "lifecycle",
+    "status": "partial"
+   },
+   {
+    "answer": "The team checks the documents and screens names; an AML reviewer looks at any screening result that pops up. Someone signs off before money is accepted.\nThe team compares documents against the checklist for the investor type and against each other, checking that legal names, jurisdiction and addresses line up.\nIn Exiger, names are screened against sanctions lists, including SOFAC and global lists. The investor, its owners and whoever controls it are also checked for politically exposed person status and bad press.\nThe AML reviewer compares identifiers to assess a match and writes down the decision; real or unresolved matches are escalated to the compliance officer.\nThe AML reviewer signs off after risk rating; the rating determines who must approve. The relationship between reviewer sign-off and any other required approval has not yet been explained.",
+    "evidence_turns": [
+     "t004",
+     "t006",
+     "t008",
+     "t010",
+     "t012"
+    ],
+    "key": "checks",
+    "status": "partial"
+   },
+   {
+    "answer": "The checklist used to check documents depends on the kind of investor.\nThe specific document requirements that differ by investor type have not been described.\nApproval responsibility and review frequency vary with the risk rating.",
+    "evidence_turns": [
+     "t006",
+     "t012"
+    ],
+    "key": "variations",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "pain_points",
+    "status": "unknown"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "risk",
+    "status": "unknown"
+   },
+   {
+    "answer": "Investor documents are received and checked during the KYC case.\nThe document types and where the documents are kept have not been established.\nA checklist sets out what documents the kind of investor needs and is used when checking documents.\nExiger is used to screen names against sanctions lists and to check for politically exposed persons and bad press.\nThe AML reviewer writes down the decision on a screening match.\nThe team files the case records after communicating whether the case is cleared or blocked.",
+    "evidence_turns": [
+     "t004",
+     "t006",
+     "t008",
+     "t010",
+     "t012"
+    ],
+    "key": "materials",
+    "status": "partial"
+   },
+   {
+    "answer": "The work described concerns new investors and changes to existing investor subscriptions, including ownership changes and transfers.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "scope",
+    "status": "partial"
+   },
+   {
+    "answer": "Sign-off is required before any money is accepted.\nDocument requirements are checked against the checklist for the investor type; missing or expired items block the case until fixed.\nScreening covers sanctions lists, including SOFAC and global lists, as well as politically exposed persons and bad press; the participant reports that this is done in Exiger.\nA false positive permits the team to carry on; a real or unresolved match remains blocked and is escalated to the compliance officer.\nThe risk rating determines who must approve and how often the investor is reviewed. Factors include jurisdiction, structural complexity, political exposure, sanctions links and bad press.\nThe rating criteria, approval levels and review frequencies associated with each rating have not been specified.",
+    "evidence_turns": [
+     "t004",
+     "t006",
+     "t008",
+     "t010",
+     "t012"
+    ],
+    "key": "rules",
+    "status": "partial"
+   },
+   {
+    "answer": "The case goes into ongoing monitoring after sign-off, communication of its cleared or blocked status and filing of records.",
+    "evidence_turns": [
+     "t012"
+    ],
+    "key": "connections",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant reports using Exiger for sanctions-list screening and checks for politically exposed persons and bad press.",
+    "evidence_turns": [
+     "t008"
+    ],
+    "key": "data_systems",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "volume",
+    "status": "unknown"
+   }
+  ],
+  "coverage": [
+   {
+    "key": "name",
+    "label": "Name & other names",
+    "status": "partial"
+   },
+   {
+    "key": "purpose",
+    "label": "Purpose & result",
+    "status": "missing"
+   },
+   {
+    "key": "trigger",
+    "label": "Start, cadence & deadlines",
+    "status": "partial"
+   },
+   {
+    "key": "completion",
+    "label": "Finished condition",
+    "status": "partial"
+   },
+   {
+    "key": "accountable",
+    "label": "Accountability",
+    "status": "missing"
+   },
+   {
+    "key": "lifecycle",
+    "label": "Items, stages & handoffs",
+    "status": "partial"
+   },
+   {
+    "key": "checks",
+    "label": "Checks, approvals & proof",
+    "status": "partial"
+   },
+   {
+    "key": "variations",
+    "label": "Variations and conditions",
+    "status": "partial"
+   },
+   {
+    "key": "pain_points",
+    "label": "Manual work & pain",
+    "status": "missing"
+   },
+   {
+    "key": "risk",
+    "label": "Consequences of failure",
+    "status": "missing"
+   },
+   {
+    "key": "materials",
+    "label": "Existing materials",
+    "status": "partial"
+   },
+   {
+    "key": "scope",
+    "label": "Scope & entity context",
+    "status": "partial"
+   },
+   {
+    "key": "rules",
+    "label": "Business rules & lineage",
+    "status": "partial"
+   },
+   {
+    "key": "connections",
+    "label": "Connected processes",
+    "status": "partial"
+   },
+   {
+    "key": "data_systems",
+    "label": "Data & systems",
+    "status": "partial"
+   },
+   {
+    "key": "volume",
+    "label": "Volume & effort",
+    "status": "missing"
+   }
+  ],
+  "summary": "The risk rating considers jurisdiction, structure, political exposure, sanctions links and bad press, and determines approval responsibility and review frequency. The AML reviewer signs off; teams are told whether the case is cleared or blocked, records are filed, and the case enters ongoing monitoring.",
+  "focus": "Risk rating and approval",
+  "parking_lot": [],
+  "connections_out": [
+   {
+    "condition": "After sign-off, status communication and filing; the participant says the case goes into ongoing monitoring.",
+    "counterpart": "Ongoing monitoring",
+    "evidence_turns": [
+     "t012"
+    ],
+    "relationship_type": "hands_off_to"
+   }
+  ],
+  "taxonomy": [
+   {
+    "evidence_turns": [
+     "context",
+     "t004"
+    ],
+    "facet": "functional_area",
+    "note": "KYC and sanctions screening, as named in the intake and described by the participant.",
+    "value": "compliance_regulatory"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "control_type",
+    "note": "Document checks and screening are reported; the exact team and check mechanisms remain to be clarified.",
+    "value": "gpfs_operational"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "facet": "system",
+    "note": "Participant reports using Exiger for sanctions, politically exposed person and bad-press screening.",
+    "value": "other"
+   },
+   {
+    "evidence_turns": [
+     "t010"
+    ],
+    "facet": "control_type",
+    "note": "Participant reports real or unresolved screening matches stay blocked and go to the compliance officer.",
+    "value": "exception_escalation"
+   }
+  ],
+  "completion": {
+   "allowed": false,
+   "ready_for_final_check": false,
+   "complete": false,
+   "partial": true,
+   "participant_confirmed": false,
+   "blockers": [
+    "role_incomplete:coverage_reviewer",
+    "role_incomplete:process_reviewer",
+    "coverage_result_unbound",
+    "coverage_incomplete",
+    "coverage_unresolved:name",
+    "coverage_unresolved:purpose",
+    "coverage_unresolved:trigger",
+    "coverage_unresolved:completion",
+    "coverage_unresolved:accountable",
+    "coverage_unresolved:lifecycle",
+    "coverage_unresolved:checks",
+    "coverage_unresolved:variations",
+    "coverage_unresolved:pain_points",
+    "coverage_unresolved:risk",
+    "coverage_unresolved:materials",
+    "coverage_unresolved:scope",
+    "coverage_unresolved:rules",
+    "coverage_unresolved:connections",
+    "coverage_unresolved:data_systems",
+    "coverage_unresolved:volume",
+    "process_result_unbound"
+   ],
+   "revision": "8e64ee32000b6a732b6b173effc567bd90f5e93e437a79849f429da5b82972de",
+   "run_id": "0fc616684a6248ff9be47bcdad235b2d"
+  },
+  "coverage_assessment": null
+ },
+ "workflow": {
+  "connections": [
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S1",
+    "label": "Prompts case opening",
+    "to": "S2"
+   },
+   {
+    "evidence_turns": [
+     "t002",
+     "t004"
+    ],
+    "from": "S2",
+    "label": "Case opened",
+    "to": "S3"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S3",
+    "label": "Documents obtained",
+    "to": "S4"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "from": "S4",
+    "label": "Missing or expired",
+    "to": "S5"
+   },
+   {
+    "evidence_turns": [
+     "t004",
+     "t006"
+    ],
+    "from": "S4",
+    "label": "Continue",
+    "to": "S6"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S6",
+    "label": "Ownership identified",
+    "to": "S7"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S7",
+    "label": "Screening results",
+    "to": "S8"
+   },
+   {
+    "evidence_turns": [
+     "t004",
+     "t010"
+    ],
+    "from": "S8",
+    "label": "Match",
+    "to": "S9"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S8",
+    "label": "No match",
+    "to": "S12"
+   },
+   {
+    "evidence_turns": [
+     "t010"
+    ],
+    "from": "S9",
+    "label": "Decision recorded",
+    "to": "S10"
+   },
+   {
+    "evidence_turns": [
+     "t004",
+     "t010"
+    ],
+    "from": "S10",
+    "label": "False positive",
+    "to": "S12"
+   },
+   {
+    "evidence_turns": [
+     "t010"
+    ],
+    "from": "S10",
+    "label": "Real or unresolved match",
+    "to": "S11"
+   },
+   {
+    "evidence_turns": [
+     "t012"
+    ],
+    "from": "S12",
+    "label": "Risk rated",
+    "to": "S13"
+   },
+   {
+    "evidence_turns": [
+     "t012"
+    ],
+    "from": "S14",
+    "label": "Outcome communicated",
+    "to": "S15"
+   },
+   {
+    "evidence_turns": [
+     "t012"
+    ],
+    "from": "S15",
+    "label": "Records filed",
+    "to": "S16"
+   },
+   {
+    "evidence_turns": [
+     "t012"
+    ],
+    "from": "S13",
+    "label": "Approval completed",
+    "to": "S17"
+   },
+   {
+    "evidence_turns": [
+     "t012"
+    ],
+    "from": "S17",
+    "label": "Sign-off completed",
+    "to": "S14"
+   }
+  ],
+  "open_questions": [
+   "Does any incoming route start S12 (Assign risk rating), or must all prerequisites finish?",
+   "UNKNOWN: Who detects the subscription or change, opens the case, and owns the overall result? Where is the case held?",
+   "UNKNOWN: After an investor fixes missing or expired documents, how is the case rechecked and unblocked? What happens for other document discrepancies?",
+   "UNKNOWN: What happens after a real or unresolved match reaches the compliance officer, including decisions, reporting and any return or closure?",
+   "UNKNOWN: How is the risk rating calculated and recorded, and which ratings change the approver or review frequency?",
+   "UNKNOWN: Who performs the rating-based approval for each risk rating, and is it always separate from the AML reviewer sign-off?",
+   "UNKNOWN: How are blocked outcomes communicated and filed, and which cases enter ongoing monitoring?",
+   "UNKNOWN: Who performs the other actions, what systems and record locations are used, and what evidence is retained?",
+   "UNKNOWN: What entity and client scope does this account cover? Is it general GPFS practice or client-specific, and what is the basis?",
+   "UNKNOWN: Are there deadlines, other exceptions, variations, written procedures or rules, and who interprets conflicting requirements?",
+   "UNKNOWN: What are the main manual difficulties, consequences of failure, volumes, peaks and effort?"
+  ],
+  "steps": [
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "Investor subscription or change",
+    "description": "Usually, a new investor submits a subscription, or an existing investor has a change, such as an ownership change or transfer.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S1",
+    "input": "New subscription or existing-investor change",
+    "operating_details": [],
+    "output": "Event prompting a KYC case",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Investor event occurs",
+    "type": "start"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Case opened",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "Investor subscription or change",
+    "description": "Open a KYC case for the subscription or investor change.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S2",
+    "input": "New subscription or existing-investor change",
+    "operating_details": [],
+    "output": "KYC case",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Open KYC case",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "Investor",
+    "description": "Obtain the documents for the KYC case.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t004"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S3",
+    "input": "KYC case",
+    "operating_details": [],
+    "output": "Investor documents",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Obtain investor documents",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Investor documents and checklist",
+    "description": "Compare documents with the checklist for the investor type and with each other, including legal names, jurisdiction and addresses.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t004",
+     "t006"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S4",
+    "input": "Investor documents and checklist",
+    "operating_details": [],
+    "output": "Document check result",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Investor-type checklist; availability and review UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Check documents",
+    "type": "decision"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Investor fixes the issue",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Document check",
+    "description": "Note missing or expired documents and ask the investor to fix them. The case stays blocked until then; the subsequent return is UNKNOWN.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t006"
+    ],
+    "handoff": "Request to investor; method UNKNOWN",
+    "id": "S5",
+    "input": "Missing or expired documents",
+    "operating_details": [],
+    "output": "Correction requested; case blocked",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Request document fixes",
+    "type": "wait"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "UNKNOWN",
+    "description": "Work out who really owns the investor.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t004"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S6",
+    "input": "Investor information",
+    "operating_details": [],
+    "output": "Ownership identified",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Identify beneficial ownership",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Screening completed",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Investor and ownership information",
+    "description": "Screen names against sanctions lists, described as SOFAC and global lists. Also check the investor, owners and controllers for political exposure and bad press.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t004",
+     "t008"
+    ],
+    "handoff": "Matches go to the AML reviewer; otherwise flow continues to risk rating",
+    "id": "S7",
+    "input": "Investor, owner and controller names",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t008"
+      ],
+      "field": "system",
+      "text": "we do that in Exiger."
+     }
+    ],
+    "output": "Screening results",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Exiger",
+    "title": "Screen names",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Screening",
+    "description": "A screening match is referred to the AML reviewer; otherwise the reported flow continues to risk rating.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t004",
+     "t010",
+     "t012"
+    ],
+    "handoff": "Match to AML reviewer",
+    "id": "S8",
+    "input": "Screening results",
+    "operating_details": [],
+    "output": "Match or no match",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Match identified?",
+    "type": "decision"
+   },
+   {
+    "actor": "AML reviewer",
+    "completion_criteria": "Decision recorded",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Screening and identifying information",
+    "description": "Compare identifiers to determine whether the match is false or real, and record the decision.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t004",
+     "t010"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S9",
+    "input": "Screening match and identifiers",
+    "operating_details": [],
+    "output": "Recorded match decision",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Review screening match",
+    "type": "activity"
+   },
+   {
+    "actor": "AML reviewer",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "AML review",
+    "description": "A false positive carries on. A real or unresolved match remains blocked and goes to the compliance officer.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t010"
+    ],
+    "handoff": "Real or unresolved match to compliance officer",
+    "id": "S10",
+    "input": "Match decision",
+    "operating_details": [],
+    "output": "Continue or escalate while blocked",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Resolve match outcome",
+    "type": "decision"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Blocked case referred to compliance officer",
+    "control_type": [
+     "exception_escalation"
+    ],
+    "data_origin": "AML review",
+    "description": "Refer a real or unresolved match to the compliance officer while the case remains blocked. What happens after a confirmed match, including reporting, has not been settled.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t010"
+    ],
+    "handoff": "To compliance officer; subsequent action UNKNOWN",
+    "id": "S11",
+    "input": "Real or unresolved match",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t010"
+      ],
+      "field": "exception",
+      "text": "a real or unresolved match stays blocked and goes to the compliance officer."
+     }
+    ],
+    "output": "Blocked case referred to compliance officer",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Refer blocked match to compliance officer",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Risk rating assigned",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Investor information and screening",
+    "description": "Rate risk using factors including jurisdiction, structural complexity, political exposure, sanctions links and bad press. The rating determines who must approve and review frequency.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t004",
+     "t012"
+    ],
+    "handoff": "Required approval based on rating",
+    "id": "S12",
+    "input": "Investor information and screening results",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t012"
+      ],
+      "field": "control",
+      "text": "Things like the jurisdiction, how complicated the structure is, any political exposure, sanctions links and bad press."
+     },
+     {
+      "evidence_turns": [
+       "t012"
+      ],
+      "field": "control",
+      "text": "The rating decides who has to approve and how often we review."
+     }
+    ],
+    "output": "Risk rating and approval/review requirements",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Assign risk rating",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Required approval obtained before any money is accepted",
+    "control_type": [
+     "gpfs_supervisory"
+    ],
+    "data_origin": "Risk rating",
+    "description": "Obtain the approval required by the risk rating before any money is accepted. The specific approver by rating is UNKNOWN.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t004",
+     "t012"
+    ],
+    "handoff": "To AML reviewer sign-off",
+    "id": "S13",
+    "input": "Risk rating",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t012"
+      ],
+      "field": "control",
+      "text": "The rating decides who has to approve and how often we review."
+     },
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "control",
+      "text": "someone signs off before any money is accepted."
+     }
+    ],
+    "output": "Required approval",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Obtain required approval",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "KYC case",
+    "description": "Tell the teams whether the case is cleared or blocked.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t012"
+    ],
+    "handoff": "To teams; recipients and method UNKNOWN",
+    "id": "S14",
+    "input": "Case outcome",
+    "operating_details": [],
+    "output": "Teams notified",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Notify teams of outcome",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Records filed",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "KYC case",
+    "description": "File the records; their contents and location are UNKNOWN.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t012"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S15",
+    "input": "KYC records",
+    "operating_details": [],
+    "output": "Filed records",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "File case records",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "KYC case",
+    "description": "The case goes into ongoing monitoring. The risk rating determines review frequency.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t012"
+    ],
+    "handoff": "Monitoring owner and readiness notification UNKNOWN",
+    "id": "S16",
+    "input": "KYC case and risk rating",
+    "operating_details": [],
+    "output": "Case in ongoing monitoring",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Enter ongoing monitoring",
+    "type": "subprocess"
+   },
+   {
+    "actor": "AML reviewer",
+    "completion_criteria": "AML reviewer sign-off completed",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "KYC case and risk rating",
+    "description": "After the rating-based approval point, the AML reviewer signs off.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t012"
+    ],
+    "handoff": "Teams are told the case is cleared or blocked",
+    "id": "S17",
+    "input": "Approved risk-rated case",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t012"
+      ],
+      "field": "responsible",
+      "text": "the AML reviewer signs off"
+     }
+    ],
+    "output": "AML reviewer sign-off",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "AML reviewer signs off",
+    "type": "activity"
+   }
+  ],
+  "title": "KYC & Sanctions Screening"
+ },
+ "workflow_revision": "56ad01d007133980e18b34280062e0aae92336219f26654a662fc1bde90a8483",
+ "finished": 1794919427.863988,
+ "graph_checks": {
+  "steps": 17,
+  "connections": 17,
+  "types": {
+   "start": 1,
+   "activity": 11,
+   "decision": 3,
+   "wait": 1,
+   "subprocess": 1
+  },
+  "components": 1,
+  "isolated_steps": [],
+  "entry_points": [
+   "S1"
+  ],
+  "typed_start": [
+   "S1"
+  ],
+  "exit_points": [
+   "S5",
+   "S11",
+   "S16"
+  ],
+  "typed_end": [],
+  "decisions_with_under_two_exits": [],
+  "decision_exits_without_label": [],
+  "non_decision_with_multiple_exits": [],
+  "steps_without_actor": [],
+  "actors": [
+   "AML reviewer",
+   "UNKNOWN"
+  ],
+  "open_questions": 11
+ }
+}

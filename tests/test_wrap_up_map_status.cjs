@@ -1,5 +1,5 @@
 "use strict";
-// Findings 3 and 6 of docs/testing/process-capture-2026-11-16, in the actual app with the same fake
+// Findings 3 and 6 of docs/testing/runs/2026-11-16-process-capture, in the actual app with the same fake
 // browser boundary as the concurrent suite: Wrap up releases the synchronized notes while the map
 // keeps its own status and retry, and an accepted map ends an earlier map failure in both panels.
 // No network, provider or physical audio.

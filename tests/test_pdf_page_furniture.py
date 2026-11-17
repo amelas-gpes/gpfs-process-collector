@@ -1,6 +1,6 @@
 """A PDF page of text with rules, boxes and bullets is not a page with unread graphics.
 
-Finding 12 of docs/testing/process-capture-2026-11-16: every page of the uploaded procedures
+Finding 12 of docs/testing/runs/2026-11-16-process-capture: every page of the uploaded procedures
 was sent for visual review and reported as holding unread graphics, although the pages hold
 ordinary text. Their exporter puts a whole page (text, table rules, bullets) inside one form
 object, and the parser counted the form itself as a graphic.
@@ -17,7 +17,7 @@ spec = importlib.util.spec_from_file_location('furniture_documents', ROOT / 'doc
 documents = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(documents)
 
-SAMPLES = ROOT / 'docs' / 'testing' / 'process-capture-2026-11-16' / 'uploads' / 'inputs'
+SAMPLES = ROOT / 'docs' / 'testing' / 'runs' / '2026-11-16-process-capture' / 'uploads' / 'inputs'
 PARAGRAPH = ('The treasury analyst compares each approved payment with its release instruction, '
              'records the approver and the value date in the payment register, and returns any '
              'difference to the requester before the batch is released to the bank.')

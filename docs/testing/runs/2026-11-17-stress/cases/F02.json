@@ -1,0 +1,2086 @@
+{
+ "case": "F02",
+ "port": 8794,
+ "interview_id": "17e107ab53734d7aa222bb86bc7f1461",
+ "context": {
+  "process_name": "Financial Statement Creation, Review & Tie-Out",
+  "process_owner": "",
+  "objective": "Document how we carry out Financial Statement Creation, Review & Tie-Out, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "Thanks for sharing. Give me a moment to digest the file. Then I\u2019ll follow up with a question.",
+   "document_event": true,
+   "document_id": "doc_intake"
+  },
+  {
+   "id": "t002",
+   "role": "assistant",
+   "text": "The procedure says unresolved workbook differences are escalated to the Controller. How are those differences tracked and resolved afterward?"
+  },
+  {
+   "id": "t003",
+   "role": "user",
+   "text": "When a lead sheet does not tie to the trial balance, I as the Fund Accountant stop, investigate the usual causes like hidden rows, incomplete pastes, stale links or broken mappings, correct it, and rerun the check sheet. If I still cannot resolve it, it goes to the Controller. Nothing after that moves forward until it is fixed, so later work stays stopped or gets repeated. What we keep is the reconciliation and a resolution note with the workbook and check sheet. We require exact agreement, there is no materiality tolerance that lets a small difference pass. I do not know of a separate tracking log or tool for these, and who has final escalation authority beyond the Controller is not defined."
+  },
+  {
+   "id": "t004",
+   "role": "assistant",
+   "text": "Once an unresolved difference reaches the Controller, what do they do to resolve it and let you know work can resume?"
+  },
+  {
+   "id": "t005",
+   "role": "user",
+   "text": "I do not know the exact steps the Controller takes on an escalated difference or how they formally signal that work can resume, that is not defined. What I can say is that the Controller does the detailed review of the workbook, the statement presentation and the tie-out, and returns unresolved differences or presentation issues to me for correction. I then correct, rerun the affected ties and the check sheet, and keep the resolution note. Work only continues once the lead sheets agree exactly to the trial balance. Whether there is any materiality policy that would let the Controller accept a difference is unconfirmed in practice, so today we treat exact agreement as required."
+  },
+  {
+   "id": "t006",
+   "role": "assistant",
+   "text": "In the Controller\u2019s detailed review, what do they check in the workbook, statement presentation, and tie-out?"
+  },
+  {
+   "id": "t007",
+   "role": "user",
+   "text": "I do not have a written checklist of what the Controller looks at, the approved checklist is still unresolved. From what I see, the Controller reviews that the lead sheets agree exactly to the trial balance, that footing recalculates and the cross-references on the marked tie-out PDF point to valid support, and the blacklines against the prior quarter and prior year-end, so that every unexpected wording, presentation or number change is explained or corrected. The Controller then returns comments, I resolve them and update all affected review records, and after that the Director does the final internal review before the approved draft goes to the client. One thing I should flag: where we compare to a comparable fund for presentation consistency, how that fund is selected and where the comparison record is kept is unconfirmed in practice. I only know it has to be a client-approved comparable fund. Deadlines for resolving review comments are also not set."
+  },
+  {
+   "id": "t008",
+   "role": "assistant",
+   "text": "What typically starts your financial-statement preparation for a period?"
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "This capture still has open sections. 15 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "doc.session",
+   "at": 1794918345.513,
+   "turn": 0,
+   "seconds": 0.025,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.upload",
+   "at": 1794918345.516,
+   "turn": 0,
+   "seconds": 0.003,
+   "status": 202,
+   "retries": 0,
+   "file": "F02 FA-12 procedure excerpt.pdf",
+   "bytes": 281946
+  },
+  {
+   "kind": "doc.extracted",
+   "at": 1794918346.026,
+   "turn": 0,
+   "seconds": 0.54,
+   "file": "F02 FA-12 procedure excerpt.pdf",
+   "chunks": 7,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 7,
+    "total_units": 7,
+    "text_indexed_units": 7,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_started",
+   "at": 1794918346.026,
+   "turn": 0,
+   "seconds": 0.54,
+   "file": "F02 FA-12 procedure excerpt.pdf",
+   "chunks": 7,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 7,
+    "total_units": 7,
+    "text_indexed_units": 7,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_deep",
+   "at": 1794918351.665,
+   "turn": 0,
+   "seconds": 6.18,
+   "file": "F02 FA-12 procedure excerpt.pdf",
+   "chunks": 7,
+   "status": "ready",
+   "phase": "deep",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 7,
+    "total_units": 7,
+    "text_indexed_units": 7,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_complete",
+   "at": 1794918365.009,
+   "turn": 0,
+   "seconds": 19.52,
+   "file": "F02 FA-12 procedure excerpt.pdf",
+   "chunks": 7,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 7,
+    "total_units": 7,
+    "text_indexed_units": 7,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.followup_question",
+   "at": 1794918366.469,
+   "turn": 1,
+   "seconds": 1.459,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.first_question",
+   "at": 1794918366.469,
+   "turn": 2,
+   "seconds": 20.98,
+   "reading": {
+    "omitted_documents": 0,
+    "documents": [
+     {
+      "id": "doc_94c8efe8606b5083596086a0",
+      "included_chunks": 7,
+      "total_chunks": 7
+     }
+    ]
+   }
+  },
+  {
+   "kind": "doc.left_pending",
+   "at": 1794918426.966,
+   "turn": 2,
+   "notes_state": "working",
+   "map_state": "working",
+   "seconds": 61.96
+  },
+  {
+   "kind": "question",
+   "at": 1794918436.981,
+   "turn": 3,
+   "seconds": 3.841,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794918497.087,
+   "turn": 4,
+   "notes_state": "working",
+   "map_state": "queued",
+   "seconds": 63.95
+  },
+  {
+   "kind": "question",
+   "at": 1794918505.259,
+   "turn": 5,
+   "seconds": 1.849,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794918544.004,
+   "turn": 6,
+   "seconds": 40.59
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794918565.677,
+   "turn": 6,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 62.27
+  },
+  {
+   "kind": "question",
+   "at": 1794918575.64,
+   "turn": 7,
+   "seconds": 2.766,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794918607.609,
+   "turn": 8,
+   "seconds": 34.73
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794918635.972,
+   "turn": 8,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 63.1
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794918641.139,
+   "turn": 8,
+   "seconds": 2.03,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "working",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.map_ready",
+   "at": 1794918872.639,
+   "turn": 9,
+   "seconds": 233.53,
+   "steps": 20,
+   "connections": 21
+  }
+ ],
+ "started": 1794918340.520428,
+ "documents": [
+  {
+   "id": "doc_94c8efe8606b5083596086a0",
+   "name": "F02 FA-12 procedure excerpt.pdf",
+   "kind": "pdf",
+   "size": 281946,
+   "status": "ready",
+   "chunk_count": 7,
+   "analysis": {
+    "phase": "complete",
+    "intent_version": 0,
+    "basis_turn_id": "",
+    "basis_question": "",
+    "request_count": 2,
+    "generated_by": [
+     {
+      "build_id": "713975ca987f099ba0b713812b594415e1273cd802fdd81c77d3aca273de914f",
+      "generated_at": "2026-11-17T12:25:51.293+00:00",
+      "model": "gpt-6.1-terra",
+      "prompt_id": "3cdf9a64520b6eaf",
+      "reasoning_effort": "low",
+      "stage": "document_context_review"
+     },
+     {
+      "build_id": "713975ca987f099ba0b713812b594415e1273cd802fdd81c77d3aca273de914f",
+      "generated_at": "2026-11-17T12:26:04.561+00:00",
+      "model": "gpt-6.1-terra",
+      "prompt_id": "3cdf9a64520b6eaf",
+      "reasoning_effort": "low",
+      "stage": "document_context_review"
+     }
+    ],
+    "app_version": "0.32.0",
+    "questions": [
+     {
+      "id": "doc_94c8efe8606b5083596086a0_29223c6bd8f16f5227a6",
+      "text": "Who has final authority to resolve conflicting LPA, auditor and client presentation requirements?",
+      "sources": [
+       {
+        "source_id": "doc_94c8efe8606b5083596086a0_p1_c1",
+        "label": "F02 FA-12 procedure excerpt.pdf \u00b7 page 1"
+       }
+      ]
+     },
+     {
+      "id": "doc_94c8efe8606b5083596086a0_1bd6790082983b275045",
+      "text": "How are unresolved reconciliation differences tracked and resolved after escalation to the Controller?",
+      "sources": [
+       {
+        "source_id": "doc_94c8efe8606b5083596086a0_p2_c1",
+        "label": "F02 FA-12 procedure excerpt.pdf \u00b7 page 2"
+       },
+       {
+        "source_id": "doc_94c8efe8606b5083596086a0_p3_c1",
+        "label": "F02 FA-12 procedure excerpt.pdf \u00b7 page 3"
+       }
+      ]
+     },
+     {
+      "id": "doc_94c8efe8606b5083596086a0_dcef56c77ad5c5938358",
+      "text": "How is a comparable fund selected, and where is the selection record retained?",
+      "sources": [
+       {
+        "source_id": "doc_94c8efe8606b5083596086a0_p5_c1",
+        "label": "F02 FA-12 procedure excerpt.pdf \u00b7 page 5"
+       }
+      ]
+     },
+     {
+      "id": "doc_94c8efe8606b5083596086a0_d90a3831ba21efa22de5",
+      "text": "What deadlines and escalation route apply to unresolved internal or client review comments?",
+      "sources": [
+       {
+        "source_id": "doc_94c8efe8606b5083596086a0_p5_c1",
+        "label": "F02 FA-12 procedure excerpt.pdf \u00b7 page 5"
+       }
+      ]
+     }
+    ],
+    "observations": [
+     {
+      "id": "doc_94c8efe8606b5083596086a0_209e097fa3b3ba871acf",
+      "text": "The procedure assigns the Fund Accountant to build and reconcile the statement workbook, requiring exact lead-sheet-to-TB agreement.",
+      "basis": "stated",
+      "quote": "Exact lead-sheet-to-TB agreement; unresolved differences are not acceptable",
+      "sources": [
+       {
+        "source_id": "doc_94c8efe8606b5083596086a0_p2_c1",
+        "label": "F02 FA-12 procedure excerpt.pdf \u00b7 page 2"
+       }
+      ]
+     },
+     {
+      "id": "doc_94c8efe8606b5083596086a0_ed221f5ce4ec39275fe9",
+      "text": "Conflicting presentation requirements are escalated, but final resolution authority remains to be confirmed.",
+      "basis": "stated",
+      "quote": "authority for final resolution requires confirmation",
+      "sources": [
+       {
+        "source_id": "doc_94c8efe8606b5083596086a0_p1_c1",
+        "label": "F02 FA-12 procedure excerpt.pdf \u00b7 page 1"
+       }
+      ]
+     },
+     {
+      "id": "doc_94c8efe8606b5083596086a0_1d0ed12526466cd3dbbc",
+      "text": "The procedure calls for a marked internal PDF tie-out with support for displayed amounts and cross-references.",
+      "basis": "stated",
+      "quote": "Every displayed amount and cross-reference must be supported; footing must recalculate",
+      "sources": [
+       {
+        "source_id": "doc_94c8efe8606b5083596086a0_p4_c1",
+        "label": "F02 FA-12 procedure excerpt.pdf \u00b7 page 4"
+       }
+      ]
+     },
+     {
+      "id": "doc_94c8efe8606b5083596086a0_59f57555e78de55c46a4",
+      "text": "The procedure calls for stopping extraction if GL completeness is unconfirmed or report scope is inconsistent; the text about required report records is incomplete.",
+      "basis": "stated",
+      "quote": "Stop if GL completeness is not confirmed or report scope is inconsistent",
+      "sources": [
+       {
+        "source_id": "doc_94c8efe8606b5083596086a0_p1_c1",
+        "label": "F02 FA-12 procedure excerpt.pdf \u00b7 page 1"
+       }
+      ]
+     },
+     {
+      "id": "doc_94c8efe8606b5083596086a0_d44750ea94cddaccc5e4",
+      "text": "The Fund Accountant is instructed to reconcile lead sheets exactly to the TB and resolve workbook mismatches; unresolved differences are escalated to the Controller, with no materiality threshold specified.",
+      "basis": "stated",
+      "quote": "A materiality threshold for differences is not specified; escalate any unresolved difference to Controller",
+      "sources": [
+       {
+        "source_id": "doc_94c8efe8606b5083596086a0_p2_c1",
+        "label": "F02 FA-12 procedure excerpt.pdf \u00b7 page 2"
+       },
+       {
+        "source_id": "doc_94c8efe8606b5083596086a0_p3_c1",
+        "label": "F02 FA-12 procedure excerpt.pdf \u00b7 page 3"
+       }
+      ]
+     },
+     {
+      "id": "doc_94c8efe8606b5083596086a0_6063fb414ae6769dda38",
+      "text": "Displayed Word amounts must trace to the reconciled workbook, and controlled amounts must not be manually overridden without documented review and source support.",
+      "basis": "stated",
+      "quote": "Do not manually override a controlled amount without documented review and source support",
+      "sources": [
+       {
+        "source_id": "doc_94c8efe8606b5083596086a0_p3_c1",
+        "label": "F02 FA-12 procedure excerpt.pdf \u00b7 page 3"
+       }
+      ]
+     },
+     {
+      "id": "doc_94c8efe8606b5083596086a0_e3abde47c51a36aeaf54",
+      "text": "Q4 footnotes require Controller and Director review and auditor/client approval as applicable; exemptions and nonstandard disclosures require documented confirmation.",
+      "basis": "stated",
+      "quote": "Footnote exemptions and nonstandard disclosures require documented client/auditor confirmation",
+      "sources": [
+       {
+        "source_id": "doc_94c8efe8606b5083596086a0_p4_c1",
+        "label": "F02 FA-12 procedure excerpt.pdf \u00b7 page 4"
+       }
+      ]
+     },
+     {
+      "id": "doc_94c8efe8606b5083596086a0_ad114d7c8fa412107b03",
+      "text": "The procedure calls for blackline review, but says the comparison-fund selection method and location of the required record remain unconfirmed.",
+      "basis": "stated",
+      "quote": "The comparison-fund selection method and location for keeping the required record have not yet been confirmed",
+      "sources": [
+       {
+        "source_id": "doc_94c8efe8606b5083596086a0_p5_c1",
+        "label": "F02 FA-12 procedure excerpt.pdf \u00b7 page 5"
+       }
+      ]
+     },
+     {
+      "id": "doc_94c8efe8606b5083596086a0_a3eb7cdfb5b6e7604d26",
+      "text": "The documented review sequence assigns preparer review to the Fund Accountant, detailed review to the Controller, final internal review to the Director and approval to the client. Review-comment deadlines and escalation of unresolved client comments are unspecified.",
+      "basis": "stated",
+      "quote": "Deadlines for resolving review comments and escalating unresolved client comments are not specified",
+      "sources": [
+       {
+        "source_id": "doc_94c8efe8606b5083596086a0_p5_c1",
+        "label": "F02 FA-12 procedure excerpt.pdf \u00b7 page 5"
+       }
+      ]
+     },
+     {
+      "id": "doc_94c8efe8606b5083596086a0_49aa1b1f1396e38f9439",
+      "text": "The marked PDF is to be retained internally, while a clean copy and workpapers are uploaded; naming, Box path and recipients require client confirmation.",
+      "basis": "stated",
+      "quote": "Never distribute the marked review copy to the client",
+      "sources": [
+       {
+        "source_id": "doc_94c8efe8606b5083596086a0_p6_c1",
+        "label": "F02 FA-12 procedure excerpt.pdf \u00b7 page 6"
+       }
+      ]
+     }
+    ],
+    "limit_indicator": false,
+    "unreadable_sources": [],
+    "limitations": [],
+    "summary": "Procedure excerpt describes financial-statement roll-forward, TB extraction, workbook reconciliation, visual tie-out, presentation review and distribution, with assigned responsibilities and escalation points. It identifies unresolved confirmation needs, including authority to resolve conflicting presentation requirements.",
+    "summary_basis": "initial_review",
+    "summary_basis_note": "Written from the initial review selection. Later review may have changed coverage; current review status and limitations are shown separately.",
+    "summary_at_review_version": 1,
+    "queries": [],
+    "error": null,
+    "version": 2,
+    "relevance": "relevant",
+    "relevance_reason": "The excerpt directly addresses the stated financial-statement creation, review and tie-out process, including documented checks, responsibilities and exceptions.",
+    "disposition": "relevant",
+    "acknowledgement": "",
+    "question": "",
+    "sources": [
+     {
+      "source_id": "doc_94c8efe8606b5083596086a0_p1_c1",
+      "label": "F02 FA-12 procedure excerpt.pdf \u00b7 page 1"
+     },
+     {
+      "source_id": "doc_94c8efe8606b5083596086a0_p2_c1",
+      "label": "F02 FA-12 procedure excerpt.pdf \u00b7 page 2"
+     },
+     {
+      "source_id": "doc_94c8efe8606b5083596086a0_p3_c1",
+      "label": "F02 FA-12 procedure excerpt.pdf \u00b7 page 3"
+     },
+     {
+      "source_id": "doc_94c8efe8606b5083596086a0_p5_c1",
+      "label": "F02 FA-12 procedure excerpt.pdf \u00b7 page 5"
+     },
+     {
+      "source_id": "doc_94c8efe8606b5083596086a0_p4_c1",
+      "label": "F02 FA-12 procedure excerpt.pdf \u00b7 page 4"
+     },
+     {
+      "source_id": "doc_94c8efe8606b5083596086a0_p6_c1",
+      "label": "F02 FA-12 procedure excerpt.pdf \u00b7 page 6"
+     }
+    ],
+    "cursor": 7,
+    "reviewed_chunks": 7,
+    "total_chunks": 7,
+    "review_complete": true,
+    "estimated_requests": 1
+   },
+   "coverage": {
+    "indexed_units": 7,
+    "total_units": 7,
+    "text_indexed_units": 7,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   },
+   "error": null,
+   "revision": 6,
+   "intent_version": null
+  }
+ ],
+ "revision": "65e58efd265e2ac1d9893e68f22a135716a27a55d4eee3e9d50e0d47d130c1cc",
+ "capture": {
+  "memo_findings": [
+   {
+    "answer": "The work is called Financial Statement Creation, Review & Tie-Out.",
+    "evidence_turns": [
+     "context"
+    ],
+    "key": "name",
+    "status": "captured"
+   },
+   {
+    "answer": "The documented work produces an internally reviewed, client-approved financial-statement package and supporting workpapers for distribution.",
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p5_c1",
+     "doc_94c8efe8606b5083596086a0_p6_c1"
+    ],
+    "key": "purpose",
+    "status": "partial"
+   },
+   {
+    "answer": "The procedure describes quarterly statement preparation and requires the period GL to be ready before TB extraction.\nThe event that initiates statement preparation and any fixed deadline remain unknown.",
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p1_c1",
+     "doc_94c8efe8606b5083596086a0_p6_c1"
+    ],
+    "key": "trigger",
+    "status": "partial"
+   },
+   {
+    "answer": "The procedure finishes with the client-approved clean package and workpapers uploaded, the marked PDF retained internally, upload evidence retained and the client notified.",
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p6_c1"
+    ],
+    "key": "completion",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "accountable",
+    "status": "unknown"
+   },
+   {
+    "answer": "The procedure assigns the Fund Accountant to confirm entity, quarter, audit status, required statements and Q4 footnotes; copy the approved prior package; compare it with prior quarter and year-end; and update current-period labels and contents.\nThe procedure directs the Fund Accountant to export the TB and account support from the GL, verify entity and period, and stop if GL completeness or report scope is not confirmed.\nThe procedure directs the Fund Accountant to populate TB, statement build, lead-sheet and check-sheet tabs; link statement lines to the TB or detailed schedules to lead sheets and lead-sheet totals to the TB; and validate cross-references and mappings.\nThe Fund Accountant says that if a lead sheet does not tie to the TB, they stop, investigate hidden rows, incomplete pastes, stale links or broken mappings, correct the issue and rerun the check sheet. Unresolved differences go to the Controller; later work remains stopped or is repeated until fixed.\nAfter workbook reconciliation, the procedure has the Fund Accountant populate or link Word amounts, update investment positions, apply quarterly roll-forward rules and update references and formatting. Q4 footnotes are prepared when required using the LPA, schedules, prior footnotes and auditor/client input.\nThe procedure assigns the Fund Accountant to create a marked PDF tie-out, check footing and page references, tie statement lines to the TB and relevant schedules, recalculate investment percentages and flag matured notes or warrants for client consultation.\nThe procedure calls for blacklines against the prior quarter and year-end, and an approved comparable fund where applicable; unexpected changes are explained or corrected and the Controller reviews.\nThe documented review sequence is Fund Accountant preparer review, Controller detailed review and comments, Fund Accountant resolution and record updates, Director final internal review, then client review and comment resolution. Controller, Director and client approvals are retained.\nAfter client approval, the procedure directs the Fund Accountant to retain the marked PDF in the digital binder, remove marks from the client copy, rename it, upload the clean PDF and required workpapers to Box, and notify the client.\nThe Fund Accountant says the Controller reviews the workbook, statement presentation and tie-out in detail and returns unresolved differences or presentation issues to them. The Fund Accountant corrects them, reruns affected ties and the check sheet, and keeps the resolution note; work continues only after exact lead-sheet-to-TB agreement.\nThe Fund Accountant reports that the Controller returns review comments, the Fund Accountant resolves them and updates affected review records, and the Director then performs final internal review before the approved draft goes to the client.",
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p1_c1",
+     "doc_94c8efe8606b5083596086a0_p2_c1",
+     "t003",
+     "doc_94c8efe8606b5083596086a0_p3_c1",
+     "doc_94c8efe8606b5083596086a0_p4_c1",
+     "doc_94c8efe8606b5083596086a0_p5_c1",
+     "doc_94c8efe8606b5083596086a0_p6_c1",
+     "t005",
+     "t007"
+    ],
+    "key": "lifecycle",
+    "status": "partial"
+   },
+   {
+    "answer": "The Fund Accountant says current practice requires exact lead-sheet-to-TB agreement and unresolved differences block subsequent work. The reconciliation and resolution note are kept with the workbook and check sheet.\nThe Fund Accountant knows of no separate tracking log or tool, and final escalation authority beyond the Controller is undefined.\nThe procedure requires every displayed PDF amount and cross-reference to be supported and footing to recalculate; paste, formatting, ordering and source differences must be resolved before internal approval.\nThe method for selecting a comparable fund and the location of its comparison record remain unconfirmed. The procedure does not specify escalation of unresolved client comments.\nThe Fund Accountant does not know the Controller's exact steps on an escalated difference or how the Controller formally signals that work can resume.\nFrom the Fund Accountant's observation, the Controller checks exact lead-sheet-to-TB agreement, recalculated footing and valid support for marked PDF cross-references, and reviews prior-quarter and prior-year-end blacklines for unexpected wording, presentation or numerical changes to be explained or corrected.\nThe Fund Accountant says deadlines for resolving review comments are not set.",
+    "evidence_turns": [
+     "t003",
+     "t005",
+     "doc_94c8efe8606b5083596086a0_p4_c1",
+     "t007",
+     "doc_94c8efe8606b5083596086a0_p5_c1"
+    ],
+    "key": "checks",
+    "status": "partial"
+   },
+   {
+    "answer": "The procedure adds footnote preparation and auditor/client input for Q4 or audited periods; Controller and Director review and auditor/client approval apply as appropriate.",
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p4_c1",
+     "doc_94c8efe8606b5083596086a0_p7_c1"
+    ],
+    "key": "variations",
+    "status": "partial"
+   },
+   {
+    "answer": "The Fund Accountant reports that unresolved workbook differences stop later work or cause it to be repeated.",
+    "evidence_turns": [
+     "t003"
+    ],
+    "key": "pain_points",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "risk",
+    "status": "unknown"
+   },
+   {
+    "answer": "The supplied FA-12 procedure excerpt documents statement preparation, reconciliation, review and distribution.\nWorking artifacts include the prior approved statement package, TB and account support, linked workbook and check sheet, reconciliation and resolution note, marked PDF, blacklines, review notes and client correspondence.\nWhether the supplied procedure as a whole reflects current practice remains to be confirmed.\nThe Fund Accountant has no written checklist of the Controller's review; the approved checklist remains unresolved.",
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p1_c1",
+     "doc_94c8efe8606b5083596086a0_p5_c1",
+     "doc_94c8efe8606b5083596086a0_p6_c1",
+     "t003",
+     "t007"
+    ],
+    "key": "materials",
+    "status": "partial"
+   },
+   {
+    "answer": "The procedure describes fund financial statements, including entity and period confirmation, audited or unaudited presentation, partners' capital and potentially Q4 footnotes.\nWhether the documented route is general GPFS practice remains unconfirmed.",
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p1_c1",
+     "doc_94c8efe8606b5083596086a0_p3_c1"
+    ],
+    "key": "scope",
+    "status": "partial"
+   },
+   {
+    "answer": "The procedure uses the LPA and client/auditor requirements for presentation. It directs escalation of conflicts to the Controller and client; final resolution authority requires confirmation.\nThe procedure requires displayed Word amounts to trace to the reconciled workbook and prohibits manual overrides of controlled amounts without documented review and source support.\nThe Fund Accountant says current practice requires exact lead-sheet-to-TB agreement, including small differences.\nWhether a materiality policy permits the Controller to accept a lead-sheet difference remains unconfirmed.\nWhere a comparable fund is used to assess presentation consistency, the Fund Accountant says it must be client-approved.",
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p1_c1",
+     "doc_94c8efe8606b5083596086a0_p3_c1",
+     "t003",
+     "t005",
+     "t007"
+    ],
+    "key": "rules",
+    "status": "partial"
+   },
+   {
+    "answer": "The documented statement work consumes the period GL's TB and detailed account support after the GL is ready, and requires client approval before final distribution.",
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p1_c1",
+     "doc_94c8efe8606b5083596086a0_p6_c1"
+    ],
+    "key": "connections",
+    "status": "partial"
+   },
+   {
+    "answer": "The procedure identifies the GL as the source of TB and detail exports; Excel for linked statement and check sheets; Word and PDF for statement drafting and review; and a digital binder, Box and email for retention and distribution.\nThe procedure says the exact Box path, naming convention and distribution recipient list require client confirmation.",
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p1_c1",
+     "doc_94c8efe8606b5083596086a0_p2_c1",
+     "doc_94c8efe8606b5083596086a0_p6_c1"
+    ],
+    "key": "data_systems",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "volume",
+    "status": "unknown"
+   }
+  ],
+  "coverage": [
+   {
+    "key": "name",
+    "label": "Name & other names",
+    "status": "partial"
+   },
+   {
+    "key": "purpose",
+    "label": "Purpose & result",
+    "status": "partial"
+   },
+   {
+    "key": "trigger",
+    "label": "Start, cadence & deadlines",
+    "status": "partial"
+   },
+   {
+    "key": "completion",
+    "label": "Finished condition",
+    "status": "partial"
+   },
+   {
+    "key": "accountable",
+    "label": "Accountability",
+    "status": "missing"
+   },
+   {
+    "key": "lifecycle",
+    "label": "Items, stages & handoffs",
+    "status": "partial"
+   },
+   {
+    "key": "checks",
+    "label": "Checks, approvals & proof",
+    "status": "partial"
+   },
+   {
+    "key": "variations",
+    "label": "Variations and conditions",
+    "status": "partial"
+   },
+   {
+    "key": "pain_points",
+    "label": "Manual work & pain",
+    "status": "partial"
+   },
+   {
+    "key": "risk",
+    "label": "Consequences of failure",
+    "status": "missing"
+   },
+   {
+    "key": "materials",
+    "label": "Existing materials",
+    "status": "partial"
+   },
+   {
+    "key": "scope",
+    "label": "Scope & entity context",
+    "status": "partial"
+   },
+   {
+    "key": "rules",
+    "label": "Business rules & lineage",
+    "status": "partial"
+   },
+   {
+    "key": "connections",
+    "label": "Connected processes",
+    "status": "partial"
+   },
+   {
+    "key": "data_systems",
+    "label": "Data & systems",
+    "status": "partial"
+   },
+   {
+    "key": "volume",
+    "label": "Volume & effort",
+    "status": "missing"
+   }
+  ],
+  "summary": "The Fund Accountant described the Controller's review of ties, footing, PDF support and blacklines, followed by comment resolution and Director review. Comparable-fund selection and record location remain unconfirmed.",
+  "focus": "Controller review and presentation comparisons",
+  "parking_lot": [
+   "Confirm whether the supplied procedure reflects current practice.",
+   "Confirm final authority for conflicting presentation requirements.",
+   "Clarify accountability for the overall result."
+  ],
+  "connections_out": [
+   {
+    "condition": "TB and account support exports when the GL is ready for statement preparation.",
+    "counterpart": "Period GL",
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p1_c1"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "Client-approved clean package is required before final distribution.",
+    "counterpart": "Client",
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p5_c1",
+     "doc_94c8efe8606b5083596086a0_p6_c1"
+    ],
+    "relationship_type": "requires_approval_from"
+   }
+  ],
+  "taxonomy": [
+   {
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p6_c1"
+    ],
+    "facet": "entity_type",
+    "note": "Documented fund statement context.",
+    "value": "fund"
+   },
+   {
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p5_c1"
+    ],
+    "facet": "functional_area",
+    "note": "Documented financial-statement preparation and review.",
+    "value": "financial_reporting"
+   },
+   {
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p1_c1"
+    ],
+    "facet": "rule_source",
+    "note": "Procedure cites the LPA for scope and presentation.",
+    "value": "lpa_governing_doc"
+   },
+   {
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p2_c1"
+    ],
+    "facet": "system",
+    "note": "Documented linked statement workbook and checks.",
+    "value": "excel_workbook"
+   },
+   {
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p1_c1",
+     "doc_94c8efe8606b5083596086a0_p6_c1"
+    ],
+    "facet": "system",
+    "note": "Procedure names Word, PDF, GL, digital binder and Box.",
+    "value": "other"
+   },
+   {
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p6_c1"
+    ],
+    "facet": "system",
+    "note": "Documented client notification.",
+    "value": "email"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "facet": "control_type",
+    "note": "Fund Accountant reports exact reconciliation and reruns.",
+    "value": "gpfs_operational"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "facet": "control_type",
+    "note": "Unresolved workbook differences go to the Controller.",
+    "value": "exception_escalation"
+   },
+   {
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p5_c1",
+     "doc_94c8efe8606b5083596086a0_p6_c1"
+    ],
+    "facet": "control_type",
+    "note": "Documented approval before final distribution; current applicability unconfirmed.",
+    "value": "client_approval"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "facet": "control_type",
+    "note": "The Fund Accountant reports the Controller's detailed review and return of issues for correction.",
+    "value": "gpfs_supervisory"
+   }
+  ],
+  "completion": {
+   "allowed": false,
+   "ready_for_final_check": false,
+   "complete": false,
+   "partial": true,
+   "participant_confirmed": false,
+   "blockers": [
+    "role_incomplete:coverage_reviewer",
+    "role_incomplete:process_reviewer",
+    "coverage_result_unbound",
+    "coverage_incomplete",
+    "coverage_unresolved:name",
+    "coverage_unresolved:purpose",
+    "coverage_unresolved:trigger",
+    "coverage_unresolved:completion",
+    "coverage_unresolved:accountable",
+    "coverage_unresolved:lifecycle",
+    "coverage_unresolved:checks",
+    "coverage_unresolved:variations",
+    "coverage_unresolved:pain_points",
+    "coverage_unresolved:risk",
+    "coverage_unresolved:materials",
+    "coverage_unresolved:scope",
+    "coverage_unresolved:rules",
+    "coverage_unresolved:connections",
+    "coverage_unresolved:data_systems",
+    "coverage_unresolved:volume",
+    "process_result_unbound"
+   ],
+   "revision": "353de24bf619cec68c987b2a92a644b801d09e4a8ef6f36cd1e3e29712d7598b",
+   "run_id": "5150cd70273d42b2a474a3e3014107f7"
+  },
+  "coverage_assessment": null
+ },
+ "workflow": {
+  "connections": [
+   {
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p1_c1"
+    ],
+    "from": "S1",
+    "label": "Conflicting presentation requirements",
+    "to": "S2"
+   },
+   {
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p1_c1",
+     "doc_94c8efe8606b5083596086a0_p2_c1"
+    ],
+    "from": "S3",
+    "label": "GL ready and scope confirmed",
+    "to": "S4"
+   },
+   {
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p2_c1"
+    ],
+    "from": "S4",
+    "label": "Linked workbook",
+    "to": "S5"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "from": "S5",
+    "label": "Difference found",
+    "to": "S6"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "from": "S6",
+    "label": "Correct and rerun checks",
+    "to": "S5"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "from": "S6",
+    "label": "Cannot resolve",
+    "to": "S7"
+   },
+   {
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p7_c1"
+    ],
+    "from": "S9",
+    "label": "Footnotes required",
+    "to": "S10"
+   },
+   {
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p5_c1"
+    ],
+    "from": "S13",
+    "label": "Preparer review complete",
+    "to": "S14"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "from": "S14",
+    "label": "Comments returned",
+    "to": "S15"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "from": "S15",
+    "label": "Comments resolved",
+    "to": "S16"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "from": "S16",
+    "label": "Internally approved draft",
+    "to": "S17"
+   },
+   {
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p5_c1",
+     "doc_94c8efe8606b5083596086a0_p6_c1"
+    ],
+    "from": "S17",
+    "label": "Client-approved package",
+    "to": "S18"
+   },
+   {
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p1_c1",
+     "doc_94c8efe8606b5083596086a0_p3_c1"
+    ],
+    "from": "S1",
+    "label": "Rolled-forward Word package and reconciled workbook ready",
+    "to": "S8"
+   },
+   {
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p2_c1",
+     "doc_94c8efe8606b5083596086a0_p3_c1"
+    ],
+    "from": "S5",
+    "label": "Rolled-forward Word package and reconciled workbook ready",
+    "to": "S8"
+   },
+   {
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p1_c1",
+     "doc_94c8efe8606b5083596086a0_p7_c1"
+    ],
+    "from": "S1",
+    "label": "Assess confirmed period and audit scope",
+    "to": "S9"
+   },
+   {
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p3_c1",
+     "doc_94c8efe8606b5083596086a0_p4_c1",
+     "doc_94c8efe8606b5083596086a0_p7_c1"
+    ],
+    "from": "S8",
+    "label": "Draft Word statements, final TB and supporting schedules ready; required footnote action and records complete when applicable",
+    "to": "S11"
+   },
+   {
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p4_c1",
+     "doc_94c8efe8606b5083596086a0_p7_c1"
+    ],
+    "from": "S10",
+    "label": "Draft Word statements, final TB and supporting schedules ready; required footnote action and records complete",
+    "to": "S11"
+   },
+   {
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p2_c1",
+     "doc_94c8efe8606b5083596086a0_p5_c1"
+    ],
+    "from": "S5",
+    "label": "Reconciled workbook, clean draft, marked tie-out and comparison evidence ready",
+    "to": "S13"
+   },
+   {
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p4_c1",
+     "doc_94c8efe8606b5083596086a0_p5_c1"
+    ],
+    "from": "S11",
+    "label": "Reconciled workbook, clean draft, marked tie-out and comparison evidence ready",
+    "to": "S13"
+   },
+   {
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p5_c1"
+    ],
+    "from": "S12",
+    "label": "Reconciled workbook, clean draft, marked tie-out and comparison evidence ready",
+    "to": "S13"
+   },
+   {
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p4_c1",
+     "doc_94c8efe8606b5083596086a0_p6_c1"
+    ],
+    "from": "S11",
+    "label": "Matured notes or warrants flagged",
+    "to": "S20"
+   }
+  ],
+  "open_questions": [
+   "Does any incoming route start S5 (Reconcile lead sheets), or must all prerequisites finish?",
+   "Does any incoming route start S8 (Prepare Word statements), or must all prerequisites finish?",
+   "Are there other outcomes from decision S9 (Footnotes required?), and where do they lead?",
+   "Does any incoming route start S11 (Perform visual tie-out), or must all prerequisites finish?",
+   "Does any incoming route start S13 (Complete preparer review), or must all prerequisites finish?",
+   "How does step S19 (Review schedule presentation and cross-ties) connect to the rest of this process, if at all?",
+   "UNKNOWN: Does the documented procedure reflect current practice across the mapped steps and entity scope? What is the basis for any general GPFS standard?",
+   "UNKNOWN: What initiates the work, who detects it, what is its cadence and deadline, and who is accountable for the overall result?",
+   "UNKNOWN: What happens when GL completeness or export scope fails, and how is readiness to resume communicated? Which report parameters and records must be retained?",
+   "UNKNOWN: Who interprets and has final authority over conflicting LPA, auditor and client presentation requirements, and where is the resolution recorded?",
+   "UNKNOWN: What does the Controller do after a difference is escalated, how is resumption signaled, and who has escalation authority beyond the Controller? A separate tracking log is not known to the participant.",
+   "UNKNOWN: Is there a Controller materiality policy permitting acceptance of a difference? The participant reports that exact agreement is required in current practice.",
+   "UNKNOWN: How are comparable funds selected and where is the comparison record kept? The participant says the comparable fund must be client-approved.",
+   "UNKNOWN: What does each preparer and Director review check, what approvals or segregation are procedural versus system-enforced, and how are failed checks returned for review? The approved Controller checklist remains unresolved.",
+   "UNKNOWN: How are unresolved client comments escalated, and what happens if client approval is delayed or refused? Comment-resolution deadlines are not set.",
+   "UNKNOWN: What are the current calculation inputs, ownership and detailed roll-forward rules, including prior-period treatment, rounding and corrections?",
+   "UNKNOWN: What are the systems of record, current storage locations, entry methods and workbook-logic ownership? The procedure specifies a digital binder and Box but the client naming convention, path and recipients require confirmation.",
+   "UNKNOWN: What are the process volumes, peaks, effort, exception frequency, material risks and practical effects of manual work?",
+   "UNKNOWN: Which client or entity variations change the work, why, and what effort, charging or removal constraints apply?",
+   "UNKNOWN: What is the parent-process boundary and who uses the completed package downstream?",
+   "UNKNOWN: What handoff links scope and roll-forward work to TB extraction? What is the ordering or handoff between visual tie-out and blackline review?",
+   "UNKNOWN: Where does the footnote decision route when footnotes are not required, and how is the stated required-footnote gate coordinated with the other prerequisites for visual tie-out?",
+   "UNKNOWN: Who performs the required schedule-specific presentation and cross-statement review, where does it occur, and what is its handoff? Who obtains the required client-approved matured-instrument treatment and where does that branch return?",
+   "Document coverage: all 7 of 7 pages have indexed native text and all 7 indexed sections were supplied; AI review is complete at 7 of 7 chunks and was not stopped; no visual units remain unread. The document is evidence of written instructions, not proof they are followed."
+  ],
+  "steps": [
+   {
+    "actor": "Fund Accountant",
+    "completion_criteria": "Current-period labels confirmed; stale document properties and personal information removed",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Prior approved statements, LPA and client/auditor requirements",
+    "description": "The procedure calls for confirming the entity, period, audit status, statements and footnote scope, then copying the approved prior package, comparing prior periods and updating labels and references. Current use is unconfirmed.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p1_c1",
+     "doc_94c8efe8606b5083596086a0_p6_c1"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S1",
+    "input": "Approved prior statements, close scope, LPA and client/auditor requirements",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p1_c1"
+      ],
+      "field": "responsible",
+      "text": "Step 1 \u2014 Confirm the statement scope and roll-forward basis\nResponsible role: Fund Accountant"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p1_c1"
+      ],
+      "field": "system",
+      "text": "Word"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p1_c1"
+      ],
+      "field": "control",
+      "text": "No entity or period label may be carried forward without\ncurrent-period confirmation"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p1_c1"
+      ],
+      "field": "exception",
+      "text": "Escalate conflicting LPA, auditor, or client presentation requirements\nto Controller and client; authority for final resolution requires confirmation"
+     }
+    ],
+    "output": "Rolled-forward draft and comparison evidence",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F02 FA-12 procedure excerpt, pages 1 and 6",
+    "system": "Word",
+    "title": "Confirm scope and roll forward",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund Accountant",
+    "completion_criteria": "Conflict escalated; resolution authority and return route UNKNOWN",
+    "control_type": [
+     "exception_escalation"
+    ],
+    "data_origin": "LPA and auditor/client requirements",
+    "description": "The procedure directs conflicting LPA, auditor or client presentation requirements to the Controller and client. Final resolution authority is unconfirmed.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p1_c1"
+    ],
+    "handoff": "Controller and client",
+    "id": "S2",
+    "input": "Conflicting presentation requirements",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p1_c1"
+      ],
+      "field": "exception",
+      "text": "Escalate conflicting LPA, auditor, or client presentation requirements\nto Controller and client; authority for final resolution requires confirmation"
+     }
+    ],
+    "output": "Escalated conflict",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F02 FA-12 procedure excerpt, page 1",
+    "system": "UNKNOWN",
+    "title": "Escalate presentation conflicts",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund Accountant",
+    "completion_criteria": "GL completeness and report scope confirmed",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "General ledger",
+    "description": "The procedure calls for exporting the trial balance and detailed account support and confirming entity and period scope. Stop if GL completeness is unconfirmed or report scope is inconsistent; the report-record instruction is incomplete.",
+    "entity_scope": [],
+    "entry_mode": "import",
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p1_c1"
+    ],
+    "handoff": "Fund Accountant builds the workbook",
+    "id": "S3",
+    "input": "Period GL ready for statement preparation",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p1_c1"
+      ],
+      "field": "responsible",
+      "text": "Step 2 \u2014 Extract the TB and supporting detail\nResponsible role: Fund Accountant"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p1_c1"
+      ],
+      "field": "system",
+      "text": "GL"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p1_c1"
+      ],
+      "field": "control",
+      "text": "Confirm the exports cover the correct entity and reporting\nperiod"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p1_c1"
+      ],
+      "field": "exception",
+      "text": "Stop if GL completeness is not confirmed or report scope is\ninconsistent"
+     }
+    ],
+    "output": "Current-period trial balance and support",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F02 FA-12 procedure excerpt, page 1",
+    "system": "General ledger",
+    "title": "Extract trial balance and support",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund Accountant",
+    "completion_criteria": "Relationships have no unexplained differences",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "TB and supporting lead sheets",
+    "description": "The procedure calls for populating the trial balance, statement build, lead-sheet and check-sheet tabs. Link statement lines to the TB or, for designed schedules, through lead-sheet support, and remove broken or duplicate mappings.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p2_c1"
+    ],
+    "handoff": "Fund Accountant reconciles lead sheets",
+    "id": "S4",
+    "input": "Trial balance, lead sheets and workbook",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p2_c1"
+      ],
+      "field": "responsible",
+      "text": "Step 3 \u2014 Build and link the statement workbook\nResponsible role: Fund Accountant"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p2_c1"
+      ],
+      "field": "system",
+      "text": "Excel workbook"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p2_c1"
+      ],
+      "field": "control",
+      "text": "TB, lead-sheet, and statement relationships must reconcile\nwithout unexplained differences"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p2_c1"
+      ],
+      "field": "exception",
+      "text": "Investigate hidden rows, incomplete pastes, stale links, and broken\nmappings before continuing"
+     }
+    ],
+    "output": "Linked statement workbook",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F02 FA-12 procedure excerpt, page 2",
+    "system": "Excel",
+    "title": "Build and link workbook",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund Accountant",
+    "completion_criteria": "Agreement or a difference identified; exact agreement is required before later work continues",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Workbook lead sheets and trial balance",
+    "description": "Tie lead-sheet totals to the trial balance and run or rerun the check sheet. The participant reports exact agreement is required in current practice; a Controller materiality policy remains unconfirmed.",
+    "entity_scope": [],
+    "entry_mode": "calculated",
+    "evidence_turns": [
+     "t003",
+     "t005",
+     "doc_94c8efe8606b5083596086a0_p2_c1"
+    ],
+    "handoff": "Investigate a difference; continue only when differences are fixed",
+    "id": "S5",
+    "input": "Linked workbook and trial balance",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p2_c1"
+      ],
+      "field": "responsible",
+      "text": "Step 4 \u2014 Reconcile lead sheets and run workbook checks\nResponsible role: Fund Accountant"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p2_c1"
+      ],
+      "field": "system",
+      "text": "Excel check sheet and lead sheets"
+     },
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "control",
+      "text": "We require exact agreement, there is no materiality tolerance that lets a small difference pass."
+     }
+    ],
+    "output": "Reconciliation and check-sheet results",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F02 FA-12 procedure excerpt, pages 2\u20133",
+    "system": "Excel workbook and check sheet",
+    "title": "Reconcile lead sheets",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund Accountant",
+    "completion_criteria": "Correction made for recheck or difference remains unresolved for escalation",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Workbook and reconciliation",
+    "description": "Stop and investigate causes such as hidden rows, incomplete pastes, stale links or broken mappings and correct the difference. The affected check is rerun at S5. Retain the reconciliation and resolution note with the workbook and check sheet.",
+    "entity_scope": [],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "t003",
+     "t005"
+    ],
+    "handoff": "Recheck; Controller if the Fund Accountant cannot resolve the difference",
+    "id": "S6",
+    "input": "Lead-sheet difference",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "responsible",
+      "text": "When a lead sheet does not tie to the trial balance, I as the Fund Accountant stop, investigate the usual causes like hidden rows, incomplete pastes, stale links or broken mappings, correct it, and rerun the check sheet."
+     },
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "exception",
+      "text": "If I still cannot resolve it, it goes to the Controller."
+     }
+    ],
+    "output": "Corrected workbook or unresolved difference; resolution note",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Workbook and check sheet",
+    "title": "Investigate and correct differences",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund Accountant",
+    "completion_criteria": "Difference sent to the Controller; later work remains stopped or repeated until exact agreement",
+    "control_type": [
+     "exception_escalation"
+    ],
+    "data_origin": "Reconciliation and workbook",
+    "description": "The Fund Accountant sends unresolved differences to the Controller. Later work remains stopped or is repeated until fixed; the Controller's resolution steps and formal resume signal are UNKNOWN.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003",
+     "t005"
+    ],
+    "handoff": "Controller; further escalation authority UNKNOWN",
+    "id": "S7",
+    "input": "Unresolved workbook difference",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "exception",
+      "text": "If I still cannot resolve it, it goes to the Controller. Nothing after that moves forward until it is fixed, so later work stays stopped or gets repeated."
+     }
+    ],
+    "output": "Escalated difference",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F02 FA-12 procedure excerpt, page 3",
+    "system": "UNKNOWN",
+    "title": "Escalate unresolved differences",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund Accountant",
+    "completion_criteria": "Displayed amounts trace to reconciled workbook",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Reconciled workbook and investment schedules",
+    "description": "The procedure calls for populating or linking current amounts, updating investments, applying quarterly roll-forward rules and updating references and formatting. Displayed amounts must trace to the reconciled workbook; controlled amounts require documented review and source support before manual override.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p3_c1"
+    ],
+    "handoff": "Visual tie-out when its prerequisites and any applicable footnote requirements are met",
+    "id": "S8",
+    "input": "Reconciled workbook and rolled-forward Word package",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p3_c1"
+      ],
+      "field": "responsible",
+      "text": "Step 5 \u2014 Prepare the Word \nResponsible role: Fund Accountant"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p3_c1"
+      ],
+      "field": "system",
+      "text": "Word"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p3_c1"
+      ],
+      "field": "system",
+      "text": "Excel"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p3_c1"
+      ],
+      "field": "control",
+      "text": "All displayed amounts must trace to the reconciled workbook"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p3_c1"
+      ],
+      "field": "exception",
+      "text": "Do not manually override a controlled amount without documented\nreview and source support"
+     }
+    ],
+    "output": "Draft statement package",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F02 FA-12 procedure excerpt, page 3",
+    "system": "Word and Excel",
+    "title": "Prepare Word statements",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Required scope determined",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Period and audit scope",
+    "description": "The procedure calls for required footnotes for Q4 or audited periods and auditor/client input.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p3_c1",
+     "doc_94c8efe8606b5083596086a0_p7_c1"
+    ],
+    "handoff": "Fund Accountant when footnotes are required; other handoff UNKNOWN",
+    "id": "S9",
+    "input": "Period and audit status",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p7_c1"
+      ],
+      "field": "control",
+      "text": "Proceed\nonly after\nthe required\naction and\nrecords are\ncomplete."
+     }
+    ],
+    "output": "Footnote requirement",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F02 FA-12 procedure excerpt, pages 3 and 7",
+    "system": "UNKNOWN",
+    "title": "Footnotes required?",
+    "type": "decision"
+   },
+   {
+    "actor": "Fund Accountant",
+    "completion_criteria": "Required action, approvals and records complete",
+    "control_type": [
+     "gpfs_operational",
+     "gpfs_supervisory",
+     "client_approval"
+    ],
+    "data_origin": "LPA, workbook, prior footnotes and correspondence",
+    "description": "The procedure calls for updating disclosures and applying approved subsequent-event guidance. It requires Controller and Director review, auditor/client approval as applicable, and documented client/auditor confirmation for exemptions and nonstandard disclosures.",
+    "entity_scope": [],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p3_c1",
+     "doc_94c8efe8606b5083596086a0_p4_c1",
+     "doc_94c8efe8606b5083596086a0_p7_c1"
+    ],
+    "handoff": "Controller, Director and auditor/client as applicable",
+    "id": "S10",
+    "input": "LPA, schedules, prior footnotes and auditor/client input",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p3_c1"
+      ],
+      "field": "responsible",
+      "text": "Step 6 \u2014 Prepare Q4 footnotes when required\nResponsible role: Fund Accountant"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p3_c1"
+      ],
+      "field": "system",
+      "text": "Word"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p4_c1"
+      ],
+      "field": "control",
+      "text": "Required check or approval: Controller and Director review; auditor/client approval as\napplicable"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p4_c1"
+      ],
+      "field": "exception",
+      "text": "Footnote exemptions and nonstandard disclosures require\ndocumented client/auditor confirmation"
+     }
+    ],
+    "output": "Updated footnotes and supporting references",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F02 FA-12 procedure excerpt, pages 3\u20134 and 7",
+    "system": "Word, workbook and correspondence",
+    "title": "Prepare required footnotes",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund Accountant",
+    "completion_criteria": "Displayed amounts and references supported; footing recalculates and source or presentation differences resolved before internal approval",
+    "control_type": [
+     "gpfs_operational",
+     "client_review"
+    ],
+    "data_origin": "Statement draft, trial balance and supporting schedules",
+    "description": "The procedure calls for marked checks and cross-references, footing and page checks, and ties to the TB and supporting schedules. Recalculate investment percentages, check ordering and flag matured notes or warrants for client consultation. The separately documented client-approved treatment is retained at S20.",
+    "entity_scope": [],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p4_c1",
+     "doc_94c8efe8606b5083596086a0_p6_c1",
+     "doc_94c8efe8606b5083596086a0_p7_c1"
+    ],
+    "handoff": "Internal review; client consultation for flagged matured notes or warrants",
+    "id": "S11",
+    "input": "Draft statements, final TB and supporting schedules",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p4_c1"
+      ],
+      "field": "responsible",
+      "text": "Step 7 \u2014 Convert to PDF and perform visual tie-out\nResponsible role: Fund Accountant"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p4_c1"
+      ],
+      "field": "system",
+      "text": "PDF review copies"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p4_c1"
+      ],
+      "field": "control",
+      "text": "Every displayed amount and cross-reference must be\nsupported; footing must recalculate"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p4_c1"
+      ],
+      "field": "exception",
+      "text": "Resolve all paste, formatting, ordering, or source differences before\ninternal approval"
+     }
+    ],
+    "output": "Marked internal tie-out PDF",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F02 FA-12 procedure excerpt, pages 4 and 6\u20137",
+    "system": "PDF review copies",
+    "title": "Perform visual tie-out",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund Accountant; Controller reviews",
+    "completion_criteria": "Unexpected changes explained or corrected; missed disclosures, unsupported changes and presentation differences identified and resolved",
+    "control_type": [
+     "gpfs_operational",
+     "gpfs_supervisory"
+    ],
+    "data_origin": "Current draft and prior approved statements",
+    "description": "The procedure calls for inspecting prior-quarter and prior-year-end blacklines and, where applicable, comparison with an approved comparable fund; missed disclosures, unsupported changes and presentation differences must be identified and resolved. The participant reports that the comparable fund must be client-approved.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "calculated",
+    "evidence_turns": [
+     "t007",
+     "doc_94c8efe8606b5083596086a0_p4_c1",
+     "doc_94c8efe8606b5083596086a0_p5_c1",
+     "doc_94c8efe8606b5083596086a0_p7_c1"
+    ],
+    "handoff": "Internal review when all required inputs are ready",
+    "id": "S12",
+    "input": "Current draft, prior packages and comparable-fund package when applicable",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p4_c1"
+      ],
+      "field": "responsible",
+      "text": "Step 8 \u2014 Review blacklines and presentation consistency\nResponsible role: Fund Accountant; Controller reviews"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p5_c1"
+      ],
+      "field": "system",
+      "text": "Word Compare / blackline output"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p7_c1"
+      ],
+      "field": "control",
+      "text": "Running a comparison is not\ncompletion: inspect the blackline against the applicable prior quarter, prior year-end, and\napproved similar fund; identify and resolve missed disclosures, unsupported changes, and\npresentation differences."
+     }
+    ],
+    "output": "Reviewed comparison evidence",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F02 FA-12 procedure excerpt, pages 4\u20135 and 7",
+    "system": "Word Compare and blackline output",
+    "title": "Review blacklines and presentation",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund Accountant",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Statement and review records",
+    "description": "The procedure assigns preparer review to the Fund Accountant before Controller review. Its specific checks at this review level are UNKNOWN.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p5_c1"
+    ],
+    "handoff": "Controller",
+    "id": "S13",
+    "input": "Reconciled workbook, clean draft, marked tie-out and comparison evidence",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p5_c1"
+      ],
+      "field": "responsible",
+      "text": "Fund Accountant completes preparer review."
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p5_c1"
+      ],
+      "field": "system",
+      "text": "Workbook"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p5_c1"
+      ],
+      "field": "system",
+      "text": "Word/PDF"
+     }
+    ],
+    "output": "Prepared review package",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F02 FA-12 procedure excerpt, page 5",
+    "system": "Workbook, Word/PDF and review notes",
+    "title": "Complete preparer review",
+    "type": "activity"
+   },
+   {
+    "actor": "Controller",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "gpfs_supervisory"
+    ],
+    "data_origin": "Workbook, TB, supporting records and blacklines",
+    "description": "The participant reports that the Controller checks exact lead-sheet-to-TB agreement, recalculating footing, valid PDF support references and explanations or corrections for unexpected blackline changes. The Controller returns comments or unresolved issues to the Fund Accountant.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t005",
+     "t007",
+     "doc_94c8efe8606b5083596086a0_p5_c1"
+    ],
+    "handoff": "Fund Accountant resolves comments",
+    "id": "S14",
+    "input": "Workbook, draft, marked tie-out and comparison evidence",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p5_c1"
+      ],
+      "field": "responsible",
+      "text": "Controller performs detailed review and returns comments."
+     },
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "control",
+      "text": "the Controller reviews that the lead sheets agree exactly to the trial balance, that footing recalculates and the cross-references on the marked tie-out PDF point to valid support, and the blacklines against the prior quarter and prior year-end, so that every unexpected wording, presentation or number change is explained or corrected."
+     }
+    ],
+    "output": "Review comments",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F02 FA-12 procedure excerpt, page 5",
+    "system": "Workbook, marked PDF and blacklines",
+    "title": "Controller detailed review",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund Accountant",
+    "completion_criteria": "Comments resolved; lead sheets agree exactly to TB before work continues",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Controller comments and review records",
+    "description": "The Fund Accountant corrects returned issues, reruns affected ties and the check sheet where relevant, retains the resolution note and updates affected review records. Comment deadlines are not set.",
+    "entity_scope": [],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "t005",
+     "t007"
+    ],
+    "handoff": "Director final internal review; re-review route UNKNOWN",
+    "id": "S15",
+    "input": "Controller comments and unresolved issues",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "responsible",
+      "text": "The Controller then returns comments, I resolve them and update all affected review records"
+     },
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "deadline",
+      "text": "Deadlines for resolving review comments are also not set."
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "control",
+      "text": "Work only continues once the lead sheets agree exactly to the trial balance."
+     }
+    ],
+    "output": "Corrected package and updated review records",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Workbook and review records",
+    "title": "Resolve review comments",
+    "type": "activity"
+   },
+   {
+    "actor": "Director",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "gpfs_supervisory"
+    ],
+    "data_origin": "Corrected statement and review package",
+    "description": "The participant reports that the Director performs final internal review after comments are resolved and before the approved draft goes to the client. Specific Director checks are UNKNOWN.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t007",
+     "doc_94c8efe8606b5083596086a0_p5_c1"
+    ],
+    "handoff": "Client",
+    "id": "S16",
+    "input": "Corrected review package",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p5_c1"
+      ],
+      "field": "responsible",
+      "text": "Director performs final internal review."
+     }
+    ],
+    "output": "Internally approved draft",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F02 FA-12 procedure excerpt, page 5",
+    "system": "UNKNOWN",
+    "title": "Director final internal review",
+    "type": "activity"
+   },
+   {
+    "actor": "Client; sender and client-comment resolver UNKNOWN",
+    "completion_criteria": "Client approval and comment resolution",
+    "control_type": [
+     "client_review",
+     "client_approval"
+    ],
+    "data_origin": "Approved internal draft and client comments",
+    "description": "The procedure calls for sending the internally approved draft to the client, resolving client comments and retaining Controller, Director and client approvals. Escalation of unresolved client comments is unspecified.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t007",
+     "doc_94c8efe8606b5083596086a0_p5_c1"
+    ],
+    "handoff": "Fund Accountant finalizes distribution",
+    "id": "S17",
+    "input": "Internally approved draft",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p5_c1"
+      ],
+      "field": "control",
+      "text": "Controller, Director, and client approvals retained"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p5_c1"
+      ],
+      "field": "exception",
+      "text": "Deadlines for resolving review comments and escalating unresolved\nclient comments are not specified"
+     }
+    ],
+    "output": "Client-approved package and retained approvals",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F02 FA-12 procedure excerpt, page 5",
+    "system": "Client correspondence",
+    "title": "Obtain client approval",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund Accountant",
+    "completion_criteria": "Clean deliverable and required workpapers uploaded and client notified",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Client-approved package and workpapers",
+    "description": "The procedure calls for retaining the marked PDF internally, removing marks from the client copy, naming and uploading the clean PDF and workpapers, and notifying the client. The marked copy must not be distributed to the client.",
+    "entity_scope": [],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p5_c1",
+     "doc_94c8efe8606b5083596086a0_p6_c1"
+    ],
+    "handoff": "Client",
+    "id": "S18",
+    "input": "Client-approved clean package and workpapers",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p5_c1"
+      ],
+      "field": "responsible",
+      "text": "Step 10 \u2014 Finalize, retain, distribute, and notify\nResponsible role: Fund Accountant"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p6_c1"
+      ],
+      "field": "system",
+      "text": "Digital binder"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p6_c1"
+      ],
+      "field": "system",
+      "text": "Box"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p6_c1"
+      ],
+      "field": "system",
+      "text": "email"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p6_c1"
+      ],
+      "field": "control",
+      "text": "Never distribute the marked review copy to the client"
+     },
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p6_c1"
+      ],
+      "field": "exception",
+      "text": "Exact naming convention, Box path, and distribution recipient list\nrequire client confirmation"
+     }
+    ],
+    "output": "Internal marked copy, clean upload, upload evidence and client notification",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F02 FA-12 procedure excerpt, page 6",
+    "system": "Digital binder, Box and email",
+    "title": "Retain and distribute package",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Required schedule-specific presentation, footing and cross-statement checks completed",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Statements, schedules and approved prior presentation",
+    "description": "The procedure requires review of every schedule's presentation, footing and cross-footing against approved prior presentation and supported current changes. It also specifies balance-sheet, investments, operations, partners' capital and cash-flow checks and cross-ties. Its assignment and exact placement in the workflow are not stated.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p6_c1",
+     "doc_94c8efe8606b5083596086a0_p7_c1"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S19",
+    "input": "Schedules, approved prior presentation and supported current changes",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p6_c1"
+      ],
+      "field": "control",
+      "text": "For every schedule, review\nheaders, footers, line descriptions, table headings, dollar-sign placement, margins, bolding,\nspacing, page numbers, footing, and cross-footing against approved prior presentation and\nsupported current changes."
+     }
+    ],
+    "output": "UNKNOWN",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F02 FA-12 procedure excerpt, pages 6\u20137",
+    "system": "UNKNOWN",
+    "title": "Review schedule presentation and cross-ties",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Client-approved presentation and treatment obtained",
+    "control_type": [
+     "client_approval"
+    ],
+    "data_origin": "Matured notes or warrants",
+    "description": "For matured notes or warrants, the procedure requires client-approved presentation and treatment of amounts recorded before payment. The responsible person, record and return point are not stated.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "doc_94c8efe8606b5083596086a0_p4_c1",
+     "doc_94c8efe8606b5083596086a0_p6_c1"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S20",
+    "input": "Flagged matured notes or warrants and applicable accrual presentation and treatment",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_94c8efe8606b5083596086a0_p6_c1"
+      ],
+      "field": "control",
+      "text": "Obtain\nclient-approved presentation and treatment of amounts recorded before payment (accruals)\nfor matured notes or warrants."
+     }
+    ],
+    "output": "Client-approved presentation and treatment",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "F02 FA-12 procedure excerpt, pages 4 and 6",
+    "system": "UNKNOWN",
+    "title": "Obtain matured-instrument treatment approval",
+    "type": "activity"
+   }
+  ],
+  "title": "Financial Statement Creation, Review & Tie-Out"
+ },
+ "workflow_revision": "65e58efd265e2ac1d9893e68f22a135716a27a55d4eee3e9d50e0d47d130c1cc",
+ "finished": 1794918872.638853,
+ "graph_checks": {
+  "steps": 20,
+  "connections": 21,
+  "types": {
+   "activity": 19,
+   "decision": 1
+  },
+  "components": 2,
+  "isolated_steps": [
+   "S19"
+  ],
+  "entry_points": [
+   "S1",
+   "S3",
+   "S12",
+   "S19"
+  ],
+  "typed_start": [],
+  "exit_points": [
+   "S2",
+   "S7",
+   "S18",
+   "S19",
+   "S20"
+  ],
+  "typed_end": [],
+  "decisions_with_under_two_exits": [
+   "S9"
+  ],
+  "decision_exits_without_label": [],
+  "non_decision_with_multiple_exits": [
+   "S1",
+   "S5",
+   "S6",
+   "S11"
+  ],
+  "steps_without_actor": [],
+  "actors": [
+   "Client; sender and client-comment resolver UNKNOWN",
+   "Controller",
+   "Director",
+   "Fund Accountant",
+   "Fund Accountant; Controller reviews",
+   "UNKNOWN"
+  ],
+  "open_questions": 24
+ }
+}

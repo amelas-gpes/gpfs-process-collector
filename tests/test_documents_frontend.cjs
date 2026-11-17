@@ -748,7 +748,7 @@ function response(document){return{ok:true,json:async()=>({document})};}
  }
 
  {
-  // Finding 1 of docs/testing/process-capture-2026-11-16: a poll that lands after the file is indexed and
+  // Finding 1 of docs/testing/runs/2026-11-16-process-capture: a poll that lands after the file is indexed and
   // before its review reports a phase must not be the last one. The page stayed on "Reading your files"
   // for minutes while the server had long finished; returning to the tab resumed it.
   const stages=[doc({status:"pending",analysis:{}}),doc({status:"ready",chunk_count:4,analysis:{}}),doc({status:"ready",chunk_count:4,analysis:{}}),

@@ -1,0 +1,3743 @@
+{
+ "case": "C-T11",
+ "port": 8804,
+ "interview_id": "917730658c77455aafe395bd8a8ac4c3",
+ "context": {
+  "process_name": "Carried Interest Waterfall & Clawback",
+  "process_owner": "",
+  "objective": "Document how we carry out Carried Interest Waterfall & Clawback, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "Three things can start it: a realization event under the fund's governing terms, a required interim clawback test, or final liquidation. The exact interim testing schedule is not confirmed, so I cannot tell you how often the interim tests fall. Once one of those triggers happens, I as the GP Fund Solutions preparer do the first step: I confirm the trigger, identify whether the fund is a whole-fund (European) or deal-by-deal (American) structure, identify which calculation layer I am doing (cash distribution waterfall, taxable income allocation, tax distribution, or a hypothetical, interim or final clawback), record every applicable term and definition from the current limited partnership agreement and amendments, and confirm the version-controlled Excel waterfall model and the as-of date. The output is locked calculation instructions. There are two decisions here. First: is the structure or a governing tier term missing or unclear? If yes, I stop, Legal or the Client gives a current interpretation, the version-controlled model is updated, and the affected model and results are recalculated; if no, I carry on. Second: is the calculation layer or purpose unclear, or have layers been combined? If yes, I stop work on that output, the Client or adviser defines it, and each layer is prepared separately; if no, I go on to step two, collecting and reconciling the cumulative inputs."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "How do you reconcile the cumulative inputs before using them?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "Step two is mine as preparer. I collect the cumulative inputs: cumulative contributions and distributions from the accounting system and general ledger, proceeds and applicable basis, fees, expenses and valuation from the approved transaction, accounting and valuation sources, plus prior carried interest, holdback and clawback from the accounting records and the prior approved model. Then I match opening balances, prior carried interest, holdback and clawback to the general ledger and to the prior approved model. The output is a reconciled input package, and the reviewer reviews that reconciliation. The decision: do the opening or cumulative data reconcile with no unexplained difference? If no, I stop, the calculation is delayed, and the source difference has to be resolved before any calculation, with the reviewer or Accounting deciding; once resolved I come back to the reconciliation. If yes, I move to step three, the fund-specific waterfall. I do not know the exact accounting systems or report names, and the tolerance for a difference that needs action has not been confirmed. Step three, also me: using the locked terms and reconciled inputs I apply only the governing tiers, rates, affected groups and timing in the model, keep each calculation layer separate, and prepare bridge reconciliations for any complex features. Output is a waterfall output for each calculation layer. Decision there: does a complex feature affect the model, like recycling, distributions in kind, permanent unrealized losses, hurdles, blocker entities, notes or loans, or class differences? If yes, I stop until it is supported: I apply only the governing treatment, prepare the reconciliation of valuation, tax, conversion and clawback effects, and the Client and the applicable adviser approve it, which may change model tiers and downstream results; then I continue. If no, I go straight on to step four, the holdback."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What does the reviewer compare when reviewing the input reconciliation?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "Step four is me as preparer, starting from the approved gross carried interest and the holdback terms. A holdback is carried interest that is temporarily withheld. I calculate gross carried interest, the holdback, and net distributable carried interest, where gross realized carry equals net distributable carry plus holdback. I update the holdback schedule of changes and the effect on member capital, and I document the objective release conditions. Output is the holdback calculation and schedule of changes. I only use the approved percentage, accounting treatment, risk test and objective release criteria, never an example range. One rule first: if the fund is not yet in a cash-carry position, cash carry is not distributed at all. The check I run is that gross carry equals net distribution plus holdback and that every release meets documented, approved criteria. The decision: is a holdback required or is a release being requested? If a release is requested and the approved terms, risk test, schedule of changes and release approval are not all complete, the release stops, the carried interest stays held and it stays open with the wind-down process. If they are complete the release can go ahead. Who owns that holdback decision is not confirmed, and I do not know the actual percentage, the risk test, or who reviews the holdback schedule; those are all open. Either way I then go to step five, the clawback test. That is me plus the designated external tax adviser, at each required test point. I calculate the difference between cumulative carry received and cumulative carry entitlement. Decision: does a gross clawback exist, meaning carry received exceeds entitlement? If no, I record the gross analysis and go to step six. If yes, I obtain the tax adviser's separate tax adjustment and the governing approval, keep the gross and after-tax calculations separate, and keep the assumptions and as-of date; the Tax adviser or the Client decides, and settlement is stopped without that support. Output is the gross and approved after-tax analyses, then on to step six."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "What happens in step six after the gross and approved after-tax analyses are prepared?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "That takes me into step six, the last one: review, approve, post and hand off. It only starts when the package is complete with no blocking exception. In order: first the reviewer independently reviews my work, every changed input, formula, link, assumption and calculation-layer output, and checks all tiers reproduce the approved calculation instructions; the record is the model change log and sign-off. If that review fails, we stop and I correct it, then it is reviewed again. If it passes, the model is locked. Next the approvals: the Client approves the exact version-controlled model version, the as-of date and the final result; the designated tax adviser approves the separate tax adjustment; and Legal or Compliance give an interpretation when one is required. Then the accounting and posting role posts only the approved result under the approved accounting entry and reconciles it. The posting role checks, before and after posting, that amounts posted, distributed, disclosed or sent for member allocation match the exact model version approved by the Client or adviser with no unresolved comment. If that check fails, stop, and reverse or correct under the approved procedure. If required accounts or approvals are missing, posting stops. If it passes, I hand off the approved results and keep the supporting records, and that is the end. One more exception that can come up anywhere: if an outdated regulatory statement or an unsupported calculation or tax treatment appears, we stop using that material and get current validation from Legal, Compliance or Tax; nothing is posted, disclosed or released on stale material. I do not know who has formal internal authority to approve, post or release, or who exactly holds the posting role; that is not established."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "What is the practical consequence if a carry calculation or clawback is incorrect?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "I cannot give you measured consequences, I do not know of a documented dollar impact or a tolerance; the materiality tolerance is not confirmed. What I can say is what the process says to do: if posted, distributed, disclosed or member-allocation amounts do not match the exact approved model version, we stop and reverse or correct under the approved procedure. The reason it matters is that the result feeds other work downstream: the approved net distribution or tax distribution result goes to the teams that execute distributions, the approved vehicle-level carry and holdback result goes to member allocation, the holdback and clawback schedule of changes and release status goes to wind-down until the objective release or settlement is complete, and approved disclosure support goes out only after current Accounting or Legal approval. So a wrong number would flow into distributions, member allocations and disclosure. And on the clawback side, if cumulative carry received ends up above cumulative entitlement, that is a repayment obligation. The known risk points are the fund-specific Excel models: formula errors, broken links, incorrect versions and hidden assumptions, which is why formula changes need version control and independent review. The settlement accounting entries for a clawback are not established, so I do not know how a repayment would actually be booked."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "How do you hand off the approved results to the teams that use them?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "I do not have counts, so I cannot say which is most frequent. The things that stop it, besides unreconciled data and unclear terms, are: the model not being version controlled; tax or legal assumptions that lack support; examples being treated as rules, for instance using an example preferred return rate or example split or example holdback range as a default, where the reviewer stops the process; a complex feature without an approved bridge reconciliation; a holdback release requested without complete approved terms, risk test, schedule of changes and release approval, in which case the carry stays held; a gross clawback without the tax adviser's supported adjustment, where settlement stops; the reviewer's model review failing, which sends it back to me to correct; required accounts or approvals missing at posting; and outdated or legally vacated regulatory material turning up, which goes to Legal, Compliance or Tax for current validation. I should also be honest that a lot is still open: there is no named process owner, model owner, internal approver or posting and release role, no confirmed deadlines, client cutoff, repositories, file naming or retention period, and the fund-specific tiers, rates and holdback and after-tax clawback mechanics have to come from current governing instructions before a fund-specific calculation or release can go ahead. As preparer I must not interpret unresolved governing, tax or legal terms myself; I escalate any conflict between the model and the governing terms, any complex feature, or any result that does not reconcile."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "Is this work known by any other team, checklist, or system name?"
+  },
+  {
+   "id": "t014",
+   "role": "assistant",
+   "text": "This capture still has open sections. 15 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794922479.407,
+   "turn": 0,
+   "seconds": 0.017,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794922482.04,
+   "turn": 2,
+   "seconds": 2.576,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794922499.955,
+   "turn": 3,
+   "seconds": 20.49
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794922518.866,
+   "turn": 3,
+   "seconds": 39.4,
+   "audited": false,
+   "answers_behind": 0,
+   "through": "t002",
+   "steps": 9,
+   "connections": 8
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794922527.543,
+   "turn": 3,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 48.08
+  },
+  {
+   "kind": "question",
+   "at": 1794922529.184,
+   "turn": 4,
+   "seconds": 1.574,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794922567.47,
+   "turn": 5,
+   "seconds": 39.86,
+   "audited": true,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 9,
+   "connections": 8
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794922574.625,
+   "turn": 5,
+   "notes_state": "working",
+   "map_state": "working",
+   "seconds": 47.02
+  },
+  {
+   "kind": "question",
+   "at": 1794922578.034,
+   "turn": 6,
+   "seconds": 3.338,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794922607.843,
+   "turn": 7,
+   "seconds": 33.15,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t004",
+   "steps": 17,
+   "connections": 17
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794922619.124,
+   "turn": 7,
+   "seconds": 44.43
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794922623.219,
+   "turn": 7,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 48.52
+  },
+  {
+   "kind": "question",
+   "at": 1794922626.91,
+   "turn": 8,
+   "seconds": 3.642,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794922666.334,
+   "turn": 9,
+   "seconds": 43.07,
+   "audited": true,
+   "answers_behind": 2,
+   "through": "t004",
+   "steps": 17,
+   "connections": 17
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794922668.881,
+   "turn": 9,
+   "seconds": 45.61
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794922671.95,
+   "turn": 9,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 48.68
+  },
+  {
+   "kind": "question",
+   "at": 1794922675.399,
+   "turn": 10,
+   "seconds": 3.374,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794922704.621,
+   "turn": 11,
+   "seconds": 32.6
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794922720.556,
+   "turn": 11,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 48.53
+  },
+  {
+   "kind": "question",
+   "at": 1794922722.194,
+   "turn": 12,
+   "seconds": 1.584,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794922748.888,
+   "turn": 13,
+   "seconds": 28.28
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794922767.442,
+   "turn": 13,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 46.83
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794922769.537,
+   "turn": 13,
+   "seconds": 2.021,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "queued",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.map_shown",
+   "at": 1794922908.383,
+   "turn": 14,
+   "seconds": 140.87,
+   "audited": false,
+   "answers_behind": 0,
+   "through": "t012",
+   "steps": 30,
+   "connections": 34
+  },
+  {
+   "kind": "wrap.map_ready",
+   "at": 1794923021.75,
+   "turn": 14,
+   "seconds": 254.23,
+   "steps": 33,
+   "connections": 39
+  }
+ ],
+ "started": 1794922479.390686,
+ "revision": "b5d1e2796f28358cc66ef4aebfb2b3c953a3104249a5948884243754cf13aac3",
+ "capture": {
+  "memo_findings": [
+   {
+    "answer": "Carried Interest Waterfall & Clawback",
+    "evidence_turns": [
+     "context"
+    ],
+    "key": "name",
+    "status": "partial"
+   },
+   {
+    "answer": "The work produces approved waterfall and clawback results for posting and handoff, supported by reconciled inputs and the applicable calculation layers.",
+    "evidence_turns": [
+     "t004",
+     "t008"
+    ],
+    "key": "purpose",
+    "status": "captured"
+   },
+   {
+    "answer": "Work starts on any of three events: a realization event under the fund\u2019s governing terms, a required interim clawback test, or final liquidation.\nThe schedule and frequency of interim clawback tests are not confirmed.\nDeadlines and client cutoff are not confirmed.",
+    "evidence_turns": [
+     "t002",
+     "t012"
+    ],
+    "key": "trigger",
+    "status": "partial"
+   },
+   {
+    "answer": "After required review and approvals, the accounting and posting role posts the approved result under the approved accounting entry and reconciles it. Once the version-matching check passes, the preparer hands off approved results and retains supporting records; the participant identifies this as the end.\nThe handoff method and location of retained supporting records remain unidentified.",
+    "evidence_turns": [
+     "t008",
+     "t010"
+    ],
+    "key": "completion",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant is the GP Fund Solutions preparer and performs the initial instructions, cumulative-input reconciliation and fund-specific waterfall steps.\nOverall accountability for the finished result remains unidentified.\nThe owner of the holdback decision is not confirmed.\nThe participant does not know who has formal internal authority to approve, post or release, or who holds the accounting and posting role.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008"
+    ],
+    "key": "accountable",
+    "status": "partial"
+   },
+   {
+    "answer": "After a trigger, the GP Fund Solutions preparer confirms it, identifies whether the fund is whole-fund (European) or deal-by-deal (American), identifies the calculation layer, records applicable terms and definitions from the current LPA and amendments, and confirms the version-controlled Excel waterfall model and as-of date. The output is locked calculation instructions; if the structure or a governing tier term is missing or unclear, work stops pending a current interpretation from Legal or the Client, the model is updated, and affected model and results are recalculated. If the calculation layer or purpose is unclear or layers have been combined, work on that output stops pending definition by the Client or adviser, and each layer is prepared separately; otherwise the preparer proceeds to step two, collecting and reconciling cumulative inputs.\nIn step two, the preparer collects cumulative contributions and distributions from the accounting system and general ledger; proceeds, applicable basis, fees, expenses and valuation from approved transaction, accounting and valuation sources; and prior carry, holdback and clawback from accounting records and the prior approved model.\nThe preparer matches opening balances, prior carried interest, holdback and clawback to the general ledger and prior approved model, producing a reconciled input package for reviewer review. If there is an unexplained difference, the preparer stops and calculation is delayed until the source difference is resolved, with the reviewer or Accounting deciding; the preparer then returns to reconciliation. If reconciled, the preparer proceeds to the fund-specific waterfall.\nIn step three, the preparer uses locked terms and reconciled inputs to apply governing tiers, rates, affected groups and timing in the model, keeping layers separate and preparing bridges for complex features. The output is a waterfall output for each layer; absent a complex feature, the preparer proceeds to step four, holdback.\nWhen a complex feature affects the model, the preparer stops until it is supported, applies the governing treatment and reconciles valuation, tax, conversion and clawback effects. The Client and applicable adviser approve the treatment, which may change model tiers and downstream results, before the preparer continues.\nIn step four, the preparer starts from approved gross carried interest and holdback terms, calculates gross carry, holdback and net distributable carry, updates the schedule of changes and member-capital effect, and documents objective release conditions. The output is a holdback calculation and schedule of changes.\nIf a holdback release is requested without complete approved terms, risk test, schedule of changes and release approval, release stops, carry remains held and the matter stays open with the wind-down process. If complete, release can proceed. Either way, the preparer proceeds to the clawback test.\nAt each required test point, the preparer and designated external tax adviser perform the clawback test. The preparer calculates cumulative carry received less cumulative entitlement. If no gross clawback exists, the preparer records the gross analysis and proceeds to step six.\nIf carry received exceeds entitlement, the preparer obtains the tax adviser's separate tax adjustment and governing approval, retains assumptions and the as-of date, and keeps gross and after-tax calculations separate. The Tax adviser or Client decides; settlement stops without the support. Gross and approved after-tax analyses are produced before step six.\nStep six starts only with a complete package and no blocking exception. The reviewer independently reviews changed inputs, formulas, links, assumptions and layer outputs and checks tiers against approved instructions. If review fails, the preparer corrects the work and it is reviewed again; if it passes, the model is locked.\nAfter model lock, the Client approves the exact model version, as-of date and final result; the designated tax adviser approves the separate tax adjustment; Legal or Compliance interprets when required. The accounting and posting role then posts and reconciles the approved result. Missing required accounts or approvals stop posting.\nBefore and after posting, the posting role checks that amounts posted, distributed, disclosed or sent for member allocation match the exact Client- or adviser-approved model version with no unresolved comment. If the check fails, work stops and the posting is reversed or corrected under the approved procedure; if it passes, the preparer hands off the approved results and retains supporting records.\nAt any stage, an outdated regulatory statement or unsupported calculation or tax treatment stops use of that material pending current validation by Legal, Compliance or Tax. Nothing is posted, disclosed or released on stale material.\nThe reviewer stops the process if examples, such as a preferred return rate, split or holdback range, are treated as default rules. Lack of model version control or supported tax or legal assumptions also stops the work.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t012"
+    ],
+    "key": "lifecycle",
+    "status": "partial"
+   },
+   {
+    "answer": "The preparer checks whether the structure or a governing tier term is missing or unclear, and whether the calculation layer or purpose is unclear or layers have been combined. A positive finding stops work on the affected output pending the stated interpretation or definition and leads to the stated update/recalculation or separate preparation; otherwise the preparer proceeds.\nThe reviewer reviews the preparer's input reconciliation. Unexplained opening or cumulative differences stop calculation until the source difference is resolved, with the reviewer or Accounting deciding, and reconciliation is repeated.\nThe tolerance for a difference requiring action is unconfirmed. The specific comparison and retained evidence for the input-reconciliation review remain unclear.\nThe Client and applicable adviser approve the supported treatment of a complex feature before work continues.\nThe preparer checks that gross carry equals net distribution plus holdback and that every release meets documented, approved criteria. A release is blocked unless approved terms, risk test, schedule of changes and release approval are complete.\nThe participant does not know who reviews the holdback schedule; the holdback decision owner is unconfirmed.\nThe independent reviewer checks all changed inputs, formulas, links, assumptions and calculation-layer outputs and verifies that tiers reproduce the approved calculation instructions. The model change log and sign-off record the review; failed work is corrected and reviewed again before locking.\nThe Client approves the exact model version, as-of date and final result; the designated tax adviser approves the separate tax adjustment. The posting role checks version consistency before and after posting, and failures stop work for reversal or correction under the approved procedure.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t008",
+     "t006"
+    ],
+    "key": "checks",
+    "status": "partial"
+   },
+   {
+    "answer": "Where a complex feature affects the model, the route includes a governing-treatment assessment, bridge reconciliation and Client and applicable adviser approval; without one, the preparer proceeds directly to holdback. Examples include recycling, in-kind distributions, permanent unrealized losses, hurdles, blocker entities, notes or loans, and class differences.\nA gross clawback triggers a separate tax adjustment and governing approval; when no gross clawback exists, the preparer records the gross analysis and proceeds to step six.\nWhen a holdback release is requested, the route depends on complete approved terms, risk test, schedule of changes and release approval; otherwise carry remains held. A complete request may proceed.",
+    "evidence_turns": [
+     "t004",
+     "t006",
+     "t012"
+    ],
+    "key": "variations",
+    "status": "partial"
+   },
+   {
+    "answer": "Unexplained source differences stop work and delay calculation until resolved.",
+    "evidence_turns": [
+     "t004"
+    ],
+    "key": "pain_points",
+    "status": "partial"
+   },
+   {
+    "answer": "An incorrect result could flow into distributions, member allocations and disclosure. Carry received above cumulative entitlement creates a repayment obligation.\nThe participant identifies formula errors, broken links, incorrect versions and hidden assumptions in fund-specific Excel models as risk points; formula changes require version control and independent review.\nThe participant does not know of a documented dollar impact; materiality tolerance is not confirmed.",
+    "evidence_turns": [
+     "t010"
+    ],
+    "key": "risk",
+    "status": "partial"
+   },
+   {
+    "answer": "The first step uses the current limited partnership agreement and amendments to record applicable terms and definitions, and confirms the version-controlled Excel waterfall model and as-of date. These are reported working materials; their storage location and custodian are not stated.\nThe preparer uses accounting records, the general ledger, approved transaction, accounting and valuation sources, and the prior approved model to collect and reconcile cumulative inputs.\nWorking outputs include locked calculation instructions, a reconciled input package, waterfall outputs by layer and bridge reconciliations for complex features.\nHoldback working materials include approved terms, the calculation and schedule of changes, member-capital effects and documented release conditions. Clawback outputs include gross and, where applicable, approved after-tax analyses with assumptions and as-of date.\nThe model change log and sign-off record the independent review. The preparer retains supporting records after handing off approved results.\nDownstream materials include approved distribution results, vehicle-level carry and holdback results, the holdback and clawback schedule of changes and release status, and disclosure support.\nRepositories, file naming and retention period are not confirmed.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010",
+     "t012"
+    ],
+    "key": "materials",
+    "status": "partial"
+   },
+   {
+    "answer": "The described work covers a fund and distinguishes whole-fund (European) from deal-by-deal (American) structures. The named calculation layers are cash distribution waterfall, taxable income allocation, tax distribution, and hypothetical, interim or final clawback.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "scope",
+    "status": "partial"
+   },
+   {
+    "answer": "The preparer records every applicable term and definition from the current LPA and amendments. When the structure or a governing tier term is missing or unclear, Legal or the Client provides a current interpretation; the version-controlled model is then updated and affected model and results recalculated. The interpretation source has not been independently reviewed here.\nIf the calculation layer or purpose is unclear, or layers have been combined, the Client or adviser defines it and each layer is prepared separately.\nThe preparer applies only governing tiers, rates, affected groups and timing to the reconciled inputs, with each calculation layer separate. Complex features require governing treatment and Client and applicable adviser approval.\nHoldback is temporarily withheld carried interest. Gross realized carry equals net distributable carry plus holdback. No cash carry is distributed if the fund is not yet in a cash-carry position.\nThe preparer uses only the approved holdback percentage, accounting treatment, risk test and objective release criteria, not an example range. Gross clawback exists when cumulative carry received exceeds cumulative entitlement; gross and after-tax calculations remain separate.\nThe participant does not know the actual holdback percentage or risk test.\nPosting is limited to the approved result and approved accounting entry. Required accounts and approvals must be present, and stale regulatory or unsupported calculation or tax material cannot support posting, disclosure or release without current validation.\nClawback settlement accounting entries are not established; the participant does not know how repayment would be booked.\nApproved disclosure support goes out only after current Accounting or Legal approval.\nThe preparer must not interpret unresolved governing, tax or legal terms; the preparer escalates conflicts between model and governing terms, complex features and results that do not reconcile.\nExample preferred return rates, splits and holdback ranges must not be used as default rules; the reviewer stops the process if they are.\nFund-specific tiers, rates, holdback and after-tax clawback mechanics require current governing instructions before a fund-specific calculation or release.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010",
+     "t012"
+    ],
+    "key": "rules",
+    "status": "partial"
+   },
+   {
+    "answer": "When terms or structure need interpretation, the process depends on a current interpretation from Legal or the Client; when the calculation layer or purpose needs clarification, it depends on definition from the Client or adviser.\nThe work consumes cumulative contributions and distributions from the accounting system and general ledger, prior carry, holdback and clawback from accounting records, and other inputs from approved transaction, accounting and valuation sources. The reviewer or Accounting decides on source differences.\nWhen a complex feature affects the model, continuation depends on approval by the Client and applicable adviser.\nFor a gross clawback, the process consumes the designated external tax adviser's separate tax adjustment and requires governing approval; the Tax adviser or Client decides. Settlement stops without that support.\nAn incompletely supported holdback release remains open with the wind-down process while the carried interest stays held.\nFinal processing requires the Client's approval of the exact model version, as-of date and final result, and the designated tax adviser's approval of the separate tax adjustment. Legal or Compliance provides an interpretation when required.\nWhen stale regulatory or unsupported calculation or tax material appears, the work depends on current validation from Legal, Compliance or Tax before that material can be used.\nThe approved net distribution or tax distribution result goes to the teams executing distributions; approved vehicle-level carry and holdback results go to member allocation.\nThe holdback and clawback schedule of changes and release status go to wind-down until objective release or settlement is complete.\nDisclosure support requires current Accounting or Legal approval before it goes out.\nProvides input to Teams that execute distributions: Approved net distribution or tax distribution result.\nThe recipient of disclosure support is unidentified.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010"
+    ],
+    "key": "connections",
+    "status": "partial"
+   },
+   {
+    "answer": "The preparer confirms the version-controlled Excel waterfall model and as-of date.\nThe waterfall model's storage location and logic owner remain unidentified. The participant does not know the exact accounting systems or report names.\nThe preparer uses the waterfall model to apply governing tiers, rates, affected groups and timing to reconciled inputs. Cumulative contributions and distributions come from the accounting system and general ledger.",
+    "evidence_turns": [
+     "t002",
+     "t004"
+    ],
+    "key": "data_systems",
+    "status": "partial"
+   },
+   {
+    "answer": "The frequency of interim clawback tests is not known; no other volume or effort estimate is provided.\nThe participant has no counts and cannot identify the most frequent stopping reason.",
+    "evidence_turns": [
+     "t002",
+     "t012"
+    ],
+    "key": "volume",
+    "status": "partial"
+   }
+  ],
+  "coverage": [
+   {
+    "key": "name",
+    "label": "Name & other names",
+    "status": "partial"
+   },
+   {
+    "key": "purpose",
+    "label": "Purpose & result",
+    "status": "partial"
+   },
+   {
+    "key": "trigger",
+    "label": "Start, cadence & deadlines",
+    "status": "partial"
+   },
+   {
+    "key": "completion",
+    "label": "Finished condition",
+    "status": "partial"
+   },
+   {
+    "key": "accountable",
+    "label": "Accountability",
+    "status": "partial"
+   },
+   {
+    "key": "lifecycle",
+    "label": "Items, stages & handoffs",
+    "status": "partial"
+   },
+   {
+    "key": "checks",
+    "label": "Checks, approvals & proof",
+    "status": "partial"
+   },
+   {
+    "key": "variations",
+    "label": "Variations and conditions",
+    "status": "partial"
+   },
+   {
+    "key": "pain_points",
+    "label": "Manual work & pain",
+    "status": "partial"
+   },
+   {
+    "key": "risk",
+    "label": "Consequences of failure",
+    "status": "partial"
+   },
+   {
+    "key": "materials",
+    "label": "Existing materials",
+    "status": "partial"
+   },
+   {
+    "key": "scope",
+    "label": "Scope & entity context",
+    "status": "partial"
+   },
+   {
+    "key": "rules",
+    "label": "Business rules & lineage",
+    "status": "partial"
+   },
+   {
+    "key": "connections",
+    "label": "Connected processes",
+    "status": "partial"
+   },
+   {
+    "key": "data_systems",
+    "label": "Data & systems",
+    "status": "partial"
+   },
+   {
+    "key": "volume",
+    "label": "Volume & effort",
+    "status": "partial"
+   }
+  ],
+  "summary": "The participant listed stopping conditions but cannot rank them without counts. Ownership, deadlines, repositories and fund-specific mechanics remain open; unresolved legal or governing terms must be escalated.",
+  "focus": "Stopping conditions and unresolved governance",
+  "parking_lot": [
+   "Interim test schedule",
+   "Accounting system and report names",
+   "Reconciliation tolerance"
+  ],
+  "connections_out": [
+   {
+    "condition": "When the structure or a governing tier term is missing or unclear, the process uses their current interpretation.",
+    "counterpart": "Legal or the Client",
+    "evidence_turns": [
+     "t002"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "When the calculation layer or purpose is unclear, or layers have been combined, the process uses their definition.",
+    "counterpart": "Client or adviser",
+    "evidence_turns": [
+     "t002"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "Uses accounting and general ledger inputs; the reviewer or Accounting decides on source differences.",
+    "counterpart": "Accounting",
+    "evidence_turns": [
+     "t004"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "When a complex feature affects the model, approval is required before continuation.",
+    "counterpart": "Client and applicable adviser",
+    "evidence_turns": [
+     "t004"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "When a gross clawback exists, the preparer obtains the adviser's separate tax adjustment.",
+    "counterpart": "Designated external tax adviser",
+    "evidence_turns": [
+     "t006"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "For a gross clawback, governing approval is required and the Tax adviser or Client decides; settlement stops without support.",
+    "counterpart": "Tax adviser or Client",
+    "evidence_turns": [
+     "t006"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "An incompletely supported holdback release stays open with wind-down while carry remains held.",
+    "counterpart": "Wind-down process",
+    "evidence_turns": [
+     "t006"
+    ],
+    "relationship_type": "parallel_with"
+   },
+   {
+    "condition": "In final processing the Client approves the exact model version, as-of date and final result.",
+    "counterpart": "Client",
+    "evidence_turns": [
+     "t008"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "In final processing the adviser approves the separate tax adjustment.",
+    "counterpart": "Designated tax adviser",
+    "evidence_turns": [
+     "t008"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "Provides an interpretation when required during final processing.",
+    "counterpart": "Legal or Compliance",
+    "evidence_turns": [
+     "t008"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "Provides current validation when stale regulatory or unsupported calculation or tax material appears.",
+    "counterpart": "Legal, Compliance or Tax",
+    "evidence_turns": [
+     "t008"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "Approved net distribution or tax distribution result.",
+    "counterpart": "Teams that execute distributions",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "Approved vehicle-level carry and holdback result.",
+    "counterpart": "Member allocation",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "Holdback and clawback schedule of changes and release status until objective release or settlement is complete.",
+    "counterpart": "Wind-down process",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "Current approval is required before disclosure support goes out.",
+    "counterpart": "Accounting or Legal",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "requires_approval_from"
+   }
+  ],
+  "taxonomy": [
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "entity_type",
+    "note": "Participant describes a fund-level carried-interest waterfall and clawback process.",
+    "value": "fund"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "functional_area",
+    "note": "Reported scope includes carried-interest waterfall and clawback calculations.",
+    "value": "fees_and_carry"
+   },
+   {
+    "evidence_turns": [
+     "context",
+     "t002"
+    ],
+    "facet": "process_level",
+    "note": "The testimony names the overall Carried Interest Waterfall & Clawback work and its first step.",
+    "value": "process"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "system",
+    "note": "A version-controlled Excel waterfall model is confirmed as part of the first step; its calculation logic is not described.",
+    "value": "excel_workbook"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "rule_source",
+    "note": "Current LPA and amendments are reported as the source of applicable terms and definitions; not independently reviewed.",
+    "value": "lpa_governing_doc"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "variant_class",
+    "note": "The participant distinguishes whole-fund (European) and deal-by-deal (American) fund structures; detailed route differences remain to be elicited.",
+    "value": "structural"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "control_type",
+    "note": "The preparer matches inputs to the general ledger and prior approved model and stops for unexplained differences.",
+    "value": "gpfs_operational"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "control_type",
+    "note": "A reviewer reviews the input reconciliation; reviewer or Accounting decides on source differences.",
+    "value": "gpfs_supervisory"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "control_type",
+    "note": "The Client and applicable adviser approve complex-feature treatment before continuation.",
+    "value": "client_approval"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "facet": "control_type",
+    "note": "The preparer reports checking the gross-to-net holdback equation and approved release criteria.",
+    "value": "gpfs_operational"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "facet": "control_type",
+    "note": "Participant reports Client approval of the exact model version, as-of date and final result before posting.",
+    "value": "client_approval"
+   },
+   {
+    "evidence_turns": [
+     "t012"
+    ],
+    "facet": "control_type",
+    "note": "The preparer reports escalating model-versus-terms conflicts, complex features and unreconciled results.",
+    "value": "exception_escalation"
+   }
+  ],
+  "completion": {
+   "allowed": false,
+   "ready_for_final_check": false,
+   "complete": false,
+   "partial": true,
+   "participant_confirmed": false,
+   "blockers": [
+    "role_incomplete:coverage_reviewer",
+    "role_incomplete:process_reviewer",
+    "coverage_result_unbound",
+    "coverage_incomplete",
+    "coverage_unresolved:name",
+    "coverage_unresolved:purpose",
+    "coverage_unresolved:trigger",
+    "coverage_unresolved:completion",
+    "coverage_unresolved:accountable",
+    "coverage_unresolved:lifecycle",
+    "coverage_unresolved:checks",
+    "coverage_unresolved:variations",
+    "coverage_unresolved:pain_points",
+    "coverage_unresolved:risk",
+    "coverage_unresolved:materials",
+    "coverage_unresolved:scope",
+    "coverage_unresolved:rules",
+    "coverage_unresolved:connections",
+    "coverage_unresolved:data_systems",
+    "coverage_unresolved:volume",
+    "process_result_unbound"
+   ],
+   "revision": "2d364551b347bcef66b1c91c355ec707b10646a5f9f94303c5cd858db8de96f5",
+   "run_id": "ff9fe78cb23946b1a581299fddeaf2d8"
+  },
+  "coverage_assessment": null
+ },
+ "seen_provisional": [
+  [
+   "da1e5406292f76702f516b3589536eb9c2ad9c50809f2f5127bb009e10919fa6",
+   false
+  ],
+  [
+   "da1e5406292f76702f516b3589536eb9c2ad9c50809f2f5127bb009e10919fa6",
+   true
+  ],
+  [
+   "137af9ea681e4e2d0ad91d2a46837e33475370fc9ca8f599204767dc866a994a",
+   false
+  ],
+  [
+   "137af9ea681e4e2d0ad91d2a46837e33475370fc9ca8f599204767dc866a994a",
+   true
+  ],
+  [
+   "b5d1e2796f28358cc66ef4aebfb2b3c953a3104249a5948884243754cf13aac3",
+   false
+  ]
+ ],
+ "workflow_shown": {
+  "connections": [
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S1",
+    "label": "Check governing structure and terms",
+    "to": "S2"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S2",
+    "label": "Structure or tier term missing or unclear",
+    "to": "S3"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S3",
+    "label": "Interpretation provided",
+    "to": "S4"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S4",
+    "label": "Model updated",
+    "to": "S5"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S2",
+    "label": "Structure and tier terms clear",
+    "to": "S6"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S6",
+    "label": "Layer or purpose unclear, or layers combined",
+    "to": "S7"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S7",
+    "label": "Layer or purpose defined",
+    "to": "S8"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S6",
+    "label": "Layer and purpose clear and not combined",
+    "to": "S9"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S9",
+    "label": "Reconciled input package",
+    "to": "S10"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S11",
+    "label": "Unexplained difference",
+    "to": "S12"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S12",
+    "label": "Difference resolved; return to reconciliation",
+    "to": "S9"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S11",
+    "label": "No unexplained difference",
+    "to": "S13"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S13",
+    "label": "Assess complex features",
+    "to": "S14"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S14",
+    "label": "Complex feature affects model",
+    "to": "S15"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S15",
+    "label": "Treatment and effects supported",
+    "to": "S16"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S14",
+    "label": "No complex feature affects model",
+    "to": "S17"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S9",
+    "label": "Check reconciliation",
+    "to": "S11"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "from": "S17",
+    "label": "Assess holdback and any release request",
+    "to": "S18"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "from": "S18",
+    "label": "Release requested; prerequisites incomplete",
+    "to": "S19"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "from": "S18",
+    "label": "Release requested; prerequisites complete",
+    "to": "S20"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "from": "S18",
+    "label": "No release requested",
+    "to": "S21"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "from": "S19",
+    "label": "Carry remains held; proceed to clawback test",
+    "to": "S21"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "from": "S20",
+    "label": "Release can proceed; proceed to clawback test",
+    "to": "S21"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "from": "S21",
+    "label": "Assess gross clawback",
+    "to": "S22"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "from": "S22",
+    "label": "Gross clawback exists",
+    "to": "S23"
+   },
+   {
+    "evidence_turns": [
+     "t006",
+     "t008"
+    ],
+    "from": "S22",
+    "label": "No gross clawback; gross analysis recorded",
+    "to": "S24"
+   },
+   {
+    "evidence_turns": [
+     "t006",
+     "t008"
+    ],
+    "from": "S23",
+    "label": "Support and approval obtained; package complete",
+    "to": "S24"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "from": "S24",
+    "label": "Review fails",
+    "to": "S25"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "from": "S25",
+    "label": "Correct and review again",
+    "to": "S24"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "from": "S24",
+    "label": "Review passes",
+    "to": "S26"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "from": "S26",
+    "label": "Required approvals obtained",
+    "to": "S27"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "from": "S27",
+    "label": "Check amounts against approved version",
+    "to": "S28"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "from": "S28",
+    "label": "Check fails",
+    "to": "S29"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "from": "S28",
+    "label": "Check passes",
+    "to": "S30"
+   }
+  ],
+  "open_questions": [
+   "Does any incoming route start S9 (Collect and reconcile cumulative inputs), or must all prerequisites finish?",
+   "Does any incoming route start S21 (Calculate gross clawback), or must all prerequisites finish?",
+   "Does any incoming route start S24 (Independently review model), or must all prerequisites finish?",
+   "Who detects each trigger and how is readiness known? What are the interim testing schedule, deadlines and client cutoffs?",
+   "After recalculation for an unclear term, where does work resume? After layers are separately prepared, does work proceed to input collection?",
+   "What is the order between input reconciliation review and the reconciliation decision? Is review completion required before calculation?",
+   "What tolerance requires action on a difference, how is resolution recorded, and what does the reconciliation reviewer check?",
+   "After complex-feature approval, where does work resume? What happens if approval is delayed or refused?",
+   "Who owns the holdback decision, reviews its schedule and releases carry? What are the approved percentage, risk test and release mechanics for each applicable fund?",
+   "Who has internal approval, posting and release authority? How are failed posting checks returned for checking?",
+   "How are results handed off, and how do recipients know they are ready? Where are supporting records, interpretations and approvals retained?",
+   "Who is accountable for the overall process and who owns and updates the model? Who prepares separately defined layers?",
+   "How are conflicts between sources resolved and recorded? What are the fund-specific tiers, rates and after-tax clawback mechanics?",
+   "How do structure and calculation layer change the work? Is this the participant's route, a client-specific route or general GPFS practice, and what supports that basis?",
+   "What systems or records are authoritative, and where are calculations and workpapers stored?",
+   "What manual effort or other practical friction occurs? What are normal volumes, peaks, exception frequency and effort by step, if known?",
+   "Are procedures or other materials available for review, and what is the parent process?",
+   "How are clawback repayments settled and booked, and what happens if a required settlement or approval is delayed?"
+  ],
+  "steps": [
+   {
+    "actor": "GPFS preparer",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Current LPA and amendments; trigger and model origins UNKNOWN",
+    "description": "Confirm the trigger, fund structure and calculation layer; record applicable LPA and amendment terms and definitions; and confirm the model and as-of date.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S1",
+    "input": "Realization event, required interim clawback test or final liquidation; current LPA and amendments",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t002"
+      ],
+      "field": "responsible",
+      "text": "I as the GP Fund Solutions preparer do the first step: I confirm the trigger"
+     },
+     {
+      "evidence_turns": [
+       "t002"
+      ],
+      "field": "system",
+      "text": "confirm the version-controlled Excel waterfall model and the as-of date"
+     }
+    ],
+    "output": "Locked calculation instructions",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Current limited partnership agreement and amendments",
+    "system": "Version-controlled Excel waterfall model",
+    "title": "Confirm trigger and calculation instructions",
+    "type": "activity"
+   },
+   {
+    "actor": "GPFS preparer",
+    "completion_criteria": "The outcome of the check is known.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Current LPA and amendments",
+    "description": "Determine whether the structure or a governing tier term is missing or unclear.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "If missing or unclear, stop for interpretation.",
+    "id": "S2",
+    "input": "Structure and governing tier terms",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t002"
+      ],
+      "field": "exception",
+      "text": "If yes, I stop, Legal or the Client gives a current interpretation, the version-controlled model is updated, and the affected model and results are recalculated"
+     }
+    ],
+    "output": "Clear or missing/unclear",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Current limited partnership agreement and amendments",
+    "system": "UNKNOWN",
+    "title": "Are structure or tier terms missing or unclear?",
+    "type": "decision"
+   },
+   {
+    "actor": "Legal or the Client",
+    "completion_criteria": "Interpretation provided",
+    "control_type": [
+     "exception_escalation"
+    ],
+    "data_origin": "Legal or the Client",
+    "description": "Work stops when the structure or a governing tier term is missing or unclear; Legal or the Client gives a current interpretation.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "Model is updated using the interpretation.",
+    "id": "S3",
+    "input": "Missing or unclear structure or governing tier term",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t002"
+      ],
+      "field": "responsible",
+      "text": "Legal or the Client gives a current interpretation"
+     }
+    ],
+    "output": "Current interpretation",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Obtain current interpretation",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "Legal or Client interpretation",
+    "description": "Update the model after the current interpretation is provided.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "Affected model and results are recalculated.",
+    "id": "S4",
+    "input": "Current interpretation",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t002"
+      ],
+      "field": "system",
+      "text": "the version-controlled model is updated"
+     }
+    ],
+    "output": "Updated model",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Version-controlled Excel waterfall model",
+    "title": "Update waterfall model",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "Updated waterfall model",
+    "description": "Recalculate the affected model and results after the model update.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "calculated",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S5",
+    "input": "Updated model",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t002"
+      ],
+      "field": "system",
+      "text": "the version-controlled model is updated, and the affected model and results are recalculated"
+     }
+    ],
+    "output": "Recalculated model and results",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Version-controlled Excel waterfall model",
+    "title": "Recalculate affected model and results",
+    "type": "activity"
+   },
+   {
+    "actor": "GPFS preparer",
+    "completion_criteria": "The outcome of the check is known.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "UNKNOWN",
+    "description": "Determine whether the calculation layer or purpose is unclear, or whether layers have been combined.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "If unclear or combined, stop work on that output.",
+    "id": "S6",
+    "input": "Identified calculation layer and purpose",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t002"
+      ],
+      "field": "exception",
+      "text": "If yes, I stop work on that output, the Client or adviser defines it, and each layer is prepared separately"
+     }
+    ],
+    "output": "Clear and separate, or unclear/combined",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Is the layer or purpose unclear, or are layers combined?",
+    "type": "decision"
+   },
+   {
+    "actor": "Client or adviser",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "exception_escalation"
+    ],
+    "data_origin": "Client or adviser",
+    "description": "After work on the affected output stops, the Client or adviser defines the unclear or combined layer or purpose.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "Each layer is prepared separately.",
+    "id": "S7",
+    "input": "Unclear or combined calculation layer or purpose",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t002"
+      ],
+      "field": "responsible",
+      "text": "the Client or adviser defines it"
+     }
+    ],
+    "output": "Defined layer or purpose",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Define calculation layer",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "Client or adviser definition",
+    "description": "Prepare each calculation layer separately after the Client or adviser defines it.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S8",
+    "input": "Defined calculation layer or purpose",
+    "operating_details": [],
+    "output": "Separately prepared layers",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Prepare layers separately",
+    "type": "activity"
+   },
+   {
+    "actor": "GPFS preparer",
+    "completion_criteria": "Collection and reconciliation performed; a difference may require resolution. Action tolerance UNKNOWN.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Accounting system and records, general ledger, approved transaction and valuation sources, prior approved model",
+    "description": "Collect cumulative contributions, distributions, proceeds, basis, fees, expenses, valuation, prior carried interest, holdback and clawback. Match opening balances, prior carried interest, holdback and clawback to the general ledger and prior approved model.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002",
+     "t004"
+    ],
+    "handoff": "Reviewer reviews the reconciliation; the reconciliation outcome is checked. Their relative order is UNKNOWN.",
+    "id": "S9",
+    "input": "Accounting and general ledger records; approved transaction, accounting and valuation sources; prior approved model",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "responsible",
+      "text": "Step two is mine as preparer. I collect the cumulative inputs"
+     },
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "control",
+      "text": "Then I match opening balances, prior carried interest, holdback and clawback to the general ledger and to the prior approved model."
+     },
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "system",
+      "text": "cumulative contributions and distributions from the accounting system and general ledger"
+     },
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "system",
+      "text": "prior carried interest, holdback and clawback from the accounting records and the prior approved model"
+     }
+    ],
+    "output": "Reconciled input package",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Accounting system, general ledger and prior approved model; exact system and report names UNKNOWN",
+    "title": "Collect and reconcile cumulative inputs",
+    "type": "activity"
+   },
+   {
+    "actor": "Reviewer",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "gpfs_supervisory"
+    ],
+    "data_origin": "Preparer's reconciliation",
+    "description": "Review the preparer's reconciliation of cumulative inputs.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t004"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S10",
+    "input": "Reconciled input package",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "responsible",
+      "text": "the reviewer reviews that reconciliation"
+     }
+    ],
+    "output": "Reviewed reconciliation",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Review input reconciliation",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Decision reached",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Input reconciliation",
+    "description": "Determine whether opening or cumulative data reconcile with no unexplained difference. The tolerance requiring action is not confirmed.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t004"
+    ],
+    "handoff": "Stop for resolution if there is an unexplained difference",
+    "id": "S11",
+    "input": "Input reconciliation",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "exception",
+      "text": "If no, I stop, the calculation is delayed, and the source difference has to be resolved before any calculation, with the reviewer or Accounting deciding; once resolved I come back to the reconciliation."
+     }
+    ],
+    "output": "Reconciled or unexplained difference",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Do cumulative data reconcile?",
+    "type": "decision"
+   },
+   {
+    "actor": "Reviewer or Accounting decides; resolver UNKNOWN",
+    "completion_criteria": "Source difference resolved before calculation",
+    "control_type": [
+     "exception_escalation"
+    ],
+    "data_origin": "Input reconciliation and source records",
+    "description": "Stop and delay the calculation until the source difference is resolved, with the reviewer or Accounting deciding. Return to the reconciliation once resolved.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t004"
+    ],
+    "handoff": "Preparer returns to reconciliation",
+    "id": "S12",
+    "input": "Unexplained source difference",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "exception",
+      "text": "If no, I stop, the calculation is delayed, and the source difference has to be resolved before any calculation, with the reviewer or Accounting deciding; once resolved I come back to the reconciliation."
+     },
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "responsible",
+      "text": "the source difference has to be resolved before any calculation, with the reviewer or Accounting deciding"
+     }
+    ],
+    "output": "Resolved source difference",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Resolve source difference",
+    "type": "activity"
+   },
+   {
+    "actor": "GPFS preparer",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Locked terms and reconciled input package",
+    "description": "Apply the governing tiers, rates, affected groups and timing using locked terms and reconciled inputs. Keep calculation layers separate and prepare bridge reconciliations for complex features.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "calculated",
+    "evidence_turns": [
+     "t002",
+     "t004"
+    ],
+    "handoff": "Assess whether a complex feature affects the model",
+    "id": "S13",
+    "input": "Locked calculation instructions and reconciled inputs",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "responsible",
+      "text": "Step three, also me: using the locked terms and reconciled inputs I apply only the governing tiers, rates, affected groups and timing in the model, keep each calculation layer separate, and prepare bridge reconciliations for any complex features."
+     },
+     {
+      "evidence_turns": [
+       "t002"
+      ],
+      "field": "system",
+      "text": "confirm the version-controlled Excel waterfall model and the as-of date"
+     }
+    ],
+    "output": "Waterfall output for each calculation layer",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Current limited partnership agreement and amendments",
+    "system": "Version-controlled Excel waterfall model",
+    "title": "Prepare fund-specific waterfall",
+    "type": "activity"
+   },
+   {
+    "actor": "GPFS preparer",
+    "completion_criteria": "Decision reached",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Locked terms and waterfall model",
+    "description": "Assess whether a complex feature affects the model, including recycling, distributions in kind, permanent unrealized losses, hurdles, blockers, notes or loans, or class differences.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002",
+     "t004"
+    ],
+    "handoff": "Stop for support if a complex feature affects the model",
+    "id": "S14",
+    "input": "Fund-specific waterfall and applicable features",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "exception",
+      "text": "If yes, I stop until it is supported: I apply only the governing treatment, prepare the reconciliation of valuation, tax, conversion and clawback effects, and the Client and the applicable adviser approve it, which may change model tiers and downstream results; then I continue."
+     },
+     {
+      "evidence_turns": [
+       "t002"
+      ],
+      "field": "system",
+      "text": "confirm the version-controlled Excel waterfall model and the as-of date"
+     }
+    ],
+    "output": "Complex feature affecting model or none identified",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Governing terms",
+    "system": "Version-controlled Excel waterfall model",
+    "title": "Does a complex feature affect the model?",
+    "type": "decision"
+   },
+   {
+    "actor": "GPFS preparer",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Governing terms and relevant valuation, tax, conversion and clawback information",
+    "description": "Apply only the governing treatment and reconcile valuation, tax, conversion and clawback effects. The treatment may change model tiers and downstream results.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002",
+     "t004"
+    ],
+    "handoff": "Client and applicable adviser approve the supported feature",
+    "id": "S15",
+    "input": "Complex feature and governing treatment",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "responsible",
+      "text": "I apply only the governing treatment, prepare the reconciliation of valuation, tax, conversion and clawback effects"
+     },
+     {
+      "evidence_turns": [
+       "t002"
+      ],
+      "field": "system",
+      "text": "confirm the version-controlled Excel waterfall model and the as-of date"
+     }
+    ],
+    "output": "Supported treatment and effects reconciliation",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Governing terms",
+    "system": "Version-controlled Excel waterfall model",
+    "title": "Support complex feature",
+    "type": "activity"
+   },
+   {
+    "actor": "Client and applicable adviser",
+    "completion_criteria": "Client and applicable adviser approve",
+    "control_type": [
+     "client_approval"
+    ],
+    "data_origin": "Preparer's supported treatment",
+    "description": "Approve the supported complex feature and its treatment before work continues.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t004"
+    ],
+    "handoff": "Work continues; exact return point UNKNOWN",
+    "id": "S16",
+    "input": "Supported treatment and effects reconciliation",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "responsible",
+      "text": "the Client and the applicable adviser approve it"
+     }
+    ],
+    "output": "Approved complex-feature treatment",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Governing terms",
+    "system": "UNKNOWN",
+    "title": "Approve complex-feature treatment",
+    "type": "activity"
+   },
+   {
+    "actor": "GPFS preparer",
+    "completion_criteria": "Gross carry reconciles to net distribution plus holdback; release conditions are documented.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Approved holdback terms and carried-interest calculation",
+    "description": "Calculate gross carry, holdback and net distributable carry using approved terms. Update the holdback schedule and member-capital effect, document objective release conditions, and check that gross carry equals net distribution plus holdback. No cash carry is distributed before the fund is in a cash-carry position.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "calculated",
+    "evidence_turns": [
+     "t006"
+    ],
+    "handoff": "Assess any holdback release request.",
+    "id": "S17",
+    "input": "Approved gross carried interest and holdback terms",
+    "operating_details": [],
+    "output": "Holdback calculation and schedule of changes",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Approved holdback terms",
+    "system": "Version-controlled Excel waterfall model",
+    "title": "Calculate holdback",
+    "type": "activity"
+   },
+   {
+    "actor": "Holdback decision owner UNKNOWN",
+    "completion_criteria": "Release prerequisites assessed when a release is requested.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Approved holdback terms and supporting schedule",
+    "description": "Determine whether a holdback or release is required. A requested release requires approved terms, risk test, schedule of changes and release approval.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t006"
+    ],
+    "handoff": "Incomplete releases remain held; proceed to the clawback test.",
+    "id": "S18",
+    "input": "Holdback calculation and any release request",
+    "operating_details": [],
+    "output": "Release readiness or carry held",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Approved holdback terms",
+    "system": "UNKNOWN",
+    "title": "Assess holdback release",
+    "type": "decision"
+   },
+   {
+    "actor": "Release owner UNKNOWN",
+    "completion_criteria": "Release prerequisites completed and approved; subsequent handling UNKNOWN.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Holdback release assessment",
+    "description": "Stop the requested release, keep the carried interest held and leave it open with wind-down.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t006",
+     "t012"
+    ],
+    "handoff": "Holdback status remains with wind-down; the clawback test follows.",
+    "id": "S19",
+    "input": "Release request with incomplete prerequisites",
+    "operating_details": [],
+    "output": "Held carry and open release status",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Approved holdback terms",
+    "system": "UNKNOWN",
+    "title": "Keep incomplete release held",
+    "type": "wait"
+   },
+   {
+    "actor": "Release role UNKNOWN",
+    "completion_criteria": "All stated release prerequisites are complete.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Approved release support",
+    "description": "A requested release can proceed when the approved terms, risk test, schedule of changes and release approval are complete.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t006"
+    ],
+    "handoff": "Proceed to the clawback test; actual release mechanics are UNKNOWN.",
+    "id": "S20",
+    "input": "Completed release prerequisites",
+    "operating_details": [],
+    "output": "Release permitted",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Approved holdback terms",
+    "system": "UNKNOWN",
+    "title": "Permit supported holdback release",
+    "type": "activity"
+   },
+   {
+    "actor": "GPFS preparer and designated external tax adviser",
+    "completion_criteria": "Gross analysis calculated.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Cumulative carry records and entitlement calculation",
+    "description": "At each required test point, calculate the difference between cumulative carry received and cumulative carry entitlement.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "calculated",
+    "evidence_turns": [
+     "t006"
+    ],
+    "handoff": "Determine whether received carry exceeds entitlement.",
+    "id": "S21",
+    "input": "Cumulative carry received and entitlement",
+    "operating_details": [],
+    "output": "Gross clawback analysis",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Current governing instructions",
+    "system": "UNKNOWN",
+    "title": "Calculate gross clawback",
+    "type": "activity"
+   },
+   {
+    "actor": "GPFS preparer and designated external tax adviser",
+    "completion_criteria": "Gross analysis recorded and outcome determined.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Gross clawback analysis",
+    "description": "Determine whether cumulative carry received exceeds cumulative entitlement. If not, record the gross analysis.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "calculated",
+    "evidence_turns": [
+     "t006"
+    ],
+    "handoff": "Obtain tax adjustment and approval if a gross clawback exists; otherwise proceed to final review.",
+    "id": "S22",
+    "input": "Gross clawback analysis",
+    "operating_details": [],
+    "output": "Gross clawback identified or no gross clawback",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Current governing instructions",
+    "system": "UNKNOWN",
+    "title": "Does gross clawback exist?",
+    "type": "decision"
+   },
+   {
+    "actor": "GPFS preparer, designated tax adviser and Client",
+    "completion_criteria": "Supported separate tax adjustment and governing approval obtained.",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Gross analysis, tax adviser adjustment and governing approval",
+    "description": "Obtain the tax adviser's separate tax adjustment and governing approval. Keep gross and after-tax analyses separate, with assumptions and as-of date; settlement stops without support.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "calculated",
+    "evidence_turns": [
+     "t006",
+     "t012"
+    ],
+    "handoff": "Proceed to final review when the package is complete and no exception blocks it.",
+    "id": "S23",
+    "input": "Gross clawback analysis",
+    "operating_details": [],
+    "output": "Gross and approved after-tax analyses",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Current governing instructions",
+    "system": "UNKNOWN",
+    "title": "Support after-tax clawback",
+    "type": "activity"
+   },
+   {
+    "actor": "Reviewer",
+    "completion_criteria": "Independent review passes.",
+    "control_type": [
+     "gpfs_supervisory"
+    ],
+    "data_origin": "Calculation package and approved instructions",
+    "description": "When the package is complete with no blocking exception, independently review changed inputs, formulas, links, assumptions and layer outputs. Check that all tiers reproduce the approved calculation instructions; record review in the model change log and sign-off.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t008"
+    ],
+    "handoff": "Failed review returns to the preparer; passed review permits model locking.",
+    "id": "S24",
+    "input": "Complete calculation package and approved instructions",
+    "operating_details": [],
+    "output": "Review result, model change log and sign-off",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Approved calculation instructions",
+    "system": "Version-controlled Excel waterfall model",
+    "title": "Independently review model",
+    "type": "activity"
+   },
+   {
+    "actor": "GPFS preparer",
+    "completion_criteria": "Correction made and returned for review.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Reviewer findings",
+    "description": "Stop and correct the work after a failed independent review, then return it for review.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t008"
+    ],
+    "handoff": "Reviewer reviews the corrected work again.",
+    "id": "S25",
+    "input": "Failed review",
+    "operating_details": [],
+    "output": "Corrected work",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Version-controlled Excel waterfall model",
+    "title": "Correct failed model review",
+    "type": "activity"
+   },
+   {
+    "actor": "Client, designated tax adviser and Legal or Compliance as required; model-locking role UNKNOWN",
+    "completion_criteria": "Applicable required approvals obtained.",
+    "control_type": [
+     "client_approval",
+     "gpfs_operational"
+    ],
+    "data_origin": "Reviewed model and approval records",
+    "description": "Lock the model after review passes. The Client approves the exact model version, as-of date and final result; the designated tax adviser approves the separate tax adjustment, and Legal or Compliance interprets terms when required.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t008"
+    ],
+    "handoff": "Approved result goes to the accounting and posting role.",
+    "id": "S26",
+    "input": "Passed independent review and final model",
+    "operating_details": [],
+    "output": "Locked model and applicable approvals",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Version-controlled Excel waterfall model",
+    "title": "Lock model and obtain approvals",
+    "type": "activity"
+   },
+   {
+    "actor": "Accounting and posting role; named role UNKNOWN",
+    "completion_criteria": "Required accounts and approvals exist and the version-matching check passes.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Approved model and accounting entry",
+    "description": "Post only the approved result under the approved accounting entry and reconcile it. Before and after posting, check that amounts posted, distributed, disclosed or sent for member allocation match the exact approved model version with no unresolved comment.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t008"
+    ],
+    "handoff": "Passed check permits handoff; failed check stops work for correction or reversal.",
+    "id": "S27",
+    "input": "Approved result, exact approved model version and approved accounting entry",
+    "operating_details": [],
+    "output": "Posted and reconciled result",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Approved accounting entry and procedure",
+    "system": "Accounting system; exact system UNKNOWN",
+    "title": "Post and reconcile approved result",
+    "type": "activity"
+   },
+   {
+    "actor": "Accounting and posting role; named role UNKNOWN",
+    "completion_criteria": "Check outcome known.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Approved model and relevant amounts",
+    "description": "Determine whether the amounts match the exact approved model version with no unresolved comment.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t008"
+    ],
+    "handoff": "Pass to handoff or stop for correction or reversal.",
+    "id": "S28",
+    "input": "Posting and version-matching check",
+    "operating_details": [],
+    "output": "Passed or failed check",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Approved model version",
+    "system": "Accounting system; exact system UNKNOWN",
+    "title": "Check posted amounts",
+    "type": "decision"
+   },
+   {
+    "actor": "Role UNKNOWN",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Failed version-matching check",
+    "description": "Stop and reverse or correct a failed amount check under the approved procedure. The return point after correction is UNKNOWN.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t008",
+     "t010"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S29",
+    "input": "Amount mismatch",
+    "operating_details": [],
+    "output": "Reversal or correction",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Approved procedure",
+    "system": "UNKNOWN",
+    "title": "Reverse or correct mismatch",
+    "type": "activity"
+   },
+   {
+    "actor": "GPFS preparer",
+    "completion_criteria": "Passed posting check, handoff and retention of supporting records.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Approved results, schedules and supporting records",
+    "description": "Hand off approved results and retain supporting records. Distribution results feed execution teams; vehicle carry and holdback feed member allocation; schedules and release status feed wind-down, and disclosure support requires current Accounting or Legal approval.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t008",
+     "t010"
+    ],
+    "handoff": "Distribution execution, member allocation, wind-down and approved disclosure support.",
+    "id": "S30",
+    "input": "Approved and reconciled results and supporting records",
+    "operating_details": [],
+    "output": "Results handed to downstream consumers and records retained",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Repository UNKNOWN",
+    "title": "Hand off approved results",
+    "type": "end"
+   }
+  ],
+  "title": "Carried Interest Waterfall & Clawback"
+ },
+ "workflow": {
+  "connections": [
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S1",
+    "label": "Check governing structure and terms",
+    "to": "S2"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S2",
+    "label": "Structure or tier term missing or unclear",
+    "to": "S3"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S3",
+    "label": "Interpretation provided",
+    "to": "S4"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S4",
+    "label": "Model updated",
+    "to": "S5"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S2",
+    "label": "Structure and tier terms clear",
+    "to": "S6"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S6",
+    "label": "Layer or purpose unclear, or layers combined",
+    "to": "S7"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S7",
+    "label": "Layer or purpose defined",
+    "to": "S8"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S6",
+    "label": "Layer and purpose clear and not combined",
+    "to": "S9"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S9",
+    "label": "Reconciled input package",
+    "to": "S10"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S11",
+    "label": "Unexplained difference",
+    "to": "S12"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S12",
+    "label": "Difference resolved; return to reconciliation",
+    "to": "S9"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S11",
+    "label": "No unexplained difference",
+    "to": "S13"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S13",
+    "label": "Assess complex features",
+    "to": "S14"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S14",
+    "label": "Complex feature affects model",
+    "to": "S15"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S15",
+    "label": "Treatment and effects supported",
+    "to": "S16"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S14",
+    "label": "No complex feature affects model",
+    "to": "S17"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "from": "S9",
+    "label": "Check reconciliation",
+    "to": "S11"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "from": "S17",
+    "label": "Assess holdback and any release request",
+    "to": "S18"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "from": "S18",
+    "label": "Release requested; prerequisites incomplete",
+    "to": "S19"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "from": "S18",
+    "label": "Release requested; prerequisites complete",
+    "to": "S20"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "from": "S18",
+    "label": "No release requested",
+    "to": "S21"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "from": "S19",
+    "label": "Carry remains held; proceed to clawback test",
+    "to": "S21"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "from": "S20",
+    "label": "Release can proceed; proceed to clawback test",
+    "to": "S21"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "from": "S21",
+    "label": "Assess gross clawback",
+    "to": "S22"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "from": "S22",
+    "label": "Gross clawback exists",
+    "to": "S23"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "from": "S24",
+    "label": "Review fails",
+    "to": "S25"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "from": "S25",
+    "label": "Correct and review again",
+    "to": "S24"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "from": "S24",
+    "label": "Review passes",
+    "to": "S26"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "from": "S26",
+    "label": "Required approvals obtained",
+    "to": "S27"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "from": "S27",
+    "label": "Check amounts against approved version",
+    "to": "S28"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "from": "S28",
+    "label": "Check fails",
+    "to": "S29"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "from": "S19",
+    "label": "Release prerequisites subsequently complete",
+    "to": "S20"
+   },
+   {
+    "evidence_turns": [
+     "t006",
+     "t008"
+    ],
+    "from": "S22",
+    "label": "No gross clawback; gross analysis recorded; package complete with no blocking exception",
+    "to": "S24"
+   },
+   {
+    "evidence_turns": [
+     "t006",
+     "t008"
+    ],
+    "from": "S23",
+    "label": "Support and approval obtained; package complete with no blocking exception",
+    "to": "S24"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "from": "S28",
+    "label": "Pre-posting check passes and required accounts and approvals exist",
+    "to": "S31"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "from": "S28",
+    "label": "Required accounts or approvals missing",
+    "to": "S33"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "from": "S31",
+    "label": "Post-posting check",
+    "to": "S32"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "from": "S32",
+    "label": "Post-posting check fails",
+    "to": "S29"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "from": "S32",
+    "label": "Post-posting check passes",
+    "to": "S30"
+   }
+  ],
+  "open_questions": [
+   "Does any incoming route start S9 (Collect and reconcile cumulative inputs), or must all prerequisites finish?",
+   "Does any incoming route start S20 (Permit supported holdback release), or must all prerequisites finish?",
+   "Does any incoming route start S21 (Calculate gross clawback), or must all prerequisites finish?",
+   "Does any incoming route start S24 (Independently review model), or must all prerequisites finish?",
+   "Does any incoming route start S29 (Reverse or correct mismatch), or must all prerequisites finish?",
+   "Who detects each trigger and how is readiness known? What are the interim testing schedule, deadlines and client cutoffs?",
+   "After recalculation for an unclear term, where does work resume? After layers are separately prepared, does work proceed to input collection?",
+   "What is the order between input reconciliation review and the reconciliation decision? Is review completion required before calculation?",
+   "What tolerance requires action on a difference, how is resolution recorded, and what does the reconciliation reviewer check?",
+   "After complex-feature approval, where does work resume? What happens if approval is delayed or refused?",
+   "Who owns the holdback decision, reviews its schedule and releases carry? What are the approved percentage, risk test and release mechanics for each applicable fund?",
+   "Who has internal approval, posting and release authority? How are failed posting checks returned for checking, and how does posting resume after missing accounts or approvals are supplied?",
+   "How are results handed off, and how do recipients know they are ready? Where are supporting records, interpretations and approvals retained?",
+   "Who is accountable for the overall process and who owns and updates the model? Who prepares separately defined layers?",
+   "How are conflicts between sources resolved and recorded? What are the fund-specific tiers, rates and after-tax clawback mechanics?",
+   "How do structure and calculation layer change the work? Is this the participant's route, a client-specific route or general GPFS practice, and what supports that basis?",
+   "What systems or records are authoritative, and where are calculations and workpapers stored?",
+   "What manual effort or other practical friction occurs? What are normal volumes, peaks, exception frequency and effort by step, if known?",
+   "Are procedures or other materials available for review, and what is the parent process?",
+   "How are clawback repayments settled and booked, and what happens if a required settlement or approval is delayed?"
+  ],
+  "steps": [
+   {
+    "actor": "GPFS preparer",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Current LPA and amendments; trigger and model origins UNKNOWN",
+    "description": "Confirm the trigger, fund structure and calculation layer; record applicable LPA and amendment terms and definitions; and confirm the model and as-of date.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S1",
+    "input": "Realization event, required interim clawback test or final liquidation; current LPA and amendments",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t002"
+      ],
+      "field": "responsible",
+      "text": "I as the GP Fund Solutions preparer do the first step: I confirm the trigger"
+     },
+     {
+      "evidence_turns": [
+       "t002"
+      ],
+      "field": "system",
+      "text": "confirm the version-controlled Excel waterfall model and the as-of date"
+     }
+    ],
+    "output": "Locked calculation instructions",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Current limited partnership agreement and amendments",
+    "system": "Version-controlled Excel waterfall model",
+    "title": "Confirm trigger and calculation instructions",
+    "type": "activity"
+   },
+   {
+    "actor": "GPFS preparer",
+    "completion_criteria": "The outcome of the check is known.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Current LPA and amendments",
+    "description": "Determine whether the structure or a governing tier term is missing or unclear.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "If missing or unclear, stop for interpretation.",
+    "id": "S2",
+    "input": "Structure and governing tier terms",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t002"
+      ],
+      "field": "exception",
+      "text": "If yes, I stop, Legal or the Client gives a current interpretation, the version-controlled model is updated, and the affected model and results are recalculated"
+     }
+    ],
+    "output": "Clear or missing/unclear",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Current limited partnership agreement and amendments",
+    "system": "UNKNOWN",
+    "title": "Are structure or tier terms missing or unclear?",
+    "type": "decision"
+   },
+   {
+    "actor": "Legal or the Client",
+    "completion_criteria": "Interpretation provided",
+    "control_type": [
+     "exception_escalation"
+    ],
+    "data_origin": "Legal or the Client",
+    "description": "Work stops when the structure or a governing tier term is missing or unclear; Legal or the Client gives a current interpretation.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "Model is updated using the interpretation.",
+    "id": "S3",
+    "input": "Missing or unclear structure or governing tier term",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t002"
+      ],
+      "field": "responsible",
+      "text": "Legal or the Client gives a current interpretation"
+     }
+    ],
+    "output": "Current interpretation",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Obtain current interpretation",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "Legal or Client interpretation",
+    "description": "Update the model after the current interpretation is provided.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "Affected model and results are recalculated.",
+    "id": "S4",
+    "input": "Current interpretation",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t002"
+      ],
+      "field": "system",
+      "text": "the version-controlled model is updated"
+     }
+    ],
+    "output": "Updated model",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Version-controlled Excel waterfall model",
+    "title": "Update waterfall model",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "Updated waterfall model",
+    "description": "Recalculate the affected model and results after the model update.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "calculated",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S5",
+    "input": "Updated model",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t002"
+      ],
+      "field": "system",
+      "text": "the version-controlled model is updated, and the affected model and results are recalculated"
+     }
+    ],
+    "output": "Recalculated model and results",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Version-controlled Excel waterfall model",
+    "title": "Recalculate affected model and results",
+    "type": "activity"
+   },
+   {
+    "actor": "GPFS preparer",
+    "completion_criteria": "The outcome of the check is known.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "UNKNOWN",
+    "description": "Determine whether the calculation layer or purpose is unclear, or whether layers have been combined.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "If unclear or combined, stop work on that output.",
+    "id": "S6",
+    "input": "Identified calculation layer and purpose",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t002"
+      ],
+      "field": "exception",
+      "text": "If yes, I stop work on that output, the Client or adviser defines it, and each layer is prepared separately"
+     }
+    ],
+    "output": "Clear and separate, or unclear/combined",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Is the layer or purpose unclear, or are layers combined?",
+    "type": "decision"
+   },
+   {
+    "actor": "Client or adviser",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "exception_escalation"
+    ],
+    "data_origin": "Client or adviser",
+    "description": "After work on the affected output stops, the Client or adviser defines the unclear or combined layer or purpose.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "Each layer is prepared separately.",
+    "id": "S7",
+    "input": "Unclear or combined calculation layer or purpose",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t002"
+      ],
+      "field": "responsible",
+      "text": "the Client or adviser defines it"
+     }
+    ],
+    "output": "Defined layer or purpose",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Define calculation layer",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "Client or adviser definition",
+    "description": "Prepare each calculation layer separately after the Client or adviser defines it.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S8",
+    "input": "Defined calculation layer or purpose",
+    "operating_details": [],
+    "output": "Separately prepared layers",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Prepare layers separately",
+    "type": "activity"
+   },
+   {
+    "actor": "GPFS preparer",
+    "completion_criteria": "Collection and reconciliation performed; a difference may require resolution. Action tolerance UNKNOWN.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Accounting system and records, general ledger, approved transaction and valuation sources, prior approved model",
+    "description": "Collect cumulative contributions, distributions, proceeds, basis, fees, expenses, valuation, prior carried interest, holdback and clawback. Match opening balances, prior carried interest, holdback and clawback to the general ledger and prior approved model.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002",
+     "t004"
+    ],
+    "handoff": "Reviewer reviews the reconciliation; the reconciliation outcome is checked. Their relative order is UNKNOWN.",
+    "id": "S9",
+    "input": "Accounting and general ledger records; approved transaction, accounting and valuation sources; prior approved model",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "responsible",
+      "text": "Step two is mine as preparer. I collect the cumulative inputs"
+     },
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "control",
+      "text": "Then I match opening balances, prior carried interest, holdback and clawback to the general ledger and to the prior approved model."
+     },
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "system",
+      "text": "cumulative contributions and distributions from the accounting system and general ledger"
+     },
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "system",
+      "text": "prior carried interest, holdback and clawback from the accounting records and the prior approved model"
+     }
+    ],
+    "output": "Reconciled input package",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Accounting system, general ledger and prior approved model; exact system and report names UNKNOWN",
+    "title": "Collect and reconcile cumulative inputs",
+    "type": "activity"
+   },
+   {
+    "actor": "Reviewer",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "gpfs_supervisory"
+    ],
+    "data_origin": "Preparer's reconciliation",
+    "description": "Review the preparer's reconciliation of cumulative inputs.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t004"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S10",
+    "input": "Reconciled input package",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "responsible",
+      "text": "the reviewer reviews that reconciliation"
+     }
+    ],
+    "output": "Reviewed reconciliation",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Review input reconciliation",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Decision reached",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Input reconciliation",
+    "description": "Determine whether opening or cumulative data reconcile with no unexplained difference. The tolerance requiring action is not confirmed.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t004"
+    ],
+    "handoff": "Stop for resolution if there is an unexplained difference",
+    "id": "S11",
+    "input": "Input reconciliation",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "exception",
+      "text": "If no, I stop, the calculation is delayed, and the source difference has to be resolved before any calculation, with the reviewer or Accounting deciding; once resolved I come back to the reconciliation."
+     }
+    ],
+    "output": "Reconciled or unexplained difference",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Do cumulative data reconcile?",
+    "type": "decision"
+   },
+   {
+    "actor": "Reviewer or Accounting decides; resolver UNKNOWN",
+    "completion_criteria": "Source difference resolved before calculation",
+    "control_type": [
+     "exception_escalation"
+    ],
+    "data_origin": "Input reconciliation and source records",
+    "description": "Stop and delay the calculation until the source difference is resolved, with the reviewer or Accounting deciding. Return to the reconciliation once resolved.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t004"
+    ],
+    "handoff": "Preparer returns to reconciliation",
+    "id": "S12",
+    "input": "Unexplained source difference",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "exception",
+      "text": "If no, I stop, the calculation is delayed, and the source difference has to be resolved before any calculation, with the reviewer or Accounting deciding; once resolved I come back to the reconciliation."
+     },
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "responsible",
+      "text": "the source difference has to be resolved before any calculation, with the reviewer or Accounting deciding"
+     }
+    ],
+    "output": "Resolved source difference",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Resolve source difference",
+    "type": "activity"
+   },
+   {
+    "actor": "GPFS preparer",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Locked terms and reconciled input package",
+    "description": "Apply the governing tiers, rates, affected groups and timing using locked terms and reconciled inputs. Keep calculation layers separate and prepare bridge reconciliations for complex features.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "calculated",
+    "evidence_turns": [
+     "t002",
+     "t004"
+    ],
+    "handoff": "Assess whether a complex feature affects the model",
+    "id": "S13",
+    "input": "Locked calculation instructions and reconciled inputs",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "responsible",
+      "text": "Step three, also me: using the locked terms and reconciled inputs I apply only the governing tiers, rates, affected groups and timing in the model, keep each calculation layer separate, and prepare bridge reconciliations for any complex features."
+     },
+     {
+      "evidence_turns": [
+       "t002"
+      ],
+      "field": "system",
+      "text": "confirm the version-controlled Excel waterfall model and the as-of date"
+     }
+    ],
+    "output": "Waterfall output for each calculation layer",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Current limited partnership agreement and amendments",
+    "system": "Version-controlled Excel waterfall model",
+    "title": "Prepare fund-specific waterfall",
+    "type": "activity"
+   },
+   {
+    "actor": "GPFS preparer",
+    "completion_criteria": "Decision reached",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Locked terms and waterfall model",
+    "description": "Assess whether a complex feature affects the model, including recycling, distributions in kind, permanent unrealized losses, hurdles, blockers, notes or loans, or class differences.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002",
+     "t004"
+    ],
+    "handoff": "Stop for support if a complex feature affects the model",
+    "id": "S14",
+    "input": "Fund-specific waterfall and applicable features",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "exception",
+      "text": "If yes, I stop until it is supported: I apply only the governing treatment, prepare the reconciliation of valuation, tax, conversion and clawback effects, and the Client and the applicable adviser approve it, which may change model tiers and downstream results; then I continue."
+     },
+     {
+      "evidence_turns": [
+       "t002"
+      ],
+      "field": "system",
+      "text": "confirm the version-controlled Excel waterfall model and the as-of date"
+     }
+    ],
+    "output": "Complex feature affecting model or none identified",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Governing terms",
+    "system": "Version-controlled Excel waterfall model",
+    "title": "Does a complex feature affect the model?",
+    "type": "decision"
+   },
+   {
+    "actor": "GPFS preparer",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Governing terms and relevant valuation, tax, conversion and clawback information",
+    "description": "Apply only the governing treatment and reconcile valuation, tax, conversion and clawback effects. The treatment may change model tiers and downstream results.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002",
+     "t004"
+    ],
+    "handoff": "Client and applicable adviser approve the supported feature",
+    "id": "S15",
+    "input": "Complex feature and governing treatment",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "responsible",
+      "text": "I apply only the governing treatment, prepare the reconciliation of valuation, tax, conversion and clawback effects"
+     },
+     {
+      "evidence_turns": [
+       "t002"
+      ],
+      "field": "system",
+      "text": "confirm the version-controlled Excel waterfall model and the as-of date"
+     }
+    ],
+    "output": "Supported treatment and effects reconciliation",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Governing terms",
+    "system": "Version-controlled Excel waterfall model",
+    "title": "Support complex feature",
+    "type": "activity"
+   },
+   {
+    "actor": "Client and applicable adviser",
+    "completion_criteria": "Client and applicable adviser approve",
+    "control_type": [
+     "client_approval"
+    ],
+    "data_origin": "Preparer's supported treatment",
+    "description": "Approve the supported complex feature and its treatment before work continues.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t004"
+    ],
+    "handoff": "Work continues; exact return point UNKNOWN",
+    "id": "S16",
+    "input": "Supported treatment and effects reconciliation",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t004"
+      ],
+      "field": "responsible",
+      "text": "the Client and the applicable adviser approve it"
+     }
+    ],
+    "output": "Approved complex-feature treatment",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Governing terms",
+    "system": "UNKNOWN",
+    "title": "Approve complex-feature treatment",
+    "type": "activity"
+   },
+   {
+    "actor": "GPFS preparer",
+    "completion_criteria": "Gross carry reconciles to net distribution plus holdback; release conditions are documented and every release meets documented, approved criteria.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Approved holdback terms and carried-interest calculation",
+    "description": "Calculate gross carry, holdback and net distributable carry using approved terms. Update the holdback schedule and member-capital effect, document objective release conditions, and check both the carry reconciliation and that every release meets documented, approved criteria. No cash carry is distributed before the fund is in a cash-carry position.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "calculated",
+    "evidence_turns": [
+     "t006"
+    ],
+    "handoff": "Assess holdback and any release request.",
+    "id": "S17",
+    "input": "Approved gross carried interest and holdback terms",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t006"
+      ],
+      "field": "responsible",
+      "text": "Step four is me as preparer, starting from the approved gross carried interest and the holdback terms."
+     },
+     {
+      "evidence_turns": [
+       "t006"
+      ],
+      "field": "control",
+      "text": "The check I run is that gross carry equals net distribution plus holdback and that every release meets documented, approved criteria."
+     },
+     {
+      "evidence_turns": [
+       "t006"
+      ],
+      "field": "control",
+      "text": "if the fund is not yet in a cash-carry position, cash carry is not distributed at all."
+     }
+    ],
+    "output": "Holdback calculation and schedule of changes",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Approved holdback terms",
+    "system": "UNKNOWN",
+    "title": "Calculate holdback",
+    "type": "activity"
+   },
+   {
+    "actor": "Holdback decision owner UNKNOWN",
+    "completion_criteria": "The assessment outcome is known; release prerequisites are assessed when a release is requested.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Approved holdback terms and supporting schedule",
+    "description": "Determine whether a holdback is required or a release is requested. A requested release requires approved terms, risk test, schedule of changes and release approval.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t006"
+    ],
+    "handoff": "Incomplete releases remain held; the clawback test follows.",
+    "id": "S18",
+    "input": "Holdback calculation and any release request",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t006"
+      ],
+      "field": "control",
+      "text": "If a release is requested and the approved terms, risk test, schedule of changes and release approval are not all complete, the release stops, the carried interest stays held and it stays open with the wind-down process."
+     }
+    ],
+    "output": "Holdback or release assessment",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Approved holdback terms",
+    "system": "UNKNOWN",
+    "title": "Is holdback or release required?",
+    "type": "decision"
+   },
+   {
+    "actor": "Release owner UNKNOWN",
+    "completion_criteria": "Release stopped and status left open with wind-down; release prerequisites may subsequently be completed.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Holdback release assessment",
+    "description": "Stop the requested release, keep the carried interest held and leave the release open with wind-down. The clawback test proceeds while the release remains open; the release can go ahead once all stated prerequisites are complete.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t006",
+     "t012"
+    ],
+    "handoff": "Proceed to clawback testing; retain the open release with wind-down.",
+    "id": "S19",
+    "input": "Release request with incomplete prerequisites",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t006"
+      ],
+      "field": "exception",
+      "text": "If a release is requested and the approved terms, risk test, schedule of changes and release approval are not all complete, the release stops, the carried interest stays held and it stays open with the wind-down process."
+     }
+    ],
+    "output": "Held carry and open release status",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Approved holdback terms",
+    "system": "UNKNOWN",
+    "title": "Keep incomplete release held",
+    "type": "activity"
+   },
+   {
+    "actor": "Release role UNKNOWN",
+    "completion_criteria": "All stated release prerequisites are complete.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Approved release support",
+    "description": "A requested release can proceed when the approved terms, risk test, schedule of changes and release approval are complete. Actual release mechanics are UNKNOWN.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t006"
+    ],
+    "handoff": "Proceed to the clawback test.",
+    "id": "S20",
+    "input": "Completed release prerequisites",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t006"
+      ],
+      "field": "control",
+      "text": "If a release is requested and the approved terms, risk test, schedule of changes and release approval are not all complete, the release stops, the carried interest stays held and it stays open with the wind-down process. If they are complete the release can go ahead."
+     }
+    ],
+    "output": "Release permitted",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Approved holdback terms",
+    "system": "UNKNOWN",
+    "title": "Permit supported holdback release",
+    "type": "activity"
+   },
+   {
+    "actor": "GPFS preparer and designated external tax adviser",
+    "completion_criteria": "Gross analysis calculated.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Cumulative carry records and entitlement calculation",
+    "description": "At each required test point, calculate the difference between cumulative carry received and cumulative carry entitlement.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "calculated",
+    "evidence_turns": [
+     "t006"
+    ],
+    "handoff": "Determine whether received carry exceeds entitlement.",
+    "id": "S21",
+    "input": "Cumulative carry received and entitlement",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t006"
+      ],
+      "field": "responsible",
+      "text": "That is me plus the designated external tax adviser, at each required test point. I calculate the difference between cumulative carry received and cumulative carry entitlement."
+     },
+     {
+      "evidence_turns": [
+       "t006"
+      ],
+      "field": "frequency",
+      "text": "at each required test point"
+     }
+    ],
+    "output": "Gross clawback analysis",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Current governing instructions",
+    "system": "UNKNOWN",
+    "title": "Calculate gross clawback",
+    "type": "activity"
+   },
+   {
+    "actor": "GPFS preparer and designated external tax adviser",
+    "completion_criteria": "The outcome is determined; if there is no gross clawback, the gross analysis is recorded.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Gross clawback analysis",
+    "description": "Determine whether cumulative carry received exceeds cumulative entitlement. If not, record the gross analysis.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "calculated",
+    "evidence_turns": [
+     "t006"
+    ],
+    "handoff": "Obtain tax adjustment and approval if a gross clawback exists; otherwise proceed to final review when the package is complete and unblocked.",
+    "id": "S22",
+    "input": "Gross clawback analysis",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t006"
+      ],
+      "field": "responsible",
+      "text": "If no, I record the gross analysis and go to step six."
+     }
+    ],
+    "output": "Gross clawback identified or no gross clawback",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Current governing instructions",
+    "system": "UNKNOWN",
+    "title": "Does gross clawback exist?",
+    "type": "decision"
+   },
+   {
+    "actor": "GPFS preparer; tax adviser or Client decides",
+    "completion_criteria": "Supported separate tax adjustment and governing approval obtained.",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Gross analysis, tax adviser adjustment and governing approval",
+    "description": "Obtain the tax adviser's separate tax adjustment and governing approval. Keep gross and after-tax analyses separate, with assumptions and as-of date; settlement stops without support.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "calculated",
+    "evidence_turns": [
+     "t006",
+     "t012"
+    ],
+    "handoff": "Proceed to final review when the package is complete and no exception blocks it.",
+    "id": "S23",
+    "input": "Gross clawback analysis",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t006"
+      ],
+      "field": "responsible",
+      "text": "I obtain the tax adviser's separate tax adjustment and the governing approval"
+     },
+     {
+      "evidence_turns": [
+       "t006"
+      ],
+      "field": "responsible",
+      "text": "the Tax adviser or the Client decides"
+     },
+     {
+      "evidence_turns": [
+       "t006"
+      ],
+      "field": "exception",
+      "text": "settlement is stopped without that support."
+     }
+    ],
+    "output": "Gross and approved after-tax analyses",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Current governing instructions",
+    "system": "UNKNOWN",
+    "title": "Support after-tax clawback",
+    "type": "activity"
+   },
+   {
+    "actor": "Reviewer",
+    "completion_criteria": "The review outcome is known, whether pass or fail.",
+    "control_type": [
+     "gpfs_supervisory"
+    ],
+    "data_origin": "Calculation package and approved instructions",
+    "description": "When the package is complete with no blocking exception, independently review changed inputs, formulas, links, assumptions and layer outputs. Check that all tiers reproduce the approved calculation instructions; the record is the model change log and sign-off.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t008"
+    ],
+    "handoff": "Failed review returns to the preparer; passed review permits model locking.",
+    "id": "S24",
+    "input": "Complete calculation package and approved instructions",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t008"
+      ],
+      "field": "responsible",
+      "text": "first the reviewer independently reviews my work, every changed input, formula, link, assumption and calculation-layer output, and checks all tiers reproduce the approved calculation instructions; the record is the model change log and sign-off."
+     },
+     {
+      "evidence_turns": [
+       "t008"
+      ],
+      "field": "exception",
+      "text": "If that review fails, we stop and I correct it, then it is reviewed again."
+     }
+    ],
+    "output": "Review result, model change log and sign-off",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Approved calculation instructions",
+    "system": "Version-controlled Excel waterfall model",
+    "title": "Independently review model",
+    "type": "activity"
+   },
+   {
+    "actor": "GPFS preparer",
+    "completion_criteria": "Correction made and returned for review.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Reviewer findings",
+    "description": "Stop and correct the work after a failed independent review, then return it for review.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t008"
+    ],
+    "handoff": "Reviewer reviews the corrected work again.",
+    "id": "S25",
+    "input": "Failed review",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t008"
+      ],
+      "field": "responsible",
+      "text": "If that review fails, we stop and I correct it, then it is reviewed again."
+     }
+    ],
+    "output": "Corrected work",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Version-controlled Excel waterfall model",
+    "title": "Correct failed model review",
+    "type": "activity"
+   },
+   {
+    "actor": "Client, designated tax adviser and Legal or Compliance as applicable; model-locking role UNKNOWN",
+    "completion_criteria": "Applicable required approvals obtained.",
+    "control_type": [
+     "client_approval",
+     "gpfs_operational"
+    ],
+    "data_origin": "Reviewed model and approval records",
+    "description": "Lock the model after review passes. The Client approves the exact model version, as-of date and final result; the designated tax adviser approves the separate tax adjustment where applicable, and Legal or Compliance interprets terms when required.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t006",
+     "t008"
+    ],
+    "handoff": "Approved result goes to the accounting and posting role.",
+    "id": "S26",
+    "input": "Passed independent review and final model",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t008"
+      ],
+      "field": "responsible",
+      "text": "the Client approves the exact version-controlled model version, the as-of date and the final result"
+     },
+     {
+      "evidence_turns": [
+       "t008"
+      ],
+      "field": "responsible",
+      "text": "the designated tax adviser approves the separate tax adjustment"
+     },
+     {
+      "evidence_turns": [
+       "t008"
+      ],
+      "field": "responsible",
+      "text": "Legal or Compliance give an interpretation when one is required."
+     }
+    ],
+    "output": "Locked model and applicable approvals",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Version-controlled Excel waterfall model",
+    "title": "Lock model and obtain approvals",
+    "type": "activity"
+   },
+   {
+    "actor": "Accounting and posting role; named role UNKNOWN",
+    "completion_criteria": "Check and required-account and approval status are assessed, whether or not posting can proceed.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Approved model and relevant amounts",
+    "description": "Before posting, check that relevant amounts match the exact model version approved by the Client or adviser with no unresolved comment. Required accounts and approvals must also be available before posting.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t008"
+    ],
+    "handoff": "Determine whether posting may proceed.",
+    "id": "S27",
+    "input": "Approved model version, relevant amounts and required accounts and approvals",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t008"
+      ],
+      "field": "responsible",
+      "text": "The posting role checks, before and after posting, that amounts posted, distributed, disclosed or sent for member allocation match the exact model version approved by the Client or adviser with no unresolved comment."
+     },
+     {
+      "evidence_turns": [
+       "t008"
+      ],
+      "field": "exception",
+      "text": "If required accounts or approvals are missing, posting stops."
+     }
+    ],
+    "output": "Pre-posting check and availability of required accounts and approvals",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Approved model version",
+    "system": "Accounting system; exact system UNKNOWN",
+    "title": "Check amounts before posting",
+    "type": "activity"
+   },
+   {
+    "actor": "Accounting and posting role; named role UNKNOWN",
+    "completion_criteria": "The applicable outcome is known.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Approved model and pre-posting check",
+    "description": "Determine whether the pre-posting version-matching check passes and required accounts and approvals exist.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t008"
+    ],
+    "handoff": "Post only if the check passes and required accounts and approvals exist; otherwise stop.",
+    "id": "S28",
+    "input": "Pre-posting check and required-account and approval status",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t008"
+      ],
+      "field": "control",
+      "text": "If that check fails, stop, and reverse or correct under the approved procedure. If required accounts or approvals are missing, posting stops."
+     }
+    ],
+    "output": "Posting permitted, failed check, or missing accounts or approvals",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Approved model version",
+    "system": "UNKNOWN",
+    "title": "May posting proceed?",
+    "type": "decision"
+   },
+   {
+    "actor": "Role UNKNOWN",
+    "completion_criteria": "UNKNOWN",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Failed version-matching check",
+    "description": "Stop and reverse or correct a failed amount check under the approved procedure. The return point after correction is UNKNOWN.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t008",
+     "t010"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S29",
+    "input": "Amount mismatch",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t008"
+      ],
+      "field": "exception",
+      "text": "If that check fails, stop, and reverse or correct under the approved procedure."
+     }
+    ],
+    "output": "Reversal or correction",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Approved procedure",
+    "system": "UNKNOWN",
+    "title": "Reverse or correct mismatch",
+    "type": "activity"
+   },
+   {
+    "actor": "GPFS preparer",
+    "completion_criteria": "Passed posting check, handoff and retention of supporting records.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Approved results, schedules and supporting records",
+    "description": "Hand off approved results and retain supporting records. Distribution results feed execution teams; vehicle carry and holdback feed member allocation; schedules and release status feed wind-down, and disclosure support requires current Accounting or Legal approval.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t008",
+     "t010"
+    ],
+    "handoff": "Distribution execution, member allocation, wind-down and approved disclosure support.",
+    "id": "S30",
+    "input": "Approved and reconciled results and supporting records",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t008"
+      ],
+      "field": "responsible",
+      "text": "If it passes, I hand off the approved results and keep the supporting records, and that is the end."
+     },
+     {
+      "evidence_turns": [
+       "t010"
+      ],
+      "field": "control",
+      "text": "approved disclosure support goes out only after current Accounting or Legal approval."
+     }
+    ],
+    "output": "Results handed to downstream consumers and records retained",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Repository UNKNOWN",
+    "title": "Hand off approved results",
+    "type": "activity"
+   },
+   {
+    "actor": "Accounting and posting role; named role UNKNOWN",
+    "completion_criteria": "Posting, reconciliation and post-posting check performed; check outcome may pass or fail.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Approved model and accounting entry",
+    "description": "Post only the approved result under the approved accounting entry and reconcile it. Check relevant amounts against the exact approved model version after posting.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t008"
+    ],
+    "handoff": "Determine the post-posting check outcome.",
+    "id": "S31",
+    "input": "Approved result, approved accounting entry and passed pre-posting check",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t008"
+      ],
+      "field": "responsible",
+      "text": "Then the accounting and posting role posts only the approved result under the approved accounting entry and reconciles it."
+     },
+     {
+      "evidence_turns": [
+       "t008"
+      ],
+      "field": "control",
+      "text": "The posting role checks, before and after posting, that amounts posted, distributed, disclosed or sent for member allocation match the exact model version approved by the Client or adviser with no unresolved comment."
+     }
+    ],
+    "output": "Posted and reconciled result and post-posting check",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Approved accounting entry",
+    "system": "Accounting system; exact system UNKNOWN",
+    "title": "Post and reconcile approved result",
+    "type": "activity"
+   },
+   {
+    "actor": "Accounting and posting role; named role UNKNOWN",
+    "completion_criteria": "Check outcome known.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Approved model and relevant amounts",
+    "description": "Determine whether relevant amounts match the exact approved model version with no unresolved comment after posting.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t008"
+    ],
+    "handoff": "Pass to handoff or stop for correction or reversal.",
+    "id": "S32",
+    "input": "Post-posting version-matching check",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t008"
+      ],
+      "field": "exception",
+      "text": "If that check fails, stop, and reverse or correct under the approved procedure."
+     }
+    ],
+    "output": "Passed or failed check",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Approved model version",
+    "system": "UNKNOWN",
+    "title": "Does post-posting check pass?",
+    "type": "decision"
+   },
+   {
+    "actor": "Accounting and posting role; named role UNKNOWN",
+    "completion_criteria": "Posting stopped.",
+    "control_type": [
+     "exception_escalation"
+    ],
+    "data_origin": "Required accounts and approvals",
+    "description": "Stop posting when required accounts or approvals are missing. The resolution and return point are UNKNOWN.",
+    "entity_scope": [
+     "fund"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t008"
+    ],
+    "handoff": "UNKNOWN",
+    "id": "S33",
+    "input": "Missing required accounts or approvals",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t008"
+      ],
+      "field": "exception",
+      "text": "If required accounts or approvals are missing, posting stops."
+     }
+    ],
+    "output": "Posting stopped",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Stop posting for missing prerequisites",
+    "type": "activity"
+   }
+  ],
+  "title": "Carried Interest Waterfall & Clawback"
+ },
+ "workflow_revision": "b5d1e2796f28358cc66ef4aebfb2b3c953a3104249a5948884243754cf13aac3",
+ "finished": 1794923021.750321,
+ "graph_checks": {
+  "steps": 33,
+  "connections": 39,
+  "types": {
+   "activity": 25,
+   "decision": 8
+  },
+  "components": 1,
+  "isolated_steps": [],
+  "entry_points": [
+   "S1"
+  ],
+  "typed_start": [],
+  "exit_points": [
+   "S5",
+   "S8",
+   "S10",
+   "S16",
+   "S29",
+   "S30",
+   "S33"
+  ],
+  "typed_end": [],
+  "decisions_with_under_two_exits": [],
+  "decision_exits_without_label": [],
+  "non_decision_with_multiple_exits": [
+   "S9",
+   "S19",
+   "S24"
+  ],
+  "steps_without_actor": [],
+  "actors": [
+   "Accounting and posting role; named role UNKNOWN",
+   "Client and applicable adviser",
+   "Client or adviser",
+   "Client, designated tax adviser and Legal or Compliance as applicable; model-locking role UNKNOWN",
+   "GPFS preparer",
+   "GPFS preparer and designated external tax adviser",
+   "GPFS preparer; tax adviser or Client decides",
+   "Holdback decision owner UNKNOWN",
+   "Legal or the Client",
+   "Release owner UNKNOWN",
+   "Release role UNKNOWN",
+   "Reviewer",
+   "Reviewer or Accounting decides; resolver UNKNOWN",
+   "Role UNKNOWN",
+   "UNKNOWN"
+  ],
+  "open_questions": 20
+ }
+}

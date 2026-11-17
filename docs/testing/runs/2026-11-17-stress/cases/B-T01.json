@@ -1,0 +1,1932 @@
+{
+ "case": "B-T01",
+ "port": 8801,
+ "interview_id": "79cdaae7251d495b9f7cba80ab1b787a",
+ "context": {
+  "process_name": "Capital Call & Distribution Event Execution",
+  "process_owner": "",
+  "objective": "Document how we carry out Capital Call & Distribution Event Execution, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "It starts when a client tells us, or we identify, a need to move capital: a line of credit repayment, investment funding, a management fee, operating expenses, portfolio company proceeds or an ad hoc request. Let me walk the whole thing end to end. Step 1, the assigned preparer (CAP Activity Team or Fund Team, it depends on the event and client) opens the event: classifies it as a capital call, distribution or combined net event, records driver, entity, amount and expected cash dates, and names the preparer and second reviewer. Step 2, the preparer builds the event calendar from the LPA notice rule (business or calendar days) and checks bank holidays and payment cut-offs; if a requested date cannot meet the notice rule or cut-off we escalate. Step 3, the preparer assembles the data pack and marks every input final, estimated or pending. Step 4, the preparer copies the prior locked Excel event file forward, pulls beginning balances from the power report, trial balance and partner capital files and ties them to the prior deliverable; an unexplained difference is escalated to the reviewer and client before calculations are finalized. Step 5, preparer with reviewer and client freezes the methodology; if LPA treatment is ambiguous we pause and get written client or legal direction. Step 6, population gate: preparer lists every investor, reviewer checks independently; any unconfirmed change stays excluded until written client direction. Step 7, preparer runs the allocations in Excel and fills the summary allocation tab; investor totals must equal fund totals apart from documented rounding. Step 8, preparer reconciles to partner capital, GP unfunded and trial balance, reviewer verifies; any unexplained difference pauses client submission. Step 9, the second reviewer does the internal review; comments go back to the preparer for correction, otherwise sign-off. Step 10, preparer sends the package to the client; feedback means we revise and repeat affected checks; on final written approval we lock the file. No posting or release before that. Step 11, preparer merges notices from the summary tab into the Word template, converts to PDF, and the reviewer compares each notice to the locked allocation in e-check; failures are regenerated, never patched. Step 12, Fund Team or preparer prepares journal entries, routes them through accounting review and posts in the GL (Allvue or Entrilia); for cash outflows Treasury initiates payment after bank detail controls. Step 13, Investor Services splits notices, uploads to the investor portal and releases the email campaign, holding release on any mapping or contact discrepancy. Step 14, closeout: for a call we hand the receivable baseline to receipt tracking; for a distribution we confirm wires settled; update historical records, complete client deliverables and retain the final package."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "Who is accountable for the overall result across these event steps?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "I do not know. The overall process owner and the internal approver have not been confirmed, and ownership between the CAP Activity Team and the Fund Team is not standardized. What I can say is that the preparing team and a second reviewer from the assigned operating team must be named when the event opens, the second reviewer must sign off before anything goes to the client, and the client approves the final event amounts and notices. The exact role title of the second reviewer is also not confirmed."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What determines how the event amount is allocated across investors in the Excel file?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "Money moves on this work, so investors could be asked to fund the wrong amounts by a due date or be paid the wrong proceeds. The specific failures we guard against are: the event run for the wrong investor population, which means the event has failed even if the math is right; a notice that does not agree with the locked allocation; a missed manual notice step that discloses information to the wrong party or releases inconsistent notices; a due date that breaks the LPA notice rule or lands on a bank holiday or past a cut-off so it cannot be executed; and a posted GL entry that does not equal the locked totals. If an error or a late client change is found after posting, the entry has to be reversed and reposted through the controlled accounting workflow, and the affected review, notice and approval steps are repeated. Errors also flow downstream into receipt tracking for calls, distribution economics and Treasury execution."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "Roughly how many capital call, distribution, or combined net events does the team handle in a typical month?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "I cannot give you a measured breakdown of where the time goes, nobody has estimated that. What I can say: setup and inputs are manual and depend on client instructions. Allocation rules and percentages live in Excel, and every event starts by copying the prior workbook forward and tying beginning balances to the prior deliverable; the workbook can carry manual entries, plugs, manual rounding, hidden tabs, broken links and outdated settings that have to be sourced or cleaned up. Historical proceeds, tax details and special rules can be spread across several workpapers. Rework mainly comes from repeated client changes, which make version control harder, and from changes after posting, which force a reversal and repost with renewed approvals. Investor Services also has to split notices manually and coordinate the email campaign. As a rough example only, a basic capital call takes a couple of hours, while a complex distribution with holdbacks, tranches, waterfall or tax coordination can take a couple of days or longer."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "About how many capital call, distribution, or combined net events do you handle in a typical month?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "Several things. For One Rock we complete a Cobalt upload within two days of a capital event, at closeout. GP vehicles have their own population, waiver, commitment and carry rules. Deal-by-deal or tranche-based funds keep separate allocation history per investment or tranche. For net events we keep the call and distribution components separate even when the investor sees one net amount. Notice timing varies by fund: some LPAs use business days, some calendar days, and they are not interchangeable. Where the governing documents are silent on an allocation treatment, we only use a written, current client-approved methodology for that specific fund. Clients can also elect the narrative, notice date, presentation, net-event display or recipient population, and that is recorded in the event brief. The GL platform and journal entry approval route differ by entity, Allvue or Entrilia, but which entity uses which is not confirmed. And when we also service the management company, invoice information comes from that team as well as the Fund Team. Nothing differs by country or currency that I know of."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "For a combined net event, what happens at closeout for its call and distribution components?"
+  },
+  {
+   "id": "t012",
+   "role": "assistant",
+   "text": "This capture still has open sections. 12 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794922479.418,
+   "turn": 0,
+   "seconds": 0.026,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794922482.691,
+   "turn": 2,
+   "seconds": 3.218,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794922518.352,
+   "turn": 3,
+   "seconds": 38.88
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794922528.056,
+   "turn": 3,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 48.58
+  },
+  {
+   "kind": "question",
+   "at": 1794922530.865,
+   "turn": 4,
+   "seconds": 2.742,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794922533.435,
+   "turn": 5,
+   "seconds": 5.31,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 14,
+   "connections": 13
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794922557.986,
+   "turn": 5,
+   "seconds": 29.86
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794922575.894,
+   "turn": 5,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 47.77
+  },
+  {
+   "kind": "question",
+   "at": 1794922579.186,
+   "turn": 6,
+   "seconds": 3.215,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794922606.32,
+   "turn": 7,
+   "seconds": 30.35
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794922624.244,
+   "turn": 7,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 48.27
+  },
+  {
+   "kind": "question",
+   "at": 1794922625.794,
+   "turn": 8,
+   "seconds": 1.496,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794922661.067,
+   "turn": 9,
+   "seconds": 36.77
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794922671.285,
+   "turn": 9,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 46.99
+  },
+  {
+   "kind": "question",
+   "at": 1794922673.705,
+   "turn": 10,
+   "seconds": 2.353,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794922690.035,
+   "turn": 11,
+   "seconds": 18.68,
+   "audited": true,
+   "answers_behind": 4,
+   "through": "t002",
+   "steps": 15,
+   "connections": 14
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794922719.216,
+   "turn": 11,
+   "notes_state": "working",
+   "map_state": "working",
+   "seconds": 47.86
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794922722.516,
+   "turn": 11,
+   "seconds": 3.223,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "working",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.map_shown",
+   "at": 1794922744.127,
+   "turn": 12,
+   "seconds": 24.83,
+   "audited": false,
+   "answers_behind": 0,
+   "through": "t010",
+   "steps": 16,
+   "connections": 15
+  },
+  {
+   "kind": "wrap.map_ready",
+   "at": 1794922890.677,
+   "turn": 12,
+   "seconds": 171.38,
+   "steps": 16,
+   "connections": 15
+  }
+ ],
+ "started": 1794922479.391472,
+ "revision": "5e2a6f733fd134048d9eaadaa10f41bea72817c13ad807567e42ad083ff690ad",
+ "capture": {
+  "memo_findings": [
+   {
+    "answer": "Capital Call & Distribution Event Execution",
+    "evidence_turns": [
+     "context"
+    ],
+    "key": "name",
+    "status": "captured"
+   },
+   {
+    "answer": "The work carries out capital calls, distributions, or combined net events to move capital for identified needs such as investment funding, fee or expense payments, credit-line repayment, proceeds, or ad hoc requests.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "purpose",
+    "status": "captured"
+   },
+   {
+    "answer": "Work starts when a client tells the team of a need to move capital or the team identifies one.\nNormal frequency, who receives or detects a request, and other fixed deadlines beyond the reported notice, payment cut-off and One Rock upload requirements remain unclear.",
+    "evidence_turns": [
+     "t002",
+     "t010"
+    ],
+    "key": "trigger",
+    "status": "partial"
+   },
+   {
+    "answer": "Reported closeout includes handing a call's receivable baseline to receipt tracking or confirming distribution wires settled, updating historical records, completing client deliverables, and retaining the final package.\nThe specific closeout conditions for the call and distribution components of a combined net event remain unclear.\nFor One Rock, closeout includes completing a Cobalt upload within two days of a capital event.",
+    "evidence_turns": [
+     "t002",
+     "t010"
+    ],
+    "key": "completion",
+    "status": "partial"
+   },
+   {
+    "answer": "The assigned preparer may be from the CAP Activity Team or Fund Team, depending on the event and client. The preparing team and a second reviewer from the assigned operating team must be named when the event opens.\nThe role accountable for the overall result, distinct from the preparer and second reviewer, is not established.\nThe internal approver and exact role title of the second reviewer have not been confirmed.\nThe participant says ownership between the CAP Activity Team and Fund Team is not standardized.",
+    "evidence_turns": [
+     "t002",
+     "t004"
+    ],
+    "key": "accountable",
+    "status": "partial"
+   },
+   {
+    "answer": "The assigned preparer opens the event as a capital call, distribution, or combined net event and records its driver, entity, amount, expected cash dates, preparer, and second reviewer. The preparer builds an event calendar from the LPA notice rule, checks bank holidays and payment cut-offs, and escalates if a requested date cannot meet the notice rule or cut-off.\nThe preparer assembles a data pack and labels each input final, estimated, or pending. The preparer copies forward the prior locked Excel event file, pulls beginning balances from the power report, trial balance, and partner capital files, and ties them to the prior deliverable; an unexplained difference is escalated to the reviewer and client before calculations are finalized.\nThe preparer, reviewer, and client freeze the methodology; if LPA treatment is ambiguous, work pauses for written client or legal direction. The preparer lists every investor and the reviewer checks independently; an unconfirmed population change remains excluded until written client direction.\nThe preparer runs allocations in Excel and fills the summary allocation tab. After reconciling to partner capital, GP unfunded, and trial balance and obtaining reviewer verification, the second reviewer performs internal review; comments return to the preparer for correction, otherwise the reviewer signs off.\nThe preparer sends the package to the client; feedback leads to revision and repetition of affected checks. On final written approval, the file is locked; posting or release is not allowed before then.\nThe preparer merges notices from the summary tab into a Word template, converts them to PDF, and the reviewer compares each notice to the locked allocation in e-check; failed notices are regenerated, not patched. The Fund Team or preparer prepares journal entries, routes them through accounting review, and posts in the GL (Allvue or Entrilia); for cash outflows Treasury initiates payment after bank detail controls.\nInvestor Services splits notices, uploads them to the investor portal, and releases the email campaign, holding release for a mapping or contact discrepancy. At closeout, a call's receivable baseline is handed to receipt tracking; for a distribution, wires are confirmed settled; historical records are updated, client deliverables completed, and the final package retained.\nIf an error or late client change is found after posting, the entry is reversed and reposted through the controlled accounting workflow, and affected review, notice and approval steps are repeated.\nFor One Rock, the team completes a Cobalt upload at closeout within two days of a capital event.\nFor net events, the call and distribution components are kept separate even when an investor sees one net amount. Deal-by-deal or tranche-based funds maintain separate allocation history per investment or tranche.",
+    "evidence_turns": [
+     "t002",
+     "t006",
+     "t010"
+    ],
+    "key": "lifecycle",
+    "status": "partial"
+   },
+   {
+    "answer": "The reviewer independently checks the investor population; investor totals must equal fund totals apart from documented rounding. The preparer reconciles to partner capital, GP unfunded, and trial balance, and the reviewer verifies; unexplained differences pause client submission.\nThe second reviewer performs internal review and either returns comments to the preparer for correction or signs off. Final written client approval precedes locking, posting, and release. The reviewer compares each PDF notice with the locked allocation in e-check; failures are regenerated rather than patched.\nFor cash outflows, Treasury initiates payment after bank detail controls. Investor Services holds email-campaign release if there is a mapping or contact discrepancy.\nThe specific bank-detail controls, their performer and retained evidence, and how a mapping or contact discrepancy is resolved before release are not established.\nThe second reviewer must sign off before anything goes to the client. The client approves the final event amounts and notices.\nThe timing and evidence of client notice approval relative to notice production from the locked allocation remain unclear.\nThe participant identifies a posted GL entry that does not equal locked totals as a failure to guard against.\nWho compares posted GL entries to locked totals and how the comparison is performed and evidenced are not established.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006"
+    ],
+    "key": "checks",
+    "status": "partial"
+   },
+   {
+    "answer": "The assigned preparer comes from the CAP Activity Team or Fund Team depending on event and client. The event route also differs by type: calls hand a receivable baseline to receipt tracking, while distributions require confirmation that wires settled; cash outflows involve Treasury initiating payment after bank detail controls.\nThe general GPFS route, additional variation sources and effort, applicable charging, and constraints on removing reported client differences remain unclear.\nThe participant distinguishes a basic capital call from a complex distribution with holdbacks, tranches, waterfall or tax coordination, estimating substantially longer effort for the latter.\nOne Rock requires a Cobalt upload at closeout within two days of a capital event. GP vehicles have their own population, waiver, commitment and carry rules; deal-by-deal or tranche-based funds keep separate allocation history per investment or tranche.\nClients can elect narrative, notice date, presentation, net-event display or recipient population, recorded in the event brief. Notice timing varies by fund between business and calendar days.\nThe GL platform and journal-entry approval route differ by entity, using Allvue or Entrilia; the participant cannot confirm which entity uses which. The participant knows of no country or currency differences.\nNet events retain separate call and distribution components even when investors see a single net amount. When the management company is also serviced, invoice information comes from its team as well as the Fund Team.",
+    "evidence_turns": [
+     "t002",
+     "t010",
+     "t008"
+    ],
+    "key": "variations",
+    "status": "partial"
+   },
+   {
+    "answer": "Setup and inputs are manual and depend on client instructions. The copied workbook can contain manual entries, plugs, manual rounding, hidden tabs, broken links and outdated settings that need sourcing or cleanup.\nHistorical proceeds, tax details and special rules may be spread across workpapers. Repeated client changes create rework and make version control harder; post-posting changes require reversal and reposting with renewed approvals.\nInvestor Services manually splits notices and coordinates the email campaign.",
+    "evidence_turns": [
+     "t008"
+    ],
+    "key": "pain_points",
+    "status": "captured"
+   },
+   {
+    "answer": "Investors could be asked to fund incorrect amounts by a due date or paid incorrect proceeds. Running an event for the wrong investor population is a failure even if the mathematics is correct.\nRisks include notices disagreeing with locked allocations, missed manual notice steps disclosing information to the wrong party or releasing inconsistent notices, unexecutable or noncompliant due dates, and posted GL entries differing from locked totals.\nErrors also flow downstream into call receipt tracking, distribution economics and Treasury execution.",
+    "evidence_turns": [
+     "t006"
+    ],
+    "key": "risk",
+    "status": "captured"
+   },
+   {
+    "answer": "Reported working artifacts include the data pack, prior locked Excel event file, power report, trial balance, partner capital files and summary allocation tab. The preparer uses a Word template to create PDF notices; historical records, client deliverables and the final package are retained or completed at closeout.\nStorage locations and custodians for the reported working and final artifacts remain unclear.\nHistorical proceeds, tax details and special rules can be distributed across several workpapers used for the event.\nThe event brief records client elections concerning narrative, notice date, presentation, net-event display and recipient population.\nA written, current client-approved fund-specific methodology is used when governing documents are silent on an allocation treatment.",
+    "evidence_turns": [
+     "t002",
+     "t008",
+     "t010"
+    ],
+    "key": "materials",
+    "status": "partial"
+   },
+   {
+    "answer": "The described work covers capital calls, distributions, and combined net events, with needs including credit-line repayment, investment funding, management fees, operating expenses, portfolio-company proceeds, and ad hoc requests. Investor population and fund-level allocations are part of the described work.\nFull entity and product scope and whether the described route is general GPFS practice remain unclear.\nThe reported scope includes GP vehicles and, when the firm also services the management company, invoice inputs from that team. Net events keep call and distribution components separate.",
+    "evidence_turns": [
+     "t002",
+     "t010"
+    ],
+    "key": "scope",
+    "status": "partial"
+   },
+   {
+    "answer": "The preparer builds the event calendar from the LPA notice rule, which may use business or calendar days, and checks bank holidays and payment cut-offs. Ambiguous LPA treatment pauses the work until written client or legal direction is obtained.\nThe preparer, reviewer, and client freeze the methodology. Investor totals must equal fund totals except for documented rounding; unconfirmed investor-population changes are excluded until written client direction. Final written client approval is required before file lock, posting, or release.\nSpecific governing provisions and allocation logic, conflict interpretation authority, rounding method, and how methodology changes are recorded remain unclear.\nThe second reviewer's sign-off is required before anything is sent to the client; the client approves final event amounts and notices.\nAn error or late client change found after posting requires reversal and reposting through the controlled accounting workflow and repetition of affected review, notice and approval steps.\nThe participant reports that allocation rules and percentages live in Excel; the underlying allocation methodology is not specified by that statement.\nWhere governing documents are silent on an allocation treatment, only a written, current client-approved methodology for the specific fund is used. Fund notice periods may be expressed in business or calendar days, which are not interchangeable.\nGP vehicles have their own population, waiver, commitment and carry rules. Separate allocation history is maintained per investment or tranche for deal-by-deal or tranche-based funds.\nFor One Rock, a Cobalt upload is completed within two days of a capital event at closeout.",
+    "evidence_turns": [
+     "t002",
+     "t010",
+     "t004",
+     "t006",
+     "t008"
+    ],
+    "key": "rules",
+    "status": "partial"
+   },
+   {
+    "answer": "The event uses beginning balances from the power report, trial balance, and partner capital files, tied to the prior deliverable; discrepancies go to the reviewer and client before calculations are finalized. The preparer sends the package to the client for feedback and final written approval.\nAfter journal-entry accounting review and GL posting, Treasury initiates payment for cash outflows after bank detail controls. Investor Services uploads and releases notices; call closeout hands the receivable baseline to receipt tracking, while distribution closeout confirms wires settled.\nWhen the firm also services the management company, the event work receives invoice information from the management company team as well as the Fund Team.",
+    "evidence_turns": [
+     "t002",
+     "t010"
+    ],
+    "key": "connections",
+    "status": "partial"
+   },
+   {
+    "answer": "Allocations are run in Excel using a prior locked Excel event file and a summary allocation tab. Journal entries are posted in the GL, identified as Allvue or Entrilia; notices are merged in Word, converted to PDF, and checked in e-check, then uploaded to the investor portal.\nThe system of record, source and transfer method for the input files, workbook logic ownership, storage locations, and whether calculations are repeated or re-keyed are not established.\nAllocation rules and percentages live in Excel. Each event begins with copying the prior workbook forward and tying beginning balances to the prior deliverable.\nOne Rock has a Cobalt upload at closeout. The GL platform and journal-entry approval route differ by entity, but the entity-to-platform mapping for Allvue and Entrilia is unconfirmed.",
+    "evidence_turns": [
+     "t002",
+     "t008",
+     "t010"
+    ],
+    "key": "data_systems",
+    "status": "partial"
+   },
+   {
+    "answer": "As a rough example, the participant estimates that a basic capital call takes a couple of hours, while a complex distribution involving holdbacks, tranches, waterfall or tax coordination can take a couple of days or longer.\nThe participant cannot provide a measured breakdown of time by activity; nobody has estimated it. Typical event counts remain unspecified.",
+    "evidence_turns": [
+     "t008"
+    ],
+    "key": "volume",
+    "status": "partial"
+   }
+  ],
+  "coverage": [
+   {
+    "key": "name",
+    "label": "Name & other names",
+    "status": "partial"
+   },
+   {
+    "key": "purpose",
+    "label": "Purpose & result",
+    "status": "partial"
+   },
+   {
+    "key": "trigger",
+    "label": "Start, cadence & deadlines",
+    "status": "partial"
+   },
+   {
+    "key": "completion",
+    "label": "Finished condition",
+    "status": "partial"
+   },
+   {
+    "key": "accountable",
+    "label": "Accountability",
+    "status": "partial"
+   },
+   {
+    "key": "lifecycle",
+    "label": "Items, stages & handoffs",
+    "status": "partial"
+   },
+   {
+    "key": "checks",
+    "label": "Checks, approvals & proof",
+    "status": "partial"
+   },
+   {
+    "key": "variations",
+    "label": "Variations and conditions",
+    "status": "partial"
+   },
+   {
+    "key": "pain_points",
+    "label": "Manual work & pain",
+    "status": "partial"
+   },
+   {
+    "key": "risk",
+    "label": "Consequences of failure",
+    "status": "partial"
+   },
+   {
+    "key": "materials",
+    "label": "Existing materials",
+    "status": "partial"
+   },
+   {
+    "key": "scope",
+    "label": "Scope & entity context",
+    "status": "partial"
+   },
+   {
+    "key": "rules",
+    "label": "Business rules & lineage",
+    "status": "partial"
+   },
+   {
+    "key": "connections",
+    "label": "Connected processes",
+    "status": "partial"
+   },
+   {
+    "key": "data_systems",
+    "label": "Data & systems",
+    "status": "partial"
+   },
+   {
+    "key": "volume",
+    "label": "Volume & effort",
+    "status": "partial"
+   }
+  ],
+  "summary": "The participant described client, fund and entity differences, including One Rock's Cobalt upload, GP vehicle rules and fund-specific allocation history. Entity-to-GL mapping and overall accountability remain unconfirmed.",
+  "focus": "Client, fund and entity differences",
+  "parking_lot": [],
+  "connections_out": [
+   {
+    "condition": "Beginning balances are pulled from these files and tied to the prior deliverable.",
+    "counterpart": "Power report, trial balance, and partner capital files",
+    "evidence_turns": [
+     "t002"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "For a capital call, the receivable baseline is handed off at closeout.",
+    "counterpart": "Receipt tracking",
+    "evidence_turns": [
+     "t002"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "For cash outflows, the event process reaches Treasury, which initiates payment after bank detail controls.",
+    "counterpart": "Treasury",
+    "evidence_turns": [
+     "t002"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "Notices are split, uploaded to the investor portal, and released through the email campaign.",
+    "counterpart": "Investor Services",
+    "evidence_turns": [
+     "t002"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "Final written approval is required before the file is locked; no posting or release occurs before that approval.",
+    "counterpart": "Client",
+    "evidence_turns": [
+     "t002"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "Journal entries are routed through accounting review before GL posting.",
+    "counterpart": "Accounting review",
+    "evidence_turns": [
+     "t002"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "The client approves final event amounts and notices; final written approval precedes locking, posting and release. Timing of notice approval relative to production remains unclear.",
+    "counterpart": "Client",
+    "evidence_turns": [
+     "t002",
+     "t004"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "Invoice information is received when the firm also services the management company.",
+    "counterpart": "Management company team",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "Invoice information is also received from the Fund Team when the management company is serviced.",
+    "counterpart": "Fund Team",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "consumes"
+   }
+  ],
+  "taxonomy": [
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "functional_area",
+    "note": "Reported work executes capital calls, distributions, and combined net events.",
+    "value": "capital_activity"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "process_level",
+    "note": "Participant walked the work end to end through closeout.",
+    "value": "process"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "entity_type",
+    "note": "Fund-level totals, investor population, and partner capital are in the described route; precise entity scope remains open.",
+    "value": "fund"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "system",
+    "note": "Allocations are run in Excel and a prior locked Excel event file is copied forward.",
+    "value": "excel_workbook"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "system",
+    "note": "Participant reports Allvue as one possible GL.",
+    "value": "allvue"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "system",
+    "note": "Participant reports Entrilia as one possible GL.",
+    "value": "entrilia"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "control_type",
+    "note": "Participant reports client approval of final event amounts and notices; timing of notice approval remains to be clarified.",
+    "value": "client_approval"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "control_type",
+    "note": "A second reviewer from the assigned operating team must sign off before client submission; the precise role title is unconfirmed.",
+    "value": "gpfs_operational"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "rule_source",
+    "note": "Participant reports using LPA notice rules and seeking direction on ambiguous LPA treatment; provisions have not been reviewed here.",
+    "value": "lpa_governing_doc"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "facet": "rule_source",
+    "note": "Participant reports allocation rules and percentages live in Excel; underlying authority remains to be clarified.",
+    "value": "spreadsheet"
+   },
+   {
+    "evidence_turns": [
+     "t010"
+    ],
+    "facet": "entity_type",
+    "note": "Participant reports distinct GP vehicle population, waiver, commitment and carry rules.",
+    "value": "gp_carry"
+   },
+   {
+    "evidence_turns": [
+     "t010"
+    ],
+    "facet": "entity_type",
+    "note": "Management-company team supplies invoice information when that company is also serviced.",
+    "value": "manco"
+   },
+   {
+    "evidence_turns": [
+     "t010"
+    ],
+    "facet": "applicability",
+    "note": "Participant reports entity, fund and client differences in the work.",
+    "value": "multi_variant"
+   },
+   {
+    "evidence_turns": [
+     "t010"
+    ],
+    "facet": "client_applicability",
+    "note": "One Rock has an upload requirement and clients can elect notice and population details; no general standard is established.",
+    "value": "multi_client_variant"
+   },
+   {
+    "evidence_turns": [
+     "t010"
+    ],
+    "facet": "rule_source",
+    "note": "A current written client-approved fund methodology is used where governing documents are silent.",
+    "value": "client_methodology"
+   },
+   {
+    "evidence_turns": [
+     "t010"
+    ],
+    "facet": "system",
+    "note": "Cobalt is used for the reported One Rock closeout upload.",
+    "value": "other"
+   },
+   {
+    "evidence_turns": [
+     "t010"
+    ],
+    "facet": "variant_class",
+    "note": "One Rock upload and client elections are reported client differences.",
+    "value": "client_specific"
+   },
+   {
+    "evidence_turns": [
+     "t010"
+    ],
+    "facet": "variant_class",
+    "note": "GP vehicles and deal-by-deal or tranche-based funds have distinct rules or allocation histories.",
+    "value": "structural"
+   }
+  ],
+  "completion": {
+   "allowed": false,
+   "ready_for_final_check": false,
+   "complete": false,
+   "partial": true,
+   "participant_confirmed": false,
+   "blockers": [
+    "role_incomplete:coverage_reviewer",
+    "role_incomplete:process_reviewer",
+    "coverage_result_unbound",
+    "coverage_incomplete",
+    "coverage_unresolved:name",
+    "coverage_unresolved:purpose",
+    "coverage_unresolved:trigger",
+    "coverage_unresolved:completion",
+    "coverage_unresolved:accountable",
+    "coverage_unresolved:lifecycle",
+    "coverage_unresolved:checks",
+    "coverage_unresolved:variations",
+    "coverage_unresolved:pain_points",
+    "coverage_unresolved:risk",
+    "coverage_unresolved:materials",
+    "coverage_unresolved:scope",
+    "coverage_unresolved:rules",
+    "coverage_unresolved:connections",
+    "coverage_unresolved:data_systems",
+    "coverage_unresolved:volume",
+    "process_result_unbound"
+   ],
+   "revision": "2bfc1e9883c7b5a5d06ea72cee847d024fe89e6ed1a90fcc8db3494fc1953e3b",
+   "run_id": "b5e87a1bf1654357b7afca6de337e98f"
+  },
+  "coverage_assessment": null
+ },
+ "seen_provisional": [
+  [
+   "29b173874b39047e0c1a59a7a42dc7153b077cd2347cf966f0bed05ec1feccd0",
+   false
+  ],
+  [
+   "29b173874b39047e0c1a59a7a42dc7153b077cd2347cf966f0bed05ec1feccd0",
+   true
+  ],
+  [
+   "5e2a6f733fd134048d9eaadaa10f41bea72817c13ad807567e42ad083ff690ad",
+   false
+  ]
+ ],
+ "workflow_shown": {
+  "connections": [
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S1",
+    "label": "",
+    "to": "S2"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S2",
+    "label": "",
+    "to": "S3"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S3",
+    "label": "",
+    "to": "S4"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S4",
+    "label": "",
+    "to": "S5"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S5",
+    "label": "",
+    "to": "S6"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S6",
+    "label": "",
+    "to": "S7"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S7",
+    "label": "",
+    "to": "S8"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S8",
+    "label": "",
+    "to": "S9"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S9",
+    "label": "Internal sign-off",
+    "to": "S10"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S10",
+    "label": "Final written approval and file lock",
+    "to": "S11"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S11",
+    "label": "",
+    "to": "S12"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S12",
+    "label": "",
+    "to": "S13"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S0",
+    "label": "",
+    "to": "S1"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S13",
+    "label": "No mapping or contact discrepancy",
+    "to": "S14"
+   },
+   {
+    "evidence_turns": [
+     "t006",
+     "t008"
+    ],
+    "from": "S12",
+    "label": "Error or late client change found after posting",
+    "to": "S15"
+   }
+  ],
+  "open_questions": [
+   "Who is accountable for the overall event, who is the internal approver, and who performs closeout? These roles are currently unconfirmed.",
+   "Is this the participant's normal route across GPFS or limited to particular clients and entities? What is the basis, and is there independent corroboration?",
+   "What are the everyday and alternate process names, parent process, and entity scope?",
+   "Who detects the initiating need, what upstream inputs are ready at that point, and how often do events occur?",
+   "How is client approval of notices obtained relative to creating the PDF notices after file lock?",
+   "Who resolves calendar, balance, population, reconciliation, notice, bank-detail and contact exceptions, and how does work resume? How are unsettled wires handled?",
+   "What does each internal and accounting reviewer check, where is evidence retained, and are controls procedural or system-enforced? Are there thresholds, overrides or escalation authorities?",
+   "What are the allocation inputs and detailed rules, including dates, prior periods, rounding and corrections? Who interprets rules and records interpretations?",
+   "Which GL and journal approval route applies to each entity, and which systems or files are authoritative for the material results?",
+   "How do GP vehicle rules, separate tranche histories and client elections change the work in practice? What is their source, effort, charging and any removal constraints? Record their classification and substantive or presentation nature.",
+   "Where is the event brief kept, and how are client elections for narrative, dates, presentation, net display and recipient population applied?",
+   "What are the One Rock upload contents and owner, and does the two-day deadline mean business or calendar days?",
+   "What are normal event counts, peaks and exception rates? The participant could not provide measured time breakdowns; their rough example was a couple of hours for a basic call and a couple of days or longer for a complex distribution.",
+   "What are the storage locations, entry and re-keying points, and owners of workbook logic and retained evidence?",
+   "Are procedures, templates or examples available for review? The LPA, prior workbook and Word template were mentioned but not supplied or reviewed."
+  ],
+  "steps": [
+   {
+    "actor": "Assigned preparer: CAP Activity Team or Fund Team",
+    "completion_criteria": "Event details, preparing team and second reviewer recorded",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "Client request or internally identified need",
+    "description": "Classify the event as a call, distribution or combined net event. Record the driver, entity, amount and expected cash dates, and name the preparing team and a second reviewer from the assigned operating team.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002",
+     "t004"
+    ],
+    "handoff": "Preparer builds the event calendar",
+    "id": "S1",
+    "input": "Identified capital movement need",
+    "operating_details": [],
+    "output": "Classified event with assigned participants",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Open the event",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "Notice timing, holidays and cut-offs checked",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "LPA notice rule and event dates",
+    "description": "Build the calendar using the LPA notice rule, including whether it uses business or calendar days. Check bank holidays and payment cut-offs; escalate if the requested date cannot meet the rule or cut-off.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "Escalation recipient and resolution are UNKNOWN",
+    "id": "S2",
+    "input": "Event dates and LPA notice rule",
+    "operating_details": [],
+    "output": "Event calendar or escalation",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "LPA, as reported by participant; document not reviewed",
+    "system": "UNKNOWN",
+    "title": "Build event calendar",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "Every input marked final, estimated or pending",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Client instructions; applicable management company and Fund Team invoice information; other sources UNKNOWN",
+    "description": "Assemble the event inputs and mark each final, estimated or pending. Where GPFS also services the management company, invoice information comes from that team as well as the Fund Team.",
+    "entity_scope": [],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "t002",
+     "t008",
+     "t010"
+    ],
+    "handoff": "Preparer uses the pack for the event file",
+    "id": "S3",
+    "input": "Event inputs and applicable client instructions",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t008"
+      ],
+      "field": "exception",
+      "text": "Historical proceeds, tax details and special rules can be spread across several workpapers."
+     }
+    ],
+    "output": "Data pack with input statuses",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Assemble data pack",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "Balances tied or unexplained differences escalated",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Prior event file, power report, trial balance and partner capital files",
+    "description": "Copy the prior locked event file forward, pull beginning balances from the power report, trial balance and partner capital files, and tie them to the prior deliverable. Escalate unexplained differences to the reviewer and client before calculations are finalized.",
+    "entity_scope": [],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "t002",
+     "t008"
+    ],
+    "handoff": "Reviewer and client receive unexplained differences",
+    "id": "S4",
+    "input": "Prior locked event file, power report, trial balance, partner capital files and prior deliverable",
+    "operating_details": [],
+    "output": "Carried-forward file and tied beginning balances",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Excel",
+    "title": "Carry forward and tie balances",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer, reviewer and client",
+    "completion_criteria": "Methodology frozen; ambiguity addressed with written direction",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Reported LPA treatment and client or legal direction where needed",
+    "description": "Freeze the methodology together. If LPA treatment is ambiguous, pause for written client or legal direction; where governing documents are silent, use only a written, current client-approved methodology for that fund.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002",
+     "t010"
+    ],
+    "handoff": "Frozen methodology supports population and allocation work",
+    "id": "S5",
+    "input": "Event methodology and applicable governing-document treatment",
+    "operating_details": [],
+    "output": "Frozen methodology and applicable written direction",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "LPA and client-approved methodology as reported; documents not reviewed",
+    "system": "UNKNOWN",
+    "title": "Freeze methodology",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer and reviewer",
+    "completion_criteria": "Independent check completed; unconfirmed changes excluded pending written client direction",
+    "control_type": [
+     "gpfs_operational",
+     "gpfs_supervisory"
+    ],
+    "data_origin": "Investor population source UNKNOWN",
+    "description": "The preparer lists every investor and the reviewer checks independently. An unconfirmed change stays excluded until written client direction.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "Checked population used for allocations",
+    "id": "S6",
+    "input": "Investor population and proposed changes",
+    "operating_details": [],
+    "output": "Checked investor population",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Check investor population",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "Investor totals equal fund totals apart from documented rounding",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Event data pack and investor population; allocation rules and percentages in Excel",
+    "description": "Run allocations and fill the summary allocation tab; investor totals must equal fund totals apart from documented rounding. Keep call and distribution components separate for net events, and separate allocation history by investment or tranche for applicable funds; GP vehicles have their own population, waiver, commitment and carry rules.",
+    "entity_scope": [],
+    "entry_mode": "calculated",
+    "evidence_turns": [
+     "t002",
+     "t008",
+     "t010"
+    ],
+    "handoff": "Preparer reconciles allocations",
+    "id": "S7",
+    "input": "Event inputs, frozen methodology and checked investor population",
+    "operating_details": [],
+    "output": "Summary allocation tab",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Methodology frozen by preparer, reviewer and client; detailed rule sources UNKNOWN",
+    "system": "Excel",
+    "title": "Run allocations",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer and reviewer",
+    "completion_criteria": "Reviewer verification; unexplained differences hold client submission",
+    "control_type": [
+     "gpfs_operational",
+     "gpfs_supervisory"
+    ],
+    "data_origin": "Partner capital, GP unfunded and trial balance",
+    "description": "The preparer reconciles to partner capital, GP unfunded and the trial balance, and the reviewer verifies. An unexplained difference pauses client submission.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "Event proceeds to internal review",
+    "id": "S8",
+    "input": "Allocations, partner capital, GP unfunded and trial balance",
+    "operating_details": [],
+    "output": "Reconciliation verified by reviewer",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Excel; other locations UNKNOWN",
+    "title": "Reconcile allocations",
+    "type": "activity"
+   },
+   {
+    "actor": "Second reviewer and preparer",
+    "completion_criteria": "Internal sign-off",
+    "control_type": [
+     "gpfs_supervisory"
+    ],
+    "data_origin": "Prepared event package",
+    "description": "The second reviewer performs internal review. Comments return to the preparer for correction; the reviewer must sign off before the package goes to the client.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002",
+     "t004"
+    ],
+    "handoff": "Comments go to preparer; signed-off package proceeds to client",
+    "id": "S9",
+    "input": "Event package and reconciliations",
+    "operating_details": [],
+    "output": "Reviewer comments or sign-off",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Complete internal review",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer and client",
+    "completion_criteria": "Written approval received and file locked",
+    "control_type": [
+     "client_review",
+     "client_approval",
+     "gpfs_operational"
+    ],
+    "data_origin": "Client feedback and approval",
+    "description": "Send the package to the client, revise for feedback and repeat affected checks. The client approves final event amounts and notices; on final written approval, lock the file. No posting or release occurs before that approval.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t008"
+    ],
+    "handoff": "Approved locked allocations support notices and subsequent posting",
+    "id": "S10",
+    "input": "Internally reviewed package",
+    "operating_details": [],
+    "output": "Final written client approval and locked file",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Obtain client approval",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer and reviewer",
+    "completion_criteria": "Each notice compared to locked allocation; failures regenerated",
+    "control_type": [
+     "gpfs_operational",
+     "gpfs_supervisory"
+    ],
+    "data_origin": "Locked allocation file",
+    "description": "Merge notices from the summary tab into the Word template and convert them to PDF. The reviewer compares each notice to the locked allocation in e-check; failed notices are regenerated, not patched.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "Notices proceed toward Investor Services release",
+    "id": "S11",
+    "input": "Locked summary allocation tab and Word template",
+    "operating_details": [],
+    "output": "Checked PDF notices",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Excel, Word and e-check",
+    "title": "Prepare and check notices",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund Team or preparer; accounting reviewer; Treasury for cash outflows",
+    "completion_criteria": "Accounting review and posting completed; bank detail controls precede payment initiation",
+    "control_type": [
+     "gpfs_operational",
+     "gpfs_supervisory"
+    ],
+    "data_origin": "Approved event and bank details; detailed sources UNKNOWN",
+    "description": "The Fund Team or preparer prepares journal entries, routes them through accounting review and posts them in the GL. For cash outflows, Treasury initiates payment after bank detail controls; the GL platform and approval route differ by entity.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002",
+     "t006",
+     "t010"
+    ],
+    "handoff": "Treasury initiates applicable cash outflows",
+    "id": "S12",
+    "input": "Approved event; bank details for cash outflows",
+    "operating_details": [],
+    "output": "Posted journal entries and, where applicable, initiated payments",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Allvue or Entrilia GL",
+    "title": "Post entries and initiate payments",
+    "type": "activity"
+   },
+   {
+    "actor": "Investor Services",
+    "completion_criteria": "Investor portal upload and email release completed with no mapping or contact discrepancy",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Checked notices; mapping and contact sources UNKNOWN",
+    "description": "Manually split notices, upload them to the investor portal and release the email campaign. Hold release for any mapping or contact discrepancy.",
+    "entity_scope": [],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "t002",
+     "t008"
+    ],
+    "handoff": "Discrepancy resolution and resume path are UNKNOWN",
+    "id": "S13",
+    "input": "Checked notices and investor mapping and contact information",
+    "operating_details": [],
+    "output": "Portal notices and released email campaign",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Investor portal and email campaign",
+    "title": "Release investor notices",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Applicable handoff or settlement confirmed, records updated, deliverables completed and package retained",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Event records and settlement information",
+    "description": "For a call, hand the receivable baseline to receipt tracking; for a distribution, confirm wires settled. Update historical records, complete client deliverables and retain the final package. For One Rock, complete a Cobalt upload within two days of the capital event.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002",
+     "t010"
+    ],
+    "handoff": "Receivable baseline to receipt tracking for a call",
+    "id": "S14",
+    "input": "Event records, receivable baseline or wire settlement information",
+    "operating_details": [],
+    "output": "Updated history, completed deliverables and retained final package",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "One Rock closeout requirement as reported; source UNKNOWN",
+    "system": "Cobalt for One Rock upload; other systems UNKNOWN",
+    "title": "Close out event",
+    "type": "activity"
+   },
+   {
+    "actor": "Client or GPFS",
+    "completion_criteria": "Need to move capital identified or communicated",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "Client tells GPFS or GPFS identifies the need",
+    "description": "Work starts when a client tells GPFS, or GPFS identifies, a need to move capital, including a line of credit repayment, investment funding, management fee, operating expense, portfolio company proceeds or an ad hoc request.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "Assigned preparer opens the event",
+    "id": "S0",
+    "input": "UNKNOWN",
+    "operating_details": [],
+    "output": "Capital movement need identified",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Need to move capital identified",
+    "type": "start"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Controlled reversal and reposting and affected steps repeated",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Error or late client change found after posting",
+    "description": "If an error or late client change is found after posting, reverse and repost the entry through the controlled accounting workflow. Repeat affected review, notice and approval steps.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t006",
+     "t008"
+    ],
+    "handoff": "Affected review, notice and approval steps; exact routes depend on the change",
+    "id": "S15",
+    "input": "Posted entry and identified error or late client change",
+    "operating_details": [],
+    "output": "Reversed and reposted entry with affected checks and approvals repeated",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Controlled accounting workflow; specific system UNKNOWN",
+    "title": "Correct post-posting changes",
+    "type": "activity"
+   }
+  ],
+  "title": "Capital Call & Distribution Event Execution"
+ },
+ "workflow": {
+  "connections": [
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S1",
+    "label": "",
+    "to": "S2"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S2",
+    "label": "",
+    "to": "S3"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S3",
+    "label": "",
+    "to": "S4"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S4",
+    "label": "",
+    "to": "S5"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S5",
+    "label": "",
+    "to": "S6"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S6",
+    "label": "",
+    "to": "S7"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S7",
+    "label": "",
+    "to": "S8"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S8",
+    "label": "",
+    "to": "S9"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S9",
+    "label": "Internal sign-off",
+    "to": "S10"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S10",
+    "label": "Final written approval and file lock",
+    "to": "S11"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S11",
+    "label": "",
+    "to": "S12"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S12",
+    "label": "",
+    "to": "S13"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S0",
+    "label": "",
+    "to": "S1"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "from": "S13",
+    "label": "No mapping or contact discrepancy",
+    "to": "S14"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "from": "S12",
+    "label": "Error or late client change found after posting",
+    "to": "S15"
+   }
+  ],
+  "open_questions": [
+   "Who is accountable for the overall event, who is the internal approver, and who performs closeout? These roles are currently unconfirmed.",
+   "Is this the participant's normal route across GPFS or limited to particular clients and entities? What is the basis, and is there independent corroboration?",
+   "What are the everyday and alternate process names, parent process, and entity scope?",
+   "When GPFS identifies the initiating need internally, which role detects it, what upstream inputs are available at that point, and how often do events occur?",
+   "How is client approval of notices obtained relative to creating the PDF notices after file lock?",
+   "Who resolves calendar, balance, population, reconciliation, notice, bank-detail and contact exceptions, and how does work resume? How are unsettled wires handled?",
+   "What does each internal and accounting reviewer check, where is evidence retained, and are controls procedural or system-enforced? Are there thresholds, overrides or escalation authorities?",
+   "What are the allocation inputs and detailed rules, including dates, prior periods, rounding and corrections? Who interprets rules and records interpretations?",
+   "Which GL and journal approval route applies to each entity, and which systems or files are authoritative for the material results?",
+   "How do GP vehicle rules, separate tranche histories and client elections change the work in practice? What is their source, effort, charging and any removal constraints? Record their classification and substantive or presentation nature.",
+   "Where is the event brief kept, and how are client elections for narrative, dates, presentation, net display and recipient population applied?",
+   "What are the One Rock upload contents and owner, and does the two-day deadline mean business or calendar days?",
+   "What are normal event counts, peaks and exception rates? The participant could not provide measured time breakdowns; their rough example was a couple of hours for a basic call and a couple of days or longer for a complex distribution.",
+   "What are the storage locations, entry and re-keying points, and owners of workbook logic and retained evidence?",
+   "Are procedures, templates or examples available for review? The LPA, prior workbook and Word template were mentioned but not supplied or reviewed.",
+   "After a post-posting error or late client change, which exact prior steps resume from S15, and are review, notice, approval and reposting repeated in a fixed sequence or only as affected by the change?"
+  ],
+  "steps": [
+   {
+    "actor": "Assigned preparer: CAP Activity Team or Fund Team",
+    "completion_criteria": "Event details, preparing team and second reviewer recorded",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "Client request or internally identified need",
+    "description": "Classify the event as a call, distribution or combined net event. Record the driver, entity, amount and expected cash dates, and name the preparing team and a second reviewer from the assigned operating team.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002",
+     "t004"
+    ],
+    "handoff": "Preparer builds the event calendar",
+    "id": "S1",
+    "input": "Identified capital movement need",
+    "operating_details": [],
+    "output": "Classified event with assigned participants",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Open the event",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "Notice timing, holidays and cut-offs checked",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "LPA notice rule and event dates",
+    "description": "Build the calendar using the LPA notice rule, including whether it uses business or calendar days. Check bank holidays and payment cut-offs; escalate if the requested date cannot meet the rule or cut-off.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "Escalation recipient and resolution are UNKNOWN",
+    "id": "S2",
+    "input": "Event dates and LPA notice rule",
+    "operating_details": [],
+    "output": "Event calendar or escalation",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "LPA, as reported by participant; document not reviewed",
+    "system": "UNKNOWN",
+    "title": "Build event calendar",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "Every input marked final, estimated or pending",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Client instructions; applicable management company and Fund Team invoice information; other sources UNKNOWN",
+    "description": "Assemble the event inputs and mark each final, estimated or pending. Where GPFS also services the management company, invoice information comes from that team as well as the Fund Team.",
+    "entity_scope": [],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "t002",
+     "t008",
+     "t010"
+    ],
+    "handoff": "Preparer uses the pack for the event file",
+    "id": "S3",
+    "input": "Event inputs and applicable client instructions",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t008"
+      ],
+      "field": "exception",
+      "text": "Historical proceeds, tax details and special rules can be spread across several workpapers."
+     }
+    ],
+    "output": "Data pack with input statuses",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Assemble data pack",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "Balances tied or unexplained differences escalated",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Prior event file, power report, trial balance and partner capital files",
+    "description": "Copy the prior locked event file forward, pull beginning balances from the power report, trial balance and partner capital files, and tie them to the prior deliverable. Escalate unexplained differences to the reviewer and client before calculations are finalized.",
+    "entity_scope": [],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "t002",
+     "t008"
+    ],
+    "handoff": "Reviewer and client receive unexplained differences",
+    "id": "S4",
+    "input": "Prior locked event file, power report, trial balance, partner capital files and prior deliverable",
+    "operating_details": [],
+    "output": "Carried-forward file and tied beginning balances",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Excel",
+    "title": "Carry forward and tie balances",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer, reviewer and client",
+    "completion_criteria": "Methodology frozen; ambiguity addressed with written direction",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Reported LPA treatment and client or legal direction where needed",
+    "description": "Freeze the methodology together. If LPA treatment is ambiguous, pause for written client or legal direction; where governing documents are silent, use only a written, current client-approved methodology for that fund.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002",
+     "t010"
+    ],
+    "handoff": "Frozen methodology supports population and allocation work",
+    "id": "S5",
+    "input": "Event methodology and applicable governing-document treatment",
+    "operating_details": [],
+    "output": "Frozen methodology and applicable written direction",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "LPA and client-approved methodology as reported; documents not reviewed",
+    "system": "UNKNOWN",
+    "title": "Freeze methodology",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer and reviewer",
+    "completion_criteria": "Independent check completed; unconfirmed changes excluded pending written client direction",
+    "control_type": [
+     "gpfs_operational",
+     "gpfs_supervisory"
+    ],
+    "data_origin": "Investor population source UNKNOWN",
+    "description": "The preparer lists every investor and the reviewer checks independently. An unconfirmed change stays excluded until written client direction.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "Checked population used for allocations",
+    "id": "S6",
+    "input": "Investor population and proposed changes",
+    "operating_details": [],
+    "output": "Checked investor population",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Check investor population",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "Investor totals equal fund totals apart from documented rounding",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Event data pack and investor population; allocation rules and percentages in Excel",
+    "description": "Run allocations and fill the summary allocation tab; investor totals must equal fund totals apart from documented rounding. Keep call and distribution components separate for net events, and separate allocation history by investment or tranche for applicable funds; GP vehicles have their own population, waiver, commitment and carry rules.",
+    "entity_scope": [],
+    "entry_mode": "calculated",
+    "evidence_turns": [
+     "t002",
+     "t008",
+     "t010"
+    ],
+    "handoff": "Preparer reconciles allocations",
+    "id": "S7",
+    "input": "Event inputs, frozen methodology and checked investor population",
+    "operating_details": [],
+    "output": "Summary allocation tab",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "Methodology frozen by preparer, reviewer and client; detailed rule sources UNKNOWN",
+    "system": "Excel",
+    "title": "Run allocations",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer and reviewer",
+    "completion_criteria": "Reviewer verification; unexplained differences hold client submission",
+    "control_type": [
+     "gpfs_operational",
+     "gpfs_supervisory"
+    ],
+    "data_origin": "Partner capital, GP unfunded and trial balance",
+    "description": "The preparer reconciles to partner capital, GP unfunded and the trial balance, and the reviewer verifies. An unexplained difference pauses client submission.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "Event proceeds to internal review",
+    "id": "S8",
+    "input": "Allocations, partner capital, GP unfunded and trial balance",
+    "operating_details": [],
+    "output": "Reconciliation verified by reviewer",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Excel; other locations UNKNOWN",
+    "title": "Reconcile allocations",
+    "type": "activity"
+   },
+   {
+    "actor": "Second reviewer and preparer",
+    "completion_criteria": "Internal sign-off",
+    "control_type": [
+     "gpfs_supervisory"
+    ],
+    "data_origin": "Prepared event package",
+    "description": "The second reviewer performs internal review. Comments return to the preparer for correction; the reviewer must sign off before the package goes to the client.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002",
+     "t004"
+    ],
+    "handoff": "Comments go to preparer; signed-off package proceeds to client",
+    "id": "S9",
+    "input": "Event package and reconciliations",
+    "operating_details": [],
+    "output": "Reviewer comments or sign-off",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Complete internal review",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer and client",
+    "completion_criteria": "Written approval received and file locked",
+    "control_type": [
+     "client_review",
+     "client_approval",
+     "gpfs_operational"
+    ],
+    "data_origin": "Client feedback and approval",
+    "description": "Send the package to the client, revise for feedback and repeat affected checks. The client approves final event amounts and notices; on final written approval, lock the file. No posting or release occurs before that approval.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t008"
+    ],
+    "handoff": "Approved locked allocations support notices and subsequent posting",
+    "id": "S10",
+    "input": "Internally reviewed package",
+    "operating_details": [],
+    "output": "Final written client approval and locked file",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Obtain client approval",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer and reviewer",
+    "completion_criteria": "Each notice compared to locked allocation; failures regenerated",
+    "control_type": [
+     "gpfs_operational",
+     "gpfs_supervisory"
+    ],
+    "data_origin": "Locked allocation file",
+    "description": "Merge notices from the summary tab into the Word template and convert them to PDF. The reviewer compares each notice to the locked allocation in e-check; failed notices are regenerated, not patched.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "Notices proceed toward Investor Services release",
+    "id": "S11",
+    "input": "Locked summary allocation tab and Word template",
+    "operating_details": [],
+    "output": "Checked PDF notices",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Excel, Word and e-check",
+    "title": "Prepare and check notices",
+    "type": "activity"
+   },
+   {
+    "actor": "Fund Team or preparer; accounting reviewer; Treasury for cash outflows",
+    "completion_criteria": "Accounting review and posting completed; bank detail controls precede payment initiation",
+    "control_type": [
+     "gpfs_operational",
+     "gpfs_supervisory"
+    ],
+    "data_origin": "Approved event and bank details; detailed sources UNKNOWN",
+    "description": "The Fund Team or preparer prepares journal entries, routes them through accounting review and posts them in the GL. For cash outflows, Treasury initiates payment after bank detail controls; the GL platform and approval route differ by entity.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002",
+     "t006",
+     "t010"
+    ],
+    "handoff": "Treasury initiates applicable cash outflows",
+    "id": "S12",
+    "input": "Approved event; bank details for cash outflows",
+    "operating_details": [],
+    "output": "Posted journal entries and, where applicable, initiated payments",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Allvue or Entrilia GL",
+    "title": "Post entries and initiate payments",
+    "type": "activity"
+   },
+   {
+    "actor": "Investor Services",
+    "completion_criteria": "Investor portal upload and email release completed with no mapping or contact discrepancy",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Checked notices; mapping and contact sources UNKNOWN",
+    "description": "Manually split notices, upload them to the investor portal and release the email campaign. Hold release for any mapping or contact discrepancy.",
+    "entity_scope": [],
+    "entry_mode": "manual",
+    "evidence_turns": [
+     "t002",
+     "t008"
+    ],
+    "handoff": "Only discrepancy-free notice release proceeds to closeout; discrepancy resolution and resume path are UNKNOWN",
+    "id": "S13",
+    "input": "Checked notices and investor mapping and contact information",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t002"
+      ],
+      "field": "exception",
+      "text": "holding release on any mapping or contact discrepancy."
+     }
+    ],
+    "output": "Portal notices and released email campaign",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Investor portal and email campaign",
+    "title": "Release investor notices",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Applicable handoff or settlement confirmed, records updated, deliverables completed and package retained",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Event records and settlement information",
+    "description": "For a call, hand the receivable baseline to receipt tracking; for a distribution, confirm wires settled. Update historical records, complete client deliverables and retain the final package. For One Rock, complete a Cobalt upload within two days of a capital event, at closeout.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002",
+     "t010"
+    ],
+    "handoff": "Receivable baseline to receipt tracking for a call",
+    "id": "S14",
+    "input": "Event records, receivable baseline or wire settlement information",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t010"
+      ],
+      "field": "deadline",
+      "text": "within two days of a capital event, at closeout."
+     },
+     {
+      "evidence_turns": [
+       "t010"
+      ],
+      "field": "system",
+      "text": "Cobalt upload"
+     }
+    ],
+    "output": "Updated history, completed deliverables and retained final package",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "One Rock closeout requirement as reported; source UNKNOWN",
+    "system": "Cobalt for One Rock upload; other systems UNKNOWN",
+    "title": "Close out event",
+    "type": "activity"
+   },
+   {
+    "actor": "Client or GPFS",
+    "completion_criteria": "Need to move capital identified or communicated",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "Client tells GPFS or GPFS identifies the need",
+    "description": "Work starts when a client tells GPFS, or GPFS identifies, a need to move capital, including a line of credit repayment, investment funding, management fee, operating expense, portfolio company proceeds or an ad hoc request.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "Assigned preparer opens the event",
+    "id": "S0",
+    "input": "UNKNOWN",
+    "operating_details": [],
+    "output": "Capital movement need identified",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Need to move capital identified",
+    "type": "start"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Controlled reversal and reposting and affected steps repeated",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Error or late client change found after posting",
+    "description": "If an error or late client change is found after posting, reverse and repost the entry through the controlled accounting workflow. Repeat affected review, notice and approval steps.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t006",
+     "t008"
+    ],
+    "handoff": "Affected review, notice and approval steps; exact routes depend on the change",
+    "id": "S15",
+    "input": "Posted entry and identified error or late client change",
+    "operating_details": [],
+    "output": "Reversed and reposted entry with affected checks and approvals repeated",
+    "parent_process": "UNKNOWN",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Controlled accounting workflow; specific system UNKNOWN",
+    "title": "Correct post-posting changes",
+    "type": "activity"
+   }
+  ],
+  "title": "Capital Call & Distribution Event Execution"
+ },
+ "workflow_revision": "5e2a6f733fd134048d9eaadaa10f41bea72817c13ad807567e42ad083ff690ad",
+ "finished": 1794922890.6768482,
+ "graph_checks": {
+  "steps": 16,
+  "connections": 15,
+  "types": {
+   "activity": 15,
+   "start": 1
+  },
+  "components": 1,
+  "isolated_steps": [],
+  "entry_points": [
+   "S0"
+  ],
+  "typed_start": [
+   "S0"
+  ],
+  "exit_points": [
+   "S14",
+   "S15"
+  ],
+  "typed_end": [],
+  "decisions_with_under_two_exits": [],
+  "decision_exits_without_label": [],
+  "non_decision_with_multiple_exits": [
+   "S12"
+  ],
+  "steps_without_actor": [],
+  "actors": [
+   "Assigned preparer: CAP Activity Team or Fund Team",
+   "Client or GPFS",
+   "Fund Team or preparer; accounting reviewer; Treasury for cash outflows",
+   "Investor Services",
+   "Preparer",
+   "Preparer and client",
+   "Preparer and reviewer",
+   "Preparer, reviewer and client",
+   "Second reviewer and preparer",
+   "UNKNOWN"
+  ],
+  "open_questions": 16
+ }
+}

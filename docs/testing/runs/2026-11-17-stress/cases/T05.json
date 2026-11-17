@@ -1,0 +1,725 @@
+{
+ "case": "T05",
+ "port": 8795,
+ "interview_id": "9717abc3834d44fe81cf4c8fe975fb84",
+ "context": {
+  "process_name": "Investment Purchases: Recording, Setup & Controls",
+  "process_owner": "",
+  "objective": "Document how we carry out Investment Purchases: Recording, Setup & Controls, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "Let me start from the back end because that is what I think of first. The very last thing I do as the investment accounting preparer is reconcile the Investment Payable clearing account 20080 for that purchase: the cash entry debits 20080 and the cost entry credits 20080, so for the finished event it has to net to zero, or any leftover has to be a supported timing item with an owner and an age. In that same last step I confirm the Allvue setup and CRM attributes are complete, that cost, shares and ownership evidence agree across records, and then the second reviewer and I sign off the checklists and we keep the deal bible. That is the end. Going right back to the beginning, what starts it is the client telling us about a completed or imminent investment purchase. That notice is the trigger, and the first thing I do after it is open the New Investment Set Up checklist and the purchase control checklist. Separately, the 20080 account also gets checked and cleared every quarter."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "What do you do next after opening the New Investment Set Up and purchase control checklists?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "Still in that opening step, I record the fund or entity, the issuer or portfolio company, security type, purchase or closing date, cost or funding amount, counterparty and payment date. I assign the preparer, second reviewer, the callback or Treasury person, the compliance screening person and the approval roles, and I classify the deal: equity, debt, SAFE or note conversion, non-cash restructuring, fund of funds or another supported category. If the structure or ownership is unclear I escalate before going on. Now I will jump ahead a bit: the Investment Attribute Form comes two steps after the opening. On it I record the investment name and portfolio company name exactly as approved, closing date, industry, security type, shares or units, cost lines, the FAS 157 level and the client signer, I compare every attribute to the supporting document or written client direction, and the client provides or approves anything missing; the second reviewer checks it. Missing or conflicting attributes must be resolved before any system setup. But before that form, sitting between the opening step and the form, is collecting and validating the deal document package, which we call the deal bible: purchase agreement, cap table, structure chart, ownership evidence and closing documents. I confirm the approved investment, legal entities, security, shares, cost, closing date, payment terms and restrictions, log anything missing or still in draft in a deficiency log and get it before the step that depends on it. The reviewer checks completeness. Legal interpretation questions go to the client or legal counsel, we do not infer terms."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "Once the Investment Attribute Form is complete and its attributes are resolved, what happens next?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "Let me give you the Allvue part first because it is the most hands-on, then what sits just before it. In Allvue NAV I create or validate the Issuer, then the Security with the approved type and attributes, then the Lot using the approved closing, share and cost information, then I create or apply the approved Allocation rule, strictly in that order. Then in Allvue CRM I update Firm Known As, Industry and FAS 157 level, and I compare the system fields back to the Attribute Form. The second reviewer checks the setup. A duplicate master, wrong entity or security type, missing field or unsupported allocation gets escalated to the system owner and the reviewer. But that Allvue setup is not directly after the form. Between the form and Allvue is the approval and counterparty clearance step: we retain the client or GP approval of the purchase, amount, counterparty and payment; Treasury validates new counterparty bank details by callback; the compliance screening role runs Exiger screening if the jurisdiction meets the approved high-risk criteria; any bank or screening discrepancy is resolved; and we confirm the payment date and that the bank cut-off is feasible. Payment is held for a failed callback, a high-risk alert, missing approval or a missed cut-off. Then after Allvue, Treasury releases the payment, and once the money has gone I prepare the cash entry."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "Which role is accountable for the overall investment-purchase result?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "I do not know. The overall process owner and the final accountable approver have not been confirmed, and neither have the exact titles of the preparer and the second reviewer. What I can say is who does what: I prepare, the second reviewer checks, the client or GP approves the investment, Treasury releases payment, and the entries go to approval groups. And I need to fix something I told you a moment ago. Actually I had that backwards: the cash entry comes before the payment, not after. The true order after the Allvue setup is: first I prepare the cash entry in the Daily Posting process, debit Investment Payable 20080 and credit the correct bank account, with a description that is different from the later cost entry, attach the client approval, callback and screening evidence, deal and payment support and the calculation, and route it to all AFCs, FCs and Directors, resolve their comments and get the approvals. Only after that approved cash entry does Treasury submit the payment through the treasury workflow and release it sufficiently before the bank cut-off. Then we record payment status, the bank settlement date, the bank reference and any rejection or return, and compare the actual cash disbursed to the approved cash entry. A rejected or returned payment, changed instructions, a cut-off miss or an amount mismatch gets escalated. I do not know what AFC and FC stand for or in what order those approvers sign, that has not been defined."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "What happens to the purchase or its stakeholders if a recording or control failure is not caught?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "Several things. Cash could leave without client or GP approval, verified bank details or screening, which is exactly why payment is never released until approval, callback, required screening, the internal entry approval and cut-off feasibility are all done. The investment could be recorded with the wrong cost, shares or attributes, or as a duplicate or misconfigured security, and that flows into allocation, reporting and the later debt investment processing. If the cash and cost entries carry identical descriptions, activity can be suppressed in reporting and the reconciliation breaks. And a non-zero 20080 balance keeps the item open and prevents closeout; we identify the missing or mismatched entry or the timing item, assign an owner, age and escalate it, and we never force an entry just to clear the account. That reminds me there is a piece I have not told you yet, and it sits after the payment and before the final reconciliation I started with: the cost entry. Once payment is confirmed and we have final deal documents and approved cost support, I confirm the final acquisition cost, prepare the General Operations entry debiting Investment Acquisition 11010 and crediting Investment Payable 20080, with a description different from the cash entry, attach final documents, the Attribute Form, setup evidence and cost support, and route it to FCs and Directors; it is posted after their approval. If final documents are not available yet, we do not make the cost entry: only the supported cash entry stands, 20080 stays open as a timing item with an owner and aging, and setup cannot close until the documents arrive."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "How do you determine the final acquisition cost from the deal documents and cost support?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "It comes from the final executed purchase or conversion documents and the approved allocation, never from a provisional Attribute Form or an old client workbook. I confirm the cash and any supported non-cash components, and principal and accrued interest where that applies, and the cost entry has to agree to those final documents. Where part of a combined purchase cost is allocated to a warrant or option, I only reclassify the client-approved amount and prove that base investment cost plus warrant or option cost equals the total cost before allocation. Beyond that I do not have a set formula or entry template to give you, those are not specified. Two conditional pieces I skipped, and both sit after the cost entry and before the final 20080 reconciliation and sign-off. First, only where a SAFE, convertible note or non-cash conversion applies: for a SAFE I apply the executed cap or discount terms, for a note I include principal and accrued interest only as the executed terms require, I work out the resulting security and shares and update the Allvue issuer, security and lot records, use Investment Restructure In 11021 and the approved Restructure Out account, and reconcile the old instrument coming off against the new one with no unexplained value; the reviewer checks it. I do not know which Restructure Out account, that is not confirmed, so we get approved accounting direction. Second, after that, only where applicable: escrow and fund of funds. I identify any escrow receivable and get the client tax department direction before recording escrow treatment, and for a fund of funds I calculate concentration against partners capital; if the supported calculation is over 5 percent the disclosure is routed to the financial reporting process. If neither applies I document that it is not applicable and go straight to the final reconciliation."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "How does the client\u2019s purchase notice typically reach you?"
+  },
+  {
+   "id": "t014",
+   "role": "assistant",
+   "text": "This capture still has open sections. 12 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794917795.563,
+   "turn": 0,
+   "seconds": 0.027,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794917807.31,
+   "turn": 2,
+   "seconds": 2.097,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794917832.309,
+   "turn": 3,
+   "seconds": 27.1
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794917847.642,
+   "turn": 3,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 42.43
+  },
+  {
+   "kind": "question",
+   "at": 1794917857.17,
+   "turn": 4,
+   "seconds": 2.242,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794917897.401,
+   "turn": 5,
+   "notes_state": "working",
+   "map_state": "queued",
+   "seconds": 42.47
+  },
+  {
+   "kind": "question",
+   "at": 1794917907.979,
+   "turn": 6,
+   "seconds": 1.583,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794917947.312,
+   "turn": 7,
+   "seconds": 40.92
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794917948.336,
+   "turn": 7,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 41.94
+  },
+  {
+   "kind": "question",
+   "at": 1794917957.222,
+   "turn": 8,
+   "seconds": 1.738,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794917996.556,
+   "turn": 9,
+   "seconds": 41.07
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794917997.571,
+   "turn": 9,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 42.09
+  },
+  {
+   "kind": "question",
+   "at": 1794918009.124,
+   "turn": 10,
+   "seconds": 2.93,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794918042.855,
+   "turn": 11,
+   "seconds": 36.66
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794918049.509,
+   "turn": 11,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 43.31
+  },
+  {
+   "kind": "question",
+   "at": 1794918061.157,
+   "turn": 12,
+   "seconds": 2.594,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794918101.611,
+   "turn": 13,
+   "notes_state": "working",
+   "map_state": "working",
+   "seconds": 43.05
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794918107.759,
+   "turn": 13,
+   "seconds": 2.699,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "working",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.map_error",
+   "at": 1794918391.142,
+   "turn": 14,
+   "seconds": 286.08,
+   "error": "The provider timed out. Your answers are retained.",
+   "code": "timeout"
+  },
+  {
+   "kind": "wrap.map_error",
+   "at": 1794918394.443,
+   "turn": 14,
+   "seconds": 289.38,
+   "error": "The provider timed out. Your answers are retained.",
+   "code": "timeout"
+  }
+ ],
+ "started": 1794917795.5368042,
+ "revision": "f643e8d1320a8779d7a9310b661a6813d221ce7800f59290d01267aa3d54a4b9",
+ "capture": {
+  "memo_findings": [
+   {
+    "answer": "Investment Purchases: Recording, Setup & Controls",
+    "evidence_turns": [
+     "context"
+    ],
+    "key": "name",
+    "status": "captured"
+   },
+   {
+    "answer": "The work produces a recorded and set-up investment purchase with reconciled clearing, complete attributes and supporting evidence.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "purpose",
+    "status": "captured"
+   },
+   {
+    "answer": "The participant says the work is triggered when the client tells them about a completed or imminent investment purchase. The participant opens the New Investment Set Up checklist and the purchase control checklist after that notice.\nThe notice is identified as the trigger, but its normal frequency, recipient or detection route, and any fixed deadline are not stated.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "trigger",
+    "status": "partial"
+   },
+   {
+    "answer": "The preparer reconciles 20080, where the cash entry debits and the cost entry credits; a non-zero balance keeps the item open and prevents closeout. The preparer confirms Allvue setup and CRM attributes are complete and cost, shares and ownership evidence agree across records; the preparer and second reviewer sign off the checklists and keep the deal bible. A supported timing item is assigned an owner and age while open.",
+    "evidence_turns": [
+     "t002",
+     "t010"
+    ],
+    "key": "completion",
+    "status": "captured"
+   },
+   {
+    "answer": "The participant is the investment accounting preparer who performs the final reconciliation and confirms setup and evidence; the preparer and second reviewer sign off the checklists.\nThe participant does not know the overall process owner or final accountable approver; neither has been confirmed. The exact titles of the preparer and second reviewer are also unconfirmed.",
+    "evidence_turns": [
+     "t002",
+     "t008"
+    ],
+    "key": "accountable",
+    "status": "partial"
+   },
+   {
+    "answer": "After notice of a completed or imminent purchase, the participant opens the New Investment Set Up checklist and the purchase control checklist. The participant describes the 20080 reconciliation, setup and attribute confirmation, cross-record evidence agreement, checklist sign-off, and deal bible retention as the last step for the purchase event.\nAfter payment is confirmed and final deal documents and approved cost support are available, the preparer confirms final acquisition cost and prepares the General Operations entry: debit Investment Acquisition 11010 and credit Investment Payable 20080, with a description different from the cash entry. The preparer attaches final documents, the Attribute Form, setup evidence and cost support and routes the entry to FCs and Directors; it is posted after their approval, before final reconciliation.\nAt opening, the preparer records the fund or entity, issuer or portfolio company, security type, purchase or closing date, cost or funding amount, counterparty and payment date. The preparer assigns the preparer, second reviewer, callback or Treasury person, compliance screening person and approval roles, and classifies the deal; unclear structure or ownership is escalated before proceeding.\nBetween opening and the Investment Attribute Form, the preparer collects and validates the deal bible, confirms the approved investment and its legal entities, security, shares, cost, closing date, payment terms and restrictions, and logs missing or draft items in a deficiency log to obtain before dependent steps. The reviewer checks completeness; legal interpretation questions go to the client or legal counsel.\nOn the Investment Attribute Form, the preparer records the approved investment and portfolio company names, closing date, industry, security type, shares or units, cost lines, FAS 157 level and client signer. The preparer compares every attribute to supporting documents or written client direction; the client provides or approves missing items and the second reviewer checks the form.\nAfter the Attribute Form and before Allvue setup, the team retains client or GP approval of the purchase, amount, counterparty and payment. Treasury validates new counterparty bank details by callback; the compliance screening role runs Exiger screening when the jurisdiction meets approved high-risk criteria. Bank or screening discrepancies are resolved, and the payment date and bank cut-off feasibility are confirmed.\nIn Allvue NAV, the preparer creates or validates the Issuer, then the Security with approved type and attributes, then the Lot using approved closing, share and cost information, and finally creates or applies the approved Allocation rule. In Allvue CRM the preparer updates Firm Known As, Industry and FAS 157 level, comparing system fields back to the Attribute Form; the second reviewer checks setup.\nAfter Allvue setup, the preparer prepares and obtains approval for the cash entry in Daily Posting before Treasury submits and releases payment. Payment is held for a failed callback, high-risk alert, missing approval or missed cut-off.\nIn Daily Posting, the preparer debits Investment Payable 20080 and credits the correct bank account, using a description different from the later cost entry. The preparer attaches client approval, callback and screening evidence, deal and payment support and the calculation, routes the entry to all AFCs, FCs and Directors, resolves their comments and obtains approvals.\nAfter cash-entry approval, Treasury submits payment through the treasury workflow and releases it sufficiently before the bank cut-off. Payment status, settlement date, bank reference and any rejection or return are recorded; actual cash disbursed is compared with the approved cash entry.\nIf final documents are unavailable, the cost entry is not made. Only the supported cash entry stands, and 20080 remains open as a timing item with an owner and aging; setup cannot close until the documents arrive.\nThe preparer confirms final acquisition cost from executed purchase or conversion documents and the approved allocation, including supported cash and non-cash components and, where applicable, principal and accrued interest. The cost entry must agree to the final documents.\nWhere combined purchase cost is allocated to a warrant or option, the preparer reclassifies only the client-approved amount and proves that base investment cost plus warrant or option cost equals the total before allocation.\nAfter the cost entry and before final reconciliation, applicable SAFE, convertible note or non-cash conversions are processed. The preparer applies executed SAFE cap or discount terms or includes note principal and accrued interest as required by executed terms, calculates the resulting security and shares, and updates Allvue issuer, security and lot records.\nFor an applicable conversion, the preparer uses Investment Restructure In 11021 and an approved Restructure Out account, reconciles the old instrument against the new without unexplained value, and the reviewer checks it. The specific Restructure Out account is unconfirmed and approved accounting direction is obtained.\nAfter any applicable conversion, the preparer identifies an escrow receivable and obtains client tax department direction before recording escrow treatment. For a fund of funds, the preparer calculates concentration against partners capital; if the supported calculation exceeds 5%, disclosure is routed to financial reporting. If neither escrow nor fund of funds applies, the preparer documents that and proceeds to final reconciliation.",
+    "evidence_turns": [
+     "t002",
+     "t010",
+     "t004",
+     "t006",
+     "t008",
+     "t012"
+    ],
+    "key": "lifecycle",
+    "status": "partial"
+   },
+   {
+    "answer": "The preparer reconciles the cash debit and cost credit in 20080. A non-zero balance prevents closeout: the missing or mismatched entry or timing item is identified, assigned an owner and age, and escalated; an entry is never forced just to clear the account. The preparer also confirms complete Allvue setup and CRM attributes and agreement of cost, shares and ownership evidence; the preparer and second reviewer sign off the checklists.\nThe Investment Payable clearing account 20080 is also checked and cleared every quarter, separately from the final reconciliation for a purchase event.\nEvidence retained for other intermediate reviews and the detailed resolution and rework routes remain open.\nThe reviewer checks deal-package completeness. The preparer compares each form attribute to supporting documentation or written client direction, and the second reviewer checks the form; missing or conflicting attributes must be resolved before system setup.\nTreasury validates new counterparty bank details by callback, and the compliance screening role runs Exiger for jurisdictions meeting approved high-risk criteria. Bank or screening discrepancies are resolved and payment date and cut-off feasibility confirmed; failed callback, high-risk alert, missing approval or missed cut-off holds payment.\nThe preparer compares Allvue CRM fields to the Attribute Form and the second reviewer checks setup. Duplicate master, wrong entity or security type, missing field or unsupported allocation is escalated to the system owner and reviewer.\nThe preparer routes the cash entry to all AFCs, FCs and Directors, resolves their comments and obtains their approvals before Treasury submits payment. Rejected or returned payments, changed instructions, cut-off misses and amount mismatches are escalated.\nThe participant does not know what AFC and FC stand for; the order in which those approvers sign has not been defined.\nThe cost entry is routed to FCs and Directors and posted after approval. Final deal documents and approved cost support are prerequisites; without final documents no cost entry is made.\nThe preparer verifies the warrant or option allocation ties to total cost before allocation. For applicable conversions, the old and new instruments are reconciled without unexplained value and the reviewer checks the work.",
+    "evidence_turns": [
+     "t002",
+     "t010",
+     "t004",
+     "t008",
+     "t006",
+     "t012"
+    ],
+    "key": "checks",
+    "status": "partial"
+   },
+   {
+    "answer": "Further differences by client, fund or entity, beyond the described screening, document-availability, conversion, allocation, escrow and fund-of-funds branches, remain open.\nThe compliance screening role runs Exiger screening when the jurisdiction meets approved high-risk criteria; this is a jurisdiction-dependent clearance step.\nWhen final deal documents are unavailable after payment, the cost entry is deferred and the supported cash entry remains as an aged, owned 20080 timing item; setup cannot close until the documents arrive.\nSAFE, convertible note and non-cash conversions require a conditional conversion step; SAFE cap or discount terms and note principal and interest are applied according to executed terms. Warrant or option allocations add an approved reclassification and total-cost tie-out.\nEscrow requires client tax direction before treatment is recorded; fund-of-funds purchases require a concentration calculation and disclosure routing when it exceeds 5%. When neither applies, their non-applicability is documented.",
+    "evidence_turns": [
+     "t006",
+     "t010",
+     "t012"
+    ],
+    "key": "variations",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "pain_points",
+    "status": "unknown"
+   },
+   {
+    "answer": "Cash could leave without client or GP approval, verified bank details or required screening. Wrong cost, shares or attributes, or a duplicate or misconfigured security, can flow into allocation, reporting and later debt investment processing; identical cash- and cost-entry descriptions can suppress reporting activity and break reconciliation.\nA non-zero 20080 balance keeps the item open and prevents closeout.",
+    "evidence_turns": [
+     "t010"
+    ],
+    "key": "risk",
+    "status": "captured"
+   },
+   {
+    "answer": "The preparer opens the New Investment Set Up and purchase control checklists after notice; the preparer and second reviewer sign them at the final step. The deal bible is retained.\nThe deal bible's custodian and location and whether the checklists or other written materials were reviewed remain unstated.\nThe deal bible is the deal document package, including purchase agreement, cap table, structure chart, ownership evidence and closing documents. A deficiency log records missing or draft items; the Investment Attribute Form records and supports validation of investment attributes.\nClient or GP approval of the purchase, amount, counterparty and payment is retained as part of clearance.\nThe cash entry carries client approval, callback and screening evidence, deal and payment support, and the calculation. Payment status, bank settlement date, bank reference and any rejection or return are recorded.\nThe cost entry carries final deal documents, the Investment Attribute Form, setup evidence and cost support.\nFinal executed purchase or conversion documents and the approved allocation support final acquisition cost; executed conversion terms support the applicable conversion calculation.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010",
+     "t012"
+    ],
+    "key": "materials",
+    "status": "partial"
+   },
+   {
+    "answer": "The work concerns completed or imminent investment purchases.\nThe number and full range of applicable entities, funds and clients, and whether the route is general practice or client-specific, remain unestablished.\nThe preparer records a fund or entity and classifies deals as equity, debt, SAFE or note conversion, non-cash restructuring, fund of funds or another supported category.",
+    "evidence_turns": [
+     "t002",
+     "t004"
+    ],
+    "key": "scope",
+    "status": "partial"
+   },
+   {
+    "answer": "The cash debit and cost credit to 20080 must net to zero for closeout. A supported remainder is an open timing item with an owner and age; no entry is forced merely to clear the account.\nThe source and interpreter of the 20080 reconciliation rule, other setup rules, and override or correction authority remain unstated.\nThe preparer uses supporting documents or written client direction to validate attributes; missing or conflicting attributes must be resolved before setup. Legal interpretation questions go to the client or legal counsel rather than inferring terms.\nThe participant reports that approval of purchase, amount, counterparty and payment is retained, and payment is held for a failed callback, high-risk alert, missing approval or missed cut-off. Allvue NAV setup follows Issuer, Security, Lot and approved Allocation rule in that order.\nCash-entry approval precedes Treasury payment submission, and Treasury releases payment sufficiently before the bank cut-off. The cash-entry description differs from the later cost-entry description.\nPayment is never released until client or GP approval, callback, required screening, internal entry approval and cut-off feasibility are complete. Cash and cost entry descriptions must differ.\nFinal acquisition cost is based on final executed purchase or conversion documents and the approved allocation, not a provisional Attribute Form or old client workbook. The preparer confirms cash and supported non-cash components and applicable principal and accrued interest.\nWarrant or option reclassification is limited to the client-approved amount and must preserve total cost. Conversion terms come from executed documents; escrow treatment requires client tax direction, and fund-of-funds concentration over 5% triggers financial-reporting disclosure routing.\nThe participant has no specified general formula or entry template for final acquisition cost. The Restructure Out account is unconfirmed and requires approved accounting direction.\nThe inputs, source and calculation method for fund-of-funds concentration against partners capital are not yet described.",
+    "evidence_turns": [
+     "t002",
+     "t010",
+     "t004",
+     "t006",
+     "t008",
+     "t012"
+    ],
+    "key": "rules",
+    "status": "partial"
+   },
+   {
+    "answer": "The client provides notice of a completed or imminent investment purchase, triggering this work.\nTreasury validates new counterparty bank details by callback. After the preparer obtains cash-entry approvals through Daily Posting, Treasury submits and releases payment through the treasury workflow.\nThe process retains purchase, amount, counterparty and payment approval from the client or GP before Allvue setup.\nThe preparer prepares and routes the cash entry in the Daily Posting process to all AFCs, FCs and Directors for approval before Treasury submits payment.\nThe preparer prepares the cost entry in General Operations and routes it to FCs and Directors; it is posted after their approval.\nIncorrect investment cost, shares or attributes, or a duplicate or misconfigured security, can flow into allocation, reporting and later debt investment processing.\nFor applicable escrow treatment, the preparer obtains direction from the client tax department before recording. For fund-of-funds concentration over 5%, disclosure is routed to the financial reporting process.",
+    "evidence_turns": [
+     "t002",
+     "t006",
+     "t008",
+     "t010",
+     "t012"
+    ],
+    "key": "connections",
+    "status": "partial"
+   },
+   {
+    "answer": "At the final step, the preparer confirms Allvue setup and CRM attributes are complete and cost, shares and ownership evidence agree across records.\nThe delivery route for the purchase notice, origins and storage of the deal documents, entry or re-keying method, and system of record remain unstated.\nThe preparer creates or validates Issuer, Security, Lot and Allocation rule in Allvue NAV, then updates Firm Known As, Industry and FAS 157 level in Allvue CRM and compares system fields to the Attribute Form. Exiger is used for screening when approved high-risk jurisdiction criteria are met.\nThe cash entry is prepared in Daily Posting; Treasury submits payment through the treasury workflow.\nThe preparer prepares the acquisition cost entry in General Operations, using final deal documents and approved cost support.\nFor applicable conversions, the preparer updates Allvue issuer, security and lot records after determining the resulting security and shares.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010",
+     "t012"
+    ],
+    "key": "data_systems",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant reports that account 20080 is checked and cleared every quarter. Purchase-event volume and effort are not stated.\nPurchase counts, peak volumes, exception frequency, and effort by step are not stated.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "volume",
+    "status": "partial"
+   }
+  ],
+  "coverage": [
+   {
+    "key": "name",
+    "label": "Name & other names",
+    "status": "partial"
+   },
+   {
+    "key": "purpose",
+    "label": "Purpose & result",
+    "status": "partial"
+   },
+   {
+    "key": "trigger",
+    "label": "Start, cadence & deadlines",
+    "status": "partial"
+   },
+   {
+    "key": "completion",
+    "label": "Finished condition",
+    "status": "partial"
+   },
+   {
+    "key": "accountable",
+    "label": "Accountability",
+    "status": "partial"
+   },
+   {
+    "key": "lifecycle",
+    "label": "Items, stages & handoffs",
+    "status": "partial"
+   },
+   {
+    "key": "checks",
+    "label": "Checks, approvals & proof",
+    "status": "partial"
+   },
+   {
+    "key": "variations",
+    "label": "Variations and conditions",
+    "status": "partial"
+   },
+   {
+    "key": "pain_points",
+    "label": "Manual work & pain",
+    "status": "missing"
+   },
+   {
+    "key": "risk",
+    "label": "Consequences of failure",
+    "status": "partial"
+   },
+   {
+    "key": "materials",
+    "label": "Existing materials",
+    "status": "partial"
+   },
+   {
+    "key": "scope",
+    "label": "Scope & entity context",
+    "status": "partial"
+   },
+   {
+    "key": "rules",
+    "label": "Business rules & lineage",
+    "status": "partial"
+   },
+   {
+    "key": "connections",
+    "label": "Connected processes",
+    "status": "partial"
+   },
+   {
+    "key": "data_systems",
+    "label": "Data & systems",
+    "status": "partial"
+   },
+   {
+    "key": "volume",
+    "label": "Volume & effort",
+    "status": "partial"
+   }
+  ],
+  "summary": "Final cost uses executed documents and approved allocation. Conditional conversion, escrow and fund-of-funds steps precede final reconciliation. How do you calculate fund-of-funds concentration against partners capital?",
+  "focus": "Fund-of-funds concentration calculation",
+  "parking_lot": [],
+  "connections_out": [
+   {
+    "condition": "Approval of purchase, amount, counterparty and payment is retained before Allvue setup; missing approval holds payment.",
+    "counterpart": "Client or GP",
+    "evidence_turns": [
+     "t006"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "Treasury validates new counterparty details by callback and, after cash-entry approval, submits and releases payment through the treasury workflow.",
+    "counterpart": "Treasury",
+    "evidence_turns": [
+     "t006",
+     "t008"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "The preparer prepares and routes the cash entry in Daily Posting for approval before payment.",
+    "counterpart": "Daily Posting",
+    "evidence_turns": [
+     "t008"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "The preparer routes the cash entry to all these approvers and resolves comments before Treasury submits payment; approval order is undefined.",
+    "counterpart": "AFCs, FCs and Directors",
+    "evidence_turns": [
+     "t008"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "The preparer prepares the acquisition cost entry after payment confirmation and receipt of final documents and approved cost support.",
+    "counterpart": "General Operations",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "The cost entry is routed to FCs and Directors and posted after their approval.",
+    "counterpart": "FCs and Directors",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "Investment recording and setup information can flow into later debt investment processing.",
+    "counterpart": "Debt investment processing",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "Treasury validates new counterparty details by callback and submits and releases payment after cash-entry approval and clearance gates.",
+    "counterpart": "Treasury",
+    "evidence_turns": [
+     "t006",
+     "t008",
+     "t010"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "For a fund of funds, disclosure is routed to financial reporting if supported concentration against partners capital exceeds 5%.",
+    "counterpart": "Financial reporting",
+    "evidence_turns": [
+     "t012"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "The preparer obtains client tax department direction before recording applicable escrow treatment.",
+    "counterpart": "Client tax department",
+    "evidence_turns": [
+     "t012"
+    ],
+    "relationship_type": "consumes"
+   }
+  ],
+  "taxonomy": [
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "functional_area",
+    "note": "Reported investment accounting preparer and investment purchase accounting work; entity scope not established.",
+    "value": "fund_accounting"
+   },
+   {
+    "evidence_turns": [
+     "context",
+     "t002"
+    ],
+    "facet": "process_level",
+    "note": "Captured as the named investment purchase recording, setup, and controls work; parent lifecycle not established.",
+    "value": "process"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "system",
+    "note": "Participant reports confirming Allvue setup at the final step.",
+    "value": "allvue"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "entity_type",
+    "note": "The participant records a fund or entity; full applicability is not established.",
+    "value": "fund"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "control_type",
+    "note": "The preparer compares attributes with supporting documents or written client direction and logs deficiencies.",
+    "value": "gpfs_operational"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "control_type",
+    "note": "The participant reports reviewer completeness and attribute-form checks; reviewer seniority is not specified.",
+    "value": "gpfs_supervisory"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "facet": "system",
+    "note": "Exiger screening is used when jurisdiction meets approved high-risk criteria, as reported by the participant.",
+    "value": "other"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "facet": "control_type",
+    "note": "Client or GP purchase, amount, counterparty and payment approval is retained; missing approval holds payment.",
+    "value": "client_approval"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "facet": "control_type",
+    "note": "Setup exceptions are escalated to the system owner and reviewer.",
+    "value": "exception_escalation"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "facet": "variant_class",
+    "note": "Reported screening condition depends on whether jurisdiction meets approved high-risk criteria.",
+    "value": "structural"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "facet": "control_type",
+    "note": "Participant reports escalation for rejected or returned payments, changed instructions, cut-off misses and amount mismatches.",
+    "value": "exception_escalation"
+   },
+   {
+    "evidence_turns": [
+     "t012"
+    ],
+    "facet": "functional_area",
+    "note": "A fund-of-funds concentration above 5% is routed to financial reporting for disclosure; this is a reported downstream connection.",
+    "value": "financial_reporting"
+   },
+   {
+    "evidence_turns": [
+     "t012"
+    ],
+    "facet": "rule_source",
+    "note": "Participant reports executed purchase or conversion documents as sources of final cost and conversion terms.",
+    "value": "other"
+   },
+   {
+    "evidence_turns": [
+     "t012"
+    ],
+    "facet": "variant_class",
+    "note": "Reported conditional work differs for conversions, escrow and fund-of-funds purchases.",
+    "value": "structural"
+   }
+  ],
+  "completion": {
+   "allowed": false,
+   "ready_for_final_check": false,
+   "complete": false,
+   "partial": true,
+   "participant_confirmed": false,
+   "blockers": [
+    "role_incomplete:coverage_reviewer",
+    "role_incomplete:process_reviewer",
+    "coverage_result_unbound",
+    "coverage_incomplete",
+    "coverage_unresolved:name",
+    "coverage_unresolved:purpose",
+    "coverage_unresolved:trigger",
+    "coverage_unresolved:completion",
+    "coverage_unresolved:accountable",
+    "coverage_unresolved:lifecycle",
+    "coverage_unresolved:checks",
+    "coverage_unresolved:variations",
+    "coverage_unresolved:pain_points",
+    "coverage_unresolved:risk",
+    "coverage_unresolved:materials",
+    "coverage_unresolved:scope",
+    "coverage_unresolved:rules",
+    "coverage_unresolved:connections",
+    "coverage_unresolved:data_systems",
+    "coverage_unresolved:volume",
+    "process_result_unbound"
+   ],
+   "revision": "a52731dafbbfa3b2a15d6edd45f3488c47e4d1edb5060733459da2833a10b69f",
+   "run_id": "b751810063a34d46a435d44501cca033"
+  },
+  "coverage_assessment": null
+ },
+ "finished": 1794918394.4435132
+}

@@ -3599,7 +3599,7 @@ def judged_route_steps(proposed, published):
 def connect_detached_routes(capture, repair, *, context, turns, documents=None, baseline=None, judged=()):
     """Check a reviewed map for parts its route passes by, before it is published.
 
-    Finding 2 of docs/testing/process-capture-2026-11-16: a published map led from the start
+    Finding 2 of docs/testing/runs/2026-11-16-process-capture: a published map led from the start
     to the calculation without passing the method selection whose Method B outcome puts the
     work on hold; others left a required identity check or a legal clearance outside the
     route. Each map is now checked for such gaps (route_gaps). The sources are asked once

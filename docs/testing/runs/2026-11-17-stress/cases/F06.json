@@ -1,0 +1,1644 @@
+{
+ "case": "F06",
+ "port": 8793,
+ "interview_id": "539e73067792469ca31bd353dc805084",
+ "context": {
+  "process_name": "Quarterly GP Workbook Production",
+  "process_owner": "",
+  "objective": "Document how we carry out Quarterly GP Workbook Production, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "Thanks for sharing. Give me a moment to digest the file. Then I\u2019ll follow up with a question.",
+   "document_event": true,
+   "document_id": "doc_intake"
+  },
+  {
+   "id": "t002",
+   "role": "assistant",
+   "text": "The procedure says the preparer verifies the period, version and approval before copying the prior-period workbook and reconciling carried-forward amounts. Does that reflect how quarterly GP workbook production is done today?"
+  },
+  {
+   "id": "t003",
+   "role": "user",
+   "text": "Yes, that matches. As preparer I only start once the fund workbook for the same period is final and client-approved; if it is not, I stop and the fund team and client have to get us the approved source - no allocating, posting or output until then. If opening balances or previously recorded carry do not reconcile, I also stop until the difference is resolved with the reviewer and accounting. After that page, the next thing I do is review changes: I go through the governing documents first, then the Activities and Tax Activities tabs, record and validate every changed term, independently recalculate the affected results, and map every GP category to the fund workbook and confirm the amounts agree exactly. If a tab or document shows an unsupported or conflicting change, I stop the affected calculation and get a current interpretation from the governing document, the client or the adviser - the tab itself never decides the treatment - then recalculate what is affected. Then I confirm the capital and carry allocation levels, changes, effective dates, accounting tags, field mappings and schedule versions, the client confirms, and I lock the approved input set."
+  },
+  {
+   "id": "t004",
+   "role": "assistant",
+   "text": "Once you lock the approved input set, what happens next to the workbook, and who receives it?"
+  },
+  {
+   "id": "t005",
+   "role": "user",
+   "text": "It stays with me for the calculations. First I run the capital allocation: apply the approved totality, deal or tranche method, identify the records for realized events, and reconcile member allocations to the GP capital total. Then I calculate carry from inception through the current period for each component and schedule, apply changes, combine the results and subtract carry already recorded - that gives the current-period entry; we never calculate carry for the current period alone. If accounting tags, included records, the allocation method or a schedule are missing or unreliable, I stop the affected allocation and get corrected data or an approved mapping from the client or the upstream teams; I do not infer a formula. Once calculations are complete, the calculation and journal entry support go to the Controller for review before posting. Then the approved entry is posted, the workbook is updated from the posted records, and the entry, workbook and source are reconciled. Who exactly posts the entry and who has authority to approve before posting is not confirmed, so I cannot tell you that."
+  },
+  {
+   "id": "t006",
+   "role": "assistant",
+   "text": "After the entry, workbook and source are reconciled, what observable condition tells you production is complete, and where does the finished workbook go?"
+  },
+  {
+   "id": "t007",
+   "role": "user",
+   "text": "After that reconciliation the completed workbook goes to the Controller, with a Director as required, for the completed-workbook review. They review the trigger, changes, source ties, allocations, schedules, entry, statements and outputs, every comment has to be resolved, and then the final version is locked. If a source, posted entry, formula, schedule or review changes the workbook, output stops, all affected reconciliations are rerun and the final posted version is approved again - an earlier version cannot be used for output. From the final locked workbook we produce the outputs through whatever delivery method is implemented for that client - configured report, mail merge, workbook, PDF, GPES or portal. We validate field mapping, included records, totals, member details and the template, reconcile the outputs to the locked workbook at total and member level, obtain approval, release the client package and keep the release record. If a configured report is unavailable or GPES or the portal has not been validated, we stop until an approved, implemented fallback method is available, then reconcile and review that output the same way. It is complete when the validated client package is released with a saved release approval record and all sources, calculations, review and release records are saved. Who the release approver is has not been established, and whether the client must approve the GP workbook or output depends on the engagement and is not fully defined, so I do not know those."
+  },
+  {
+   "id": "t008",
+   "role": "assistant",
+   "text": "What does the completed GP workbook help its recipients do?"
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "This capture still has open sections. 15 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "doc.session",
+   "at": 1794920292.74,
+   "turn": 0,
+   "seconds": 0.027,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.upload",
+   "at": 1794920292.743,
+   "turn": 0,
+   "seconds": 0.003,
+   "status": 202,
+   "retries": 0,
+   "file": "F06 GP-06 procedure page.png",
+   "bytes": 130267
+  },
+  {
+   "kind": "doc.extracted",
+   "at": 1794920293.256,
+   "turn": 0,
+   "seconds": 0.54,
+   "file": "F06 GP-06 procedure page.png",
+   "chunks": 1,
+   "status": "partial",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 0,
+    "total_units": 1,
+    "visual_pending_units": 1,
+    "limitations": [
+     "Image contents require native visual review; no OCR was performed."
+    ]
+   }
+  },
+  {
+   "kind": "doc.review_started",
+   "at": 1794920293.256,
+   "turn": 0,
+   "seconds": 0.54,
+   "file": "F06 GP-06 procedure page.png",
+   "chunks": 1,
+   "status": "partial",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 0,
+    "total_units": 1,
+    "visual_pending_units": 1,
+    "limitations": [
+     "Image contents require native visual review; no OCR was performed."
+    ]
+   }
+  },
+  {
+   "kind": "doc.review_deep",
+   "at": 1794920300.972,
+   "turn": 0,
+   "seconds": 8.26,
+   "file": "F06 GP-06 procedure page.png",
+   "chunks": 1,
+   "status": "partial",
+   "phase": "deep",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 1,
+    "total_units": 1,
+    "visual_pending_units": 0,
+    "limitations": [
+     "AI visual transcriptions are searchable but have not been independently verified."
+    ]
+   }
+  },
+  {
+   "kind": "doc.review_complete",
+   "at": 1794920307.185,
+   "turn": 0,
+   "seconds": 14.47,
+   "file": "F06 GP-06 procedure page.png",
+   "chunks": 1,
+   "status": "partial",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 1,
+    "total_units": 1,
+    "visual_pending_units": 0,
+    "limitations": [
+     "AI visual transcriptions are searchable but have not been independently verified."
+    ]
+   }
+  },
+  {
+   "kind": "doc.followup_question",
+   "at": 1794920309.115,
+   "turn": 1,
+   "seconds": 1.929,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.first_question",
+   "at": 1794920309.115,
+   "turn": 2,
+   "seconds": 16.4,
+   "reading": {
+    "omitted_documents": 0,
+    "documents": [
+     {
+      "id": "doc_9ececb86e9c466d959eaee4e",
+      "included_chunks": 1,
+      "total_chunks": 1
+     }
+    ]
+   }
+  },
+  {
+   "kind": "doc.notes_ready",
+   "at": 1794920336.951,
+   "turn": 2,
+   "seconds": 29.77
+  },
+  {
+   "kind": "doc.map_ready",
+   "at": 1794920355.996,
+   "turn": 2,
+   "seconds": 48.81,
+   "steps": 3,
+   "connections": 2
+  },
+  {
+   "kind": "question",
+   "at": 1794920364.105,
+   "turn": 3,
+   "seconds": 1.465,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794920396.636,
+   "turn": 4,
+   "seconds": 33.99
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794920424.592,
+   "turn": 4,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 61.95
+  },
+  {
+   "kind": "question",
+   "at": 1794920432.615,
+   "turn": 5,
+   "seconds": 1.952,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794920466.093,
+   "turn": 6,
+   "seconds": 35.43
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794920493.041,
+   "turn": 6,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 62.38
+  },
+  {
+   "kind": "question",
+   "at": 1794920503.264,
+   "turn": 7,
+   "seconds": 2.948,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794920539.392,
+   "turn": 8,
+   "seconds": 39.08
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794920563.725,
+   "turn": 8,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 63.41
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794920568.713,
+   "turn": 8,
+   "seconds": 2.033,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "working",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.map_ready",
+   "at": 1794920682.911,
+   "turn": 9,
+   "seconds": 116.23,
+   "steps": 15,
+   "connections": 15
+  }
+ ],
+ "started": 1794920289.554003,
+ "documents": [
+  {
+   "id": "doc_9ececb86e9c466d959eaee4e",
+   "name": "F06 GP-06 procedure page.png",
+   "kind": "png",
+   "size": 130267,
+   "status": "partial",
+   "chunk_count": 1,
+   "analysis": {
+    "phase": "complete",
+    "intent_version": 0,
+    "basis_turn_id": "",
+    "basis_question": "",
+    "request_count": 2,
+    "generated_by": [
+     {
+      "build_id": "713975ca987f099ba0b713812b594415e1273cd802fdd81c77d3aca273de914f",
+      "generated_at": "2026-11-17T12:58:20.501+00:00",
+      "model": "gpt-6.1-terra",
+      "prompt_id": "3cdf9a64520b6eaf",
+      "reasoning_effort": "low",
+      "stage": "document_context_review"
+     },
+     {
+      "build_id": "713975ca987f099ba0b713812b594415e1273cd802fdd81c77d3aca273de914f",
+      "generated_at": "2026-11-17T12:58:26.919+00:00",
+      "model": "gpt-6.1-terra",
+      "prompt_id": "3cdf9a64520b6eaf",
+      "reasoning_effort": "low",
+      "stage": "document_context_review"
+     }
+    ],
+    "app_version": "0.32.0",
+    "questions": [
+     {
+      "id": "doc_9ececb86e9c466d959eaee4e_65bed12127f5f5fe44ea",
+      "text": "What happens if Client approval or the final fund workbook is unavailable at the scheduled start?",
+      "sources": [
+       {
+        "source_id": "doc_9ececb86e9c466d959eaee4e_image_c1",
+        "label": "F06 GP-06 procedure page.png \u00b7 image"
+       }
+      ]
+     },
+     {
+      "id": "doc_9ececb86e9c466d959eaee4e_96476fd14c10414d0f6f",
+      "text": "How are discrepancies in beginning balances or carried-forward amounts resolved, and who approves their resolution?",
+      "sources": [
+       {
+        "source_id": "doc_9ececb86e9c466d959eaee4e_image_c1",
+        "label": "F06 GP-06 procedure page.png \u00b7 image"
+       }
+      ]
+     },
+     {
+      "id": "doc_9ececb86e9c466d959eaee4e_b8fd38c0ce6e64f4451d",
+      "text": "Who determines which external reporting template version applies and resolves any conflict with governing documents?",
+      "sources": [
+       {
+        "source_id": "doc_9ececb86e9c466d959eaee4e_image_c1",
+        "label": "F06 GP-06 procedure page.png \u00b7 image"
+       }
+      ]
+     }
+    ],
+    "observations": [
+     {
+      "id": "doc_9ececb86e9c466d959eaee4e_43ae14d6e05753eaac4f",
+      "text": "The preparer verifies the period, version and approval, and confirms production and delivery requirements.",
+      "basis": "stated",
+      "quote": "Verify the period, version, and approval.",
+      "sources": [
+       {
+        "source_id": "doc_9ececb86e9c466d959eaee4e_image_c1",
+        "label": "F06 GP-06 procedure page.png \u00b7 image"
+       }
+      ]
+     },
+     {
+      "id": "doc_9ececb86e9c466d959eaee4e_19a2b929b21fa1cc3349",
+      "text": "The preparer copies the controlled previous-period workbook and reconciles beginning balances and carried-forward amounts.",
+      "basis": "stated",
+      "quote": "Reconcile beginning balances and amounts carried forward to the accounting records and previous-period deliverables.",
+      "sources": [
+       {
+        "source_id": "doc_9ececb86e9c466d959eaee4e_image_c1",
+        "label": "F06 GP-06 procedure page.png \u00b7 image"
+       }
+      ]
+     },
+     {
+      "id": "doc_9ececb86e9c466d959eaee4e_4206d00079bbc31fd9bc",
+      "text": "The procedure lists a final fund workbook, Client approval and engagement requirements as prerequisites for the preparer's initial scope check.",
+      "basis": "stated",
+      "quote": "What you need before starting: Final fund workbook, Client approval, engagement requirements",
+      "sources": [
+       {
+        "source_id": "doc_9ececb86e9c466d959eaee4e_image_c1",
+        "label": "F06 GP-06 procedure page.png \u00b7 image"
+       }
+      ]
+     },
+     {
+      "id": "doc_9ececb86e9c466d959eaee4e_8968eed94373998a8b77",
+      "text": "External reporting templates are conditional on engagement or Client requirements and do not override governing documents.",
+      "basis": "stated",
+      "quote": "The template does not set allocation or carry rules and does not override the governing documents.",
+      "sources": [
+       {
+        "source_id": "doc_9ececb86e9c466d959eaee4e_image_c1",
+        "label": "F06 GP-06 procedure page.png \u00b7 image"
+       }
+      ]
+     },
+     {
+      "id": "doc_9ececb86e9c466d959eaee4e_437305eb720562672d22",
+      "text": "The procedure notes unequal system capabilities and says implemented technology does not replace reconciliation, review or approval.",
+      "basis": "stated",
+      "quote": "Technology that has been implemented does not replace source reconciliation, review, or approval.",
+      "sources": [
+       {
+        "source_id": "doc_9ececb86e9c466d959eaee4e_image_c1",
+        "label": "F06 GP-06 procedure page.png \u00b7 image"
+       }
+      ]
+     }
+    ],
+    "limit_indicator": false,
+    "unreadable_sources": [],
+    "limitations": [],
+    "summary": "The procedure excerpt describes the preparer's start-condition and scope checks and initial prior-period workbook update and reconciliation. It also notes conditional use of external reporting templates and system constraints. The excerpt does not establish how the documented steps operate in practice or whether controls are effective.",
+    "summary_basis": "initial_review",
+    "summary_basis_note": "Written from the initial review selection. Later review may have changed coverage; current review status and limitations are shown separately.",
+    "summary_at_review_version": 1,
+    "queries": [],
+    "error": null,
+    "version": 2,
+    "relevance": "relevant",
+    "relevance_reason": "The excerpt directly addresses quarterly GP workbook production, including prerequisites, preparer responsibilities, reconciliation and approval-related requirements.",
+    "disposition": "relevant",
+    "acknowledgement": "",
+    "question": "",
+    "sources": [
+     {
+      "source_id": "doc_9ececb86e9c466d959eaee4e_image_c1",
+      "label": "F06 GP-06 procedure page.png \u00b7 image"
+     }
+    ],
+    "cursor": 1,
+    "reviewed_chunks": 1,
+    "total_chunks": 1,
+    "review_complete": true,
+    "estimated_requests": 1
+   },
+   "coverage": {
+    "indexed_units": 1,
+    "total_units": 1,
+    "visual_pending_units": 0,
+    "limitations": [
+     "AI visual transcriptions are searchable but have not been independently verified."
+    ]
+   },
+   "error": null,
+   "revision": 7,
+   "intent_version": null
+  }
+ ],
+ "revision": "1ccdb7da5a8c3cb6b90e66db7696fa282cfaf4ee67704f67db3cfe4831721c60",
+ "capture": {
+  "memo_findings": [
+   {
+    "answer": "The intake names the work Quarterly GP Workbook Production.",
+    "evidence_turns": [
+     "context"
+    ],
+    "key": "name",
+    "status": "partial"
+   },
+   {
+    "answer": "The work produces a validated client package from the final locked GP workbook.",
+    "evidence_turns": [
+     "t007"
+    ],
+    "key": "purpose",
+    "status": "partial"
+   },
+   {
+    "answer": "The procedure lists a final fund workbook, Client approval and engagement requirements as needed before the preparer starts the scope check. The initiating event is not established by this prerequisite list.\nThe preparer starts only once the fund workbook for the same period is final and client-approved. If it is unavailable, the preparer stops and the fund team and client must provide the approved source.",
+    "evidence_turns": [
+     "doc_9ececb86e9c466d959eaee4e_image_c1",
+     "t003"
+    ],
+    "key": "trigger",
+    "status": "partial"
+   },
+   {
+    "answer": "After the approved entry is posted, the workbook is updated from posted records and the entry, workbook and source are reconciled.\nProduction is complete when the validated client package is released with a saved release approval record and all source, calculation, review and release records are saved.",
+    "evidence_turns": [
+     "t005",
+     "t007"
+    ],
+    "key": "completion",
+    "status": "captured"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "accountable",
+    "status": "unknown"
+   },
+   {
+    "answer": "The procedure says the preparer verifies the period, version and approval, then confirms the production schedule, formats and templates, delivery method, and approval and release requirements. The result is recorded production details and scope.\nThe procedure next directs the preparer to copy the controlled previous-period GP workbook, update the period, and reconcile beginning balances and carried-forward amounts to accounting records and previous-period deliverables.\nIf opening balances or previously recorded carry do not reconcile, the preparer stops until the difference is resolved with the reviewer and accounting.\nAfter the initial procedure page, the preparer reviews the governing documents first, then the Activities and Tax Activities tabs; records and validates each changed term; independently recalculates affected results; and maps each GP category to the fund workbook, confirming exact agreement.\nFor an unsupported or conflicting change in a tab or document, the preparer stops the affected calculation, obtains a current interpretation from the governing document, client or adviser, and recalculates what is affected.\nThe preparer then confirms capital and carry allocation levels, changes, effective dates, accounting tags, field mappings and schedule versions; the client confirms; and the preparer locks the approved input set.\nThe preparer retains the locked input set for calculations. First, the preparer applies the approved totality, deal or tranche method, identifies records for realized events and reconciles member allocations to the GP capital total.\nThe preparer calculates carry from inception through the current period for each component and schedule, applies changes, combines results and subtracts carry already recorded to obtain the current-period entry.\nIf accounting tags, included records, allocation method or a schedule are missing or unreliable, the preparer stops the affected allocation and obtains corrected data or an approved mapping from the client or upstream teams rather than inferring a formula.\nAfter calculation, the calculation and journal-entry support go to the Controller for review before posting. The approved entry is posted, the workbook is updated from posted records, and the entry, workbook and source are reconciled.\nAfter reconciliation, the completed workbook goes to the Controller, with a Director as required, for review. They review the trigger, changes, source ties, allocations, schedules, entry, statements and outputs; every comment must be resolved before the final version is locked.\nIf a source, posted entry, formula, schedule or review changes the workbook, output stops; all affected reconciliations are rerun and the final posted version is approved again. An earlier version cannot be used for output.\nThe team produces outputs from the final locked workbook using the client's implemented delivery method, validates mapping, records, totals, member details and template, and reconciles outputs to the workbook at total and member level. Approval is obtained before the client package is released and the release record retained.\nIf a configured report is unavailable or GPES or the portal is not validated, output stops until an approved, implemented fallback is available; that output receives the same reconciliation and review.",
+    "evidence_turns": [
+     "doc_9ececb86e9c466d959eaee4e_image_c1",
+     "t003",
+     "t005",
+     "t007"
+    ],
+    "key": "lifecycle",
+    "status": "partial"
+   },
+   {
+    "answer": "The documented initial checks include verifying the period, version and approval and reconciling beginning balances and carried-forward amounts against accounting records and previous-period deliverables.\nThe preparer validates changed terms, independently recalculates affected results and checks that every GP category mapped to the fund workbook agrees exactly. The preparer stops unreconciled opening balances or carry for resolution with the reviewer and accounting.\nThe client confirms the allocation and mapping input set before the preparer locks it.\nThe mechanism and retained evidence of client confirmation of the input set remain unestablished.\nMember allocations are reconciled to the GP capital total; calculation and journal-entry support go to the Controller for review before posting; the posted entry, updated workbook and source are reconciled.\nThe participant cannot confirm who posts the entry or who has authority to approve it before posting. Controller review is reported separately from approval.\nThe Controller, with a Director as required, reviews the completed workbook after reconciliation, including trigger, changes, source ties, allocations, schedules, entry, statements and outputs. All review comments must be resolved before final locking.\nBefore release, the team validates field mapping, included records, totals, member details and template, reconciles outputs to the locked workbook at total and member level, and obtains approval.\nThe release approver is not established; whether client approval of the GP workbook or output is required varies by engagement and is not fully defined.",
+    "evidence_turns": [
+     "doc_9ececb86e9c466d959eaee4e_image_c1",
+     "t003",
+     "t005",
+     "t007"
+    ],
+    "key": "checks",
+    "status": "partial"
+   },
+   {
+    "answer": "The procedure calls for an ILPA or other external reporting template only when the current engagement or Client requires the applicable version.\nCapital allocation uses an approved totality, deal or tranche method.\nThe conditions for selecting each capital-allocation method remain unestablished.\nOutput delivery depends on the method implemented for the client: configured report, mail merge, workbook, PDF, GPES or portal. Unavailable or unvalidated methods require an approved, implemented fallback subject to the same reconciliation and review.",
+    "evidence_turns": [
+     "doc_9ececb86e9c466d959eaee4e_image_c1",
+     "t005",
+     "t007"
+    ],
+    "key": "variations",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "pain_points",
+    "status": "unknown"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "risk",
+    "status": "unknown"
+   },
+   {
+    "answer": "The supplied GP-06 procedure page documents initial scope checks and workbook reconciliation. Its visual transcription has not been independently verified. The preparer confirmed that the described period, version and approval verification, prior-period copying and carried-forward reconciliation match current practice.\nThe documented inputs include the final fund workbook, engagement requirements, previous-period GP workbook, accounting balances and previous-period deliverables. Recorded production details and scope are the stated result of the initial check.\nThe preparer reviews governing documents and the Activities and Tax Activities tabs to identify changed terms, and uses the fund workbook to map GP categories and compare amounts.\nThe calculation and journal-entry support are sent to the Controller for review; posted records are used to update the workbook before reconciliation.\nThe final locked workbook supports output production; the client package and saved release approval record evidence release. Source, calculation, review and release records are also saved.",
+    "evidence_turns": [
+     "doc_9ececb86e9c466d959eaee4e_image_c1",
+     "t003",
+     "t005",
+     "t007"
+    ],
+    "key": "materials",
+    "status": "partial"
+   },
+   {
+    "answer": "The excerpt concerns production of a GP workbook and uses a final fund workbook and Client approval as initial prerequisites.",
+    "evidence_turns": [
+     "doc_9ececb86e9c466d959eaee4e_image_c1"
+    ],
+    "key": "scope",
+    "status": "partial"
+   },
+   {
+    "answer": "The procedure states that an external reporting template does not set allocation or carry rules and does not override governing documents. Implemented technology does not replace source reconciliation, review or approval.\nNo allocating, posting or output proceeds without the final client-approved same-period fund workbook. An unsupported or conflicting change stops the affected calculation; the tab itself does not decide treatment.\nCarry is calculated from inception through the current period, not for the current period alone; previously recorded carry is subtracted to derive the current-period entry.\nThe preparer uses the approved totality, deal or tranche capital-allocation method and does not infer a formula when required allocation inputs are missing or unreliable.\nOnly the final locked workbook may be used for output. Changes require affected reconciliations to be rerun and the final posted version approved again; unavailable or unvalidated delivery methods require an approved, implemented fallback.",
+    "evidence_turns": [
+     "doc_9ececb86e9c466d959eaee4e_image_c1",
+     "t003",
+     "t005",
+     "t007"
+    ],
+    "key": "rules",
+    "status": "partial"
+   },
+   {
+    "answer": "Quarterly GP workbook production consumes the same-period final, client-approved fund workbook; when unavailable, the fund team and client must provide the approved source.\nThe preparer resolves opening-balance or previously recorded carry differences with the reviewer and accounting before proceeding.\nThe client confirms the input set before the preparer locks it.\nUses the output of Fund workbook production: Requires the final, client-approved fund workbook for the same period; the fund team and client provide the approved source if unavailable.\nThe process hands calculation and journal-entry support to the Controller for review before posting.\nAfter reconciliation, the process hands the completed workbook to the Controller, with a Director as required, for completed-workbook review.",
+    "evidence_turns": [
+     "t003",
+     "t005",
+     "t007"
+    ],
+    "key": "connections",
+    "status": "partial"
+   },
+   {
+    "answer": "The procedure notes that Excel, reporting, GPES, portal and structured-data capabilities are not equally available.\nThe systems used for calculations and the locations where workbooks and records are saved remain unestablished.\nReported output methods include configured report, mail merge, workbook, PDF, GPES and portal, depending on what is implemented for the client.",
+    "evidence_turns": [
+     "doc_9ececb86e9c466d959eaee4e_image_c1",
+     "t007"
+    ],
+    "key": "data_systems",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "volume",
+    "status": "unknown"
+   }
+  ],
+  "coverage": [
+   {
+    "key": "name",
+    "label": "Name & other names",
+    "status": "partial"
+   },
+   {
+    "key": "purpose",
+    "label": "Purpose & result",
+    "status": "partial"
+   },
+   {
+    "key": "trigger",
+    "label": "Start, cadence & deadlines",
+    "status": "partial"
+   },
+   {
+    "key": "completion",
+    "label": "Finished condition",
+    "status": "partial"
+   },
+   {
+    "key": "accountable",
+    "label": "Accountability",
+    "status": "missing"
+   },
+   {
+    "key": "lifecycle",
+    "label": "Items, stages & handoffs",
+    "status": "partial"
+   },
+   {
+    "key": "checks",
+    "label": "Checks, approvals & proof",
+    "status": "partial"
+   },
+   {
+    "key": "variations",
+    "label": "Variations and conditions",
+    "status": "partial"
+   },
+   {
+    "key": "pain_points",
+    "label": "Manual work & pain",
+    "status": "missing"
+   },
+   {
+    "key": "risk",
+    "label": "Consequences of failure",
+    "status": "missing"
+   },
+   {
+    "key": "materials",
+    "label": "Existing materials",
+    "status": "partial"
+   },
+   {
+    "key": "scope",
+    "label": "Scope & entity context",
+    "status": "partial"
+   },
+   {
+    "key": "rules",
+    "label": "Business rules & lineage",
+    "status": "partial"
+   },
+   {
+    "key": "connections",
+    "label": "Connected processes",
+    "status": "partial"
+   },
+   {
+    "key": "data_systems",
+    "label": "Data & systems",
+    "status": "partial"
+   },
+   {
+    "key": "volume",
+    "label": "Volume & effort",
+    "status": "missing"
+   }
+  ],
+  "summary": "The completed workbook is reviewed and locked before outputs are validated, approved and released. The release approver and engagement-specific client approval requirements remain unresolved. What does the Controller check in the calculation and journal-entry support before posting?",
+  "focus": "Completed-workbook review and client package release",
+  "parking_lot": [],
+  "connections_out": [
+   {
+    "condition": "Requires the final, client-approved fund workbook for the same period; the fund team and client provide the approved source if unavailable.",
+    "counterpart": "Fund workbook production",
+    "evidence_turns": [
+     "t003"
+    ],
+    "relationship_type": "consumes"
+   },
+   {
+    "condition": "The client confirms the input set before the preparer locks it.",
+    "counterpart": "Client",
+    "evidence_turns": [
+     "t003"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "Calculation and journal-entry support go to the Controller for review before posting; approval authority is unconfirmed.",
+    "counterpart": "Controller",
+    "evidence_turns": [
+     "t005"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "After entry, workbook and source reconciliation, the completed workbook goes to the Controller, with a Director as required, for completed-workbook review.",
+    "counterpart": "Controller",
+    "evidence_turns": [
+     "t007"
+    ],
+    "relationship_type": "hands_off_to"
+   }
+  ],
+  "taxonomy": [
+   {
+    "evidence_turns": [
+     "doc_9ececb86e9c466d959eaee4e_image_c1"
+    ],
+    "facet": "entity_type",
+    "note": "The documented scope is a GP workbook; the excerpt also mentions carry rules, without establishing a carry calculation step.",
+    "value": "gp_carry"
+   },
+   {
+    "evidence_turns": [
+     "doc_9ececb86e9c466d959eaee4e_image_c1"
+    ],
+    "facet": "rule_source",
+    "note": "The procedure refers generally to governing documents; it does not identify a particular LPA.",
+    "value": "lpa_governing_doc"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "facet": "entity_type",
+    "note": "The participant reports a same-period fund workbook as an upstream source for GP workbook production.",
+    "value": "fund"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "facet": "functional_area",
+    "note": "The preparer confirms capital and carry allocation levels and checks GP categories against the fund workbook.",
+    "value": "allocations"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "facet": "control_type",
+    "note": "The preparer reports reconciliation, independent recalculation and exact agreement checks.",
+    "value": "gpfs_operational"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "facet": "control_type",
+    "note": "A final client-approved fund workbook is a start gate; the client also confirms the input set before locking.",
+    "value": "client_approval"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "facet": "functional_area",
+    "note": "The preparer reports calculating carry from inception and deriving the current-period entry.",
+    "value": "fees_and_carry"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "facet": "control_type",
+    "note": "The Controller reviews calculation and journal-entry support before posting; approval authority is unconfirmed.",
+    "value": "gpfs_supervisory"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "facet": "system",
+    "note": "Participant reports configured reports, mail merge, PDF and GPES as possible implemented output methods, not necessarily all used for each client.",
+    "value": "other"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "facet": "system",
+    "note": "The participant reports portal as a conditional client delivery method, subject to validation.",
+    "value": "client_portal"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "facet": "variant_class",
+    "note": "Delivery method varies with the method implemented for the client; no general standard is established.",
+    "value": "unclassified"
+   }
+  ],
+  "completion": {
+   "allowed": false,
+   "ready_for_final_check": false,
+   "complete": false,
+   "partial": true,
+   "participant_confirmed": false,
+   "blockers": [
+    "role_incomplete:coverage_reviewer",
+    "role_incomplete:process_reviewer",
+    "coverage_result_unbound",
+    "coverage_incomplete",
+    "coverage_unresolved:name",
+    "coverage_unresolved:purpose",
+    "coverage_unresolved:trigger",
+    "coverage_unresolved:completion",
+    "coverage_unresolved:accountable",
+    "coverage_unresolved:lifecycle",
+    "coverage_unresolved:checks",
+    "coverage_unresolved:variations",
+    "coverage_unresolved:pain_points",
+    "coverage_unresolved:risk",
+    "coverage_unresolved:materials",
+    "coverage_unresolved:scope",
+    "coverage_unresolved:rules",
+    "coverage_unresolved:connections",
+    "coverage_unresolved:data_systems",
+    "coverage_unresolved:volume",
+    "process_result_unbound"
+   ],
+   "revision": "b538583037161f4db9a0febc5b768eecd4b7b45123652e567d286ad962ca066e",
+   "run_id": "9391e3e2bcd84f658bd8094d6958e2da"
+  },
+  "coverage_assessment": null
+ },
+ "workflow": {
+  "connections": [
+   {
+    "evidence_turns": [
+     "doc_9ececb86e9c466d959eaee4e_image_c1"
+    ],
+    "from": "S1",
+    "label": "Documented sequence",
+    "to": "S2"
+   },
+   {
+    "evidence_turns": [
+     "doc_9ececb86e9c466d959eaee4e_image_c1"
+    ],
+    "from": "S2",
+    "label": "Documented sequence",
+    "to": "S3"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "from": "S3",
+    "label": "After reconciliation",
+    "to": "S4"
+   },
+   {
+    "evidence_turns": [
+     "t003"
+    ],
+    "from": "S4",
+    "label": "After change review",
+    "to": "S5"
+   },
+   {
+    "evidence_turns": [
+     "t003",
+     "t005"
+    ],
+    "from": "S5",
+    "label": "Locked inputs",
+    "to": "S6"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "from": "S6",
+    "label": "After capital allocation",
+    "to": "S7"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "from": "S7",
+    "label": "Calculation and entry support",
+    "to": "S8"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "from": "S8",
+    "label": "Approved entry",
+    "to": "S9"
+   },
+   {
+    "evidence_turns": [
+     "t005"
+    ],
+    "from": "S9",
+    "label": "Posted records",
+    "to": "S10"
+   },
+   {
+    "evidence_turns": [
+     "t005",
+     "t007"
+    ],
+    "from": "S10",
+    "label": "Completed reconciled workbook",
+    "to": "S11"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "from": "S11",
+    "label": "Final locked workbook",
+    "to": "S12"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "from": "S12",
+    "label": "Validated outputs",
+    "to": "S13"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "from": "S12",
+    "label": "Report unavailable or GPES or portal unvalidated",
+    "to": "S14"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "from": "S14",
+    "label": "Approved, implemented fallback available",
+    "to": "S15"
+   },
+   {
+    "evidence_turns": [
+     "t007"
+    ],
+    "from": "S15",
+    "label": "Fallback output validated, reconciled and reviewed",
+    "to": "S13"
+   }
+  ],
+  "open_questions": [
+   "Does any incoming route start S13 (Approve and release package), or must all prerequisites finish?",
+   "UNKNOWN: What event initiates the quarterly work, who detects it, and what deadlines apply?",
+   "UNKNOWN: Who is accountable for the overall result, and who updates and reconciles the workbook after posting?",
+   "UNKNOWN: Who approves the entry before posting, who posts it, and who approves release? How are failed reviews and delayed approvals handled?",
+   "UNKNOWN: Who approves resolution of opening discrepancies and the revised final posted workbook, and where are interpretations and approvals recorded?",
+   "UNKNOWN: When a workbook changes, where does the required reconciliation and renewed approval rejoin the output workflow?",
+   "UNKNOWN: When does the engagement require client approval of the GP workbook or output, and what is held pending that approval?",
+   "UNKNOWN: Which clients and entity types follow this route, what is its basis as general GPFS practice, and which engagement-specific differences change the work, effort, charging or removal constraints?",
+   "UNKNOWN: What further calculation inputs, effective-date treatment, rounding, overrides and tie-outs apply, and where does the calculation logic reside?",
+   "UNKNOWN: What systems and locations hold authoritative records and retained evidence, and which entries are manual or imported?",
+   "UNKNOWN: Are there other exceptions, escalation or override arrangements, approval thresholds, or system-enforced segregation?",
+   "UNKNOWN: What are the main pain points, consequences of failure, volumes, peaks and approximate effort?",
+   "The procedure image has one of one text units indexed and supplied, and one of one AI review chunks completed; no visual units remain unread. Its visual transcription has not been independently verified."
+  ],
+  "steps": [
+   {
+    "actor": "Preparer",
+    "completion_criteria": "Same-period fund workbook is final and client-approved, and period, version and approval are verified. The documented procedure also requires production schedule, formats, templates, delivery method, and approval and release requirements to be confirmed.",
+    "control_type": [
+     "gpfs_operational",
+     "client_approval"
+    ],
+    "data_origin": "Fund team, client and engagement requirements",
+    "description": "Verify the period, version and approval. Start only when the same-period fund workbook is final and client-approved; otherwise stop until the fund team and client provide it, with no allocation, posting or output. The procedure also calls for confirming production and delivery requirements and makes external templates conditional on the engagement or client.",
+    "entity_scope": [
+     "fund",
+     "gp_carry"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003",
+     "doc_9ececb86e9c466d959eaee4e_image_c1"
+    ],
+    "handoff": "Fund team and client provide an approved source if unavailable.",
+    "id": "S1",
+    "input": "Final, client-approved fund workbook; engagement requirements",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_9ececb86e9c466d959eaee4e_image_c1"
+      ],
+      "field": "responsible",
+      "text": "Step 1 \u2014 Confirm the approved start condition and scope\n\u2022 Who performs it: Preparer"
+     },
+     {
+      "evidence_turns": [
+       "doc_9ececb86e9c466d959eaee4e_image_c1"
+      ],
+      "field": "control",
+      "text": "Verify the period, version, and approval."
+     },
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "exception",
+      "text": "if it is not, I stop and the fund team and client have to get us the approved source - no allocating, posting or output until then."
+     }
+    ],
+    "output": "Verified start condition; documented production scope",
+    "parent_process": "Quarterly GP Workbook Production",
+    "rule_source_ref": "F06 GP-06 procedure, step 1 and GP06-BR-08",
+    "system": "UNKNOWN",
+    "title": "Confirm start and scope",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "Prior-period workbook copied and period updated.",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "Previous-period GP workbook",
+    "description": "Copy the controlled previous-period GP workbook and update the period, as described in the procedure. The participant confirms the copy step matches current practice.",
+    "entity_scope": [
+     "gp_carry"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003",
+     "doc_9ececb86e9c466d959eaee4e_image_c1"
+    ],
+    "handoff": "Continue to opening reconciliation.",
+    "id": "S2",
+    "input": "Controlled previous-period GP workbook",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_9ececb86e9c466d959eaee4e_image_c1"
+      ],
+      "field": "responsible",
+      "text": "Step 2 \u2014 Update the prior-period workbook and reconcile\n\u2022 Who performs it: Preparer"
+     }
+    ],
+    "output": "Workbook updated for the period",
+    "parent_process": "Quarterly GP Workbook Production",
+    "rule_source_ref": "F06 GP-06 procedure, step 2",
+    "system": "UNKNOWN",
+    "title": "Update prior-period workbook",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "Opening amounts reconciled and any differences resolved before proceeding.",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Accounting records and previous-period deliverables",
+    "description": "Reconcile beginning balances and carried-forward amounts to accounting records and prior deliverables. If opening balances or previously recorded carry do not reconcile, stop until the difference is resolved with the reviewer and accounting.",
+    "entity_scope": [
+     "gp_carry"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003",
+     "doc_9ececb86e9c466d959eaee4e_image_c1"
+    ],
+    "handoff": "Resolve discrepancies with the reviewer and accounting.",
+    "id": "S3",
+    "input": "Opening balances, previously recorded carry, accounting records and prior deliverables",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "doc_9ececb86e9c466d959eaee4e_image_c1"
+      ],
+      "field": "responsible",
+      "text": "Step 2 \u2014 Update the prior-period workbook and reconcile\n\u2022 Who performs it: Preparer"
+     },
+     {
+      "evidence_turns": [
+       "doc_9ececb86e9c466d959eaee4e_image_c1"
+      ],
+      "field": "control",
+      "text": "Reconcile beginning balances and amounts carried forward to the accounting records and previous-period deliverables."
+     },
+     {
+      "evidence_turns": [
+       "doc_9ececb86e9c466d959eaee4e_image_c1"
+      ],
+      "field": "control",
+      "text": "Technology that has been implemented does not replace source reconciliation, review, or approval."
+     },
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "exception",
+      "text": "If opening balances or previously recorded carry do not reconcile, I also stop until the difference is resolved with the reviewer and accounting."
+     }
+    ],
+    "output": "Reconciled opening amounts",
+    "parent_process": "Quarterly GP Workbook Production",
+    "rule_source_ref": "F06 GP-06 procedure, step 2 and GP06-SC-01",
+    "system": "UNKNOWN",
+    "title": "Reconcile opening amounts",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "Changed terms recorded and validated, affected results independently recalculated, and GP category amounts confirmed to agree exactly.",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Governing documents, GP workbook tabs, fund workbook, client or adviser",
+    "description": "Review governing documents first, then the Activities and Tax Activities tabs; record and validate changed terms and independently recalculate affected results. Map each GP category to the fund workbook and confirm exact agreement. Stop an affected calculation for unsupported or conflicting changes, obtain a current interpretation from the governing document, client or adviser, and recalculate; the tab does not decide treatment.",
+    "entity_scope": [
+     "fund",
+     "gp_carry"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003"
+    ],
+    "handoff": "Obtain current interpretation from the governing document, client or adviser when needed.",
+    "id": "S4",
+    "input": "Governing documents, activity tabs and fund workbook",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "responsible",
+      "text": "After that page, the next thing I do is review changes: I go through the governing documents first, then the Activities and Tax Activities tabs, record and validate every changed term, independently recalculate the affected results, and map every GP category to the fund workbook and confirm the amounts agree exactly."
+     },
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "exception",
+      "text": "If a tab or document shows an unsupported or conflicting change, I stop the affected calculation and get a current interpretation from the governing document, the client or the adviser - the tab itself never decides the treatment - then recalculate what is affected."
+     }
+    ],
+    "output": "Validated changes, recalculations and category ties",
+    "parent_process": "Quarterly GP Workbook Production",
+    "rule_source_ref": "Governing documents; client or adviser interpretation where needed",
+    "system": "GP workbook",
+    "title": "Review and validate changes",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer and client",
+    "completion_criteria": "Client confirmation obtained and input set locked.",
+    "control_type": [
+     "gpfs_operational",
+     "client_approval"
+    ],
+    "data_origin": "Validated changes and allocation inputs",
+    "description": "Confirm capital and carry allocation levels, changes, effective dates, accounting tags, field mappings and schedule versions. The client confirms, and the preparer locks the approved input set.",
+    "entity_scope": [
+     "gp_carry"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t003"
+    ],
+    "handoff": "Locked inputs remain with the preparer for calculation.",
+    "id": "S5",
+    "input": "Validated terms and allocation inputs",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t003"
+      ],
+      "field": "responsible",
+      "text": "Then I confirm the capital and carry allocation levels, changes, effective dates, accounting tags, field mappings and schedule versions, the client confirms, and I lock the approved input set."
+     }
+    ],
+    "output": "Locked approved input set",
+    "parent_process": "Quarterly GP Workbook Production",
+    "rule_source_ref": "UNKNOWN",
+    "system": "GP workbook",
+    "title": "Confirm and lock inputs",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "Member allocations reconcile to the GP capital total.",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Approved input set, client and upstream teams",
+    "description": "Apply the approved totality, deal or tranche method, identify records for realized events and reconcile member allocations to the GP capital total. Stop an affected allocation if tags, included records, method or a schedule are missing or unreliable; obtain corrected data or approved mapping from the client or upstream teams rather than infer a formula.",
+    "entity_scope": [
+     "gp_carry"
+    ],
+    "entry_mode": "calculated",
+    "evidence_turns": [
+     "t005"
+    ],
+    "handoff": "Client or upstream teams provide corrected data or approved mapping when needed.",
+    "id": "S6",
+    "input": "Locked inputs, approved method and realized-event records",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "responsible",
+      "text": "First I run the capital allocation: apply the approved totality, deal or tranche method, identify the records for realized events, and reconcile member allocations to the GP capital total."
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "exception",
+      "text": "If accounting tags, included records, the allocation method or a schedule are missing or unreliable, I stop the affected allocation and get corrected data or an approved mapping from the client or the upstream teams; I do not infer a formula."
+     }
+    ],
+    "output": "Reconciled member capital allocations",
+    "parent_process": "Quarterly GP Workbook Production",
+    "rule_source_ref": "Approved allocation method",
+    "system": "GP workbook",
+    "title": "Calculate capital allocation",
+    "type": "activity"
+   },
+   {
+    "actor": "Preparer",
+    "completion_criteria": "Inception-to-date results combined and previously recorded carry subtracted.",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Approved inputs, schedules and accounting records",
+    "description": "Calculate carry from inception through the current period for each component and schedule, apply changes and combine results. Subtract previously recorded carry to obtain the current-period entry; carry is not calculated for the current period alone. Hold affected allocations for missing or unreliable inputs until corrected data or approved mapping is obtained.",
+    "entity_scope": [
+     "gp_carry"
+    ],
+    "entry_mode": "calculated",
+    "evidence_turns": [
+     "t005"
+    ],
+    "handoff": "Calculation and entry support go to the Controller.",
+    "id": "S7",
+    "input": "Approved inputs, component schedules and previously recorded carry",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "responsible",
+      "text": "Then I calculate carry from inception through the current period for each component and schedule, apply changes, combine the results and subtract carry already recorded - that gives the current-period entry; we never calculate carry for the current period alone."
+     },
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "exception",
+      "text": "If accounting tags, included records, the allocation method or a schedule are missing or unreliable, I stop the affected allocation and get corrected data or an approved mapping from the client or the upstream teams; I do not infer a formula."
+     }
+    ],
+    "output": "Current-period carry entry and calculation support",
+    "parent_process": "Quarterly GP Workbook Production",
+    "rule_source_ref": "UNKNOWN",
+    "system": "GP workbook",
+    "title": "Calculate current-period carry",
+    "type": "activity"
+   },
+   {
+    "actor": "Controller",
+    "completion_criteria": "Review occurs before posting; approval authority is UNKNOWN.",
+    "control_type": [
+     "gpfs_supervisory"
+    ],
+    "data_origin": "Preparer",
+    "description": "The Controller reviews calculation and journal entry support before posting. The participant has not confirmed who has authority to approve the entry before posting.",
+    "entity_scope": [
+     "gp_carry"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t005"
+    ],
+    "handoff": "Approved entry proceeds to posting.",
+    "id": "S8",
+    "input": "Calculation and journal entry support",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "responsible",
+      "text": "Once calculations are complete, the calculation and journal entry support go to the Controller for review before posting."
+     }
+    ],
+    "output": "Reviewed support",
+    "parent_process": "Quarterly GP Workbook Production",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Review calculation support",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Approved entry posted.",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "Approved journal entry",
+    "description": "Post the approved journal entry. The posting actor and pre-posting approval authority are not confirmed.",
+    "entity_scope": [
+     "gp_carry"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t005"
+    ],
+    "handoff": "Posted records are used to update the workbook.",
+    "id": "S9",
+    "input": "Approved journal entry",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "control",
+      "text": "Then the approved entry is posted"
+     }
+    ],
+    "output": "Posted entry",
+    "parent_process": "Quarterly GP Workbook Production",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Post approved entry",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Entry, workbook and source reconciled.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Posted records and source",
+    "description": "Update the workbook from posted records and reconcile the entry, workbook and source.",
+    "entity_scope": [
+     "gp_carry"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t005"
+    ],
+    "handoff": "Completed workbook goes to the Controller for review.",
+    "id": "S10",
+    "input": "Posted entry, workbook and source",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t005"
+      ],
+      "field": "control",
+      "text": "the workbook is updated from the posted records, and the entry, workbook and source are reconciled."
+     }
+    ],
+    "output": "Updated, reconciled workbook",
+    "parent_process": "Quarterly GP Workbook Production",
+    "rule_source_ref": "UNKNOWN",
+    "system": "GP workbook",
+    "title": "Update and reconcile workbook",
+    "type": "activity"
+   },
+   {
+    "actor": "Controller; Director as required",
+    "completion_criteria": "Review comments resolved and final version locked; changed versions reconciled and approved again.",
+    "control_type": [
+     "gpfs_supervisory",
+     "exception_escalation"
+    ],
+    "data_origin": "Updated workbook, source and posted records",
+    "description": "Review the trigger, changes, source ties, allocations, schedules, entry, statements and outputs. Resolve every comment and lock the final version. If a source, posted entry, formula, schedule or review changes the workbook, stop output, rerun affected reconciliations and approve the final posted version again; an earlier version cannot be used.",
+    "entity_scope": [
+     "gp_carry"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t007"
+    ],
+    "handoff": "Final locked workbook is used for outputs.",
+    "id": "S11",
+    "input": "Completed reconciled workbook and supporting records",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "responsible",
+      "text": "After that reconciliation the completed workbook goes to the Controller, with a Director as required, for the completed-workbook review."
+     },
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "control",
+      "text": "They review the trigger, changes, source ties, allocations, schedules, entry, statements and outputs, every comment has to be resolved, and then the final version is locked."
+     },
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "exception",
+      "text": "If a source, posted entry, formula, schedule or review changes the workbook, output stops, all affected reconciliations are rerun and the final posted version is approved again - an earlier version cannot be used for output."
+     }
+    ],
+    "output": "Final locked workbook",
+    "parent_process": "Quarterly GP Workbook Production",
+    "rule_source_ref": "UNKNOWN",
+    "system": "GP workbook",
+    "title": "Review and lock workbook",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Output checks and total- and member-level reconciliations completed, or the reported unavailable or unvalidated method condition requires a stop.",
+    "control_type": [
+     "gpfs_operational",
+     "exception_escalation"
+    ],
+    "data_origin": "Final locked workbook",
+    "description": "Produce outputs from the final locked workbook using the implemented client method. Validate field mapping, included records, totals, member details and template, and reconcile outputs to the workbook at total and member level. If a configured report is unavailable or GPES or the portal is unvalidated, stop for an approved, implemented fallback.",
+    "entity_scope": [
+     "gp_carry"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t007"
+    ],
+    "handoff": "Validated output proceeds for approval and release; an unavailable or unvalidated method proceeds to the fallback wait.",
+    "id": "S12",
+    "input": "Final locked workbook and implemented client delivery method",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "control",
+      "text": "We validate field mapping, included records, totals, member details and the template, reconcile the outputs to the locked workbook at total and member level, obtain approval, release the client package and keep the release record."
+     },
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "exception",
+      "text": "If a configured report is unavailable or GPES or the portal has not been validated, we stop until an approved, implemented fallback method is available, then reconcile and review that output the same way."
+     },
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "system",
+      "text": "configured report"
+     },
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "system",
+      "text": "mail merge"
+     },
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "system",
+      "text": "GPES"
+     },
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "system",
+      "text": "portal"
+     }
+    ],
+    "output": "Validated and reconciled client outputs, or stopped output awaiting fallback",
+    "parent_process": "Quarterly GP Workbook Production",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Client-implemented delivery method",
+    "title": "Produce and validate outputs",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Package released with release approval record and all required records saved.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Validated output and approval",
+    "description": "Obtain approval, release the client package and retain the release record. Completion requires a saved release approval record and saved sources, calculations, review and release records; the release approver and client approval requirements are not established.",
+    "entity_scope": [
+     "gp_carry"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t007"
+    ],
+    "handoff": "Client receives the package.",
+    "id": "S13",
+    "input": "Validated and reconciled client outputs",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "control",
+      "text": "It is complete when the validated client package is released with a saved release approval record and all sources, calculations, review and release records are saved."
+     }
+    ],
+    "output": "Released client package and saved records",
+    "parent_process": "Quarterly GP Workbook Production",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Client-implemented delivery method",
+    "title": "Approve and release package",
+    "type": "activity"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "An approved, implemented fallback method is available.",
+    "control_type": [
+     "exception_escalation"
+    ],
+    "data_origin": "Client delivery method",
+    "description": "Stop when a configured report is unavailable or GPES or the portal has not been validated. Wait until an approved, implemented fallback method is available.",
+    "entity_scope": [
+     "gp_carry"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t007"
+    ],
+    "handoff": "Use the fallback output for the same reconciliation and review.",
+    "id": "S14",
+    "input": "Unavailable configured report or unvalidated GPES or portal",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "exception",
+      "text": "If a configured report is unavailable or GPES or the portal has not been validated, we stop until an approved, implemented fallback method is available, then reconcile and review that output the same way."
+     }
+    ],
+    "output": "Approved, implemented fallback method",
+    "parent_process": "Quarterly GP Workbook Production",
+    "rule_source_ref": "UNKNOWN",
+    "system": "UNKNOWN",
+    "title": "Wait for approved fallback",
+    "type": "wait"
+   },
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Fallback output validated, reconciled and reviewed.",
+    "control_type": [
+     "gpfs_operational"
+    ],
+    "data_origin": "Final locked workbook",
+    "description": "Use the approved, implemented fallback to produce output from the final locked workbook. Apply the output validation and total- and member-level reconciliation, and review the fallback output the same way.",
+    "entity_scope": [
+     "gp_carry"
+    ],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t007"
+    ],
+    "handoff": "Proceed to approval and release.",
+    "id": "S15",
+    "input": "Final locked workbook and approved, implemented fallback method",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "control",
+      "text": "We validate field mapping, included records, totals, member details and the template, reconcile the outputs to the locked workbook at total and member level, obtain approval, release the client package and keep the release record."
+     },
+     {
+      "evidence_turns": [
+       "t007"
+      ],
+      "field": "control",
+      "text": "If a configured report is unavailable or GPES or the portal has not been validated, we stop until an approved, implemented fallback method is available, then reconcile and review that output the same way."
+     }
+    ],
+    "output": "Validated, reconciled and reviewed fallback output",
+    "parent_process": "Quarterly GP Workbook Production",
+    "rule_source_ref": "UNKNOWN",
+    "system": "Approved, implemented fallback method",
+    "title": "Validate and review fallback output",
+    "type": "activity"
+   }
+  ],
+  "title": "Quarterly GP Workbook Production"
+ },
+ "workflow_revision": "1ccdb7da5a8c3cb6b90e66db7696fa282cfaf4ee67704f67db3cfe4831721c60",
+ "finished": 1794920682.911288,
+ "graph_checks": {
+  "steps": 15,
+  "connections": 15,
+  "types": {
+   "activity": 14,
+   "wait": 1
+  },
+  "components": 1,
+  "isolated_steps": [],
+  "entry_points": [
+   "S1"
+  ],
+  "typed_start": [],
+  "exit_points": [
+   "S13"
+  ],
+  "typed_end": [],
+  "decisions_with_under_two_exits": [],
+  "decision_exits_without_label": [],
+  "non_decision_with_multiple_exits": [
+   "S12"
+  ],
+  "steps_without_actor": [],
+  "actors": [
+   "Controller",
+   "Controller; Director as required",
+   "Preparer",
+   "Preparer and client",
+   "UNKNOWN"
+  ],
+  "open_questions": 13
+ }
+}

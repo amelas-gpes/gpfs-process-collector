@@ -1,0 +1,598 @@
+{
+ "case": "V03",
+ "port": 8794,
+ "interview_id": "c0830e6e00bd4b80978aa8967509b374",
+ "context": {
+  "process_name": "Investor Onboarding",
+  "process_owner": "",
+  "objective": "Document how we carry out Investor Onboarding, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "It starts when a prospective investor subscribes at an initial or subsequent close, or the client tells us an investor is coming in. Let me walk through the whole thing. First, as the investor services onboarding preparer, I open the onboarding checklist and log, record the fund, investor legal name, expected commitment and target close date, and assign myself and the investor services team lead as reviewer. Second, I build the required document list for that investor type and jurisdiction and send one consolidated request list to the authorized party. Third, as documents arrive through Box or PassThru, I save them in the controlled workspace and log the received date and version. Fourth, I review the subscription agreement, commitment, side letter and the W-9 or W-8 tax form for completeness. If documents are incomplete or inconsistent, I issue a consolidated deficiency list and the one-week target clock pauses until the complete set is received. Fifth, I submit the screening package to the AML and KYC role, and they give approval, rejection or conditions. If it is not cleared, we do not accept capital and we do not close onboarding. Sixth, treasury validates new wire instructions by a call back to an independently verified contact. If the callback fails or details change, the instructions are not used and the verification is repeated. Seventh, I send a status package to the client and the client gives written admission approval. If the approval is conditional, I track every condition and it stays open until resolved or waived. Eighth, I create the investor in the CRM, set include in portal to yes, create the investor and commitment in the accounting system, and compare both to the source documents field by field. If they conflict, I correct against the approved source. Ninth, I provision the contacts in the investor portal and test access. If the sync or access fails, we hold the first notice and escalate to the team lead and system support. Tenth, if it is a subsequent close investor, I send commitment, close date and side letter data to the equalization team. I give the static data to the fund team and confirm the investor is in the correct capital call population. Finally, the team lead does the completion review, I send completion confirmation to the client, and I lock the checklist and package and record the actual completion date."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "What guides how you determine the required documents for each investor type and jurisdiction?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "Honestly, the exact document matrix by investor type and jurisdiction is not confirmed, so I do not know of an approved one. I list the subscription, side letter, tax, AML and KYC, beneficial owner, wire, contact and commitment items. Check the scope against the AML requirements and the client and legal requirements, and anything uncertain I route to the AML role, the client, or the legal advisor. I do not guess."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What does the AML and KYC role use to reach an approval, rejection or conditional decision?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "The detailed screening method belongs to a separate AML process, so I do not know it in detail. What I know is they review identity, beneficial ownership, sanctions, politically exposed persons, adverse media, and risk. Using the screening package I submit, I track missing ownership or risk records, false positives get resolved through the AML and client channels, and I record the clearance status and date in the onboarding checklist, which system they use is not confirmed."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "What does the team lead check in the completion review?"
+  },
+  {
+   "id": "t008",
+   "role": "assistant",
+   "text": "This capture still has open sections. 14 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794918923.687,
+   "turn": 0,
+   "seconds": 0.027,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794918941.815,
+   "turn": 1,
+   "seconds": 5.632,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 128.7,
+   "audio_bytes": 4117672,
+   "wer": 0.008,
+   "spoken": "It starts when a prospective investor subscribes at an initial or subsequent close, or the client tells us an investor is coming in. Let me walk through the whole thing. First, as the Investor Services onboarding preparer, I open the onboarding checklist and log, record the fund, investor legal name, expected commitment and target close date, and assign myself and the Investor Services Team Lead as reviewer. Second, I build the required document list for that investor type and jurisdiction and send one consolidated request list to the authorized party. Third, as documents arrive through Box or Passthrough, I save them in the controlled workspace and log the received date and version. Fourth, I review the subscription agreement, commitment, side letter and the W-9 or W-8 tax form for completeness. If documents are incomplete or inconsistent, I issue a consolidated deficiency list and the one week target clock pauses until the complete set is received. Fifth, I submit the screening package to the AML and KYC role, and they give approval, rejection or conditions. If it is not cleared, we do not accept capital and we do not close onboarding. Sixth, Treasury validates new wire instructions by a callback to an independently verified contact. If the callback fails or details change, the instructions are not used and the verification is repeated. Seventh, I send a status package to the client and the client gives written admission approval. If the approval is conditional, I track every condition and it stays open until resolved or waived. Eighth, I create the investor in the CRM, set Include in Portal to yes, create the investor and commitment in the accounting system, and compare both to the source documents field by field. If they conflict, I correct against the approved source. Ninth, I provision the contacts in the investor portal and test access. If the sync or access fails, we hold the first notice and escalate to the Team Lead and system support. Tenth, if it is a subsequent close investor, I send commitment, close date and side letter data to the equalization team, I give the static data to the Fund Team, and confirm the investor is in the correct capital call population. Finally, the Team Lead does the completion review, I send completion confirmation to the client, and I lock the checklist and package and record the actual completion date.",
+   "heard": "It starts when a prospective investor subscribes at an initial or subsequent close, or the client tells us an investor is coming in. Let me walk through the whole thing. First, as the investor services onboarding preparer, I open the onboarding checklist and log, record the fund, investor legal name, expected commitment and target close date, and assign myself and the investor services team lead as reviewer. Second, I build the required document list for that investor type and jurisdiction and send one consolidated request list to the authorized party. Third, as documents arrive through Box or PassThru, I save them in the controlled workspace and log the received date and version. Fourth, I review the subscription agreement, commitment, side letter and the W-9 or W-8 tax form for completeness. If documents are incomplete or inconsistent, I issue a consolidated deficiency list and the one-week target clock pauses until the complete set is received. Fifth, I submit the screening package to the AML and KYC role, and they give approval, rejection or conditions. If it is not cleared, we do not accept capital and we do not close onboarding. Sixth, treasury validates new wire instructions by a call back to an independently verified contact. If the callback fails or details change, the instructions are not used and the verification is repeated. Seventh, I send a status package to the client and the client gives written admission approval. If the approval is conditional, I track every condition and it stays open until resolved or waived. Eighth, I create the investor in the CRM, set include in portal to yes, create the investor and commitment in the accounting system, and compare both to the source documents field by field. If they conflict, I correct against the approved source. Ninth, I provision the contacts in the investor portal and test access. If the sync or access fails, we hold the first notice and escalate to the team lead and system support. Tenth, if it is a subsequent close investor, I send commitment, close date and side letter data to the equalization team. I give the static data to the fund team and confirm the investor is in the correct capital call population. Finally, the team lead does the completion review, I send completion confirmation to the client, and I lock the checklist and package and record the actual completion date."
+  },
+  {
+   "kind": "question",
+   "at": 1794918944.062,
+   "turn": 2,
+   "seconds": 2.189,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919001.425,
+   "turn": 3,
+   "seconds": 59.55
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919004.479,
+   "turn": 3,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 62.61
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794919013.242,
+   "turn": 3,
+   "seconds": 2.384,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 24.7,
+   "audio_bytes": 790300,
+   "wer": 0.0,
+   "spoken": "Honestly, the exact document matrix by investor type and jurisdiction is not confirmed, so I do not know of an approved one. I list the subscription, side letter, tax, AML and KYC, beneficial owner, wire, contact and commitment items, check the scope against the AML requirements and the client and legal requirements, and anything uncertain I route to the AML role, the client or the legal advisor. I do not guess.",
+   "heard": "Honestly, the exact document matrix by investor type and jurisdiction is not confirmed, so I do not know of an approved one. I list the subscription, side letter, tax, AML and KYC, beneficial owner, wire, contact and commitment items. Check the scope against the AML requirements and the client and legal requirements, and anything uncertain I route to the AML role, the client, or the legal advisor. I do not guess."
+  },
+  {
+   "kind": "question",
+   "at": 1794919016.04,
+   "turn": 4,
+   "seconds": 2.795,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919051.051,
+   "turn": 5,
+   "seconds": 37.81
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919076.057,
+   "turn": 5,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 62.81
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794919084.684,
+   "turn": 5,
+   "seconds": 1.697,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 26.6,
+   "audio_bytes": 851300,
+   "wer": 0.0,
+   "spoken": "The detailed screening method belongs to a separate AML process, so I do not know it in detail. What I know is they review identity, beneficial ownership, sanctions, politically exposed persons, adverse media and risk, using the screening package I submit. I track missing ownership or risk records, false positives get resolved through the AML and client channels, and I record the clearance status and date in the onboarding checklist. Which system they use is not confirmed.",
+   "heard": "The detailed screening method belongs to a separate AML process, so I do not know it in detail. What I know is they review identity, beneficial ownership, sanctions, politically exposed persons, adverse media, and risk. Using the screening package I submit, I track missing ownership or risk records, false positives get resolved through the AML and client channels, and I record the clearance status and date in the onboarding checklist, which system they use is not confirmed."
+  },
+  {
+   "kind": "question",
+   "at": 1794919086.908,
+   "turn": 6,
+   "seconds": 2.221,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919109.777,
+   "turn": 7,
+   "seconds": 25.09
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919147.014,
+   "turn": 7,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 62.33
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794919152.118,
+   "turn": 7,
+   "seconds": 2.023,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "queued",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.map_error",
+   "at": 1794919508.433,
+   "turn": 8,
+   "seconds": 358.34,
+   "error": "The provider timed out. Your answers are retained.",
+   "code": "timeout"
+  },
+  {
+   "kind": "wrap.map_error",
+   "at": 1794919511.567,
+   "turn": 8,
+   "seconds": 361.47,
+   "error": "The provider timed out. Your answers are retained.",
+   "code": "timeout"
+  }
+ ],
+ "started": 1794918923.6594691,
+ "revision": "e3b4fcca0e6acff25c1c0017a9f06a16ceedc6f78796f2b5d526b29898d9b51e",
+ "capture": {
+  "memo_findings": [
+   {
+    "answer": "Investor Onboarding",
+    "evidence_turns": [
+     "context"
+    ],
+    "key": "name",
+    "status": "captured"
+   },
+   {
+    "answer": "The work sets up an incoming investor in the CRM, accounting system and investor portal, and supports admission and inclusion in the correct capital call population.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "purpose",
+    "status": "captured"
+   },
+   {
+    "answer": "Work starts when a prospective investor subscribes at an initial or subsequent close, or when the client tells the team an investor is coming in.\nNormal frequency, who receives or detects the initiating event, and any fixed deadline or date obligation are not established.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "trigger",
+    "status": "partial"
+   },
+   {
+    "answer": "At the end, the team lead performs a completion review; the preparer sends completion confirmation to the client, then locks the checklist and package and records the actual completion date.\nThe specific criteria the team lead checks in the completion review, and whether any downstream posting or reconciliation is required for completion, are not established.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "completion",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant describes performing as the investor services onboarding preparer; the investor services team lead is assigned as reviewer and performs the completion review.\nThe role accountable for the overall onboarding result, distinct from the preparer and reviewer, is not identified.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "accountable",
+    "status": "partial"
+   },
+   {
+    "answer": "The preparer opens an onboarding checklist and log, records fund, investor legal name, expected commitment and target close date, and assigns the preparer and investor services team lead as reviewer. The preparer builds a required document list based on investor type and jurisdiction and sends one consolidated request list to the authorized party.\nAs documents arrive through Box or PassThru, the preparer saves them in the controlled workspace and logs the received date and version. The preparer reviews the subscription agreement, commitment, side letter and W-9 or W-8 tax form for completeness.\nIf documents are incomplete or inconsistent, the preparer issues a consolidated deficiency list; the one-week target clock pauses until the complete set is received.\nThe preparer submits a screening package to the AML and KYC role, which gives approval, rejection or conditions. If screening is not cleared, capital is not accepted and onboarding does not close.\nTreasury validates new wire instructions by callback to an independently verified contact. If the callback fails or details change, the instructions are not used and verification is repeated.\nThe preparer sends a status package to the client for written admission approval. For conditional approval, the preparer tracks each condition and keeps it open until resolved or waived.\nThe preparer creates the investor in the CRM, sets \u201cinclude in portal\u201d to yes, creates the investor and commitment in the accounting system, and compares both to source documents field by field. If they conflict, the preparer corrects against the approved source.\nThe preparer provisions contacts in the investor portal and tests access. If sync or access fails, the preparer holds the first notice and escalates to the team lead and system support.\nFor a subsequent-close investor, the preparer sends commitment, close date and side letter data to the equalization team. The preparer gives static data to the fund team and confirms the investor is in the correct capital call population.\nWhen building the required document list, the participant lists subscription, side letter, tax, AML and KYC, beneficial owner, wire, contact and commitment items; the participant checks scope against AML, client and legal requirements and routes uncertainties to the AML role, client or legal advisor.\nUsing the submitted screening package, the preparer tracks missing ownership or risk records. False positives are resolved through AML and client channels, and the preparer records clearance status and date in the onboarding checklist.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006"
+    ],
+    "key": "lifecycle",
+    "status": "partial"
+   },
+   {
+    "answer": "The preparer checks subscription and related documents for completeness; incomplete or inconsistent documents result in a consolidated deficiency list and pause the one-week target clock until the complete set is received.\nThe AML and KYC role can approve, reject or set conditions; if the screening is not cleared, capital is not accepted and onboarding does not close.\nTreasury calls back an independently verified contact to validate new wire instructions; failed callback or changed details means the instructions are not used and verification is repeated.\nThe client gives written admission approval. The preparer compares CRM and accounting-system entries to source documents field by field and corrects conflicts against the approved source; the team lead performs a completion review.\nThe preparer tests investor portal access. If sync or access fails, the first notice is held and the issue is escalated to the team lead and system support.\nEvidence retained for callback validation, entry comparison and completion review, any screening evidence beyond clearance status and date, and where written client approval is retained are not specified.\nThe participant checks the document-list scope against AML, client and legal requirements and routes uncertain items to the AML role, client or legal advisor.\nThe AML and KYC role reviews identity, beneficial ownership, sanctions, politically exposed persons, adverse media and risk. The preparer records clearance status and date in the onboarding checklist.\nThe participant does not know the detailed screening method, which belongs to a separate AML process.",
+    "evidence_turns": [
+     "t002",
+     "t006",
+     "t004"
+    ],
+    "key": "checks",
+    "status": "partial"
+   },
+   {
+    "answer": "For subsequent-close investors, the preparer sends commitment, close date and side letter data to the equalization team. The preparer also gives static data to the fund team and confirms the correct capital call population.\nThe required document list varies by investor type and jurisdiction.\nWhether the described route is GPFS-wide or client-specific, the applicable clients or funds, and variation effort, charging and removal constraints are not established.\nThe exact document matrix by investor type and jurisdiction is unconfirmed; the participant does not know of an approved one.\nThe source or rationale for the subsequent-close equalization handoff is not stated.",
+    "evidence_turns": [
+     "t002",
+     "t004"
+    ],
+    "key": "variations",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "pain_points",
+    "status": "unknown"
+   },
+   {
+    "answer": "Uncleared screening prevents acceptance of capital and closing onboarding; failed wire-instruction callback or changed details prevents use of those instructions. Portal sync or access failure holds the first notice.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "risk",
+    "status": "partial"
+   },
+   {
+    "answer": "The onboarding checklist and log are opened to record fund, investor legal name, expected commitment, target close date, assigned preparer and reviewer; they are later locked and used to record actual completion date. The participant also refers to locking the package.\nInvestor documents arrive through Box or PassThru and are saved in a controlled workspace; received date and version are logged. The preparer uses the subscription agreement, commitment, side letter and W-9 or W-8 tax form in the completeness review.\nThe preparer creates a screening package for the AML and KYC role, a consolidated deficiency list when documents are incomplete or inconsistent, and a status package for the client.\nThe controlled workspace location, where written client approval is retained, and evidence records for other approvals and checks are not identified.\nThe participant lists subscription, side letter, tax, AML and KYC, beneficial owner, wire, contact and commitment items when determining the document request.\nThe client gives written admission approval after receiving the status package; conditional approvals are tracked until resolved or waived.\nThe onboarding checklist records the screening clearance status and date.",
+    "evidence_turns": [
+     "t002",
+     "t006",
+     "t004"
+    ],
+    "key": "materials",
+    "status": "partial"
+   },
+   {
+    "answer": "The work concerns prospective investors subscribing at initial or subsequent closes; the preparer records the fund and builds the document list by investor type and jurisdiction. A subsequent-close route is described.\nEntity count and whether the described route is a general GPFS standard are not established.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "scope",
+    "status": "partial"
+   },
+   {
+    "answer": "The required document list is built for the investor type and jurisdiction. The participant describes comparing CRM and accounting-system records field by field to source documents and correcting conflicts against the approved source.\nThe exact document matrix by investor type and jurisdiction is unconfirmed; the participant does not know of an approved one. Approved-source selection and sources for screening criteria, admission conditions and the one-week target remain unspecified.\nThe participant checks document scope against AML requirements and client and legal requirements, routing uncertainty to the AML role, client or legal advisor rather than guessing.",
+    "evidence_turns": [
+     "t002",
+     "t004"
+    ],
+    "key": "rules",
+    "status": "partial"
+   },
+   {
+    "answer": "The onboarding preparer submits a screening package to the AML and KYC role, which returns approval, rejection or conditions; uncleared screening blocks acceptance of capital and onboarding close.\nTreasury validates new wire instructions by callback to an independently verified contact; failed callback or changed details leads to non-use and repeated verification.\nThe preparer sends a status package to the client for written admission approval; conditional approval remains open until its conditions are resolved or waived.\nFor subsequent-close investors, the preparer sends commitment, close date and side letter data to the equalization team. The preparer gives static data to the fund team and confirms the investor is in the correct capital call population.\nWhen portal sync or access fails, the preparer escalates to the team lead and system support and holds the first notice.\nThe handoff methods, acceptance signals and readiness evidence for the equalization team and fund team are not described.\nThe participant routes uncertain document-scope questions to the AML role, the client or the legal advisor.\nHands off to AML role, client or legal advisor: The participant routes uncertain document-scope questions for clarification.\nScreening is a separate AML process. The preparer submits the screening package and tracks missing ownership or risk records; false positives are resolved through AML and client channels.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006"
+    ],
+    "key": "connections",
+    "status": "partial"
+   },
+   {
+    "answer": "Documents arrive through Box or PassThru and are saved in a controlled workspace. The preparer creates investor records in a CRM and investor and commitment records in an accounting system, then provisions contacts in an investor portal.\nThe specific CRM, accounting system and portal, system-of-record status, workspace location, integration behavior and any re-keying are not identified.\nThe system used by the AML screening role is not confirmed.",
+    "evidence_turns": [
+     "t002",
+     "t006"
+    ],
+    "key": "data_systems",
+    "status": "partial"
+   },
+   {
+    "answer": "Investor volumes, peak periods, exception frequency and effort by step are not reported.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "volume",
+    "status": "partial"
+   }
+  ],
+  "coverage": [
+   {
+    "key": "name",
+    "label": "Name & other names",
+    "status": "partial"
+   },
+   {
+    "key": "purpose",
+    "label": "Purpose & result",
+    "status": "partial"
+   },
+   {
+    "key": "trigger",
+    "label": "Start, cadence & deadlines",
+    "status": "partial"
+   },
+   {
+    "key": "completion",
+    "label": "Finished condition",
+    "status": "partial"
+   },
+   {
+    "key": "accountable",
+    "label": "Accountability",
+    "status": "partial"
+   },
+   {
+    "key": "lifecycle",
+    "label": "Items, stages & handoffs",
+    "status": "partial"
+   },
+   {
+    "key": "checks",
+    "label": "Checks, approvals & proof",
+    "status": "partial"
+   },
+   {
+    "key": "variations",
+    "label": "Variations and conditions",
+    "status": "partial"
+   },
+   {
+    "key": "pain_points",
+    "label": "Manual work & pain",
+    "status": "missing"
+   },
+   {
+    "key": "risk",
+    "label": "Consequences of failure",
+    "status": "partial"
+   },
+   {
+    "key": "materials",
+    "label": "Existing materials",
+    "status": "partial"
+   },
+   {
+    "key": "scope",
+    "label": "Scope & entity context",
+    "status": "partial"
+   },
+   {
+    "key": "rules",
+    "label": "Business rules & lineage",
+    "status": "partial"
+   },
+   {
+    "key": "connections",
+    "label": "Connected processes",
+    "status": "partial"
+   },
+   {
+    "key": "data_systems",
+    "label": "Data & systems",
+    "status": "partial"
+   },
+   {
+    "key": "volume",
+    "label": "Volume & effort",
+    "status": "partial"
+   }
+  ],
+  "summary": "The AML and KYC role reviews identity, ownership, sanctions, politically exposed persons, adverse media and risk. The preparer tracks missing records and records clearance status and date; detailed screening belongs to a separate process and its system is unconfirmed.",
+  "focus": "AML screening and clearance",
+  "parking_lot": [],
+  "connections_out": [
+   {
+    "condition": "The preparer submits a screening package; the role returns approval, rejection or conditions, and uncleared status blocks acceptance of capital and onboarding close.",
+    "counterpart": "AML and KYC role",
+    "evidence_turns": [
+     "t002"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "The preparer sends a status package for written admission approval; conditional approval stays open until conditions are resolved or waived.",
+    "counterpart": "client",
+    "evidence_turns": [
+     "t002"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "For subsequent-close investors, the preparer sends commitment, close date and side letter data.",
+    "counterpart": "equalization team",
+    "evidence_turns": [
+     "t002"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "The preparer gives static data and confirms the investor is in the correct capital call population.",
+    "counterpart": "fund team",
+    "evidence_turns": [
+     "t002"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "Written admission approval is obtained after the preparer sends the status package.",
+    "counterpart": "client",
+    "evidence_turns": [
+     "t002"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "On portal sync or access failure, the preparer escalates and holds the first notice.",
+    "counterpart": "team lead and system support",
+    "evidence_turns": [
+     "t002"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "The participant routes uncertain document-scope questions for clarification.",
+    "counterpart": "AML role, client or legal advisor",
+    "evidence_turns": [
+     "t004"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "The preparer submits the screening package; the role returns approval, rejection or conditions. The preparer tracks missing ownership or risk records, and false positives are resolved through AML and client channels. Uncleared screening blocks capital acceptance and onboarding close.",
+    "counterpart": "AML and KYC role",
+    "evidence_turns": [
+     "t002",
+     "t006"
+    ],
+    "relationship_type": "provides_input_to"
+   }
+  ],
+  "taxonomy": [
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "functional_area",
+    "note": "Reported investor onboarding work, including document collection, screening coordination and investor setup.",
+    "value": "onboarding"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "process_level",
+    "note": "Reported as the whole investor onboarding work, from initiation to completion confirmation and locked package.",
+    "value": "process"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "entity_type",
+    "note": "Fund is recorded as onboarding information; this does not establish the full set of applicable entity types.",
+    "value": "fund"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "system",
+    "note": "Box and PassThru are reported document receipt channels; the controlled vocabulary has no corresponding values.",
+    "value": "other"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "system",
+    "note": "CRM, accounting system and investor portal are reported tools, but no specific product names are provided.",
+    "value": "other"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "control_type",
+    "note": "Client written admission approval is reported; conditional approval is tracked until resolved or waived.",
+    "value": "client_approval"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "control_type",
+    "note": "Participant reports document completeness, callback validation, field-by-field comparison and portal access testing as operational checks.",
+    "value": "gpfs_operational"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "control_type",
+    "note": "Investor services team lead is assigned as reviewer and performs a completion review, as reported by the participant.",
+    "value": "gpfs_supervisory"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "control_type",
+    "note": "Participant reports routing uncertain document scope to the AML role, client or legal advisor.",
+    "value": "exception_escalation"
+   }
+  ],
+  "completion": {
+   "allowed": false,
+   "ready_for_final_check": false,
+   "complete": false,
+   "partial": true,
+   "participant_confirmed": false,
+   "blockers": [
+    "role_incomplete:coverage_reviewer",
+    "role_incomplete:process_reviewer",
+    "coverage_result_unbound",
+    "coverage_incomplete",
+    "coverage_unresolved:name",
+    "coverage_unresolved:purpose",
+    "coverage_unresolved:trigger",
+    "coverage_unresolved:completion",
+    "coverage_unresolved:accountable",
+    "coverage_unresolved:lifecycle",
+    "coverage_unresolved:checks",
+    "coverage_unresolved:variations",
+    "coverage_unresolved:pain_points",
+    "coverage_unresolved:risk",
+    "coverage_unresolved:materials",
+    "coverage_unresolved:scope",
+    "coverage_unresolved:rules",
+    "coverage_unresolved:connections",
+    "coverage_unresolved:data_systems",
+    "coverage_unresolved:volume",
+    "process_result_unbound"
+   ],
+   "revision": "71a3c67e0905e672e25b9fd361a135892169322e48a30cb60e544d50be6e6520",
+   "run_id": "a9437d302de94dcda8c1be05fbba79e0"
+  },
+  "coverage_assessment": null
+ },
+ "finished": 1794919511.566551
+}

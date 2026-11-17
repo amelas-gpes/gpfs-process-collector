@@ -1,0 +1,46 @@
+(() => {
+  if (window.__pc) return 'already';
+  const pc = window.__pc = {log: [], t0: performance.now()};
+  const L = pc.L = (k, d) => pc.log.push(Object.assign({t: Math.round(performance.now() - pc.t0), k}, d || {}));
+  const ctx = pc.ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const dest = pc.dest = ctx.createMediaStreamDestination();
+  const noise = ctx.createBufferSource(); const nb = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+  const ch = nb.getChannelData(0); for (let i = 0; i < ch.length; i++) ch[i] = (Math.random() * 2 - 1) * 0.0004;
+  noise.buffer = nb; noise.loop = true; noise.connect(dest); noise.start();
+  navigator.mediaDevices.getUserMedia = async () => { L('getUserMedia'); await ctx.resume(); return dest.stream; };
+  pc.play = async (url) => { await ctx.resume(); const buf = await ctx.decodeAudioData(await (await pc.of(url)).arrayBuffer());
+    const src = ctx.createBufferSource(); src.buffer = buf; src.connect(dest);
+    return new Promise(res => { src.onended = () => { L('utt_end', {url}); res(); }; L('utt_start', {url, dur: +buf.duration.toFixed(2)}); src.start(); }); };
+  const Native = window.RTCPeerConnection;
+  window.RTCPeerConnection = function (...a) { const peer = new Native(...a); L('peer_created');
+    peer.addEventListener('track', ev => { try { const an = ctx.createAnalyser(); an.fftSize = 1024;
+        ctx.createMediaStreamSource(ev.streams[0] || new MediaStream([ev.track])).connect(an);
+        const data = new Float32Array(an.fftSize); let on = false, quiet = 0;
+        setInterval(() => { an.getFloatTimeDomainData(data); let s = 0; for (const v of data) s += v * v; const rms = Math.sqrt(s / data.length);
+          if (rms > 0.006) { quiet = 0; if (!on) { on = true; L('out_audio_start'); } } else if (on && ++quiet > 30) { on = false; L('out_audio_end'); } }, 20);
+      } catch (e) { L('analyser_error', {e: String(e)}); } });
+    const cdc = peer.createDataChannel.bind(peer);
+    peer.createDataChannel = (...b) => { const c = cdc(...b);
+      c.addEventListener('message', ev => { try { const m = JSON.parse(ev.data); L('dc', {type: m.type}); } catch (e) {} });
+      const send = c.send.bind(c); c.send = (d) => { try { L('dc_send', {type: JSON.parse(d).type, bytes: d.length}); } catch (e) {} return send(d); }; return c; };
+    peer.addEventListener('connectionstatechange', () => L('peer_state', {s: peer.connectionState})); return peer; };
+  window.RTCPeerConnection.prototype = Native.prototype;
+  const watch = (id, k) => { const el = document.getElementById(id); if (!el) return; let last = 0;
+    new MutationObserver(() => { const n = performance.now(); if (n - last > 400) L(k, {len: el.textContent.length}); last = n; }).observe(el, {subtree: true, childList: true, characterData: true}); };
+  watch('coverage-list', 'dom_notes'); watch('live-workflow', 'dom_workflow');
+  const of = pc.of = window.fetch.bind(window);
+  window.fetch = async (u, o) => { const p = String(u.url || u); const t = performance.now(); const quietp = p.endsWith('/status') || p.includes('/trace/');
+    if (!quietp) L('fetch>', {p}); try { const r = await of(u, o); if (!quietp) L('fetch<', {p, ms: Math.round(performance.now() - t), st: r.status}); return r; } catch (e) { if (!quietp) L('fetch!', {p}); throw e; } };
+  pc.quiet = () => new Promise(res => { const iv = setInterval(() => { const ev = pc.log.filter(e => e.k === 'out_audio_start' || e.k === 'out_audio_end').pop(); const now = performance.now() - pc.t0;
+    if (ev && ev.k === 'out_audio_end' && now - ev.t > 400) { clearInterval(iv); res(); } }, 100); });
+  pc.runCase = async (urls, gap) => { for (const u of urls) { await pc.quiet(); await new Promise(r => setTimeout(r, gap || 1000)); await pc.play(u); await new Promise(r => setTimeout(r, 1500)); } await pc.quiet(); L('script_done'); };
+  pc.summary = () => { const lg = pc.log; const after = (t, f) => lg.find(e => e.t >= t && f(e));
+    const utts = lg.filter(e => e.k === 'utt_start').map(s => { const end = lg.find(e => e.k === 'utt_end' && e.t > s.t); if (!end) return {url: s.url, playing: true}; const d = (e) => e ? e.t - end.t : null;
+      const inD = after(s.t, e => e.k === 'dc' && e.type === 'session.input_transcript.delta');
+      return {u: s.url.slice(3), dur: s.dur, end_s: +(end.t/1000).toFixed(1), cap0: inD ? inD.t - s.t : null, reply_text: d(after(end.t, e => e.k === 'dc' && e.type === 'session.output_transcript.delta')), reply_audio: d(after(end.t, e => e.k === 'out_audio_start')),
+        notes_req: d(after(end.t, e => e.k === 'fetch>' && e.p === '/api/agent-team/interview')), notes_done: d(after(end.t, e => e.k === 'fetch<' && e.p === '/api/agent-team/interview')), barge: lg.some(e => e.k === 'out_audio_start' && e.t > s.t + 300 && e.t < end.t)}; });
+    const calls = (p) => lg.filter(e => e.k === 'fetch>' && e.p === p).map(s => { const f = lg.find(e => (e.k === 'fetch<' || e.k === 'fetch!') && e.p === p && e.t >= s.t); return [+(s.t/1000).toFixed(1), f ? +(f.ms/1000).toFixed(1) : 'running', f && f.st]; });
+    const first = (k) => { const e = lg.find(e => e.k === k); return e && e.t; };
+    return {now_s: +((performance.now()-pc.t0)/1000).toFixed(1), start: {gum: first('getUserMedia'), session_started: (lg.find(e => e.k === 'dc' && e.type === 'session.started') || {}).t, first_audio: first('out_audio_start')}, done: lg.some(e => e.k === 'script_done'), utts, notes_calls: calls('/api/agent-team/interview'), map_calls: calls('/api/agent-team/workflow'), coverage_calls: calls('/api/agent-team/coverage'), other: [...new Set(lg.filter(e=>e.k==='fetch>').map(e=>e.p))], sends: lg.filter(e=>e.k==='dc_send').map(e=>[+(e.t/1000).toFixed(1), e.type, e.bytes])}; };
+  return 'installed';
+})()

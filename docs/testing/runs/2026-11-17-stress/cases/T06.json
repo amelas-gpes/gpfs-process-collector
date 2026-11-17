@@ -1,0 +1,742 @@
+{
+ "case": "T06",
+ "port": 8796,
+ "interview_id": "7ca602c9512442ca9109370669273873",
+ "context": {
+  "process_name": "Analytical Review & Allocation Recalculations",
+  "process_owner": "",
+  "objective": "Document how we carry out Analytical Review & Allocation Recalculations, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "It kicks off during quarterly close, once the numbers are ready to be tested."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "Talk me through what you do once the numbers are ready to be tested."
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "We basically review the balances and then redo the allocations ourselves to see if they match what was booked."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What do you use as the basis for recalculating the allocations?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "Independent support, not the file that produced the booked number."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "How do you use the independent support to recalculate the allocations?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "Let me be precise. As the Fund Accountant, the preparer, I do it in this order. First I define the review population and sources: I list the balances and allocations to be tested, identify an independent source for every input, document why each source is independent of the booked result, and confirm the population includes current joiners, leavers and vesting changes. That gives me a test plan, a source index and a validated population. If no independent source exists for an input I stop and escalate to the Controller; the alternative compensating test is not defined yet, so I do not know what it would be. Second, in the analytical review workpaper, I compare balance sheet accounts and accruals to prior periods, evaluate movements for completeness and consistency with known activity, consider fund lifecycle timing, and investigate anything inconsistent, incomplete, unsupported or mistimed. There is no approved variance threshold, so the Controller decides how deep the investigation goes. Third, in the allocation recalculation workpaper in Excel, I recompute contributions and distributions from underlying support, recompute partners capital and P and L allocations, compare my results to the booked amounts, and classify each difference as an input, population, method, timing or ledger-recording issue and document the source. The percentages must come from the approved LPA-based documentation, never from the allocation file being tested. Every unexplained difference is corrected or escalated; there is no approved materiality threshold."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "Who reviews the analytical review and allocation recalculation workpapers?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "The Controller reviews them. The Controller challenges independence, completeness and the conclusions and can require correction or additional evidence. After that the Director does a final close review, depending on complexity. Who formally approves this review, and who has authority over an unresolved or immaterial difference, is not confirmed, so I do not know. But the package does not go to the Controller straight after the allocation recalculation; three more tests come first, all done by me as Fund Accountant. Fourth step, same-commitment and population checks: I compare PCAP and unfunded commitment balances for investors with identical commitments, they should be identical, and I confirm joiners, leavers, vesting changes and reallocations are reflected. A valid difference has to be explained with governing support; if balances differ without that, the Controller and the client decide and we either prove the governing difference or correct the allocation, and population issues get routed back to the upstream teams. Fifth step, carry: I build the Income Test from independently tested workpapers, not system carry balances, recompute carry life to date from fund inception, subtract carry recorded in prior periods to get the current period amount, and compare it to recorded carry. If it does not reconcile I recheck the life to date calculation, prior period carry, the population and the distribution waterfall, and waterfall method questions go to the waterfall team using the client-approved LPA interpretation. Sixth step, only when applicable, special profits: I confirm the LPA authorizes the shift, recalculate available income independently, recalculate the shift, and compare to the recorded treatment and fund wind-down expectations. No shift is made unless the LPA available-income requirement is met, and the shift is on hold until the LPA provision plus Client, Tax, Legal and Accounting approvals are documented. Who owns that interpretation is not specified."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "After the Controller\u2019s review and any final Director close review, what marks this work as finished, and who uses the output next?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "It is finished when no unexplained difference and no unsupported conclusion remains. Before the Controller review there is a seventh step that gets us there, done by me as Fund Accountant with the Controller reviewing: I classify each difference and obtain underlying support, correct errors through the applicable upstream process without overwriting the original test record, rerun the affected tests, write conclusions that cite prior-period consistency, population completeness, lifecycle timing or underlying support, since saying only reasonable is not enough, then submit the package for Controller review and keep the review record. Each exception goes in the exception log with its reason, source, effective period, approver and resolution. If a difference remains unresolved we stop and escalate to the Controller and Director; it blocks the allocation and close conclusion. There is no approved materiality policy, so a residual difference is resolved exactly or escalated, never just waved through as immaterial. The records we keep are the source index, analytical workpaper, recalculation files, population schedule, same-commitment test, Income Test, special-profit support, exception log, rerun test results, documented conclusions and the Controller review record, in the digital binder; the exact storage path and retention period are not specified, so I do not know them. Afterwards the results feed the downstream reporting processes, financial statements, capital accounts and close approval. The close calendar deadline date is not specified either."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "What could go wrong if an allocation error or unsupported conclusion is not caught, and who or what would be affected?"
+  },
+  {
+   "id": "t014",
+   "role": "assistant",
+   "text": "This capture still has open sections. 14 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794917802.585,
+   "turn": 0,
+   "seconds": 0.024,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794917807.315,
+   "turn": 2,
+   "seconds": 1.704,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794917812.919,
+   "turn": 3,
+   "seconds": 7.31
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794917830.347,
+   "turn": 3,
+   "seconds": 24.74,
+   "steps": 1,
+   "connections": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794917836.451,
+   "turn": 4,
+   "seconds": 2.205,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794917845.602,
+   "turn": 5,
+   "seconds": 11.36
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794917876.66,
+   "turn": 5,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 42.41
+  },
+  {
+   "kind": "question",
+   "at": 1794917881.648,
+   "turn": 6,
+   "seconds": 1.601,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794917888.296,
+   "turn": 7,
+   "seconds": 8.25
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794917922.044,
+   "turn": 7,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 42.0
+  },
+  {
+   "kind": "question",
+   "at": 1794917932.635,
+   "turn": 8,
+   "seconds": 3.547,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794917959.754,
+   "turn": 9,
+   "seconds": 30.67
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794917973.065,
+   "turn": 9,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 43.98
+  },
+  {
+   "kind": "question",
+   "at": 1794917985.039,
+   "turn": 10,
+   "seconds": 2.626,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794918025.463,
+   "turn": 11,
+   "notes_state": "working",
+   "map_state": "working",
+   "seconds": 43.05
+  },
+  {
+   "kind": "question",
+   "at": 1794918034.41,
+   "turn": 12,
+   "seconds": 1.715,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794918071.213,
+   "turn": 13,
+   "seconds": 38.52
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794918074.785,
+   "turn": 13,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 42.09
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794918080.079,
+   "turn": 13,
+   "seconds": 2.026,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "working",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.map_error",
+   "at": 1794918365.054,
+   "turn": 14,
+   "seconds": 287.0,
+   "error": "The workflow could not update. Your answers are retained."
+  },
+  {
+   "kind": "wrap.map_error",
+   "at": 1794918368.149,
+   "turn": 14,
+   "seconds": 290.1,
+   "error": "The workflow could not update. Your answers are retained."
+  }
+ ],
+ "started": 1794917802.56094,
+ "revision": "b8b557c5ed0b5c03aff72dc7ef337a8aa966573bd38e9e9a28835be9b8d3d154",
+ "capture": {
+  "memo_findings": [
+   {
+    "answer": "Analytical Review & Allocation Recalculations",
+    "evidence_turns": [
+     "context"
+    ],
+    "key": "name",
+    "status": "captured"
+   },
+   {
+    "answer": "The team independently recalculates allocations to see whether they match what was booked.",
+    "evidence_turns": [
+     "t004"
+    ],
+    "key": "purpose",
+    "status": "captured"
+   },
+   {
+    "answer": "The work kicks off during quarterly close, once the numbers are ready to be tested.\nThe specific numbers that must be ready, and how or by whom readiness is determined, are not established.\nThe participant does not know the close calendar deadline date.",
+    "evidence_turns": [
+     "t002",
+     "t012"
+    ],
+    "key": "trigger",
+    "status": "partial"
+   },
+   {
+    "answer": "Every unexplained allocation difference must be corrected or escalated.\nWho formally approves the review remains unconfirmed.\nThe work is finished when no unexplained difference or unsupported conclusion remains. An unresolved difference blocks the allocation and close conclusion.",
+    "evidence_turns": [
+     "t008",
+     "t010",
+     "t012"
+    ],
+    "key": "completion",
+    "status": "partial"
+   },
+   {
+    "answer": "The role formally approving the review is unconfirmed; overall accountability for the result is not established.",
+    "evidence_turns": [
+     "t010"
+    ],
+    "key": "accountable",
+    "status": "partial"
+   },
+   {
+    "answer": "The team reviews balances, then recalculates allocations to compare them with what was booked.\nFor the allocation recalculation, the team uses independent support rather than the file that produced the booked number as its basis.\nFirst, the Fund Accountant, as preparer, lists balances and allocations to test, identifies an independent source for every input, documents why each source is independent of the booked result, and confirms the population includes current joiners, leavers and vesting changes. This produces a test plan, source index and validated population.\nIf no independent source exists for an input, the Fund Accountant stops and escalates to the Controller.\nSecond, in the analytical review workpaper, the preparer compares balance sheet accounts and accruals with prior periods, evaluates movements for completeness and consistency with known activity, considers fund lifecycle timing, and investigates inconsistent, incomplete, unsupported or mistimed items. The Controller decides investigation depth because there is no approved variance threshold.\nThird, in the Excel allocation recalculation workpaper, the preparer recomputes contributions and distributions from underlying support and recomputes partners capital and P and L allocations. The preparer compares results with booked amounts, classifies each difference as an input, population, method, timing or ledger-recording issue, and documents its source.\nFourth, the Fund Accountant compares PCAP and unfunded commitment balances for investors with identical commitments and checks that joiners, leavers, vesting changes and reallocations are reflected. A valid difference requires an explanation supported by governing documents; otherwise the Controller and client decide whether to prove the governing difference or correct the allocation, while population issues return to upstream teams.\nFifth, the Fund Accountant builds the Income Test from independently tested workpapers, recalculates carry life to date from fund inception, subtracts prior-period recorded carry to obtain the current-period amount, and compares it with recorded carry.\nIf carry does not reconcile, the Fund Accountant rechecks the life-to-date calculation, prior-period carry, population and distribution waterfall. Waterfall method questions go to the waterfall team using the client-approved LPA interpretation.\nSixth, when special profits apply, the Fund Accountant confirms LPA authorization, independently recalculates available income and the shift, and compares the shift with recorded treatment and fund wind-down expectations. The shift is held until the LPA provision and Client, Tax, Legal and Accounting approvals are documented.\nAfter the three additional tests and the seventh resolution step, the Controller reviews the package and can require corrections or additional evidence. The Director then performs a final close review depending on complexity.\nSeventh, before submitting the package for Controller review, the Fund Accountant classifies differences, obtains underlying support, corrects errors through the applicable upstream process without overwriting the original test record, and reruns affected tests. The Fund Accountant writes supported conclusions, submits the package and keeps the review record; the Controller reviews the work.\nThe Fund Accountant records each exception's reason, source, effective period, approver and resolution in the exception log. An unresolved difference stops the work and is escalated to the Controller and Director.",
+    "evidence_turns": [
+     "t004",
+     "t006",
+     "t008",
+     "t010",
+     "t012"
+    ],
+    "key": "lifecycle",
+    "status": "partial"
+   },
+   {
+    "answer": "The team compares its recalculated allocations with the booked allocations.\nThe team uses independent support, rather than the file that produced the booked number, when recalculating allocations to check whether they match what was booked.\nThe preparer validates inclusion of current joiners, leavers and vesting changes and documents the independence of each input source.\nThe preparer investigates analytical-review items that are inconsistent, incomplete, unsupported or mistimed; the Controller decides investigation depth in the absence of an approved variance threshold.\nEvery unexplained allocation difference is corrected or escalated; there is no approved materiality threshold.\nThe Controller challenges independence, completeness and conclusions and can require correction or additional evidence. Depending on complexity, the Director performs a final close review afterward.\nThe participant does not know who formally approves the review or has authority over an unresolved or immaterial difference.\nConclusions cite prior-period consistency, population completeness, lifecycle timing or underlying support; describing a conclusion only as reasonable is insufficient. Affected tests are rerun after errors are corrected.",
+    "evidence_turns": [
+     "t004",
+     "t006",
+     "t008",
+     "t010",
+     "t012"
+    ],
+    "key": "checks",
+    "status": "partial"
+   },
+   {
+    "answer": "Special-profits testing is performed only when applicable, and Director final close review depends on complexity.",
+    "evidence_turns": [
+     "t010"
+    ],
+    "key": "variations",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "pain_points",
+    "status": "unknown"
+   },
+   {
+    "answer": "An unresolved difference blocks the allocation and close conclusion.",
+    "evidence_turns": [
+     "t012"
+    ],
+    "key": "risk",
+    "status": "partial"
+   },
+   {
+    "answer": "Specific independent sources for other recalculation inputs and source locations remain unspecified.\nThe preparer produces a test plan, source index and validated population; uses an analytical review workpaper and an Excel allocation recalculation workpaper; and takes percentages from approved LPA-based documentation.\nThe Fund Accountant builds the Income Test from independently tested workpapers rather than system carry balances; the client-approved LPA interpretation is used for waterfall method questions.\nThe digital binder retains the source index, analytical workpaper, recalculation files, population schedule, same-commitment test, Income Test, special-profit support, exception log, rerun results, documented conclusions and Controller review record.\nThe participant does not know the digital binder's exact storage path or retention period.",
+    "evidence_turns": [
+     "t008",
+     "t010",
+     "t012"
+    ],
+    "key": "materials",
+    "status": "partial"
+   },
+   {
+    "answer": "The review considers fund lifecycle timing and recalculates partners capital and P and L allocations.",
+    "evidence_turns": [
+     "t008"
+    ],
+    "key": "scope",
+    "status": "partial"
+   },
+   {
+    "answer": "The allocation methodology and specific inputs beyond the approved LPA-based percentages remain unspecified.\nThe alternative compensating test for an input without an independent source is not defined; the participant does not know what it would be.\nAllocation percentages must come from approved LPA-based documentation, not the allocation file being tested. There is no approved variance or materiality threshold; the Controller decides analytical investigation depth.\nPCAP and unfunded commitment balances for investors with identical commitments should be identical unless a difference is explained with governing support.\nNo special-profits shift is made unless the LPA available-income requirement is met; the LPA provision and Client, Tax, Legal and Accounting approvals must be documented before the hold is lifted.\nThe owner of the special-profits LPA interpretation is not specified.\nThere is no approved materiality policy: residual differences must be resolved exactly or escalated, not accepted merely as immaterial. Corrections must not overwrite the original test record.",
+    "evidence_turns": [
+     "t008",
+     "t010",
+     "t012"
+    ],
+    "key": "rules",
+    "status": "partial"
+   },
+   {
+    "answer": "Population issues are routed back to upstream teams.\nWaterfall method questions are sent to the waterfall team using the client-approved LPA interpretation.\nA special-profits shift is held until Client, Tax, Legal and Accounting approvals and the LPA provision are documented.\nErrors are corrected through the applicable upstream process. Afterwards, results feed downstream reporting processes, financial statements, capital accounts and close approval.",
+    "evidence_turns": [
+     "t010",
+     "t012"
+    ],
+    "key": "connections",
+    "status": "partial"
+   },
+   {
+    "answer": "The allocation recalculation workpaper is in Excel.\nReview records are kept in a digital binder.\nThe participant does not know the digital binder's exact storage path or retention period.",
+    "evidence_turns": [
+     "t008",
+     "t012"
+    ],
+    "key": "data_systems",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "volume",
+    "status": "unknown"
+   }
+  ],
+  "coverage": [
+   {
+    "key": "name",
+    "label": "Name & other names",
+    "status": "partial"
+   },
+   {
+    "key": "purpose",
+    "label": "Purpose & result",
+    "status": "partial"
+   },
+   {
+    "key": "trigger",
+    "label": "Start, cadence & deadlines",
+    "status": "partial"
+   },
+   {
+    "key": "completion",
+    "label": "Finished condition",
+    "status": "partial"
+   },
+   {
+    "key": "accountable",
+    "label": "Accountability",
+    "status": "partial"
+   },
+   {
+    "key": "lifecycle",
+    "label": "Items, stages & handoffs",
+    "status": "partial"
+   },
+   {
+    "key": "checks",
+    "label": "Checks, approvals & proof",
+    "status": "partial"
+   },
+   {
+    "key": "variations",
+    "label": "Variations and conditions",
+    "status": "partial"
+   },
+   {
+    "key": "pain_points",
+    "label": "Manual work & pain",
+    "status": "missing"
+   },
+   {
+    "key": "risk",
+    "label": "Consequences of failure",
+    "status": "partial"
+   },
+   {
+    "key": "materials",
+    "label": "Existing materials",
+    "status": "partial"
+   },
+   {
+    "key": "scope",
+    "label": "Scope & entity context",
+    "status": "partial"
+   },
+   {
+    "key": "rules",
+    "label": "Business rules & lineage",
+    "status": "partial"
+   },
+   {
+    "key": "connections",
+    "label": "Connected processes",
+    "status": "partial"
+   },
+   {
+    "key": "data_systems",
+    "label": "Data & systems",
+    "status": "partial"
+   },
+   {
+    "key": "volume",
+    "label": "Volume & effort",
+    "status": "missing"
+   }
+  ],
+  "summary": "The Fund Accountant described exception resolution before Controller review, the finished condition, retained records and downstream uses. What most often stops this work or sends it back?",
+  "focus": "Exception resolution and completion",
+  "parking_lot": [],
+  "connections_out": [
+   {
+    "condition": "Population issues are routed back.",
+    "counterpart": "Upstream teams",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "Waterfall method questions, using the client-approved LPA interpretation.",
+    "counterpart": "Waterfall team",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "Documented approval is required for an applicable special-profits shift.",
+    "counterpart": "Client",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "Documented approval is required for an applicable special-profits shift.",
+    "counterpart": "Tax",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "Documented approval is required for an applicable special-profits shift.",
+    "counterpart": "Legal",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "Documented approval is required for an applicable special-profits shift.",
+    "counterpart": "Accounting",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "requires_approval_from"
+   },
+   {
+    "condition": "Errors are corrected through that process.",
+    "counterpart": "Applicable upstream process",
+    "evidence_turns": [
+     "t012"
+    ],
+    "relationship_type": "hands_off_to"
+   },
+   {
+    "condition": "Results feed reporting, including financial statements and capital accounts.",
+    "counterpart": "Downstream reporting processes",
+    "evidence_turns": [
+     "t012"
+    ],
+    "relationship_type": "provides_input_to"
+   },
+   {
+    "condition": "Results feed close approval.",
+    "counterpart": "Close approval",
+    "evidence_turns": [
+     "t012"
+    ],
+    "relationship_type": "provides_input_to"
+   }
+  ],
+  "taxonomy": [
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "functional_area",
+    "note": "The participant reports independently recalculating booked allocations as part of this work.",
+    "value": "allocations"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "facet": "entity_type",
+    "note": "Participant refers to fund lifecycle timing; scope across entity types remains unconfirmed.",
+    "value": "fund"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "facet": "system",
+    "note": "Participant reports an Excel allocation recalculation workpaper.",
+    "value": "excel_workbook"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "facet": "rule_source",
+    "note": "Participant reports approved LPA-based documentation as the required percentage source; documentation not independently reviewed.",
+    "value": "lpa_governing_doc"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "facet": "control_type",
+    "note": "Missing independent sources are escalated to the Controller; unexplained differences are corrected or escalated.",
+    "value": "exception_escalation"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "facet": "control_type",
+    "note": "Preparer performs population validation, analytical review and allocation comparisons as reported.",
+    "value": "gpfs_operational"
+   },
+   {
+    "evidence_turns": [
+     "t010"
+    ],
+    "facet": "entity_type",
+    "note": "Carry is recalculated as a reported test; entity scope is not otherwise confirmed.",
+    "value": "gp_carry"
+   },
+   {
+    "evidence_turns": [
+     "t010"
+    ],
+    "facet": "functional_area",
+    "note": "The Fund Accountant reports recalculating carry as part of the review.",
+    "value": "fees_and_carry"
+   },
+   {
+    "evidence_turns": [
+     "t010"
+    ],
+    "facet": "control_type",
+    "note": "Controller challenges workpapers; Director review depends on complexity.",
+    "value": "gpfs_supervisory"
+   },
+   {
+    "evidence_turns": [
+     "t010"
+    ],
+    "facet": "control_type",
+    "note": "Documented Client approval is one prerequisite for an applicable special-profits shift, not confirmed as approval of the overall review.",
+    "value": "client_approval"
+   }
+  ],
+  "completion": {
+   "allowed": false,
+   "ready_for_final_check": false,
+   "complete": false,
+   "partial": true,
+   "participant_confirmed": false,
+   "blockers": [
+    "role_incomplete:coverage_reviewer",
+    "role_incomplete:process_reviewer",
+    "coverage_result_unbound",
+    "coverage_incomplete",
+    "coverage_unresolved:name",
+    "coverage_unresolved:purpose",
+    "coverage_unresolved:trigger",
+    "coverage_unresolved:completion",
+    "coverage_unresolved:accountable",
+    "coverage_unresolved:lifecycle",
+    "coverage_unresolved:checks",
+    "coverage_unresolved:variations",
+    "coverage_unresolved:pain_points",
+    "coverage_unresolved:risk",
+    "coverage_unresolved:materials",
+    "coverage_unresolved:scope",
+    "coverage_unresolved:rules",
+    "coverage_unresolved:connections",
+    "coverage_unresolved:data_systems",
+    "coverage_unresolved:volume",
+    "process_result_unbound"
+   ],
+   "revision": "2a18ee2cb0a49736a68835f1a295c91ad7853ef8d7eb12ea7aa80f7b0258160a",
+   "run_id": "8d3a357cef214ae3b8426e8665acfe36"
+  },
+  "coverage_assessment": null
+ },
+ "workflow": {
+  "connections": [],
+  "open_questions": [
+   "During quarterly close, who prepares the numbers, who determines they are ready for testing, and how is readiness communicated?",
+   "What actions follow, in what order, and who performs them?",
+   "What checks, reviews or approvals are performed, and what happens when a check fails?",
+   "What marks completion, and who uses the output next?",
+   "Who is accountable for the overall result, and which entities or clients are in scope?",
+   "What systems, workpapers and rule sources are used?"
+  ],
+  "steps": [
+   {
+    "actor": "UNKNOWN",
+    "completion_criteria": "Quarterly close has started and the numbers are ready to be tested.",
+    "control_type": [
+     "none_reported"
+    ],
+    "data_origin": "Participant statement",
+    "description": "The work begins during quarterly close once the numbers are ready to be tested.",
+    "entity_scope": [],
+    "entry_mode": "unknown",
+    "evidence_turns": [
+     "t002"
+    ],
+    "handoff": "Next action UNKNOWN.",
+    "id": "start_quarterly_close_numbers_ready",
+    "input": "Numbers ready to be tested during quarterly close.",
+    "operating_details": [
+     {
+      "evidence_turns": [
+       "t002"
+      ],
+      "field": "frequency",
+      "text": "It kicks off during quarterly close, once the numbers are ready to be tested."
+     }
+    ],
+    "output": "Analytical Review & Allocation Recalculations initiated.",
+    "parent_process": "Quarterly close",
+    "rule_source_ref": "",
+    "system": "",
+    "title": "Numbers ready for testing",
+    "type": "start"
+   }
+  ],
+  "title": "Analytical Review & Allocation Recalculations"
+ },
+ "workflow_revision": "ee43f3d21afc3cde8a962bd43b906d503bd6b7a6201f6f4f8ec341d6b2b92ef3",
+ "finished": 1794918368.149489,
+ "graph_checks": {
+  "steps": 1,
+  "connections": 0,
+  "types": {
+   "start": 1
+  },
+  "components": 1,
+  "isolated_steps": [
+   "start_quarterly_close_numbers_ready"
+  ],
+  "entry_points": [
+   "start_quarterly_close_numbers_ready"
+  ],
+  "typed_start": [
+   "start_quarterly_close_numbers_ready"
+  ],
+  "exit_points": [
+   "start_quarterly_close_numbers_ready"
+  ],
+  "typed_end": [],
+  "decisions_with_under_two_exits": [],
+  "decision_exits_without_label": [],
+  "non_decision_with_multiple_exits": [],
+  "steps_without_actor": [],
+  "actors": [
+   "UNKNOWN"
+  ],
+  "open_questions": 6
+ }
+}

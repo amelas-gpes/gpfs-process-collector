@@ -81,7 +81,7 @@ await test("failed workflow publishes notes without falsely reporting caught up"
  const h=setup(url=>url.endsWith("/turn")?question:{state:"ready",conversation_token:"session-one",revision:"r1",capture:{summary:"Accepted notes"},workflow_state:"error",workflow_error:"The workflow could not update."});
  await h.controller.turn(h.snapshot);await h.tick();assert.equal(h.applied.length,1);assert.equal(h.applied[0].capture.summary,"Accepted notes");assert.equal(h.statuses.at(-1).state,"error");assert.equal(h.statuses.some(status=>status.state==="ready"),false);assert.equal(h.timers.size,0);
 });
-// Finding 3 of docs/testing/process-capture-2026-11-16: Wrap up releases the synchronized notes
+// Finding 3 of docs/testing/runs/2026-11-16-process-capture: Wrap up releases the synchronized notes
 // while the map keeps its own status. The map that was not ready is fetched by the status poll
 // of that revision, and only the map is taken from it.
 const REVISION="ab".repeat(32);

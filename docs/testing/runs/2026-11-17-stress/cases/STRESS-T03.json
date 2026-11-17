@@ -1,0 +1,582 @@
+{
+ "case": "STRESS-T03",
+ "port": 8791,
+ "interview_id": "f8162d969b3841728433567f30b4bbae",
+ "context": {
+  "process_name": "Subsequent Closes: Equalization Interest & Investor Rebalance",
+  "process_owner": "",
+  "objective": "Document how we carry out Subsequent Closes: Equalization Interest & Investor Rebalance, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "Oh, it kicks off when someone comes into the fund late, or an investor bumps up their commitment, that kind of thing. It just happens whenever, not on a schedule."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "Talk me through what happens after an investor joins late or increases their commitment."
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "The client sends a close notification, and there is the signed subscription or commitment increase paperwork that comes with it."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What happens next once the close notification and signed paperwork arrive?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "Someone on the team opens up the close and does the usual checks to make sure it is ready to go, writes down the basics and stuff."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "What do the team\u2019s readiness checks verify before they open the close?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "The fund admin preparer confirms the client approved the admission, AML is cleared, and the system and portal onboarding is done. If documents are incomplete or the AML, commitment or effective date records are missing, it gets escalated and no equalization call goes out for that investor."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "Once those readiness checks pass, what happens next in the close?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "Then they sort out which rules apply, the agreement stuff, with the reviewer and the client or legal chiming in. It gets written up and locked."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "How do they determine which agreement rules apply to that close?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "The partnership agreement and side letters set the rate, the start and end dates, day count, compounding and who gets the interest, plus which earlier calls count. We never assume any of that, and if it is unclear the work pauses until the client or legal gives written direction."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "How do they use those rules to calculate the equalization amount for the investor?"
+  },
+  {
+   "id": "t014",
+   "role": "user",
+   "text": "Well, first the preparer pulls together the list of all the earlier capital calls and ties it out, and the reviewer verifies it. Then they work out what the new investor would have put in on each call, and the interest goes on top of that per the agreement."
+  },
+  {
+   "id": "t015",
+   "role": "assistant",
+   "text": "How do they calculate the interest on each earlier call amount?"
+  },
+  {
+   "id": "t016",
+   "role": "assistant",
+   "text": "This capture still has open sections. 15 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794920891.742,
+   "turn": 0,
+   "seconds": 0.045,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794920899.177,
+   "turn": 2,
+   "seconds": 7.388,
+   "status": 200,
+   "retries": 2
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794920924.233,
+   "turn": 3,
+   "seconds": 32.44
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794920929.326,
+   "turn": 3,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 37.54
+  },
+  {
+   "kind": "question",
+   "at": 1794920932.521,
+   "turn": 4,
+   "seconds": 3.146,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794920962.714,
+   "turn": 5,
+   "notes_state": "working",
+   "map_state": "queued",
+   "seconds": 33.34
+  },
+  {
+   "kind": "question",
+   "at": 1794920965.176,
+   "turn": 6,
+   "seconds": 2.385,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794920984.688,
+   "turn": 7,
+   "seconds": 21.9
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794920995.423,
+   "turn": 7,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 32.63
+  },
+  {
+   "kind": "question",
+   "at": 1794920998.888,
+   "turn": 8,
+   "seconds": 3.406,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794921028.969,
+   "turn": 9,
+   "notes_state": "queued",
+   "map_state": "queued",
+   "seconds": 33.49
+  },
+  {
+   "kind": "question",
+   "at": 1794921032.211,
+   "turn": 10,
+   "seconds": 3.175,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794921062.241,
+   "turn": 11,
+   "notes_state": "queued",
+   "map_state": "queued",
+   "seconds": 33.2
+  },
+  {
+   "kind": "question",
+   "at": 1794921064.631,
+   "turn": 12,
+   "seconds": 2.322,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794921094.677,
+   "turn": 13,
+   "notes_state": "working",
+   "map_state": "queued",
+   "seconds": 32.37
+  },
+  {
+   "kind": "question",
+   "at": 1794921097.473,
+   "turn": 14,
+   "seconds": 2.73,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794921127.511,
+   "turn": 15,
+   "notes_state": "working",
+   "map_state": "queued",
+   "seconds": 32.77
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794921142.274,
+   "turn": 15,
+   "seconds": 14.694,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "queued",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.left_pending",
+   "at": 1794921682.685,
+   "turn": 16,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 555.11
+  }
+ ],
+ "started": 1794920891.696243,
+ "revision": "922e85fe0b802bef631c8ad5c3cb2740f37efe6a61080d013b3adfc4278c3e28",
+ "capture": {
+  "memo_findings": [
+   {
+    "answer": "Subsequent Closes: Equalization Interest & Investor Rebalance",
+    "evidence_turns": [
+     "context"
+    ],
+    "key": "name",
+    "status": "captured"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "purpose",
+    "status": "unknown"
+   },
+   {
+    "answer": "Work is triggered when an investor enters the fund late or an existing investor increases their commitment. The work occurs whenever one of these events arises, not on a schedule.\nThe client sends a close notification when the work is initiated. The participant also identifies signed subscription paperwork or signed commitment-increase paperwork as accompanying the notification.\nIt remains unclear who receives or detects the client\u2019s close notification and accompanying paperwork.",
+    "evidence_turns": [
+     "t002",
+     "t004"
+    ],
+    "key": "trigger",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "completion",
+    "status": "unknown"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "accountable",
+    "status": "unknown"
+   },
+   {
+    "answer": "After the notification and paperwork arrive, someone on the team opens the close, checks that it is ready to proceed and writes down the basics.\nThe basics recorded and their location, and the steps following the described calculation, remain unspecified.\nAfter readiness checks pass, the team determines the applicable agreement rules with the reviewer and input from the client or legal; the rules are written up and locked. If the rules are unclear, work pauses until the client or legal provides written direction.\nThe fund admin preparer checks admission approval, AML clearance and completed system and portal onboarding. Incomplete documents or missing AML, commitment or effective-date records are escalated, and the investor's equalization call is held.\nThe preparer gathers and ties out a list of all earlier capital calls, and the reviewer verifies it. Then the team works out what the new investor would have contributed on each call and adds interest under the agreement.",
+    "evidence_turns": [
+     "t006",
+     "t014",
+     "t010",
+     "t012",
+     "t008"
+    ],
+    "key": "lifecycle",
+    "status": "partial"
+   },
+   {
+    "answer": "A team member performs readiness checks on the close before proceeding.\nThe escalation recipient, resolution and evidence of readiness checks remain unspecified.\nThe fund admin preparer confirms client approval of admission, AML clearance, and completion of system and portal onboarding. Incomplete documents or missing AML, commitment or effective-date records are escalated, and no equalization call goes out for that investor.\nThe preparer ties out the list of earlier capital calls, and the reviewer verifies the list before the contribution amounts are worked out.\nThe sources and comparisons used to tie out and verify the earlier-call list are not yet described.",
+    "evidence_turns": [
+     "t006",
+     "t008",
+     "t014"
+    ],
+    "key": "checks",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "variations",
+    "status": "unknown"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "pain_points",
+    "status": "unknown"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "risk",
+    "status": "unknown"
+   },
+   {
+    "answer": "Signed subscription or commitment-increase paperwork accompanies the client's close notification.\nThe receipt and storage locations for the notification and signed paperwork are not established.\nThe partnership agreement and side letters provide the reported equalization terms. The applicable rules are written up and locked; client or legal direction is provided in writing when terms are unclear.\nThe preparer assembles a list of earlier capital calls for the tie-out, review and calculation.",
+    "evidence_turns": [
+     "t004",
+     "t010",
+     "t012",
+     "t014"
+    ],
+    "key": "materials",
+    "status": "partial"
+   },
+   {
+    "answer": "The reported work concerns a fund when an investor joins late or increases a commitment.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "scope",
+    "status": "partial"
+   },
+   {
+    "answer": "The partnership agreement and side letters set the interest rate, start and end dates, day count, compounding, interest recipients and which earlier calls count. The team does not assume these terms; unclear rules pause the work until written direction from the client or legal.\nAdmission approval, AML clearance and completed system and portal onboarding are readiness conditions; incomplete documents or missing specified records prevent the investor's equalization call from going out.\nThe calculation works out what the new investor would have contributed on each earlier call, then adds interest according to the agreement.",
+    "evidence_turns": [
+     "t012",
+     "t008",
+     "t014"
+    ],
+    "key": "rules",
+    "status": "partial"
+   },
+   {
+    "answer": "The equalization work depends on AML clearance and completion of system and portal onboarding before proceeding.",
+    "evidence_turns": [
+     "t008"
+    ],
+    "key": "connections",
+    "status": "partial"
+   },
+   {
+    "answer": "System and portal onboarding must be completed as part of readiness; the systems are not named.",
+    "evidence_turns": [
+     "t008"
+    ],
+    "key": "data_systems",
+    "status": "partial"
+   },
+   {
+    "answer": "",
+    "evidence_turns": [],
+    "key": "volume",
+    "status": "unknown"
+   }
+  ],
+  "coverage": [
+   {
+    "key": "name",
+    "label": "Name & other names",
+    "status": "partial"
+   },
+   {
+    "key": "purpose",
+    "label": "Purpose & result",
+    "status": "missing"
+   },
+   {
+    "key": "trigger",
+    "label": "Start, cadence & deadlines",
+    "status": "partial"
+   },
+   {
+    "key": "completion",
+    "label": "Finished condition",
+    "status": "missing"
+   },
+   {
+    "key": "accountable",
+    "label": "Accountability",
+    "status": "missing"
+   },
+   {
+    "key": "lifecycle",
+    "label": "Items, stages & handoffs",
+    "status": "partial"
+   },
+   {
+    "key": "checks",
+    "label": "Checks, approvals & proof",
+    "status": "partial"
+   },
+   {
+    "key": "variations",
+    "label": "Variations and conditions",
+    "status": "missing"
+   },
+   {
+    "key": "pain_points",
+    "label": "Manual work & pain",
+    "status": "missing"
+   },
+   {
+    "key": "risk",
+    "label": "Consequences of failure",
+    "status": "missing"
+   },
+   {
+    "key": "materials",
+    "label": "Existing materials",
+    "status": "partial"
+   },
+   {
+    "key": "scope",
+    "label": "Scope & entity context",
+    "status": "partial"
+   },
+   {
+    "key": "rules",
+    "label": "Business rules & lineage",
+    "status": "partial"
+   },
+   {
+    "key": "connections",
+    "label": "Connected processes",
+    "status": "partial"
+   },
+   {
+    "key": "data_systems",
+    "label": "Data & systems",
+    "status": "partial"
+   },
+   {
+    "key": "volume",
+    "label": "Volume & effort",
+    "status": "missing"
+   }
+  ],
+  "summary": "The preparer assembles and ties out earlier calls, the reviewer verifies the list, and the team calculates the new investor\u2019s contributions and agreement-based interest. What does the preparer compare the earlier-call list against when tying it out?",
+  "focus": "Earlier capital call tie-out",
+  "parking_lot": [],
+  "connections_out": [
+   {
+    "condition": "Onboarding must be complete for readiness.",
+    "counterpart": "System and portal onboarding",
+    "evidence_turns": [
+     "t008"
+    ],
+    "relationship_type": "happens_after"
+   },
+   {
+    "condition": "AML must be cleared for readiness.",
+    "counterpart": "AML clearance",
+    "evidence_turns": [
+     "t008"
+    ],
+    "relationship_type": "happens_after"
+   }
+  ],
+  "taxonomy": [
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "entity_type",
+    "note": "Participant describes a late investor entering a fund and an investor increasing a commitment; reported scope signal, not independently verified.",
+    "value": "fund"
+   },
+   {
+    "evidence_turns": [
+     "context",
+     "t002"
+    ],
+    "facet": "functional_area",
+    "note": "Process name identifies investor rebalance; participant also describes fund commitment changes. Classification is descriptive and reported, not independently verified.",
+    "value": "allocations"
+   },
+   {
+    "evidence_turns": [
+     "t012"
+    ],
+    "facet": "rule_source",
+    "note": "Participant reports the partnership agreement sets equalization terms; not independently reviewed.",
+    "value": "lpa_governing_doc"
+   },
+   {
+    "evidence_turns": [
+     "t012"
+    ],
+    "facet": "rule_source",
+    "note": "Participant reports side letters set equalization terms; not independently reviewed.",
+    "value": "side_letter"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "facet": "control_type",
+    "note": "Fund admin preparer performs readiness checks.",
+    "value": "gpfs_operational"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "facet": "control_type",
+    "note": "Incomplete or missing readiness records are escalated and the investor's call is held.",
+    "value": "exception_escalation"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "facet": "control_type",
+    "note": "Client admission approval is checked as a readiness condition; not a reported approval of the equalization calculation.",
+    "value": "client_approval"
+   },
+   {
+    "evidence_turns": [
+     "t014"
+    ],
+    "facet": "control_type",
+    "note": "Participant reports reviewer verification of the earlier-call list; the review mechanism is not yet specified.",
+    "value": "gpfs_supervisory"
+   }
+  ],
+  "completion": {
+   "allowed": false,
+   "ready_for_final_check": false,
+   "complete": false,
+   "partial": true,
+   "participant_confirmed": false,
+   "blockers": [
+    "role_incomplete:coverage_reviewer",
+    "role_incomplete:process_reviewer",
+    "coverage_result_unbound",
+    "coverage_incomplete",
+    "coverage_unresolved:name",
+    "coverage_unresolved:purpose",
+    "coverage_unresolved:trigger",
+    "coverage_unresolved:completion",
+    "coverage_unresolved:accountable",
+    "coverage_unresolved:lifecycle",
+    "coverage_unresolved:checks",
+    "coverage_unresolved:variations",
+    "coverage_unresolved:pain_points",
+    "coverage_unresolved:risk",
+    "coverage_unresolved:materials",
+    "coverage_unresolved:scope",
+    "coverage_unresolved:rules",
+    "coverage_unresolved:connections",
+    "coverage_unresolved:data_systems",
+    "coverage_unresolved:volume",
+    "process_result_unbound"
+   ],
+   "revision": "6eb68ed3687be3b2eeb2b1654a2fd40c9cfafe9d2404c0fd5e1a525043790019",
+   "run_id": "c984ffb072aa4fdba1fb69f000f49e34"
+  },
+  "coverage_assessment": null
+ },
+ "finished": 1794921682.685516
+}

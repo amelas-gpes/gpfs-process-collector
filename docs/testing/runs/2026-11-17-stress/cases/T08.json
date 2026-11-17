@@ -1,0 +1,649 @@
+{
+ "case": "T08",
+ "port": 8795,
+ "interview_id": "b137b7d5b2934e3da93766ddb75bdc70",
+ "context": {
+  "process_name": "European Wire & Liquidity Operations",
+  "process_owner": "",
+  "objective": "Document how we carry out European Wire & Liquidity Operations, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "It starts when a European outgoing wire is proposed for Ireland, the UK or Guernsey, or when a client notice changes expected outflows. Briefly, the normal run is seven steps. One, the payment preparer or Fund Administrator validates the payment and account route: entity, jurisdiction, account, payee, purpose, amount, date, that the account and bank mandate are operational, and identifies the regional approval chain and the bank cutoff. Two, Administration or Transfer Agency, Investor Services or Treasury confirm CDD status, do a callback if the bank instructions are new or changed, and run Exiger screening. Three, Fund Accounting or Treasury save a dated bank balance, compare it with the working-capital report, add known future outflows and confirm funds stay sufficient after the wire. Four, the Fund Controller or regional governance role does the regulated-entity check. Five, the preparer completes the five-section payment checklist, enters the wire in the bank platform, Signatory 1 and Signatory 2 approve, and it is released with adequate time before cutoff. Six, Treasury or the preparer monitor settlement and returns, update the payment status, update the expected-outflow item to actual or closed and update the cash position when it posts. Seven, the preparer files the records, updates log references and gets senior sign-off that the records are complete. Most of what matters is where it stops, which I can go through."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "What most often stops a wire or sends it back, and what happens then?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "I cannot tell you which is most frequent, we do not have that measured, but there are five stop points. First, at step one, if the route or bank mandate is unclear we stop processing there. Second, at step two, if CDD or screening is blocked we hold the payment and no bank release may occur until the financial crime compliance team or current Compliance makes a decision; we keep a record of the block, and we only continue once the issue is resolved and the decision is documented. Who exactly in Compliance or the region decides is not confirmed, and neither is who can approve a CDD override. Third, at step three, a forward liquidity shortfall: we hold and escalate to the regional decision makers and do not rely on the point-in-time bank balance. Even if the bank shows enough cash right now, if forecast commitments create a shortfall the payment is only held, reduced or rescheduled under a current authorized liquidity or funding decision, and the working-capital record is updated. If both views show sufficient cash we carry on to approval. Whether the decider is the Fund Controller, the client or a regional authority is not confirmed. Fourth, at step four, a Guernsey financial-resources or liquidity breach, which I will describe separately. Fifth, after release at step six, a returned wire: we investigate the return and re-verify any changed details before resubmitting, keep a return and resolution record, and resubmission stays blocked until the cause and the instruction are resolved. The owner for returns and the timeline are not confirmed."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What happens when the Guernsey financial-resources or liquidity check identifies a breach?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "This applies only to Guernsey-regulated entities. If the regulated-entity check at step four shows an actual financial-resources or liquidity breach, or a financial-resources breach expected within one month, immediate written notice goes to the GFSC, the Guernsey regulator, through the current Compliance route, together with written steps to correct or avoid the breach. Before doing that we have to get current confirmation from Compliance or Legal, because the rules text we have is a non-authoritative consolidation: they confirm whether the rule applies, what triggers it, the required form, who owns the notification, how to deliver it and any immediate notice required. If it is unclear whether the rule applies, we stop and get a determination from Compliance or Legal. The payment may be held, and we continue only after the notice is complete and documented. We keep a copy of the notice and proof of delivery. If there is no breach, the check is recorded as complete and the wire moves on to approval and release. What I do not know: the calculation, the trigger thresholds, who owns and sends the notice, and the template are all not confirmed. For Ireland and the UK I do not have a documented equivalent notification; requirements vary by jurisdiction and we do not apply one jurisdiction's method to another."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "After senior sign-off that the records are complete, what\u2014if anything\u2014still needs to happen before you consider the wire process finished?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "Nothing further. Senior sign-off is the last step and the output is a complete regional wire record. I consider it finished when the wire is settled, or any exception is resolved or escalated, the expected-outflow item and the working-capital liquidity view are updated, and the required records and senior sign-off are kept. The sign-off comes from the role the payment checklist labels AFC or above; I do not know the full title. How long records are kept and the official record location are not confirmed. One thing I should add on approvals because it is a decision point at step five: normally it is Signatory 1 and Signatory 2, but when screening gives a high-risk result, two additional authorized signers in the Sig A category are also required. Dual approval cannot be bypassed, urgency does not allow any check or approval to be skipped, and no regional approval can waive the payment controls. If a client preference would waive a CDD, callback, screening, liquidity or approval requirement, we do not apply it; we stop and escalate and the payment stays blocked. The actual signer matrix and who the accountable approver is are not confirmed."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "How does the team receive notice that a European outgoing wire is being proposed?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "I do not know of a defined intake channel for the wire itself. What we need to begin is a supported payment obligation that comes from the originating process or a client approval, showing entity, amount, payee, purpose and date, plus the account record. The other trigger, a client notice of a future outflow, arrives as a separate client email; those are not consolidated automatically, so each one is logged against the account and added to the forward-liquidity view, and it is cleared only when the transaction posts or the item is resolved. Since you are on timing, the cutoff exception matters here. The bank cutoff and value date vary by payment, and release has to happen hours before the cutoff, not minutes. If the cutoff is at risk, we escalate or reschedule; we never shorten the time needed for the required checks. The authorized signers or Treasury decide, we keep a record of the decision, and we continue only after that is done and documented. The consequence is that the value date may change, while fraud-prevention and approval checks stay mandatory. The actual cutoff times by jurisdiction are not confirmed, so I cannot give you a list."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "What does Fund Accounting or Treasury compare in the working-capital report to determine whether sufficient cash remains after the wire?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "They save a dated record of the cash the bank shows right now, from the bank platform or Kyriba, and compare that bank cash with the categorized cash view in the working-capital report, resolving any difference. Then they add the known future outflows that clients communicated separately, and confirm funds remain sufficient after the proposed wire and the pending commitments. The bank balance on its own is never enough because it does not include payments that have not posted. Fund Accounting performs the forward-liquidity check and Treasury reviews it; Treasury performs the point-in-time balance check. There is no approved formula beyond that: no set forward period, reserve or threshold that I can give you, and we are not allowed to borrow one from US wire examples or from memory. If someone proposes using US wire or callback guidance to fill a European gap, we do not use it and get a current European source or approval instead. Outcomes: both views sufficient, carry on to the regulated-entity check and approval; shortfall, hold and escalate as I described, and do not continue with an unresolved shortfall. After release there is a final match check by Treasury: the bank result, the payments log and the cash view must agree; if they do not, we record the exception and do not continue until it is resolved or an authorized decision is documented. That same fail rule applies to every one of the checks."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "Apart from the Guernsey-specific check and notice route, does the normal wire process differ between Ireland, the UK and Guernsey?"
+  },
+  {
+   "id": "t014",
+   "role": "assistant",
+   "text": "This capture still has open sections. 13 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794919487.972,
+   "turn": 0,
+   "seconds": 0.024,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794919496.748,
+   "turn": 2,
+   "seconds": 1.508,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919519.278,
+   "turn": 3,
+   "seconds": 24.04
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919541.835,
+   "turn": 3,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 46.6
+  },
+  {
+   "kind": "question",
+   "at": 1794919551.036,
+   "turn": 4,
+   "seconds": 1.509,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919592.918,
+   "turn": 5,
+   "seconds": 43.39
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919596.501,
+   "turn": 5,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 46.97
+  },
+  {
+   "kind": "question",
+   "at": 1794919604.86,
+   "turn": 6,
+   "seconds": 1.933,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919647.814,
+   "turn": 7,
+   "seconds": 44.89
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919649.871,
+   "turn": 7,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 46.94
+  },
+  {
+   "kind": "question",
+   "at": 1794919659.333,
+   "turn": 8,
+   "seconds": 2.987,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919685.422,
+   "turn": 9,
+   "seconds": 29.08
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919704.377,
+   "turn": 9,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 48.03
+  },
+  {
+   "kind": "question",
+   "at": 1794919713.335,
+   "turn": 10,
+   "seconds": 1.638,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919750.642,
+   "turn": 11,
+   "seconds": 38.95
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919758.36,
+   "turn": 11,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 46.66
+  },
+  {
+   "kind": "question",
+   "at": 1794919770.492,
+   "turn": 12,
+   "seconds": 5.153,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794919799.049,
+   "turn": 13,
+   "seconds": 33.71
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794919816.001,
+   "turn": 13,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 50.66
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794919821.059,
+   "turn": 13,
+   "seconds": 2.025,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "working",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.map_error",
+   "at": 1794920118.019,
+   "turn": 14,
+   "seconds": 298.99,
+   "error": "The provider timed out. Your answers are retained.",
+   "code": "timeout"
+  },
+  {
+   "kind": "wrap.map_error",
+   "at": 1794920121.041,
+   "turn": 14,
+   "seconds": 302.01,
+   "error": "The provider timed out. Your answers are retained.",
+   "code": "timeout"
+  }
+ ],
+ "started": 1794919487.947438,
+ "revision": "c7e87a5cce1a49ba3acbe592db31ad2449a461f3a18180470d43aff13564399a",
+ "capture": {
+  "memo_findings": [
+   {
+    "answer": "European Wire & Liquidity Operations",
+    "evidence_turns": [
+     "context"
+    ],
+    "key": "name",
+    "status": "captured"
+   },
+   {
+    "answer": "The reported output is a complete regional wire record.",
+    "evidence_turns": [
+     "t008"
+    ],
+    "key": "purpose",
+    "status": "captured"
+   },
+   {
+    "answer": "Work starts when a European outgoing wire is proposed for Ireland, the UK or Guernsey, or when a client notice changes expected outflows.\nBeginning a wire requires a supported payment obligation from the originating process or a client approval, showing entity, amount, payee, purpose and date, plus the account record.\nThe participant does not know of a defined intake channel for the wire itself; actual cutoff times by jurisdiction are unconfirmed.",
+    "evidence_turns": [
+     "t002",
+     "t010"
+    ],
+    "key": "trigger",
+    "status": "partial"
+   },
+   {
+    "answer": "The reported closeout includes monitoring settlement and returns, updating payment status, changing the expected-outflow item to actual or closed, and updating cash position when the wire posts; the preparer then files records, updates log references and obtains senior sign-off that records are complete.\nThe participant considers the process finished when the wire is settled or any exception resolved or escalated, the expected-outflow item and working-capital liquidity view are updated, and required records and senior sign-off are kept. Senior sign-off is the last step.",
+    "evidence_turns": [
+     "t002",
+     "t008"
+    ],
+    "key": "completion",
+    "status": "captured"
+   },
+   {
+    "answer": "The role accountable for the overall result is not established; preparer, functional roles and senior sign-off are described, but not overall accountability.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "accountable",
+    "status": "partial"
+   },
+   {
+    "answer": "The reported normal run has seven steps: the payment preparer or Fund Administrator validates payment and account-route details, operational account and mandate status, approval chain and bank cutoff; Administration or Transfer Agency, Investor Services or Treasury confirm CDD, callback for new or changed bank instructions, and run Exiger screening; Fund Accounting or Treasury save a dated bank balance, compare it with the working-capital report, add known future outflows and confirm sufficient funds remain after the wire. A Fund Controller or regional governance role does the regulated-entity check; the preparer completes a five-section checklist, enters the wire in the bank platform, obtains Signatory 1 and Signatory 2 approvals, and releases it with adequate time before cutoff. Treasury or the preparer monitor settlement and returns, update payment status and the expected-outflow item to actual or closed, and update cash position when it posts. The preparer files records, updates log references and obtains senior sign-off that records are complete.\nAt step one, processing stops if the route or bank mandate is unclear.\nIf CDD or screening is blocked, the payment is held and cannot be released until financial crime compliance or current Compliance makes a decision. The block is recorded, and work resumes only after the issue is resolved and the decision documented.\nA forward liquidity shortfall is held and escalated to regional decision makers. Even if current bank cash is sufficient, the payment is held, reduced or rescheduled only under a current authorized liquidity or funding decision, and the working-capital record is updated. If both cash views are sufficient, the payment proceeds to approval.\nFor a returned wire, the team investigates and re-verifies changed details before resubmission. Resubmission is blocked until the cause and instruction are resolved, and a return and resolution record is kept.\nThe owner and timeline for returned wires are unconfirmed.\nFor Guernsey-regulated entities, an actual financial-resources or liquidity breach, or a financial-resources breach expected within one month, triggers immediate written notice to the GFSC through the current Compliance route, with written corrective or avoidance steps. Before notification, Compliance or Legal must confirm the applicable rule and notification requirements; if applicability is unclear, work stops for their determination. The payment may be held, and work continues only after notice is complete and documented.\nIf the regulated-entity check finds no breach, the check is recorded as complete and the wire moves to approval and release.\nAt step five, a high-risk screening result requires two authorized Sig A signers in addition to the normal Signatory 1 and Signatory 2 approvals. If a client preference would waive a required control, processing stops, the issue is escalated and the payment remains blocked.\nA future-outflow notice arrives as a separate client email. Each notice is logged against the account and added to the forward-liquidity view; the item is cleared only when the transaction posts or is resolved.\nIf cutoff is at risk, the team escalates or reschedules without shortening checks. Authorized signers or Treasury decide, the decision is recorded, and work continues only after it is done and documented.\nTreasury performs the point-in-time balance check. Fund Accounting performs the forward-liquidity check and Treasury reviews it: a dated bank cash record is compared with categorized working-capital cash, differences are resolved, and separately communicated future outflows are added before confirming sufficiency after the wire and pending commitments. If both views are sufficient, the wire proceeds to the regulated-entity check and approval; an unresolved shortfall blocks continuation.\nAfter release, Treasury checks that the bank result, payments log and cash view match; a discrepancy is recorded and work does not continue until resolved or an authorized decision is documented.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010",
+     "t012"
+    ],
+    "key": "lifecycle",
+    "status": "partial"
+   },
+   {
+    "answer": "Reported checks include validating payment and account-route fields and operational account/mandate status; confirming CDD, callback for new or changed bank instructions, and Exiger screening; checking post-wire sufficiency against a dated bank balance, working-capital report and known future outflows; regulated-entity review; two signatory approvals; and senior sign-off on record completeness.\nSpecific approval failure handling and evidence retained beyond the reported general failed-check rule remain unclear.\nA CDD or screening block prevents bank release until the compliance decision is documented and the issue resolved. A returned wire cannot be resubmitted until its cause and instruction are resolved, with changed details re-verified.\nThe exact Compliance or regional decision maker and the person authorized to approve a CDD override are unconfirmed. The liquidity decision maker is also unconfirmed.\nBefore the Guernsey notice, Compliance or Legal confirms applicability, triggers, form, notification ownership, delivery and any immediate notice required. A copy of the notice and proof of delivery are retained.\nThe owner and sender of the Guernsey notice are unconfirmed.\nSenior records-completeness sign-off comes from the role the payment checklist labels AFC or above.\nNormally Signatory 1 and Signatory 2 approve. A high-risk screening result also requires two additional authorized signers in the Sig A category.\nThe actual signer matrix and accountable approver are unconfirmed.\nThe participant does not know the full title of the AFC sign-off role.\nA cutoff-risk decision is made by authorized signers or Treasury and recorded before work continues; fraud-prevention and approval checks remain mandatory.\nAfter release, Treasury matches the bank result, payments log and cash view. A mismatch is recorded and blocks continuation until resolved or an authorized decision is documented; the participant says this fail rule applies to every check.",
+    "evidence_turns": [
+     "t002",
+     "t012",
+     "t004",
+     "t006",
+     "t008",
+     "t010"
+    ],
+    "key": "checks",
+    "status": "partial"
+   },
+   {
+    "answer": "A callback is performed when bank instructions are new or changed.\nOther client and jurisdictional differences, including Ireland and UK notification requirements, remain to be clarified.\nThe described GFSC breach-notification route applies only to Guernsey-regulated entities. The participant has no documented equivalent notification for Ireland or the UK and says jurisdictional requirements vary; one jurisdiction's method is not applied to another.\nHigh-risk screening changes the approval route: two additional authorized Sig A signers are required alongside the normal two signatories.\nA client future-outflow notice follows a separate email-led route: it is logged against the account and added to the forward-liquidity view until posting or resolution.\nThe point-in-time bank cash record may be sourced from either the bank platform or Kyriba.\nThe condition determining whether the bank platform or Kyriba is used for the cash record has not been stated.",
+    "evidence_turns": [
+     "t002",
+     "t006",
+     "t010",
+     "t008",
+     "t012"
+    ],
+    "key": "variations",
+    "status": "partial"
+   },
+   {
+    "answer": "The participant cannot identify the most frequent stop or return because frequency is not measured.\nClient future-outflow emails are not consolidated automatically and each is logged against the account.",
+    "evidence_turns": [
+     "t004",
+     "t010"
+    ],
+    "key": "pain_points",
+    "status": "partial"
+   },
+   {
+    "answer": "A cutoff exception may change the payment's value date.",
+    "evidence_turns": [
+     "t010"
+    ],
+    "key": "risk",
+    "status": "partial"
+   },
+   {
+    "answer": "The route uses a five-section payment checklist, a working-capital report and dated bank balance, plus expected-outflow, payment-status and cash-position records and log references.\nLocations, custodians and availability of the working materials remain unclear.\nThe team keeps a record of a CDD or screening block and documents its decision. It also keeps a return and resolution record for a returned wire, and updates the working-capital record after a shortfall decision.\nThe available Guernsey rules text is a non-authoritative consolidation. The notice route retains a copy of the notice, written corrective or avoidance steps, and proof of delivery.\nThe Guernsey notification template is unconfirmed.\nRecord retention duration and the official record location are unconfirmed.\nA supported payment obligation and account record are needed to begin; separate client emails notify future outflows. A cutoff-risk decision is recorded.\nThe dated bank cash record supports comparison with the categorized working-capital cash view. The payments log is used in Treasury's final match against the bank result and cash view; discrepancies are recorded.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t008",
+     "t010",
+     "t012"
+    ],
+    "key": "materials",
+    "status": "partial"
+   },
+   {
+    "answer": "The reported scope is European outgoing wires for Ireland, the UK or Guernsey, and client notices that change expected outflows. The Guernsey breach-notification route applies only to Guernsey-regulated entities.\nFull entity scope and general GPFS versus client-specific applicability remain unestablished.",
+    "evidence_turns": [
+     "t002",
+     "t006",
+     "t010"
+    ],
+    "key": "scope",
+    "status": "partial"
+   },
+   {
+    "answer": "The preparer validates entity, jurisdiction, account, payee, purpose, amount and date, operational account and bank mandate, regional approval chain and bank cutoff. The cash check uses a dated bank balance, working-capital report and known future outflows to confirm funds remain sufficient after the wire.\nA sufficient point-in-time balance does not by itself permit a payment when forecast commitments create a liquidity shortfall; an authorized current liquidity or funding decision governs holding, reducing or rescheduling it.\nThe participant reports a Guernsey notice route for actual financial-resources or liquidity breaches and financial-resources breaches expected within one month. The available rules text is a non-authoritative consolidation, so current Compliance or Legal confirmation is required before acting on it.\nThe Guernsey calculation and trigger thresholds are not confirmed.\nThe governing source for payment validation remains unidentified. No approved forward-liquidity formula or specified forward period, reserve or threshold is available from the participant.\nDual approval cannot be bypassed; urgency does not permit skipping checks or approvals, and regional approval cannot waive payment controls. A client preference to waive CDD, callback, screening, liquidity or approval requirements is not applied; the payment is blocked and escalated.\nBank cutoff and value date vary by payment. Release must occur hours before cutoff, not minutes; required checks are not shortened when cutoff is at risk.\nThe bank balance alone is insufficient because it excludes unposted payments. US wire or callback guidance is not used to fill a European gap; a current European source or approval is sought instead.",
+    "evidence_turns": [
+     "t002",
+     "t004",
+     "t006",
+     "t012",
+     "t008",
+     "t010"
+    ],
+    "key": "rules",
+    "status": "partial"
+   },
+   {
+    "answer": "The specific originating process supplying a payment obligation is not named; other process counterparts remain unclear.\nThe wire work consumes a supported payment obligation from the originating process or a client approval; the originating process is not named.",
+    "evidence_turns": [
+     "t010"
+    ],
+    "key": "connections",
+    "status": "partial"
+   },
+   {
+    "answer": "The preparer enters the wire in a bank platform. Fund Accounting or Treasury use a dated bank balance and working-capital report for the sufficiency check.\nSystems of record, storage locations, re-keying and input origins other than the identified bank cash source remain unclear.\nFuture-outflow notices arrive by separate client email and are not automatically consolidated; each is logged against the account and added to the forward-liquidity view.\nThe point-in-time bank cash record is sourced from the bank platform or Kyriba.",
+    "evidence_turns": [
+     "t002",
+     "t010",
+     "t012"
+    ],
+    "key": "data_systems",
+    "status": "partial"
+   },
+   {
+    "answer": "Run frequency, counts, peak volumes and effort are not stated.",
+    "evidence_turns": [
+     "t002"
+    ],
+    "key": "volume",
+    "status": "partial"
+   }
+  ],
+  "coverage": [
+   {
+    "key": "name",
+    "label": "Name & other names",
+    "status": "partial"
+   },
+   {
+    "key": "purpose",
+    "label": "Purpose & result",
+    "status": "partial"
+   },
+   {
+    "key": "trigger",
+    "label": "Start, cadence & deadlines",
+    "status": "partial"
+   },
+   {
+    "key": "completion",
+    "label": "Finished condition",
+    "status": "partial"
+   },
+   {
+    "key": "accountable",
+    "label": "Accountability",
+    "status": "partial"
+   },
+   {
+    "key": "lifecycle",
+    "label": "Items, stages & handoffs",
+    "status": "partial"
+   },
+   {
+    "key": "checks",
+    "label": "Checks, approvals & proof",
+    "status": "partial"
+   },
+   {
+    "key": "variations",
+    "label": "Variations and conditions",
+    "status": "partial"
+   },
+   {
+    "key": "pain_points",
+    "label": "Manual work & pain",
+    "status": "partial"
+   },
+   {
+    "key": "risk",
+    "label": "Consequences of failure",
+    "status": "partial"
+   },
+   {
+    "key": "materials",
+    "label": "Existing materials",
+    "status": "partial"
+   },
+   {
+    "key": "scope",
+    "label": "Scope & entity context",
+    "status": "partial"
+   },
+   {
+    "key": "rules",
+    "label": "Business rules & lineage",
+    "status": "partial"
+   },
+   {
+    "key": "connections",
+    "label": "Connected processes",
+    "status": "partial"
+   },
+   {
+    "key": "data_systems",
+    "label": "Data & systems",
+    "status": "partial"
+   },
+   {
+    "key": "volume",
+    "label": "Volume & effort",
+    "status": "partial"
+   }
+  ],
+  "summary": "Fund Accounting performs the forward-liquidity check and Treasury reviews it; Treasury also checks point-in-time cash and performs the post-release match. No approved forward-liquidity formula was identified.",
+  "focus": "Liquidity checks and post-release matching",
+  "parking_lot": [
+   "Purpose and overall accountable role",
+   "Cadence, volume and unresolved scope details"
+  ],
+  "connections_out": [
+   {
+    "condition": "A supported payment obligation may come from the originating process; its identity is unspecified.",
+    "counterpart": "Originating process",
+    "evidence_turns": [
+     "t010"
+    ],
+    "relationship_type": "consumes"
+   }
+  ],
+  "taxonomy": [
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "functional_area",
+    "note": "Reported European outgoing wire and liquidity operations scope; participant-described, not independently verified.",
+    "value": "treasury_payments"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "functional_area",
+    "note": "Fund Accounting is reported as one role conducting the liquidity sufficiency check; this does not establish the entire process as Fund Accounting.",
+    "value": "fund_accounting"
+   },
+   {
+    "evidence_turns": [
+     "context",
+     "t002"
+    ],
+    "facet": "process_level",
+    "note": "Named as European Wire & Liquidity Operations and described as a seven-step normal run; participant-described.",
+    "value": "process"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "entity_type",
+    "note": "Fund Administrator, Fund Accounting and Fund Controller roles are named in the reported route; exact entity scope remains open.",
+    "value": "fund"
+   },
+   {
+    "evidence_turns": [
+     "t002"
+    ],
+    "facet": "system",
+    "note": "Participant reports the preparer enters the wire in a bank platform; platform identity is unspecified.",
+    "value": "bank_platform"
+   },
+   {
+    "evidence_turns": [
+     "t004"
+    ],
+    "facet": "control_type",
+    "note": "Participant reports escalation of forecast liquidity shortfalls and a compliance decision for blocked screening or CDD.",
+    "value": "exception_escalation"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "facet": "rule_source",
+    "note": "Reported Guernsey notification rule; available consolidation is non-authoritative and requires current Compliance or Legal confirmation.",
+    "value": "regulatory"
+   },
+   {
+    "evidence_turns": [
+     "t006"
+    ],
+    "facet": "variant_class",
+    "note": "Reported jurisdiction-specific breach-notification route applies to Guernsey-regulated entities; Ireland and UK requirements remain unconfirmed.",
+    "value": "structural"
+   },
+   {
+    "evidence_turns": [
+     "t002",
+     "t008"
+    ],
+    "facet": "control_type",
+    "note": "Participant reports senior records-completeness sign-off by the checklist role labelled AFC or above; full title unknown.",
+    "value": "gpfs_supervisory"
+   },
+   {
+    "evidence_turns": [
+     "t008"
+    ],
+    "facet": "control_type",
+    "note": "Participant reports dual signatory approval and additional Sig A signers for high-risk screening; signer matrix unconfirmed.",
+    "value": "gpfs_operational"
+   },
+   {
+    "evidence_turns": [
+     "t010"
+    ],
+    "facet": "system",
+    "note": "Client future-outflow notices arrive as separate emails, according to the participant.",
+    "value": "email"
+   },
+   {
+    "evidence_turns": [
+     "t012"
+    ],
+    "facet": "system",
+    "note": "Kyriba is reported as an alternative source of point-in-time bank cash.",
+    "value": "other"
+   }
+  ],
+  "completion": {
+   "allowed": false,
+   "ready_for_final_check": false,
+   "complete": false,
+   "partial": true,
+   "participant_confirmed": false,
+   "blockers": [
+    "role_incomplete:coverage_reviewer",
+    "role_incomplete:process_reviewer",
+    "coverage_result_unbound",
+    "coverage_incomplete",
+    "coverage_unresolved:name",
+    "coverage_unresolved:purpose",
+    "coverage_unresolved:trigger",
+    "coverage_unresolved:completion",
+    "coverage_unresolved:accountable",
+    "coverage_unresolved:lifecycle",
+    "coverage_unresolved:checks",
+    "coverage_unresolved:variations",
+    "coverage_unresolved:pain_points",
+    "coverage_unresolved:risk",
+    "coverage_unresolved:materials",
+    "coverage_unresolved:scope",
+    "coverage_unresolved:rules",
+    "coverage_unresolved:connections",
+    "coverage_unresolved:data_systems",
+    "coverage_unresolved:volume",
+    "process_result_unbound"
+   ],
+   "revision": "5aaae377d408ec274fa262182a522be0088b40c4f4601e570782b38fa2d789ff",
+   "run_id": "0fc2beaf80324786a8a1e132845f7095"
+  },
+  "coverage_assessment": null
+ },
+ "finished": 1794920121.041434
+}

@@ -330,7 +330,7 @@ class ConcurrentContracts(unittest.TestCase):
         self.assertEqual(answers[0]["workflow_capture"], {"workflow": {"steps": [{"id": "reported"}]}})
 
     def test_sync_failed_workflow_gets_one_retry_and_releases_the_notes(self):
-        # Finding 3 of docs/testing/process-capture-2026-11-16: a failed map used to fail Wrap up
+        # Finding 3 of docs/testing/runs/2026-11-16-process-capture: a failed map used to fail Wrap up
         # (HTTP 502 or 504) although the notes were there. The notes are what a review reads; the
         # map keeps its own status and retry and never holds them back.
         client = FakeClient()
@@ -440,7 +440,7 @@ class ConcurrentContracts(unittest.TestCase):
             self.assertIn("workflow_capture", service.status_for_revision(query))
         self.assertEqual(len(client.graphs), 2)
 
-    # Finding 4 of docs/testing/process-capture-2026-11-16: the first question after a file is
+    # Finding 4 of docs/testing/runs/2026-11-16-process-capture: the first question after a file is
     # added is asked from the file's own excerpts at once; the notes and the audited map of the
     # same revision are completed in the background. Finding 5: that question never fails on
     # what a model returned, and falls back to a question bound to a verified excerpt.

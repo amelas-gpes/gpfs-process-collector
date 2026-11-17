@@ -17,8 +17,10 @@ from interview_coverage import context_has_evidence, TOPIC_DIMENSIONS, TOPIC_SCH
 
 
 ROLE_CONTRACTS = {
+    # The largest allowance a lead call is given: a background map that was cut off is asked for
+    # once more with 32,000 tokens (interview_orchestrator.MAP_DRAW_RETRY_OUTPUT_TOKENS).
     "lead_interviewer": {
-        "label": "Lead interviewer", "max_calls": 2, "max_output_tokens": 22000, "timeout_seconds": 120,
+        "label": "Lead interviewer", "max_calls": 2, "max_output_tokens": 32000, "timeout_seconds": 120,
         "contract": "Respond to the participant and choose one grounded next question. Only the manager may authorize final completion.",
     },
     "coverage_reviewer": {

@@ -1,6 +1,24 @@
 # Enhancement brief: make the workflow diagram fast, reliable and standard
 
-Status: proposed, not started. Evidence: [the November 17 stress run](../testing/runs/2026-11-17-stress/README.md).
+Status: in progress. Evidence: [the November 17 stress run](../testing/runs/2026-11-17-stress/README.md). What has been built was verified with stand-in providers only: [the map-lanes run](../testing/runs/2026-11-17-map-lanes/README.md) lists what was checked and what still needs a run against the AI service.
+
+| Part | Status |
+| --- | --- |
+| Phase 0, a baseline you can re-measure | The stand-in latency suite exists (`tests/test_map_lanes.py`). The replay against the AI service was not run. |
+| Phase 1.1, keep the map being drawn | Done. |
+| Phase 1.2, a full pass at Wrap up | Done as a comparison: the full map replaces the incremental one only when it carries clearly more. |
+| Phase 1.3, map workers and provider slots | Done: `COLLECTOR_MAP_WORKERS`, `COLLECTOR_PROVIDER_SLOTS`, two slots kept free of background work. |
+| Phase 1.4, draw allowance and one retry | Done. |
+| Phase 1.5, Live voice map from a final caption | Done. |
+| Phase 1.6, evaluate the audit model | Not done. It needs the AI service. |
+| Phase 2, the map as a view of the ledger | Partly. The check is off the path between an answer and the diagram, reviews differences and is carried under later draws. A cause this brief missed is fixed: the background draw had lost the routing, component and step-detail policies (section 4.4 describes the symptom). Graph operations from the notes capture are not built; measure the audit's rewriting again first. |
+| Phase 3, a presentation layer | Not started. |
+| Phase 4, push and a job runner | Partly. Jobs are taken one at a time, the oldest first, and a cancelled request is released. Pushed updates and streamed output are not built. |
+| Phase 5, Live voice orchestrated by the server | Not started beyond Phase 1.5. |
+| Phase 6, files | Not started. |
+| Phase 7, notes speed | Not started; it is the owner's decision. |
+
+Sections 4 and 5 below describe the app at `04e6ee3`. Where a row above says done, the code no longer matches them.
 
 You are picking up engineering work on **AI Process Collector** (`github.com/amelas-dev/ai-process-collector`, branch `main`, baseline commit `04e6ee3`, version 0.32.0 plus the "Unreleased" changelog entries). This document is your brief. It tells you what was measured, what is wrong in the design, what to build, in what order, and how to prove each part worked.
 

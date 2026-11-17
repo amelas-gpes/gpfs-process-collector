@@ -33,3 +33,13 @@ On macOS with Python 3.12.14 and Node 24.22.1, all 95 JavaScript suites and 125 
 All 31 scheduling tests passed in the final run. During a separate run under load, the paced simulation recorded a map three answers behind on one sample against a limit of two. Untouched `b71f6fc` reproduced the same sequence in four of twelve runs under load. The regression suite retains that limit.
 
 These checks use stand-in providers and recorded diagrams. Live model timing, diagram fidelity against new answers, and physical microphone behavior remain unmeasured.
+
+## Verification after merging the voice handoff branch
+
+The combined build includes Claude’s diagram changes and the voice handoff work from [PR #1](https://github.com/amelas-dev/ai-process-collector/pull/1). The merge exposed a case where an existing typed interview could mistake an older capture token for a new voice handoff. Handoff recognition now runs only on the first turn of a new session. HTTP regressions also cover a lost first response, duplicate concurrent requests, and testimony followed by a stop in the same turn through either `turn` or `sync`.
+
+Chrome repeated the 22-diagram export check and both retry paths on the combined app. All 378 connections reached their reported source steps. Both retries updated the diagram once and preserved the notes. Voice delivery tests simulated provider receipts, captions and microphone events.
+
+All 95 JavaScript suites and all 128 Python suites passed on macOS. Python reported 1,864 tests, including 78 skips. The three earlier macOS suite failures were corrected in the test fixtures by isolating the Windows API mock, freezing the timeout test’s clock and writing concurrently to a bounded socket buffer. The existing timeout and byte-limit assertions remain in place.
+
+The slow-draw regression now controls when the stand-in provider finishes a call. Two 450 ms draws coincide with the third 300 ms answer interval. Publishing the due draw before observing that instant removes host scheduling jitter and keeps the same two-answer lag limit. Separate tests still exercise real elapsed time.

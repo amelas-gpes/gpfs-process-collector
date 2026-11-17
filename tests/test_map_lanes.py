@@ -683,37 +683,86 @@ class MapFairnessTests(unittest.TestCase):
         self.assertEqual((single._draws.size, single._checks.size), (1, 1))
 
 
+class ProviderClock:
+    """Advance stand-in provider calls in milliseconds while the real interview workers run."""
+
+    def __init__(self, service):
+        self.service = service
+        self.now = 0
+        self.due = {}
+        self.closed = False
+
+    def delay(self, milliseconds, provider):
+        def delayed(*args):
+            release = threading.Event()
+            with self.service._lock:
+                if self.closed:
+                    raise RuntimeError("The test clock is closed")
+                self.due[release] = self.now + milliseconds
+            if not release.wait(10):
+                raise TimeoutError("Test did not advance the provider clock")
+            return provider(*args)
+        return delayed
+
+    def _settled(self):
+        # Workers that just returned from the provider must publish the result and
+        # start any queued call at this instant, before the clock advances again.
+        with self.service._lock:
+            return (self.service._notes._active == 0 and
+                    self.service._draws._active + self.service._checks._active == len(self.due))
+
+    def advance(self, milliseconds):
+        target = self.now + milliseconds
+        while True:
+            wait_for(self._settled, seconds=5)
+            with self.service._lock:
+                next_due = min(self.due.values(), default=target + 1)
+                if next_due > target:
+                    self.now = target
+                    return
+                self.now = next_due
+                for release, due in list(self.due.items()):
+                    if due == next_due:
+                        del self.due[release]
+                        release.set()
+
+    def close(self):
+        with self.service._lock:
+            self.closed = True
+            for release in self.due:
+                release.set()
+
+
 class MapLatencyTests(unittest.TestCase):
     """The pacing of the stress run, scaled down about a hundred and fifty times.
 
     There a participant answered every 45 s, a draw took 41 s and its check 112 s; the diagram
     was there before the next answer for 7 of 139 answers. Here an answer comes every 300 ms and
-    a check takes 700 ms. The draw takes 120 ms in the first case and 450 ms in the second:
-    slower than the answers, as a draw with the full instructions may well be. The intervals
-    are this long so that a loaded machine, which starts a thread tens of milliseconds late,
-    still keeps the pace: at 90 ms an answer these cases failed two runs in six with every
-    processor busy.
+    a check takes 700 ms. The fast-draw and five-interview tests measure elapsed time.
+    In the slow-draw test two 450 ms draws finish exactly at a 900 ms answer boundary.
+    Its controlled clock publishes calls due at that instant before the participant reads the map.
     """
     ANSWER, DRAW, CHECK = .3, .12, .7
-    SLOW_DRAW = .45
 
     def test_a_draw_slower_than_the_answers_still_keeps_a_map_on_screen_that_trails_by_an_answer_or_two(self):
         client = LaneClient()
         team = client.coordinator
-        team.draw_seconds, team.check_seconds = self.SLOW_DRAW, self.CHECK
         service = module.ConcurrentInterview(client, LaneAPI)
         self.addCleanup(service.close)
+        clock = ProviderClock(service)
+        self.addCleanup(clock.close)
+        answer_ms, draw_ms, check_ms = 300, 450, 700
+        team.workflow_draw = clock.delay(draw_ms, team.workflow_draw)
+        team.workflow_check = clock.delay(check_ms, team.workflow_check)
         texts = [f"Answer number {number}." for number in range(1, 8)]
-        token, started, behind = None, time.monotonic(), []
+        token, behind = None, []
         for count in range(1, len(texts) + 1):
             snapshot = answers(*texts[:count])
             if token:
                 snapshot["conversation_token"] = token
-            sent = time.monotonic()
             token = service.turn(snapshot)["conversation_token"]
             snapshot["conversation_token"] = token
-            while time.monotonic() < sent + self.ANSWER:
-                time.sleep(.004)
+            clock.advance(answer_ms)
             # Just before the next answer: which answer does the map on screen go through?
             status = service.status(snapshot)
             if "workflow_capture" in status:
@@ -724,19 +773,19 @@ class MapLatencyTests(unittest.TestCase):
                 behind.append(None)
         final = answers(*texts)
         final["conversation_token"] = token
-        finished = time.monotonic()
-        wait_for(lambda: "workflow_capture" in service.status(final), seconds=5)
+        # Finish at most the draw in flight and one queued draw.
+        clock.advance(2 * draw_ms)
+        self.assertIn("workflow_capture", service.status(final))
         self.assertEqual(team.cancelled, [], "A slower draw must not bring cancellation back")
         # Once the first map is drawn there is always one on screen, never more than two answers behind.
-        first = next(index for index, value in enumerate(behind) if value is not None)
-        self.assertLessEqual(first, 2, f"No map after three answers: {behind}")
-        self.assertTrue(all(value is not None and value <= 2 for value in behind[first:]), behind)
+        self.assertIsNone(behind[0], "The first draw takes longer than one answer interval")
+        self.assertIsNotNone(behind[1], "It finishes before the end of the second interval")
+        self.assertTrue(all(value is not None and value <= 2 for value in behind[1:]), behind)
         # Each draw read the latest account at its start: fewer draws than answers, none wasted.
         self.assertLessEqual(len(team.draws), len(texts))
         self.assertGreaterEqual(len(team.draws), len(texts) // 2)
-        # The map of the last answer follows within the draw in flight and one more.
-        self.assertLess(time.monotonic() - finished, self.SLOW_DRAW * 2 + 1.0)
-        wait_for(lambda: service.status(final).get("workflow_checked") is True, seconds=6)
+        clock.advance(2 * check_ms)
+        self.assertTrue(service.status(final).get("workflow_checked"))
         self.assertEqual([step["id"] for step in service.status(final)["workflow_capture"]["workflow"]["steps"]],
                          [f"S_u{number}" for number in range(1, 8)])
         # The check did not wait for the draws to stop (they never did): it ran beside them in
@@ -745,7 +794,6 @@ class MapLatencyTests(unittest.TestCase):
         self.assertTrue(all("previous_capture" in check["work"] for check in team.checks[1:]))
         self.assertLess(len(team.checks[-1]["drawn"]["workflow"]["steps"])
                         - len(team.checks[-1]["work"]["previous_capture"]["workflow"]["steps"]), len(texts))
-        del started
 
     def test_every_answer_gets_its_map_while_checks_run_and_none_is_cancelled(self):
         client = LaneClient()

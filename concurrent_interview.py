@@ -3,6 +3,7 @@
 The background result is evidence, never permission to speak or finish. Final
 review still belongs to the existing Coordinator and its opaque capabilities.
 """
+import collections
 import copy
 import provider_usage
 import raw_trace
@@ -133,13 +134,50 @@ Only the short response and request_review flag are returned; keep this selectio
 FILE_QUESTION_FALLBACK = "How does the supplied document compare with what you actually do?"
 
 
+class _Pool:
+    """A bounded number of threads that take one job at a time, the oldest first.
+
+    An interview has at most one job waiting in a pool; when that job is done the interview
+    queues its next one behind the others. Oldest first is therefore fair between interviews:
+    a worker used to stay with one interview for as long as it had work (the slot was held
+    around its whole loop), and semaphores wake waiters in no particular order. The
+    caller's lock guards the queue; a job runs without it and must not raise.
+    """
+
+    def __init__(self, name, size, lock):
+        self.name, self.size, self._lock = name, size, lock
+        self._waiting = collections.deque()
+        self._active = 0
+
+    def submit(self, job):
+        with self._lock:
+            self._waiting.append(job)
+            self._start()
+
+    def _start(self):
+        while self._active < self.size and self._waiting:
+            self._active += 1
+            threading.Thread(target=self._serve, args=(self._waiting.popleft(),), daemon=True, name=self.name).start()
+
+    def _serve(self, job):
+        # Nobody waits for this work: the provider client keeps slots free of it (see
+        # provider_usage.background_work).
+        provider_usage.background_work.set(True)
+        try:
+            job()
+        finally:
+            with self._lock:
+                self._active -= 1
+                self._start()
+
+
 class ConcurrentInterview:
     # Wrap up waits this long for a map that is about to arrive. The notes are what a review
     # needs; a map that takes longer, or fails, keeps its own status and its own retry and
     # never holds the notes back (a queued or failed map used to block Wrap up for five minutes).
     MAP_WAIT_SECONDS = 2.0
 
-    def __init__(self, client, api, validate_sources=None, max_sessions=32, workers=2):
+    def __init__(self, client, api, validate_sources=None, max_sessions=32, workers=2, map_workers=None):
         self.client, self.api = client, api
         self.validate_sources = validate_sources
         self.max_sessions = max_sessions
@@ -147,10 +185,18 @@ class ConcurrentInterview:
         self._lock = threading.RLock()
         self._source_lock = threading.RLock()
         self._changed = threading.Condition(self._lock)
-        self._slots = threading.BoundedSemaphore(workers)
-        self._graph_slots = threading.BoundedSemaphore(1)
+        # Three kinds of background work, each with its own workers, so that none waits for
+        # another: notes, the map as it is drawn, and the source check of that map. One map
+        # worker used to serve every interview on the server and each map was a draw followed
+        # by its check, so a check that took minutes held up every other map.
+        if map_workers is None:
+            map_workers = getattr(client, "map_workers", 2)
+        self._notes = _Pool("collector-analysis", workers, self._lock)
+        self._draws = _Pool("collector-workflow", map_workers, self._lock)
+        self._checks = _Pool("collector-workflow-check", max(1, map_workers - 1), self._lock)
         self._sessions = {}
         self._closed = False
+        self._listeners = []
 
     @staticmethod
     def _documented(payload):
@@ -236,9 +282,9 @@ class ConcurrentInterview:
             if session is None and create:
                 now = time.monotonic()
                 self._sessions = {key: item for key, item in self._sessions.items()
-                                  if item["running"] or item["graph_running"] or now - item["at"] < 1800}
+                                  if self._busy(item) or now - item["at"] < 1800}
                 if len(self._sessions) >= self.max_sessions:
-                    idle = min((key for key, item in self._sessions.items() if not item["running"] and not item["graph_running"]),
+                    idle = min((key for key, item in self._sessions.items() if not self._busy(item)),
                                key=lambda key: self._sessions[key]["at"], default=None)
                     if idle is None:
                         raise self.api.APIError("Background interviews are busy. Retry shortly.", 429)
@@ -252,6 +298,16 @@ class ConcurrentInterview:
                            "capture_run_id": None, "capture_run_revision": None,
                            "graph_run_id": None, "graph_run_revision": None,
                            "graph_running": False, "graph_pending": None, "workflow_state": "queued",
+                           # The map: workflow_capture is the map as it stands (drawn, or checked),
+                           # workflow_turns and workflow_payload the account it goes through.
+                           # checked is the last map that passed its source check, in the
+                           # baseline form; the next check reviews what changed since then.
+                           "graph_active": False, "workflow_payload": None, "workflow_checked": False,
+                           "workflow_version": 0, "workflow_lineage": 0, "workflow_incremental": False,
+                           "workflow_corrections": [], "checked": None, "check_running": False,
+                           "check_state": "idle", "check_error": None, "check_error_code": None,
+                           "check_run_id": None, "check_result": None, "check_failed_version": None,
+                           "reconcile_wanted": None,
                            "synchronized": None, "state": "queued"}
                 self._sessions[token] = session
             elif session is None:
@@ -259,11 +315,15 @@ class ConcurrentInterview:
             session["at"] = time.monotonic()
             return session
 
+    @staticmethod
+    def _busy(session):
+        return session["running"] or session["graph_running"] or session["check_running"]
+
     def prune(self):
         now = time.monotonic()
         with self._lock:
             self._sessions = {key: item for key, item in self._sessions.items()
-                              if item["running"] or item["graph_running"] or now - item["at"] < 1800}
+                              if self._busy(item) or now - item["at"] < 1800}
 
     def _queue(self, session, payload, force=False):
         revision = self.revision(payload)
@@ -271,8 +331,11 @@ class ConcurrentInterview:
             if session.get("abandoned"):
                 raise self.api.APIError("This conversation has ended.", 409, category="conversation_expired")
             if revision != session["revision"] or force:
-                if revision != session["revision"]:
-                    self._cancel_map(session)
+                # A map that is being drawn is left to finish. A new answer used to cancel it
+                # (65 times in one test run, with a participant answering every 45 seconds and
+                # a map that takes longer than that), so the diagram almost never appeared
+                # during an interview. Its result is the map through the answer it read, and
+                # the starting point of the next one; only the map still waiting is replaced.
                 session["revision"] = revision
                 session["generation"] += 1
                 # One pending snapshot replaces all intermediate pending answers.
@@ -292,17 +355,46 @@ class ConcurrentInterview:
                 self._changed.notify_all()
             if session["pending"] and not session["running"]:
                 session["running"] = True
-                threading.Thread(target=self._worker, args=(session,), daemon=True,
-                                 name="collector-analysis").start()
+                self._notes.submit(lambda: self._worker(session))
             return revision
 
-    def _cancel_map(self, session):
-        cancel = getattr(self.client.coordinator, "cancel", None)
-        if cancel and session.get("workflow_state") == "working" and session.get("graph_run_id"):
-            cancel(session["graph_run_id"])
+    def _drop_pending_map(self, session):
+        """Forget the map that has not been started. The one being drawn is left to finish."""
         if session["graph_pending"]:
             raw_trace.emit("worker.workflow.discarded", {"revision": session["graph_pending"][1], "state": "queued"})
         session["graph_pending"] = None
+
+    def _cancel_map(self, session):
+        """End all map work of a conversation that is over. Its provider requests are released."""
+        cancel = getattr(self.client.coordinator, "cancel", None)
+        if cancel and session.get("graph_active") and session.get("graph_run_id"):
+            cancel(session["graph_run_id"])
+        if cancel and session.get("check_running") and session.get("check_run_id"):
+            cancel(session["check_run_id"])
+        self._drop_pending_map(session)
+
+    def _follows(self, session, payload):
+        """Whether the account as it stands only adds to the one in payload. Caller holds the lock.
+
+        Work that finished for an earlier answer is kept when nothing it read was edited
+        or replaced since: the same intake, the same files, and its answers still the
+        beginning of the conversation. This is the test the notes checkpoint uses.
+        """
+        latest = session.get("source_payload")
+        if not latest or session.get("abandoned"):
+            return False
+        old, new = self._participant_basis(payload), self._participant_basis(latest)
+        return (old[0] == new[0] and old[2:] == new[2:] and old[1] == new[1][:len(old[1])]
+                and supporting_identity(payload.get("_supporting_documents", {}))
+                == supporting_identity(latest.get("_supporting_documents", {})))
+
+    @staticmethod
+    def _baseline_form(capture):
+        """A map in the form a later request takes as its baseline: five fields and nothing else."""
+        workflow = capture["workflow"]
+        return copy.deepcopy({
+            "workflow": {key: workflow[key] for key in ("title", "steps", "connections", "open_questions")},
+            **{key: capture[key] for key in ("memo_findings", "summary", "focus", "parking_lot")}})
 
     def _analysis_payload(self, payload, previous=None, continued=True):
         value = copy.deepcopy(payload)
@@ -354,10 +446,7 @@ class ConcurrentInterview:
         if payload["turns"][:end] != basis[:end]:
             return None
         try:
-            workflow = published["workflow"]
-            return copy.deepcopy({
-                "workflow": {key: workflow[key] for key in ("title", "steps", "connections", "open_questions")},
-                **{key: published[key] for key in ("memo_findings", "summary", "focus", "parking_lot")}})
+            return ConcurrentInterview._baseline_form(published)
         except (KeyError, TypeError):
             return None
 
@@ -407,22 +496,29 @@ class ConcurrentInterview:
         return rows
 
     def _worker(self, session):
-        # Threads waiting for these slots hold at most one coalesced snapshot.
-        # Foreground transcription/question/playback slots are never consumed.
-        with self._slots:
-            while True:
-                with self._lock:
-                    if self._closed or not session["pending"]:
-                        session["running"] = False
-                        self._changed.notify_all()
-                        return
-                    generation, revision, payload, perform = session["pending"]
-                    session["pending"] = None
-                    session["working_revision"] = revision
-                    session["state"] = "working"
-                    previous = copy.deepcopy(session.get("capture"))
-                    continued = not session["rebuild_notes"]
-                perform(session, generation, revision, payload, previous, continued)
+        # One coalesced snapshot per turn at the pool. Foreground transcription, question and
+        # playback slots are never consumed. An interview with more to capture queues again
+        # behind the others instead of keeping its worker.
+        with self._lock:
+            if self._closed or not session["pending"]:
+                session["running"] = False
+                self._changed.notify_all()
+                return
+            generation, revision, payload, perform = session["pending"]
+            session["pending"] = None
+            session["working_revision"] = revision
+            session["state"] = "working"
+            previous = copy.deepcopy(session.get("capture"))
+            continued = not session["rebuild_notes"]
+        try:
+            perform(session, generation, revision, payload, previous, continued)
+        finally:
+            with self._lock:
+                if session["pending"] and not self._closed:
+                    self._notes.submit(lambda: self._worker(session))
+                else:
+                    session["running"] = False
+                self._changed.notify_all()
 
     def _capture_snapshot(self, session, generation, revision, payload, previous, continued):
         raw_trace.emit("worker.capture.started", {"revision": revision, "generation": generation})
@@ -517,83 +613,321 @@ class ConcurrentInterview:
         if isinstance(error, ValueError) and work and (work.get("capture_token") or work.get("_ledger_token")):
             session["rebuild_notes"] = True
 
-    def _queue_graph(self, session, generation, revision, work, payload):
+    def _queue_graph(self, session, generation, revision, work, payload, reconcile=False):
         with self._lock:
             if self._closed or session["generation"] != generation:
                 return
             if session["graph_pending"]:
                 raw_trace.emit("worker.workflow.replaced", {"revision": session["graph_pending"][1], "by_revision": revision})
-            raw_trace.emit("worker.workflow.queued", {"revision": revision, "generation": generation})
-            session["graph_pending"] = (generation, revision, work, payload, raw_trace.wrap(self._build_graph))
-            session["workflow_state"] = "queued"
-            session["workflow_error"] = None
+            raw_trace.emit("worker.workflow.queued", {"revision": revision, "generation": generation,
+                                                      **({"reconcile": True} if reconcile else {})})
+            session["graph_pending"] = (generation, revision, work, payload, raw_trace.wrap(self._build_graph), reconcile)
+            if not reconcile:
+                # The second look at Wrap up (see _reconcile) leaves the state of the map alone:
+                # the map of this revision is there, and stays unless the second look replaces it.
+                session["workflow_state"] = "queued"
+                session["workflow_error"] = None
             if not session["graph_running"]:
                 session["graph_running"] = True
-                threading.Thread(target=self._graph_worker, args=(session,), daemon=True,
-                                 name="collector-workflow").start()
+                self._draws.submit(lambda: self._graph_worker(session))
 
     def _graph_worker(self, session):
-        # Slow map audits cannot hold up capture of subsequent participant turns.
-        # Both products have a bounded worker and at most one latest queued input.
-        with self._graph_slots:
+        # One map at a time for an interview, and one job per turn at the pool: an interview
+        # with another map to draw queues again behind the others.
+        with self._lock:
             while True:
-                with self._lock:
-                    if self._closed or not session["graph_pending"]:
-                        session["graph_running"] = False
-                        self._changed.notify_all()
-                        return
-                    generation, revision, work, payload, perform = session["graph_pending"]
-                    session["graph_pending"] = None
-                    if session["generation"] != generation:
-                        continue
-                    session["workflow_state"] = "working"
-                    work = copy.deepcopy(work)
-                    work["_map_only"] = True
-                    work["agent_run_id"] = uuid.uuid4().hex
-                    # The map is edited from this session's own last published map, not
-                    # drawn again from nothing: untouched steps and accepted routes stay.
-                    baseline = self._map_baseline(session, payload)
-                    if baseline:
-                        work.update(previous_capture=baseline, _session_baseline=True)
-                    session.update(graph_run_id=work["agent_run_id"], graph_run_revision=revision)
-                perform(session, generation, revision, work, payload, baseline)
+                if self._closed or not session["graph_pending"]:
+                    session["graph_running"] = False
+                    self._after_draws(session)
+                    self._changed.notify_all()
+                    return
+                generation, revision, work, payload, perform, reconcile = session["graph_pending"]
+                session["graph_pending"] = None
+                if session["generation"] == generation:
+                    break
+            if not reconcile:
+                session["workflow_state"] = "working"
+            work = copy.deepcopy(work)
+            work["_map_only"] = True
+            work["agent_run_id"] = uuid.uuid4().hex
+            # The map is edited from this session's own map as it stands, not drawn again
+            # from nothing: untouched steps and routes stay. The second look at Wrap up is
+            # the exception; it reads the whole account afresh.
+            baseline = None if reconcile else self._map_baseline(session, payload)
+            if baseline:
+                work.update(previous_capture=baseline, _session_baseline=True)
+            session.update(graph_run_id=work["agent_run_id"], graph_run_revision=revision, graph_active=True)
+        try:
+            perform(session, generation, revision, work, payload, baseline, reconcile)
+        finally:
+            with self._lock:
+                session["graph_active"] = False
+                # A check that finished while this map was being drawn is taken in now, before
+                # the next draw starts from the map.
+                self._fold_check(session)
+                if session["graph_pending"] and not self._closed:
+                    self._draws.submit(lambda: self._graph_worker(session))
+                else:
+                    session["graph_running"] = False
+                    self._after_draws(session)
+                self._changed.notify_all()
 
-    def _build_graph(self, session, generation, revision, work, payload, baseline):
+    def _after_draws(self, session):
+        """No map is waiting to be drawn: look again at Wrap up, or check what was drawn. Caller holds the lock."""
+        if self._closed or session.get("abandoned"):
+            return
+        self._reconcile(session)
+        if not session["graph_running"]:
+            self._maybe_check(session)
+
+    def _draw(self, work):
+        """Draw one map. A coordinator that only knows the whole operation returns a checked map."""
+        draw = getattr(self.client.coordinator, "workflow_draw", None)
+        if callable(draw):
+            drawn = draw(work)
+            return drawn["capture"], False
+        return self.client.coordinator.workflow(work), True
+
+    def _checks_separately(self):
+        coordinator = self.client.coordinator
+        return all(callable(getattr(coordinator, name, None)) for name in ("workflow_draw", "workflow_check", "workflow_rebase"))
+
+    def _build_graph(self, session, generation, revision, work, payload, baseline, reconcile=False):
         raw_trace.emit("worker.workflow.started", {"revision": revision, "generation": generation,
-            "uses_baseline": bool(baseline)})
+            "uses_baseline": bool(baseline), **({"reconcile": True} if reconcile else {})})
         try:
             self._sources(payload)
-            graph = self.client.coordinator.workflow(work)
+            graph, checked = self._draw(work)
             self._sources(payload)
             with self._lock:
                 current = not self._closed and session["generation"] == generation
-                if current:
+                # A map drawn for an earlier answer is kept when the account has only grown
+                # since: it is the map through that answer, and the next one starts from it.
+                kept = current or (not self._closed and self._follows(session, payload))
+                if kept and reconcile:
+                    kept = self._richer(graph, session.get("workflow_capture"), payload)
+                if kept:
+                    if baseline:
+                        session["workflow_incremental"] = True
+                        version = session["workflow_version"] + 1
+                        session["workflow_corrections"] += [(version, copy.deepcopy(row)) for row in graph.get("recent_corrections", [])]
+                    else:
+                        # A map drawn from the whole account is not a later state of the map
+                        # before it: nothing checked earlier carries over.
+                        session["workflow_lineage"] += 1
+                        session.update(workflow_incremental=False, workflow_corrections=[], checked=None,
+                                       check_result=None, check_failed_version=None)
                     session.update(workflow_capture=copy.deepcopy(graph), workflow_revision=revision,
                                    workflow_turns=copy.deepcopy(payload["turns"]),
-                                   workflow_state="ready", workflow_error=None)
-            raw_trace.emit("worker.workflow.published" if current else "worker.workflow.discarded",
-                {"revision": revision, "generation": generation,
+                                   workflow_payload=copy.deepcopy(payload), workflow_checked=checked)
+                    session["workflow_version"] += 1
+                    if checked:
+                        session.update(checked=None, workflow_corrections=[])
+                    if current:
+                        session.update(workflow_state="ready", workflow_error=None)
+                disposition = ("published" if current else "checkpoint") if kept else "discarded"
+            raw_trace.emit("worker.workflow." + disposition,
+                {"revision": revision, "generation": generation, **({"reconcile": True} if reconcile else {}),
                  "content": {key: graph[key] for key in ("workflow", "summary", "focus", "memo_findings", "parking_lot") if key in graph}})
         except Exception as error:
             raw_trace.emit("worker.workflow.error", {"revision": revision, "generation": generation,
-                "error_type": type(error).__name__, "error_category": getattr(error, "category", None)})
+                "error_type": type(error).__name__, "error_category": getattr(error, "category", None),
+                **({"reconcile": True} if reconcile else {})})
             with self._lock:
                 if baseline and isinstance(error, ValueError):
                     # An update that cannot be applied to this baseline (a removal of a
-                    # step it does not hold, a revision that leaves an accepted handoff
-                    # unverified, a map past its size limit) could fail the same way on
-                    # every retry, and Wrap up waits for a map. The published map stays
+                    # step it does not hold, a map past its size limit) could fail the same
+                    # way on every retry, and Wrap up waits for a map. The map stays
                     # on screen; the next update is drawn from the empty baseline, as
                     # every update on this path was before a baseline was kept. A
                     # provider failure leaves the baseline in use.
                     session["workflow_turns"] = None
-                if not self._closed and session["generation"] == generation:
+                # A failed second look changes nothing: the map it would have replaced stands.
+                if not reconcile and not self._closed and session["generation"] == generation:
                     session.update(workflow_state="error", workflow_error=self._safe_worker_error(error,
                         "The workflow could not update. Your answers are retained."),
                         workflow_error_code=getattr(error, "category", None))
         finally:
             with self._changed:
                 self._changed.notify_all()
+
+    @staticmethod
+    def _richer(full, incremental, payload):
+        """Whether a map drawn from the whole account carries more than the one built answer by answer.
+
+        A map updated after each answer can come out thinner than one drawn from the whole
+        account (16 to 20 of 28 stated steps in one measured case). At Wrap up the account
+        is read once more in full, and that map takes the place of the incremental one only
+        when it carries clearly more: it names an answer the other never cites, or has more
+        than about a seventh more steps. Otherwise the map already on screen stays, with the
+        checks it has passed and without a redrawn layout.
+        """
+        if not incremental:
+            return True
+        try:
+            answers = {turn["id"] for turn in payload["turns"] if turn.get("role") == "user" and not turn.get("document_event")}
+            def cited(capture):
+                graph = capture["workflow"]
+                return {source for item in graph["steps"] + graph["connections"] for source in item["evidence_turns"]} & answers
+            return (len(full["workflow"]["steps"]) > len(incremental["workflow"]["steps"]) * 1.15
+                    or bool(cited(full) - cited(incremental)))
+        except (KeyError, TypeError):
+            return False
+
+    def _reconcile(self, session):
+        """At Wrap up, read the whole account once more when the map was built answer by answer. Caller holds the lock."""
+        revision = session["revision"]
+        if (session["reconcile_wanted"] != revision or session["graph_running"] or session["graph_pending"]
+                or session["workflow_revision"] != revision or not session.get("workflow_capture")):
+            return
+        session["reconcile_wanted"] = None
+        payload = session.get("workflow_payload")
+        if not session["workflow_incremental"] or not payload or not self._checks_separately():
+            return
+        self._queue_graph(session, session["generation"], revision, self._analysis_payload(payload),
+                          copy.deepcopy(payload), reconcile=True)
+
+    def _maybe_check(self, session, force=False):
+        """Start the source check of the map as drawn, when one is due. Caller holds the lock.
+
+        The check never stands between an answer and the map on screen. It starts when no
+        map is waiting to be drawn, runs beside any later draw, and reviews only what
+        changed since the last checked map. A check that failed is not started again for
+        the same map by itself; Wrap up asks for it once more.
+        """
+        if (self._closed or session.get("abandoned") or not self._checks_separately() or session["check_running"]
+                or session["check_result"] or session["graph_running"] or not session.get("workflow_capture")
+                or session["workflow_checked"] or not session.get("workflow_payload")):
+            return
+        if not force and session["check_failed_version"] == session["workflow_version"]:
+            return
+        payload = session["workflow_payload"]
+        work = self._analysis_payload(payload)
+        work["_map_only"] = True
+        work["agent_run_id"] = uuid.uuid4().hex
+        if session["checked"]:
+            work.update(previous_capture=copy.deepcopy(session["checked"]), _session_baseline=True)
+        try:
+            drawn = self._baseline_form(session["workflow_capture"])
+        except (KeyError, TypeError):
+            return
+        corrections = [copy.deepcopy(row) for _version, row in session["workflow_corrections"]]
+        session.update(check_running=True, check_state="working", check_error=None, check_error_code=None,
+                       check_run_id=work["agent_run_id"])
+        perform = raw_trace.wrap(self._check_map)
+        arguments = (session, session["workflow_version"], session["workflow_lineage"], session["workflow_revision"],
+                     work, drawn, corrections, copy.deepcopy(payload))
+        self._checks.submit(lambda: perform(*arguments))
+
+    def _check_map(self, session, version, lineage, revision, work, drawn, corrections, payload):
+        raw_trace.emit("worker.workflow.check_started", {"revision": revision, "version": version,
+                                                         "continues_check": "previous_capture" in work})
+        try:
+            self._sources(payload)
+            checked = self.client.coordinator.workflow_check(work, drawn, corrections)
+            self._sources(payload)
+            with self._lock:
+                kept = (not self._closed and session["workflow_lineage"] == lineage and self._follows(session, payload))
+                if kept:
+                    session["check_result"] = {"capture": copy.deepcopy(checked), "drawn": drawn, "version": version,
+                                               "lineage": lineage}
+                session["check_state"] = "idle"
+            raw_trace.emit("worker.workflow.check_finished" if kept else "worker.workflow.check_discarded",
+                           {"revision": revision, "version": version})
+        except Exception as error:
+            raw_trace.emit("worker.workflow.check_error", {"revision": revision, "version": version,
+                "error_type": type(error).__name__, "error_category": getattr(error, "category", None)})
+            with self._lock:
+                if isinstance(error, ValueError):
+                    # The review of this difference was refused (a restated step left an
+                    # accepted handoff unverified, a decision was left out). The same
+                    # difference would be refused again: the next check reads the whole map.
+                    session["checked"] = None
+                if not self._closed and session["workflow_lineage"] == lineage:
+                    session.update(check_state="error", check_failed_version=session["workflow_version"],
+                                   check_error=self._safe_worker_error(error, "The workflow could not be checked against its sources. Your answers are retained."),
+                                   check_error_code=getattr(error, "category", None))
+        finally:
+            with self._lock:
+                session["check_running"] = False
+                if not session["graph_active"]:
+                    self._fold_check(session)
+                    if not session["graph_running"]:
+                        self._maybe_check(session)
+                self._changed.notify_all()
+
+    def _fold_check(self, session):
+        """Take a finished source check into the map. Caller holds the lock; no draw is running.
+
+        When nothing was drawn since the check began, its result is the map. Otherwise the
+        later draws are applied to the checked map (Coordinator.workflow_rebase): the
+        check's corrections are kept and so are the later answers. When that cannot be done
+        the result is left out, the map stays as drawn and its next check covers the same ground.
+        """
+        result, session["check_result"] = session["check_result"], None
+        if (not result or self._closed or session.get("abandoned") or result["lineage"] != session["workflow_lineage"]
+                or not session.get("workflow_capture")):
+            return
+        capture, revision = result["capture"], session["workflow_revision"]
+        try:
+            if session["workflow_version"] == result["version"]:
+                checked, same, later = capture, True, []
+            else:
+                later = [(version, row) for version, row in session["workflow_corrections"] if version > result["version"]]
+                work = self._analysis_payload(session["workflow_payload"])
+                work.update(_map_only=True, previous_capture=self._baseline_form(capture), _session_baseline=True)
+                checked = self.client.coordinator.workflow_rebase(
+                    work, result["drawn"], self._baseline_form(session["workflow_capture"]), [row for _version, row in later])
+                same = self.api.same_map(checked["workflow"], capture["workflow"])
+                for key in ("agent_team", "agent_run_id"):
+                    if key in capture:
+                        checked.setdefault(key, copy.deepcopy(capture[key]))
+            base = self._baseline_form(capture)
+        except Exception as error:
+            raw_trace.emit("worker.workflow.check_discarded", {"revision": revision, "version": result["version"],
+                                                               "reason": "rebase", "error_type": type(error).__name__})
+            return
+        session.update(workflow_capture=copy.deepcopy(checked), workflow_checked=same, checked=base,
+                       workflow_corrections=later, check_failed_version=None)
+        session["workflow_version"] += 1
+        raw_trace.emit("worker.workflow.checked", {"revision": revision, "version": session["workflow_version"],
+            "through_latest_draw": same,
+            "content": {key: checked[key] for key in ("workflow", "summary", "focus", "memo_findings", "parking_lot") if key in checked}})
+
+    def _map_view(self, session, revision, current):
+        """What a status reply says about the map. Caller holds the lock."""
+        view = {}
+        capture = session.get("workflow_capture")
+        if not current or not capture:
+            return view
+        here = session["workflow_revision"] == revision
+        if here:
+            view["workflow_capture"] = copy.deepcopy(capture)
+        elif (session.get("capture_preserved") and session["capture_revision"] == revision
+              and self._map_baseline(session, session.get("source_payload") or {})):
+            # A pause settled this revision without new notes or a map of its own: the map
+            # of the answers before it still stands.
+            view.update(workflow_capture=copy.deepcopy(capture), workflow_preserved=True)
+            here = True
+        else:
+            # The map through an earlier answer, while the one for this answer is on its way.
+            turns = session.get("workflow_turns") or []
+            through = next((turn.get("id") for turn in reversed(turns)
+                            if turn.get("role") == "user" and not turn.get("document_event")), None)
+            payload = session.get("workflow_payload")
+            if through and payload and self._follows(session, payload):
+                view["workflow_checkpoint"] = {"revision": session["workflow_revision"], "through_turn_id": through,
+                    "turns": copy.deepcopy(turns), "workflow_capture": copy.deepcopy(capture),
+                    "checked": bool(session["workflow_checked"]), "version": session["workflow_version"]}
+            return view
+        view["workflow_version"] = session["workflow_version"]
+        view["workflow_checked"] = bool(session["workflow_checked"])
+        if not session["workflow_checked"] and self._checks_separately():
+            failed = session["check_state"] == "error" and session["check_failed_version"] == session["workflow_version"]
+            view["workflow_check_state"] = "error" if failed else "working"
+            if failed and session.get("check_error"):
+                view["workflow_check_error"] = session["check_error"]
+        return view
 
     def _view(self, session, revision):
         with self._lock:
@@ -610,11 +944,7 @@ class ConcurrentInterview:
                 result["capture"] = copy.deepcopy(session["capture"])
             if current and session.get("checkpoint") and session["checkpoint"]["revision"] != revision:
                 result["checkpoint"] = copy.deepcopy(session["checkpoint"])
-            if current and session["workflow_revision"] == revision and session["workflow_capture"]:
-                result["workflow_capture"] = copy.deepcopy(session["workflow_capture"])
-            elif current and result.get("capture_preserved") and session.get("workflow_capture") and self._map_baseline(session, session.get("source_payload") or {}):
-                result["workflow_capture"] = copy.deepcopy(session["workflow_capture"])
-                result["workflow_preserved"] = True
+            result.update(self._map_view(session, revision, current))
             if current and session["error"]:
                 result["error"] = session["error"]
                 if session.get("error_code"):
@@ -629,6 +959,8 @@ class ConcurrentInterview:
                 run_id = session["capture_run_id"]
             elif current and session["workflow_state"] == "working" and session["graph_run_revision"] == revision:
                 run_id = session["graph_run_id"]
+            elif current and session["check_running"] and session["workflow_revision"] == revision:
+                run_id = session["check_run_id"]
             status = getattr(self.client.coordinator, "status", None)
             if run_id and callable(status):
                 result["agent_team"] = status(run_id, (session.get("source_payload") or {}).get("document_scope"))
@@ -842,7 +1174,7 @@ class ConcurrentInterview:
                 # not start an unrelated capture family before that transition.
                 revision = self.revision(payload)
                 if revision != session["revision"]:
-                    self._cancel_map(session)
+                    self._drop_pending_map(session)
                 session["revision"] = revision
                 session["generation"] += 1
                 session["pending"] = None
@@ -978,7 +1310,7 @@ class ConcurrentInterview:
             revision = self.revision(payload)
             with self._lock:
                 if revision != session["revision"]:
-                    self._cancel_map(session)
+                    self._drop_pending_map(session)
                 session["revision"] = revision
                 session["generation"] += 1
                 session["pending"] = None
@@ -1108,10 +1440,20 @@ class ConcurrentInterview:
         retried = queued = False
         patience = min(deadline, time.monotonic() + max(0.0, self.map_wait))
         with self._changed:
+            if payload.get("action") == "close":
+                # Wrap up: a map built answer by answer is compared once with a map of the
+                # whole account (see _reconcile and _richer) before it is filed.
+                session["reconcile_wanted"] = revision
             while True:
                 if self._closed or session["revision"] != revision:
                     raise self.api.APIError("The conversation changed before workflow review could finish.", 409)
                 if session["workflow_state"] == "ready" and session["workflow_revision"] == revision:
+                    # The map is released as it stands. Its second look and its source check
+                    # go on in the background; a check that failed gets this one more try.
+                    if not session["graph_running"]:
+                        self._reconcile(session)
+                    if not session["graph_running"]:
+                        self._maybe_check(session, force=True)
                     return copy.deepcopy(session["workflow_capture"])
                 if session["workflow_state"] == "ready" and not queued:
                     # The revision was settled without a map of its own (a stop in
@@ -1152,6 +1494,10 @@ class ConcurrentInterview:
                         status["workflow_error_code"] = session["workflow_error_code"]
             elif mapped and workflow is not None:
                 status = {"workflow_state": "ready", "workflow_pending": False}
+                view = self._map_view(session, revision, True)
+                workflow = view.get("workflow_capture", workflow)
+                status.update({key: view[key] for key in ("workflow_version", "workflow_checked", "workflow_check_state",
+                                                           "workflow_check_error") if key in view})
         raw_trace.emit("interview.session.synchronized", {"revision": revision, "has_workflow": workflow is not None,
                                                           **({"workflow_state": status["workflow_state"]} if status else {})})
         return {**capture, "conversation_token": session["token"], "revision": revision, "sync_required": False, **status,

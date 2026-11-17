@@ -41,7 +41,7 @@ class NoProviderRedirect(HTTPRedirectHandler):
         return None
 
 
-class WatchedHTTPSHandler(HTTPSHandler):
+class NamesProviderSockets:
     """Names each connection's socket to the request that opened it (request.provider_sockets).
 
     A request to the AI service that is not streamed sends nothing back until the whole
@@ -67,6 +67,10 @@ class WatchedHTTPSHandler(HTTPSHandler):
                 connection.connect = connect_and_name
             return connection
         return super().do_open(watched, req, **http_conn_args)
+
+
+class WatchedHTTPSHandler(NamesProviderSockets, HTTPSHandler):
+    pass
 
 
 urlopen = build_opener(NoProviderRedirect(), WatchedHTTPSHandler()).open

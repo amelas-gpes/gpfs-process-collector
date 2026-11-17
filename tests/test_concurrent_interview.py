@@ -412,13 +412,13 @@ class ConcurrentContracts(unittest.TestCase):
         self.assertEqual(client.graphs[-1]["turns"][-1]["text"], "The manager approves it first.")
 
     def test_one_session_waiting_for_its_map_does_not_hold_up_wrap_up_in_another(self):
-        # One map is drawn at a time across sessions. A second interview's Wrap up used to wait
-        # behind the first one's map until its own request timed out.
+        # With one map worker, one map is drawn at a time across sessions. A second interview's
+        # Wrap up used to wait behind the first one's map until its own request timed out.
         gate = threading.Event()
         self.addCleanup(gate.set)
         client = FakeClient()
         client.graph_gate = gate
-        service = self.service(client)
+        service = self.service(client, map_workers=1)
         service.map_wait = .05
         first = service.turn(payload("The clerk receives the invoice."))
         second = service.turn(payload("The buyer raises a purchase order."))

@@ -32,7 +32,7 @@ from http.client import BadStatusLine, HTTPException, IncompleteRead, LineTooLon
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.error import HTTPError, URLError
 from urllib.parse import unquote, urlsplit
-from urllib.request import HTTPRedirectHandler, Request, build_opener
+from urllib.request import HTTPRedirectHandler, HTTPSHandler, Request, build_opener
 import webbrowser
 
 class NoProviderRedirect(HTTPRedirectHandler):
@@ -41,7 +41,38 @@ class NoProviderRedirect(HTTPRedirectHandler):
         return None
 
 
-urlopen = build_opener(NoProviderRedirect()).open
+class WatchedHTTPSHandler(HTTPSHandler):
+    """Names each connection's socket to the request that opened it (request.provider_sockets).
+
+    A request to the AI service that is not streamed sends nothing back until the whole
+    answer exists. Its thread waits inside urlopen for the status line, where no code of
+    this application runs. The socket named here is what lets OpenAIClient.request end that
+    wait when the request is cancelled or its time is up (see _release_on_deadline): until
+    it could, a cancelled map kept its worker and a provider slot for up to four minutes.
+    """
+    def do_open(self, http_class, req, **http_conn_args):
+        sockets = getattr(req, "provider_sockets", None)
+
+        def watched(host, **options):
+            connection = http_class(host, **options)
+            if sockets is not None:
+                connect = connection.connect
+
+                def connect_and_name():
+                    try:
+                        connect()
+                    finally:
+                        if connection.sock is not None:
+                            sockets.append(connection.sock)
+                connection.connect = connect_and_name
+            return connection
+        return super().do_open(watched, req, **http_conn_args)
+
+
+urlopen = build_opener(NoProviderRedirect(), WatchedHTTPSHandler()).open
+# The clock of the provider watchdog thread. It is read here once, so that a test which
+# replaces time.monotonic to walk a deadline does not hand its prepared values to that thread.
+_steady_clock = time.monotonic
 VERSION = "0.32.0"
 APP_DIR = Path(__file__).resolve().parent
 WEB_DIR = APP_DIR / "web"
@@ -2484,7 +2515,8 @@ def load_settings():
     settings = {}
     allowed = {"OPENAI_API_KEY", "INTERVIEW_MODEL", "DRAFT_MODEL", "DRAFT_AUDIT_MODEL", "DRAFT_COVERAGE_MODEL", "WORKFLOW_AUDIT_MODEL", "TRANSCRIPTION_MODEL", "TRANSCRIPTION_KEYWORDS",
                "COLLECTOR_DEPLOYMENT_MODE", "KNOWLEDGE_LOCAL_OWNER", "AGENT_INTERVIEW_MODEL", "COLLECTOR_MODEL_REASONING", "TRANSCRIPTION_LANGUAGE", "INTERVIEW_TOKEN_CAP", "DAILY_TOKEN_CAP",
-               "AGENT_COVERAGE_MODEL", "AGENT_PROCESS_MODEL", "AGENT_DOCUMENT_MODEL", "VOICE_MODE", "VOICE_PAUSE_MS", "RAW_TRACE_MODE"}
+               "AGENT_COVERAGE_MODEL", "AGENT_PROCESS_MODEL", "AGENT_DOCUMENT_MODEL", "VOICE_MODE", "VOICE_PAUSE_MS", "RAW_TRACE_MODE",
+               "COLLECTOR_PROVIDER_SLOTS", "COLLECTOR_MAP_WORKERS"}
     for path in (APP_DIR / ".env.local",):
         if path.is_file() and not path.is_symlink():
             for number, line in enumerate(read_settings_text(path).splitlines(), 1):
@@ -4245,6 +4277,27 @@ def apply_workflow_update(update, previous, turns, documents=None, carried=(), c
     return result
 
 
+PROVIDER_FOREGROUND_RESERVE = 2
+
+
+def whole_setting(settings, name, default, lowest, highest):
+    """A whole-number setting inside its range, or the default when it is not set."""
+    value = settings.get(name)
+    if value is None or str(value).strip() == "":
+        return default
+    if not re.fullmatch(r"[0-9]{1,4}", str(value).strip()) or not lowest <= int(str(value).strip()) <= highest:
+        raise SettingsError(f"{name} must be a whole number from {lowest} to {highest}.")
+    return int(str(value).strip())
+
+
+class OutputTruncated(APIError):
+    """The model's reply reached its output allowance before it finished.
+
+    A caller that can afford a larger allowance may ask once more with one; nothing else
+    about the request was wrong.
+    """
+
+
 class OpenAIClient:
     VERSION = VERSION
     key_problem = ""
@@ -4260,7 +4313,15 @@ class OpenAIClient:
             key, self.key_problem = "", UNUSABLE_KEY_MESSAGE
         self.key = key
         self.usage = provider_usage.UsageLedger(settings)
-        self._provider_slots = threading.BoundedSemaphore(4)
+        # Requests to the AI service in flight at once, and how many of them may be work that
+        # nobody is waiting on. Background work (notes, maps, their source checks) leaves
+        # PROVIDER_FOREGROUND_RESERVE slots free, so that a question, a transcription or a
+        # voice session does not queue behind it: with one shared pool of four, the
+        # background could hold every slot.
+        self.provider_slots = whole_setting(settings, "COLLECTOR_PROVIDER_SLOTS", 6, 2, 32)
+        self.map_workers = whole_setting(settings, "COLLECTOR_MAP_WORKERS", 2, 1, 8)
+        self._provider_slots = threading.BoundedSemaphore(self.provider_slots)
+        self._background_slots = threading.BoundedSemaphore(max(1, self.provider_slots - PROVIDER_FOREGROUND_RESERVE))
         self._draft_lock = threading.Lock()
         self._draft_candidates = {}
         self._coverage_groups = {}
@@ -4358,24 +4419,42 @@ class OpenAIClient:
 
     @staticmethod
     @contextmanager
-    def _response_deadline(response, deadline, should_abort):
-        """A continuously trickled reply must still release its socket on time or cancellation."""
-        sock = getattr(getattr(getattr(response, "fp", None), "raw", None), "_sock", None)
-        if not isinstance(sock, socket.socket):
-            yield
-            return
+    def _release_on_deadline(sockets, seconds, should_abort):
+        """End a provider exchange when its time is up or it is cancelled, wherever it waits.
+
+        sockets is the list WatchedHTTPSHandler fills for this request. The watch starts
+        before the request is sent: a reply that is not streamed arrives all at once, so a
+        watch that began with the response headers (as it used to) saw a cancellation only
+        when the provider had finished anyway. A reply trickled past the deadline is ended
+        the same way. Shutting the socket makes the blocked read fail; request() already
+        reports that as cancelled or as a timeout. With a stand-in urlopen no socket is
+        ever named and this only waits to be told the exchange is over.
+        """
         done = threading.Event()
-        def stop_read():
+        end = _steady_clock() + seconds
+
+        def cancelled():
+            try:
+                return bool(should_abort and should_abort())
+            except Exception:
+                return False
+
+        def stop_exchange():
             while not done.is_set():
-                remaining = deadline - time.monotonic()
-                if remaining <= 0 or should_abort and should_abort():
-                    try:
-                        sock.shutdown(socket.SHUT_RDWR)
-                    except OSError:
-                        pass
+                remaining = end - _steady_clock()
+                if remaining <= 0 or cancelled():
+                    if not sockets:
+                        # Still connecting: the socket is named as soon as it exists.
+                        done.wait(.05)
+                        continue
+                    for sock in list(sockets):
+                        try:
+                            sock.shutdown(socket.SHUT_RDWR)
+                        except OSError:
+                            pass
                     return
                 done.wait(min(.25, remaining) if should_abort else remaining)
-        watchdog = threading.Thread(target=stop_read, daemon=True, name="provider-read-deadline")
+        watchdog = threading.Thread(target=stop_exchange, daemon=True, name="provider-read-deadline")
         watchdog.start()
         try:
             yield
@@ -4529,7 +4608,7 @@ class OpenAIClient:
                         "process_interview", "process_next_question_audit", "process_draft", "process_draft_audit",
                         "conversation_question", "team_interview_capture", "team_interviewer_response", "team_working_process_map",
                         "team_working_map_source_audit", "process_coverage_assessment", "process_specialist_review",
-                        "knowledge_connection_proposals", "route_support_recheck"}:
+                        "knowledge_connection_proposals", "route_support_recheck", "route_gap_repair"}:
                 stage = name
         started = time.monotonic()
         metrics = {"request_id": uuid.uuid4().hex, "stage": stage, "timeout_seconds": timeout,
@@ -4559,20 +4638,32 @@ class OpenAIClient:
 
         def check_active():
             if check_abort and check_abort():
+                # Recorded before it is raised: a cancelled request used to be logged as an
+                # uncategorised 502, which hid sixty of them in one test run.
+                metrics.update(status=409, error_category="cancelled")
                 raise APIError("This request was replaced or cancelled. Your interview is retained.", 409, "cancelled")
             if time.monotonic() >= deadline:
                 raise TimeoutError()
 
         @contextmanager
         def slot():
-            while True:
-                check_active()
-                if self._provider_slots.acquire(timeout=min(.25, max(.001, deadline - time.monotonic()))):
-                    break
+            # Background work first takes one of the slots set aside for it, then a slot of
+            # the shared pool like any request; what a person waits for takes only the latter.
+            pools = [self._provider_slots]
+            if provider_usage.background_work.get() and getattr(self, "_background_slots", None) is not None:
+                pools.insert(0, self._background_slots)
+            held = []
             try:
+                for pool in pools:
+                    while True:
+                        check_active()
+                        if pool.acquire(timeout=min(.25, max(.001, deadline - time.monotonic()))):
+                            held.append(pool)
+                            break
                 yield
             finally:
-                self._provider_slots.release()
+                for pool in reversed(held):
+                    pool.release()
 
         try:
             reason = self.usage.start(metrics["request_id"], label, estimate, background)
@@ -4593,10 +4684,12 @@ class OpenAIClient:
                             sent = {"omitted_fields": ["body"]}
                         raw_trace.emit("provider.request.dispatch", {"request_id": metrics["request_id"], "stage": stage,
                             "path": path, "byte_count": len(data), "timeout_seconds": timeout, **sent})
-                    response = stack.enter_context(urlopen(request, timeout=max(.01, deadline - time.monotonic())))
+                    remaining = max(.01, deadline - time.monotonic())
+                    request.provider_sockets = []
+                    stack.enter_context(self._release_on_deadline(request.provider_sockets, remaining, check_abort))
+                    response = stack.enter_context(urlopen(request, timeout=remaining))
                     if tracing:
                         trace_headers(getattr(response, "status", None))
-                    stack.enter_context(self._response_deadline(response, deadline, check_abort))
                     check_active()
                     if streaming:
                         try:
@@ -4804,7 +4897,8 @@ class OpenAIClient:
                 except Exception:
                     # Logging cannot replace the explanation the person is owed.
                     pass
-            return APIError(message)
+            # A cut-off reply is the one unusable response a caller can do something about.
+            return OutputTruncated(message) if category == "output_truncated" else APIError(message)
 
         if not isinstance(result, dict):
             raise unusable("invalid_json", UNUSABLE_RESULT_MESSAGE)

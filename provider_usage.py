@@ -12,6 +12,10 @@ import threading
 
 active_interview = ContextVar("active_interview", default="")
 active_abort = ContextVar("active_abort", default=None)
+# Set in the threads that do work nobody is waiting on (notes, maps and their source checks).
+# The provider client keeps part of its request slots free of such work, so that a question,
+# a transcription or a voice session never queues behind it.
+background_work = ContextVar("background_work", default=False)
 _generation = ContextVar("generation_provenance", default=None)
 
 

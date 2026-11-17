@@ -116,12 +116,27 @@ let passed=0;
   // The exported file says its steps and routes carry their evidence: the markers are left out of it.
   const svg=canvas.exportSVG({title:'Handle an invoice',state:'Working map',date:'2026-11-17'});
   assert.doesNotMatch(svg,/data-implied/);assert.match(svg,/Receive the invoice/);assert.match(svg,/Matches the order/);
+  // The BPMN download takes its positions from the layout of the reported graph alone: no marker,
+  // and a route that leaves a gateway in the picture starts at its own step again.
+  const layout=nativeTree(canvas.exportLayout());
+  assert.deepEqual(layout.children.map(node=>node.id).sort(),['S1','S2','S3','S4','S5']);
+  assert.deepEqual(layout.edges.map(route=>route.id),['edge-0','edge-1','edge-2','edge-3']);
+  const source=layout.children.find(node=>node.id==='S2');
+  for(const id of ['edge-1','edge-2']){
+   const section=layout.edges.find(route=>route.id===id).sections[0];
+   assert(Math.abs(section.startPoint.x-(source.x+source.width))<.5&&section.startPoint.y>source.y&&section.startPoint.y<source.y+source.height,`${id} leaves the box of its step`);
+   const way=[section.startPoint,...section.bendPoints,section.endPoint];
+   for(let index=1;index<way.length;index++)assert(Math.abs(way[index].x-way[index-1].x)<.5||Math.abs(way[index].y-way[index-1].y)<.5,`${id} keeps to straight segments`);
+  }
+  const exportsApi=require('../web/workflow-exports.js'),xml=exportsApi.bpmn(invoices(),layout);
+  assert.doesNotMatch(xml,/~start|~end|~gate/);assert.equal((xml.match(/<bpmndi:BPMNShape /g)||[]).length,5);assert.equal((xml.match(/<bpmndi:BPMNEdge /g)||[]).length,4);
   canvas.destroy();passed++;
  }
  // ---- Without the option the canvas draws the reported graph alone ----------------------------
  {
   const env=environment(),canvas=env.api.create(env.container);await canvas.update(invoices());
   assert.equal(canvas.world.querySelectorAll('[data-implied]').length,0);assert.equal(canvas.layout.children.length,5);assert.equal(canvas.layout.edges.length,4);
+  assert.equal(canvas.exportLayout(),canvas.layout,'With no picture the export layout is the layout');
   canvas.destroy();passed++;
  }
  // ---- A map at the size limit can still be drawn with its markers -----------------------------

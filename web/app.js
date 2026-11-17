@@ -6761,7 +6761,7 @@
       try{
         if(format==="csv"){download(api.csv(graph),name+"-steps.csv","text/csv;charset=utf-8");return;}
         const canvas=await readyExportCanvas();if(graph!==state.draft)return;
-        if(format==="bpmn"){download(api.bpmn(graph,canvas?.layout),name+".bpmn","application/xml");return;}
+        if(format==="bpmn"){download(api.bpmn(graph,canvas?.exportLayout?.()||canvas?.layout),name+".bpmn","application/xml");return;}
         if(format==="print"){preparePrint();window.print();return;}
         const svg=exportDiagram("process-map");if(!svg)throw Error("The diagram is still being prepared. Try again after it appears.");
         download(await api.png(svg),name+".png","image/png");

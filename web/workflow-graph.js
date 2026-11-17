@@ -1121,6 +1121,21 @@
       this.camera.x=node.x+node.width/2-width/this.camera.scale/2;this.camera.y=node.y+node.height/2-height/this.camera.scale/2;this.fitMode=false;this.paintView();
       if(keyboard)[...this.world.querySelectorAll("[data-step-id]")].find(item=>item.getAttribute("data-step-id")===id)?.focus({preventScroll:true});
     }
+    // The layout of the reported steps and connections alone, for a file that states evidence
+    // (the BPMN download). Markers are left out. A connection that leaves a gateway in the picture
+    // is given back its whole way: from its step, through the place of the gateway, to its target.
+    exportLayout(){
+      const picture=this.picture||this.graph;
+      if(!this.layout||!this.graph||picture===this.graph)return this.layout;
+      const routes=new Map(this.layout.edges.map(edge=>[edge.id,edge])),drawn=new Map(picture.connections.map(edge=>[edge.id,edge]));
+      const stubs=new Map(picture.connections.filter(edge=>edge.implied&&edge.to.startsWith("~gate:")).map(edge=>[edge.to,routes.get(edge.id)]));
+      return {...this.layout,children:this.layout.children.filter(node=>this.graph.incoming.has(node.id)),
+        edges:this.graph.connections.map(edge=>{
+          const route=routes.get(edge.id),from=drawn.get(edge.id)?.from,section=route?.sections?.[0],lead=from!==edge.from?stubs.get(from)?.sections?.[0]:null;
+          if(!route||!section||!lead)return route;
+          return {...route,sections:[{...section,startPoint:lead.startPoint,bendPoints:[...(lead.bendPoints||[]),lead.endPoint,section.startPoint,...(section.bendPoints||[])]}]};
+        }).filter(Boolean)};
+    }
     exportSVG(metadata=null){
       if(!this.layout||this.pending||this.layoutError||this.dead)return null;
       const svg=svgNode(this.doc,"svg",{xmlns:NS,viewBox:`0 0 ${this.layout.width} ${this.layout.height}`,width:this.layout.width,height:this.layout.height,role:"img"});

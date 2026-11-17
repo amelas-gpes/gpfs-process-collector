@@ -48,7 +48,7 @@ On-demand working maps use the configured process model in the lead role, with t
 
 An empty start with no participant account or active documents uses a deterministic opening and no provider requests. Reviewers remain on standby: the interface does not claim that work is queued or reviewed before evidence exists.
 
-Role contracts reserve conservative output budgets; provider callbacks also set output and timeout limits. The public budget describes call counts and reserved maximum output, not actual usage or a billing meter. The run registry is ephemeral and bounded. Cancellation discards a run's results; it does not guarantee that an already accepted provider request stops being billed.
+Role contracts reserve conservative output budgets; provider callbacks also set output and timeout limits. The public budget describes call counts and reserved maximum output, not actual usage or a billing meter. The run registry is ephemeral and bounded. Cancellation discards a run's results and ends its request to the AI service at once: the connection is shut wherever the request waits, also before the first byte of a reply that is not streamed, which frees the worker and the provider slot it held. It does not guarantee that the provider stops generating or billing for a request it had accepted.
 
 ## Evidence and official coverage
 

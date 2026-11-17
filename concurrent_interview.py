@@ -302,7 +302,7 @@ class ConcurrentInterview:
                            # workflow_turns and workflow_payload the account it goes through.
                            # checked is the last map that passed its source check, in the
                            # baseline form; the next check reviews what changed since then.
-                           "graph_active": False, "workflow_payload": None, "workflow_checked": False,
+                           "graph_active": False, "graph_second_look": False, "workflow_payload": None, "workflow_checked": False,
                            "workflow_version": 0, "workflow_lineage": 0, "workflow_incremental": False,
                            "workflow_corrections": [], "checked": None, "check_running": False,
                            "check_state": "idle", "check_error": None, "check_error_code": None,
@@ -656,29 +656,41 @@ class ConcurrentInterview:
             baseline = None if reconcile else self._map_baseline(session, payload)
             if baseline:
                 work.update(previous_capture=baseline, _session_baseline=True)
-            session.update(graph_run_id=work["agent_run_id"], graph_run_revision=revision, graph_active=True)
+            session.update(graph_run_id=work["agent_run_id"], graph_run_revision=revision, graph_active=True,
+                           graph_second_look=reconcile)
         try:
             perform(session, generation, revision, work, payload, baseline, reconcile)
         finally:
             with self._lock:
-                session["graph_active"] = False
+                session.update(graph_active=False, graph_second_look=False)
                 # A check that finished while this map was being drawn is taken in now, before
                 # the next draw starts from the map.
                 self._fold_check(session)
                 if session["graph_pending"] and not self._closed:
                     self._draws.submit(lambda: self._graph_worker(session))
+                    # The check does not wait for the draws to stop: with a participant who
+                    # answers faster than a map is drawn they never would, and one check of
+                    # the whole map at the end is the slow, fragile case this design avoids.
+                    self._maybe_check(session)
                 else:
                     session["graph_running"] = False
                     self._after_draws(session)
                 self._changed.notify_all()
 
     def _after_draws(self, session):
-        """No map is waiting to be drawn: look again at Wrap up, or check what was drawn. Caller holds the lock."""
+        """No map is waiting to be drawn: look again at Wrap up, and check what was drawn. Caller holds the lock."""
         if self._closed or session.get("abandoned"):
             return
         self._reconcile(session)
-        if not session["graph_running"]:
-            self._maybe_check(session)
+        self._maybe_check(session)
+
+    def _second_look_due(self, session):
+        """Whether Wrap up's second look is waiting, running or about to be queued. Caller holds the lock."""
+        pending = session["graph_pending"]
+        return bool(session.get("graph_second_look") or (pending and pending[5])
+                    or (session["reconcile_wanted"] is not None and session["reconcile_wanted"] == session["revision"]
+                        and session["workflow_incremental"] and session["workflow_state"] != "error"
+                        and self._checks_separately()))
 
     def _draw(self, work):
         """Draw one map. A coordinator that only knows the whole operation returns a checked map."""
@@ -790,13 +802,14 @@ class ConcurrentInterview:
     def _maybe_check(self, session, force=False):
         """Start the source check of the map as drawn, when one is due. Caller holds the lock.
 
-        The check never stands between an answer and the map on screen. It starts when no
-        map is waiting to be drawn, runs beside any later draw, and reviews only what
-        changed since the last checked map. A check that failed is not started again for
-        the same map by itself; Wrap up asks for it once more.
+        The check never stands between an answer and the map on screen. One check runs at a
+        time for an interview, beside its draws, and reviews only what changed since the
+        last checked map. It waits for Wrap up's second look, which may replace the map. A
+        check that failed is not started again for the same map by itself; Wrap up asks
+        for it once more.
         """
         if (self._closed or session.get("abandoned") or not self._checks_separately() or session["check_running"]
-                or session["check_result"] or session["graph_running"] or not session.get("workflow_capture")
+                or session["check_result"] or self._second_look_due(session) or not session.get("workflow_capture")
                 or session["workflow_checked"] or not session.get("workflow_payload")):
             return
         if not force and session["check_failed_version"] == session["workflow_version"]:
@@ -852,8 +865,7 @@ class ConcurrentInterview:
                 session["check_running"] = False
                 if not session["graph_active"]:
                     self._fold_check(session)
-                    if not session["graph_running"]:
-                        self._maybe_check(session)
+                    self._maybe_check(session)
                 self._changed.notify_all()
 
     def _fold_check(self, session):
@@ -1452,8 +1464,7 @@ class ConcurrentInterview:
                     # go on in the background; a check that failed gets this one more try.
                     if not session["graph_running"]:
                         self._reconcile(session)
-                    if not session["graph_running"]:
-                        self._maybe_check(session, force=True)
+                    self._maybe_check(session, force=True)
                     return copy.deepcopy(session["workflow_capture"])
                 if session["workflow_state"] == "ready" and not queued:
                     # The revision was settled without a map of its own (a stop in

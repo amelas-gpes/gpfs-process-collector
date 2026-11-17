@@ -443,13 +443,66 @@ class MapFairnessTests(unittest.TestCase):
 
 
 class MapLatencyTests(unittest.TestCase):
-    """The pacing of the stress run at one five-hundredth of its durations.
+    """The pacing of the stress run, scaled down about five hundred times.
 
     There a participant answered every 45 s, a draw took 41 s and its check 112 s; the diagram
-    was there before the next answer for 7 of 139 answers. Here: an answer every 90 ms, a draw
-    of 60 ms and a check of 220 ms.
+    was there before the next answer for 7 of 139 answers. Here an answer comes every 90 ms and
+    a check takes 220 ms. The draw takes 60 ms in the first case (two thirds of the interval,
+    where the run's was nine tenths, to leave room for a loaded machine) and 140 ms in the
+    second: slower than the answers, as a draw with the full instructions may well be.
     """
     ANSWER, DRAW, CHECK = .09, .06, .22
+    SLOW_DRAW = .14
+
+    def test_a_draw_slower_than_the_answers_still_keeps_a_map_on_screen_that_trails_by_an_answer_or_two(self):
+        client = LaneClient()
+        team = client.coordinator
+        team.draw_seconds, team.check_seconds = self.SLOW_DRAW, self.CHECK
+        service = module.ConcurrentInterview(client, LaneAPI)
+        self.addCleanup(service.close)
+        texts = [f"Answer number {number}." for number in range(1, 8)]
+        token, started, behind = None, time.monotonic(), []
+        for count in range(1, len(texts) + 1):
+            snapshot = answers(*texts[:count])
+            if token:
+                snapshot["conversation_token"] = token
+            sent = time.monotonic()
+            token = service.turn(snapshot)["conversation_token"]
+            snapshot["conversation_token"] = token
+            while time.monotonic() < sent + self.ANSWER:
+                time.sleep(.004)
+            # Just before the next answer: which answer does the map on screen go through?
+            status = service.status(snapshot)
+            if "workflow_capture" in status:
+                behind.append(0)
+            elif "workflow_checkpoint" in status:
+                behind.append(count - int(status["workflow_checkpoint"]["through_turn_id"][1:]))
+            else:
+                behind.append(None)
+        final = answers(*texts)
+        final["conversation_token"] = token
+        finished = time.monotonic()
+        wait_for(lambda: "workflow_capture" in service.status(final), seconds=5)
+        self.assertEqual(team.cancelled, [], "A slower draw must not bring cancellation back")
+        # Once the first map is drawn there is always one on screen, never more than two answers behind.
+        first = next(index for index, value in enumerate(behind) if value is not None)
+        self.assertLessEqual(first, 2, f"No map after three answers: {behind}")
+        self.assertTrue(all(value is not None and value <= 2 for value in behind[first:]), behind)
+        # Each draw read the latest account at its start: fewer draws than answers, none wasted.
+        self.assertLessEqual(len(team.draws), len(texts))
+        self.assertGreaterEqual(len(team.draws), len(texts) // 2)
+        # The map of the last answer follows within the draw in flight and one more.
+        self.assertLess(time.monotonic() - finished, self.SLOW_DRAW * 2 + 1.0)
+        wait_for(lambda: service.status(final).get("workflow_checked") is True, seconds=6)
+        self.assertEqual([step["id"] for step in service.status(final)["workflow_capture"]["workflow"]["steps"]],
+                         [f"S_u{number}" for number in range(1, 8)])
+        # The check did not wait for the draws to stop (they never did): it ran beside them in
+        # pieces, so the last check is a small difference and not the whole map at the end.
+        self.assertGreaterEqual(len(team.checks), 2)
+        self.assertTrue(all("previous_capture" in check["work"] for check in team.checks[1:]))
+        self.assertLess(len(team.checks[-1]["drawn"]["workflow"]["steps"])
+                        - len(team.checks[-1]["work"]["previous_capture"]["workflow"]["steps"]), len(texts))
+        del started
 
     def test_every_answer_gets_its_map_while_checks_run_and_none_is_cancelled(self):
         client = LaneClient()

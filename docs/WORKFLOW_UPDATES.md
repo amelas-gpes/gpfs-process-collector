@@ -4,6 +4,16 @@ The current interview worker retains a validated map, sixteen memo topics and so
 
 A parallel join means all incoming branches must finish. A merge allows alternative branches to continue. When the testimony leaves this rule open, the map records a clarification question. The editor, diagram and exported step type preserve that distinction.
 
+## A map drawn alongside the conversation
+
+The map that accompanies a typed interview is drawn after each answer and checked against its sources beside that, not in front of it. [The concurrent interview](CONCURRENT_INTERVIEW.md#the-map-drawn-at-once-checked-beside-it) describes the scheduling. The rules of this document hold on that path as follows.
+
+- A drawn map has passed every check below that needs no model: the schema and its limits, authorized source IDs, the wording of each operating detail in the step's own cited source, the quotation behind each removal, and the structure questions. Its new routes have not yet been compared with quoted passages. The page says so in the Workflow line (“· check pending”) until the check has run.
+- The check reviews the update that turns the last checked map into the drawn one. Routes that were checked before are not reviewed again; new and changed routes, and the routes at a restated step, are. A component that left the map carries the participant's quotation into the check. When that update cannot be written, or applying it does not reproduce the drawn map, the whole map is checked.
+- What a check refuses stays refused when later answers are drawn: the later draws are applied to the checked map, never the other way round.
+- An edited earlier answer, a replaced file or a map the baseline refuses starts again from the sources, as before. At Wrap up an incrementally built map is compared once with a map of the whole account.
+- A map the page asks for directly (Update workflow, a map with files during intake, Live voice) is still drawn and checked in one request.
+
 ## Checks before a map is published
 
 **A citation a model got wrong does not fail the map.** Before an update or its review is validated, `settle_generated_citations` takes off any source ID that is not an authorized source, leaves out a step or connection that is left with no source (an accepted step or route stays as it was) and names it in the open questions, and drops an operating detail whose wording its own step's sources do not contain. Nothing is added: no source, no wording, no route. The validation that follows is unchanged. Category counts are traced as `workflow.generated_citations_settled`; no step, route or wording is logged.

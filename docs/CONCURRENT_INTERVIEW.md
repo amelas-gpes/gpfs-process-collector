@@ -13,8 +13,9 @@ audio with concurrent analysis, not full-duplex streaming or spoken barge-in.
 accepted turn queues a full source snapshot for background capture through the
 existing authoritative Coordinator. Each session keeps at most the current work
 and one latest pending snapshot. Pending intermediate versions coalesce. Notes
-and workflow are separate background products; only matching current revisions
-can be published. Global worker limits keep this separate from the foreground
+and workflow are separate background products. Notes of an earlier answer are
+offered as a checkpoint; a map of an earlier answer is offered as the map through
+that answer (see below). Global worker limits keep this separate from the foreground
 HTTP slots needed for transcription, questions and voice credentials.
 
 Background notes and maps continue from what the conversation last published;
@@ -28,9 +29,9 @@ confirm a final check, replay a stored capture or hold a review. It joins the
 capture family of the ledger it continues, so a review prepared before a newer
 answer fails closed, as it does when the newer answer arrives with the browser's
 own capability. Each background map is given the five baseline fields of the
-session's last published map (map, memo, summary, focus and parked items) while
+session's map as it stands (map, memo, summary, focus and parked items) while
 the transcript that map was drawn from is still the beginning of the current
-one: untouched steps keep their IDs, titles and owners, and accepted routes are
+one: untouched steps keep their IDs, titles and owners, and checked routes are
 not reviewed again. The rebuild that Wrap up makes after a fast question
 continues the same ledger. When Wrap up carries a capability the browser holds
 (from a file follow-up, an earlier Wrap up or a review), that capability keeps
@@ -52,6 +53,71 @@ published notes and map stay on screen meanwhile. A provider failure leaves the 
 in use. With reference files, the document selection of a new answer first
 reads what the session's ledger and map cite, whether or not the browser has
 applied those results yet.
+
+## The map: drawn at once, checked beside it
+
+The November 17 stress run found the diagram missing at the end of 14 of 27
+interviews and present before the next answer for 7 of 139 answers. Four causes
+were in this module and its callers, and each is changed:
+
+- **A new answer does not cancel the map being drawn.** It used to (65 times in
+  that run, with a participant answering every 45 seconds and a map that takes
+  longer than that). The map being drawn is left to finish. When the account has
+  only grown since (the same intake and files, its answers still the beginning of
+  the conversation), the result is kept: the status reply offers it as
+  `workflow_checkpoint`, the map through the answer it read, and the next map
+  starts from it. A map of wording that was edited since is discarded. Only the
+  map still waiting to be drawn is replaced by a newer one.
+- **The map is shown as drawn; its source check runs beside it.** Every map used
+  to be a draw followed by its source audit in one job, and the audit took longer
+  than the draw (112 s against 41 s at the median). The draw
+  (`Coordinator.workflow_draw`) returns a map that has passed every check the
+  application makes without a model: schema, limits, source IDs, the wording of
+  operating details, removal quotations, structure questions. That map is the
+  `workflow_capture` of its revision at once, with `workflow_checked: false`. The
+  check (`Coordinator.workflow_check`) runs in a lane of its own. It starts when
+  no map is waiting to be drawn, never stands between an answer and the map on
+  screen, and reviews only what changed since the last checked map
+  (`server.workflow_delta`): what was checked before is not sent through the
+  review again. A step or route that left the map travels with the participant's
+  quotation the draw already verified. When that difference cannot be written as
+  an update, or applying it does not reproduce the drawn map, the whole map is
+  checked against the empty baseline.
+- **A check that finishes after later draws is carried under them.** The later
+  draws are applied to the checked map (`Coordinator.workflow_rebase`, no model):
+  the check's corrections stay, a route it refused stays off, and the later
+  answers stay. A later edit of a component wins over the check's version of it
+  and is reviewed by the next check. When that cannot be done the result is left
+  out, the map stays as drawn and its next check covers the same ground.
+- **A check that fails leaves the map in place.** The status reply then carries
+  `workflow_check_state: "error"` and `workflow_check_error` beside the unchanged
+  `workflow_capture`. The check is not started again for the same map by itself;
+  the next draw brings a new check, and Wrap up asks for one more. A check the
+  application refused (a restated step that leaves an accepted handoff
+  unverified, an omitted decision) is followed by a check of the whole map.
+- **Work is taken one job at a time, the oldest first.** Notes, draws and checks
+  each have their own workers. An interview has at most one job waiting in each;
+  when it is done the interview queues its next one behind the others. One map
+  worker used to serve the whole server and stayed with one interview for as long
+  as it had work. `COLLECTOR_MAP_WORKERS` (default 2, 1 to 8) maps are drawn at
+  once; checks use one worker fewer, at least one.
+
+At Wrap up (action `close`) a map that was built answer by answer is compared
+once with a map drawn from the whole account, because an incrementally updated
+map came out thinner in one measured case (16 to 20 of 28 stated steps). The map
+of the whole account takes its place only when it carries clearly more: it cites
+an answer the other never cites, or has more than about a seventh more steps.
+Otherwise the map on screen stays, with the checks it has passed. The map that
+is kept is checked like any other; one that replaced another is checked whole.
+The threshold is a judgement that has not been measured against the real
+provider.
+
+The background draw is given every rule of the map
+(`server.WORKFLOW_MAP_INSTRUCTIONS`): the routing, component and step-detail
+policies and the source check, without the memo rules, since it returns no memo.
+From 0.30.0 it was given the full instructions cut at their memo paragraph, which
+cut those policies as well; the source audit was then the first model to read
+them and rewrote most steps of every map it checked.
 
 The fast interviewer reads the conversation and chooses one neutral next
 question. It does not wait for notes or workflow. Background capture may propose
@@ -119,12 +185,14 @@ per turn: a lead or reviewer reply with two question marks is replaced.
   observations from replacing current state. Old results do not append speech.
 - Wrap up, or an interviewer request for review, synchronizes the actual complete
   transcript and waits for the current notes. The workflow is a separate product with
-  its own status: Wrap up returns it when it is ready or arrives within two seconds,
+  its own status: Wrap up returns it when it is drawn or arrives within two seconds,
   and otherwise releases the notes with `workflow_state` (`queued`, `working` or
-  `error`), `workflow_pending` and, for a failure, `workflow_error`. The page then
-  polls the status of that revision and applies the map alone when it arrives; a
-  failed map is shown in Workflow with **Update workflow**, while Notes says the
-  notes are caught up. An explicit Wrap up still queues a map the revision lacks and
+  `error`), `workflow_pending` and, for a failure, `workflow_error`. A map that is
+  returned says whether it was checked (`workflow_checked`, and
+  `workflow_check_state` while it was not). The page then
+  polls the status of that revision and applies the map alone when it arrives or
+  changes; a failed map, or one whose check did not finish, is shown in Workflow
+  with **Update workflow**, while Notes says the notes are caught up. An explicit Wrap up still queues a map the revision lacks and
   one retry of a map that failed; neither is waited for, and a failed or queued map
   never fails Wrap up. A question appended after capture is included before a review ticket
   is issued. Existing independent review, final omissions and confirmation gates
@@ -167,8 +235,13 @@ review and never fails on the model's reply (see DOCUMENT_INTERVIEWS.md).
 Sessions and queues live in memory, expire when idle, and are bounded. Restarting
 the app clears them; an exported/restored interview starts a new background session.
 Original documents and saved interviews keep their existing local storage rules.
-Provider calls already in flight can finish after cancellation; their obsolete
-results are withheld. Background processing adds provider work and cost, and long
+A cancelled request to the AI service is ended at once (its connection is shut,
+wherever it waits), which frees its worker and its provider slot; whether the
+provider stops generating and billing for it is the provider's matter. Only a
+conversation that is discarded cancels its work; a new answer does not.
+`COLLECTOR_PROVIDER_SLOTS` (default 6, 2 to 32) requests are in flight at once.
+Background work leaves two of them free, so that a question, a transcription or
+a voice session does not queue behind notes and maps. Background processing adds provider work and cost, and long
 transcripts remain in the fast model input for conversational accuracy. No constant
 latency or cost reduction is promised. The 2.2-second speech-end threshold and
 buffered natural voice playback remain unchanged.
@@ -178,7 +251,13 @@ buffered natural voice playback remain unchanged.
 Focused suites cover nonblocking questions, latest-snapshot coalescing, stale
 publication, source mutation, media capacity, typed and voice routing, delayed
 maps, final review/confirmation, reset, failure and restore. They use fake
-providers and media boundaries. Live synthetic-provider timing and any rendered
+providers and media boundaries. `tests/test_map_lanes.py` plays the pacing of the
+November 17 run at one five-hundredth of its durations with a stand-in coordinator
+whose draw and check take as long as a test says; `tests/test_map_check_delta.py`
+drives the real Coordinator and replays thirteen maps saved from that run through
+the difference and carry-forward rules; `tests/test_provider_cancellation.py`
+holds a loopback provider's answer back to show a cancelled request return within
+a second. None of these measure a real provider. Live synthetic-provider timing and any rendered
 browser checks are recorded separately in `work/`; synthetic audio is not a
 physical microphone or subjective voice-quality test.
 

@@ -4,6 +4,6 @@ Work that has been investigated and is wanted, but not yet built. Each brief is 
 
 | Brief | Status | Evidence |
 | --- | --- | --- |
-| [Make the workflow diagram fast, reliable and standard](diagram-speed-and-layout.md) | Proposed, not started | [2026-11-17 stress run](../testing/runs/2026-11-17-stress/README.md) |
+| [Make the workflow diagram fast, reliable and standard](diagram-speed-and-layout.md) | In progress. See the status table at the top of the brief. | [2026-11-17 stress run](../testing/runs/2026-11-17-stress/README.md), [2026-11-17 map lanes](../testing/runs/2026-11-17-map-lanes/README.md) |
 
 When a brief is taken up, set its status here and at the top of the brief. When it ships, record it in `CHANGELOG.md` and move the brief's status to done rather than deleting it.

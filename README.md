@@ -99,7 +99,7 @@ Use **Transcript** for the conversation. **Review** contains Report, Notes, Work
 
 ## Reference files during the conversation
 
-The interview workspace has three tabs: **Notes** for topic coverage, **Summary + Parked** for the running summary and topics to revisit, and **Assets** for uploaded files. On smaller screens, select **Workspace** to open these tabs.
+The interview workspace has three tabs: **Notes** for topic coverage, **Summary** for the running summary and topics parked to revisit, and **Assets** for uploaded files. On smaller screens, select **Workspace** to open these tabs.
 
 Select **Assets → Add files**, or drop files anywhere in the interview. Uploads are available without a process name and during a voice session. The app acknowledges the upload once, stops live voice and turns the microphone off while it digests the files. Assets is the central file list, with progress and recovery actions on each card. Expand **Review details & sources** for relevance, indexing coverage, reading limits, exact sources and questions.
 

@@ -7,6 +7,39 @@ identify the code that is running: Settings > Data handling, saved interviews an
 exports also carry the build (a desktop release's commit, or `dev+` and a source hash for a
 working tree). See [docs/DESKTOP.md](docs/DESKTOP.md#which-build-is-running).
 
+## Unreleased
+
+A cleaner interview workspace: the same information, said once and in fewer words.
+
+- **Notes shows one status line.** The panel stacked up to four lines (“final check not yet run”, the pre-check count, which answers the notes include, and the workflow’s “Updating…”). Each source now marks what it reports, and the panel shows one: trouble first, then work in progress, then what the notes include. The figure is marked “Checked” once the final check has run.
+- **The workflow reports in Workflow.** With the review team, a refresh of the map alone no longer writes “Updating…” or “Up to date” under Notes. While the background work has the notes and is still drawing the map, Notes says “Updating the workflow…”. When only the map failed, Notes says so with an **Update workflow** control beside it, and says “Updating the workflow…” while that retry runs instead of asking for it again.
+- **The topic list is the only list of open topics.** “Remaining topics”, its unstyled “Next: …” button and the “Now discussing” copy of the question on screen are gone. Topic rows use short labels (“Captured”, “Needs detail”, “In progress”, “Documented”, “Not applicable”), a tick alone for a covered topic, and one colour for the state that asks for something; the tooltip keeps each row’s full state.
+- **One line above Wrap up and Create draft says why they wait or what they are for:** “Stop talking to wrap up.” during voice, “Every topic is captured. Wrap up for the final check.” when the list is complete. The notes status no longer repeats that guidance.
+- **The team status sits beside the Workspace title** and opens into the role list there. It stays off the page until a role has run, so the conversation no longer loses a row to “Standing by”.
+- **The question card starts at the question.** A spoken acknowledgement in front of it (“Mm.”, “Okay, …”) is left to the transcript.
+- **Voice controls.** A muted microphone reads as a pressed control; Stop talking is a quiet outlined control. With the reply box open, the voice control is the secondary “Talk instead” and “Type instead” is not offered again.
+- **The example has no dead controls.** It offers **Start your own** where the talk and type controls were, and its prepared draft opens from **Open draft**.
+- **An error is shown once.** When it stands on the line above the conversation, the toast with the same words is not drawn beside it.
+- **Assets says what is needed to add a file.** The extraction limits and the full notice about what the AI service receives open from one line below the list.
+- The Workspace tab is **Summary**; the Save copy description is one sentence.
+
+Fixes for the thirteen findings of the November 16 process-capture run. [Findings, acceptance checks and replay cases](docs/testing/process-capture-2026-11-16/README.md)
+
+- **File review no longer stalls on “Reading your files.”** Status polling continues between a file being indexed and its review reporting a phase, and for as long as a file intake is waiting on its files. A file left indexed without a review phase is reviewed on the next poll. (Finding 1)
+- **A map is checked for parts its route passes by before it is published.** A check, a selection or a hold that no connection reaches, and a step whose stated input no route supplies, are found without reading any source. The sources are asked once how those parts join; a connection is added only with a quoted passage from a source it cites, and a direct arrow is rerouted only when the verified connections lead through the part that was detached. What the sources do not settle is named in the open questions. The routing policy now says that a gate lies on the route it governs and that one statement listing actions in order reports that order. (Finding 2)
+- **A working map is no longer lost to its own source audit.** The audit of a transcript-only map ran into a 120-second limit, and its 12,000-token allowance was used up by reasoning before it could answer, which discarded maps that had been drawn correctly (14 of 17 in the run). The audit now has 180 seconds when the page waits for it and 240 in the background, with a 24,000-token allowance; a background map has 180 seconds to be drawn.
+- **Wrap up releases the synchronized notes without waiting for the map.** A map that is still queued or being drawn, or that failed, keeps its own status and its own retry; the page fetches it when it arrives and applies only the map. A failed map no longer fails Wrap up. (Finding 3)
+- **The first question after a file is added is asked from the file's own excerpts**, as soon as the file has been read. The notes and the audited map of the same revision are completed in the background and are dropped when the account has moved on. A file-only start now gets a map as well. (Finding 4)
+- **A citation a model got wrong is settled internally.** An operating detail that cites a source outside its step, or wording its source does not contain, is dropped; a source ID that is not a source is taken off; a step or connection left with no source is left off the map and named in the open questions. The map is no longer refused for it, and a file follow-up falls back to the file review's own excerpt-bound question when the model's reply cannot be asked. Harmless reviewer slips (a discard of something never proposed, a discard beside a replacement, one skipped route row) no longer fail a map. (Finding 5)
+- **An accepted map ends an earlier map failure in both panels.** A failure of the map alone is shown in Workflow with its retry; Notes says the notes are caught up. (Finding 6)
+- **The interviewer checks its question against the answers, including the one just given.** It is given the sentences in which the participant said a detail is unknown or unconfirmed, commits to the one detail it is after before wording the question, and is told not to ask again for a stated unknown or for what an answer already explains. (Finding 7)
+- **One capture no longer contradicts itself.** Every structured link to another process is stated in the Connections note; an answer that states a requirement or names another process reopens the open gaps of those topics for an explicit decision. (Finding 8)
+- **The same handoff described twice is one link** with both citations; a link whose outcome differs stays separate. (Finding 9)
+- **Records and receiving processes are not turned into people.** The question and capture policies keep supporting records, the process that receives them and the people who handle them apart. (Finding 10)
+- **The interview goal is not recorded as the purpose of the work.** A purpose statement that rests on the intake alone is dropped when evidence states the purpose, and is otherwise the open gap it is. (Finding 11)
+- **A PDF page of text with rules, table grids, shaded bars and bullets is no longer flagged as unread graphics**, also when the exporter puts the whole page inside one form object. Images, shadings, slanted lines, arrowheads, large curves and pages with little text of their own still get a visual reading. Files indexed by an earlier build are compared locally, free of charge, and offered for re-indexing when their sections differ (`EXTRACTION_VERSION` 4). (Finding 12)
+- **Indexed text, supplied sections, review progress and unread visuals are separate facts** in what the notes are given about a file, as they are in Assets. (Finding 13)
+
 ## 0.32.0 · November 16, 2026
 
 - Added **Settings → Agents** for administrators to follow an interview through the app, inspect the instructions used at each stage and copy a prompt.

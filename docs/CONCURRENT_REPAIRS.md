@@ -18,7 +18,7 @@ name separately. Explicit participant edits override automatic naming.
 
 Source-backed `topic_discussion` metadata is separate from strict captured/N/A
 assessment and completion authority. The panel has one counter, the captured figure with
-its review state beside it; whether a topic was discussed is said on the topic. Partial topics say “Discussed · needs detail”; an unknown
+its review state beside it; whether a topic was discussed is said on the topic. A discussed topic that still lacks detail says “Needs detail” (its tooltip keeps “discussed; needs detail”); an unknown
 topic says no detail has been captured rather than claiming it was never explored.
 The panel identifies the last answer in displayed notes and indicates pending or
 revised answers. A first activity alone still does not establish an initiating

@@ -58,7 +58,9 @@
     }
     scheduleProgress(captured){
       if(this.pollMs && Date.now()-(captured.started||Date.now())>300000){
-        this.notify({state:"error",message:"The notes are taking longer than expected. Your answers are still in this tab. Select Update notes to check again."});return;
+        // Once the notes are in, only the map is late: that is the map's own state, not a failure of the notes.
+        this.notify(captured.mapOnly||captured.notesApplied?{state:"error",scope:"workflow",message:"The workflow is taking longer than expected. Your notes are up to date. Select Update workflow to try again."}
+          :{state:"error",message:"The notes are taking longer than expected. Your answers are still in this tab. Select Update notes to check again."});return;
       }
       captured.polls=(captured.polls||0)+1;
       // Allow the browser to round a hidden tab's next wake-up to the next second.
@@ -95,7 +97,21 @@
           global.CollectorRawTrace?.record("analysis.checkpoint_applied",{revision:checkpoint.revision,through_turn_id:checkpoint.through_turn_id});
           this.checkpointRevision=checkpoint.revision;
         }
-        if(result.agent_team)this.notify({state:result.state,agent_team:result.agent_team});
+        if(result.agent_team)this.notify({state:captured.mapOnly?"ready":result.state,agent_team:result.agent_team,...(captured.mapOnly?{workflow:"working"}:{})});
+        if(captured.mapOnly){
+          // Wrap up has already released the synchronized notes of this revision. This poll
+          // fetches the map that was not ready then, and takes nothing else from the reply:
+          // background notes would replace what the review is working from.
+          if(result.workflow_capture&&typeof result.workflow_capture==="object"){
+            settled();
+            this.options.applyWorkflow?.(result.workflow_capture,{snapshot,revision:result.revision});
+            global.CollectorRawTrace?.record("analysis.workflow_applied",{revision:result.revision});
+            this.notify({state:"ready",revision:result.revision,workflow:"ready"});return;
+          }
+          if(["queued","working"].includes(result.workflow_state)){this.scheduleProgress(captured);settled();return;}
+          settled();
+          this.notify({state:"error",scope:"workflow",revision:result.revision,message:result.workflow_error||"The workflow could not update. Your notes are up to date. Select Update workflow to try again."});return;
+        }
         if(result.state==="ready"){
           // A pause request settles its turn without new notes. The server says so
           // (capture_preserved) and sends no capture: the notes already applied
@@ -107,9 +123,11 @@
             this.options.applyCapture({...(kept?{preserve_capture:true}:result.capture),...(result.workflow_capture?{workflow_capture:result.workflow_capture}:{})},{snapshot,revision:result.revision});this.appliedRevision=appliedKey;
             global.CollectorRawTrace?.record("analysis.capture_applied",{revision:result.revision,kept,workflow:Boolean(result.workflow_capture)});
           }
+          captured.notesApplied=true;
           if(["queued","working"].includes(result.workflow_state)){this.scheduleProgress(captured);settled();if(this.timer!==null)this.notify({state:"working",revision:result.revision});return;}
           settled();
-          if(result.workflow_state==="error"){this.notify({state:"error",revision:result.revision,message:result.workflow_error||"Notes updated, but the workflow could not update. Wrap up retries the analysis."});return;}
+          // The notes are in and only the map failed: scope says so, and the map keeps its own retry.
+          if(result.workflow_state==="error"){this.notify({state:"error",scope:"workflow",revision:result.revision,message:result.workflow_error||"Notes updated, but the workflow could not update. Wrap up retries the analysis."});return;}
           this.notify({state:"ready",revision:result.revision,...(kept?{kept:true}:{})});return;
         }
         if(result.state==="error"){settled();this.notify({state:"error",revision:result.revision,message:result.error||"Background notes could not update. Your conversation is retained."});return;}
@@ -125,7 +143,8 @@
           this.schedule(captured,delay); this.notify({state:"reconnecting"}); return;
         }
         if(error.code==="conversation_expired"){this.token=null;this.appliedRevision=null;this.checkpointRevision=null;}
-        this.notify({state:"error",message:error.message||"Background notes could not update. Your conversation is retained."});
+        this.notify(captured.mapOnly?{state:"error",scope:"workflow",message:"The workflow could not be checked. Your notes are up to date. Select Update workflow to try again."}
+          :{state:"error",message:error.message||"Background notes could not update. Your conversation is retained."});
       }
       finally{settled();if(this.pollController===controller)this.pollController=null;}
     }
@@ -134,7 +153,19 @@
       try{
         const result=await this.send("/api/conversation/sync",this.withToken(captured.snapshot),options);
         if(options.signal?.aborted||!this.current(captured))throw stale();
-        this.rememberToken(result);this.notify({state:"ready",revision:result.revision});return result;
+        this.rememberToken(result);
+        // The notes are synchronized; the map may not be. It has its own state: a map still
+        // being drawn is fetched by the status poll when it arrives, and a failed one is
+        // reported as the map's failure, with the notes shown as they are (caught up).
+        const revision=typeof result.revision==="string"&&/^[a-f0-9]{64}$/.test(result.revision);
+        if(result.workflow_pending===true&&!result.workflow_capture&&revision){
+          captured.revision=result.revision;captured.started=Date.now();captured.mapOnly=true;
+          this.schedule(captured);
+          this.notify({state:"ready",revision:result.revision,workflow:"working"});
+        }else if(result.workflow_state==="error"&&!result.workflow_capture){
+          this.notify({state:"error",scope:"workflow",revision:result.revision,message:result.workflow_error||"The workflow could not update. Your notes are up to date. Select Update workflow to try again."});
+        }else this.notify({state:"ready",revision:result.revision});
+        return result;
       }catch(error){if(error.name!=="AbortError"&&this.current(captured))this.notify({state:"error",message:error.message});throw error;}
     }
   }

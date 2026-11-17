@@ -16,10 +16,27 @@ import time
 import uuid
 
 
+# need comes first: the model commits to the one detail it is after, and checks it against the
+# answers, before it words the question. It is the model's own working note, kept short, and is
+# neither spoken nor stored. Only question and request_review leave this module.
 QUESTION_SCHEMA = {"type": "object", "properties": {
+    "need": {"type": "string", "maxLength": 200, "description": "The single detail the question will ask for, in a few words. No answer gives it and the participant has not said they cannot give it."},
     "question": {"type": "string", "maxLength": 1200, "description": "One question or short request to speak to the participant."},
     "request_review": {"type": "boolean", "description": "Ask the coordinator to check the account and authorize a final question."}},
+    "required": ["need", "question", "request_review"], "additionalProperties": False}
+QUESTION_REPLY_SCHEMA = {"type": "object", "properties": {
+    key: QUESTION_SCHEMA["properties"][key] for key in ("question", "request_review")},
     "required": ["question", "request_review"], "additionalProperties": False}
+# A participant's own words for a detail they do not have. The uncertainty gate of the notes
+# (interview_coverage.uncertain_wording) recognises most of them; these are the first-person
+# forms it leaves to the notes' other checks.
+_SPEAKER_LIMIT = re.compile(
+    r"\b(?:can(?:'|’)?t|cannot|(?:am|are|is) (?:not able|unable) to|don(?:'|’)?t|do not|doesn(?:'|’)?t|does not|didn(?:'|’)?t|did not)"
+    r" (?:give|provide|name|say|tell|confirm|know|have|specify|identify|recall|remember)\b"
+    r"|\bleave (?:that|this|it|them)(?: (?:item|point|one))? open\b|\b(?:unspecified|undocumented|undefined)\b"
+    r"|\b(?:is|are|isn(?:'|’)?t|aren(?:'|’)?t|was|were) not (?:yet )?(?:documented|defined|specified)\b"
+    r"|\bno (?:documented|confirmed|defined) \w+", re.I)
+MAX_KNOWN_UNKNOWNS = 12
 QUESTION_POLICY = """You are the conversational interviewer for a GPFS business-process account, including enterprise work that is not entity-specific.
 Choose ONE short, useful next question using the professional and topic guidance below. A separate
 team captures facts, updates the workflow and checks completeness in parallel.
@@ -56,6 +73,13 @@ for the participant to check. When testimony conflicts, name the two accounts ne
 applies. When action is skip, change to another answerable subject without repeating the skipped question.
 A topic's unresolved_wording quotes the wording in its notes that keeps that topic open. Unless the
 conversation has since settled that point, it is worth one neutral question.
+known_unknowns lists, newest first, sentences in which the participant said a detail is unknown,
+unconfirmed, not theirs to give or left open for someone else. They come from the answers themselves,
+also from the answer just given, which no analysis has read yet. Each is a recorded gap: never ask for
+a detail named there, in the same or in other words, and do not ask who could confirm it.
+Fill in need first: the single detail you are after. Test it against the latest answer and every
+earlier one. If an answer already gives it, or known_unknowns names it, choose another need before
+you write the question. The question asks for that need and nothing else.
 
 Return request_review=true and question="" only if the participant explicitly requests a whole
 interview wrap-up, or every applicable topic has a substantive explanation (or only explicitly
@@ -69,10 +93,34 @@ answer briefly before your one focused question. Do not recite filler acknowledg
 """
 
 
-def question_policy(api):
+# The first question after a file is added. It is asked from the file's own excerpts as soon as
+# they are read, before the notes and the audited map have been updated from the file: those are
+# completed in the background, and a file question used to wait one to seven minutes for them.
+FILE_QUESTION_POLICY = """
+FILE FOLLOW-UP (action document_followup)
+The participant has just added reference material. Ask the ONE question that material itself
+raises, now; the notes and the process map are being updated from it separately.
+Read the exact excerpts in supporting_documents first. Ground the question in what an excerpt
+states and name that content briefly, so the participant can tell what was read (for example:
+"The document describes the schedule review before quarter end. What happens to the schedule
+after that review?"). Ask about a genuine gap the excerpts leave open: what follows a described
+action, who performs it, the condition or exception that applies, how work is handed on, a
+conflict with what the participant said, or whether the written practice is what happens today.
+Before returning the question, try to answer it from ALL supplied excerpts and from the
+conversation. When several files or a fuller excerpt cover the same work, take every one of them
+into account: a later or richer excerpt can supply what a short one leaves open, and then that
+is no longer the question to ask. Never ask the participant to retell or confirm the whole file.
+If the purpose of the material is unclear from its excerpts, ask once what the participant
+wanted you to notice in it. Wording in a file is written practice, not the participant's
+confirmed practice; do not present it as something they said. Do not say or imply that the
+whole file has been reviewed. Always return request_review=false for this action.
+"""
+
+
+def question_policy(api, file_followup=False):
     """Share the actual capture rubric/curiosity rules, without its large output contract."""
     coverage = getattr(api, "interview_coverage", None)
-    return QUESTION_POLICY + "\n" + "\n".join(
+    return QUESTION_POLICY + (FILE_QUESTION_POLICY if file_followup else "") + "\n" + "\n".join(
         getattr(api, name, "") for name in
         ("QUESTIONING_POLICY", "CURIOSITY_POLICY", "CORRECTION_SCOPE_POLICY")) + "\n" + (
         getattr(coverage, "TOPIC_RUBRIC", "")) + "\n" + (
@@ -81,11 +129,21 @@ Only the short response and request_review flag are returned; keep this selectio
 """
 
 
+# Asked when nothing better can be: every file can be compared with the actual work.
+FILE_QUESTION_FALLBACK = "How does the supplied document compare with what you actually do?"
+
+
 class ConcurrentInterview:
+    # Wrap up waits this long for a map that is about to arrive. The notes are what a review
+    # needs; a map that takes longer, or fails, keeps its own status and its own retry and
+    # never holds the notes back (a queued or failed map used to block Wrap up for five minutes).
+    MAP_WAIT_SECONDS = 2.0
+
     def __init__(self, client, api, validate_sources=None, max_sessions=32, workers=2):
         self.client, self.api = client, api
         self.validate_sources = validate_sources
         self.max_sessions = max_sessions
+        self.map_wait = self.MAP_WAIT_SECONDS
         self._lock = threading.RLock()
         self._source_lock = threading.RLock()
         self._changed = threading.Condition(self._lock)
@@ -93,6 +151,17 @@ class ConcurrentInterview:
         self._graph_slots = threading.BoundedSemaphore(1)
         self._sessions = {}
         self._closed = False
+
+    @staticmethod
+    def _documented(payload):
+        """Whether the request carries readable text of a reference file.
+
+        A file alone can describe a process: with no answer yet, its notes are captured and
+        its map is drawn in the background like any other.
+        """
+        supporting = payload.get("_supporting_documents") if isinstance(payload, dict) else None
+        files = supporting.get("documents") if isinstance(supporting, dict) else None
+        return isinstance(files, list) and any(isinstance(item, dict) and item.get("excerpts") for item in files)
 
     @staticmethod
     def _participant_basis(payload):
@@ -218,7 +287,7 @@ class ConcurrentInterview:
                 session["workflow_error"] = None
                 session["workflow_state"] = "queued"
                 users = any(turn.get("role") == "user" and not turn.get("document_event") for turn in payload["turns"])
-                if users and not self.api.participant_requested_stop(payload["turns"], payload.get("action", "answer")):
+                if (users or self._documented(payload)) and not self.api.participant_requested_stop(payload["turns"], payload.get("action", "answer")):
                     self._queue_graph(session, session["generation"], revision, self._analysis_payload(payload), copy.deepcopy(payload))
                 self._changed.notify_all()
             if session["pending"] and not session["running"]:
@@ -409,7 +478,7 @@ class ConcurrentInterview:
                     "coverage", "focus", "parking_lot", "summary", "closure", "completion") if key in capture}})
             # The map is a separate background product. If more answers
             # arrived, favor capturing that account over an obsolete map.
-            if current and (not any(turn.get("role") == "user" for turn in work["turns"])
+            if current and (not (any(turn.get("role") == "user" for turn in work["turns"]) or self._documented(payload))
                             or capture.get("preserve_capture")):
                 with self._lock:
                     session["workflow_state"] = "ready"
@@ -620,7 +689,27 @@ class ConcurrentInterview:
                               untouched_topics=[key for key, row in discussed.items() if row.get("discussed") is False])
         return {"context": context, "turns": turns, "action": payload.get("action", "answer"),
                 "supporting_documents": copy.deepcopy(payload.get("_supporting_documents", {})),
-                "analysis_advice": advice}
+                "analysis_advice": advice, "known_unknowns": self._known_unknowns(turns)}
+
+    def _known_unknowns(self, turns):
+        """Sentences in which the participant said they do not have a detail, newest first.
+
+        Read from the answers themselves, so the answer just given is included although no
+        analysis has seen it: a question used to ask for the approval record one answer after
+        the participant had called its form unconfirmed. Advice to the question model, never
+        evidence and never a status: wording is matched, nothing is interpreted.
+        """
+        wording_of = getattr(getattr(self.api, "interview_coverage", None), "uncertain_wording", None)
+        found = []
+        answers = [turn for turn in turns if turn.get("role") == "user" and not turn.get("document_event")
+                   and isinstance(turn.get("text"), str)]
+        for turn in reversed(answers[-6:]):
+            for sentence in re.split(r"(?<=[.!?])\s+", turn["text"].strip()):
+                if sentence and (_SPEAKER_LIMIT.search(sentence) or wording_of and wording_of(sentence)):
+                    found.append({"turn_id": turn.get("id"), "statement": sentence[:300]})
+                    if len(found) >= MAX_KNOWN_UNKNOWNS:
+                        return found
+        return found
 
     def _fallback_question(self, session, payload, context, turns, reason):
         """A deterministic question when the model's reply cannot be spoken; no second paid call.
@@ -662,6 +751,33 @@ class ConcurrentInterview:
         # Never the question just asked: an unused wording first, then the one asked longest ago.
         unused = [item for item in usable if item not in asked]
         return unused[0] if unused else min(usable, key=lambda item: len(asked) - asked[::-1].index(item))
+
+    def _file_question(self, payload, turns):
+        """A question the file review itself wrote and bound to excerpts this request carries.
+
+        The fallback for a file follow-up whose model reply is missing or cannot be asked: the
+        participant still gets a question grounded in a verified excerpt, never an error about
+        the model's output. The review's questions arrive with the document context, already
+        limited to those whose every source is among the supplied excerpts. Files the request
+        asked for by name (the ones just added) are tried first.
+        """
+        supporting = payload.get("_supporting_documents")
+        files = [item for item in (supporting.get("documents") if isinstance(supporting, dict) else None) or []
+                 if isinstance(item, dict)]
+        wanted = payload.get("document_required_ids")
+        wanted = [identity for identity in wanted if isinstance(identity, str)] if isinstance(wanted, list) else []
+        files.sort(key=lambda item: item.get("id") not in wanted)
+        asked = {turn.get("text") for turn in turns if turn.get("role") == "assistant"}
+        for item in files:
+            supplied = {chunk.get("id") for chunk in item.get("excerpts") or [] if isinstance(chunk, dict)}
+            for row in item.get("questions") or []:
+                text = row.get("text") if isinstance(row, dict) else None
+                sources = [source.get("source_id") for source in row.get("sources") or [] if isinstance(source, dict)] if isinstance(row, dict) else []
+                if (isinstance(text, str) and text.strip() and sources and set(sources) <= supplied
+                        and text.strip() not in asked and "From " + str(item.get("name")) + ": " + text.strip() not in asked
+                        and not self.api.question_rejection(text.strip()[:1200], 1200)):
+                    return text.strip()[:1200]
+        return FILE_QUESTION_FALLBACK
 
     @provider_usage.track_generation
     def turn(self, payload):
@@ -762,31 +878,49 @@ class ConcurrentInterview:
             # Compact output makes question generation independent of the size of
             # the fact transaction, workflow schema and reviewer responses.
             route = "fast_question"
+            # The first question after a file was added (see FILE_QUESTION_POLICY). It never
+            # fails and never turns into a review: when the model's reply is missing or cannot
+            # be asked, the file review's own excerpt-bound question is asked instead.
+            file_followup = payload.get("action") == "document_followup"
             model_input = self._question_input(session, payload, context, turns)
             raw_trace.emit("interview.fast_question.input", {"revision": revision,
                 "content": {"turns": model_input["turns"], "analysis_advice": model_input["analysis_advice"]}})
-            response = self.client.structured(question_policy(self.api), model_input,
-                QUESTION_SCHEMA, "conversation_question", 600, reasoning_effort="low",
-                model_override=self.client.agent_models["lead_interviewer"])
-            # The provider's schema constrains question length. If an adapter
-            # still returns an oversized string, the local wording fallback
-            # handles it without losing the accepted answer.
-            checked = dict(response) if isinstance(response, dict) else response
-            if isinstance(checked, dict) and isinstance(checked.get("question"), str):
-                checked["question"] = checked["question"][:1200]
-            self.api.check_schema(checked, QUESTION_SCHEMA)
-            sync_required = response["request_review"]
-            question = response["question"].strip()
+            try:
+                response = self.client.structured(question_policy(self.api, file_followup), model_input,
+                    QUESTION_SCHEMA, "conversation_question", 600, reasoning_effort="low",
+                    model_override=self.client.agent_models["lead_interviewer"])
+                # The provider's schema constrains question length. If an adapter
+                # still returns an oversized string, the local wording fallback
+                # handles it without losing the accepted answer.
+                # need is the model's working note: it is dropped here, unspoken and unstored.
+                checked = ({key: value for key, value in response.items() if key != "need"}
+                           if isinstance(response, dict) else response)
+                if isinstance(checked, dict) and isinstance(checked.get("question"), str):
+                    checked["question"] = checked["question"][:1200]
+                self.api.check_schema(checked, QUESTION_REPLY_SCHEMA)
+            except Exception as error:
+                if not file_followup:
+                    raise
+                raw_trace.emit("interview.fast_question.error", {"revision": revision, "error_type": type(error).__name__,
+                                                                "error_category": getattr(error, "category", None)})
+                response = None
             kind = "question"
-            reason = "" if sync_required else self.api.question_rejection(question, 1200, single=True)
-            raw_trace.emit("interview.fast_question.candidate", {"revision": revision, "request_review": sync_required,
-                "guard_evaluated": not sync_required, "reason": reason, "content": {"question": response["question"]}})
+            if response is None:
+                route, sync_required, reason = "file_fallback", False, ""
+                question = self._file_question(payload, turns)
+            else:
+                sync_required = response["request_review"] and not file_followup
+                question = response["question"].strip()
+                reason = "" if sync_required else self.api.question_rejection(question, 1200, single=True)
+                raw_trace.emit("interview.fast_question.candidate", {"revision": revision, "request_review": sync_required,
+                    "guard_evaluated": not sync_required, "reason": reason, "content": {"question": response["question"]}})
             if reason:
                 route = "guard_fallback"
                 # Wording never fails a turn whose answer is already retained and queued.
                 # The rejected text is not spoken; only its reason code is counted.
                 self.api.record_question_rejection(self.client, "fast_question", reason)
-                question = self._fallback_question(session, payload, context, turns, reason)
+                question = (self._file_question(payload, turns) if file_followup
+                            else self._fallback_question(session, payload, context, turns, reason))
                 if question is None:
                     question, sync_required = "", True
         self._sources(payload)
@@ -849,6 +983,9 @@ class ConcurrentInterview:
                 session["generation"] += 1
                 session["pending"] = None
                 session.update(state="queued", error=None, workflow_error=None)
+                # The map of this revision can arrive after this request has answered. Its
+                # status poll reads the server's own snapshot of the revision, as after a turn.
+                session["source_payload"] = copy.deepcopy(payload)
                 own = (session.get("capture") or {}).get("capture_token")
                 continued = not session["rebuild_notes"]
             work = copy.deepcopy(payload)
@@ -901,7 +1038,7 @@ class ConcurrentInterview:
                     self._queue_graph(session, session["generation"], revision,
                                       self._analysis_payload(payload), copy.deepcopy(payload))
             workflow = self._synchronize_workflow(session, payload, revision, deadline)
-            return self._synchronized(session, payload, revision, capture, workflow)
+            return self._synchronized(session, payload, revision, capture, workflow, mapped=True)
         with self._lock:
             wanted = self.revision(payload)
             retry = (session["state"] == "error" or (session["capture_revision"] != wanted and
@@ -954,12 +1091,22 @@ class ConcurrentInterview:
                                        capture_turns=copy.deepcopy(payload["turns"]),
                                        capture_basis=copy.deepcopy(payload))
         workflow = self._synchronize_workflow(session, payload, revision, deadline)
-        return self._synchronized(session, payload, revision, capture, workflow)
+        return self._synchronized(session, payload, revision, capture, workflow, mapped=True)
 
     def _synchronize_workflow(self, session, payload, revision, deadline):
-        if not any(turn.get("role") == "user" for turn in payload["turns"]):
+        """The map of this revision when it is ready or arrives within a short wait, else None.
+
+        The notes are synchronized by now, and they are what the review that follows reads.
+        A map that is still queued or being drawn, or that failed, is not waited for and is
+        never a reason to fail Wrap up: it stays a background product with its own status
+        (see _synchronized and the status poll) and its own retry. An explicit Wrap up still
+        queues a map the revision lacks, and one retry of a map that failed; neither is
+        awaited beyond the short wait, and a failure never starts a paid loop.
+        """
+        if not (any(turn.get("role") == "user" for turn in payload["turns"]) or self._documented(payload)):
             return None
         retried = queued = False
+        patience = min(deadline, time.monotonic() + max(0.0, self.map_wait))
         with self._changed:
             while True:
                 if self._closed or session["revision"] != revision:
@@ -969,32 +1116,45 @@ class ConcurrentInterview:
                 if session["workflow_state"] == "ready" and not queued:
                     # The revision was settled without a map of its own (a stop in
                     # reply to a final check). Nothing else will queue one, so this
-                    # explicit checkpoint does, once, instead of waiting out the deadline.
+                    # explicit checkpoint does, once.
                     queued = True
                     self._queue_graph(session, session["generation"], revision,
                                       self._analysis_payload(payload), copy.deepcopy(payload))
                 if session["workflow_state"] == "error":
                     if retried or session.get("workflow_error_code") in ("quota", "budget_reached"):
-                        message = session["workflow_error"] if session.get("workflow_error_code") else "The workflow review could not finish. Your answers are retained."
-                        raise self.api.APIError(message, category=session.get("workflow_error_code"))
+                        return None
                     # An explicit checkpoint permits one retry of the current
                     # failed map. Background failures never trigger paid loops.
                     retried = True
                     self._queue_graph(session, session["generation"], revision,
                                       self._analysis_payload(payload), copy.deepcopy(payload))
-                remaining = deadline - time.monotonic()
+                remaining = patience - time.monotonic()
                 if remaining <= 0:
-                    raise self.api.APIError("The workflow is still catching up. Your answers are retained; retry wrap-up.", 504)
-                self._changed.wait(min(remaining, 1))
+                    return None
+                self._changed.wait(min(remaining, .25))
 
-    def _synchronized(self, session, payload, revision, capture, workflow=None):
+    def _synchronized(self, session, payload, revision, capture, workflow=None, mapped=False):
         self._sources(payload)
+        status = {}
         with self._lock:
             if session["revision"] != revision or self._closed:
                 raise self.api.APIError("A newer answer replaced this review.", 409)
             session["synchronized"] = copy.deepcopy(capture)
-        raw_trace.emit("interview.session.synchronized", {"revision": revision, "has_workflow": workflow is not None})
-        return {**capture, "conversation_token": session["token"], "revision": revision, "sync_required": False,
+            if mapped and workflow is None and (any(turn.get("role") == "user" for turn in payload["turns"])
+                                                or self._documented(payload)):
+                # The notes are released without their map. Say where the map stands, so that
+                # the page keeps asking for it (status poll) or offers its retry.
+                state = session["workflow_state"]
+                status = {"workflow_state": state, "workflow_pending": state in ("queued", "working")}
+                if state == "error":
+                    status["workflow_error"] = session["workflow_error"] or "The workflow could not update. Your answers are retained."
+                    if session.get("workflow_error_code"):
+                        status["workflow_error_code"] = session["workflow_error_code"]
+            elif mapped and workflow is not None:
+                status = {"workflow_state": "ready", "workflow_pending": False}
+        raw_trace.emit("interview.session.synchronized", {"revision": revision, "has_workflow": workflow is not None,
+                                                          **({"workflow_state": status["workflow_state"]} if status else {})})
+        return {**capture, "conversation_token": session["token"], "revision": revision, "sync_required": False, **status,
                 **({"workflow_capture": workflow} if workflow is not None else {})}
 
     def close(self):

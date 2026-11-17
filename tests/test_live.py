@@ -149,15 +149,32 @@ class LiveContractTests(unittest.TestCase):
         self.assertEqual(args[2], server.WORKFLOW_UPDATE_SCHEMA)
 
     def test_workflow_cannot_invent_evidence_or_map_edges(self):
-        for mutation in ('assistant', 'invented', 'missing-edge'):
+        # What a model cited wrongly never reaches a published map. It is left off and named,
+        # not handed to the participant as a failed request (finding 5 of the November 2026 run).
+        broken = workflow_update_result()
+        broken['upsert_connections'][0]['to'] = 'not-a-step'
+        self.client.structured = Mock(return_value=broken)
+        with self.assertRaises(server.APIError):
+            # A connection to a step that is nowhere is a broken graph, not a citation slip.
+            self.client.workflow(interview_payload())
+        for mutation in ('assistant', 'invented'):
             result = workflow_update_result()
-            if mutation == 'missing-edge':
-                result['upsert_connections'][0]['to'] = 'not-a-step'
-            else:
-                result['upsert_steps'][0]['evidence_turns'] = ['a1' if mutation == 'assistant' else 'made-up']
-            self.client.structured = Mock(return_value=result)
-            with self.subTest(mutation=mutation), self.assertRaises(server.APIError):
-                self.client.workflow(interview_payload())
+            invented = result['upsert_steps'][0]
+            invented['evidence_turns'] = ['a1' if mutation == 'assistant' else 'made-up']
+            # The review is shown the settled candidate and returns its passages for that.
+            self.client.structured = Mock(side_effect=lambda *args, **kwargs: (
+                copy.deepcopy(result) if args[3] == 'working_process_map' else fixture_workflow_audit(
+                    args[1]['candidate_update'], interview_payload()['turns'])))
+            with self.subTest(mutation=mutation):
+                workflow = self.client.workflow(interview_payload())['workflow']
+                published = json.dumps(workflow)
+                self.assertNotIn('made-up', published)
+                ids = {step['id'] for step in workflow['steps']}
+                self.assertTrue(all(edge['from'] in ids and edge['to'] in ids for edge in workflow['connections']))
+                self.assertTrue(all(set(item['evidence_turns']) <= {'u1', 'u2'} for item in workflow['steps'] + workflow['connections']))
+                self.assertNotIn(invented['id'], ids)
+                self.assertTrue(any(invented['title'] in question and 'left off the map' in question
+                                    for question in workflow['open_questions']))
 
     def test_workflow_may_be_empty_when_no_action_was_reported(self):
         result = {'title': 'Unexplored work', 'steps': [], 'connections': [], 'open_questions': ['What happens first?']}

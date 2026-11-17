@@ -61,16 +61,16 @@ async function check(name,fn){
  await check("the same buttons show new notes when the notes change",async()=>{
   const page=await open({config:{agent_team:{enabled:false}},expose:EXPOSE});await voice(page);
   const purpose=topic(page,"purpose"),risk=topic(page,"risk");
-  assert.equal(purpose.classList.contains("partial"),true);assert.equal(purpose.querySelector(".coverage-state").textContent,"Discussed · needs detail");
+  assert.equal(purpose.classList.contains("partial"),true);assert.equal(purpose.querySelector(".coverage-state").textContent,"Needs detail");
   assert.equal(risk.classList.contains("missing"),true);assert.equal(risk.querySelector(".coverage-state").textContent,"");assert.match(risk.title,/^Risks: no detail captured yet/);
   page.state.memo_findings=[{key:"purpose",status:"captured",answer:"Keeping the cupboard stocked.",evidence_turns:["t002"]},
    {key:"risk",status:"partial",answer:"Running out stops the office.",evidence_turns:["t002"]}];
   page.t.renderCoverage();
   assert.equal(topic(page,"purpose"),purpose,"Same element");assert.equal(topic(page,"risk"),risk);
   assert.equal(purpose.classList.contains("covered"),true);assert.equal(purpose.classList.contains("partial"),false);
-  assert.equal(purpose.querySelector(".coverage-dot").textContent,"✓");assert.equal(purpose.querySelector(".coverage-state").textContent,"Covered");
+  assert.equal(purpose.querySelector(".coverage-dot").textContent,"✓");assert.equal(purpose.querySelector(".coverage-state").textContent,"","A covered topic shows its tick and no word");
   assert.equal(purpose.getAttribute("aria-label"),purpose.title);assert.match(purpose.title,/^Purpose: Covered/);
-  assert.equal(risk.classList.contains("partial"),true);assert.equal(risk.classList.contains("missing"),false);assert.equal(risk.querySelector(".coverage-state").textContent,"Discussed · needs detail");
+  assert.equal(risk.classList.contains("partial"),true);assert.equal(risk.classList.contains("missing"),false);assert.equal(risk.querySelector(".coverage-state").textContent,"Needs detail");
   assert.equal(topic(page,"trigger").classList.contains("missing"),true,"A topic whose note was withdrawn goes back to empty");
   assert.equal(topic(page,"trigger").querySelector(".coverage-state").textContent,"");
   // The open topic stays marked as selected through re-renders, and loses the mark when it closes.

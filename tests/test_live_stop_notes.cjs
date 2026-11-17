@@ -219,8 +219,10 @@ async function check(name,fn){
   assert.equal(s.captures.length,1,"No capture is repeated");assert.equal(s.h.t.state.busy,false);assert.deepEqual(s.errors(),[]);
   assert.equal(s.line(),"Notes include all 1 saved answers","The notes line does not claim an update that is not running");
   assert.equal(s.h.node("update-notes").hidden,true);
+  // The map refresh that follows reports in Workflow; the notes line keeps saying what the notes include.
   s.h.node("coverage-update-status").textContent="";await s.h.t.refreshWorkflow();await settle();
-  assert.equal(s.h.node("coverage-update-status").textContent,"Up to date","Current notes are still reported as up to date");
+  assert.equal(s.h.node("workflow-status").textContent,"Up to date");assert.equal(s.h.node("coverage-update-status").textContent,"","A refresh of the map alone says nothing about the notes");
+  assert.equal(s.line(),"Notes include all 1 saved answers","Current notes are still reported as current");
   // A session in which nothing was said.
   const quiet=await session();await quiet.stop();
   assert.equal(quiet.captures.length,0);assert.equal(quiet.h.t.state.busy,false);assert.deepEqual(quiet.errors(),[]);
@@ -274,7 +276,7 @@ async function check(name,fn){
   s.hear("assistant",3600,5200,"Got it. And who approves the list?");s.to(6900);
   s.hold=true;s.hear("user",7000,9000,SECOND);s.to(10700);await s.h.timer(400);await settle();
   s.h.t.renderAnalysisThrough();
-  assert.equal(s.line(),"Notes through answer 1 · answer 2 pending");assert.equal(s.h.t.state.busy,false,"Voice is on: the capture runs behind the conversation");
+  assert.equal(s.line(),"Notes through answer 1 of 2");assert.equal(s.h.t.state.busy,false,"Voice is on: the capture runs behind the conversation");
   await s.land(1);s.h.t.renderAnalysisThrough();
   assert.equal(s.line(),"Notes include all 2 saved answers");assert.equal(s.h.t.state.summary,"Notes with 2 topics");
   await s.v.api.stop({immediate:true});await settle();
@@ -308,7 +310,7 @@ async function check(name,fn){
   await s.h.t.startLiveConversation();await settle();
   assert.equal(s.v.api.active,true);
   assert.equal(s.h.node("update-notes").hidden,true,"Update notes does nothing while voice is on, so it is not offered");
-  assert.equal(s.line(),"Notes through answer 1 · answer 2 pending","The notes line says what the notes include");
+  assert.equal(s.line(),"Notes through answer 1 of 2","The notes line says what the notes include");
   await s.v.api.stop({immediate:true});await settle();
  });
  await check("after voice has ended a notes capture is waited for no longer than a minute and a half",async()=>{

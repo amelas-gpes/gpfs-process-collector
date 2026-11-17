@@ -58,11 +58,23 @@ class CompletionBoundaryTests(unittest.TestCase):
         self.assertNotIn("Existing materials", question)
 
     def test_manual_check_names_gaps_without_announcing_completion(self):
-        result = self.partial()
+        # A few open sections are named.
+        result = interview_result()
+        for finding in result["memo_findings"]:
+            finding["status"] = "partial" if finding["key"] in ("risk", "volume") else "captured"
         server.enforce_closure(result, interview_payload()["turns"], "close")
         server.enforce_response_boundary(result, interview_payload()["turns"], "close")
         self.assertTrue(result["question"].startswith(server.PARTIAL_CHECK_PREFIX))
         self.assertIn("Consequences of failure", result["question"])
+        self.assertFalse(result["closure"]["confirmed"])
+        self.assertFalse(result["closure"]["asked"])
+        # Many open sections are counted; the Notes list beside the conversation shows which.
+        result = self.partial()
+        server.enforce_closure(result, interview_payload()["turns"], "close")
+        server.enforce_response_boundary(result, interview_payload()["turns"], "close")
+        self.assertTrue(result["question"].startswith(server.PARTIAL_CHECK_PREFIX))
+        self.assertIn("the Notes list shows which", result["question"])
+        self.assertNotIn("Consequences of failure", result["question"])
         self.assertFalse(result["closure"]["confirmed"])
         self.assertFalse(result["closure"]["asked"])
 

@@ -11,11 +11,14 @@ const copy=value=>JSON.parse(JSON.stringify(value));
 const file=(id="doc_one",overrides={})=>({id,name:id+".pdf",status:"ready",chunk_count:4,analysis:{phase:"complete",version:3,intent_version:0,disposition:"relevant",review_complete:true},...overrides});
 const state=(documents=[],overrides={})=>({scope:"scope_one",generation:0,documents,uploading:0,mutating:0,connectionError:"",uploadErrors:[],...overrides});
 function setup(overrides={}) {
- const events=[],calls={begin:[],baseline:[],question:[],complete:[],empty:[]},phases=[];
+ const events=[],calls={begin:[],baseline:[],question:[],provisional:[],complete:[],empty:[]},phases=[];
  const hooks={onStatus:controller=>phases.push(controller.phase),
   onBegin:input=>{events.push("pause");calls.begin.push(input);return overrides.begin?.(input);},
   buildBaseline:input=>{events.push("baseline");calls.baseline.push(input);return overrides.baseline?overrides.baseline(input):Promise.resolve({revision:calls.baseline.length,summary:"Accepted source baseline"});},
   askFollowup:input=>{events.push("question");calls.question.push(input);return overrides.question?overrides.question(input):Promise.resolve({question:"Who owns the remaining handoff?"});},
+  // The question-first path exists only where the app can finish notes and map in the background.
+  ...(overrides.provisional?{provisional:()=>overrides.provisional!=="off",
+   askProvisional:input=>{events.push("provisional");calls.provisional.push(input);return typeof overrides.provisional==="function"?overrides.provisional(input):Promise.resolve({question:"What happens after that review?"});}}:{}),
   onComplete:(result,documents)=>{events.push("complete");calls.complete.push({result,documents});overrides.complete?.(result,documents);},
   onEmpty:outcome=>{events.push("empty");calls.empty.push(outcome);overrides.empty?.(outcome);}};
  const intake=new Intake(hooks);intake.observe(state([]));return{intake,events,calls,phases};
@@ -225,6 +228,44 @@ async function check(name,run){try{await run();results.push({name,passed:true});
   h.intake.begin({batchId:"old"});h.intake.observe(state([file("old")]));h.intake.settle("old");await tick();h.intake.reset();h.intake.observe(state([],{scope:"new_scope"}));
   h.intake.begin({batchId:"new"});h.intake.observe(state([file("new")],{scope:"new_scope"}));h.intake.settle("new");await tick();assert.equal(h.intake.phase,"error");assert.equal(h.calls.begin.length,2);
   old.reject(Error("Old voice session stopped late"));await tick();failBaseline=false;h.intake.retry();await tick();assert.equal(h.calls.begin.length,2,"An obsolete pause rejection must not mark the new cycle's successful pause as failed");assert.equal(h.calls.complete.length,1);
+ });
+ // Finding 4 of docs/testing/process-capture-2026-11-16: the file's own question is asked as soon
+ // as the file is read; the baseline is no longer a stage the participant waits for.
+ await check("a provisional question is asked once the file is read, without building a baseline first",async()=>{
+  const question=deferred(),h=setup({provisional:()=>question.promise});
+  h.intake.begin({batchId:"first",names:["Fee schedule.csv"]});h.intake.observe(state([file("doc_one",{status:"pending",analysis:{}})],{uploading:1}));h.intake.settle("first");await tick();
+  assert.equal(h.intake.phase,"uploading");
+  h.intake.observe(state([file("doc_one",{analysis:{phase:"quick",intent_version:0}})]));await tick();
+  assert.equal(h.intake.phase,"reviewing");assert.equal(h.calls.provisional.length,0,"The question waits for the file to be read");
+  h.intake.observe(state([file("doc_one")]));await tick();
+  assert.equal(h.intake.phase,"question");assert.equal(h.calls.provisional.length,1);assert.equal(h.calls.baseline.length,0);assert.equal(h.calls.question.length,0);
+  assert.deepEqual(Object.keys(h.calls.provisional[0]).sort(),["documents","signal"]);assert.equal(h.calls.provisional[0].documents[0].id,"doc_one");
+  question.resolve({question:"What happens to the schedule after that review?"});await tick();
+  assert.deepEqual(h.events,["pause","provisional","complete"]);assert.equal(h.intake.phase,"ready");
+  assert.equal(h.calls.complete[0].result.question,"What happens to the schedule after that review?");
+  assert.equal(h.phases.includes("baseline"),false,"Updating the process is not a stage the participant waits for");
+ });
+ await check("a provisional question that fails can be retried and never falls back to a silent baseline",async()=>{
+  let fail=true;const h=setup({provisional:async()=>{if(fail)throw Error("The file was read, but the follow-up did not load. Try again.");return{question:"Recovered question?"};}});
+  h.intake.begin({batchId:"first"});h.intake.observe(state([file()]));h.intake.settle("first");await tick();
+  assert.equal(h.intake.phase,"error");assert.equal(h.intake.retryAvailable,true);assert.equal(h.calls.baseline.length,0);assert.equal(h.calls.complete.length,0);
+  for(let i=0;i<3;i++)h.intake.observe(state([file()]));await tick();assert.equal(h.calls.provisional.length,1,"Polls never retry a failed question");
+  fail=false;h.intake.retry();await tick();assert.equal(h.calls.provisional.length,2);assert.equal(h.intake.phase,"ready");assert.equal(h.calls.complete[0].result.question,"Recovered question?");
+ });
+ await check("a new upload or a reset makes a late provisional question stale",async()=>{
+  const old=deferred(),fresh=deferred(),h=setup({provisional:()=>h.calls.provisional.length===1?old.promise:fresh.promise});
+  h.intake.begin({batchId:"first"});h.intake.observe(state([file("first")]));h.intake.settle("first");await tick();assert.equal(h.intake.phase,"question");
+  h.intake.begin({batchId:"second",names:["Second.pdf"]});assert.equal(h.calls.provisional[0].signal.aborted,true);
+  old.resolve({question:"Question about the first file alone?"});await tick();assert.equal(h.calls.complete.length,0,"A question prepared before the second file arrived is not asked");
+  h.intake.observe(state([file("first"),file("second")]));h.intake.settle("second");await tick();assert.equal(h.calls.provisional.length,2);assert.equal(h.calls.provisional[1].documents.length,2);
+  fresh.resolve({question:"Question about both files?"});await tick();assert.equal(h.calls.complete.length,1);assert.equal(h.calls.complete[0].result.question,"Question about both files?");
+  const pending=deferred(),r=setup({provisional:()=>pending.promise});
+  r.intake.begin({batchId:"first"});r.intake.observe(state([file()]));r.intake.settle("first");await tick();r.intake.reset();
+  pending.resolve({question:"Late?"});await tick();assert.equal(r.calls.complete.length,0);assert.equal(r.intake.phase,"idle");
+ });
+ await check("where the question-first path is switched off the baseline is still committed before the question",async()=>{
+  const h=setup({provisional:"off"});h.intake.begin({batchId:"first"});h.intake.observe(state([file()]));h.intake.settle("first");await tick();
+  assert.deepEqual(h.events,["pause","baseline","question","complete"]);assert.equal(h.calls.provisional.length,0);
  });
  await check("metadata-only hooks never require uploaded File objects",async()=>{
   const h=setup();h.intake.begin({batchId:"first",names:["Source.pdf"]});h.intake.observe(state([file()]));h.intake.settle("first");await tick();

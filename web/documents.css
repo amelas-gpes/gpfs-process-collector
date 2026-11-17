@@ -3,7 +3,12 @@
 .documents-assets-heading { flex:none; padding:2px 0 14px; }
 .documents-assets-heading .documents-add { padding:8px 12px; font-size:var(--text-md); }
 .documents-assets-formats { margin:8px 0 0; color:var(--muted); font-size:var(--text-sm); line-height:1.5; }
-.documents-assets-privacy { flex:none; margin:10px 0 0; padding:10px 0 0; border-top:1px solid var(--line); color:var(--muted); font-size:var(--text-xs); line-height:1.5; }
+.documents-assets-privacy { flex:none; max-height:45%; overflow:auto; margin:10px 0 0; padding:8px 0 0; border-top:1px solid var(--line); color:var(--muted); font-size:var(--text-xs); line-height:1.5; }
+.documents-assets-privacy > summary { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:28px; border-radius:var(--r-xs); }
+.documents-assets-privacy > summary::after { content:""; flex:none; width:14px; height:14px; background:currentColor; -webkit-mask:var(--i-chevron-down) center/contain no-repeat; mask:var(--i-chevron-down) center/contain no-repeat; transition:rotate var(--dur-fast); }
+.documents-assets-privacy[open] > summary::after { rotate:180deg; }
+.documents-assets-privacy > summary:hover { color:var(--ink-2); }
+.documents-assets-privacy > p { margin:6px 0 0; }
 .document-assets .documents-body { padding:0 4px 0 0; margin-right:-4px; }
 .document-assets .documents-card { padding:14px; margin-bottom:10px; }
 .document-assets .documents-sheet-source { overflow:auto; max-height:50vh; max-width:100%; }

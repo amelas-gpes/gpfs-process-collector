@@ -36,12 +36,26 @@ class ReleasedStores(unittest.TestCase):
                 original.write_bytes(ORIGINAL)
                 store = documents.DocumentStore(files)
                 legacy_file = store.get(SCOPE, DOCUMENT_ID)
-                self.assertEqual(legacy_file['status'], 'partial' if version == '0.26.1' else 'ready')
-                self.assertEqual(bool(legacy_file.get('extraction_needs_reindex')), version == '0.26.1')
+                # Both releases indexed this file with an earlier parser version (the PDF reader
+                # changed in extraction version 4), so both are held back until the local comparison.
+                self.assertEqual(legacy_file['status'], 'partial')
+                self.assertTrue(legacy_file.get('extraction_needs_reindex'))
                 found = store.chunks(SCOPE, DOCUMENT_ID)['chunks'][0]
                 self.assertEqual(store.source(SCOPE, DOCUMENT_ID, found['id'])['text'],
                                  'A1=Ticket | B1=Action\nA2=Fixture | B2=Record')
                 self.assertEqual(store.original_bytes(SCOPE, DOCUMENT_ID), ORIGINAL)
+                # That comparison is local and free. The 0.30.0 index of this CSV is what the current
+                # parser produces, so it is confirmed as it is; the 0.26.1 index is not and stays held.
+                checked = store.check_extraction(SCOPE, DOCUMENT_ID)
+                if version == '0.30.0':
+                    self.assertEqual((checked['status'], checked['extraction_needs_reindex'], checked['extraction_version']),
+                                     ('ready', False, documents.EXTRACTION_VERSION))
+                    self.assertNotIn('reindex_check', checked)
+                else:
+                    self.assertTrue(checked['extraction_needs_reindex'])
+                    self.assertEqual(checked['reindex_check']['outcome'], 'changed')
+                self.assertEqual(store.source(SCOPE, DOCUMENT_ID, found['id'])['text'],
+                                 'A1=Ticket | B1=Action\nA2=Fixture | B2=Record')
                 second = store.add(SCOPE, 'additional.csv', b'Next\nFictional upload\n')
                 self.assertEqual(store.extract(SCOPE, second['id'])['status'], 'ready')
                 self.assertEqual(len(store.list(SCOPE)), 2)

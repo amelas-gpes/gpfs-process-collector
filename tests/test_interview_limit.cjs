@@ -96,13 +96,13 @@ async function check(name,fn){
   const page=await open({config:{...config,concurrent_interview:{enabled:true}},modules:["concurrent-interview.js"],expose:EXPOSE});
   fill(page,396);typed(page);assert.equal(controls(page).wrap,true);
   page.t.getConcurrentInterview().notify({state:"error"});
-  assert.equal(page.text("analysis-status"),"Notes need attention. Your conversation is retained; Wrap up retries the analysis.");
+  assert.equal(page.text("analysis-status"),"Notes need attention. Wrap up to retry.");
   for(const count of [397,399,400]){
    fill(page,count);typed(page);
    assert.deepEqual(controls(page),{send:false,dictate:false,skip:false,wrap:false},`${count} turns`);
    assert.match(line(page),/^This interview is full\. Create a draft or save a copy/,`${count} turns`);
    assert.doesNotMatch(page.text("analysis-status"),/Wrap up/,`${count} turns: the notes status does not point at a disabled control`);
-   assert.match(page.text("analysis-status"),/^Notes need attention\. Your conversation is retained\./);
+   assert.match(page.text("analysis-status"),/^Notes need attention\. Create a draft or save a copy\./);
    assert.doesNotMatch(page.text("composer-hint"),/Wrap up/);
    assert.equal(page.$("generate-draft").disabled,false,"Create draft stays available");
   }

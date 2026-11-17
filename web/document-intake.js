@@ -1,6 +1,8 @@
 "use strict";
 
-// One file-intake transaction: pause, review, commit the baseline, ask once.
+// One file-intake transaction: pause, review, then either ask the file's own question at once
+// (hooks.provisional, with the notes and the audited map completed in the background) or, where
+// that is not available, commit the baseline first and ask once.
 // UI and provider work are injected so ordering/cancellation can be tested offline.
 (() => {
   class DocumentIntake {
@@ -69,6 +71,16 @@
         if(!available.some(file=>this.ids.has(file.id)||!this.originalIds.has(file.id))){const own=state.documents.filter(file=>this.ids.has(file.id)||!this.originalIds.has(file.id));
           const reason=!own.length?"empty":own.every(file=>file.archived||file.analysis?.disposition==="parked")?"parked":own.some(file=>file.analysis?.review_stopped)?"paused":"unreadable";
           this.hooks.onEmpty?.({reason});if(valid())this.setPhase("ready");return;}
+        if(this.hooks.provisional?.()===true&&typeof this.hooks.askProvisional==="function"){
+          // The question the file itself raises is asked as soon as the file has been read: a
+          // participant used to wait one to seven minutes for the map and its audit before
+          // seeing it. Whoever answers this hook completes the notes and the audited map in
+          // the background, where a newer answer or a file change makes a late result stale.
+          this.setPhase("question");
+          const asked=await this.hooks.askProvisional({signal:run.signal,documents:available});if(!valid())return;
+          this.hooks.onComplete(asked,available);if(valid())this.setPhase("ready");
+          return;
+        }
         this.setPhase("baseline");
         const baseline=await this.hooks.buildBaseline({signal:run.signal,documents:available});if(!valid())return;
         this.setPhase("question");

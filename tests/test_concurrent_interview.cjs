@@ -4,12 +4,12 @@ const source=fs.readFileSync(path.join(__dirname,"../web/concurrent-interview.js
 const deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return{promise,resolve,reject};};
 const flush=async()=>{for(let i=0;i<30;i++)await Promise.resolve();};
 function setup(route){
- let generation=1,serial=0;const timers=new Map(),calls=[],applied=[],statuses=[];
+ let generation=1,serial=0;const timers=new Map(),calls=[],applied=[],statuses=[],workflows=[];
  const snapshot={context:{process_name:"Fictional process"},turns:[{id:"u1",role:"user",text:"The clerk receives a request."}],document_revision:"doc1"};
  const window={},context={window,AbortController,DOMException,JSON,Error,TypeError,Set};vm.createContext(context);vm.runInContext(source,context);
- const controller=new window.CollectorConcurrentInterview({request:async(url,data,options)=>{calls.push({url,data,options});return route(url,data,options);},getSnapshot:()=>snapshot,getGeneration:()=>generation,applyCapture:(capture,meta)=>applied.push({capture,meta}),onStatus:status=>statuses.push(status),setTimeout:fn=>{const id=++serial;timers.set(id,fn);return id;},clearTimeout:id=>timers.delete(id)});
+ const controller=new window.CollectorConcurrentInterview({request:async(url,data,options)=>{calls.push({url,data,options});return route(url,data,options);},getSnapshot:()=>snapshot,getGeneration:()=>generation,applyCapture:(capture,meta)=>applied.push({capture,meta}),applyWorkflow:(capture,meta)=>workflows.push({capture,meta}),onStatus:status=>statuses.push(status),setTimeout:fn=>{const id=++serial;timers.set(id,fn);return id;},clearTimeout:id=>timers.delete(id)});
  const tick=async()=>{const pending=[...timers.values()];timers.clear();pending.forEach(fn=>fn());await flush();};
- return{controller,snapshot,calls,applied,statuses,timers,tick,nextGeneration:()=>generation++};
+ return{controller,snapshot,calls,applied,workflows,statuses,timers,tick,nextGeneration:()=>generation++};
 }
 const question={question:"What happens next?",preserve_capture:true,conversation_token:"session-one",revision:"r1"};
 let passed=0;async function test(name,fn){try{await fn();passed++;}catch(error){error.message=name+": "+error.message;throw error;}}
@@ -80,6 +80,53 @@ await test("polling pins document retrieval hints even when applying notes adds 
 await test("failed workflow publishes notes without falsely reporting caught up",async()=>{
  const h=setup(url=>url.endsWith("/turn")?question:{state:"ready",conversation_token:"session-one",revision:"r1",capture:{summary:"Accepted notes"},workflow_state:"error",workflow_error:"The workflow could not update."});
  await h.controller.turn(h.snapshot);await h.tick();assert.equal(h.applied.length,1);assert.equal(h.applied[0].capture.summary,"Accepted notes");assert.equal(h.statuses.at(-1).state,"error");assert.equal(h.statuses.some(status=>status.state==="ready"),false);assert.equal(h.timers.size,0);
+});
+// Finding 3 of docs/testing/process-capture-2026-11-16: Wrap up releases the synchronized notes
+// while the map keeps its own status. The map that was not ready is fetched by the status poll
+// of that revision, and only the map is taken from it.
+const REVISION="ab".repeat(32);
+await test("wrap up releases notes and fetches the late map through its own status",async()=>{
+ let polls=0;
+ const h=setup(url=>url.endsWith("/sync")?{...question,revision:REVISION,summary:"Synchronized notes",workflow_state:"working",workflow_pending:true}:
+  {state:"ready",conversation_token:"session-one",revision:REVISION,capture:{summary:"Background notes must not replace the review"},
+   workflow_state:++polls<2?"working":"ready",...(polls>=2?{workflow_capture:{workflow:{steps:[{id:"S1"}],connections:[]}}}:{})});
+ const result=await h.controller.sync(h.snapshot);
+ assert.equal(result.summary,"Synchronized notes");assert.equal(h.timers.size,1,"The map is polled for after the notes are released");
+ assert.equal(h.controller.active,true);
+ assert.deepEqual({state:h.statuses.at(-1).state,workflow:h.statuses.at(-1).workflow},{state:"ready",workflow:"working"});
+ await h.tick();assert.equal(h.workflows.length,0);assert.equal(h.timers.size,1);
+ assert.equal(JSON.stringify(h.calls.at(-1).data),JSON.stringify({conversation_token:"session-one",revision:REVISION}),"The poll names the revision, never the notes");
+ await h.tick();
+ assert.equal(h.workflows.length,1);assert.equal(JSON.stringify(h.workflows[0].capture.workflow.steps),JSON.stringify([{id:"S1"}]));
+ assert.equal(h.applied.length,0,"Notes of a status poll never replace the synchronized notes");
+ assert.equal(h.timers.size,0);assert.equal(h.controller.active,false);
+ assert.deepEqual({state:h.statuses.at(-1).state,workflow:h.statuses.at(-1).workflow},{state:"ready",workflow:"ready"});
+ assert.equal(h.statuses.some(status=>status.state==="error"),false);
+});
+await test("a map that fails after wrap up is the map's failure, not the notes'",async()=>{
+ const failed=setup(()=>({...question,revision:REVISION,summary:"Synchronized notes",workflow_state:"error",workflow_pending:false,workflow_error:"The provider timed out. Your answers are retained."}));
+ const result=await failed.controller.sync(failed.snapshot);
+ assert.equal(result.summary,"Synchronized notes");assert.equal(failed.timers.size,0);
+ assert.equal(JSON.stringify(failed.statuses.at(-1)),JSON.stringify({state:"error",scope:"workflow",revision:REVISION,message:"The provider timed out. Your answers are retained."}));
+ const later=setup(url=>url.endsWith("/sync")?{...question,revision:REVISION,workflow_state:"queued",workflow_pending:true}:
+  {state:"ready",conversation_token:"session-one",revision:REVISION,capture:{summary:"Background notes"},workflow_state:"error",workflow_error:"The workflow could not update. Your answers are retained."});
+ await later.controller.sync(later.snapshot);await later.tick();
+ assert.equal(later.workflows.length,0);assert.equal(later.applied.length,0);assert.equal(later.timers.size,0);
+ assert.deepEqual({state:later.statuses.at(-1).state,scope:later.statuses.at(-1).scope},{state:"error",scope:"workflow"});
+});
+await test("a new answer ends the wait for the earlier map",async()=>{
+ const status=deferred(),h=setup(url=>url.endsWith("/sync")?{...question,revision:REVISION,workflow_state:"working",workflow_pending:true}:status.promise);
+ await h.controller.sync(h.snapshot);await h.tick();
+ h.snapshot.turns.push({id:"u2",role:"user",text:"One more step."});
+ status.resolve({state:"ready",conversation_token:"session-one",revision:REVISION,capture:{summary:"Old"},workflow_state:"ready",workflow_capture:{workflow:{steps:[],connections:[]}}});await flush();
+ assert.equal(h.workflows.length,0);assert.equal(h.timers.size,0);
+});
+await test("wrap up that returns its map does not poll, and a failed map during the interview carries its scope",async()=>{
+ const h=setup(()=>({...question,revision:REVISION,workflow_state:"ready",workflow_pending:false,workflow_capture:{workflow:{steps:[],connections:[]}}}));
+ await h.controller.sync(h.snapshot);assert.equal(h.timers.size,0);assert.equal(JSON.stringify(h.statuses.at(-1)),JSON.stringify({state:"ready",revision:REVISION}));
+ const turn=setup(url=>url.endsWith("/turn")?question:{state:"ready",conversation_token:"session-one",revision:"r1",capture:{summary:"Accepted notes"},workflow_state:"error",workflow_error:"The workflow could not update."});
+ await turn.controller.turn(turn.snapshot);await turn.tick();
+ assert.equal(turn.applied.length,1);assert.equal(turn.statuses.at(-1).scope,"workflow");assert.equal(turn.statuses.at(-1).state,"error");
 });
 await test("abort supplied by voice cancels pending turn",async()=>{
  const turn=deferred(),h=setup(()=>turn.promise),abort=new AbortController(),pending=h.controller.turn(h.snapshot,{signal:abort.signal});abort.abort();assert.equal(h.calls[0].options.signal.aborted,true);turn.resolve(question);await assert.rejects(pending,error=>error.name==="AbortError");assert.equal(h.timers.size,0);

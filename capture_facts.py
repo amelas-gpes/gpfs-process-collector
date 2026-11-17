@@ -177,6 +177,25 @@ must not bundle a supported route with an unrelated 'not yet known' sentence.
 resolved_gap applies only to an existing gap record. Correcting a detail or an old
 mixed capture uses capture_correction, retaining every still-supported condition.
 
+One answer usually bears on several topics. After recording what it says, check every
+other topic the same evidence touches and bring it up to date in this transaction: a
+stated gate or requirement also belongs under rules, a named receiving process under
+connections, a named record under materials. When evidence now supplies what an older
+gap under ANY topic called unknown or unspecified, retire or narrow that gap with an
+explicit operation and keep only the part that is still unanswered. No section may say
+"unknown" or "not specified" about something another section, or a structured link of
+this same capture, records.
+connections_out and the connections topic describe the same links. State every link you
+record under connections as well. A handoff the participant describes again in other
+words is the same link: re-issue it with its wording and the added citation instead of
+adding a second one. Record a separate link only when its outcome or condition differs.
+A record, file, workbook, binder, package or report is prepared, sent, stored or received.
+It is never the party that receives, checks, approves or finishes work, and a process
+code such as FA-15A names a receiving process, not a person. Keep supporting records, the
+process that receives them and the people who handle them apart in every fact.
+The intake objective says why this interview is held. It is never the purpose of the
+work: do not record it, or a restatement of it, under purpose.
+
 Return all sixteen topic_states. unknown means no usable detail or discussed gap;
 a discussed but unavailable detail is partial. participant_unavailable=true requires
 an explicit, topic-specific participant knowledge limit supported by the gap's cited
@@ -562,8 +581,8 @@ _TOPIC_WORDS = {
     "pain_points": r"pain|manual|difficult|rekey|effort|time|bottleneck", "risk": r"risk|wrong|fail|consequence|impact",
     "materials": r"material|file|template|procedure|document|location|stored|retention",
     "scope": r"entity|entities|fund|manco|standard|client|scope|parent|enterprise",
-    "rules": r"rule|source|agreement|lpa|side.letter|calculat|method|policy|interpret",
-    "connections": r"upstream|downstream|parallel|depend|input|output|handoff|process",
+    "rules": r"rule|source|agreement|lpa|side.letter|calculat|method|policy|interpret|requir|must\b|cannot|gate\b|gates\b|mandator|prohibit|permitted|allowed",
+    "connections": r"upstream|downstream|parallel|depend|input|output|handoff|process|takes? over|hands? (?:it |them )?(?:off|over)|[a-z]{2,5}-\d{1,3}[a-z]?\b",
     "data_systems": r"data|system|record|origin|manual|import|spreadsheet|workbook|rekey",
     "volume": r"volume|count|many|peak|effort|time|frequency|exception",
 }
@@ -596,6 +615,9 @@ def _gap_scope_pattern(topic):
     # many different topics. Only a specific information need scopes a bare
     # "I don't know" to one of those headings.
     subject = {
+        # Narrower than _TOPIC_WORDS["rules"], whose everyday words ("must", "cannot") only
+        # decide which gaps an answer reopens: they do not make a topic one the participant discussed.
+        "rules": r"rule|source|agreement|lpa|side.letter|calculat|method|policy|interpret",
         "variations": r"varia\w*|differ\w*|alternate routes?|exceptions?",
         "scope": r"entit\w*|scope|applicab\w*|which (?:funds?|clients?|countries)",
         "pain_points": r"pain\w*|manual\w*|difficult\w*|delay\w*|rekey\w*|bottleneck\w*",
@@ -631,6 +653,136 @@ def _unavailable(topic, gaps, turns):
         if not found:
             return False
     return True
+
+
+_CONDITION_FILLER = frozenset("""a an the is are was were be been being it this that these those to of for in on at by with
+    as and or then when if once after before will would can may also""".split())
+# How the Connections note words a structured link to another process, role or party.
+CONNECTION_WORDING = {"provides_input_to": "Provides input to", "consumes": "Uses the output of", "hands_off_to": "Hands off to",
+                      "requires_approval_from": "Requires approval from", "happens_after": "Happens after",
+                      "variant_of": "Is a variant of", "subprocess_of": "Is a subprocess of",
+                      "parallel_with": "Runs in parallel with", "shares_calculation_with": "Shares a calculation with"}
+STRUCTURED_LINK = "structured_link"
+OBJECTIVE_GAP = "The intake states the interview objective. The business purpose remains unconfirmed."
+
+
+def _condition_words(text):
+    return {word for word in re.findall(r"[^\W_]+", unicodedata.normalize("NFKC", text).casefold()) if word not in _CONDITION_FILLER}
+
+
+def same_condition(left, right):
+    """Whether two conditions of one link to one counterpart say the same thing.
+
+    A participant who describes a handoff twice words it twice ("unresolved screening is
+    escalated", "unresolved or failed screening is escalated"). Those are one link. The
+    test is deliberately narrow: every word of the shorter wording occurs in the longer,
+    the longer adds at most two words, and any figures are the same in both. Wordings
+    that name different outcomes ("clearance is communicated", "a block is communicated")
+    share too little and stay separate links.
+    """
+    one, other = sorted((_condition_words(left), _condition_words(right)), key=len)
+    if len(one) < 2 or not one <= other or len(other - one) > 2:
+        return one == other and bool(one)
+    return {word for word in one if any(char.isdigit() for char in word)} == {word for word in other if any(char.isdigit() for char in word)}
+
+
+def merge_equivalent_connections(items):
+    """One link per relationship, counterpart and condition, keeping every citation.
+
+    The fuller wording of an equivalent condition is kept, with the identity of the link
+    that was recorded first and the sources of both.
+    """
+    merged = []
+    for item in items:
+        match = next((old for old in merged if old["relationship_type"] == item["relationship_type"]
+                      and old["counterpart"].casefold() == item["counterpart"].casefold()
+                      and (old["condition"].casefold() == item["condition"].casefold() or same_condition(old["condition"], item["condition"]))), None)
+        if match is None:
+            merged.append(copy.deepcopy(item))
+            continue
+        sources = {**match.get("sources", {}), **copy.deepcopy(item.get("sources", {}))}
+        if len(_condition_words(item["condition"])) > len(_condition_words(match["condition"])):
+            match["condition"] = item["condition"]
+        match.update(sources=sources, evidence_turns=list(sources) or list(dict.fromkeys([*match["evidence_turns"], *item["evidence_turns"]])),
+                     created_at_participant=min(match.get("created_at_participant", -1), item.get("created_at_participant", -1)))
+    return merged
+
+
+def _names(text, counterpart):
+    """Whether a note names this counterpart: by its whole name, or by its process code (FA-16)."""
+    plain = " ".join(unicodedata.normalize("NFKC", text).casefold().split())
+    name = " ".join(unicodedata.normalize("NFKC", counterpart).casefold().split())
+    code = re.match(r"[a-z]{2,5}-\d+[a-z]?(?![\w-])", name)
+    return bool(name) and (name in plain or bool(code and re.search(r"(?<![\w-])" + re.escape(code.group(0)) + r"(?![\w-])", plain)))
+
+
+def _note_structured_connections(result, catalog, texts):
+    """Keep the Connections note in step with the structured links of the same capture.
+
+    The links to other processes are recorded as structured connections and, separately,
+    described under the Connections topic. A capture could record a handoff as a link
+    while its Connections note still read "unknown": two panels then contradicted each
+    other. Every link whose counterpart no detail of that topic names is stated there as
+    a detail of its own, with the link's sources. The statement goes when the link goes,
+    or when the notes come to name the counterpart themselves. Nothing here reads a
+    source or decides anything: it restates a link the same capture already accepted.
+    """
+    links = {item["id"]: item for item in result.get("connections_out", [])}
+    active = [fact for fact in result["facts"] if fact["state"] == "active" and fact["topic"] == "connections"]
+    written = [fact for fact in active if fact["kind"] == "detail" and fact.get("origin") != STRUCTURED_LINK]
+    for fact in active:
+        if fact.get("origin") != STRUCTURED_LINK:
+            continue
+        link = links.get(fact.get("connection_id"))
+        if link is None or any(_names(other["text"], link["counterpart"]) for other in written):
+            fact.update(state="withdrawn", change_reason="withdrawal", change_evidence=list(fact["evidence_turns"]), change_text="")
+    stated = {fact.get("connection_id") for fact in result["facts"]
+              if fact["state"] == "active" and fact.get("origin") == STRUCTURED_LINK}
+    count = sum(fact["state"] == "active" for fact in result["facts"])
+    size = len("\n".join(fact["text"] for fact in result["facts"] if fact["state"] == "active" and fact["topic"] == "connections"))
+    for identity, link in links.items():
+        refs = [ref for ref in link["evidence_turns"] if ref in catalog]
+        if identity in stated or not refs or any(_names(other["text"], link["counterpart"]) for other in written):
+            continue
+        condition = link["condition"].strip()
+        text = CONNECTION_WORDING[link["relationship_type"]] + " " + link["counterpart"].strip() + (": " + condition if condition else "")
+        text = (text if text.endswith((".", "!", "?")) else text + ".")[:MAX_FACT_TEXT]
+        if count >= MAX_ACTIVE_FACTS or size + len(text) + 1 > 12000:
+            break
+        fact = _new_fact("connections", "detail", text, refs, catalog, STRUCTURED_LINK)
+        fact["connection_id"] = identity
+        _source_proof(fact, [], texts)
+        fact["unverified"] = []  # It restates an accepted link; the link carries the citation.
+        result["facts"].append(fact)
+        count, size = count + 1, size + len(text) + 1
+
+
+def _settle_objective_as_purpose(result, context):
+    """The interview's objective is not the purpose of the work.
+
+    The intake's objective says why the interview is held ("document how this process
+    works, including its controls"). A purpose statement that rests on the intake alone
+    can only restate that, unless the factual background field says more. Such a
+    statement is not kept as the business purpose: it is dropped when participant or
+    document evidence states the purpose, and otherwise recorded as the open gap it is.
+    That gap is retired in turn once evidence states the purpose.
+    """
+    objective = _normalized_detail(str(context.get("objective", "")))
+    background = _normalized_detail(str(context.get("background", "")))
+    purpose = [fact for fact in result["facts"] if fact["state"] == "active" and fact["topic"] == "purpose"]
+    evidenced = any(fact["kind"] == "detail" and any(source["authority"] != "context" for source in fact["sources"].values())
+                    for fact in purpose)
+    for fact in purpose:
+        if set(fact["evidence_turns"]) != {"context"}:
+            continue
+        restated = fact["text"] == OBJECTIVE_GAP or (fact["kind"] == "detail" and bool(objective) and (
+            not background or objective in _normalized_detail(fact["text"]) and objective not in background))
+        if not restated:
+            continue
+        if evidenced:
+            fact.update(state="withdrawn", change_reason="capture_correction", change_evidence=["context"], change_text="")
+        elif fact["text"] != OBJECTIVE_GAP:
+            fact.update(kind="gap", text=OBJECTIVE_GAP, support=[], unverified=[])
 
 
 def apply_delta(state, delta, context, turns, documents, focus=None, *, preserve_on_limit=False):
@@ -703,9 +855,11 @@ def apply_delta(state, delta, context, turns, documents, focus=None, *, preserve
                             "id": before.get("id") or "connection_" + uuid.uuid4().hex,
                             "created_at_participant": before.get("created_at_participant", max(
                                 (value["position"] for value in catalog.values() if value["authority"] == "participant"), default=-1))}
+    # The same handoff described twice in other words is one link with both citations.
+    connections = merge_equivalent_connections(list(connections.values()))
     if len(connections) > 100:
         raise ValueError("This interview has reached its external connection limit.")
-    result["connections_out"] = list(connections.values())
+    result["connections_out"] = connections
     required = {fact["id"] for fact in reconciliation_targets(state, focus)}
     reconciliations = delta.get("fact_reconciliations")
     if (not isinstance(reconciliations, list) or len(reconciliations) != len(required)
@@ -764,7 +918,7 @@ def apply_delta(state, delta, context, turns, documents, focus=None, *, preserve
             if (topic == "purpose" and set(new["evidence_turns"]) == {"context"} and objective
                     and objective in _normalized_detail(new["text"])
                     and objective not in _normalized_detail(str(context.get("background", "")))):
-                new.update(kind="gap", text="The intake states the interview objective. The business purpose remains unconfirmed.")
+                new.update(kind="gap", text=OBJECTIVE_GAP)
             _source_proof(new, operation.get("support", []), texts)
             # Exact duplicate additions do not grow the ledger on retries.
             duplicate = next((fact for fact in result["facts"] if fact["state"] == "active"
@@ -777,6 +931,10 @@ def apply_delta(state, delta, context, turns, documents, focus=None, *, preserve
                 result["facts"].insert(result["facts"].index(old) + 1, new)
             else:
                 result["facts"].append(new)
+    # Two things one capture must not say at once: a purpose that is only the interview's
+    # objective, and a link to another process that its own Connections note does not know.
+    _settle_objective_as_purpose(result, context)
+    _note_structured_connections(result, catalog, texts)
     if preserve_on_limit:
         # Keep the last supported version of an overflowing section while
         # publishing the other sections in this same accepted transaction.

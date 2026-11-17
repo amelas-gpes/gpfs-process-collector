@@ -180,8 +180,9 @@ assert.equal(new Set(walk(document.body).filter(node=>node.id.startsWith("turn-"
 {
  t.state.memo_findings=[{key:"materials",status:"not_applicable",answer:"No materials exist.",evidence_turns:["t002"]}];t.renderCoverage();
  const row=document.querySelector('[data-foundation-topic="materials"]');assert.equal(row.querySelector(".coverage-state").textContent,"Not applicable");
- const next=document.getElementById("memo-next-action");assert.equal(next.hidden,false);assert.match(next.textContent,/Name/);
- next.onclick();assert.equal(dialog.open,true);t.closeFoundationTopic(false);passes++;
+ // Open topics are shown by the list alone: no second list of them, and no "next topic" control.
+ const hint=document.getElementById("memo-next");assert.equal(hint.textContent,"","Nothing is said above Wrap up while topics are open");
+ t.showFoundationTopic("name",document.querySelector('[data-foundation-topic="name"]'));assert.equal(dialog.open,true);t.closeFoundationTopic(false);passes++;
 }
 {
  for(const id of ["interview-error","review-error"]){const region=mount(id);mount(id+"-message","span",region);}
@@ -1396,8 +1397,8 @@ if(process.argv.includes("--usability-only")){
   checkpoint();t.state.config={api_configured:true,agent_team:{enabled:true},speech:{enabled:false}};t.state.started=true;t.state.context={process_name:"Review test"};
   t.state.turns=[{id:"t002",role:"user",text:"A definite reported process account."}];t.state.memo_findings=["name","purpose","trigger","completion","accountable","lifecycle","checks","variations","pain_points","risk","materials","scope","rules","connections","data_systems","volume"].map(key=>({key,status:"captured",answer:"A definite reported detail.",evidence_turns:["t002"]}));
   // The headline counts captured topics before the review (tests/test_coverage_headline.cjs); "covered" on a topic still waits for it.
-  t.state.coverageVerified=false;t.renderCoverage();assert.equal(document.getElementById("coverage-count").textContent,"16 / 16");assert.equal(document.getElementById("coverage-summary").textContent,"","The line under the bar does not repeat the figure");assert.match(document.getElementById("memo-next").textContent,/awaiting.*review/);
-  const topic=document.querySelector('[data-foundation-topic="name"]');assert.equal(topic.classList.contains("covered"),false);assert.match(topic.querySelector(".coverage-state").textContent,/awaiting review/);t.showFoundationTopic("name",topic);assert.match(document.getElementById("foundation-topic-status").textContent,/awaiting review/);t.closeFoundationTopic(false);
+  t.state.coverageVerified=false;t.renderCoverage();assert.equal(document.getElementById("coverage-count").textContent,"16 / 16");assert.equal(document.getElementById("coverage-summary").textContent,"","The line under the bar does not repeat the figure");assert.match(document.getElementById("memo-next").textContent,/Wrap up for the final check/);
+  const topic=document.querySelector('[data-foundation-topic="name"]');assert.equal(topic.classList.contains("covered"),false);assert.equal(topic.querySelector(".coverage-state").textContent,"Captured");assert.match(topic.title,/awaiting review/,"The row's full state stays in its tooltip");t.showFoundationTopic("name",topic);assert.match(document.getElementById("foundation-topic-status").textContent,/awaiting review/);t.closeFoundationTopic(false);
   t.state.coverageVerified=true;t.renderCoverage();assert.equal(document.getElementById("coverage-count").textContent,"16 / 16");assert.equal(document.querySelector('[data-foundation-topic="name"]').classList.contains("covered"),true);passes++;
   t.state.captureToken="opaque-server-capability";assert.equal(t.snapshot().capture_token,"opaque-server-capability");assert.ok(!JSON.stringify(t.sessionObject()).includes("opaque-server-capability"),"Server review capabilities must not be persisted in saved files");passes++;
   t.conversationUI.revision=20;t.conversationUI.applied=0;t.conversationUI.flowBusy=false;t.conversationUI.live=null;t.state.busy=false;t.conversationUI.view="voice";checkpoint();t.scheduleWorkflow();assert.equal(workflowTimers().length,1,"Ordinary turns schedule the map alongside the lead, whichever view is open");
@@ -1426,7 +1427,7 @@ if(process.argv.includes("--usability-only")){
   assert.match(document.getElementById("coverage-summary").textContent,/checking/);
   await settle();await settle();
   assert.equal(t.state.advisory.trigger.complete,true);
-  let item=document.querySelector('[data-foundation-topic="trigger"]');assert.match(item.querySelector(".coverage-state").textContent,/pre-checked/);
+  let item=document.querySelector('[data-foundation-topic="trigger"]');assert.equal(item.querySelector(".coverage-state").textContent,"Captured");assert.equal(item.classList.contains("advisory-ok"),true);assert.match(item.title,/advisory check found no gaps/);
   assert.equal(item.classList.contains("covered"),false,"An advisory check never counts as official coverage");assert.equal(item.querySelector(".coverage-dot").textContent,"·","A pre-checked topic gets a dot, never the tick of a reviewed one");
   assert.equal(document.getElementById("coverage-count").textContent,"1 / 16","The headline counts the captured topic; it is not a count of reviewed topics");
   assert.equal(document.getElementById("coverage-summary").textContent,"1 pre-checked");
@@ -1435,7 +1436,7 @@ if(process.argv.includes("--usability-only")){
   t.applyInterview(reply("Who logs it?",[{key:"trigger",status:"captured",answer:"An email starts the work.",evidence_turns:["t002"]}]));
   assert.equal(calls.length,1,"An unchanged pre-checked topic needs no new advisory call");
   t.state.memo_findings.find(f=>f.key==="trigger").answer="A phone call starts the work.";t.renderCoverage();
-  item=document.querySelector('[data-foundation-topic="trigger"]');assert.match(item.querySelector(".coverage-state").textContent,/awaiting review/);
+  item=document.querySelector('[data-foundation-topic="trigger"]');assert.equal(item.querySelector(".coverage-state").textContent,"Captured");assert.equal(item.classList.contains("advisory-ok"),false,"A changed answer loses its pre-check");
   t.state.coverageVerified=true;t.renderCoverage();assert.equal(document.querySelector('[data-foundation-topic="trigger"]').classList.contains("covered"),true,"Official review supersedes advisory marks");
   t.state.coverageVerified=false;t.clearState();assert.equal(Object.keys(t.state.advisory).length,0,"A new interview starts without advisory marks");assert.equal(t.state.provisionalQuestion,null);passes++;
  }

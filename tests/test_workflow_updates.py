@@ -196,8 +196,14 @@ class WorkflowUpdateTests(unittest.TestCase):
             'excerpts': [{'id': 'doc_fixture_p1_c1', 'text': 'A cited process.', 'location': {'page': 1}}]}]}
         client = self.client(None)
         client.structured.side_effect = [update(), audit(upsert_steps=[step('S5', 'Invented fact', ['missing_source'])])]
-        with self.assertRaises(server.APIError):
-            client.workflow(original)
+        # The invented step rests on a source that does not exist. It is left off the map and
+        # named in the open questions; the accepted map is published unchanged, not refused.
+        result = client.workflow(original)
+        self.assertEqual(result['workflow']['steps'], before['previous_capture']['workflow']['steps'])
+        self.assertEqual(result['workflow']['connections'], before['previous_capture']['workflow']['connections'])
+        self.assertNotIn('missing_source', json.dumps(result))
+        self.assertTrue(any('Invented fact' in question and 'left off the map' in question
+                            for question in result['workflow']['open_questions']))
         self.assertEqual(original['previous_capture'], before['previous_capture'])
 
     def test_document_audit_timeout_keeps_the_complete_input_and_accepted_capture(self):
@@ -249,9 +255,13 @@ class WorkflowUpdateTests(unittest.TestCase):
         corrected = server.apply_workflow_audit(candidate, audit(discard_step_removals=['S2']), previous,
                                                 context={}, turns=payload()['turns'], documents=[])
         self.assertEqual(corrected['remove_steps'], [])
-        with self.assertRaisesRegex(ValueError, 'not proposed'):
-            server.apply_workflow_audit(update(), audit(discard_step_upserts=['S2']), previous,
-                                        context={}, turns=payload()['turns'], documents=[])
+        # A discard only takes an unpublished edit away. Naming a step nobody proposed to edit
+        # changes nothing: the accepted step stays, and the map is not refused for it.
+        untouched = server.apply_workflow_audit(update(), audit(discard_step_upserts=['S2']), previous,
+                                                context={}, turns=payload()['turns'], documents=[])
+        self.assertEqual((untouched['upsert_steps'], untouched['remove_steps']), ([], []))
+        merged = server.apply_workflow_update(untouched, previous, payload()['turns'])
+        self.assertEqual(merged['workflow']['steps'], previous['workflow']['steps'])
 
     def test_audit_replaces_corrections_without_repeating_unchanged_candidate_steps(self):
         previous = payload()['previous_capture']

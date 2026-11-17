@@ -15,6 +15,25 @@ import provider_usage
 import raw_trace
 from interview_coverage import finding_reports_unavailable_knowledge, refused_repair
 
+# Seconds a working map's two requests may take: drawing it, and its source audit.
+# In the November 2026 run most maps were lost to the audit of a transcript-only map running
+# into a 120-second limit after the map itself had been drawn in under a minute (a live
+# replay measured that audit at 141 seconds). A map drawn in the background holds nobody up
+# (neither the next question nor Wrap up waits for it), so both requests get longer limits
+# there; drawing a rich procedure was measured at up to 108 seconds, and a request the
+# provider never answers should still fail before the audit's full allowance. A map a
+# browser request waits for must finish inside that request's own limit
+# (server.REQUEST_TIMEOUTS_MS): 330 seconds without files, 510 with them.
+MAP_GENERATION_SECONDS = 120
+MAP_AUDIT_SECONDS = 180
+MAP_AUDIT_WITH_FILES_SECONDS = 240
+BACKGROUND_MAP_GENERATION_SECONDS = 180
+BACKGROUND_MAP_AUDIT_SECONDS = 240
+# Output allowance of the source audit. Reasoning is counted against it: the audit of a
+# six-answer account spent 11,245 of the earlier 12,000 tokens reasoning and was cut off
+# before it could return its review, which discarded a map that had been drawn correctly.
+MAP_AUDIT_OUTPUT_TOKENS = 24000
+
 REVIEW_ACKNOWLEDGEMENT = "Let me check that I have everything before we finish."
 PARTIAL_REVIEW_ACKNOWLEDGEMENT = "Let me check what we have and keep the unanswered parts open."
 MAX_REVIEW_TICKETS = 128
@@ -1071,7 +1090,7 @@ class Coordinator:
         files = [doc.get("name", "reference file") for doc in
                  [*supporting.get("pending_documents", []), *supporting.get("documents", [])]
                  if doc.get("review", {}).get("phase") != "complete"]
-        detail = (" Still open: " + ", ".join(labels) + ".") if labels else ""
+        detail = self.api.open_sections_detail(labels)
         if files:
             detail += " Files awaiting review: " + ", ".join(files[:6]) + ". Retry review, save for later, or remove the file."
         self._authorize(capture, run, self.api.PARTIAL_CHECK_PREFIX + detail + " You can create a partial draft.", "pause")
@@ -1593,6 +1612,11 @@ class Coordinator:
                                   lead_model=lead_model)
         run.defer_roles(("coverage_reviewer", "process_reviewer"))
         map_only = payload.get("_map_only") is True
+        # _map_only is set by the concurrent interview's own worker (it is removed from every
+        # request body at the HTTP boundary): that map is background work.
+        generation_seconds = BACKGROUND_MAP_GENERATION_SECONDS if map_only else MAP_GENERATION_SECONDS
+        audit_seconds = (BACKGROUND_MAP_AUDIT_SECONDS if map_only else MAP_AUDIT_WITH_FILES_SECONDS if evidence
+                         else MAP_AUDIT_SECONDS)
         memo = {"memo_findings": [], "summary": previous["summary"], "focus": previous["focus"],
                 "parking_lot": previous["parking_lot"]}
 
@@ -1607,10 +1631,14 @@ class Coordinator:
                 workflow_instructions(api, map_only),
                 {"context": context, "turns": turns, "previous_capture": previous, "supporting_documents": supporting},
                 map_schema(api.WORKFLOW_UPDATE_SCHEMA), "team_working_process_map", 22000 if evidence else 12000,
-                reasoning_effort="medium", request_timeout=120,
+                reasoning_effort="medium", request_timeout=generation_seconds,
                 model_override=lead_model)
             if map_only:
                 update.update(copy.deepcopy(memo))
+            # A source the model cited wrongly is settled before the audit reads the
+            # candidate: the reviewer then judges what can stand, and the participant is
+            # never handed the model's citation slip to resolve.
+            update = api.settle_generated_citations(update, previous, turns, evidence, carried, context)
             # Validate within the role's execution boundary. Invalid graph/source
             # output must report an error rather than a completed lead review.
             capture = api.apply_workflow_update(copy.deepcopy(update), previous, turns, evidence, carried, context=context)
@@ -1628,8 +1656,8 @@ class Coordinator:
                 {"context": context, "turns": turns, "previous_capture": previous,
                  "supporting_documents": supporting, "candidate_update": update,
                  "proposed_routes_to_verify": proposals},
-                api.route_audit_schema(map_schema(api.WORKFLOW_AUDIT_SCHEMA), proposals), "team_working_map_source_audit", 24000 if evidence else 12000,
-                reasoning_effort="medium", request_timeout=240 if evidence else 120,
+                api.route_audit_schema(map_schema(api.WORKFLOW_AUDIT_SCHEMA), proposals), "team_working_map_source_audit", MAP_AUDIT_OUTPUT_TOKENS,
+                reasoning_effort="medium", request_timeout=audit_seconds,
                 model_override=self.client.agent_models["document_analyst"] if evidence else self.client.team_map_audit_model)
             if map_only:
                 audit.update(copy.deepcopy(memo))
@@ -1639,11 +1667,23 @@ class Coordinator:
             status = run.public_status()
             recheck = None if status["cancelled"] or status["stale"] else api.RouteRecheck(
                 self.client, context, turns, supporting, "team_working_map_source_audit",
-                started + 120 + (240 if evidence else 120),
+                started + generation_seconds + audit_seconds,
                 model_override=self.client.agent_models["document_analyst"] if evidence else self.client.team_map_audit_model)
             audited = api.apply_workflow_audit(update, audit, previous, context=context, turns=turns, documents=evidence,
                                                recheck=recheck, carried=carried)
-            return api.apply_workflow_update(audited, previous, turns, evidence, carried, context=context)
+            reviewed = api.apply_workflow_update(audited, previous, turns, evidence, carried, context=context)
+            # Before it is published, the reviewed map is checked for parts its route passes by
+            # (a check, a selection or a hold no connection reaches). The sources are asked
+            # once how those parts join, inside the time the two requests above left unused;
+            # a cancelled or replaced run cannot publish, so it does not pay for that request.
+            status = run.public_status()
+            repair = None if status["cancelled"] or status["stale"] else api.RouteRepair(
+                self.client, context, turns, supporting, "team_working_map_source_audit",
+                started + generation_seconds + audit_seconds,
+                model_override=self.client.agent_models["document_analyst"] if evidence else self.client.team_map_audit_model)
+            return api.connect_detached_routes(
+                reviewed, repair, context=context, turns=turns, documents=evidence, baseline=previous["workflow"],
+                judged=api.judged_route_steps([*proposals, *audit["upsert_connections"]], reviewed["workflow"]["connections"]))
         # Transcript-only maps need the same source check as documentary maps.
         # This stays in the bounded background worker, never the question path.
         # The lead's existing two-call budget covers generation plus source audit.

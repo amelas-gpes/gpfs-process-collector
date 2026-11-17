@@ -63,13 +63,14 @@ async function check(name,fn){
  await check("one open section is worded in the singular, and the notes status stops inviting a wrap-up",async()=>{
   const page=await open({config:{...config,concurrent_interview:{enabled:true}},modules:["concurrent-interview.js"],expose:EXPOSE});interview(page);
   page.t.getConcurrentInterview().notify({state:"ready"});
-  assert.equal(page.text("analysis-status"),"Notes caught up. Wrap up when you’re ready for the final checks.");
+  assert.equal(page.text("analysis-status"),"Notes are up to date.");
   const one=verifiedPause();Object.assign(one.memo_findings.find(item=>item.key==="volume"),{status:"captured",answer:"About forty orders a month.",evidence_turns:["t002"]});
   page.t.applyInterview(one);
   assert.match(closureLine(page),/1 section needs information you do not have here: Risks\./);
   assert.equal(page.$("final-check").hidden,true);
-  assert.equal(page.text("analysis-status"),"Notes caught up. This is kept as a partial capture: create the draft, or add more detail.");
-  assert.doesNotMatch(page.text("analysis-status"),/Wrap up/);
+  // The ending is said once, beside the draft control; the notes status only reports the notes.
+  assert.equal(page.text("analysis-status"),"Notes are up to date.");
+  assert.doesNotMatch(page.text("analysis-status"),/Wrap up/);assert.doesNotMatch(closureLine(page),/Wrap up/);
  });
  await check("the ending lasts until the participant adds something; then Wrap up is back",async()=>{
   const page=await open({config,expose:EXPOSE});interview(page);await wrapUp(page,verifiedPause());

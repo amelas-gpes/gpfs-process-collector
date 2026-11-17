@@ -11,20 +11,31 @@ import unicodedata
 STEP_DETAIL_FIELDS = ("duration", "deadline", "frequency", "responsible", "accountable", "consulted", "informed", "system", "control", "exception")
 
 
+def _detail_text(value):
+    return " ".join(unicodedata.normalize("NFKC", value).casefold().split())
+
+
+def _detail_sources(turns, documents, context):
+    """The wording each source ID stands for when an operating detail quotes it."""
+    sources = {turn["id"]: [_detail_text(turn.get("text", ""))] for turn in turns
+               if turn.get("role") == "user" and not turn.get("document_event")}
+    sources["context"] = [_detail_text(value) for key, value in (context or {}).items()
+                          if key in ("process_name", "process_owner", "background") and isinstance(value, str) and value]
+    for document in documents or []:
+        if isinstance(document.get("text"), str):
+            sources[document["id"]] = [_detail_text(document["text"])]
+    return sources
+
+
+def _detail_passage(fact):
+    return re.compile(r"(?<!\w)" + re.escape(_detail_text(fact)) + r"(?!\w)")
+
+
 def validate_operating_details(steps, turns, documents, context, carried=()):
     """Bind each optional fact to its own quoted sources and to the same process step."""
     if not any(isinstance(step, dict) and "operating_details" in step for step in steps):
         return
-    def normalize(value):
-        return " ".join(unicodedata.normalize("NFKC", value).casefold().split())
-
-    sources = {turn["id"]: [normalize(turn.get("text", ""))] for turn in turns
-               if turn.get("role") == "user" and not turn.get("document_event")}
-    sources["context"] = [normalize(value) for key, value in (context or {}).items()
-                          if key in ("process_name", "process_owner", "background") and isinstance(value, str) and value]
-    for document in documents or []:
-        if isinstance(document.get("text"), str):
-            sources[document["id"]] = [normalize(document["text"])]
+    sources = _detail_sources(turns, documents, context)
     for step in steps:
         if not isinstance(step, dict):
             raise ValueError("A process step must be an object.")
@@ -39,12 +50,57 @@ def validate_operating_details(steps, turns, documents, context, carried=()):
                 raise ValueError("A step operating detail needs short quoted text and its supporting source references.")
             if any(not isinstance(ref, str) or ref not in step.get("evidence_turns", []) for ref in refs):
                 raise ValueError("An operating detail must cite evidence from its own step.")
-            passage = re.compile(r"(?<!\w)" + re.escape(normalize(fact)) + r"(?!\w)")
+            passage = _detail_passage(fact)
             for ref in refs:
                 if ref not in sources and ref in carried:
                     continue
                 if not any(passage.search(source) for source in sources.get(ref, [])):
                     raise ValueError("The operating detail must quote the cited participant, context or document excerpt.")
+
+
+def settle_operating_details(steps, turns, documents, context, carried=(), accepted=None):
+    """Keep what the cited sources of a generated step bear out of its operating details.
+
+    A model returns these details with the step. One of them can cite a source the step
+    does not cite, or quote wording its source does not contain. That slip is the model's:
+    it is settled here instead of refusing the whole map and showing the validation
+    message to the participant. A detail keeps the sources that are the step's own and
+    contain its wording; a detail that keeps none is dropped, as is one that is not a
+    detail at all. Nothing is added or reworded. accepted maps a step ID to the details
+    that step already had on the accepted map: those are kept as they are (an excerpt
+    they cite may be outside this request). Returns the number of details dropped.
+    validate_operating_details still checks the result.
+    """
+    sources, dropped = None, 0
+    for step in steps:
+        if not isinstance(step, dict) or not isinstance(step.get("operating_details"), list):
+            continue
+        own = [ref for ref in step.get("evidence_turns", []) if isinstance(ref, str)] if isinstance(step.get("evidence_turns"), list) else []
+        known = (accepted or {}).get(step.get("id")) or []
+        kept = []
+        for row in step["operating_details"]:
+            if row in known:
+                kept.append(row)
+                continue
+            if (not isinstance(row, dict) or set(row) != {"field", "text", "evidence_turns"} or row["field"] not in STEP_DETAIL_FIELDS
+                    or not isinstance(row["text"], str) or not row["text"].strip() or len(row["text"]) > 500
+                    or not isinstance(row["evidence_turns"], list)):
+                dropped += 1
+                continue
+            if sources is None:
+                sources = _detail_sources(turns, documents, context)
+            passage = _detail_passage(row["text"])
+            refs = [ref for ref in dict.fromkeys(ref for ref in row["evidence_turns"] if isinstance(ref, str)) if ref in own
+                    and (ref not in sources and ref in carried or any(passage.search(source) for source in sources.get(ref, [])))][:15]
+            if not refs:
+                dropped += 1
+                continue
+            kept.append(row if refs == row["evidence_turns"] else {**row, "evidence_turns": refs})
+        if len(kept) > 32:
+            dropped += len(kept) - 32
+            kept = kept[:32]
+        step["operating_details"] = kept
+    return dropped
 
 
 CONTEXT = """

@@ -747,5 +747,48 @@ function response(document){return{ok:true,json:async()=>({document})};}
   assert.equal(h.api.body.querySelector("pre").textContent,"A1=first | C9=fake😀 | B1=last");h.api.dispose();passes++;
  }
 
+ {
+  // Finding 1 of docs/testing/process-capture-2026-11-16: a poll that lands after the file is indexed and
+  // before its review reports a phase must not be the last one. The page stayed on "Reading your files"
+  // for minutes while the server had long finished; returning to the tab resumed it.
+  const stages=[doc({status:"pending",analysis:{}}),doc({status:"ready",chunk_count:4,analysis:{}}),doc({status:"ready",chunk_count:4,analysis:{}}),
+   doc({status:"ready",chunk_count:4,analysis:{phase:"complete",disposition:"relevant",summary:"Reviewed.",version:1,sources:[]}})];
+  let polls=0;const h=setup({inline:false,request:async()=>({documents:[stages[Math.min(polls++,stages.length-1)]]})});
+  h.api.scope="local-scope";h.api.setDocuments([stages[0]],false);
+  const next=async()=>{const [id,timer]=[...h.timers.entries()].find(([,item])=>item.delay===2000||item.delay===0)||[];assert.ok(timer,"A poll must be scheduled");h.timers.delete(id);timer.fn();await tick();await tick();};
+  h.api.schedule(0);await next();
+  assert.equal(h.api.documents[0].status,"pending");
+  await next();
+  assert.equal(h.api.documents[0].status,"ready");assert.equal(h.api.documents[0].analysis.phase,undefined);
+  assert.equal(Boolean(h.api.pending()),true,"Indexed with no review phase yet is still being worked on");
+  assert.equal(h.api.awaitingReview(h.api.documents[0]),true);
+  assert.ok([...h.timers.values()].some(timer=>timer.delay===2000),"Polling continues between indexing and the first review phase");
+  await next();assert.ok([...h.timers.values()].some(timer=>timer.delay===2000));
+  // The review finished between two polls: the visible tab advances by itself and then stops polling.
+  await next();
+  assert.equal(h.api.documents[0].analysis.phase,"complete");assert.equal(Boolean(h.api.pending()),false);
+  assert.equal(h.api.pollTimer,null,"A finished review ends automatic polling");
+  assert.ok(h.events.some(event=>event.type==="analysis"&&event.document.analysis.phase==="complete"));
+  assert.equal(polls,4,"No intervention and no extra request");
+  // States that are not waiting for a first review do not keep polling alive.
+  for(const resting of [doc({status:"ready",archived:true,analysis:{}}),doc({status:"ready",analysis:{review_stopped:true}}),
+   doc({status:"ready",analysis:{},extraction_needs_reindex:true,reindex_check:{outcome:"changed"}}),doc({status:"error",analysis:{}})]){
+   assert.equal(h.api.awaitingReview(resting),false);
+  }
+  h.api.dispose();passes++;
+ }
+ {
+  // While the interview waits on these files (a file intake in its reading stage), polling continues
+  // whatever state the last poll reported, and stops once the interview no longer waits.
+  let waiting=true;const file=doc({status:"ready",chunk_count:4,analysis:{phase:"complete",review_stopped:true,disposition:"relevant",summary:"Sampled.",version:1,sources:[]}});
+  const h=setup({inline:false,request:async()=>({documents:[file]}),extra:{reviewAwaited:()=>waiting}});
+  h.api.scope="local-scope";h.api.setDocuments([file],false);
+  assert.equal(Boolean(h.api.pending()),true);h.api.schedule();assert.equal(h.timers.size,1);
+  waiting=false;assert.equal(Boolean(h.api.pending()),false);h.api.schedule();assert.equal(h.timers.size,0);
+  const empty=setup({inline:false,extra:{reviewAwaited:()=>true}});empty.api.scope="local-scope";
+  assert.equal(Boolean(empty.api.pending()),false,"Nothing to wait for without a file");
+  h.api.dispose();empty.api.dispose();passes++;
+ }
+
  console.log(JSON.stringify({tests_passed:passes,network_calls:0,provider_calls:0,physical_files_uploaded:false}));
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -45,7 +45,9 @@ MAX_PDF_CONTENT_BYTES = 128 * 1024 * 1024
 MAX_IMAGE_PIXELS = 40_000_000
 MAX_INVENTORY_BYTES = 50 * 1024
 MAX_CONTEXT_BYTES = 32 * 1024
-EXTRACTION_VERSION = 3  # PDF annotations, delimited text, and narrower spreadsheet source ranges.
+# 4: a PDF page whose only drawings are page furniture (rules, boxes, bullets) is no longer
+# given a visual placeholder; 3: PDF annotations, delimited text, narrower spreadsheet ranges.
+EXTRACTION_VERSION = 4
 # The layouts of documents.sqlite3 this build opens: the oldest it upgrades in place, and the
 # one it writes. SQLite keeps the number in the file (PRAGMA user_version; 0 in a store from
 # before it was recorded). Raise the second number with any change an older build would
@@ -1233,12 +1235,186 @@ def _pdf_annotation_text(page):
     return lines, unread
 
 
+# What a drawing has to exceed, in points, before it can be more than a bullet, a tick box,
+# the rounded corner of a box or an icon set in a line of text.
+PDF_FURNITURE_SIZE = 14.0
+# How far a ruled line may drift, in points, and still be horizontal or vertical.
+PDF_RULE_DRIFT = 0.75
+# Rules and boxes are furniture where they frame text. On a page with fewer readable
+# characters than this, a painted shape can be the page's actual content (a chart, a
+# diagram of boxes), so the page keeps the cautious answer.
+PDF_SPARSE_TEXT = 200
+# The drawing check never decides the fate of a file: beyond these bounds a page keeps the
+# cautious answer (graphics are assumed and sent for visual review).
+PDF_DRAWING_OPERATIONS = 400_000
+PDF_DRAWING_SECONDS = 12.0
+_PDF_PAINTS = frozenset((b'S', b's', b'f', b'F', b'f*', b'B', b'B*', b'b', b'b*'))
+
+
+class _PdfDrawingBudget(Exception):
+    pass
+
+
+def _pdf_matrix(left, right):
+    a, b, c, d, e, f = left
+    g, h, i, j, k, m = right
+    return (a * g + b * i, a * h + b * j, c * g + d * i, c * h + d * j, e * g + f * i + k, e * h + f * j + m)
+
+
+def _pdf_point(matrix, x, y):
+    a, b, c, d, e, f = matrix
+    return (a * x + c * y + e, b * x + d * y + f)
+
+
+def _pdf_path_is_drawing(path):
+    """Whether one painted path is more than page furniture.
+
+    Furniture is what a text page is ruled and decorated with: rectangles, horizontal and
+    vertical lines (table grids, borders, underlines, shaded bars), boxes with small rounded
+    corners, and marks no larger than a line of text (bullets, tick boxes). A slanted line, a
+    straight-edged shape such as an arrowhead, or a curve larger than a corner is a drawing.
+    path holds ('l', (start, end)) and ('c', (start, control..., end)) in page units.
+    """
+    xs = [point[0] for _, points in path for point in points]
+    ys = [point[1] for _, points in path for point in points]
+    extent = max(max(xs) - min(xs), max(ys) - min(ys))
+    curved = any(kind == 'c' for kind, _ in path)
+    for kind, points in path:
+        if kind == 'l':
+            (x0, y0), (x1, y1) = points
+            dx, dy = abs(x1 - x0), abs(y1 - y0)
+            if dx <= PDF_RULE_DRIFT or dy <= PDF_RULE_DRIFT:
+                continue
+            # A slanted edge: part of something larger than a text mark, or of a small shape
+            # drawn only with straight edges (an arrowhead), which a round bullet is not.
+            if extent > PDF_FURNITURE_SIZE or (not curved and (dx * dx + dy * dy) ** .5 > 3.0):
+                return True
+        else:
+            cx, cy = [point[0] for point in points], [point[1] for point in points]
+            if max(cx) - min(cx) > PDF_FURNITURE_SIZE or max(cy) - min(cy) > PDF_FURNITURE_SIZE:
+                return True
+    return False
+
+
+def _pdf_content_draws(content, reader, matrix, resources, depth, state):
+    """Whether a content stream (a page's, or a form's that the page shows) paints a drawing.
+
+    A page can hold all of its text and rules inside one form object, so the form is read
+    rather than counted as a graphic. Counts the furniture shapes it passes in state['shapes'].
+    """
+    from pypdf.generic import ContentStream
+    if depth > 8:
+        return True
+    try:
+        xobjects = (resources.get('/XObject') if resources is not None else None) or {}
+        xobjects = xobjects.get_object() if hasattr(xobjects, 'get_object') else xobjects
+    except Exception:
+        return True
+    stack, path, start, current = [], [], None, None
+    for operands, operator in content.operations:
+        state['operations'] += 1
+        if state['operations'] > PDF_DRAWING_OPERATIONS or (state['operations'] % 256 == 0 and time.monotonic() > state['deadline']):
+            raise _PdfDrawingBudget
+        if operator == b'q':
+            stack.append(matrix)
+        elif operator == b'Q':
+            if stack:
+                matrix = stack.pop()
+        elif operator == b'cm':
+            matrix = _pdf_matrix(tuple(float(value) for value in operands), matrix)
+        elif operator == b'm':
+            start = current = _pdf_point(matrix, float(operands[0]), float(operands[1]))
+        elif operator == b'l':
+            point = _pdf_point(matrix, float(operands[0]), float(operands[1]))
+            if current is not None:
+                path.append(('l', (current, point)))
+            current = point
+        elif operator in (b'c', b'v', b'y'):
+            values = [float(value) for value in operands]
+            points = [_pdf_point(matrix, values[index], values[index + 1]) for index in range(0, len(values) - 1, 2)]
+            if current is not None and points:
+                path.append(('c', (current, *points)))
+            if points:
+                current = points[-1]
+        elif operator == b'h':
+            if current is not None and start is not None and current != start:
+                path.append(('l', (current, start)))
+            current = start
+        elif operator == b're':
+            x, y, width, height = (float(value) for value in operands)
+            corners = [_pdf_point(matrix, x, y), _pdf_point(matrix, x + width, y),
+                       _pdf_point(matrix, x + width, y + height), _pdf_point(matrix, x, y + height)]
+            path.extend(('l', (corners[index], corners[(index + 1) % 4])) for index in range(4))
+            start = current = corners[0]
+        elif operator == b'n':
+            path, start, current = [], None, None  # A clipping path: nothing is painted.
+        elif operator in _PDF_PAINTS:
+            if path:
+                if _pdf_path_is_drawing(path):
+                    return True
+                state['shapes'] += 1
+            path, start, current = [], None, None
+        elif operator == b'sh':
+            return True  # A shading fills its area with a gradient; what it shows is not known.
+        elif operator in (b'Do', b'INLINE IMAGE'):
+            if operator == b'Do':
+                target = xobjects[operands[0]].get_object()
+                subtype = target.get('/Subtype')
+                if subtype == '/Form':
+                    if id(target) in state['open']:
+                        return True
+                    inner = target.get('/Matrix')
+                    inner = _pdf_matrix(tuple(float(value) for value in inner), matrix) if inner else matrix
+                    state['open'].add(id(target))
+                    try:
+                        if _pdf_content_draws(ContentStream(target, reader), reader, inner,
+                                              target.get('/Resources') or resources, depth + 1, state):
+                            return True
+                    finally:
+                        state['open'].discard(id(target))
+                    continue
+                if subtype != '/Image':
+                    return True
+            # An image is drawn on the unit square. One no larger than a text mark is an icon or
+            # a bullet, and one as thin as a rule is a rule; anything else has content that only
+            # a visual reading can report, however few pixels it was stored with.
+            origin, across, up = _pdf_point(matrix, 0, 0), _pdf_point(matrix, 1, 0), _pdf_point(matrix, 0, 1)
+            sides = (((across[0] - origin[0]) ** 2 + (across[1] - origin[1]) ** 2) ** .5,
+                     ((up[0] - origin[0]) ** 2 + (up[1] - origin[1]) ** 2) ** .5)
+            if max(sides) > PDF_FURNITURE_SIZE and min(sides) > 3.0:
+                return True
+            state['shapes'] += 1
+    return False
+
+
+def _pdf_page_has_drawing(page, reader, contents, text_chars, deadline):
+    """True when a page paints something a visual reading is needed for; False when what it
+    paints is page furniture around its text. Anything this check cannot settle is True.
+
+    This narrows a cautious answer and never widens it: it is asked only about a page that
+    paints something, and only its confident "furniture only" on a page of text lets the page
+    go without a visual placeholder. A drawing made solely of unrotated boxes and ruled lines
+    (a bar chart, a box diagram without arrowheads) reads as furniture; a page with little
+    text of its own is therefore still sent for visual review whenever it paints a shape.
+    """
+    state = {'operations': 0, 'deadline': deadline, 'open': set(), 'shapes': 0}
+    try:
+        if _pdf_content_draws(contents, reader, (1.0, 0.0, 0.0, 1.0, 0.0, 0.0), page.get('/Resources'), 0, state):
+            return True
+    except _PdfDrawingBudget:
+        return True
+    except Exception:
+        return True  # An object this check cannot follow is not evidence of a plain page.
+    return state['shapes'] > 0 and text_chars < PDF_SPARSE_TEXT
+
+
 def _pdf(path, record, chunks):
     from pypdf import PdfReader
     from pypdf.errors import LimitReachedError
     reader = PdfReader(path)
     _open_pdf(reader)
     deadline = time.monotonic() + 45
+    drawing_seconds = 0.0
     operations = 0
     exhausted = False
     def bound(*_):
@@ -1277,9 +1453,22 @@ def _pdf(path, record, chunks):
             # review requirements until inspected.
             paints = {b'Do', b'INLINE IMAGE', b'S', b's', b'f', b'F', b'f*', b'B', b'B*', b'b', b'b*', b'sh'}
             operators = [op for _, op in contents.operations] if contents is not None else []
-            visual = (unread_annotations or b're' in operators and any(op in paints for op in operators)
-                      or any(op in paints - {b'S', b's'} for op in operators)
-                      or sum(op in (b'S', b's') for op in operators) > 1)
+            painted = (b're' in operators and any(op in paints for op in operators)
+                       or any(op in paints - {b'S', b's'} for op in operators)
+                       or sum(op in (b'S', b's') for op in operators) > 1)
+            if painted and not unread_annotations and text.strip():
+                # Rules, table grids, shaded bars and bullets are painted too, and many
+                # exports put a whole page (text and rules) inside one form object. Such a
+                # page has no graphic to read, so it must neither be sent for a visual
+                # reading nor be reported as holding unread graphics. The time this check
+                # takes is its own: it cannot make the text extraction miss its deadline.
+                checked = time.monotonic()
+                painted = (drawing_seconds >= PDF_DRAWING_SECONDS or _pdf_page_has_drawing(
+                    page, reader, contents, len(text.strip()), checked + PDF_DRAWING_SECONDS - drawing_seconds))
+                spent = time.monotonic() - checked
+                drawing_seconds += spent
+                deadline += spent
+            visual = bool(unread_annotations or painted)
         except LimitReachedError:
             raise ExtractionError('PDF decoded content exceeds 16 MiB per page or 128 MiB total; no partial index was published.') from None
         except DocumentError:

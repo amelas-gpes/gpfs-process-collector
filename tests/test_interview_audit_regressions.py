@@ -141,12 +141,21 @@ class AuditRegressions(unittest.TestCase):
                 client.graph_gate = gate if kind == "workflow" else None
                 service = module.ConcurrentInterview(client, API)
                 try:
+                    service.map_wait = .05
                     data = payload()
                     response = service.turn(data)
                     data["conversation_token"] = response["conversation_token"]
-                    with self.assertRaises(server.APIError) as expired:
-                        service.sync(data, timeout=.05)
-                    self.assertEqual(expired.exception.status, 504)
+                    if kind == "notes":
+                        with self.assertRaises(server.APIError) as expired:
+                            service.sync(data, timeout=.05)
+                        self.assertEqual(expired.exception.status, 504)
+                    else:
+                        # A map that is still being drawn is not a deadline of Wrap up: the
+                        # synchronized notes are released and the map keeps its own status.
+                        released = service.sync(data, timeout=.5)
+                        self.assertTrue(released["capture_token"])
+                        self.assertIs(released["workflow_pending"], True)
+                        self.assertNotIn("workflow_capture", released)
                     gate.set()
                     self.assertTrue(service.sync(data, timeout=3)["capture_token"])
                 finally:

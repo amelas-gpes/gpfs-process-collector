@@ -106,7 +106,7 @@ await check("background notes and map carrying the same document excerpts both a
  assert.equal(h.t.state.memo_findings.find(finding=>finding.key==="checks").evidence_turns.join(),"doc_abc123_p1");
  assert.equal(h.t.conversationUI.workflow.steps.map(step=>step.evidence_turns.join()).join(),"doc_abc123_p2,doc_abc123_p1");
  assert.equal(h.node("workflow-status").textContent,"Updated through the latest answer");
- assert.match(h.node("analysis-status").textContent,/^Notes caught up/);assert.doesNotMatch(h.node("analysis-status").textContent,/need attention/);
+ assert.match(h.node("analysis-status").textContent,/^Notes are up to date/);assert.doesNotMatch(h.node("analysis-status").textContent,/need attention/);
 });
 await check("wrap up applies a synchronized result whose notes and map cite the same document excerpts",async()=>{
  const h=concurrentSetup(),question="Which exception still needs explaining?";h.t.state.turns.push({id:"t002",role:"user",text:"The clerk reviews it."});

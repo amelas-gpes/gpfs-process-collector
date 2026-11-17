@@ -118,8 +118,15 @@ per turn: a lead or reviewer reply with two question marks is replaced.
 - New answers, corrections, context changes, resets or file changes prevent late
   observations from replacing current state. Old results do not append speech.
 - Wrap up, or an interviewer request for review, synchronizes the actual complete
-  transcript and waits for the current notes and workflow. Failed workflow work
-  receives at most one retry per explicit wrap-up attempt. A question appended after capture is included before a review ticket
+  transcript and waits for the current notes. The workflow is a separate product with
+  its own status: Wrap up returns it when it is ready or arrives within two seconds,
+  and otherwise releases the notes with `workflow_state` (`queued`, `working` or
+  `error`), `workflow_pending` and, for a failure, `workflow_error`. The page then
+  polls the status of that revision and applies the map alone when it arrives; a
+  failed map is shown in Workflow with **Update workflow**, while Notes says the
+  notes are caught up. An explicit Wrap up still queues a map the revision lacks and
+  one retry of a map that failed; neither is waited for, and a failed or queued map
+  never fails Wrap up. A question appended after capture is included before a review ticket
   is issued. Existing independent review, final omissions and confirmation gates
   remain authoritative. Opaque capture tokens are validated by Coordinator.
 - A failed background operation preserves the conversation and prior displayed
@@ -149,8 +156,11 @@ per turn: a lead or reviewer reply with two question marks is replaced.
 
 Existing draft generation reads the complete current transcript and performs its
 own evidence/coverage audits. A draft remains a review artifact, not a declaration
-that the interview is complete. File intake retains its explicit review-and-baseline
-phase before a documentary follow-up; this change does not bypass that boundary.
+that the interview is complete. File intake waits for the review of its files and then
+asks the question those files raise through this same fast path (action
+`document_followup`): the notes and the audited map of that revision are background work
+like any other, and a file-only start is mapped as well. The question never requests a
+review and never fails on the model's reply (see DOCUMENT_INTERVIEWS.md).
 
 ## Operational limits
 

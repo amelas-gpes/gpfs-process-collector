@@ -195,8 +195,16 @@ class CarriedRouteReviewTests(unittest.TestCase):
         self.assertEqual(corrected["upsert_connections"], [accepted])
         merged = server.apply_workflow_update(corrected, previous, baseline()["turns"], [SHOWN], CARRIED)
         self.assertEqual(merged["workflow"]["connections"][1], accepted)
+        # Without the store's confirmation the excerpt is not a source at all. The proposal that
+        # rests on it alone is left out and named, instead of refusing the whole map for a
+        # citation the model got wrong; the route check itself still refuses such a citation.
+        _, unconfirmed = self.reviewed(update(upsert_connections=[copy.deepcopy(accepted)]), audit(), carried=())
+        self.assertEqual(unconfirmed["upsert_connections"], [])
+        self.assertTrue(any("handoff or prerequisite" in question for question in unconfirmed["open_questions"]))
+        value = baseline()
         with self.assertRaisesRegex(ValueError, "map connection cites missing"):
-            self.reviewed(update(upsert_connections=[copy.deepcopy(accepted)]), audit(), carried=())
+            server.grounded_routes([copy.deepcopy(accepted)], [], value["previous_capture"]["workflow"]["steps"], {},
+                                   value["turns"], [SHOWN])
 
     def test_a_new_route_cannot_rest_on_a_carried_excerpt(self):
         proposed = edge("S1", "S3", "Skips", [MAP_ONLY])

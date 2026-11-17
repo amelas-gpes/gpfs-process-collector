@@ -6,7 +6,11 @@
   const EXTENSIONS = new Set(["pdf","png","xlsx","xlsm","csv"]);
   // These notices describe what the background review sends (document_service.py): keep them true to it.
   const FILE_NOTICE = "Files are saved on this computer. The AI service can receive file names, the full extracted text (including hidden sheets), and pages or images for visual review. Large files pause for your choice before sending more. Files saved for later pause further background review. Remove stops further review and takes the file out of future interview requests. Use Permanently delete in Removed files to erase its local original and index. Excerpts in earlier saves or submissions remain. Confirm file details in the interview.";
-  const FILE_LIMITS = "PDF, PNG, XLSX, XLSM or CSV · Up to 64 MiB each. Extraction limits: 500 PDF pages, 100 sheets, 2 million populated cells, 40 megapixels per image, and 64 MiB of indexed text in up to 50,000 sections.";
+  // The Assets panel says what is needed to add a file; the full limits and the notice are one click away.
+  const FILE_FORMATS = "PDF, PNG, XLSX, XLSM or CSV · up to 64 MiB each";
+  const EXTRACTION_LIMITS = "Extraction limits: 500 PDF pages, 100 sheets, 2 million populated cells, 40 megapixels per image, and 64 MiB of indexed text in up to 50,000 sections.";
+  const FILE_LIMITS = FILE_FORMATS.replace("up to", "Up to") + ". " + EXTRACTION_LIMITS;
+  const FILE_NOTICE_LEAD = "Saved on this computer and read by the AI service";
   const PARKED_REVIEW_NOTICE = "Further review is paused while this file is saved for later. A request already sent can finish.";
   // The reviewer's verdict on a file, in the words shown beside its reason.
   const RELEVANCE = {relevant:"related to this process",unclear:"not clearly related to this process",unrelated:"not related to this process"};
@@ -168,13 +172,14 @@
       this.attachButton=this.button("Add files","documents-add",()=>this.attach());
       this.input=this.node("input");this.input.type="file";this.input.accept=".pdf,.png,.xlsx,.xlsm,.csv";this.input.multiple=true;this.input.hidden=true;
       this.input.addEventListener("change",()=>{const files=Array.from(this.input.files||[]);this.input.value="";this.addFiles(files);});
-      const formats=this.node("p","documents-assets-formats",FILE_LIMITS);
+      const formats=this.node("p","documents-assets-formats",FILE_FORMATS);
       this.usage=this.node("p","documents-assets-formats documents-usage");this.usage.id="documents-usage";this.usage.hidden=true;
       this.attachButton.setAttribute("aria-describedby","documents-usage");
       header.append(this.attachButton,this.input,formats,this.usage);
       this.liveStatus=this.node("p","documents-live-status");this.liveStatus.setAttribute("role","status");this.liveStatus.setAttribute("aria-live","polite");this.liveStatus.setAttribute("aria-atomic","true");
       this.body=this.node("div","documents-body");this.body.setAttribute("aria-live","off");this.body.setAttribute("aria-label","Uploaded files");
-      const footer=this.node("p","documents-assets-privacy",FILE_NOTICE);
+      const footer=this.node("details","documents-assets-privacy");
+      footer.append(this.node("summary","",FILE_NOTICE_LEAD),this.node("p","",FILE_NOTICE),this.node("p","",EXTRACTION_LIMITS));
       this.assets.replaceChildren(header,this.liveStatus,this.body,footer);
     }
     attach() {if(!this.allowed())return;this.input.click();}
@@ -350,7 +355,16 @@
       if(!this.full())return count;
       return `${count} No more files can be added to this interview.${removed?" Removed files stay on this computer and keep their slots: restore one to use it again.":""}`;
     }
-    pending() {return this.uploads.length||this.documents.some(item=>!this.reviewError(item)&&(this.reindexChecking(item)||["pending","indexing"].includes(item.status)||["quick","deep"].includes(item.analysis?.phase)));}
+    // A file whose text has been read while its review has not reported a phase yet. The server reviews
+    // every such file (document_service.listing schedules it), so its state is still about to change:
+    // a poll that lands between "indexed" and "review started" must not be the last one.
+    awaitingReview(item) {return !item.archived&&["ready","partial"].includes(item.status)&&!item.analysis?.phase&&!item.analysis?.review_stopped&&!this.needsReindex(item);}
+    pending() {
+      // The interview can be waiting on these files (a file intake in its reading stage). While it
+      // says so, polling continues whatever state the last poll happened to report.
+      if(this.uploads.length||this.options.reviewAwaited?.()===true&&this.documents.length)return true;
+      return this.documents.some(item=>!this.reviewError(item)&&(this.reindexChecking(item)||["pending","indexing"].includes(item.status)||["quick","deep"].includes(item.analysis?.phase)||this.awaitingReview(item)));
+    }
     schedule(delay) {
       clearTimeout(this.pollTimer);this.pollTimer=null;
       if(this.disposed||this.suspended||this.doc.hidden||this.scopeUnavailable||!this.scope||(delay===undefined&&!this.documents.length&&!this.uploads.length&&!this.removed.length))return;

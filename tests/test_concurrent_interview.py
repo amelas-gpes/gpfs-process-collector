@@ -329,21 +329,212 @@ class ConcurrentContracts(unittest.TestCase):
         thread.join(1)
         self.assertEqual(answers[0]["workflow_capture"], {"workflow": {"steps": [{"id": "reported"}]}})
 
-    def test_sync_failed_workflow_gets_one_retry_and_blocks_final_review(self):
+    def test_sync_failed_workflow_gets_one_retry_and_releases_the_notes(self):
+        # Finding 3 of docs/testing/process-capture-2026-11-16: a failed map used to fail Wrap up
+        # (HTTP 502 or 504) although the notes were there. The notes are what a review reads; the
+        # map keeps its own status and retry and never holds them back.
         client = FakeClient()
         client.graph_fail = True
         service = self.service(client)
         first = service.turn(payload())
         snapshot = {**payload(), "conversation_token": first["conversation_token"]}
         wait_for(lambda: service.status(snapshot)["workflow_state"] == "error")
-        with self.assertRaisesRegex(APIError, "workflow review could not finish"):
-            service.sync(snapshot)
-        self.assertEqual(len(client.graphs), 2)
-        self.assertIsNone(service._sessions[first["conversation_token"]]["synchronized"])
-        client.graph_fail = False
         result = service.sync(snapshot)
-        self.assertIn("workflow_capture", result)
+        # One explicit retry of the failed map, never a paid loop.
+        self.assertEqual(len(client.graphs), 2)
+        self.assertEqual(result["marker"], snapshot["turns"][-1]["text"])
+        self.assertNotIn("workflow_capture", result)
+        self.assertEqual((result["workflow_state"], result["workflow_pending"]), ("error", False))
+        self.assertEqual(result["workflow_error"], "The workflow could not update. Your answers are retained.")
+        self.assertNotIn("Private", str(result))
+        # The synchronized notes are available for review and the transcript is untouched.
+        self.assertEqual(service._sessions[first["conversation_token"]]["synchronized"]["marker"], result["marker"])
+        self.assertEqual(service.status(snapshot)["capture"]["marker"], result["marker"])
+        # A further Wrap up may retry the map once more; when it then succeeds it is returned.
+        client.graph_fail = False
+        again = service.sync(snapshot)
+        self.assertEqual(again["workflow_capture"], {"workflow": {"steps": [{"id": "reported"}]}})
+        self.assertEqual((again["workflow_state"], again["workflow_pending"]), ("ready", False))
         self.assertEqual(len(client.graphs), 3)
+
+    def test_sync_does_not_wait_for_a_slow_workflow_which_arrives_through_its_own_status(self):
+        gate = threading.Event()
+        self.addCleanup(gate.set)
+        client = FakeClient()
+        client.graph_gate = gate
+        service = self.service(client)
+        service.map_wait = .05
+        first = service.turn(payload())
+        snapshot = {**payload(), "conversation_token": first["conversation_token"]}
+        wait_for(lambda: service.status(snapshot)["state"] == "ready")
+        started = time.monotonic()
+        result = service.sync(snapshot)
+        self.assertLess(time.monotonic() - started, 1, "Wrap up must not wait for a map that is still being drawn")
+        self.assertEqual(result["marker"], snapshot["turns"][-1]["text"])
+        self.assertNotIn("workflow_capture", result)
+        self.assertIn(result["workflow_state"], ("queued", "working"))
+        self.assertIs(result["workflow_pending"], True)
+        self.assertNotIn("workflow_error", result)
+        self.assertEqual(len(client.graphs), 1, "The map already being drawn is not started a second time")
+        # The map keeps its own status: the poll of this revision delivers it when it arrives.
+        query = {"conversation_token": result["conversation_token"], "revision": result["revision"]}
+        self.assertIn(service.status_for_revision(query)["workflow_state"], ("queued", "working"))
+        gate.set()
+        wait_for(lambda: service.status_for_revision(query)["workflow_state"] == "ready")
+        status = service.status_for_revision(query)
+        self.assertEqual(status["workflow_capture"], {"workflow": {"steps": [{"id": "reported"}]}})
+        self.assertEqual(status["capture"]["marker"], result["marker"])
+
+    def test_sync_with_a_capability_releases_notes_and_serves_the_late_map_of_that_revision(self):
+        gate = threading.Event()
+        self.addCleanup(gate.set)
+        client = FakeClient()
+        service = self.service(client)
+        service.map_wait = .05
+        first = service.turn(payload())
+        snapshot = {**payload(), "conversation_token": first["conversation_token"]}
+        wait_for(lambda: service.status(snapshot)["state"] == "ready" and service.status(snapshot)["workflow_state"] == "ready")
+        # A correction after an earlier review: the browser holds a capability and the account changed.
+        client.graph_gate = gate
+        corrected = copy.deepcopy(snapshot)
+        corrected["turns"] += [{"id": "a2", "role": "assistant", "text": "What remains?"},
+                               {"id": "u2", "role": "user", "text": "The manager approves it first."}]
+        corrected.update(capture_token="coordinator-capability", action="close")
+        result = service.sync(corrected)
+        self.assertEqual(result["marker"], "The manager approves it first.")
+        self.assertNotIn("workflow_capture", result)
+        self.assertIs(result["workflow_pending"], True)
+        query = {"conversation_token": result["conversation_token"], "revision": result["revision"]}
+        self.assertIn(service.status_for_revision(query)["workflow_state"], ("queued", "working"))
+        gate.set()
+        wait_for(lambda: service.status_for_revision(query)["workflow_state"] == "ready")
+        self.assertIn("workflow_capture", service.status_for_revision(query))
+        self.assertEqual(client.graphs[-1]["turns"][-1]["text"], "The manager approves it first.")
+
+    def test_one_session_waiting_for_its_map_does_not_hold_up_wrap_up_in_another(self):
+        # One map is drawn at a time across sessions. A second interview's Wrap up used to wait
+        # behind the first one's map until its own request timed out.
+        gate = threading.Event()
+        self.addCleanup(gate.set)
+        client = FakeClient()
+        client.graph_gate = gate
+        service = self.service(client)
+        service.map_wait = .05
+        first = service.turn(payload("The clerk receives the invoice."))
+        second = service.turn(payload("The buyer raises a purchase order."))
+        one = {**payload("The clerk receives the invoice."), "conversation_token": first["conversation_token"]}
+        two = {**payload("The buyer raises a purchase order."), "conversation_token": second["conversation_token"]}
+        wait_for(lambda: service.status(one)["state"] == "ready" and service.status(two)["state"] == "ready")
+        wait_for(lambda: len(client.graphs) == 1)
+        started = time.monotonic()
+        results = [service.sync(one), service.sync(two)]
+        self.assertLess(time.monotonic() - started, 1.5)
+        self.assertEqual([item["marker"] for item in results],
+                         ["The clerk receives the invoice.", "The buyer raises a purchase order."])
+        self.assertEqual([item["workflow_pending"] for item in results], [True, True])
+        self.assertEqual(len(client.graphs), 1, "The second map waits its turn in the background")
+        gate.set()
+        for item in results:
+            query = {"conversation_token": item["conversation_token"], "revision": item["revision"]}
+            wait_for(lambda: service.status_for_revision(query)["workflow_state"] == "ready")
+            self.assertIn("workflow_capture", service.status_for_revision(query))
+        self.assertEqual(len(client.graphs), 2)
+
+    # Finding 4 of docs/testing/process-capture-2026-11-16: the first question after a file is
+    # added is asked from the file's own excerpts at once; the notes and the audited map of the
+    # same revision are completed in the background. Finding 5: that question never fails on
+    # what a model returned, and falls back to a question bound to a verified excerpt.
+    FILE = {"id": "doc_fee", "name": "Monitoring fee.csv", "review": {"phase": "complete"},
+            "excerpts": [{"id": "doc_fee_r1_c1", "text": "Review the monitoring-fee schedule before quarter end."}],
+            "questions": [{"text": "What happens to the monitoring-fee schedule after that review?",
+                           "sources": [{"source_id": "doc_fee_r1_c1", "label": "Monitoring fee.csv · row 1"}]}]}
+
+    def file_payload(self, **changes):
+        return {"context": {"process_name": "Monitoring fees"},
+                "turns": [{"id": "doc_intake", "role": "assistant", "text": "Thanks for sharing.", "document_event": True}],
+                "_supporting_documents": {"documents": [copy.deepcopy(self.FILE)]},
+                "document_required_ids": ["doc_fee"], "action": "document_followup", **changes}
+
+    def test_file_followup_asks_from_the_excerpts_at_once_and_maps_the_file_in_the_background(self):
+        gate = threading.Event()
+        self.addCleanup(gate.set)
+        client = FakeClient(gate)
+        client.graph_gate = gate
+        client.question = "The document describes a schedule review before quarter end. What happens to the schedule after that review?"
+        service = self.service(client)
+        started = time.monotonic()
+        result = service.turn(self.file_payload())
+        self.assertLess(time.monotonic() - started, 1, "The file question must not wait for notes or the map")
+        self.assertEqual(result["question"], client.question)
+        self.assertFalse(result["sync_required"])
+        self.assertEqual(result["speech_authorization"]["text"], client.question)
+        sent = client.questions[0]
+        self.assertEqual(sent["action"], "document_followup")
+        self.assertEqual(sent["supporting_documents"]["documents"][0]["excerpts"][0]["id"], "doc_fee_r1_c1")
+        # A file alone describes a process: its notes and its map are queued for this revision.
+        wait_for(lambda: client.captures and client.graphs)
+        self.assertTrue(client.graphs[0]["_map_only"])
+        snapshot = {**self.file_payload(), "conversation_token": result["conversation_token"]}
+        self.assertEqual(service.status(snapshot)["workflow_state"], "working")
+        gate.set()
+        wait_for(lambda: service.status(snapshot)["state"] == "ready" and service.status(snapshot)["workflow_state"] == "ready")
+        self.assertIn("workflow_capture", service.status(snapshot))
+
+    def test_file_followup_policy_grounds_the_question_and_other_turns_do_not_receive_it(self):
+        self.assertIn("FILE FOLLOW-UP", module.question_policy(API, True))
+        self.assertIn("take every one of them", module.question_policy(API, True))
+        self.assertNotIn("FILE FOLLOW-UP", module.question_policy(API))
+        instructions = []
+        client = FakeClient()
+        original = client.structured
+        client.structured = lambda text, *rest, **options: instructions.append(text) or original(text, *rest, **options)
+        service = self.service(client)
+        service.turn(self.file_payload())
+        service.turn(payload())
+        self.assertIn("FILE FOLLOW-UP", instructions[0])
+        self.assertNotIn("FILE FOLLOW-UP", instructions[1])
+
+    def test_file_followup_never_fails_or_closes_on_the_models_reply(self):
+        fallback = self.FILE["questions"][0]["text"]
+        cases = {"provider failure": lambda client: setattr(client, "structured", lambda *args, **kwargs: (_ for _ in ()).throw(APIError("Private provider detail", 504))),
+                 "malformed reply": lambda client: setattr(client, "structured", lambda *args, **kwargs: {"question": 7}),
+                 "review requested": lambda client: setattr(client, "request_review", True),
+                 "closing wording": lambda client: setattr(client, "question", "That covers everything, so we are done here."),
+                 "no question": lambda client: setattr(client, "question", "The file is clear.")}
+        for name, arrange in cases.items():
+            with self.subTest(reply=name):
+                client = FakeClient()
+                arrange(client)
+                result = self.service(client).turn(self.file_payload())
+                self.assertEqual(result["question"], fallback, "The fallback is the review's question bound to a supplied excerpt")
+                self.assertFalse(result["sync_required"])
+                self.assertEqual(result["speech_authorization"]["text"], fallback)
+                self.assertNotIn("Private", str(result))
+
+    def test_file_fallback_question_is_bound_to_a_supplied_excerpt_and_never_repeats(self):
+        service = self.service(FakeClient())
+        turns = self.file_payload()["turns"]
+        unbound = self.file_payload()
+        unbound["_supporting_documents"]["documents"][0]["questions"][0]["sources"] = [{"source_id": "doc_fee_r9_c1"}]
+        self.assertEqual(service._file_question(unbound, turns), module.FILE_QUESTION_FALLBACK,
+                         "A question whose source was not supplied is not asked")
+        asked = turns + [{"id": "a1", "role": "assistant", "text": self.FILE["questions"][0]["text"]}]
+        self.assertEqual(service._file_question(self.file_payload(), asked), module.FILE_QUESTION_FALLBACK)
+        # The files this intake added are tried before files read earlier.
+        both = self.file_payload()
+        earlier = {"id": "doc_old", "name": "Old.csv", "excerpts": [{"id": "doc_old_r1_c1", "text": "Old."}],
+                   "questions": [{"text": "Who approves the old schedule?", "sources": [{"source_id": "doc_old_r1_c1"}]}]}
+        both["_supporting_documents"]["documents"].insert(0, earlier)
+        self.assertEqual(service._file_question(both, turns), self.FILE["questions"][0]["text"])
+        closing = self.file_payload()
+        closing["_supporting_documents"]["documents"][0]["questions"][0]["text"] = "Is there anything we have not covered?"
+        self.assertEqual(service._file_question(closing, turns), module.FILE_QUESTION_FALLBACK)
+
+    def test_an_ordinary_answer_still_reports_a_failed_question(self):
+        client = FakeClient()
+        client.structured = lambda *args, **kwargs: (_ for _ in ()).throw(APIError("Synthetic failure", 504))
+        with self.assertRaises(APIError):
+            self.service(client).turn(payload())
 
     def test_source_correction_while_sync_waits_cannot_release_old_workflow(self):
         gate = threading.Event()

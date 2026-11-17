@@ -282,7 +282,11 @@ class DocumentService:
                 phase = analysis.get('phase')
                 if record['status'] == 'error' or phase == 'error':
                     continue  # Failures require an explicit revisit, never a poll retry loop.
-                if record['status'] in ('pending', 'indexing') or not analysis:
+                if record['status'] in ('pending', 'indexing') or (not phase and not analysis.get('review_stopped')):
+                    # Indexed, and no review has reported a phase: the first assessment is still
+                    # owed. That also holds for a record that already carries other metadata (a
+                    # file removed before its first review and then added again), which would
+                    # otherwise rest in this state for good while the page waits for it.
                     self._schedule(scope, record['id'], analysis.get('intent_version', 0), 'quick')
                 elif phase in ('quick', 'deep'):
                     self._schedule(scope, record['id'], analysis.get('intent_version', 0), phase)
@@ -1408,6 +1412,12 @@ class DocumentService:
             coverage = record.get('coverage') or {}
             summary = analysis.get('summary', '')
             complete_text = len(grouped[identity]) == totals[identity] and not any(chunk.get('requires_vision') for chunk in grouped[identity])
+            # Four facts about a file that must not be read as one: how much of its own text is
+            # indexed, how much of the index this request carries, how far the AI review has
+            # come, and which graphics or scans nobody has read yet. Assets shows them apart
+            # (web/documents.js stageDetail); the notes are given the same figures.
+            placeholders = sum(bool(chunk.get('requires_vision')) for chunk in grouped[identity])
+            unit = coverage.get('unit') or {'pdf': 'pages', 'png': 'images'}.get(record.get('kind'), 'units')
             result.append({'id': identity, 'name': record['name'], 'summary': summary[:700],
                            'source_revision': self._source_revision(record),
                            'summary_basis': analysis.get('summary_basis'),
@@ -1427,10 +1437,22 @@ class DocumentService:
                                       'total_chunks': totals[identity],
                                       'indexed_units': coverage.get('indexed_units', 0),
                                       'total_units': coverage.get('total_units', 0),
+                                      'unit': unit,
+                                      # Units whose own text is indexed, whatever else they hold.
+                                      'native_text_units': coverage.get('text_indexed_units', coverage.get('indexed_units', 0)),
+                                      # Units with a graphic or scan that has not been read.
+                                      'unread_visual_units': coverage.get('visual_pending_units', 0),
+                                      'review_stopped': bool(analysis.get('review_stopped')),
                                       'limitations': list(dict.fromkeys([*coverage.get('limitations', []), *analysis.get('limitations', [])]))},
                            'context_coverage': {'included_chunks': len(grouped[identity]), 'total_chunks': totals[identity],
                                                 'complete_text': complete_text,
-                                                'selection': 'complete indexed text' if complete_text else 'selected excerpts'},
+                                                'selection': 'complete indexed text' if complete_text else 'selected excerpts',
+                                                # Every section of the index is in this request, so all
+                                                # of the file's indexed text is; unread graphics are
+                                                # counted beside it and do not make that text partial.
+                                                'all_indexed_sections_supplied': len(grouped[identity]) == totals[identity],
+                                                'text_sections_supplied': len(grouped[identity]) - placeholders,
+                                                'unread_visual_placeholders_supplied': placeholders},
                            'questions': [{**item, 'text': item['text'][:600]} for item in analysis.get('questions', [])
                                          if all(source['source_id'] in included for source in item.get('sources', []))][:2],
                            'observations': [{**item, 'text': item['text'][:1500]} for item in analysis.get('observations', [])
@@ -1445,6 +1467,12 @@ class DocumentService:
                            'relevance does not prevent reading available text. Never claim full review when coverage is incomplete. '
                            'A summary labeled initial_review is a historical overview of the initial selection, not current '
                            'review progress. Current structured review and context_coverage fields govern coverage claims. '
+                           'State four facts about a file separately and never merge them into one verdict: its own indexed text '
+                           '(review.native_text_units of review.total_units), the sections supplied with this request '
+                           '(context_coverage), the progress of the AI review (review.reviewed_chunks of review.total_chunks, '
+                           'review.phase, review.review_stopped), and graphics or scans not yet read (review.unread_visual_units). '
+                           'When every unit has indexed text and all indexed sections were supplied, do not call the text coverage '
+                           'incomplete: name an unread graphic or a paused review as its own limitation. '
                            'Retained-only evidence from parked or removed files is solely provenance for existing cited capture; '
                            'do not use it to extract new facts or reopen that document.'),
                 'omitted_documents': max(0, len(records) - len(identities)),

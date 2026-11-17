@@ -284,7 +284,7 @@
     const due=liveCatchUpDue&&conversationUI.status==="idle";
     if(due)liveCatchUpDue=false;
     if(due&&!conversationUI.live?.active&&!intakeActive()&&liveNotesLag()){holdLiveBusy(LIVE_NOTES_LABEL);void runLiveCapture(true);}
-    if(!liveCapture){releaseLiveBusy();if(conversationUI.status==="idle"&&!liveNotesLag()&&liveCapturedThrough&&$("coverage-update-status"))$("coverage-update-status").textContent="Up to date";}
+    if(!liveCapture){releaseLiveBusy();if(conversationUI.status==="idle"&&!liveNotesLag()&&liveCapturedThrough)mapNote("Up to date");}
     renderAnalysisThrough();
   }
   // The Update notes control: the catch-up again, on request.
@@ -567,6 +567,7 @@
     rawTrace("notice.rendered", {kind,error,lasting,in_dialog:Boolean(host),hidden:toast.hidden},
       {text:$("notice-text").textContent});
     $("live-status").setAttribute("aria-live",error?"assertive":"polite");$("live-status").textContent = message;
+    let mirrored=false;
     if(error||lasting){
       const region=$($("review-view").hidden?"interview-error":"review-error");
       if(region){
@@ -577,9 +578,11 @@
           region.querySelector("button")?.setAttribute?.("aria-label",`Dismiss ${region.id==="review-error"?"review":"interview"} ${error?"error":"warning"}`);
         }
         else if(!failure.includes(message))line.textContent=`${failure} ${message}`;
-        region.hidden=false;
+        region.hidden=false;mirrored=!host;
       }
     }
+    // The same words now stand on the line above the conversation: one copy on screen is enough.
+    toast.classList.toggle("mirrored", mirrored);
     // Behind a dialog that line cannot be read, so the copy inside the dialog
     // stays until it is dismissed or the dialog closes.
     noticeHeld=Boolean(host)&&(error||lasting);noticeTime=noticeDuration(message);
@@ -1082,6 +1085,8 @@
     if(state.example){
       for(const id of ["start-live","type-instead","send-answer","answer-text","record-answer","skip-question","final-check","generate-draft","regenerate-draft","retry-question","coverage-recheck","update-notes"])
         if($(id))$(id).disabled=true;
+      // Its prepared draft can be opened like any other.
+      if(state.draft&&$("generate-draft"))$("generate-draft").disabled=false;
     }
     updateSaveHint();
     if($("export-markdown"))$("export-markdown").title=state.draft?"Download the report as a Markdown file":"Create a draft to download the report";
@@ -1094,6 +1099,7 @@
       : partialEnding ? `Kept as a partial capture. ${openSections.length} section${openSections.length === 1 ? " needs" : "s need"} information you do not have here: ${openSections.join("; ")}. Create the draft, or add more detail.` : "";
     // While the final check waits for its reply, the reply it accepts is offered
     // as a control. In Live voice the reply is spoken, so the control waits.
+    renderNextStep();
     const control=$("confirm-nothing");
     if(!control)return;
     control.hidden=state.coverageNeedsReview||!state.closure.asked||state.closure.confirmed;
@@ -1172,6 +1178,12 @@
     return entry;
   }
   const setText=(node,value)=>{if(node.textContent!==value)node.textContent=value;};
+  // The Notes panel shows one status line (style.css picks it): each source marks what it reports,
+  // "issue" before "busy" before "info" before anything else.
+  const setLevel=(node,level)=>{if(node?.dataset&&node.dataset.level!==level)node.dataset.level=level;};
+  // What the map's own refresh says in the Notes panel. It speaks there only when it also brings
+  // the notes; a refresh of the map alone reports in the Workflow view.
+  function mapNote(value,level=""){const node=$("coverage-update-status");if(!node)return;setText(node,value);setLevel(node,level);}
   function renderRecheck(){
     for(const id of ["notes-recheck","draft-recheck"]){
       const button=$(id);if(button){button.hidden=!state.coverageNeedsReview||state.example;button.disabled=state.busy||Boolean(conversationUI.live?.active);}
@@ -1207,11 +1219,15 @@
       node.classList.toggle("advisory-ok", Boolean(advisory?.complete));
       node.classList.toggle("advisory-gap", Boolean(advisory&&!advisory.complete));
       node.classList.toggle("rewritten", repaired);
+      // The one thing a row asks for: more detail. Everything else it says quietly.
+      const needsDetail=awaitingReview?Boolean(advisory&&!advisory.complete):status!=="covered"&&finding?.status!=="not_applicable"&&!documentOnlyFinding(finding)&&discussed;
+      node.classList.toggle("needs-detail", needsDetail);
       let title = `${label}: ${awaitingReview?(advisory?(advisory.complete?"captured; the advisory check found no gaps; completion review pending":"captured; the advisory check noted a gap: "+(advisory.gaps[0]||"see details")):checking?"captured; advisory check running":"captured; awaiting review"):documentOnlyFinding(finding)?"documented; confirmation pending":finding?.status === "not_applicable" ? "not applicable (participant confirmed)" : status === "missing" ? (discussed?"discussed; needs detail":"no detail captured yet") : status==="partial"?"In progress":"Covered"}`;
       if(repaired){rewritten++;title+="; rewritten by the completion review, earlier notes kept";}
       if(node.title!==title){node.title=title;node.setAttribute("aria-label",title);}
       setText(entry.dot, status === "covered" ? "✓" : advisory?.complete ? "·" : "");
-      setText(entry.detail, awaitingReview?(advisory?(advisory.complete?"Captured · pre-checked":"Captured · gap noted"):checking?"Captured · checking…":"Captured · awaiting review"):finding?.status === "not_applicable" ? "Not applicable" : status === "covered" ? "Covered" : status === "partial" ? (documentOnlyFinding(finding)?"Documented":discussed?"Discussed · needs detail":topicStatusLabel("partial")) : discussed?"Discussed · needs detail":"");
+      // The tick already says "covered"; the tooltip keeps the full state of each row.
+      setText(entry.detail, needsDetail?"Needs detail":awaitingReview?"Captured":finding?.status === "not_applicable" ? "Not applicable" : status === "covered" ? "" : status === "partial" ? (documentOnlyFinding(finding)?"Documented":topicStatusLabel("partial")) : "");
     });
     // In place: the list is filled once (and again only if something emptied it).
     const buttons=TOPICS.map(([key])=>coverageNodes.get(key).node),listed=root.children||[];
@@ -1225,7 +1241,9 @@
     setText($("coverage-count"), `${captured} / ${TOPICS.length}`);
     $("coverage-progress").style.width = `${captured / TOPICS.length * 100}%`;
     if($("coverage-mobile-count")) setText($("coverage-mobile-count"), `${captured}/${TOPICS.length}`);
-    if($("coverage-check")) setText($("coverage-check"), !captured||!state.config?.agent_team?.enabled ? "" : coverageVerified() ? "checked" : "final check not yet run");
+    // Beside the figure once the completion review has checked it. Before that the rows carry
+    // half marks instead of ticks, and the line above Wrap up says what the final check is for.
+    if($("coverage-check")) setText($("coverage-check"), captured&&state.config?.agent_team?.enabled&&coverageVerified() ? "Checked" : "");
     const consolidation=$("coverage-consolidation");
     if(consolidation){const labels=(state.consolidation||[]).map(key=>MEMO_HEADINGS[key]||key);consolidation.hidden=!labels.length;setText(consolidation,labels.length?"Consolidate these sections before adding more detail: "+labels.join(", ")+".":"");}
     if($("coverage-summary")) {
@@ -1244,13 +1262,11 @@
     if($("memo-focus")){
       const currentQuestion=state.config?.concurrent_interview?.enabled&&state.turns.findLast(turn=>turn.role==="assistant"&&!turn.document_event);
       $("memo-focus").textContent=currentQuestion?.text||state.focus||(state.started?"How the work begins":"Getting started");
+      // The question is on screen in the conversation: the panel does not repeat it, and shows a
+      // focus only where it is a topic of its own.
+      if($("memo-focus-block"))$("memo-focus-block").hidden=Boolean(currentQuestion?.text);
     }
-    const remaining=TOPICS.filter(([key])=>{
-      const finding=state.memo_findings.find(f=>f.key===key),coverage=state.coverage.find(c=>c.key===key);
-      return finding ? !["captured","not_applicable"].includes(finding.status) : coverage?.status!=="covered";
-    }).map(([,label])=>label);
-    if($("memo-next")) $("memo-next").textContent=remaining.length ? remaining.slice(0,3).join(" · ")+(remaining.length>3?` + ${remaining.length-3} more`:"") : !coverageVerified()?"Captured answers are awaiting the completion review.":"Everything’s covered. Wrap up, or create a draft.";
-    const next=$("memo-next-action");if(next){next.hidden=!remaining.length;next.textContent=remaining.length?`Next: ${remaining[0]}`:"";next.onclick=()=>{const topic=TOPICS.find(([,label])=>label===remaining[0]);if(topic){setMemoSheet(false,false);showFoundationTopic(topic[0],document.querySelector(`[data-foundation-topic="${topic[0]}"]`));}};}
+    renderNextStep();
     $("working-summary").hidden=false;
     $("summary-text").textContent=state.summary||"Your summary will appear here as you describe the work.";
     $("summary-text").classList.toggle("memo-empty",!state.summary);
@@ -1260,6 +1276,22 @@
     $("parking-list").hidden=!state.parking_lot.length;
     $("parking-list").replaceChildren(...state.parking_lot.map(item=>el("li","",item)));
   }
+  // The one line above Wrap up and Create draft: why they wait, or what they are for. The topic
+  // list already shows what is open, so nothing is said until there is a next step to point at.
+  // A closure state (renderClosure) is said in its own line and takes this one's place.
+  function renderNextStep(){
+    const node=$("memo-next");if(!node)return;
+    const remaining=TOPICS.some(([key])=>{
+      const finding=state.memo_findings.find(f=>f.key===key),coverage=state.coverage.find(c=>c.key===key);
+      return finding ? !["captured","not_applicable"].includes(finding.status) : coverage?.status!=="covered";
+    });
+    const answered=state.turns.some(turn=>turn.role==="user"&&!turn.document_event);
+    const closure=$("closure-status"),closing=Boolean(closure&&!closure.hidden);
+    const message=state.example||closing?"":conversationUI.live?.active||conversationUI.status==="closing"?(answered?"Stop talking to wrap up.":"")
+      :remaining?"":!coverageVerified()?"Every topic is captured. Wrap up for the final check."
+      :state.draft?"":"Everything’s covered. Create a draft when ready.";
+    setText(node,message);node.hidden=!message;
+  }
   function renderAnalysisThrough(){
     const node=$('analysis-through');if(!node)return;
     // After Live voice the notes may still lack the last spoken answer. That is
@@ -1267,19 +1299,20 @@
     // and the map's status line may not call the notes up to date meanwhile.
     const voice=liveNotesStatus(),update=$("update-notes"),line=$("coverage-update-status");
     if(update)update.hidden=voice!=="behind";
-    if(voice){if(line?.textContent==="Up to date")line.textContent="";node.hidden=false;node.textContent=LIVE_NOTES_TEXT[voice];return;}
-    if(!state.config?.concurrent_interview?.enabled){node.hidden=true;return;}
-    if(state.example){node.hidden=false;node.textContent="Notes from the worked example";return;}
+    if(voice){if(line?.textContent==="Up to date")mapNote("");node.hidden=false;node.textContent=LIVE_NOTES_TEXT[voice];setLevel(node,voice==="behind"?"issue":"busy");return;}
+    // The example is labelled in the banner; its notes need no status of their own.
+    if(!state.config?.concurrent_interview?.enabled||state.example){node.hidden=true;return;}
     const basis=participantCoverageBasis(),count=basis.length;
     node.hidden=!count;
     if(node.hidden)return;
     const current=analysisCheckpoint&&analysisCheckpoint.basis===JSON.stringify(basis)&&analysisCheckpoint.documents===activeDocumentSignature();
     if(analysisCheckpoint?.restored&&analysisCheckpoint.basis===JSON.stringify(basis)&&analysisCheckpoint.documents===activeDocumentSignature()){
-      const saved=notesProgress;
+      const saved=notesProgress,whole=!saved?.assumed&&saved?.basis===analysisCheckpoint.basis;
       node.textContent=saved?.assumed?"This saved interview does not record which answers the notes include.":
-        saved?.basis===analysisCheckpoint.basis?`Notes include all ${count} saved answers`:
+        whole?`Notes include all ${count} saved answers`:
         saved?.count&&saved.count<count?`Saved notes include ${saved.count} of ${count} answers. Choose Wrap up to check the rest.`:
         "The saved notes need a check against these answers. Choose Wrap up to update them.";
+      setLevel(node,saved?.assumed?"info":whole?"":"issue");
       return;
     }
     // After a pause the notes are as old as the last real capture: say through
@@ -1287,8 +1320,9 @@
     const through=analysisCheckpoint?.kept?analysisCheckpoint.through:analysisCheckpoint?.count;
     node.textContent=current?(analysisCheckpoint.kept?`${through?`Notes kept through answer ${through}`:'Notes kept as they were'} · paused at your request`:`Notes include all ${count} saved answers`):
       !analysisCheckpoint||analysisCheckpoint.kept&&!through?`Updating notes for answer ${count}`:
-      analysisCheckpoint.count<count?`Notes through answer ${through} · answer ${count} pending`:
+      analysisCheckpoint.count<count?(through?`Notes through answer ${through} of ${count}`:`Updating notes for answer ${count}`):
       'Notes are updating for the revised conversation or files';
+    setLevel(node,current?(analysisCheckpoint.kept?"info":""):"busy");
   }
   function captureProgressMark(turns=state.turns){
     const basis=participantCoverageBasis(turns);
@@ -1614,6 +1648,13 @@
     content.append(meta,paragraph);item.append(content);
     return row;
   }
+  // A spoken question often opens with an acknowledgement ("Mm.", "Okay, …"). The transcript keeps
+  // what was said; the card that shows the question starts at the question.
+  const SPOKEN_LEAD=/^(?:(?:m+-?h?m+|uh-?huh|ok(?:ay)?|right|got it|i see|sure|all ?right|yeah|yes|understood|great|good|perfect|thanks|thank you)[.,!…–—]+\s+)+/i;
+  function questionCardText(value){
+    const rest=typeof value==="string"?value.replace(SPOKEN_LEAD,""):"";
+    return rest.length>=12&&rest.length<value.length?rest.charAt(0).toUpperCase()+rest.slice(1):value;
+  }
   function renderTranscript(followIncoming=false) {
     const root = $("transcript"), current = $("current-question"), scroll=$("conversation-scroll"), scrollTop=scroll.scrollTop;
     const follow=followIncoming&&conversationUI.view==="transcript"&&!$("interview-view").hidden&&
@@ -1648,9 +1689,10 @@
     });
     for(const removed of transcriptRows.splice(state.turns.length))removed.item.remove();
     if(reading)showReading();
+    const asked=latest?questionCardText(latest.text):"";
     if(!latest)current.replaceChildren();
-    else if(!current.firstElementChild)current.append(el("p","turn-text",latest.text));
-    else if(current.firstElementChild.textContent!==latest.text)current.firstElementChild.textContent=latest.text;
+    else if(!current.firstElementChild)current.append(el("p","turn-text",asked));
+    else if(current.firstElementChild.textContent!==asked)current.firstElementChild.textContent=asked;
     current.dataset.turnId=latest?.id||"";
     if(newQuestion&&conversationUI.view==="voice"&&$("voice-panel"))$("voice-panel").scrollTop=0;
     current.hidden = !latest;
@@ -1913,7 +1955,7 @@
     gpfsPresence?.setVisible(conversationUI.view==="voice"&&!$("interview-view")?.hidden&&!document.hidden);
     const statusText=status==="speaking"&&conversationUI.muted?"Speaking · mic muted":labels[status]||labels.idle;
     const label=$("presence-status");
-    if(label){label.textContent=statusText;label.hidden=status==="idle"&&!state.started;}
+    if(label){label.textContent=statusText;label.hidden=status==="idle"&&(!state.started||state.example===true);}
     const session=$("session-presence");
     if(session){session.hidden=conversationUI.view==="voice"||(!conversationUI.live?.active&&status!=="closing");session.dataset.active=String(Boolean(conversationUI.live?.active));}
     const sessionLabel=$("session-status");
@@ -1940,7 +1982,10 @@
     const returnFromVoice=!active&&!closing&&["stop-live","mute-live"].includes(document.activeElement?.id);
     const liveControls=$("live-controls"),liveHost=transcript&&(active||closing)?$("transcript-live-controls"):$("conversation-dock")?.querySelector(".dock-row");
     if(liveControls&&liveHost&&liveControls.parentElement!==liveHost){const focused=document.activeElement,restore=liveControls.contains(focused);liveHost.append(liveControls);if(restore)focused.focus({preventScroll:true});}
-    $("start-live").hidden=active||closing;
+    // The example cannot be continued: in place of controls that would only wait, it offers the way out.
+    const example=state.example===true;
+    $("start-live").hidden=active||closing||example;
+    if($("example-start"))$("example-start").hidden=!example;
     $("start-live").disabled=!state.config?.live?.enabled||state.busy||Boolean(state.recording)||state.requestingMic||state.transcribing;
     $("stop-live").hidden=!active&&!closing; $("stop-live").disabled=closing&&typeof conversationUI.live?.say!=="function";
     $("stop-live").textContent=closing?(typeof conversationUI.live?.say==="function"?"Stop now":"Saving…"):"Stop talking";
@@ -1951,12 +1996,15 @@
     $("mute-live").textContent=conversationUI.muted?"Unmute mic":micHeld?(conversationUI.status==="speaking"?"Mic paused while I speak":"Mic paused while I think"):"Mute mic";
     $("mute-live").title=micHeld?"The microphone is paused and reopens at Listening. Select to keep it muted after that.":"";
     $("mute-live").setAttribute("aria-pressed",String(conversationUI.muted));
-    $("type-instead").hidden=transcript||active||closing;
+    // With the reply box already open, voice is the alternative on offer, not typing.
+    const typing=!transcript&&!active&&!closing&&conversationUI.typing===true;
+    $("type-instead").hidden=transcript||active||closing||example||typing;
+    if($("live-controls")?.dataset)$("live-controls").dataset.typing=String(typing);
     $("type-instead").disabled=!state.config?.api_configured||state.busy||Boolean(state.recording)||state.requestingMic||state.transcribing;
     $("type-instead").textContent="Type instead";
-    $("composer-area").hidden=active||closing||(!transcript&&!conversationUI.typing);
+    $("composer-area").hidden=active||closing||example||(!transcript&&!conversationUI.typing);
     syncDockQuestion();
-    $("skip-question").hidden=active||closing||(!transcript&&!conversationUI.typing)||!state.turns.some(turn=>turn.role==="assistant"&&!turn.document_event);
+    $("skip-question").hidden=active||closing||example||(!transcript&&!conversationUI.typing)||!state.turns.some(turn=>turn.role==="assistant"&&!turn.document_event);
     // The same hint line warns, before the click, that a long conversation resumes
     // with a condensed history, and keeps saying so (and that voice has a shorter
     // selection of the files) while that session is on.
@@ -1967,7 +2015,7 @@
     $("preview-voice").disabled=active||closing||!canSpeakChoice()||state.busy||Boolean(state.recording);
     if(active||closing) for(const id of ["answer-text","send-answer","record-answer","skip-question","final-check","generate-draft","regenerate-draft"]) $(id).disabled=true;
     updatePresence();
-    $("start-live").querySelector("span").textContent=transcript?"Talk live":state.turns.length?"Continue talking":"Start talking";
+    $("start-live").querySelector("span").textContent=transcript?"Talk live":typing?"Talk instead":state.turns.length?"Continue talking":"Start talking";
     $("presence-caption").hidden=state.started;
     if(intakeActive())for(const id of ["start-live","type-instead","send-answer","record-answer","skip-question","final-check","generate-draft","regenerate-draft","retry-question","preview-voice"])if($(id))$(id).disabled=true;
     if(returnFromVoice)$(transcript?"answer-text":"start-live").focus({preventScroll:true});
@@ -2092,10 +2140,12 @@
     const phase=documentIntake.phase,active=documentIntake.active;
     panel.hidden=!active;panel.dataset.phase=phase;
     if(!active)return;
+    // With the file's own question asked first, the notes and the workflow are updated after it.
+    const provisional=provisionalFileQuestion();
     const copy={uploading:["Uploading files",""],
       reviewing:["Reading your files",""],
       baseline:["Updating notes and workflow","Larger files can take a few minutes. Your previous work is still available."],
-      question:["Preparing a follow-up","Your notes and workflow are ready."],
+      question:["Preparing a follow-up",provisional?"Your notes and workflow will update while you answer.":"Your notes and workflow are ready."],
       error:["File review needs attention",documentIntake.error]};
     const [title,detail]=copy[phase]||copy.reviewing;
     const progress=phase==="reviewing"?intakeSnapshot().documents.filter(file=>!file.archived&&file.analysis?.disposition!=="parked"&&Number(file.analysis?.total_chunks)>0)
@@ -2105,8 +2155,15 @@
     $("document-intake-detail").textContent=description;$("document-intake-detail").hidden=!description;
     const stages=["uploading","reviewing","baseline","question"],index=stages.indexOf(phase);
     ["upload","review","baseline","question"].forEach((name,i)=>{const step=$("intake-step-"+name);step?.classList.toggle("complete",i<index);if(step){if(i===index)step.setAttribute("aria-current","step");else step.removeAttribute("aria-current");}});
+    // "Update process" is not a stage the participant waits for when the question comes first.
+    if($("intake-step-baseline"))$("intake-step-baseline").hidden=provisional&&phase!=="baseline";
     $("document-intake-retry").hidden=phase!=="error"||documentIntake.retryAvailable===false;$("document-intake-continue").hidden=!["reviewing","baseline","error"].includes(phase);
     $("current-question").hidden=true;$("thinking").hidden=true;
+  }
+  // The file's own question can be asked before the notes and the audited map are rebuilt when
+  // the concurrent interviewer is there to complete them in the background (finding 4).
+  function provisionalFileQuestion() {
+    return Boolean(state.config?.concurrent_interview?.enabled&&window.CollectorConcurrentInterview)&&!state.example;
   }
   function captureForFollowup() {
     const prior=conversationUI.workflow;
@@ -2166,7 +2223,8 @@
         const paused=conversationUI.live?.stop()||Promise.resolve({finalized:true});
         if(intakeWasLive)voiceEnded=true;
         if(state.recording){notice("Dictation stopped for the file review. Your words so far will appear in the reply box.",false,"dictation",true);finishRecording();}
-        const acknowledgement=documentId?"Reviewing "+(names?.[0]||"the file")+" again.":"Thanks for sharing. Give me a moment to digest the file and update the process. Then I’ll follow up with a question.";
+        const acknowledgement=documentId?"Reviewing "+(names?.[0]||"the file")+" again.":provisionalFileQuestion()?"Thanks for sharing. Give me a moment to digest the file. Then I’ll follow up with a question."
+          :"Thanks for sharing. Give me a moment to digest the file and update the process. Then I’ll follow up with a question.";
         intakeAnnouncement=()=>{
           if(signal.aborted)return;
           if(!retry&&!resumed&&state.turns.at(-1)?.text!==acknowledgement)appendDocumentMessage(acknowledgement,{id:"doc_intake"});
@@ -2179,6 +2237,25 @@
         if(documentId){intakeAnnouncement();intakeAnnouncement=null;}
         updateDocumentIntakeUI();
         return paused;
+      },
+      provisional:provisionalFileQuestion,
+      askProvisional:async({signal,documents})=>{
+        await waitForIntakeIdle(signal);
+        if(signal.aborted)throw new DOMException("Cancelled","AbortError");
+        conversationUI.revision++;suppressWorkflowReadiness();
+        const own=intakeDocuments(documents);
+        // One fast request: it returns the question the file raises and queues the notes and the
+        // audited map for this same revision. Those arrive through the status poll and are
+        // applied like any background update, or dropped when the account has moved on.
+        const result=await getConcurrentInterview().turn({...withRequiredDocuments(snapshot(),own.map(file=>file.id)),action:"document_followup"},
+          {signal,documentIntake:true,timeout:requestTimeout("default",150000)});
+        if(signal.aborted)throw new DOMException("Cancelled","AbortError");
+        if(typeof result.question!=="string"||!result.question.trim())throw new Error("The file was read, but the follow-up did not load. Try again.");
+        // What the request read from the new files; the notes that cite them follow in the background.
+        const read=new Set((result.document_reading?.documents||[]).filter(file=>Number(file.included_chunks)>0).map(file=>file.id));
+        const unread=own.filter(file=>!read.has(file.id)&&!documentWasRead(file.id)),names=unread.map(file=>file.name||"File").join(", ");
+        if(unread.length&&result.document_reading)notice(`The interviewer did not receive readable text from ${names} for this question. In Assets, ${unread.length===1?"the file is":"the files are"} marked “Not yet read in this interview”.`,true);
+        return {...result,question:text(result.question,6000)};
       },
       buildBaseline:async({signal,documents})=>{
         await waitForIntakeIdle(signal);
@@ -2773,7 +2850,7 @@
     return turns.filter(turn=>turn.role==="user"&&!turn.document_event).map(turn=>[turn.id,turn.text]);
   }
   function offerCoverageRecheck(message) {
-    $("coverage-update-status").textContent=message;$("workflow-status").textContent=message;
+    mapNote(message,"issue");$("workflow-status").textContent=message;
     const recheck=$("retry-workflow");recheck.hidden=false;recheck.textContent="Recheck coverage";recheck.dataset.coverageRecheck="true";
   }
   function rememberCoverageCheckpoint(turns=state.turns,revision=conversationUI.revision,documentRevision=activeDocumentSignature(),assessment=null) {
@@ -2857,7 +2934,11 @@
     const flowAbort=conversationUI.flowAbort,abort=()=>flowAbort.abort();
     options.signal?.addEventListener("abort",abort,{once:true});if(options.signal?.aborted)abort();
     $("workflow-status").textContent=hasDocumentEvidence()?"Building and checking the documented workflow…":"Updating…";$("retry-workflow").hidden=true;$("retry-workflow").textContent="Try again";delete $("retry-workflow").dataset.coverageRecheck;
-    if($("coverage-update-status"))$("coverage-update-status").textContent=hasDocumentEvidence()?"Reading the documented process…":"Updating…";
+    // With the managed team, and on a retry of the map alone, this request brings no notes: the
+    // Notes panel keeps its own status and the map reports in Workflow.
+    const notesToo=!options.mapOnly&&(!state.config?.agent_team?.enabled||Boolean(options.documentIntake));
+    if(notesToo)mapNote(hasDocumentEvidence()?"Reading the documented process…":"Updating…","busy");
+    renderAnalysisStatus();
     try{
       // Workflow updates alone carry the last accepted capture. Detach it from
       // live state so later captions or memo edits cannot change this request.
@@ -2896,11 +2977,14 @@
       if(options.documentIntake||pending&&memo)suppressWorkflowReadiness();else if(memo)announceReadiness();
       conversationUI.applied=revision;state.dirty=true;updateSaveHint();renderCoverage();updateControls();
       conversationUI.flowErrorNotified=false;
+      // A retry that succeeded for the current answers: the earlier map failure leaves Notes as well.
+      if(!pending)settleMapStatus();
       const status=state.coverageNeedsReview?(memo?"Coverage review incomplete — retry to confirm sections":"Saved coverage needs a new check. Choose Wrap up when ready."):pending?"Updating latest answers…":"Up to date";
       // With the managed team this refresh updates the map only (memo is null).
       // After Live voice, while the notes still lack the last spoken answer, the
       // map being up to date is not reported as the notes being up to date.
-      if($("coverage-update-status"))$("coverage-update-status").textContent=!memo&&status==="Up to date"&&liveNotesStatus()?"":status;
+      if(state.coverageNeedsReview||notesToo)mapNote(!memo&&status==="Up to date"&&liveNotesStatus()?"":status,state.coverageNeedsReview?"issue":pending?"busy":"");
+      else if($("coverage-update-status")?.dataset?.level)mapNote("");
       renderWorkingMap();$("workflow-status").textContent=status;
       if(state.coverageNeedsReview)offerCoverageRecheck(status);
       syncLiveCoverage();
@@ -2908,14 +2992,14 @@
     }catch(error){if(generation===state.generation&&error.name!=="AbortError"){
       if(options.documentIntake)throw error;
       $("workflow-status").textContent="Couldn’t update. Your conversation is still here.";$("retry-workflow").hidden=false;
-      if($("coverage-update-status"))$("coverage-update-status").textContent="Couldn’t update · Try again in Workflow";
+      if(notesToo)mapNote("Couldn’t update. Try again in Workflow.","issue");
       if(!conversationUI.flowErrorNotified){
         conversationUI.flowErrorNotified=true;
         notice("The diagram and notes haven’t updated. Your transcript and earlier notes are still here. Try again in Workflow."+unsavedReminder(),true);
       }
     }}finally{
       options.signal?.removeEventListener("abort",abort);
-      if(generation===state.generation){conversationUI.flowBusy=false;conversationUI.flowAbort=null;notifyIntakeWaiters();if(revision!==conversationUI.revision)scheduleWorkflow();knowledgeUI?.captureChanged?.();}
+      if(generation===state.generation){conversationUI.flowBusy=false;conversationUI.flowAbort=null;renderAnalysisStatus();notifyIntakeWaiters();if(revision!==conversationUI.revision)scheduleWorkflow();knowledgeUI?.captureChanged?.();}
     }
   }
   function workflowGapSummary(graph) {
@@ -3595,11 +3679,14 @@
         request:(path,data,options)=>request(path,data,{...options,concurrentBypass:true}),
         getSnapshot:snapshot,getGeneration:()=>state.generation,
         applyCapture:(capture,{snapshot:captured})=>applyBackgroundCapture(capture,captured),
+        applyWorkflow:(capture,{snapshot:captured})=>applyLateWorkflow(capture,captured),
         onStatus:status=>{
           if(status.agent_team)agentTeamUI?.render(status.agent_team);
-          if(["queued","working"].includes(status.state)&&conversationUI.applied!==conversationUI.revision&&$("workflow-status"))$("workflow-status").textContent="Updating the map for your latest answer…";
-          if(status.state==="error"&&/workflow|\bmap\b/i.test(status.message||""))mapNeedsRetry(status.message);
-          analysisState={state:status.state,kept:status.kept===true,message:text(status.message,600)};
+          if((["queued","working"].includes(status.state)||status.workflow==="working")&&conversationUI.applied!==conversationUI.revision&&$("workflow-status"))$("workflow-status").textContent="Updating the map for your latest answer…";
+          // A failure of the map alone is the map's: the notes are in, and the map has its own retry.
+          const mapOnly=status.state==="error"&&status.scope==="workflow";
+          if(mapOnly||status.state==="error"&&/workflow|\bmap\b/i.test(status.message||""))mapNeedsRetry(status.message);
+          analysisState={state:status.state,kept:status.kept===true,message:text(status.message,600),...(mapOnly?{scope:"workflow"}:{})};
           if(!$('analysis-status'))return;
           renderAnalysisStatus();
           renderAnalysisThrough();knowledgeUI?.captureChanged?.();
@@ -3614,17 +3701,50 @@
   function renderAnalysisStatus(){
     const node=$('analysis-status');if(!node)return;
     const status=analysisState,wrapUp=!transcriptLimit().wrapFull;
-    const message=status.message||({queued:'Notes queued — keep talking.',working:'Updating notes and workflow while you talk.',
-      ready:state.closure.confirmed&&!state.coverageNeedsReview?"Notes caught up. The participant confirmed the account. Create a draft when ready."
-        :state.closure.asked?"Notes caught up. The final check is awaiting the participant’s reply."
-        :conversationUI.live?.active?"Notes caught up. Stop talking to use Wrap up, or continue the interview."
-        :state.closure.partial===true&&!state.coverageNeedsReview?'Notes caught up. This is kept as a partial capture: create the draft, or add more detail.'
-        :status.kept?'Paused — your notes are kept. Wrap up when you’re ready for the final checks.':'Notes caught up. Wrap up when you’re ready for the final checks.',
-      reconnecting:'Reconnecting to the notes update. You can keep talking.',
-      syncing:'Catching up and checking the latest answers…',
-      error:wrapUp?'Notes need attention. Your conversation is retained; Wrap up retries the analysis.':'Notes need attention. Your conversation is retained. Create a draft or save a copy.'})[status.state]||'';
-    node.hidden=status.state==='idle'||status.state==='ready'&&!state.turns.some(turn=>turn.role==='user'&&!turn.document_event);
+    // The workflow failed while the notes were captured: Notes says what is true of the notes and
+    // points at the map's own retry. The failure itself is shown in Workflow (mapNeedsRetry).
+    // While the map is being drawn again the line says so, and the control that starts it waits.
+    const mapOnly=status.state==='error'&&status.scope==='workflow',mapUpdating=mapOnly&&conversationUI.flowBusy===true;
+    // The same background work brings the notes first and the map after them: once the notes hold
+    // every answer, what is still on its way is the workflow.
+    const notesHeld=analysisCheckpoint&&!analysisCheckpoint.kept&&analysisCheckpoint.basis===JSON.stringify(participantCoverageBasis())&&analysisCheckpoint.documents===activeDocumentSignature();
+    const updating=notesHeld?'Updating the workflow…':'Updating notes…';
+    // What to do next is said once, beside Wrap up and Create draft (renderNextStep, renderClosure).
+    const message=mapOnly?(mapUpdating?'Notes are up to date. Updating the workflow…':'Notes are up to date. The workflow still needs an update.')
+      :status.message||({queued:updating,working:updating,
+      ready:status.kept?'Paused. Your notes are kept.':'Notes are up to date.',
+      reconnecting:'Reconnecting. You can keep talking.',
+      syncing:'Checking the latest answers…',
+      error:wrapUp?'Notes need attention. Wrap up to retry.':'Notes need attention. Create a draft or save a copy.'})[status.state]||'';
+    // Before the first answer or file there are no notes to report on.
+    const anything=state.turns.some(turn=>turn.role==='user'&&!turn.document_event)||hasDocumentEvidence();
+    node.hidden=status.state==='idle'||status.state==='ready'&&!state.turns.some(turn=>turn.role==='user'&&!turn.document_event)||status.state!=='error'&&!anything;
     if(node.textContent!==message)node.textContent=message;
+    setLevel(node,mapOnly?(mapUpdating?'busy':'issue'):status.state==='error'?'issue':status.state==='ready'?(status.kept?'info':''):'busy');
+    const retry=$('update-workflow');
+    if(retry){retry.hidden=!mapOnly||mapUpdating||node.hidden;retry.disabled=state.busy||intakeActive();}
+  }
+  // An accepted map for the current answers ends an earlier failure of the map: both panels then
+  // show the accepted revision, and the failure is history (it is not kept on screen in Notes).
+  function settleMapStatus(){
+    if(analysisState.state!=="error"||analysisState.scope!=="workflow")return;
+    analysisState={state:"ready",kept:analysisState.kept===true,message:""};
+    renderAnalysisStatus();renderAnalysisThrough();
+  }
+  // The map that was still being drawn when Wrap up released the notes. The notes on screen are
+  // the synchronized ones: nothing but the map is taken, and the review state stays as it is.
+  function applyLateWorkflow(capture,captured){
+    if(intakeActive()||!workflowEvidenceStillValid(captured))return;
+    const evidence=mergeDocumentEvidence(capture?.document_evidence||[]);
+    const workflow=optionalWorkingMap(capture?.workflow,captured.turns,evidence);
+    if(!workflow)return;
+    state.documentEvidence=evidence;
+    publishWorkingMap(workflow,capture,captured.turns);mapProgress=captureProgressMark(captured.turns);
+    const current=mapProgress.basis===captureProgressMark().basis;
+    if(current){conversationUI.applied=conversationUI.revision;settleMapStatus();}
+    applyProcessTitle(workflow.title);renderWorkingMap();
+    $("workflow-status").textContent=current?"Updated through the latest answer":"Map through answer "+mapProgress.count+" · later answers pending";
+    state.dirty=true;updateControls();updateSaveHint();knowledgeUI?.captureChanged?.();
   }
   function applyBackgroundCapture(result,captured){
     if(intakeActive()||!workflowEvidenceStillValid(captured))return;
@@ -3657,7 +3777,7 @@
     state.dirty=true;
     if(workflow){publishWorkingMap(workflow,result.workflow_capture,captured.turns);mapProgress=captureProgressMark(captured.turns);
       const current=mapProgress.basis===captureProgressMark().basis;
-      if(current)conversationUI.applied=conversationUI.revision;
+      if(current){conversationUI.applied=conversationUI.revision;settleMapStatus();}
       applyProcessTitle(workflow.title);renderWorkingMap();$('workflow-status').textContent=current?'Updated through the latest answer':'Map through answer '+mapProgress.count+' · later answers pending';}
     renderCoverage();updateControls();updateSaveHint();
   }
@@ -3782,7 +3902,7 @@
       facts:normalizedFacts(result.fact_provenance,state.turns,documentEvidence)
     };
     const repairs=memo?reviewedRepairs(result,memo.findings,state.turns,documentEvidence):null;
-    if(graph){state.documentEvidence=documentEvidence;publishWorkingMap(graph,result.workflow_capture,state.turns);conversationUI.applied=conversationUI.revision;mapProgress=captureProgressMark();applyProcessTitle(graph.title);renderWorkingMap();$("workflow-status").textContent="Updated through the latest answer";}
+    if(graph){state.documentEvidence=documentEvidence;publishWorkingMap(graph,result.workflow_capture,state.turns);conversationUI.applied=conversationUI.revision;mapProgress=captureProgressMark();applyProcessTitle(graph.title);renderWorkingMap();$("workflow-status").textContent="Updated through the latest answer";settleMapStatus();}
     if(typeof result.capture_token==="string"&&result.capture_token&&result.capture_token.length<=4096)state.captureToken=result.capture_token;
     state.coverageVerified=result.coverage_verified===true;
     state.completion=result.completion||null;
@@ -6132,7 +6252,7 @@
     for(const id of ["retry-workflow","map-retry-layout"])if($(id)){$(id).hidden=true;$(id).disabled=false;delete $(id).dataset.layoutRetry;delete $(id).dataset.coverageRecheck;}if($("retry-workflow"))$("retry-workflow").textContent="Try again";
     if ($("foundation-dialog")?.open) closeFoundationTopic(false);
     setMemoSheet(false,false);selectMemoSection("notes");setInterviewSettings(false,false);
-    if($("coverage-update-status"))$("coverage-update-status").textContent="";
+    mapNote("");
     if($("jump-latest"))$("jump-latest").hidden=true;
     stopSpeaking();
     finishRecording(true);
@@ -6511,6 +6631,8 @@
     });
     $("retry-config")?.addEventListener("click",()=>{void loadConfiguration();});
     $("save-hint")?.addEventListener("click",exportSession);
+    // The same retry of the map alone, offered where the Notes panel reports that the map is behind.
+    $("update-workflow")?.addEventListener("click",()=>{if(!state.busy&&!intakeActive())void refreshWorkflow({mapOnly:true});});
     $("retry-workflow").addEventListener("click",()=>{const button=$("retry-workflow");if(button.dataset.mapOnly){void refreshWorkflow({mapOnly:true});return;}if(button.dataset.coverageRecheck&&state.config?.agent_team?.enabled){pendingCompletionReview?retryQuestion():finalCheck();}else button.dataset.layoutRetry&&!button.dataset.coverageRecheck?retryWorkflowLayout("live-workflow"):refreshWorkflow();});
     $("map-retry-layout").addEventListener("click",()=>retryWorkflowLayout("process-map"));
     $("workflow-zoom-out").addEventListener("click",()=>workflowCanvases.get("live-workflow")?.zoom(-.15));
@@ -6604,6 +6726,7 @@
     $("load-example").addEventListener("click",()=>{loadExample();if(state.example)focusWorkspace($("review-view").hidden?"interview":"review");});
     $("welcome-example").addEventListener("click",loadExample);
     $("leave-example").addEventListener("click",() => {if (canReplaceSession("Start your own interview")) {clearState(); $("process-name").focus();}});
+    $("example-start")?.addEventListener("click",()=>$("leave-example").click());
     $("export-markdown").addEventListener("click",() => {if (state.draft) download(markdown(),`${safeFilename(state.draft.title)}-DRAFT.md`,"text/markdown;charset=utf-8");});
     $("export-memo").addEventListener("click",()=>{if(state.draft)download(memoMarkdown(),`${safeFilename(processDisplayName()||state.draft.title)}-memo-DRAFT.md`,"text/markdown;charset=utf-8");});
     $("export-map").addEventListener("click",() => {if($("export-map").disabled)return;const exported=exportDiagram("process-map");if(exported)download(exported,`${safeFilename(state.draft.title)}-DRAFT-map.svg`,"image/svg+xml");});
@@ -6705,6 +6828,8 @@
       uploadBlockedReason:()=>state.example?"Choose Start your own before adding a real file.":draftInFlight?"Wait for the draft to finish, then add the file.":state.importing?"Wait for the interview to finish opening.":!state.config?.api_configured?"File review needs a configured AI service.":"File uploads are temporarily unavailable.",
       canDiscuss:()=>conversationUI.live?.active&&!liveFrontActive()?"Stop talking to discuss this file question. It is still available in Assets.":!intakeActive()&&!state.busy&&!state.recording&&!state.transcribing&&!state.requestingMic,
       revealUploads:()=>!($("memo-rail")?.parentElement===$("memo-sheet-body")),onOpen:openDocumentAssets,onCountChange:updateAssetCount,onDiscuss:()=>{setMemoSheet(false,false);focusWorkspace("interview");},
+      // The file intake waits on file status in these two stages; the file list keeps polling for it.
+      reviewAwaited:()=>intakeActive()&&["uploading","reviewing"].includes(documentIntake.phase),
       onEvent:onDocumentEvent,notice,onDirty:()=>{state.dirty=true;updateSaveHint();}});
     syncDocumentReading();
     if(window.CollectorKnowledge)knowledgeUI=window.CollectorKnowledge.create({request,session:sessionObject,captureState:submissionCaptureState,draftStaleReason,fileWorkspace:submissionFileWorkspace,draftState:submissionDraftState,notice,saveCopy:exportSession,onSubmitted:()=>{state.dirty=true;updateSaveHint();}});

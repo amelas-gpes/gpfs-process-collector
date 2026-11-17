@@ -10,7 +10,7 @@ const {setup,response,flush}=out.exports;
 let passed=0;async function check(name,fn){try{await fn();passed++;}catch(e){e.message=name+': '+e.message;throw e;}}
 // "Discussed" is said on each topic of the Notes list (its third part is the state text); the page keeps
 // one counter, the captured figure, and no longer a separate "N of 16 topics discussed" line.
-const discussed=h=>h.node('coverage-list').children.filter(topic=>/^Discussed/.test(topic.children[2].textContent)).length;
+const discussed=h=>h.node('coverage-list').children.filter(topic=>/^Needs detail/.test(topic.children[2].textContent)).length;
 (async()=>{
 await check('a discussed topic is labelled on the topic and does not move the captured figure',async()=>{
  const h=setup();h.t.state.config.concurrent_interview={enabled:true};h.t.state.turns=[{id:'u1',role:'user',text:'I use the spare when equipment is missing.'}];
@@ -23,7 +23,7 @@ await check('a discussed topic is labelled on the topic and does not move the ca
 await check('progress states exactly how far the notes have caught up',async()=>{
  const h=setup();h.t.state.config.concurrent_interview={enabled:true};h.t.state.turns=[{id:'u1',role:'user',text:'First detail.'}];
  h.t.rememberDiscussion({},h.t.snapshot());h.t.state.turns.push({id:'u2',role:'user',text:'New detail.'});h.t.renderAnalysisThrough();
- assert.equal(h.node('analysis-through').textContent,'Notes through answer 1 · answer 2 pending');
+ assert.equal(h.node('analysis-through').textContent,'Notes through answer 1 of 2');
  h.t.state.turns.pop();h.t.state.turns[0].text='Corrected detail.';h.t.renderAnalysisThrough();assert.match(h.node('analysis-through').textContent,/revised conversation/);
 });
 await check('unsupported discussion metadata does not manufacture progress',async()=>{

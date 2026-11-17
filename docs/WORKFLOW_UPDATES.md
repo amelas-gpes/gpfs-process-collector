@@ -4,6 +4,12 @@ The current interview worker retains a validated map, sixteen memo topics and so
 
 A parallel join means all incoming branches must finish. A merge allows alternative branches to continue. When the testimony leaves this rule open, the map records a clarification question. The editor, diagram and exported step type preserve that distinction.
 
+## Checks before a map is published
+
+**A citation a model got wrong does not fail the map.** Before an update or its review is validated, `settle_generated_citations` takes off any source ID that is not an authorized source, leaves out a step or connection that is left with no source (an accepted step or route stays as it was) and names it in the open questions, and drops an operating detail whose wording its own step's sources do not contain. Nothing is added: no source, no wording, no route. The validation that follows is unchanged. Category counts are traced as `workflow.generated_citations_settled`; no step, route or wording is logged.
+
+**A route that passes a gate by is found and put to the sources.** After the review, `route_gaps` checks the map without reading any source: a step or group of steps that no connection joins to the main route (`detached`), and a step whose input field names what another step's output field names while no route leads from that step to it (`unreached_input`). The main route is the group a reported start belongs to, else the largest. One bounded request (`RouteRepair`, stage `route_gap_repair`) then asks the sources how those parts join, inside the time the map's own two requests left unused. A connection it returns is verified like any other: it needs a quoted passage that occurs in a source it cites. An existing direct arrow is taken off only when the verified connections lead from its start to its end through a part that was detached, so a reroute through a gate never loses a route. A gap the map already had when the update started, and a step whose connection this update's review has just judged, are not asked about again. What the sources do not settle stays on the map as it was, with its open question. A failed, late or malformed answer leaves the reviewed map unchanged; diagnostics record `route_gap_repair` with an outcome and counts only.
+
 ## Historical implementation in 0.13.1
 
 Version 0.13.1 changes how the working map responds to corrections. Previously, each request

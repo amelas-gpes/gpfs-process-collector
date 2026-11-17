@@ -76,7 +76,7 @@ await check("a result without a list of notes is never applied as notes",async()
   h.t.applyBackgroundCapture({question:"Anything",summary:"A summary with no notes behind it",focus:"Wrong",parking_lot:["Wrong"],coverage:[]},captured);
   assertNotesKept(h,before,"memo-less result");
   // It was not a pause either: the unanalysed answer stays visibly pending.
-  assert.equal(h.node("analysis-through").textContent,"Notes through answer 2 · answer 3 pending");
+  assert.equal(h.node("analysis-through").textContent,"Notes through answer 2 of 3");
 });
 await check("after a pause the status line says how far the notes go and never claims every answer",async()=>{
   const h=interviewWithNotes(),captured=stopSnapshot(h);
@@ -108,7 +108,7 @@ await check("typed stop request: the reply, the status poll and Save copy keep t
   assert.equal(h.calls.at(-1).url,"/api/conversation/status");assert.equal(h.timers.size,0,"polling ends once the pause is settled");
   assertNotesKept(h,before,"typed stop");
   assert.equal(h.t.sessionObject().turns.length,7);
-  assert.equal(h.node("analysis-status").textContent,"Paused — your notes are kept. Wrap up when you’re ready for the final checks.");
+  assert.equal(h.node("analysis-status").textContent,"Paused. Your notes are kept.");
   assert.equal(h.node("analysis-through").textContent,"Notes kept through answer 2 · paused at your request");
   assert.equal(h.notices.filter(item=>item.error).length,0);
 });
@@ -125,7 +125,7 @@ await check("a stop as the very first answer does not break the poller",async()=
   h.node("answer-text").value="I need to stop now.";await h.t.sendAnswer({preventDefault(){}});await h.timer(650);
   assert.equal(h.t.state.turns.at(-1).text,TURN_PAUSE);assert.equal(h.timers.size,0);
   assert.doesNotMatch(h.node("analysis-status").textContent,/need attention/);
-  assert.equal(h.node("analysis-status").textContent,"Paused — your notes are kept. Wrap up when you’re ready for the final checks.");
+  assert.equal(h.node("analysis-status").textContent,"Paused. Your notes are kept.");
   assert.equal(h.notices.filter(item=>item.error).length,0);
 });
 await check("wrap up after a stop applies the real capture it returns",async()=>{

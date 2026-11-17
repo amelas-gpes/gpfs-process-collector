@@ -96,8 +96,10 @@
       }
       const working=normalized.filter(row=>row.status==="running"),waiting=normalized.filter(row=>["pending","queued"].includes(row.status));
       const attention=normalized.some(row=>["error","blocked"].includes(row.status)&&!["cancelled","stale_revision","role_already_invoked"].includes(row.reason_code));
-      aggregate.textContent=snapshot.stale?"Earlier context":snapshot.cancelled?"Run cancelled":working.length?`${working.length} ${working.length===1?"agent":"agents"} working`:attention?"Needs attention":waiting.length?"Reviews queued":normalized.some(row=>row.status==="completed")?"Latest updates ready":"Standing by";
+      aggregate.textContent=snapshot.stale?"Earlier context":snapshot.cancelled?"Run cancelled":working.length?`${working.length} ${working.length===1?"agent":"agents"} working`:attention?"Needs attention":waiting.length?"Reviews queued":normalized.some(row=>row.status==="completed")?"Up to date":"Standing by";
       root.dataset.state=snapshot.stale||snapshot.cancelled?"idle":working.length?"running":attention?"attention":waiting.length?"queued":"idle";
+      // Nothing has run yet: the strip has nothing to report and stays off the page until it does.
+      root.dataset.quiet=String(aggregate.textContent==="Standing by");
       const completed=events.filter(event=>event.status==="completed").filter((item,index,rows)=>index===0||item.role!==rows[index-1].role||item.label!==rows[index-1].label).slice(-3).reverse();
       recentList.replaceChildren(...completed.map(event=>{
         const item=make("li","agent-team-result"),role=make("span","agent-team-result-role",ROLES[event.role].name);

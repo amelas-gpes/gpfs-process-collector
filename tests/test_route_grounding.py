@@ -808,11 +808,16 @@ class ReviewerReissueTests(unittest.TestCase):
         client, graph = self.audited(discard_connection_upserts=[identity], route_support=[])
         self.assertIsNone(published(graph))
 
-    def test_a_step_cannot_be_discarded_and_replaced_in_one_review(self):
+    def test_a_step_discarded_and_supplied_again_in_one_review_is_replaced(self):
+        # Discarding a candidate step and supplying it again says one thing, as it does for a
+        # route: replace it. It changes nothing that was accepted and is no reason to refuse the map.
+        replacement = {**copy.deepcopy(STEPS[2]), 'description': 'The reviewer restated this step.'}
         client = workflow_client(candidate_update(), workflow_audit(
-            [quote('t012', DECISIVE)], discard_step_upserts=['S4'], upsert_steps=[copy.deepcopy(STEPS[2])]))
-        with self.assertRaisesRegex(server.APIError, 'cannot discard and replace the same component'):
-            client.workflow(workflow_payload())
+            [quote('t012', DECISIVE)], discard_step_upserts=['S4'], upsert_steps=[replacement]))
+        graph = client.workflow(workflow_payload())['workflow']
+        self.assertEqual(next(step for step in graph['steps'] if step['id'] == 'S4')['description'],
+                         'The reviewer restated this step.')
+        self.assertIsNotNone(published(graph))
 
 
 class RouteRecheckDeadlineTests(unittest.TestCase):
@@ -884,7 +889,15 @@ class RouteRecheckDeadlineTests(unittest.TestCase):
 
     def test_typed_interview_map_gives_the_second_request_only_the_unused_time(self):
         joined = [quote('u_lifecycle', 'Other invoices go ... to Treasury')]
-        for name, first, second, left in (('time used up', 115, 115, None), ('40 seconds left', 100, 100, 40)):
+        # A map a browser request waits for: 120 seconds to draw it and 180 for its source audit
+        # (the audit of a transcript-only map ran into the earlier 120-second limit).
+        drawing, audit = server.interview_orchestrator.MAP_GENERATION_SECONDS, server.interview_orchestrator.MAP_AUDIT_SECONDS
+        self.assertEqual((drawing, audit), (120, 180))
+        self.assertLessEqual((drawing + audit) * 1000, server.REQUEST_TIMEOUTS_MS['workflow'])
+        self.assertLessEqual((drawing + server.interview_orchestrator.MAP_AUDIT_WITH_FILES_SECONDS) * 1000,
+                             server.REQUEST_TIMEOUTS_MS['workflow_with_files'])
+        for name, first, second, left in (('time used up', drawing - 5, audit - 5, None),
+                                          ('40 seconds left', drawing - 20, audit - 20, 40)):
             with self.subTest(case=name):
                 clock = Clock()
                 client = RecheckingTeamProvider(joined, [quote('u_lifecycle', RecheckingTeamProvider.stated)])

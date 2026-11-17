@@ -55,7 +55,7 @@
       <button type="button" id="open-interview-settings" aria-label="Settings" aria-haspopup="dialog" aria-controls="interview-settings" aria-keyshortcuts="Control+, Meta+," title="Appearance, voice, interview context and data settings" data-icon="sliders">Settings<kbd aria-hidden="true">Ctrl / ⌘ + ,</kbd></button>
       <hr>
       <button type="button" id="export-session" aria-label="Save copy of this interview" aria-describedby="save-copy-description" aria-keyshortcuts="Control+S" title="Save a copy of this interview to your computer (Ctrl+S)" data-icon="download">Save copy</button>
-      <p id="save-copy-description">Save a copy to keep this interview after you close the tab. Files and submission status can include private access. Use Export transcript to share the conversation.</p>
+      <p id="save-copy-description">Keeps this interview after you close the tab. It can hold private access; to share, export the transcript.</p>
       <button type="button" id="import-session" data-icon="folder">Open saved interview…</button>
       <button type="button" id="export-transcript-menu" data-icon="file" disabled>Export transcript</button>
       <button type="button" id="submit-process-menu" data-icon="send">Submit process</button>
@@ -81,7 +81,6 @@
             <button type="button" id="conversation-tab-workflow" role="tab" aria-selected="false" aria-controls="workflow-panel" tabindex="-1" data-conversation-view="workflow" data-icon="workflow">Workflow</button>
           </nav></div>
         </div>
-        <section id="agent-team" class="agent-team" aria-label="Interview team"></section>
         <section id="document-intake-panel" class="document-intake-panel" aria-label="File review progress" hidden>
           <div class="document-intake-copy" role="status" aria-live="polite"><strong id="document-intake-title">Reading your files</strong><p id="document-intake-detail"></p></div>
           <ol class="document-intake-steps" aria-label="File review stages"><li id="intake-step-upload">Upload</li><li id="intake-step-review">Review</li><li id="intake-step-baseline">Update process</li><li id="intake-step-question">Follow up</li></ol>
@@ -179,29 +178,33 @@
             <form id="answer-form" class="answer-composer"><label class="reply-label" for="answer-text">Your reply</label><textarea id="answer-text" rows="1" aria-describedby="answer-text-limit" placeholder="Reply, add details, or correct something…" disabled dir="auto"></textarea><div class="composer-bottom"><button type="button" class="mic-button" id="record-answer" aria-label="Dictate a reply to review before sending" title="Dictate a reply to review before sending" data-icon="mic" disabled><span>Dictate</span></button><span class="composer-hint" id="composer-hint">Ctrl / ⌘ + Enter to send</span><button class="button primary" id="send-answer" type="submit" data-icon="arrow-up" disabled>Send</button></div></form>
           </div>
 
-            <div class="dock-row"><div class="dock-secondary"><button type="button" class="text-button small" id="retry-question" data-icon="refresh" hidden>Try again</button><button class="text-button small active-only" id="skip-question" data-icon-end="chevron-right" disabled>Skip question</button></div><div id="live-controls" class="live-controls"><span id="transcript-live-hint" class="transcript-live-hint" hidden>Voice is on. Stop talking to type a reply.</span><button type="button" class="button primary live-start" id="start-live" data-icon="mic"><span>Start talking</span></button><button type="button" class="button secondary" id="mute-live" data-icon="mic" aria-pressed="false" hidden>Mute mic</button><button type="button" class="button stop-live" id="stop-live" data-icon="phone-off" hidden>Stop talking</button><button type="button" class="text-button" id="type-instead" data-icon="keyboard">Type instead</button></div><span class="dock-spacer" aria-hidden="true"></span></div>
+            <div class="dock-row"><div class="dock-secondary"><button type="button" class="text-button small" id="retry-question" data-icon="refresh" hidden>Try again</button><button class="text-button small active-only" id="skip-question" data-icon-end="chevron-right" disabled>Skip question</button></div><div id="live-controls" class="live-controls"><span id="transcript-live-hint" class="transcript-live-hint" hidden>Voice is on. Stop talking to type a reply.</span><button type="button" class="button primary" id="example-start" data-icon-end="arrow-right" hidden>Start your own</button><button type="button" class="button primary live-start" id="start-live" data-icon="mic"><span>Start talking</span></button><button type="button" class="button secondary" id="mute-live" data-icon="mic" aria-pressed="false" hidden>Mute mic</button><button type="button" class="button stop-live" id="stop-live" data-icon="phone-off" hidden>Stop talking</button><button type="button" class="text-button" id="type-instead" data-icon="keyboard">Type instead</button></div><span class="dock-spacer" aria-hidden="true"></span></div>
           </div>
           </div>
         </section>
       </div>
       <div id="memo-host" class="memo-host"><aside id="memo-rail" class="memo-rail" aria-label="Interview workspace">
-        <div class="memo-heading"><h2 id="memo-workspace-title">Workspace</h2></div>
+        <div class="memo-heading"><h2 id="memo-workspace-title">Workspace</h2><section id="agent-team" class="agent-team active-only" aria-label="Interview team"></section></div>
         <nav class="memo-tabs" role="tablist" aria-label="Interview workspace sections">
           <button type="button" id="memo-tab-notes" role="tab" aria-selected="true" aria-controls="memo-panel-notes" tabindex="0" data-memo-section="notes">Notes</button>
-          <button type="button" id="memo-tab-summary" role="tab" aria-selected="false" aria-controls="memo-panel-summary" tabindex="-1" data-memo-section="summary"><span>Summary<span class="memo-tab-caption">+ Parked</span></span></button>
+          <button type="button" id="memo-tab-summary" role="tab" aria-selected="false" aria-controls="memo-panel-summary" tabindex="-1" data-memo-section="summary">Summary</button>
           <button type="button" id="memo-tab-assets" role="tab" aria-selected="false" aria-controls="memo-panel-assets" tabindex="-1" data-memo-section="assets">Assets <span id="memo-assets-count" class="memo-tab-count" hidden>0</span></button>
         </nav>
         <section id="memo-panel-notes" class="memo-panel" role="tabpanel" aria-labelledby="memo-tab-notes" tabindex="0">
           <div class="coverage-overview">
-            <div class="coverage-heading"><span>Topics captured <small id="coverage-check" class="coverage-check" role="status"></small></span><span id="coverage-count">0 / 16</span></div>
+            <div class="coverage-heading"><span>Topics captured</span><span class="coverage-figure"><small id="coverage-check" class="coverage-check" role="status"></small><span id="coverage-count">0 / 16</span></span></div>
             <div class="coverage-track" aria-hidden="true"><span id="coverage-progress"></span></div>
-            <p id="coverage-summary" class="coverage-update-status" hidden></p>
-            <p id="analysis-through" class="coverage-update-status" hidden></p>
-            <button class="text-button small" id="update-notes" type="button" data-icon="refresh" hidden>Update notes</button>
-            <p id="analysis-status" class="coverage-update-status" role="status" aria-live="polite" hidden></p>
-            <div id="coverage-update-status" class="coverage-update-status" role="status"></div>
+            <!-- One line is shown: the first source that reports trouble, then work in progress, then the rest (style.css). -->
+            <div class="notes-status">
+              <p id="analysis-through" class="coverage-update-status" hidden></p>
+              <p id="analysis-status" class="coverage-update-status" role="status" aria-live="polite" hidden></p>
+              <div id="coverage-update-status" class="coverage-update-status" role="status"></div>
+              <p id="coverage-summary" class="coverage-update-status" hidden></p>
+              <button class="text-button small" id="update-notes" type="button" data-icon="refresh" hidden>Update notes</button>
+              <button class="text-button small" id="update-workflow" type="button" data-icon="refresh" hidden>Update workflow</button>
+            </div>
           </div>
-          <div class="memo-scroll"><div class="memo-focus active-only"><span class="section-eyebrow">Now discussing</span><p id="memo-focus">Getting started</p></div><div class="memo-next active-only"><span class="section-eyebrow">Remaining topics</span><p id="memo-next"></p><button type="button" id="memo-next-action" hidden></button></div><button type="button" class="text-button" id="notes-recheck" hidden>Recheck saved coverage</button><p id="coverage-consolidation" role="status" hidden></p><div id="foundation-details"><div id="coverage-list" class="coverage-list" aria-label="Topics"></div></div></div>
+          <div class="memo-scroll"><div id="memo-focus-block" class="memo-focus active-only"><span class="section-eyebrow">Now discussing</span><p id="memo-focus">Getting started</p></div><button type="button" class="text-button" id="notes-recheck" hidden>Recheck saved coverage</button><p id="coverage-consolidation" role="status" hidden></p><div id="foundation-details"><div id="coverage-list" class="coverage-list" aria-label="Topics"></div></div></div>
         </section>
         <section id="memo-panel-summary" class="memo-panel" role="tabpanel" aria-labelledby="memo-tab-summary" tabindex="0" hidden>
           <div class="memo-scroll memo-summary-scroll">
@@ -210,7 +213,7 @@
           </div>
         </section>
         <section id="memo-panel-assets" class="memo-panel" role="tabpanel" aria-labelledby="memo-tab-assets" tabindex="0" hidden><div id="document-assets" class="document-assets"></div></section>
-        <div id="memo-footer" class="memo-footer" hidden><div class="memo-actions"><button id="final-check" class="button secondary small" data-icon="flag" disabled>Wrap up</button><button class="button primary small" id="generate-draft" data-icon-end="arrow-right" disabled>Create draft</button></div><div class="closure-row"><span id="closure-status" hidden></span><button class="text-button small" id="confirm-nothing" type="button" title="Confirm that nothing is missing from your account" hidden>Nothing to add</button></div></div>
+        <div id="memo-footer" class="memo-footer" hidden><div class="memo-actions"><button id="final-check" class="button secondary small" data-icon="flag" disabled>Wrap up</button><button class="button primary small" id="generate-draft" data-icon-end="arrow-right" disabled>Create draft</button></div><div class="closure-row"><span id="closure-status" hidden></span><span id="memo-next" role="status" hidden></span><button class="text-button small" id="confirm-nothing" type="button" title="Confirm that nothing is missing from your account" hidden>Nothing to add</button></div></div>
       </aside></div>
     </section>
 

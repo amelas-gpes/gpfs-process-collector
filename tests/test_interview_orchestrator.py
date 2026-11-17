@@ -595,11 +595,17 @@ class CoordinatorBoundaryTests(unittest.TestCase):
             step["evidence_turns"] = ["fabricated_document_reference"]
             result["upsert_steps"].append(step)
         client.result_changes["team_working_map_source_audit"] = fabricate
-        with self.assertRaises(ValueError):
-            client.coordinator.workflow(payload)
+        # Finding 5 of docs/testing/process-capture-2026-11-16: a source the reviewer made up is
+        # the model's slip. The step that rests on it alone is left off the map and named in the
+        # open questions; the map is not refused and nobody is asked to resolve the citation.
+        result = client.coordinator.workflow(payload)
+        fabricated = process_draft()["steps"][0]
+        self.assertNotIn("fabricated_document_reference", json.dumps(result))
+        self.assertTrue(any("proposed without a readable source" in question and fabricated["title"] in question
+                            for question in result["workflow"]["open_questions"]))
         document = next(row for row in client.coordinator.status(payload["agent_run_id"])["agents"]
                         if row["role"] == "document_analyst")
-        self.assertEqual(document["status"], "error")
+        self.assertEqual(document["status"], "completed")
 
     def test_workflow_audits_transcript_and_document_sources_without_completion_authority(self):
         for docs in (False, True):

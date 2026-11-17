@@ -19,7 +19,7 @@ function interview(page,verified){
  page.t.conversationUI.typing=true;page.t.tab("interview");page.t.selectConversationView("transcript");page.t.renderTranscript();
 }
 const topic=(page,key)=>page.document.querySelector(`[data-foundation-topic="${key}"]`);
-const headline=page=>({count:page.text("coverage-count"),pill:page.text("coverage-mobile-count"),bar:page.$("coverage-progress").style.width,check:page.text("coverage-check"),label:page.$("coverage-count").parentNode.textContent.replace(/\s+/g," ").trim()});
+const headline=page=>({count:page.text("coverage-count"),pill:page.text("coverage-mobile-count"),bar:page.$("coverage-progress").style.width,check:page.text("coverage-check"),label:page.$("coverage-count").parentNode.parentNode.textContent.replace(/\s+/g," ").trim()});
 const ticks=page=>KEYS.filter(key=>topic(page,key).querySelector(".coverage-dot").textContent==="✓").length;
 let passed=0;const failed=[];
 async function check(name,fn){
@@ -33,19 +33,20 @@ async function check(name,fn){
   const shown=headline(page);
   assert.equal(shown.count,"13 / 16","Twelve captured and one not applicable");assert.equal(shown.pill,"13/16","The Workspace button of the narrow layout shows the same figure");
   assert.equal(shown.bar,"81.25%");
-  assert.equal(shown.check,"final check not yet run","Verification is said beside the number");
+  assert.equal(shown.check,"","Nothing is marked as checked before the final check");
   assert.match(shown.label,/^Topics captured/);assert.doesNotMatch(shown.label,/fully/,"The label does not claim more than the figure means");
   // Nothing is presented as covered before the review.
   assert.equal(ticks(page),0,"No tick before the final check");
   assert.equal(KEYS.filter(key=>topic(page,key).classList.contains("covered")).length,0);
-  assert.equal(topic(page,"name").querySelector(".coverage-state").textContent,"Captured · awaiting review");
+  assert.equal(topic(page,"name").querySelector(".coverage-state").textContent,"Captured");
   assert.match(topic(page,"name").title,/captured; awaiting review/);
  });
  await check("after the final check the same figure is marked as checked and the topics get their ticks",async()=>{
   const page=await open({config,expose:EXPOSE});interview(page,true);
   const shown=headline(page);
-  assert.equal(shown.count,"13 / 16");assert.equal(shown.pill,"13/16");assert.equal(shown.check,"checked");
-  assert.equal(ticks(page),13);assert.equal(topic(page,"name").querySelector(".coverage-state").textContent,"Covered");
+  assert.equal(shown.count,"13 / 16");assert.equal(shown.pill,"13/16");assert.equal(shown.check,"Checked","Verification is said beside the number");
+  assert.equal(ticks(page),13);assert.equal(topic(page,"name").querySelector(".coverage-state").textContent,"","The tick says it; the row adds no word");
+  assert.match(topic(page,"name").title,/Covered$/);
   assert.equal(topic(page,"rules").querySelector(".coverage-state").textContent,"Not applicable");
   assert.equal(topic(page,"connections").classList.contains("partial"),true);assert.equal(topic(page,"volume").classList.contains("missing"),true);
  });
@@ -55,7 +56,7 @@ async function check(name,fn){
   page.$("answer-text").input("One more thing about the count.");void page.t.sendAnswer({preventDefault(){}});await page.flush();
   const shown=headline(page);
   assert.equal(shown.count,"13 / 16","The bar does not fall back to zero on the next answer");assert.equal(shown.bar,"81.25%");
-  assert.equal(shown.check,"final check not yet run");assert.equal(ticks(page),0,"The ticks wait for the next check");
+  assert.equal(shown.check,"","The check mark is withdrawn");assert.equal(ticks(page),0,"The ticks wait for the next check");
  });
  await check("only captured and not-applicable topics count, and an explicit note outranks a coverage flag",async()=>{
   const page=await open({config,expose:EXPOSE});interview(page,false);
@@ -74,7 +75,8 @@ async function check(name,fn){
   assert.doesNotMatch(rail,/topics discussed/);assert.doesNotMatch(rail,/\d+ captured · awaiting review/,"The line under the bar no longer repeats the figure");
   assert.equal(page.$("coverage-summary").hidden,true,"With no advisory detail to add, the line under the bar is not shown");
   // What "discussed" told is on each topic.
-  assert.equal(topic(page,"connections").querySelector(".coverage-state").textContent,"Discussed · needs detail");
+  assert.equal(topic(page,"connections").querySelector(".coverage-state").textContent,"Needs detail");
+  assert.equal(topic(page,"connections").classList.contains("needs-detail"),true,"The one state a row colours");
   assert.equal(topic(page,"volume").querySelector(".coverage-state").textContent,"","An untouched topic says nothing");
  });
  await check("without the review team there is no check to report and captured topics are simply covered",async()=>{
@@ -85,7 +87,7 @@ async function check(name,fn){
   const page=await open({config,expose:EXPOSE});
   assert.equal(page.$("welcome-example").click(),true);await page.flush();
   const shown=headline(page);assert.equal(shown.count,"16 / 16");assert.equal(shown.pill,"16/16");assert.equal(shown.bar,"100%");
-  assert.match(shown.check,/^(final check not yet run|checked)$/);
+  assert.match(shown.check,/^(Checked)?$/);
  });
  console.log(JSON.stringify({checks_passed:passed,checks_failed:failed.length,provider_calls:0,network_calls:0,real_browser:false}));
  if(failed.length)process.exitCode=1;

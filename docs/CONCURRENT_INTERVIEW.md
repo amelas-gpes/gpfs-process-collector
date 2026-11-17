@@ -109,6 +109,9 @@ of the whole account takes its place only when it carries clearly more: it cites
 an answer the other never cites, or has more than about a seventh more steps.
 Otherwise the map on screen stays, with the checks it has passed. The map that
 is kept is checked like any other; one that replaced another is checked whole.
+Until that second look is done the status reply does not call the map checked
+(`workflow_checked: false`, `workflow_check_state: "working"`), so the page keeps
+asking and receives the fuller map if there is one.
 The threshold is a judgement that has not been measured against the real
 provider.
 

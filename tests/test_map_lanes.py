@@ -370,9 +370,13 @@ class MapLaneTests(unittest.TestCase):
         wait_for(lambda: service.status(two).get("workflow_checked") is True)
         self.assertEqual(len(team.draws), 2)
         team.rich_full_pass = True
+        team.draw_gate = threading.Event()
         result = service.sync({**two, "action": "close"})
         self.assertEqual(self.step_ids(result["workflow_capture"]), ["S_u1", "S_u2"], "Wrap up releases the map it has")
         self.assertEqual(result["workflow_state"], "ready")
+        # The map was checked, and is still not final: the page must keep asking while the second look runs.
+        self.assertEqual((result["workflow_checked"], result["workflow_check_state"]), (False, "working"))
+        team.draw_gate.set()
         wait_for(lambda: len(team.draws) == 3)
         self.assertNotIn("previous_capture", team.draws[2], "The second look reads the whole account, not the map")
         query = {"conversation_token": result["conversation_token"], "revision": result["revision"]}
@@ -398,13 +402,18 @@ class MapLaneTests(unittest.TestCase):
         wait_for(lambda: service.status(two).get("workflow_checked") is True)
         version = service.status(two)["workflow_version"]
         checks = len(team.checks)
+        team.draw_gate = threading.Event()
         result = service.sync({**two, "action": "close"})
         wait_for(lambda: len(team.draws) == 3)
+        query = {"conversation_token": result["conversation_token"], "revision": result["revision"]}
+        looking = service.status_for_revision(query)
+        self.assertEqual((looking["workflow_checked"], looking["workflow_check_state"]), (False, "working"))
+        team.draw_gate.set()
         session = service._sessions[token]
         wait_for(lambda: not session["graph_running"])
-        query = {"conversation_token": result["conversation_token"], "revision": result["revision"]}
         status = service.status_for_revision(query)
         self.assertEqual((status["workflow_version"], status["workflow_checked"]), (version, True))
+        self.assertNotIn("workflow_check_state", status)
         self.assertEqual(len(team.checks), checks, "A map that was kept is not checked again")
 
     def test_a_map_drawn_whole_needs_no_second_look(self):

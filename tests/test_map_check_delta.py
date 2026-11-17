@@ -311,8 +311,17 @@ class CheckedBesideTheDraw(unittest.TestCase):
         self.say("u1")
         self.say("u2")
         result = self.service.sync({**self.interview.payload(), "action": "close"})
-        self.assertEqual((result["workflow_state"], result["workflow_pending"], result["workflow_checked"]), ("ready", False, True))
+        # The map is released at once. It was built answer by answer, so Wrap up looks at the whole
+        # account once more, and until that look is done the map is not reported as final.
+        self.assertEqual((result["workflow_state"], result["workflow_pending"]), ("ready", False))
+        self.assertEqual((result["workflow_checked"], result["workflow_check_state"]), (False, "working"))
         self.assertEqual([item["id"] for item in result["workflow_capture"]["workflow"]["steps"]], ["S1", "S2"])
+        query = {"conversation_token": result["conversation_token"], "revision": result["revision"]}
+        final = checked_within(lambda: self.service.status_for_revision(query))
+        # The second look added nothing here, so the map that was on screen stays, checked as it was.
+        self.assertEqual([item["id"] for item in final["workflow_capture"]["workflow"]["steps"]], ["S1", "S2"])
+        self.assertEqual(len(self.client.draws()), 3, "Two answers and one second look")
+        self.assertEqual(len(self.audits()), 2, "The map that was kept is not checked again")
 
 
 class DrawAllowance(unittest.TestCase):

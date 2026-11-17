@@ -945,9 +945,14 @@ class ConcurrentInterview:
                     "checked": bool(session["workflow_checked"]), "version": session["workflow_version"]}
             return view
         view["workflow_version"] = session["workflow_version"]
-        view["workflow_checked"] = bool(session["workflow_checked"])
-        if not session["workflow_checked"] and self._checks_separately():
-            failed = session["check_state"] == "error" and session["check_failed_version"] == session["workflow_version"]
+        # While Wrap up's second look is waiting or running the map is not final, also when it was
+        # checked: the look may put a fuller map in its place, and a page that had stopped asking
+        # would keep, and file, the thinner one.
+        looking = session["workflow_revision"] == revision and self._second_look_due(session)
+        view["workflow_checked"] = bool(session["workflow_checked"]) and not looking
+        if not view["workflow_checked"] and self._checks_separately():
+            failed = (not looking and session["check_state"] == "error"
+                      and session["check_failed_version"] == session["workflow_version"])
             view["workflow_check_state"] = "error" if failed else "working"
             if failed and session.get("check_error"):
                 view["workflow_check_error"] = session["check_error"]

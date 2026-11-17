@@ -258,7 +258,8 @@
   function liveVoiceEnded(){
     if(conversationUI.live?.active||intakeActive())return;
     const ended=conversationUI.status==="idle";
-    if(ended)liveCatchUpDue=true;
+    // No caption can be finished once voice has ended: none is waited for any longer.
+    if(ended){liveCatchUpDue=true;conversationUI.pendingParticipantCaptions.clear();}
     if(!liveCapture&&!pendingCompletionReview?.promise){settleLiveNotes();return;}
     // A capture that began before the participant's last words cannot be
     // applied. It is not waited for; its end starts the catch-up instead.
@@ -2825,8 +2826,16 @@
     if(state.config?.agent_team?.enabled&&pendingCompletionReview)return;
     if((!state.turns.some(t=>t.role==="user")&&!hasDocumentEvidence())||!state.config?.api_configured)return;
     if(conversationUI.flowBusy||conversationUI.flowTimer!==null||conversationUI.applied===conversationUI.revision)return;
-    // A bounded checkpoint, not a debounce: continued speech cannot postpone it.
-    conversationUI.flowTimer=setTimeout(()=>{conversationUI.flowTimer=null;return refreshWorkflow();},1000);
+    // In Live voice the map starts from a finished caption, as the notes do. It used to start
+    // one second after the first words: that map was drawn from part of a sentence, and the
+    // map of the whole answer waited behind it. A caption that begins before the request
+    // goes out holds it back the same way; its final form starts the map.
+    if(conversationUI.pendingParticipantCaptions.size)return;
+    conversationUI.flowTimer=setTimeout(()=>{
+      conversationUI.flowTimer=null;
+      if(conversationUI.pendingParticipantCaptions.size)return;
+      return refreshWorkflow();
+    },1000);
     knowledgeUI?.captureChanged?.();
   }
   function suppressWorkflowReadiness() {
@@ -3678,8 +3687,8 @@
       concurrentInterview=new window.CollectorConcurrentInterview({
         request:(path,data,options)=>request(path,data,{...options,concurrentBypass:true}),
         getSnapshot:snapshot,getGeneration:()=>state.generation,
-        applyCapture:(capture,{snapshot:captured})=>applyBackgroundCapture(capture,captured),
-        applyWorkflow:(capture,{snapshot:captured})=>applyLateWorkflow(capture,captured),
+        applyCapture:(capture,{snapshot:captured,check})=>applyBackgroundCapture(capture,captured,check),
+        applyWorkflow:(capture,{snapshot:captured,check})=>applyLateWorkflow(capture,captured,check),
         onStatus:status=>{
           if(status.agent_team)agentTeamUI?.render(status.agent_team);
           if((["queued","working"].includes(status.state)||status.workflow==="working")&&conversationUI.applied!==conversationUI.revision&&$("workflow-status"))$("workflow-status").textContent="Updating the map for your latest answer…";
@@ -3733,7 +3742,13 @@
   }
   // The map that was still being drawn when Wrap up released the notes. The notes on screen are
   // the synchronized ones: nothing but the map is taken, and the review state stays as it is.
-  function applyLateWorkflow(capture,captured){
+  // What the Workflow line says of a map that was applied. The map is drawn first and checked
+  // against its sources beside it: check is "" once checked, "working" or "error" until then.
+  function mapAppliedStatus(current,check=""){
+    if(!current)return "Map through answer "+mapProgress.count+" · later answers pending";
+    return "Updated through the latest answer"+(check==="working"?" · check pending":check==="error"?" · check incomplete":"");
+  }
+  function applyLateWorkflow(capture,captured,check=""){
     if(intakeActive()||!workflowEvidenceStillValid(captured))return;
     const evidence=mergeDocumentEvidence(capture?.document_evidence||[]);
     const workflow=optionalWorkingMap(capture?.workflow,captured.turns,evidence);
@@ -3743,10 +3758,10 @@
     const current=mapProgress.basis===captureProgressMark().basis;
     if(current){conversationUI.applied=conversationUI.revision;settleMapStatus();}
     applyProcessTitle(workflow.title);renderWorkingMap();
-    $("workflow-status").textContent=current?"Updated through the latest answer":"Map through answer "+mapProgress.count+" · later answers pending";
+    $("workflow-status").textContent=mapAppliedStatus(current,check);
     state.dirty=true;updateControls();updateSaveHint();knowledgeUI?.captureChanged?.();
   }
-  function applyBackgroundCapture(result,captured){
+  function applyBackgroundCapture(result,captured,check=""){
     if(intakeActive()||!workflowEvidenceStillValid(captured))return;
     // The reply to a stop request (or any result without a list of notes) is not
     // a capture: applying it would blank every topic. The notes, summary,
@@ -3778,7 +3793,7 @@
     if(workflow){publishWorkingMap(workflow,result.workflow_capture,captured.turns);mapProgress=captureProgressMark(captured.turns);
       const current=mapProgress.basis===captureProgressMark().basis;
       if(current){conversationUI.applied=conversationUI.revision;settleMapStatus();}
-      applyProcessTitle(workflow.title);renderWorkingMap();$('workflow-status').textContent=current?'Updated through the latest answer':'Map through answer '+mapProgress.count+' · later answers pending';}
+      applyProcessTitle(workflow.title);renderWorkingMap();$('workflow-status').textContent=mapAppliedStatus(current,check);}
     renderCoverage();updateControls();updateSaveHint();
   }
   function rememberCompletionReview(result,liveCaptureSource=null){
@@ -3902,7 +3917,7 @@
       facts:normalizedFacts(result.fact_provenance,state.turns,documentEvidence)
     };
     const repairs=memo?reviewedRepairs(result,memo.findings,state.turns,documentEvidence):null;
-    if(graph){state.documentEvidence=documentEvidence;publishWorkingMap(graph,result.workflow_capture,state.turns);conversationUI.applied=conversationUI.revision;mapProgress=captureProgressMark();applyProcessTitle(graph.title);renderWorkingMap();$("workflow-status").textContent="Updated through the latest answer";settleMapStatus();}
+    if(graph){state.documentEvidence=documentEvidence;publishWorkingMap(graph,result.workflow_capture,state.turns);conversationUI.applied=conversationUI.revision;mapProgress=captureProgressMark();applyProcessTitle(graph.title);renderWorkingMap();$("workflow-status").textContent=mapAppliedStatus(true,result.workflow_checked===false?(result.workflow_check_state==="error"?"error":"working"):"");settleMapStatus();}
     if(typeof result.capture_token==="string"&&result.capture_token&&result.capture_token.length<=4096)state.captureToken=result.capture_token;
     state.coverageVerified=result.coverage_verified===true;
     state.completion=result.completion||null;

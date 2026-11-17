@@ -684,16 +684,21 @@ if(process.argv.includes("--usability-only")){
   document.getElementById("global-notice").hidden=true;
   const requests=[];
   t.setRequest((url,payload)=>{assert.equal(url,"/api/workflow");return new Promise(resolve=>requests.push({payload,resolve}));});
+  // The map starts from a finished caption, as the notes do. It used to start one second after the
+  // first words (finding 5 of the November 17 run): that map was drawn from part of a sentence.
   t.receiveLiveCaption({id:"continuous-user",role:"user",text:"The analyst receives invoices.",final:false});
-  const firstTimer=workflowTimers()[0];assert.ok(firstTimer,"Nonfinal speech must schedule a workflow checkpoint");
+  assert.equal(workflowTimers().length,0,"Unfinished speech must not start a map");
   for(const suffix of [" Then", " Then the analyst", " Then the analyst logs them."]){
    t.receiveLiveCaption({id:"continuous-user",role:"user",text:"The analyst receives invoices."+suffix,final:false});
-   assert.equal(workflowTimers()[0][0],firstTimer[0],"Continued speech must not postpone the existing checkpoint");
+   assert.equal(workflowTimers().length,0,"Continued speech must not start a map either");
   }
+  t.receiveLiveCaption({id:"continuous-user",role:"user",text:"The analyst receives invoices. Then the analyst logs them. They use a register.",final:true});
+  const firstTimer=workflowTimers()[0];assert.ok(firstTimer,"The finished caption starts the map");
+  assert.equal(workflowTimers().length,1);
   timers.delete(firstTimer[0]);const firstRequest=firstTimer[1].fn();
   assert.equal(requests.length,1);const capturedRevision=t.conversationUI.revision;
-  t.receiveLiveCaption({id:"continuous-user",role:"user",text:"The analyst receives invoices. Then the analyst logs them. They use a register.",final:false});
-  t.receiveLiveCaption({id:"next-user-answer",role:"user",text:"A manager reviews the logged invoice.",final:false});
+  assert.ok(requests[0].payload.turns.find(turn=>turn.id==="t002").text.endsWith("They use a register."),"The map is drawn from the whole answer");
+  t.receiveLiveCaption({id:"next-user-answer",role:"user",text:"A manager reviews",final:false});
   for(let i=0;i<5;i++)t.scheduleWorkflow();
   assert.equal(workflowTimers().length,0,"Speech during an active request queues through its revision, not parallel timers");
   assert.equal(requests.length,1,"At most one workflow request may run at a time");
@@ -706,6 +711,8 @@ if(process.argv.includes("--usability-only")){
   assert.equal(document.getElementById("coverage-update-status").textContent,"Updating latest answers…");
   assert.equal(document.getElementById("global-notice").hidden,true,"A superseded completeness checkpoint cannot announce readiness");
   assert.equal(t.conversationUI.readyAnnounced,false);
+  assert.equal(workflowTimers().length,0,"The follow-up waits for the caption that is still being spoken");
+  t.receiveLiveCaption({id:"next-user-answer",role:"user",text:"A manager reviews the logged invoice.",final:true});
   const followup=workflowTimers();assert.equal(followup.length,1,"The latest pending evidence must have exactly one follow-up checkpoint");
   timers.delete(followup[0][0]);const latestRequest=followup[0][1].fn();assert.equal(requests.length,2);
   assert.equal(requests[1].payload.previous_capture.workflow.title,"Captured invoice receipt","A follow-up must use the checkpoint that just rendered as its omission-safe baseline");

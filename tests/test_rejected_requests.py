@@ -8,6 +8,7 @@ and message. These tests send the whole declared body, as a browser does. Loopba
 
 import importlib.util
 import json
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import socket
 import sys
@@ -231,10 +232,26 @@ class LingerIsBoundedAndOnlyForRejections(Fixture):
         left, right = socket.socketpair()
         self.addCleanup(left.close)
         self.addCleanup(right.close)
-        right.sendall(b"\x00" * 300_000)
-        started = time.monotonic()
-        self.assertGreaterEqual(self.httpd._drain(left, 100_000, 5), 100_000)
-        self.assertLess(time.monotonic() - started, 2, "The cap ends the drain, not the deadline")
+        payload = b"\x00" * 300_000
+        right.settimeout(5)
+
+        def write():
+            right.sendall(payload)
+            right.shutdown(socket.SHUT_WR)
+
+        # A socketpair's buffer can be smaller than this fixture. The reader must
+        # be running while the writer fills it, including on a fresh macOS host.
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            sent = pool.submit(write)
+            started = time.monotonic()
+            drained = self.httpd._drain(left, 100_000, 5)
+            self.assertLess(time.monotonic() - started, 2, "The cap ends the drain, not the deadline")
+            self.assertGreaterEqual(drained, 100_000)
+            left.settimeout(5)
+            remaining = sum(len(chunk) for chunk in iter(lambda: left.recv(65_536), b""))
+            sent.result()
+        self.assertGreater(remaining, 0, "The drain must stop before consuming the whole fixture")
+        self.assertEqual(drained + remaining, len(payload))
 
 
 class BusyServer(Fixture):

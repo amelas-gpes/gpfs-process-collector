@@ -9,7 +9,7 @@ const R="a".repeat(64),EARLIER="b".repeat(64);
 function setup(route,turns,clock=Date){
  let serial=0;const timers=new Map(),calls=[],applied=[],statuses=[],workflows=[];
  const snapshot={context:{process_name:"Fictional process"},turns:turns||[{id:"u1",role:"user",text:"The clerk receives a request."}],document_revision:"doc1"};
- const window={},context={window,AbortController,DOMException,JSON,Error,TypeError,Set,Date:clock};vm.createContext(context);vm.runInContext(source,context);
+ const window={},context={window,crypto:require("node:crypto").webcrypto,AbortController,DOMException,JSON,Error,TypeError,Set,Date:clock};vm.createContext(context);vm.runInContext(source,context);
  const controller=new window.CollectorConcurrentInterview({request:async(url,data,options)=>{calls.push({url,data,options});return route(url,data,options);},
   getSnapshot:()=>snapshot,getGeneration:()=>1,applyCapture:(capture,meta)=>applied.push({capture,meta}),applyWorkflow:(capture,meta)=>workflows.push({capture,meta}),
   onStatus:status=>statuses.push(status),setTimeout:fn=>{const id=++serial;timers.set(id,fn);return id;},clearTimeout:id=>timers.delete(id)});

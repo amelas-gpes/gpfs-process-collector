@@ -178,6 +178,8 @@ async function check(name,fn){
   assert.equal(s.due(9000),0,"Voice no longer ends by itself");assert.equal(s.due(500),0);
   assert.equal(s.mapRevision(),s.maps+1,"The working map is due for the addition");
   assert.equal(s.h.t.state.turns.at(-1).text,ACK);assert.equal(s.lines().length,3,"The interviewer is given the acknowledgement");
+  assert.equal(s.posts("/api/agent-team/review").length,0,"Review waits for the readback");
+  s.acknowledge(20800);s.hear("assistant",20900,23000,ACK);s.to(24900);await settle();
   assert.equal(s.posts("/api/agent-team/review").length,1,"The new review starts");
   assert.equal(s.v.api.active,true);assert.equal(s.copies(COMPLETE),1);
  });

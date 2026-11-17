@@ -214,8 +214,12 @@ class WorkflowUpdateTests(unittest.TestCase):
         candidate = update(upsert_steps=[step('S5', 'Unpublished proposed step', ['doc_fixture_p1_c1'])])
         provider_result = {'status': 'completed', 'output': [{'content': [{'type': 'output_text', 'text': json.dumps(candidate)}]}]}
         client = server.OpenAIClient({'OPENAI_API_KEY': 'synthetic-key'})
-        with patch.object(server, 'urlopen', side_effect=[io.BytesIO(json.dumps(provider_result).encode()),
-                                                         TimeoutError('PRIVATE_AUDIT_SENTINEL')]) as network:
+        # The transport passes the time left to its deadline. With zero simulated
+        # local work we can assert the exact configured limits on every platform.
+        with patch.object(server, 'time', wraps=server.time) as clock, \
+             patch.object(server, 'urlopen', side_effect=[io.BytesIO(json.dumps(provider_result).encode()),
+                                                          TimeoutError('PRIVATE_AUDIT_SENTINEL')]) as network:
+            clock.monotonic.return_value = 1000.0
             with self.assertRaises(server.APIError) as caught:
                 client.workflow(original)
         self.assertEqual(caught.exception.status, 504)
@@ -223,8 +227,7 @@ class WorkflowUpdateTests(unittest.TestCase):
         self.assertEqual(network.call_count, 2, 'No automatic paid retry or bypass of the audit')
         first, audit = [call.kwargs['timeout'] for call in network.call_args_list]
         self.assertEqual(first, 120)
-        self.assertGreater(audit, 235)
-        self.assertLessEqual(audit, 240)
+        self.assertEqual(audit, 240)
         sent = [json.loads(call.args[0].data) for call in network.call_args_list]
         self.assertEqual([body['text']['format']['name'] for body in sent],
                          ['working_process_map', 'working_process_map_audit'])
@@ -233,7 +236,9 @@ class WorkflowUpdateTests(unittest.TestCase):
         candidate = update()
         provider_result = {'status': 'completed', 'output': [{'content': [{'type': 'output_text', 'text': json.dumps(candidate)}]}]}
         client = server.OpenAIClient({'OPENAI_API_KEY': 'synthetic-key'})
-        with patch.object(server, 'urlopen', return_value=io.BytesIO(json.dumps(provider_result).encode())) as network:
+        with patch.object(server, 'time', wraps=server.time) as clock, \
+             patch.object(server, 'urlopen', return_value=io.BytesIO(json.dumps(provider_result).encode())) as network:
+            clock.monotonic.return_value = 1000.0
             client.workflow(payload())
         network.assert_called_once()
         self.assertEqual(network.call_args.kwargs['timeout'], 90)

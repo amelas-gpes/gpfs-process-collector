@@ -10,11 +10,12 @@
     while(turns.at(-1)?.role==="assistant")turns.pop();
     return JSON.stringify([snapshot?.context||{},turns,snapshot?.document_revision||"",snapshot?.document_scope||""]);
   }
+  const newId=()=>crypto.randomUUID().replaceAll("-","");
   const stale=()=>new DOMException("The conversation changed while this response was being prepared","AbortError");
   class CollectorConcurrentInterview {
     constructor(options={}){
       for(const key of ["request","getSnapshot","getGeneration","applyCapture"]){if(typeof options[key]!=="function")throw new TypeError(`Concurrent interview requires ${key}.`);}
-      this.options=options;this.token=null;this.epoch=0;this.sequence=0;this.timer=null;this.pollController=null;this.controllers=new Set();this.appliedRevision=null;this.settling=0;
+      this.options=options;this.token=null;this.startId=null;this.pendingTurn=null;this.pendingSync=null;this.epoch=0;this.sequence=0;this.timer=null;this.pollController=null;this.controllers=new Set();this.appliedRevision=null;this.settling=0;
       this.later=options.setTimeout||((fn,ms)=>global.setTimeout(fn,ms));this.unlater=options.clearTimeout||(id=>global.clearTimeout(id));this.pollMs=options.pollMs??650;
     }
     // True while a turn, sync or status request is in flight or the next status poll is scheduled.
@@ -31,7 +32,25 @@
         message:result.workflow_check_error||"The workflow could not be checked against its sources. Your notes are up to date. Select Update workflow to try again."});
     }
     stopPolling(){if(this.timer!==null)this.unlater(this.timer);this.timer=null;this.pollController?.abort();this.pollController=null;}
-    reset(){this.epoch++;this.sequence++;this.stopPolling();for(const controller of this.controllers)controller.abort();this.controllers.clear();this.token=null;this.appliedRevision=null;this.checkpointRevision=null;this.appliedMap=null;this.notify({state:"idle"});}
+    reset({handoff=false}={}){
+      const token=this.token||this.startId;
+      this.epoch++;this.sequence++;this.stopPolling();
+      for(const controller of this.controllers)controller.abort();
+      this.controllers.clear();this.token=null;this.startId=null;this.pendingTurn=null;this.pendingSync=null;
+      this.appliedRevision=null;this.checkpointRevision=null;this.appliedMap=null;
+      if(token)void this.cancelSession(token,handoff);
+      this.notify({state:"idle"});
+    }
+    async cancelSession(token,handoff){
+      try{await this.options.request("/api/conversation/cancel",{conversation_token:token,...(handoff?{handoff:true}:{})},{});}
+      catch{/* Disposal is best effort after this page has left the session. */}
+    }
+    operation(kind,snapshot){
+      const key=JSON.stringify([snapshot.action||"answer",snapshot.context,snapshot.turns,snapshot.document_scope,
+        snapshot.document_revision,snapshot.capture_token,snapshot.session?.closure_requested]);
+      if(this[kind]?.key!==key)this[kind]={key,id:newId()};
+      return this[kind].id;
+    }
     current(captured){return captured.epoch===this.epoch&&captured.generation===this.options.getGeneration()&&captured.sequence===this.sequence&&captured.key===sourceKey(this.options.getSnapshot());}
     async send(path,payload,options={}){
       const controller=new AbortController(),abort=()=>controller.abort();this.controllers.add(controller);
@@ -40,20 +59,32 @@
       finally{options.signal?.removeEventListener("abort",abort);this.controllers.delete(controller);}
     }
     capture(snapshot){return{snapshot:copy(snapshot),key:sourceKey(snapshot),epoch:this.epoch,generation:this.options.getGeneration(),sequence:++this.sequence};}
-    withToken(snapshot){return{...snapshot,...(this.token?{conversation_token:this.token}:{})};}
+    withToken(snapshot){
+      if(this.token)return {...snapshot,conversation_token:this.token};
+      this.startId??=newId()+newId();
+      return {...snapshot,conversation_start_id:this.startId};
+    }
     rememberToken(result){if(typeof result?.conversation_token!=="string"||!result.conversation_token)throw new Error("The interviewer did not return its conversation session.");this.token=result.conversation_token;}
     async turn(snapshot,options={}){
       const captured=this.capture(snapshot);this.stopPolling();
       this.notify({state:'queued'});
       let result;
-      try{result=await this.send("/api/conversation/turn",this.withToken(captured.snapshot),options);}
+      try{result=await this.send("/api/conversation/turn",{...this.withToken(captured.snapshot),operation_id:this.operation("pendingTurn",snapshot)},options);}
       catch(error){if(error.name!=="AbortError"&&this.current(captured))this.notify({state:"error",message:error.message});throw error;}
       if(options.signal?.aborted||!this.current(captured))throw stale();
-      this.rememberToken(result);if(result.sync_required===true)return this.sync(captured.snapshot,options);
+      this.rememberToken(result);
+      if(result.sync_required===true){
+        const reviewed=await this.sync(captured.snapshot,options);
+        this.pendingTurn=null;return reviewed;
+      }
+      this.pendingTurn=null;
+      if(result.analysis?.state==="paused"&&!result.analysis.settling){
+        this.notify({state:"ready",kept:true,revision:result.revision});return result;
+      }
       // Schedule before notifying, so a listener that reads `active` sees the poll that is coming.
       captured.revision=result.revision;captured.started=Date.now();
       this.schedule(captured);
-      this.notify({state:result.analysis?.state||"working",revision:result.revision});
+      this.notify({state:result.analysis?.settling?"working":result.analysis?.state||"working",revision:result.revision});
       return result;
     }
     schedule(captured,delay=this.pollMs){
@@ -96,6 +127,7 @@
           global.CollectorRawTrace?.record("analysis.poll_discarded",{revision:captured.revision,aborted:controller.signal.aborted});return;
         }
         this.rememberToken(result); captured.retryWait=0; captured.retryCount=0;
+        if(result.state==="paused"){settled();this.notify({state:"ready",kept:true,revision:result.revision});return;}
         // Work that finished for an earlier answer is taken only when its turns are still the
         // beginning of this conversation, word for word, and it names the answer it goes through.
         const earlier=item=>Array.isArray(item.turns) && item.turns.length<snapshot.turns.length &&
@@ -204,7 +236,7 @@
           captured.retryCount=(captured.retryCount||0)+1; captured.retryWait=(captured.retryWait||0)+delay;
           this.schedule(captured,delay); if(!captured.notesFailed)this.notify({state:"reconnecting"}); return;
         }
-        if(error.code==="conversation_expired"){this.token=null;this.appliedRevision=null;this.checkpointRevision=null;this.appliedMap=null;}
+        if(error.code==="conversation_expired"){this.startId=null;this.pendingTurn=null;this.pendingSync=null;this.token=null;this.appliedRevision=null;this.checkpointRevision=null;this.appliedMap=null;}
         if(captured.notesFailed){this.options.onWorkflowError?.("The workflow could not be checked. Select Update workflow to try again.");return;}
         this.notify(captured.mapOnly||captured.notesApplied?{state:"error",scope:"workflow",message:"The workflow could not be checked. Your notes are up to date. Select Update workflow to try again."}
           :{state:"error",message:error.message||"Background notes could not update. Your conversation is retained."});
@@ -214,9 +246,10 @@
     async sync(snapshot,options={}){
       const captured=this.capture(snapshot);this.stopPolling();this.notify({state:"syncing"});
       try{
-        const result=await this.send("/api/conversation/sync",this.withToken(captured.snapshot),options);
+        const result=await this.send("/api/conversation/sync",{...this.withToken(captured.snapshot),
+          operation_id:this.operation("pendingSync",snapshot)},options);
         if(options.signal?.aborted||!this.current(captured))throw stale();
-        this.rememberToken(result);
+        this.rememberToken(result);this.pendingSync=null;
         // The notes are synchronized; the map may not be. It has its own state: a map still
         // being drawn is fetched by the status poll when it arrives, and a failed one is
         // reported as the map's failure, with the notes shown as they are (caught up).

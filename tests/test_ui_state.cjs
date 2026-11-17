@@ -1455,7 +1455,7 @@ if(process.argv.includes("--usability-only")){
   context.window.CollectorLiveVoice=class{
    constructor(options){callbacks=options;this.active=false;this.connected=false;}
    async start(){this.active=true;this.connected=true;callbacks.onStatus("listening");return true;}
-   say(text){said.push(text);return Promise.resolve({status:"acknowledged"});}
+   say(text){said.push(text);const id="spoken-"+said.length;callbacks.onTranscript({id,role:"assistant",text,final:true,authorized:id});return Promise.resolve({status:"captioned",captionId:id});}
    appendContext(text,meta){appended.push({text,meta});return Promise.resolve({status:"acknowledged"});}
    async stop(){stops.push(1);this.active=false;this.connected=false;callbacks.onStatus("idle");return{finalized:true};}
   };
@@ -1493,7 +1493,7 @@ if(process.argv.includes("--usability-only")){
   callbacks.onTranscript({id:"c6",role:"user",text:"No, nothing else to add.",final:true});
   await runCaptureTimer();
   assert.equal(t.state.closure.confirmed,true);assert.equal(said.length,3);
-  const ending=[...timers.entries()].find(([,timer])=>timer.delay===9000);assert.ok(ending,"The session ends after the completion line is spoken");timers.delete(ending[0]);ending[1].fn();await settle();assert.equal(stops.length,1);
+  const ending=[...timers.entries()].find(([,timer])=>timer.delay===9000);assert.ok(ending);timers.delete(ending[0]);ending[1].fn();await settle();assert.equal(stops.length,1);
   t.clearState();t.conversationUI.live=null;delete context.window.CollectorLiveVoice;passes++;
  }
  {

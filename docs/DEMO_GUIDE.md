@@ -13,11 +13,11 @@ Use fictional information. Before replacing an open interview, choose **More opt
 
 ## Explain what the team and topic states mean
 
-There is one interviewer voice. **Lead interviewer** handles the conversation; **Coverage reviewer** and **Process reviewer** inspect completion readiness. **Document analyst** handles supplied material. The team status sits beside the Workspace title once a role has run; select it for the roles. **Standing by** is normal when a role is not needed. **Done** means work finished, not necessarily that the account passed.
+There is one interviewer voice. GPT-Live leads the default voice conversation. The **Lead interviewer** maintains the account and handles managed turns; **Coverage reviewer** and **Process reviewer** inspect completion readiness. **Document analyst** handles supplied material. The team status sits beside the Workspace title once a role has run; select it for the roles. **Standing by** is normal when a role is not needed. **Done** means work finished, not necessarily that the account passed.
 
 **Unknown** and **In progress** mean the section still has gaps. **Captured** (before the final check) is provisional; **Needs detail** marks a topic that was discussed but is not yet clear. A topic is officially covered only when its explanation and required details have evidence, with no unresolved assumptions. An unavailable answer remains open; a partial draft can still be useful. Participant confirmation and process-owner approval are separate.
 
-When the candidate account is ready, one acknowledgement precedes the completion review; in voice it finishes playing first. Review can produce another question, a final omissions check, or a partial handoff. Confirmation cannot fill missing sections. Retrying the same failed review does not repeat its acknowledgement. **Wrap up** remains unavailable until its prerequisites are met.
+When the candidate account is ready, one acknowledgement precedes the completion review; the app tracks the approved line and offers text recovery if delivery fails. Review can produce another question, a final omissions check, or a partial handoff. Confirmation cannot fill missing sections. Retrying the same failed review does not repeat its acknowledgement. **Wrap up** remains unavailable until its prerequisites are met.
 
 ## Recover without losing the account
 

@@ -39,6 +39,7 @@
   // Listening cues and brief acknowledgements: the interviewer saying only these
   // has not taken the turn, so the participant's answer continues across them.
   const listeningCue = text => /^(?:(?:m+(?:[ -]*h+m*)?|h+m+|u+h[ -]*h+u+h|uh|um|okay|ok|right|sure|yes|yeah|i see|got it|go ahead|go on|thanks|thank you|good to know)[\s.,!?…—-]*)+$/i.test(text.trim());
+  const deliveryWords = text => text.normalize("NFKC").toLowerCase().replace(/n[’']t\b/gu,"nt").replace(/[^\p{L}\p{N}]+/gu," ").trim();
   const hasWords = text => /[\p{L}\p{N}]/u.test(text);
   const letterCount = text => (text.match(/[\p{L}\p{N}]/gu) || []).length;
   const paused = (before, start) => start !== null && before !== null && start - before >= 500;
@@ -149,6 +150,7 @@
     }
     get active() {return Boolean(this.operation && !this.operation.closing);}
     get connected() {return Boolean(this.operation?.ready && !this.operation.closing);}
+    get inputClosed() {return Boolean(this.operation?.inputClosed);}
     get participantSpeaking() {return Boolean(this.operation?.sound.inputActive);}
     get assistantSpeaking() {return Boolean(this.operation?.sound.playbackActive || this.operation?.sound.outputActive);}
     async start({context, turns = [], voice, document_scope, notes} = {}) {
@@ -175,7 +177,7 @@
         const stream = await this.wait(op, permission, null);
         op.stream = stream;
         for(const track of stream.getAudioTracks())if(track.addEventListener)this.listenAudio(op,track,"ended",()=>{
-          if(current())this.fail(op,"The microphone disconnected. Your transcript is retained. Reconnect the microphone to continue talking, or type your answer.");
+          if(current()&&!op.inputClosed)this.fail(op,"The microphone disconnected. Your transcript is retained. Reconnect the microphone to continue talking, or type your answer.");
         });
         if (!current()) {stream.getTracks().forEach(track => track.stop()); return false;}
         // getUserMedia cannot be aborted: release tracks even if permission resolves after cancellation.
@@ -323,7 +325,11 @@
         const spoken = op.commentary.get(event.client_event_id);
         // The provider holds the line. Its reading is recognised by its words
         // (see interviewer), not by this event, so nothing is armed here.
-        if (spoken) spoken.resolve({status:"acknowledged",start_ms:Number.isFinite(event.start_ms)?event.start_ms:null});
+        if (spoken) {
+          spoken.acknowledged = true;
+          if (!spoken.waitForCaption) spoken.resolve({status:"acknowledged",start_ms:Number.isFinite(event.start_ms)?event.start_ms:null});
+          else if (spoken.captionId) spoken.resolve({status:"captioned",captionId:spoken.captionId});
+        }
         return;
       }
       if (event.type === "session.thinking.appended") {
@@ -360,13 +366,14 @@
           op.lines = op.lines.filter(line => line.event_id !== id);
           if (op.held?.line.event_id === id) this.release(op,false);
           spoken.resolve({status:"rejected",reason:"provider_rejected"});
-          if (this.operation === op && !op.closing) this.notify("onError","The interviewer could not be given its next line. The line is in the transcript; you can continue.");
+          if (this.operation === op && !op.closing && !spoken.waitForCaption) this.notify("onError","The interviewer could not be given its next line. The line is in the transcript; you can continue.");
           return;
         }
         // A late error for an already settled/cancelled context append is local
         // to that command; it must not tear down a healthy voice connection.
         if (typeof id === "string" && id.startsWith(`context_${op.id}_`) && /^\d+$/.test(id.slice(`context_${op.id}_`.length))) return;
-        if(typeof id==="string" && /^(?:say|mute|typed)_/.test(id)){
+        if (typeof id === "string" && id.startsWith(`say_${op.id}_`)) return;
+        if(typeof id==="string" && /^(?:mute|typed)_/.test(id)){
           this.notify("onError","Voice could not confirm this command. Check the transcript or microphone setting before continuing.");return;
         }
         if(!op.commandErrorReported){op.commandErrorReported=true;this.notify("onError","The voice service reported an issue. Check the transcript. You can continue talking or type instead.");}
@@ -505,7 +512,8 @@
       if (!line || caption.done) return;
       // Hearing the line read confirms its delivery, with or without the
       // provider's acknowledgement event.
-      op.commentary.get(line.event_id)?.resolve({status:"acknowledged",start_ms:null});
+      const spoken = op.commentary.get(line.event_id);
+      if (spoken && !spoken.waitForCaption) spoken.resolve({status:"acknowledged",start_ms:null});
       const text = caption.lead + caption.text, ended = SENTENCE_END.test(caption.text);
       if (!caption.whole && (reads(line,text).whole || ended && letterCount(text) >= line.letters)) {
         // Read to its last word. The line, and any earlier line the
@@ -578,6 +586,18 @@
       this.notify("onTranscript",{id:caption.id,role:caption.role,text:caption.text,final,
         start_ms:caption.start_ms,end_ms:caption.end_ms,fragments:caption.fragments.slice(),
         ...(caption.authorized ? {authorized:caption.authorized} : {})});
+      if (caption.authorized) {
+        const spoken = op.commentary.get(caption.authorized);
+        if (spoken?.waitForCaption) {
+          if (deliveryWords(caption.lead + caption.text) !== spoken.expected) {
+            // A quiet checkpoint can be extended before the command receipt arrives.
+            if (spoken.captionId === caption.id) delete spoken.captionId;
+          } else if (final) {
+            spoken.captionId = caption.id;
+            if (spoken.acknowledged) spoken.resolve({status:"captioned",captionId:caption.id});
+          }
+        }
+      }
     }
     sendGreeting(op) {
       if (this.operation !== op || op.closing || !op.ready || op.channel?.readyState !== "open" || op.greeting?.status !== "queued") return;
@@ -601,9 +621,15 @@
         end_ms:Number.isFinite(event.end_ms) ? event.end_ms : null};
       this.notify("onGreeting",{...op.greeting});
     }
+    closeInput() {
+      const op=this.operation;
+      if(!op||op.closing||op.inputClosed)return;
+      op.inputClosed=true;this.setMuted(true);
+      op.stream?.getAudioTracks().forEach(track=>track.stop());
+    }
     setMuted(muted) {
       const op = this.operation;
-      if (!op || op.closing) return false;
+      if (!op || op.closing || op.inputClosed&&!muted) return false;
       op.muted = Boolean(muted);
       // Disable local transmission immediately, independently of provider acknowledgment.
       op.stream?.getAudioTracks().forEach(track=>{track.enabled = !op.muted;});
@@ -619,7 +645,7 @@
       return true;
     }
 
-    say(text) {
+    say(text,{waitForCaption=false,signal}={}) {
       // An application-authorized line (acknowledgement, final check, review
       // follow-up). GPT-Live may paraphrase commentary, so an exact line goes
       // through session.instructions.append, which the provider documents for
@@ -630,19 +656,26 @@
       // participant's next words are a new caption. The receipt is
       // "acknowledged" when the provider confirms the line or the interviewer
       // is heard reading it, and "unconfirmed" when neither happens in time.
+      // A review also waits for a final caption matching the entire authorized
+      // line. Its command receipt and caption can arrive in either order.
       const op = this.operation;
       const result = (status,reason) => Promise.resolve({status,...(reason ? {reason} : {})});
       if (!this.connected || op.channel?.readyState !== "open") return result("unavailable","session_inactive");
       if (typeof text !== "string" || !text.trim() || text.length > 1200) return result("rejected","invalid_text");
+      if (signal?.aborted) return result("cancelled","aborted");
       const event_id = `say_${op.id}_${++this.sequence}`;
       return new Promise(resolve => {
         let timer = null;
         const settle = receipt => {
           if (!op.commentary.delete(event_id)) return;
           if (timer) {clearTimeout(timer);op.timers.delete(timer);}
+          signal?.removeEventListener("abort",cancel);
           resolve(receipt);
         };
-        op.commentary.set(event_id,{resolve:settle});
+        const cancel = () => settle({status:"cancelled",reason:"aborted"});
+        const expected = waitForCaption ? deliveryWords(text) : null;
+        op.commentary.set(event_id,{resolve:settle,waitForCaption,expected});
+        signal?.addEventListener("abort",cancel,{once:true});
         try {
           sendEvent(op,{type:"session.instructions.append",event_id,delegation_id:null,
             content:authorizedLine(JSON.stringify(text))});
@@ -655,7 +688,7 @@
           // provider refuses it. A few lines at most are looked for at once.
           const line = {event_id,words:lineWords(text),letters:letterCount(text)};
           if (line.words.length) {op.lines.push(line);if (op.lines.length > 4) op.lines.shift();}
-          timer = this.timer(op,() => {timer = null;settle({status:"unconfirmed",reason:"not_confirmed"});},SAY_CONFIRM_MS);
+          timer = this.timer(op,() => {timer = null;settle({status:"unconfirmed",reason:"not_confirmed"});},waitForCaption ? 20000 : SAY_CONFIRM_MS);
         }
         catch {settle({status:"rejected",reason:"send_failed"});}
       });

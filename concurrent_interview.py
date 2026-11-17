@@ -195,6 +195,7 @@ class ConcurrentInterview:
         self._draws = _Pool("collector-workflow", map_workers, self._lock)
         self._checks = _Pool("collector-workflow-check", max(1, map_workers - 1), self._lock)
         self._sessions = {}
+        self._cancelled = {}
         self._closed = False
         self._listeners = []
 
@@ -233,10 +234,10 @@ class ConcurrentInterview:
         participant revision; the fast question and newly derived memo citations
         must not silently choose a different set of excerpts while polling.
         """
-        token = payload.get("conversation_token") if isinstance(payload, dict) else None
+        token = (payload.get("conversation_token") or payload.get("conversation_start_id")) if isinstance(payload, dict) else None
         with self._lock:
             session = self._sessions.get(token) if isinstance(token, str) else None
-            prior = session.get("source_payload") if session else None
+            prior = ((session.get("pause") or {}).get("payload") or session.get("source_payload")) if session else None
             if not prior or self._participant_basis(payload) != self._participant_basis(prior):
                 return None
             snapshot = prior.get("_conversation_document_snapshot")
@@ -269,10 +270,19 @@ class ConcurrentInterview:
 
     def _session(self, payload, create=False):
         token = payload.get("conversation_token")
+        start = payload.get("conversation_start_id") if create else None
+        if start is not None and (not isinstance(start, str) or not re.fullmatch(r"[a-f0-9]{64}", start)
+                                  or token is not None and start != token):
+            raise ValueError("A valid conversation start identifier is required.")
         with self._lock:
             if self._closed:
                 raise self.api.APIError("The interview service is stopping.", 503)
             session = None
+            identifier = token if token is not None else start
+            if isinstance(identifier, str) and self._cancelled.get(identifier, float("-inf")) > time.monotonic() - 1800:
+                raise self.api.APIError("This conversation has ended.", 409, category="conversation_expired")
+            if token is None and start in self._sessions:
+                token = start
             if token is not None:
                 if not isinstance(token, str) or not re.fullmatch(r"[a-f0-9]{64}", token):
                     raise ValueError("A valid conversation token is required.")
@@ -289,8 +299,8 @@ class ConcurrentInterview:
                     if idle is None:
                         raise self.api.APIError("Background interviews are busy. Retry shortly.", 429)
                     del self._sessions[idle]
-                token = uuid.uuid4().hex + uuid.uuid4().hex
-                session = {"token": token, "at": now, "revision": None, "generation": 0,
+                token = start or uuid.uuid4().hex + uuid.uuid4().hex
+                session = {"token": token, "operations": {}, "at": now, "revision": None, "generation": 0,
                            "pending": None, "running": False, "working_revision": None,
                            "capture": None, "capture_revision": None, "capture_turns": None, "workflow_capture": None,
                            "capture_preserved": False, "rebuild_notes": False, "rebuild_map": False, "workflow_turns": None,
@@ -317,19 +327,22 @@ class ConcurrentInterview:
 
     @staticmethod
     def _busy(session):
-        return session["running"] or session["graph_running"] or session["check_running"]
+        return (session["running"] or session["graph_running"] or session["check_running"]
+                or any(not entry["done"] for entry in session["operations"].values()))
 
     def prune(self):
         now = time.monotonic()
         with self._lock:
+            self._cancelled = {key: at for key, at in self._cancelled.items() if now - at < 1800}
             self._sessions = {key: item for key, item in self._sessions.items()
                               if self._busy(item) or now - item["at"] < 1800}
 
     def _queue(self, session, payload, force=False):
         revision = self.revision(payload)
         with self._lock:
-            if session.get("abandoned"):
+            if self._closed or session.get("abandoned"):
                 raise self.api.APIError("This conversation has ended.", 409, category="conversation_expired")
+            session.pop("pause", None)
             if revision != session["revision"] or force:
                 # A map that is being drawn is left to finish. A new answer used to cancel it
                 # (65 times in one test run, with a participant answering every 45 seconds and
@@ -567,7 +580,11 @@ class ConcurrentInterview:
                     raw_trace.emit("worker.capture.discarded", {"revision": revision, "generation": generation})
                     return
                 session.update(capture_run_id=work["agent_run_id"], capture_run_revision=revision)
-            capture = self.client.coordinator.interview(work)
+            background = getattr(self.client.coordinator, "background_interview", None)
+            if previous is None and continued and payload.get("capture_token") and callable(background):
+                capture = background(work, fact_token=payload["capture_token"])
+            else:
+                capture = self.client.coordinator.interview(work)
             self._sources(payload)
             disposition = "discarded"
             with self._lock:
@@ -1002,6 +1019,27 @@ class ConcurrentInterview:
 
     def _view(self, session, revision):
         with self._lock:
+            pause = session.get("pause")
+            if not pause or pause["revision"] != revision:
+                return self._work_view(session, revision)
+            view = self._work_view(session, session["revision"])
+            view["revision"] = revision
+            if not pause["prefix"]:
+                capture = view.pop("capture", None)
+                if view["state"] == "ready":
+                    view["capture_preserved"] = True
+                turns = session.get("capture_turns") or []
+                through = next((turn["id"] for turn in reversed(turns)
+                                if turn["role"] == "user" and not turn.get("document_event")), None)
+                if capture and through:
+                    view["checkpoint"] = {"revision": session["capture_revision"], "turns": copy.deepcopy(turns),
+                                          "through_turn_id": through, "capture": capture}
+                if "workflow_capture" in view:
+                    view["workflow_preserved"] = True
+            return view
+
+    def _work_view(self, session, revision):
+        with self._lock:
             current = session["revision"] == revision
             state = session["state"] if current else "queued"
             result = {"conversation_token": session["token"], "revision": revision, "state": state,
@@ -1184,18 +1222,63 @@ class ConcurrentInterview:
                     return text.strip()[:1200]
         return FILE_QUESTION_FALLBACK
 
-    @provider_usage.track_generation
     def turn(self, payload):
         self._validate(payload)
         session = self._session(payload, create=True)
         try:
-            return self._turn(session, payload)
+            result = self._operation(session, payload, "turn", lambda: self._turn(session, payload))
+            self._sources(payload)
+            return result
         except Exception:
             # A new capability has not yet been delivered to this caller. Its
             # workers and private snapshot cannot be recovered on a retry.
-            if session["token"] != payload.get("conversation_token"):
+            if session["token"] not in (payload.get("conversation_token"), payload.get("conversation_start_id")):
                 self.abandon(session["token"])
             raise
+
+    def _operation(self, session, payload, route, run):
+        operation = payload.get("operation_id")
+        if operation is None:  # Compatibility with clients predating retry IDs.
+            return run()
+        if not isinstance(operation, str) or not re.fullmatch(r"[a-f0-9]{32}", operation):
+            raise ValueError("Invalid turn operation identifier.")
+        revision = self.revision(payload)
+        basis = hashlib.sha256(json.dumps([route, revision, payload.get("action", "answer"), payload["turns"],
+                                             payload.get("capture_token")],
+                                          sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+        with self._changed:
+            entries = session["operations"]
+            entry = entries.get(operation)
+            if entry:
+                if entry["basis"] != basis:
+                    raise self.api.APIError("A turn identifier cannot be reused for a different action.", 409)
+                while not entry["done"] and not self._closed and not session.get("abandoned"):
+                    self._changed.wait()
+                if self._closed or self._public_revision(session) != revision:
+                    raise self.api.APIError("This turn was replaced or cancelled.", 409)
+                if entry.get("error"):
+                    raise entry["error"]
+                return copy.deepcopy(entry["result"])
+            for old in list(entries):
+                if len(entries) < 32:
+                    break
+                if entries[old]["done"]:
+                    del entries[old]
+            if len(entries) >= 32:
+                raise self.api.APIError("Too many pending interview actions. Retry shortly.", 429)
+            entry = entries[operation] = {"basis": basis, "done": False}
+        try:
+            result = run()
+        except Exception as error:
+            with self._changed:
+                entry.update(done=True, error=error)
+                entries.pop(operation, None)  # explicit retry after a failed operation
+                self._changed.notify_all()
+            raise
+        with self._changed:
+            entry.update(done=True, result=copy.deepcopy(result))
+            self._changed.notify_all()
+        return result
 
     def abandon(self, token):
         with self._changed:
@@ -1203,6 +1286,7 @@ class ConcurrentInterview:
             if not session:
                 return
             self._cancel_session_work(session)
+            session.pop("pause", None)
             session.update(abandoned=True, revision=None, source_payload=None)
             raw_trace.emit("interview.session.abandoned", {"generation": session["generation"]})
             session["generation"] += 1
@@ -1212,6 +1296,53 @@ class ConcurrentInterview:
         if not isinstance(token, str) or not re.fullmatch(r"[a-f0-9]{64}", token):
             raise ValueError("A valid conversation token is required.")
         self.abandon(token)
+
+    def cancel(self, payload):
+        token = payload.get("conversation_token") if isinstance(payload, dict) else None
+        if not isinstance(token, str) or not re.fullmatch(r"[a-f0-9]{64}", token):
+            raise ValueError("A valid conversation token is required.")
+        with self._changed:
+            now = time.monotonic()
+            self._cancelled = {key: at for key, at in self._cancelled.items() if now - at < 1800}
+            if token not in self._cancelled and len(self._cancelled) >= 256:
+                self._cancelled.pop(next(iter(self._cancelled)))
+            self._cancelled[token] = now
+            session = self._sessions.get(token)
+            cancel = getattr(self.client.coordinator, "cancel", None)
+            if session and callable(cancel) and payload.get("handoff") is not True:
+                run_ids = [session.get("managed_reply_run")]
+                run_ids.extend((session.get(key) or {}).get("agent_run_id") for key in ("synchronized", "capture"))
+                for run_id in set(run_ids) - {None}:
+                    cancel(run_id)
+            self.abandon(token)
+        return {"cancelled": True}
+
+    @staticmethod
+    def _public_revision(session):
+        return (session.get("pause") or {}).get("revision", session["revision"])
+
+    def _settle_before_stop(self, session, payload, *, settle_prior):
+        """Keep the original stop transcript for polling. Workers read only its process evidence."""
+        revision = self.revision(payload)
+        if (session.get("pause") or {}).get("revision") == revision:
+            return True
+        turns = payload["turns"]
+        last = next((i for i in reversed(range(len(turns))) if turns[i]["role"] == "user"
+                     and not turns[i].get("document_event")), None)
+        if last is None:
+            return False
+        split = getattr(self.api, "stop_request_prefix", None)
+        prefix = split(turns[last]["text"]) if callable(split) else None
+        evidence_turns = turns[:last]
+        if prefix:
+            evidence_turns = [*evidence_turns, {**turns[last], "text": prefix}]
+        evidence = {**payload, "turns": evidence_turns}
+        if not prefix and (not settle_prior or self.revision(evidence) != session["revision"]
+                           or not any(t["role"] == "user" and not t.get("document_event") for t in evidence_turns)):
+            return False
+        self._queue(session, evidence)
+        session["pause"] = {"revision": revision, "payload": copy.deepcopy(payload), "prefix": bool(prefix)}
+        return True
 
     def _sync_capture(self, session, revision, work):
         run_id = uuid.uuid4().hex
@@ -1225,7 +1356,10 @@ class ConcurrentInterview:
             with self._lock:
                 session["sync_runs"].discard(run_id)
 
+    @provider_usage.track_generation
     def _turn(self, session, payload):
+        context, turns = self.api.validate_payload(payload)
+        stopping = self.api.participant_requested_stop(turns, payload.get("action", "answer"))
         with self._lock:
             if session.get("abandoned"):
                 raise self.api.APIError("This conversation has ended.", 409)
@@ -1233,10 +1367,24 @@ class ConcurrentInterview:
             lookup = getattr(self.client.coordinator, "capture_speech_kind", None)
             if lookup and payload.get("capture_token"):
                 speech_kind = lookup(payload.get("capture_token"))
+            managed_reply = getattr(self.client.coordinator, "awaiting_managed_reply", None)
+            # Adopt a managed review on entry from voice. In an existing typed session
+            # the browser can still carry an old file or Wrap up token alongside newer notes.
+            adopting = session["revision"] is None and payload.get("capture_token") and callable(managed_reply)
+            issued = managed_reply(payload) if adopting else None
+            if issued:
+                session["managed_reply_run"] = issued
             verified_pause = speech_kind == "pause" and (session.get("synchronized") or {}).get("coverage_verified") is True
-            needs_sync = payload.get("action") == "close" or verified_pause or speech_kind in ("final_check", "complete")
+            needs_sync = bool(issued) or payload.get("action") == "close" or verified_pause or speech_kind in ("final_check", "complete")
             completed = speech_kind == "complete"
-            if needs_sync:
+            settling = stopping and not completed and self._settle_before_stop(session, payload, settle_prior=not needs_sync)
+            if settling:
+                revision = self._public_revision(session)
+            elif not needs_sync and session.get("pause") and session["pause"]["revision"] == self.revision(payload):
+                # An acknowledgement or Skip has added no evidence to the paused snapshot.
+                revision = session["pause"]["revision"]
+            elif needs_sync:
+                session.pop("pause", None)
                 # Final confirmation must extend the exact authoritative capture,
                 # not start an unrelated capture family before that transition.
                 revision = self.revision(payload)
@@ -1248,10 +1396,9 @@ class ConcurrentInterview:
                 session["source_payload"] = copy.deepcopy(payload)
             else:
                 revision = self._queue(session, payload)
-        context, turns = self.api.validate_payload(payload)
         # After the completion line a request to stop is a goodbye. Like every reply
         # there it goes to the Coordinator, which keeps the completed account.
-        if not completed and self.api.participant_requested_stop(turns, payload.get("action", "answer")):
+        if not completed and stopping:
             route = "participant_stop"
             question = "Of course. We can pause here and keep the unfinished parts open."
             kind, sync_required = "pause", False
@@ -1324,7 +1471,7 @@ class ConcurrentInterview:
                     question, sync_required = "", True
         self._sources(payload)
         with self._lock:
-            if self._closed or session["revision"] != revision:
+            if self._closed or self._public_revision(session) != revision:
                 raise self.api.APIError("A newer answer replaced this question.", 409)
         result = {"question": question, "preserve_capture": True, "conversation_token": session["token"],
                   "revision": revision, "sync_required": sync_required,
@@ -1333,6 +1480,8 @@ class ConcurrentInterview:
         if not sync_required:
             result["speech_authorization"] = {"approved": True, "text": question, "kind": kind,
                                                "revision": revision, "completion_allowed": False}
+        if kind == "pause":
+            result["analysis"] = {"state": "paused", "settling": bool(settling)}
         raw_trace.emit("interview.fast_question.result", {"revision": revision, "route": route,
             "sync_required": sync_required, "kind": kind, "content": {"question": question}})
         return result
@@ -1343,9 +1492,9 @@ class ConcurrentInterview:
             raise ValueError("Unexpected status request fields.")
         session = self._session(payload)
         with self._lock:
-            stored = session.get("source_payload")
+            stored = (session.get("pause") or {}).get("payload") or session.get("source_payload")
             revision = payload.get("revision")
-            if not stored or not isinstance(revision, str) or revision != session["revision"]:
+            if not stored or not isinstance(revision, str) or revision != self._public_revision(session):
                 raise self.api.APIError("A newer conversation revision is available.", 409)
             if stored.get("document_scope") != payload.get("document_scope"):
                 raise self.api.APIError("These files are not available in this interview.", 403)
@@ -1353,7 +1502,7 @@ class ConcurrentInterview:
             result = self._view(session, revision)
         self._sources(stored)
         with self._lock:
-            if session["revision"] != revision:
+            if self._public_revision(session) != revision:
                 raise self.api.APIError("The conversation changed during this status check.", 409)
         if isinstance(stored.get("_supporting_documents"), dict):
             result["document_reading"] = self.api.document_reading_summary(stored["_supporting_documents"])
@@ -1369,6 +1518,28 @@ class ConcurrentInterview:
     def sync(self, payload, timeout=300):
         self._validate(payload)
         session = self._session(payload, create=True)
+        result = self._operation(session, payload, "sync", lambda: self._sync(session, payload, timeout))
+        self._sources(payload)
+        return result
+
+    def _sync(self, session, payload, timeout):
+        with self._lock:
+            if self._closed or session.get("abandoned"):
+                raise self.api.APIError("This conversation has ended.", 409)
+            split = getattr(self.api, "stop_request_prefix", None)
+            latest = next((t for t in reversed(payload["turns"]) if t["role"] == "user" and not t.get("document_event")), None)
+            mixed_stop = (latest and callable(split) and self.api.participant_requested_stop(payload["turns"], payload.get("action", "answer"))
+                          and split(latest["text"]))
+            kind = (session.get("synchronized") or {}).get("speech_authorization", {}).get("kind")
+            lookup = getattr(self.client.coordinator, "capture_speech_kind", None)
+            if mixed_stop and payload.get("capture_token") and callable(lookup):
+                kind = lookup(payload["capture_token"])
+            settle_prefix = mixed_stop and kind != "complete"
+            if not settle_prefix:
+                session.pop("pause", None)
+        if settle_prefix:
+            # Synchronizing a stopped recording must also save the testimony before its stop.
+            return self._turn(session, payload)
         deadline = time.monotonic() + timeout
         # Opaque capture capabilities are validated by Coordinator, never by
         # client-supplied memo/status prose. This preserves its exact final-check

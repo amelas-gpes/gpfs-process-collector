@@ -9,6 +9,7 @@ import unittest
 import uuid
 import threading
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import Mock,patch
 
 spec=importlib.util.spec_from_file_location('knowledge_graph',Path(__file__).resolve().parents[1]/'knowledge_graph.py')
@@ -53,12 +54,18 @@ def wait_dropped(graph,job,count=1):
     return row
 
 class ProcessLivenessTests(unittest.TestCase):
+    def setUp(self):
+        # Choose the liveness branch without changing how Python's own imports
+        # detect the host OS (in particular ctypes on a non-Windows machine).
+        self.platform = SimpleNamespace(name='nt', kill=Mock(side_effect=AssertionError(
+            'Windows liveness must not send signals')))
+        self.enterContext(patch.object(kg, 'os', self.platform))
+
     def test_windows_process_wait_distinguishes_alive_exited_and_unknown_without_signals(self):
         for result,alive in ((258,True),(0,False),(0xffffffff,True)):
             kernel=Mock();kernel.OpenProcess.return_value=1234;kernel.WaitForSingleObject.return_value=result
-            with self.subTest(result=result),patch.object(kg.os,'name','nt'),\
-                 patch('ctypes.WinDLL',return_value=kernel,create=True),\
-                 patch.object(kg.os,'kill',side_effect=AssertionError('Windows liveness must not send signals')):
+            with self.subTest(result=result),\
+                 patch('ctypes.WinDLL',return_value=kernel,create=True):
                 self.assertIs(kg._process_is_alive(42),alive)
             kernel.OpenProcess.assert_called_once_with(0x00100000,False,42)
             kernel.WaitForSingleObject.assert_called_once_with(1234,0)
@@ -66,16 +73,14 @@ class ProcessLivenessTests(unittest.TestCase):
     def test_windows_missing_pid_is_dead_but_access_denied_or_unknown_is_alive(self):
         for error,alive in ((87,False),(5,True),(123,True)):
             kernel=Mock();kernel.OpenProcess.return_value=None
-            with self.subTest(error=error),patch.object(kg.os,'name','nt'),\
+            with self.subTest(error=error),\
                  patch('ctypes.WinDLL',return_value=kernel,create=True),\
-                 patch('ctypes.get_last_error',return_value=error,create=True),\
-                 patch.object(kg.os,'kill',side_effect=AssertionError('Windows liveness must not send signals')):
+                 patch('ctypes.get_last_error',return_value=error,create=True):
                 self.assertIs(kg._process_is_alive(42),alive)
             kernel.WaitForSingleObject.assert_not_called();kernel.CloseHandle.assert_not_called()
     def test_windows_query_failure_preserves_owner_and_closes_an_open_handle(self):
         kernel=Mock();kernel.OpenProcess.return_value=1234;kernel.WaitForSingleObject.side_effect=OSError('query failed')
-        with patch.object(kg.os,'name','nt'),patch('ctypes.WinDLL',return_value=kernel,create=True),\
-             patch.object(kg.os,'kill',side_effect=AssertionError('Windows liveness must not send signals')):
+        with patch('ctypes.WinDLL',return_value=kernel,create=True):
             self.assertTrue(kg._process_is_alive(42))
         kernel.CloseHandle.assert_called_once_with(1234)
     def test_posix_signal_zero_semantics_are_retained(self):

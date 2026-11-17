@@ -561,6 +561,32 @@ class Coordinator:
             families = {family for family, _ in self._run_families.values()}
             self._family_generations = {key: value for key, value in self._family_generations.items() if key in families}
 
+    def awaiting_managed_reply(self, payload):
+        """Recognize an issued transition across voice/typing sessions; grants no clearance.
+
+        Caption phrasing and corrections can differ after a mode change. Route a
+        continuation of the same participant account through the manager, which
+        still checks the exact transcript, question, evidence and confirmation.
+        """
+        capability = payload.get("capture_token")
+        if not isinstance(capability, str):
+            return None
+        context, turns = self.api.validate_payload(payload)
+        with self._lock:
+            state = self._captures.get(capability)
+            if (not state or not state["valid"] or not self._capture_alive(state, time.monotonic())
+                    or context != state["context"]):
+                return None
+            kind = state["capture"].get("speech_authorization", {}).get("kind")
+            if kind not in ("review_pending", "final_check", "complete", "pause"):
+                return None
+            status = state["run"].public_status()
+            if status["stale"] or status["cancelled"]:
+                return None
+            original = [turn for turn in state["turns"] if turn["role"] == "user"]
+            current = [turn for turn in turns if turn["role"] == "user"]
+            return state["token"] if current[:len(original)] == original else None
+
     def retrieval_basis(self, payload):
         """Freeze retrieval selection for non-evidentiary UI/confirmation turns.
 
@@ -1121,6 +1147,13 @@ class Coordinator:
             "revision": run.ledger.revision, "completion_allowed": capture["completion"]["complete"]}
         raw_trace.emit("coordinator.speech.authorized", {"revision": run.ledger.revision, "kind": kind,
             "completion_allowed": capture["completion"]["complete"], "content": {"text": question}})
+
+    def background_interview(self, payload, fact_token=None):
+        """A mode handoff can continue only a matching fact ledger, never its review authority."""
+        work = {**payload, "_facts_only": True}
+        if fact_token:
+            work["_ledger_token"] = fact_token
+        return self.interview(work)
 
     @provider_usage.track_generation
     def interview(self, payload):

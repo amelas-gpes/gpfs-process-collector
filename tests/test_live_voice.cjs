@@ -44,7 +44,7 @@ function setup({permission,request,autoStarted=true,metering=false,floatMeter=tr
   requestAnimationFrame(fn){const id=++nextFrame;raf.set(id,fn);return id;},cancelAnimationFrame(id){raf.delete(id);},
   MediaStream:class{constructor(t){this.tracks=t;this.level=0;}getTracks(){return this.tracks;}getAudioTracks(){return this.tracks;}}});
  if(metering)window.AudioContext=AudioContext;
- const setTimer=(fn,delay)=>{if(metering&&[33,250].includes(delay)){const id={audio:++nextTimer};audioTimers.set(id,{fn,due:now+delay});return id;}return setTimeout(fn,delay);};
+ const setTimer=(fn,delay)=>{if(metering&&[33,250,1500,20000].includes(delay)){const id={audio:++nextTimer};audioTimers.set(id,{fn,due:now+delay});return id;}return setTimeout(fn,delay);};
  const clearTimer=id=>{if(!audioTimers.delete(id))clearTimeout(id);};
  const ctx={window,navigator:{mediaDevices:{getUserMedia:()=>permission?permission():Promise.resolve(stream())}},AbortController,DOMException,setTimeout:setTimer,clearTimeout:clearTimer,Uint8Array,Float32Array,TextEncoder,console};
  vm.createContext(ctx);vm.runInContext(source,ctx);
@@ -105,6 +105,44 @@ function acknowledge(h,events=h.channels.at(-1).sent.filter(e=>e.type==="session
   await h.api.start();const stopping=h.api.stop();h.event({type:"session.closed"});await stopping;
   assert.equal(h.errors.length,1,"An intentional stop should finish without a disconnect warning");passes++;
  }
+ {
+  const h=setup({metering:true});await h.api.start();
+  const receipt=h.api.say("One verified question?",{waitForCaption:true});
+  const sent=h.channels[0].sent.at(-1);h.event({type:"session.instructions.appended",client_event_id:sent.event_id});
+  h.step(20001);assert.equal((await receipt).status,"unconfirmed");
+  h.event({type:"error",error:{client_event_id:sent.event_id}});assert.equal(h.api.connected,true,"A late error for an expired line is local");
+  await h.api.stop({immediate:true});passes++;
+ }
+ {
+  const h=setup({metering:true});await h.api.start();
+  const line="Let me check the form";
+  const pending=h.api.say(line,{waitForCaption:true}),command=h.channels[0].sent.at(-1);
+  h.event({type:"session.output_transcript.delta",delta:line,start_ms:100,end_ms:900});
+  h.step(1501);
+  h.event({type:"session.output_transcript.delta",delta:"at",start_ms:900,end_ms:1100});
+  h.event({type:"session.instructions.appended",client_event_id:command.event_id});
+  h.step(20001);assert.equal((await pending).status,"unconfirmed","A checkpoint amended to 'format' cannot confirm 'form'");
+  await h.api.stop({immediate:true});passes++;
+ }
+ for (const receiptFirst of [true,false]) {
+  const h=setup({metering:true});await h.api.start();
+  const line="Let me check that I have everything before we finish.";
+  const pending=h.api.say(line,{waitForCaption:true});
+  const command=h.channels[0].sent.at(-1);
+  const acknowledgeLine=()=>h.event({type:"session.instructions.appended",client_event_id:command.event_id});
+  let receipt;pending.then(value=>{receipt=value;});
+  if(receiptFirst)acknowledgeLine();
+  h.event({type:"session.output_transcript.delta",delta:line,start_ms:100,end_ms:900});
+  await tick();assert.equal(receipt,undefined,"A partial caption cannot release the review");
+  h.step(1501);
+  if(!receiptFirst){await tick();assert.equal(receipt,undefined);acknowledgeLine();}
+  const finalCaption=h.captions.find(c=>c.final && c.authorized===command.event_id);
+  assert.ok(finalCaption);assert.equal((await pending).captionId,finalCaption.id);assert.equal(receipt.status,"captioned");
+  h.api.closeInput();assert.ok(h.api.inputClosed);assert.ok(h.tracks[0].stopped);
+  assert.equal(h.api.setMuted(false),false);assert.ok(h.api.connected);
+  await h.api.stop({immediate:true});passes++;
+ }
+
  {
   const h=setup();assert.equal(h.tracks.length,0,"Construction must not request microphone permission");
   assert.equal(await h.api.start({context:{process_name:"Invoices"},turns:[{id:"t1",role:"user",text:"Receive invoice"}]}),true);

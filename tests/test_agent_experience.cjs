@@ -6,7 +6,7 @@ const app=fs.readFileSync(path.join(__dirname,"../web/app.js"),"utf8");
 const controlled=fs.readFileSync(path.join(__dirname,"../web/controlled-voice.js"),"utf8");
 const flush=async()=>{for(let i=0;i<45;i++)await Promise.resolve();};
 const deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return{promise,resolve,reject};};
-const approved=(question="What happens after the review?",kind="question")=>({question,summary:"",focus:"",parking_lot:[],memo_findings:[],coverage:[],
+const approved=(question="What happens after the review?",kind="question")=>({question,coverage_verified:["complete","final_check"].includes(kind),summary:"",focus:"",parking_lot:[],memo_findings:[],coverage:[],
   completion:{ready_for_final_check:kind==="final_check"||kind==="complete",complete:kind==="complete"},
   speech_authorization:{approved:true,kind,text:question,revision:"reviewed_revision",completion_allowed:kind==="complete"}});
 const reviewAck=()=>({...approved("Let me check that I have everything before we finish.","review_pending"),capture_token:"capture-before-review",coverage_verified:false,review_ticket:"review-ticket-one",agent_run_id:"review-run-one"});

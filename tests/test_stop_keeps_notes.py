@@ -138,7 +138,7 @@ class StopOnTheConcurrentPath(unittest.TestCase):
         session = self.service._sessions[stop["conversation_token"]]
         self.assertEqual(session["capture"]["memo_findings"], ready["capture"]["memo_findings"])
 
-    def test_stop_that_overtakes_a_running_capture_keeps_the_earlier_notes(self):
+    def test_stop_that_overtakes_a_running_capture_keeps_its_last_answer_as_a_checkpoint(self):
         snapshot, first, ready = self.captured()
         entered, release = threading.Event(), threading.Event()
         self.addCleanup(release.set)
@@ -159,7 +159,10 @@ class StopOnTheConcurrentPath(unittest.TestCase):
         self.assertNotIn("capture", status)
         self.assertIs(status.get("capture_preserved"), True)
         session = self.service._sessions[stop["conversation_token"]]
-        self.assertEqual(session["capture"]["capture_token"], ready["capture"]["capture_token"])
+        self.assertNotEqual(session["capture"]["capture_token"], ready["capture"]["capture_token"])
+        self.assertEqual(status["checkpoint"]["capture"], session["capture"])
+        self.assertEqual(status["checkpoint"]["through_turn_id"], "u_two")
+        self.assertEqual(status["checkpoint"]["turns"], second["turns"])
 
     def test_stop_in_reply_to_the_final_check_settles_without_queued_work(self):
         snapshot, first, _ = self.captured()

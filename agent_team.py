@@ -5,6 +5,7 @@ provider callbacks. Public progress reports execution facts, never private input
 model reasoning or a claim that a completed review passed.
 """
 import copy
+from contextvars import ContextVar
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -13,7 +14,8 @@ from contextlib import nullcontext
 import threading
 import uuid
 
-from interview_coverage import context_has_evidence, TOPIC_DIMENSIONS, TOPIC_SCHEMA, apply_assessment, validate_capture_repairs
+from interview_coverage import (COVERAGE_GROUP_MAX_OUTPUT_TOKENS, COVERAGE_REVIEW_GROUPS,
+                                context_has_evidence, TOPIC_DIMENSIONS, TOPIC_SCHEMA, apply_assessment, validate_capture_repairs)
 
 
 ROLE_CONTRACTS = {
@@ -24,7 +26,8 @@ ROLE_CONTRACTS = {
         "contract": "Respond to the participant and choose one grounded next question. Only the manager may authorize final completion.",
     },
     "coverage_reviewer": {
-        "label": "Coverage reviewer", "max_calls": 1, "max_output_tokens": 24000, "timeout_seconds": 120,
+        "label": "Coverage reviewer", "max_calls": 1, "timeout_seconds": 120,
+        "max_output_tokens": len(COVERAGE_REVIEW_GROUPS) * COVERAGE_GROUP_MAX_OUTPUT_TOKENS,
         "contract": "Independently test all sixteen topics against participant evidence. Return the validated public coverage assessment; never manufacture evidence.",
     },
     # The second call is reserved for one case: the coverage review repaired a section
@@ -40,6 +43,11 @@ ROLE_CONTRACTS = {
     },
 }
 CORE_ROLES = ("lead_interviewer", "coverage_reviewer", "process_reviewer")
+# The transport records a request only immediately before dispatch. Coverage
+# workers receive a copy of this binding, so four groups count as four requests.
+CURRENT_ROLE = ContextVar("process_collector_role", default=None)
+_PROVIDER_COUNTERS = ("provider_requests", "requested_output_token_ceiling", "provider_duration_ms",
+                      "usage_reported_requests", "reported_input_tokens", "reported_output_tokens")
 FINAL_CHECK_PREFIX = "Before we finish, is there anything else"
 # A closing reply to the final omissions check: a "no" with nothing in it about the
 # work, however it is hedged, softened or thanked for ("No, I think that's
@@ -112,6 +120,9 @@ _CONVERSATIONAL_FORMULA = re.compile(
 _HESITATION = re.compile(r"m+|m*h+m+|u+[hm]+|e+r+m*|a+h+|o+h+|h+u+h+")
 _REPLY_WORD = re.compile(r"[^\W_]+(?:['’][^\W_]+)*")
 _SOURCE_ID = re.compile(r"^[A-Za-z0-9_-]{1,200}$")
+_EMPTY_PROCESS_CLEARANCE = re.compile(
+    r"(?:n/?a|none|unknown|tbd|not applicable|clear|complete|all (?:clear|good)|"
+    r"no (?:material )?(?:blockers?|issues?|findings?)(?: (?:found|remain))?)[.!]?", re.I)
 _MODEL_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,119}$")
 _REASONS = {"", "cancelled", "stale_revision", "call_budget_exhausted", "role_already_invoked",
             "role_failed", "role_not_requested", "invalid_result", "prior_result_reused"}
@@ -254,6 +265,9 @@ at most one highest-value next question using the participant's vocabulary, with
 You may not edit the evidence, modify topic completion, approve the process or authorize interview
 closure. Set no_material_blockers true only when no unresolved material finding remains; completion
 is separately decided by the manager using every specialist's fresh result and participant confirmation.
+When clearing the process, summarize the reported route and cite the participant statements or
+authorized source excerpts that support it. Participant-supplied intake background may also
+describe the actual route. A process title or interview objective alone cannot establish it.
 """
 
 
@@ -302,8 +316,18 @@ def validate_process_review(review, ledger):
                          "question": _text(finding["question"], "Finding question", 1200)})
     # A caller cannot erase a material blocker by sending a contradictory flag.
     clear = review["no_material_blockers"] and not any(item["material"] for item in findings)
-    if clear and any(turn.get("role") == "user" for turn in ledger.snapshot["turns"]) and (not summary or not sources):
-        raise ValueError("A passing process review needs a summary and its authorized evidence.")
+    if clear:
+        cited = set(sources)
+        evidence = bool(cited & (ledger.participant_ids | ledger.document_ids))
+        if not evidence and "context" in cited:
+            context = ledger.snapshot["context"]
+            background = str(context.get("background") or "").strip().casefold()
+            labels = {str(context.get(key) or "").strip().casefold() for key in
+                      ("process_name", "objective", "process_owner")}
+            evidence = bool(background and background not in labels and
+                            not _EMPTY_PROCESS_CLEARANCE.fullmatch(background))
+        if not summary or _EMPTY_PROCESS_CLEARANCE.fullmatch(summary) or not evidence:
+            raise ValueError("A clear process review must explain the reported route and cite its evidence.")
     return {"summary": summary, "evidence_turns": sources, "findings": findings,
             "next_question": _text(review["next_question"], "Process next question", 1200),
             "no_material_blockers": clear}
@@ -380,12 +404,29 @@ class TeamRun:
                 raise ValueError("A specialist model must be a model identifier, never a credential.")
             self._agents[role] = {"role": role, "label": ROLE_CONTRACTS[role]["label"], "status": "pending",
                                   "model": model, "calls": 0, "max_calls": ROLE_CONTRACTS[role]["max_calls"], "reason_code": "",
-                                  "started_at": None, "finished_at": None}
+                                  "started_at": None, "finished_at": None, **dict.fromkeys(_PROVIDER_COUNTERS, 0)}
         self._observe("team.run.created", roles=list(self.roles), max_calls=self.max_calls)
 
     def _observe(self, event, **fields):
         if self._trace:
             self._trace(event, {"team_id": self.run_id, "revision": self.ledger.revision, **fields})
+
+    def start_provider_request(self, role, requested_output):
+        with self._lock:
+            if self._cancelled or self._stale:
+                raise TeamBlockedError("cancelled" if self._cancelled else "stale_revision")
+            row = self._agents[role]
+            row["provider_requests"] += 1
+            row["requested_output_token_ceiling"] += requested_output
+
+    def finish_provider_request(self, role, duration_ms, usage):
+        with self._lock:
+            row = self._agents[role]
+            row["provider_duration_ms"] += duration_ms
+            if "input_tokens" in usage and "output_tokens" in usage:
+                row["usage_reported_requests"] += 1
+                row["reported_input_tokens"] += usage["input_tokens"]
+                row["reported_output_tokens"] += usage["output_tokens"]
 
     def set_provisional_question(self, question):
         """The lead's question as it streams in: display-only until the capture is accepted."""
@@ -498,6 +539,7 @@ class TeamRun:
             self._reserved_tokens += ROLE_CONTRACTS[role]["max_output_tokens"]
             row["calls"] += 1
             self._event(role, "running")
+        role_context = CURRENT_ROLE.set((self, role))
         try:
             with self.request_scope():
                 result = callback()
@@ -514,6 +556,8 @@ class TeamRun:
                     code = error.reason_code if isinstance(error, TeamBlockedError) else "role_failed"
                     self._event(role, "error", code)
             raise
+        finally:
+            CURRENT_ROLE.reset(role_context)
         revision = current_revision() if callable(current_revision) else current_revision
         if revision is not None:
             self.invalidate(revision)
@@ -540,7 +584,12 @@ class TeamRun:
                     "cancelled": self._cancelled, "stale": self._stale,
                     "provisional_question": self._provisional if not self._cancelled and not self._stale and self._agents.get("lead_interviewer", {}).get("status") == "running" else "",
                     "agents": copy.deepcopy(list(self._agents.values())), "events": copy.deepcopy(self._events),
+                    # The original call fields count role invocations and remain
+                    # available to older clients. Provider counters measure the
+                    # transport, including fan-out and failed attempts.
                     "budget": {"max_calls": self.max_calls, "used_calls": self._used_calls,
+                               "max_role_invocations": self.max_calls, "role_invocations": self._used_calls,
+                               **{key: sum(row[key] for row in self._agents.values()) for key in _PROVIDER_COUNTERS},
                                "reserved_max_output_tokens": self._reserved_tokens,
                                "max_output_tokens": sum(ROLE_CONTRACTS[role]["max_output_tokens"] *
                                                         ROLE_CONTRACTS[role]["max_calls"] for role in self.roles)}}

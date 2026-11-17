@@ -153,7 +153,7 @@ const controllerSource=fs.readFileSync(path.join(__dirname,"../web/concurrent-in
 function controller(route){
   let serial=0;const timers=new Map(),calls=[],applied=[],statuses=[];
   const snapshot={context:{process_name:"Fictional process"},turns:[{id:"u1",role:"user",text:"I need to stop now."}],document_revision:"doc1"};
-  const window={},context={window,AbortController,DOMException,JSON,Error,TypeError,Set};vm.createContext(context);vm.runInContext(controllerSource,context);
+  const window={},context={window,crypto:require("node:crypto").webcrypto,AbortController,DOMException,JSON,Error,TypeError,Set};vm.createContext(context);vm.runInContext(controllerSource,context);
   const instance=new window.CollectorConcurrentInterview({request:async(url,data,options)=>{calls.push({url,data,options});return route(url,data,options);},getSnapshot:()=>snapshot,getGeneration:()=>1,
     applyCapture:(capture,meta)=>applied.push({capture,meta}),onStatus:status=>statuses.push(status),setTimeout:fn=>{const id=++serial;timers.set(id,fn);return id;},clearTimeout:id=>timers.delete(id)});
   const tick=async()=>{const pending=[...timers.values()];timers.clear();pending.forEach(fn=>fn());await flush();};

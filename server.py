@@ -109,7 +109,8 @@ def record_diagnostic(path, event, **fields):
     permitted = {"port", "parent_pid", "build_id", "commit", "reason", "duration_ms", "turn_count",
                  "step_count", "status", "error_type", "request_id", "outcome",
                  "stage", "error_category", "timeout_seconds", "upstream_request_id",
-                 "model", "input_tokens", "output_tokens", "cached_tokens", "reasoning_tokens", "prompt_id", "reasoning_effort"}
+                 "model", "input_tokens", "output_tokens", "cached_tokens", "reasoning_tokens", "prompt_id", "reasoning_effort",
+                 "requested_output_token_ceiling", "role"}
     record = {"event": event, "time_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
               "pid": os.getpid(), "version": VERSION}
     for key in permitted & fields.keys():
@@ -1978,7 +1979,7 @@ _STOP_INTERVIEW = r"(?:this|the|our) (?:interview|conversation)"
 # the work, so they never make a request firm.
 _STOP_SESSION = r"(?:this|the|our) (?:interview|conversation|session)"
 _STOP_CALL = r"(?:this|the|our) (?:call|meeting)"
-_STOP_WHEN = r"(?:now|right now|for now|for today|for the day|for the moment)"
+_STOP_WHEN = r"(?:now|right now|for now|for today|for the day|for the moment|for a (?:minute|moment))"
 _STOP_TIME_UP = r"that(?:['’]s| is) all (?:i|we) have time for(?: (?:today|now|right now))?"
 _STOP_DONE = (r"(?:(?:i['’]m|i am|we['’]re|we are) done (?:for (?:now|today|the day|the moment)"
               r"|with (?:this|that|the|our) (?:interview|conversation|session))|(?:i['’]m|i am) done with this)")
@@ -2027,6 +2028,13 @@ _STOP_CONTINUES = re.compile(
     r"|next(?! (?:time|week|month|monday|tuesday|wednesday|thursday|friday)))\b"
     r"|and (?!i\b|i['’]|we\b|we['’]|you\b|can\b|could\b|let['’]?s\b|thank|sorry\b|my\b|please\b|maybe\b"
     r"|that['’]s\b|it['’]s\b|this\b)", re.IGNORECASE)
+# An explicit request to the interviewer to stop recording is a control. An instruction
+# about recording a receipt or completing a process step does not match the whole clause.
+_STOP_RECORDING = re.compile(
+    r"(?:(?:can|could|would) you (?:please )?|(?:please )?)(?:stop|pause) (?:the |this )?recording(?: now)?", re.I)
+# The browser's immediate microphone cutoff is conservative: it checks a final sentence.
+# The server also recognizes multipart farewells and decides which prior testimony to keep.
+STOP_INTENT_PATTERNS = tuple("^(?:" + pattern.pattern + ")$" for pattern in (_STOP_FIRM, _STOP_SOFT, _STOP_RECORDING))
 _STOP_SENTENCE_BREAK = re.compile(r"[.!?…;\n]+")
 _STOP_CLAUSE_BREAK = re.compile(r"[,()]|:(?!\d)|\s[—–-]+\s")
 
@@ -2060,7 +2068,7 @@ def stop_request_text(text):
     clauses = _stop_clauses(text, 9)
     requested = False
     for index, clause in enumerate(clauses[:8]):
-        if _STOP_FIRM.fullmatch(clause):
+        if _STOP_FIRM.fullmatch(clause) or _STOP_RECORDING.fullmatch(clause):
             following = next((later for later in clauses[index + 1:] if not _STOP_ASIDE.fullmatch(later)), "")
             return not _STOP_CONTINUES.match(following)
         if _STOP_SOFT.fullmatch(clause):
@@ -2068,6 +2076,19 @@ def stop_request_text(text):
         elif not _STOP_ASIDE.fullmatch(clause):
             return False
     return requested and len(clauses) <= 8
+
+
+def stop_request_prefix(text):
+    """Return testimony before a closing request, an empty string for control alone, or None."""
+    if stop_request_text(text):
+        return ""
+    # Keep preceding sentences intact when the participant both reports work and asks to stop.
+    # Only the final sentence can take this shortcut, so "Stop. Then check the file" stays intact.
+    body = text.rstrip(".!?…;\n ")
+    final = next(reversed(list(_STOP_SENTENCE_BREAK.finditer(body))), None)
+    if final and stop_request_text(body[final.end():]):
+        return text[:final.end()].strip()
+    return None
 
 
 def participant_requested_stop(turns, action="answer"):
@@ -2085,7 +2106,7 @@ def participant_requested_stop(turns, action="answer"):
     # it. The server's own acknowledgement does.
     if any(t["role"] == "assistant" and t["text"].strip() in STOP_ACKNOWLEDGEMENTS for t in spoken[last + 1:]):
         return False
-    return stop_request_text(spoken[last]["text"])
+    return stop_request_prefix(spoken[last]["text"]) is not None
 
 
 def next_uncovered_question(result):
@@ -2370,6 +2391,18 @@ def _claims_completion(sentence, offer=False, question=False):
                 continue
             return True
     return False
+
+
+def ordinary_question_allowed(text, max_length=1600):
+    return not question_rejection(text, max_length, single=True)
+
+
+def fallback_interview_question(capture=None):
+    if capture and capture.get("memo_findings"):
+        question = next_uncovered_question(capture)
+        if ordinary_question_allowed(question):
+            return question
+    return "What happens next in the work you just described?"
 
 
 def question_rejection(text, limit=1200, single=False):
@@ -4555,6 +4588,11 @@ class OpenAIClient:
 
     def public_config(self):
         """Public capabilities only; configuration is not a live health check."""
+        microphone_notice = (
+            "Live voice streams microphone audio to the AI service until you mute or stop. "
+            if self.voice_mode == "live" else
+            "Reviewed voice records your answer, waits for a pause, then sends the recording to the AI service for transcription. "
+        )
         return {
             "api_configured": bool(self.key),
             # Fixed wording about a key that could not be used; never any part of it.
@@ -4569,6 +4607,7 @@ class OpenAIClient:
             "agent_team": {"enabled": True, "models": self.agent_models,
                            "voice_mode": "live_front" if self.voice_mode == "live" else "reviewed_turns",
                            "one_interviewer_voice": True, "review_mode": "on_completion",
+                           "stop_intent_patterns": list(STOP_INTENT_PATTERNS),
                            **({"turn_pause_ms": self.voice_pause_ms} if self.voice_mode != "live" else {})},
             "speech": {"enabled": bool(self.key), "model": SPEECH_MODEL,
                        "default_voice": "marin", "voices": AI_VOICES,
@@ -4582,8 +4621,8 @@ class OpenAIClient:
                         if self.voice_mode == "live" else {})},
             "data_notice": (
                 "Submitted interview text and recorded answer audio are sent to the AI service. "
-                + ("While Live voice is connected, microphone audio streams directly to the AI service until you mute or stop. "
-                   if self.voice_mode == "live" else "Reviewed voice sends each recorded answer for transcription. ")
+                + microphone_notice
+                + "The interview team receives the submitted transcript to update your notes and review the account. "
                 + "Submit process saves a revision in local company knowledge. Matching can send excerpts of that revision "
                 "and up to eight related saved submissions to the AI service. The interviewer responds, with additional checks "
                 "before an interview can be marked complete. "
@@ -4805,6 +4844,11 @@ class OpenAIClient:
         started = time.monotonic()
         metrics = {"request_id": uuid.uuid4().hex, "stage": stage, "timeout_seconds": timeout,
                    "outcome": "error", "status": 502}
+        role_binding = agent_team.CURRENT_ROLE.get()
+        role_dispatched = False
+        output_limit = body.get("max_output_tokens") if isinstance(body, dict) else None
+        if type(output_limit) is int and output_limit > 0:
+            metrics["requested_output_token_ceiling"] = output_limit
         tracing = raw_trace.active()
         http_status = None
 
@@ -4879,6 +4923,11 @@ class OpenAIClient:
                     remaining = max(.01, deadline - time.monotonic())
                     request.provider_sockets = []
                     stack.enter_context(self._release_on_deadline(request.provider_sockets, remaining, check_abort))
+                    if role_binding:
+                        run, role = role_binding
+                        run.start_provider_request(role, metrics.get("requested_output_token_ceiling", 0))
+                        role_dispatched = True
+                        metrics["role"] = role
                     response = stack.enter_context(urlopen(request, timeout=remaining))
                     if tracing:
                         trace_headers(getattr(response, "status", None))
@@ -5035,10 +5084,12 @@ class OpenAIClient:
                     self.diagnostic_callback("usage_write_failed", stage=stage, status=503)
                 # A tracking failure cannot undo a reply already paid for. New
                 # requests with a configured cap recheck the store before sending.
+            duration = int((time.monotonic() - started) * 1000)
+            if role_dispatched:
+                role_binding[0].finish_provider_request(role_binding[1], duration, metrics)
             if self.diagnostic_callback is not None:
                 try:
-                    self.diagnostic_callback("provider_request_finished", **metrics,
-                                             duration_ms=int((time.monotonic() - started) * 1000))
+                    self.diagnostic_callback("provider_request_finished", **metrics, duration_ms=duration)
                 except Exception:
                     # Logging cannot turn a valid response into a failed request.
                     pass
@@ -5354,7 +5405,8 @@ class OpenAIClient:
                 if cached and time.monotonic() - cached[0] < 180:
                     return group, copy.deepcopy(cached[1])
                 result = self.structured(instructions, payload, schema, "process_coverage_assessment",
-                                         8000 if scoped else 14000, reasoning_effort="medium", request_timeout=120, **model)
+                                         interview_coverage.COVERAGE_GROUP_MAX_OUTPUT_TOKENS if scoped else 14000,
+                                         reasoning_effort="medium", request_timeout=120, **model)
                 if scoped:
                     # Strict output cannot return another group's topics; offline
                     # fixtures may. Keep only the topics this group was asked for.
@@ -6063,7 +6115,8 @@ class InterviewServer(ThreadingHTTPServer):
     # being served: two instances with different CSRF tokens would share the port.
     # Bind exclusively there (server_bind); elsewhere reuse only skips TIME_WAIT.
     allow_reuse_address = os.name != "nt"
-    max_connections = 16
+    # Several browser contexts can each open six asset connections. Provider work has its own limits.
+    max_connections = 32
     header_timeout = 15
     body_timeout = 30
     upload_timeout = 125
@@ -6851,7 +6904,8 @@ class Handler(BaseHTTPRequestHandler):
         if path not in ("/api/interview", "/api/draft", "/api/transcribe", "/api/voice-session", "/api/live-session", "/api/workflow",
                         "/api/agent-team/interview", "/api/agent-team/workflow", "/api/agent-team/review",
                         "/api/agent-team/coverage", "/api/agent-team/status", "/api/agent-team/cancel"):
-            if path not in ('/api/conversation/turn', '/api/conversation/status', '/api/conversation/sync', '/api/conversation/discard'):
+            if path not in ('/api/conversation/turn', '/api/conversation/status', '/api/conversation/sync', '/api/conversation/discard',
+                            '/api/conversation/cancel'):
                 return self._json({"error": "Not found."}, 404)
         try:
             if self.headers.get("Transfer-Encoding"):
@@ -7003,6 +7057,8 @@ class Handler(BaseHTTPRequestHandler):
                     return self._json({'error': 'Concurrent interviewing is unavailable for this provider.'}, 409)
                 # Polling and waiting for background analysis must not occupy a
                 # foreground slot needed by transcription or speech credentials.
+                if path.endswith('/cancel'):
+                    return self._json(self.server.conversation.cancel(payload))
                 if path.endswith('/status'):
                     return self._json(self._with_document_reading(self.server.conversation.status(payload), payload))
                 if path.endswith('/sync'):

@@ -84,8 +84,9 @@ async function session(){
  s.hear("user",100,1500,"An email from the client starts it.");
  s.to(3200);await h.timer(400);await settle();
  assert.equal(h.t.state.turns.at(-1).text,ACK,"The application records the acknowledgement");
- assert.equal(s.posts("/api/agent-team/review").length,1,"The completion review is running");
- s.acknowledge(3300);s.hear("assistant",3500,6000,ACK);s.to(7700); // GPT-Live reads the line
+ assert.equal(s.posts("/api/agent-team/review").length,0,"The review waits for the spoken acknowledgement");
+ s.acknowledge(3300);s.hear("assistant",3500,6000,ACK);s.to(7700);await settle();
+ assert.equal(s.posts("/api/agent-team/review").length,1,"The completion review is running"); // GPT-Live reads the line
  return s;
 }
 let passed=0;const failed=[];

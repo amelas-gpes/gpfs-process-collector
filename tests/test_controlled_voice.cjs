@@ -4,7 +4,7 @@ const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("n
 const source=fs.readFileSync(path.join(__dirname,"../web/controlled-voice.js"),"utf8");
 const deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return {promise,resolve,reject};};
 const flush=async()=>{for(let i=0;i<20;i++)await Promise.resolve();};
-const approved=(question="What happens after that?",kind="question")=>({question,speech_authorization:{approved:true,text:question,kind,revision:"revision_1",completion_allowed:kind==="complete"},completion:{ready_for_final_check:kind==="final_check"||kind==="complete",complete:kind==="complete"}});
+const approved=(question="What happens after that?",kind="question")=>({question,coverage_verified:["complete","final_check"].includes(kind),speech_authorization:{approved:true,text:question,kind,revision:"revision_1",completion_allowed:kind==="complete"},completion:{ready_for_final_check:kind==="final_check"||kind==="complete",complete:kind==="complete"}});
 function setup(overrides={}){
   let now=0,level=0,serial=0,permissionCalls=0,playbackStops=0;
   const frames=new Map(),timers=new Map(),recorders=[],contexts=[],requests=[],answers=[],answerInfo=[],results=[],spoken=[],statuses=[],errors=[],notices=[],audioFrames=[],recovery=[],timings=[],endpoints=[],problems=[],handlers={};

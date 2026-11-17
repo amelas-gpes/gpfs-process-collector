@@ -146,7 +146,7 @@ await check("a completion review whose acknowledgement does not fit is not start
 function live(h){
   const said=[];let stopped=0;
   h.t.state.config.agent_team={enabled:true,voice_mode:"live_front"};
-  h.t.conversationUI.live={active:true,say:async text=>{said.push(text);return {status:"acknowledged"};},appendContext:async()=>({status:"acknowledged"}),
+  h.t.conversationUI.live={active:true,say:async(text,options)=>{said.push(text);return {status:options?.waitForCaption?"captioned":"acknowledged"};},appendContext:async()=>({status:"acknowledged"}),
     stop(){stopped++;this.active=false;}};
   h.t.state.turns.push({id:"t067",role:"user",text:"y".repeat(6000)});
   return {said,stops:()=>stopped};

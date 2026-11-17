@@ -131,6 +131,7 @@ async function check(name,fn){
   const s=await session(),question="Who receives the registrar's exception list?";
   s.h.route(url=>url==="/api/agent-team/interview"?app.response(app.reviewAck()):url==="/api/agent-team/review"?app.response({...app.approved(question),coverage_verified:true}):app.response({}));
   s.hear("user",100,1500,"An email from the registrar starts it.");s.to(3200);await s.h.timer(400);await settle();
+  s.acknowledge(3500);s.hear("assistant",3900,6900,ACK);s.to(9000);await settle();
   assert.equal(s.copies(question),1);
   assert.equal(s.lines().filter(event=>event.content.includes(question)).length,1);
   await s.v.api.stop({immediate:true});
@@ -269,7 +270,7 @@ async function check(name,fn){
   bare.hear("assistant",5600,9500,FINAL_CHECK);bare.to(12000);
   await bare.v.api.stop({immediate:true});assert.equal(bare.copies(FINAL_CHECK),1);
  });
- await check("a reading with a leading word, delivered word by word, stays one caption and the review result is used",async()=>{
+ await check("a reading with extra words stays one tagged caption and an exact rereading is required before review",async()=>{
   const s=await session(),review=app.deferred();
   s.h.route(url=>url==="/api/agent-team/interview"?app.response(app.reviewAck()):url==="/api/agent-team/review"?review.promise:app.response({}));
   s.hear("user",100,1500,"An email from the client starts it.");
@@ -278,8 +279,8 @@ async function check(name,fn){
   s.to(at+2000);
   assert.deepEqual(s.transcript(),["assistant: What starts the work?","user: An email from the client starts it.","assistant: "+ACK],"No word of the reading is a turn");
   assert.equal(s.v.captions.at(-1).text,"Alright, "+ACK,"The tagged caption holds the whole reading, to its last word");assert.ok(s.v.captions.at(-1).authorized);
-  review.resolve(app.response({...app.approved(FINAL_CHECK,"final_check"),coverage_verified:true}));await settle();
-  assert.equal(s.h.t.state.closure.asked,true,"The finished review issues the final check");assert.deepEqual(s.errors(),[]);
+  assert.equal(s.h.t.state.closure.asked,false,"A reading with extra words cannot release the review");
+  assert.equal(s.h.calls.filter(c=>c.url==="/api/agent-team/review").length,0);
   await s.v.api.stop({immediate:true});
  });
  await check("a provider that never acknowledges a line still has its reading recognised, and Stop reports nothing",async()=>{

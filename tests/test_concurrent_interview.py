@@ -635,6 +635,19 @@ class ConcurrentContracts(unittest.TestCase):
         # Wrap up after the acknowledged stop asks for synchronization, not another pause.
         self.assertTrue(service.turn({**acknowledged, "action": "close"})["sync_required"])
 
+    def test_fast_question_recovers_from_premature_completion_and_compound_prompts(self):
+        for line in ("Are we all done?", "The interview is complete. Who should receive the notes?",
+                     "Who owns it? Who approves it?"):
+            with self.subTest(line=line):
+                client = FakeClient()
+                client.question = line
+                result = self.service(client).turn(payload())
+                self.assertNotEqual(result["question"], line)
+                self.assertTrue(server.ordinary_question_allowed(result["question"]))
+                self.assertEqual(result["speech_authorization"]["text"], result["question"])
+                self.assertFalse(result["completion"]["complete"])
+                self.assertEqual(len(client.questions), 1)
+
     def test_invalid_or_missing_capability_reveals_no_capture(self):
         service = self.service()
         for token in (None, "guessed", "a" * 64):

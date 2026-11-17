@@ -26,6 +26,10 @@
       global.CollectorRawTrace?.record("analysis.status",{state:value.state,revision:value.revision,kept:value.kept});
       try{this.options.onStatus?.(value);}catch{/* Advisory status cannot alter interview state. */}
     }
+    notifyCheckError(result){
+      this.notify({state:"error",scope:"workflow",revision:result.revision,
+        message:result.workflow_check_error||"The workflow could not be checked against its sources. Your notes are up to date. Select Update workflow to try again."});
+    }
     stopPolling(){if(this.timer!==null)this.unlater(this.timer);this.timer=null;this.pollController?.abort();this.pollController=null;}
     reset(){this.epoch++;this.sequence++;this.stopPolling();for(const controller of this.controllers)controller.abort();this.controllers.clear();this.token=null;this.appliedRevision=null;this.checkpointRevision=null;this.appliedMap=null;this.notify({state:"idle"});}
     current(captured){return captured.epoch===this.epoch&&captured.generation===this.options.getGeneration()&&captured.sequence===this.sequence&&captured.key===sourceKey(this.options.getSnapshot());}
@@ -57,11 +61,14 @@
       this.timer=this.later(()=>{this.timer=null;void this.poll(captured);},delay);
     }
     scheduleProgress(captured,checking=false){
-      // A map that is on screen and only waits for its source check is no failure, however long the
-      // check takes: the server bounds it and reports its outcome. After a quarter of an hour the
-      // page stops asking; the next turn or Wrap up reads the state again.
-      if(checking){if(this.pollMs && Date.now()-(captured.started||Date.now())>900000)return;}
-      else if(this.pollMs && Date.now()-(captured.started||Date.now())>300000){
+      // Allow more time for a map check. If the page stops fetching, offer an explicit retry.
+      if(checking&&this.pollMs&&Date.now()-(captured.started||Date.now())>900000){
+        const message="The workflow update is taking longer than expected. Select Update workflow to try again.";
+        if(captured.notesFailed)this.options.onWorkflowError?.(message);
+        else this.notify({state:"error",scope:"workflow",message});
+        return;
+      }
+      if(!checking&&this.pollMs && Date.now()-(captured.started||Date.now())>300000){
         // Once the notes are in, only the map is late: that is the map's own state, not a failure of the notes.
         this.notify(captured.mapOnly||captured.notesApplied?{state:"error",scope:"workflow",message:"The workflow is taking longer than expected. Your notes are up to date. Select Update workflow to try again."}
           :{state:"error",message:"The notes are taking longer than expected. Your answers are still in this tab. Select Update notes to check again."});return;
@@ -102,7 +109,9 @@
         const mapCheck=result.workflow_checked===false?(result.workflow_check_state==="error"?"error":"working"):"";
         const mapKey=result.workflow_capture&&typeof result.workflow_capture==="object"?JSON.stringify([result.revision,result.workflow_version??0,mapCheck]):null;
         const behind=result.workflow_checkpoint;
-        if(!mapKey && behind && typeof behind==="object" && behind.workflow_capture && behind.revision && earlier(behind)){
+        const hasCheckpoint=!mapKey && behind?.workflow_capture && behind.revision && earlier(behind);
+        const visibleMap=hasCheckpoint?{workflow:"checkpoint"}:mapKey?{workflow:"ready"}:{};
+        if(hasCheckpoint){
           // The map through an earlier answer, while the map of this answer is being drawn.
           const key=JSON.stringify([behind.revision,behind.version??0]);
           if(key!==this.appliedMap){
@@ -112,13 +121,16 @@
           }
         }
         const checkpoint=result.checkpoint;
-        if(checkpoint && checkpoint.capture && checkpoint.revision &&
+        if(!captured.mapOnly && checkpoint && checkpoint.capture && checkpoint.revision &&
            checkpoint.revision!==this.checkpointRevision && earlier(checkpoint)){
           this.options.applyCapture(checkpoint.capture,{snapshot:{...snapshot,turns:checkpoint.turns},revision:checkpoint.revision,checkpoint:true});
           global.CollectorRawTrace?.record("analysis.checkpoint_applied",{revision:checkpoint.revision,through_turn_id:checkpoint.through_turn_id});
           this.checkpointRevision=checkpoint.revision;
         }
-        if(result.agent_team)this.notify({state:captured.mapOnly?"ready":result.state,agent_team:result.agent_team,...(captured.mapOnly?{workflow:"working"}:{})});
+        if(result.agent_team&&(captured.mapOnly||result.state!=="error")){
+          this.notify({state:captured.mapOnly?"ready":result.state,agent_team:result.agent_team,
+            ...(captured.mapOnly?{workflow:"working"}:{}),...visibleMap});
+        }
         if(captured.mapOnly){
           // Wrap up has already released the synchronized notes of this revision. This poll
           // fetches the map that was not ready then, and takes nothing else from the reply:
@@ -130,9 +142,9 @@
               this.appliedMap=mapKey;
             }
             // The map is on screen. While its source check runs the page keeps asking for the result.
-            if(mapCheck==="working"){this.scheduleProgress(captured,true);settled();this.notify({state:"ready",revision:result.revision,workflow:"checking"});return;}
+            if(mapCheck==="working"){this.scheduleProgress(captured,true);settled();if(this.timer!==null)this.notify({state:"ready",revision:result.revision,workflow:"checking"});return;}
             settled();
-            if(mapCheck==="error"){this.notify({state:"error",scope:"workflow",revision:result.revision,message:result.workflow_check_error||"The workflow could not be checked against its sources. Your notes are up to date. Select Update workflow to try again."});return;}
+            if(mapCheck==="error"){this.notifyCheckError(result);return;}
             this.notify({state:"ready",revision:result.revision,workflow:"ready"});return;
           }
           if(["queued","working"].includes(result.workflow_state)){this.scheduleProgress(captured);settled();return;}
@@ -163,7 +175,7 @@
             this.appliedMap=mapKey;
           }
           captured.notesApplied=true;
-          if(["queued","working"].includes(result.workflow_state)){this.scheduleProgress(captured);settled();if(this.timer!==null)this.notify({state:"working",revision:result.revision});return;}
+          if(["queued","working"].includes(result.workflow_state)){this.scheduleProgress(captured);settled();if(this.timer!==null)this.notify({state:"working",revision:result.revision,...visibleMap});return;}
           if(mapKey&&mapCheck==="working"){this.scheduleProgress(captured,true);settled();if(this.timer!==null)this.notify({state:"ready",revision:result.revision,workflow:"checking",...(kept?{kept:true}:{})});return;}
           settled();
           // The notes are in and only the map failed: scope says so, and the map keeps its own retry.
@@ -171,16 +183,18 @@
           this.notify({state:"ready",revision:result.revision,...(kept?{kept:true}:{})});return;
         }
         if(result.state==="error"){
-          // The notes failed and say so once. The map of this answer may still be waiting for its
-          // source check: the page keeps fetching the map, quietly, so that its line does not stay
-          // on "check pending" after the check has finished.
-          if(mapKey&&mapCheck==="working")this.scheduleProgress(captured,true);
+          // Notes and the diagram have independent workers. Keep listening for the draw or its
+          // check without replacing the original notes error on subsequent status replies.
+          const announce=!captured.notesFailed;
+          captured.notesFailed=true;
+          if(["queued","working"].includes(result.workflow_state)||mapKey&&mapCheck==="working")this.scheduleProgress(captured,true);
           settled();
-          if(!captured.notesFailed){captured.notesFailed=true;this.notify({state:"error",revision:result.revision,message:result.error||"Background notes could not update. Your conversation is retained."});}
+          if(announce)this.notify({state:"error",revision:result.revision,agent_team:result.agent_team,message:result.error||"Background notes could not update. Your conversation is retained."});
+          if(result.workflow_state==="error")this.options.onWorkflowError?.(result.workflow_error||"The workflow could not update. Select Update workflow to try again.");
           return;
         }
         if(!["queued","working"].includes(result.state))throw new Error("Background analysis returned an invalid state.");
-        this.scheduleProgress(captured);settled();if(this.timer!==null)this.notify({state:result.state,revision:result.revision});
+        this.scheduleProgress(captured);settled();if(this.timer!==null)this.notify({state:result.state,revision:result.revision,...visibleMap});
       }catch(error){
         settled();
         if(controller.signal.aborted||!this.current(captured))return;
@@ -188,10 +202,11 @@
         const delay=Math.max(Number(error.retryAfter)||0,Math.min(5000,Math.max(650,this.pollMs)*2**(captured.retryCount||0)));
         if(transient && (captured.retryWait||0)+delay<=30000){
           captured.retryCount=(captured.retryCount||0)+1; captured.retryWait=(captured.retryWait||0)+delay;
-          this.schedule(captured,delay); this.notify({state:"reconnecting"}); return;
+          this.schedule(captured,delay); if(!captured.notesFailed)this.notify({state:"reconnecting"}); return;
         }
         if(error.code==="conversation_expired"){this.token=null;this.appliedRevision=null;this.checkpointRevision=null;this.appliedMap=null;}
-        this.notify(captured.mapOnly?{state:"error",scope:"workflow",message:"The workflow could not be checked. Your notes are up to date. Select Update workflow to try again."}
+        if(captured.notesFailed){this.options.onWorkflowError?.("The workflow could not be checked. Select Update workflow to try again.");return;}
+        this.notify(captured.mapOnly||captured.notesApplied?{state:"error",scope:"workflow",message:"The workflow could not be checked. Your notes are up to date. Select Update workflow to try again."}
           :{state:"error",message:error.message||"Background notes could not update. Your conversation is retained."});
       }
       finally{settled();if(this.pollController===controller)this.pollController=null;}
@@ -214,6 +229,8 @@
           captured.revision=result.revision;captured.started=Date.now();captured.mapOnly=true;
           this.schedule(captured);
           this.notify({state:"ready",revision:result.revision,workflow:checking?"checking":"working"});
+        }else if(result.workflow_capture&&result.workflow_checked===false&&result.workflow_check_state==="error"){
+          this.notifyCheckError(result);
         }else if(result.workflow_state==="error"&&!result.workflow_capture){
           this.notify({state:"error",scope:"workflow",revision:result.revision,message:result.workflow_error||"The workflow could not update. Your notes are up to date. Select Update workflow to try again."});
         }else this.notify({state:"ready",revision:result.revision});

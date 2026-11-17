@@ -18,6 +18,24 @@ const implied=picture=>picture.steps.filter(item=>item.implied);
 const reported=picture=>picture.steps.filter(item=>!item.implied);
 const exits=(picture,id)=>picture.connections.filter(item=>item.from===id&&item.to!==id);
 const GATEWAYS=new Set(['decision','parallel_split','parallel_join','merge']);
+// The downloaded SVG and BPMN must both attach each path to the reported steps, even
+// when the displayed path leaves a gateway or comes back through a return port.
+function verifyExport(canvas,name){
+ const layout=canvas.exportLayout(),svg=canvas.exportSVG(),boxes=new Map(layout.children.map(box=>[box.id,box]));
+ const onPort=(id,portId,point)=>{
+  const box=boxes.get(id),port=box.ports.find(item=>item.id===portId);
+  return port&&Math.hypot(point.x-box.x-port.x,point.y-box.y-port.y)<.1;
+ };
+ for(const [index,edge] of canvas.graph.connections.entries()){
+  const route=layout.edges[index],section=route.sections[0],vertices=[section.startPoint,...(section.bendPoints||[]),section.endPoint];
+  const label=`${name} ${edge.from} → ${edge.to}`;
+  assert(onPort(edge.from,route.sources[0],section.startPoint),label+' leaves the reported source');
+  assert(onPort(edge.to,route.targets[0],section.endPoint),label+' reaches the reported target');
+  for(let n=1;n<vertices.length;n++)assert(Math.abs(vertices[n].x-vertices[n-1].x)<.1||Math.abs(vertices[n].y-vertices[n-1].y)<.1,label+' keeps its orthogonal routing');
+  const drawing=svg.match(new RegExp('data-edge-id="'+edge.id+'"[^>]*><title>[^<]*</title><path[^>]* d="([^"]+)"'));
+  assert.equal(drawing?.[1],api.roundedPath(vertices),label+' has the same connected geometry in SVG and BPMN');
+ }
+}
 let passed=0;
 (async()=>{
  // ---- The picture is derived; the evidence is not touched -------------------------------------
@@ -62,6 +80,16 @@ let passed=0;
   const looped=api.present(loop);
   assert.deepEqual(exits(looped,'~gate:B').map(item=>item.to),['A','C']);
   assert.deepEqual(implied(looped).map(item=>item.id),['~start','~end:C','~gate:B']);
+  // A step that repeats itself or proceeds offers the same kind of choice.
+  const self={steps:[step('A','Check account'),step('B','Sign')],connections:[edge('A','A','Recheck'),edge('A','B','Ready')]};
+  const retried=api.present(self);
+  assert.deepEqual(exits(retried,'~gate:A').map(item=>item.to),['A','B']);
+  assert.deepEqual(exits(retried,'A').map(item=>item.to),['~gate:A']);
+  for(const direction of ['RIGHT','DOWN']){
+   const env=environment(),canvas=env.api.create(env.container,{presentation:true,direction});
+   for(const graph of [loop,self]){await canvas.update(graph);verifyExport(canvas,direction);}
+   canvas.destroy();
+  }
   passed++;
  }
  // ---- Every final map of the November 17 run reads as a process diagram -----------------------
@@ -80,8 +108,10 @@ let passed=0;
    assert(implied(picture).filter(item=>item.implied==='start').length<=1,`${name}: more than one start marker`);
    // No branch leaves an ordinary box directly.
    for(const item of reported(picture))if(!GATEWAYS.has(item.type))assert(exits(picture,item.id).length<=1,`${name}: ${item.id} has several ways out of a box`);
-   // The picture is a valid canvas model and can be laid out.
+   // Exercise the recorded maps through actual layout and download, including older graphs.
    const model=api.model(picture,false);assert.equal(model.steps.length,picture.steps.length);
+   const env=environment(),canvas=env.api.create(env.container,{presentation:true});
+   await canvas.update(workflow);verifyExport(canvas,name);canvas.destroy();
   }
   passed++;
  }
@@ -94,6 +124,7 @@ let passed=0;
   assert.equal(ids('[data-edge-id]').length,4,'Four reported connections');
   assert.deepEqual(nativeTree(ids('[data-implied]').map(node=>node.getAttribute('data-implied'))).sort(),['end','end','gateway','start']);
   assert.equal(ids('[data-implied-edge]').length,4);
+  assert.equal(canvas.miniWorld.querySelectorAll('.wf-mini-edge').length,8,'The minimap connects all four markers to the reported map');
   for(const marker of ids('[data-implied]')){
    assert.equal(marker.getAttribute('data-step-id'),null);assert.equal(marker.getAttribute('tabindex'),null);assert.equal(marker.getAttribute('role'),null);
    assert.equal(marker.getAttribute('aria-hidden'),'true');
@@ -116,6 +147,7 @@ let passed=0;
   // The exported file says its steps and routes carry their evidence: the markers are left out of it.
   const svg=canvas.exportSVG({title:'Handle an invoice',state:'Working map',date:'2026-11-17'});
   assert.doesNotMatch(svg,/data-implied/);assert.match(svg,/Receive the invoice/);assert.match(svg,/Matches the order/);
+  assert.match(svg,/S1: Receive the invoice[^<]*Sources: u1<\/title>/,'The step description includes its own citations');
   // The BPMN download takes its positions from the layout of the reported graph alone: no marker,
   // and a route that leaves a gateway in the picture starts at its own step again.
   const layout=nativeTree(canvas.exportLayout());

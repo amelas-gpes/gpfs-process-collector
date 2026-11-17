@@ -27,6 +27,8 @@ let passed=0;async function check(name,fn){try{await fn();passed++;}catch(error)
 (async()=>{
 await check("wrap up shows the synchronized notes while the map is still being drawn, then takes the map alone",async()=>{
  const h=ready(),status=deferred();
+ const earlier=h.t.snapshot().turns;
+ h.t.state.turns.push({id:"u2",role:"user",text:"The manager approves it."});
  h.route(url=>url==="/api/conversation/sync"?response(synchronized({workflow_state:"working",workflow_pending:true})):
   url==="/api/conversation/status"?status.promise:Promise.reject(Error(url)));
  const result=await h.t.request("/api/interview",{...h.t.snapshot(),action:"close"});
@@ -40,6 +42,7 @@ await check("wrap up shows the synchronized notes while the map is still being d
  await h.timer(650);assert.equal(h.calls.at(-1).url,"/api/conversation/status");
  assert.equal(JSON.stringify(JSON.parse(h.calls.at(-1).options.body)),JSON.stringify({conversation_token:"session-one",revision:REVISION}));
  status.resolve(response({state:"ready",conversation_token:"session-one",revision:REVISION,workflow_state:"ready",
+  checkpoint:{revision:"earlier",through_turn_id:"u1",turns:earlier,capture:{memo_findings:[],summary:"An older answer"}},
   capture:{...approved("unused"),summary:"Background notes that must not replace the review",memo_findings:[],coverage:[]},workflow_capture:map("Request intake")}));await flush();
  assert.equal(h.t.conversationUI.workflow.title,"Request intake");
  assert.equal(h.node("workflow-status").textContent,"Updated through the latest answer");
@@ -134,6 +137,75 @@ await check("a check that did not finish leaves the map on screen and offers the
  assert.match(h.node("analysis-status").textContent,/^Notes are up to date\. The workflow still needs an update/);
  assert.equal(h.node("workflow-status").textContent,"The provider timed out. Your answers are retained.");
  assert.equal(h.node("retry-workflow").hidden,false);assert.equal(h.node("retry-workflow").textContent,"Update workflow");
+});
+await check("a source check that has already failed when Wrap up returns has the same retry",async()=>{
+ const h=ready();
+ h.route(url=>url==="/api/conversation/sync"?response(synchronized({workflow_state:"ready",workflow_capture:map("Drawn intake"),
+   workflow_checked:false,workflow_check_state:"error",workflow_check_error:"Source check timed out."})):Promise.reject(Error(url)));
+ h.t.applyInterview(await h.t.request("/api/interview",{...h.t.snapshot(),action:"close"}));
+ assert.equal(h.t.conversationUI.workflow.title,"Drawn intake");
+ assert.equal(h.t.state.summary,"Synchronized notes");
+ assert.equal(h.t.analysis().scope,"workflow");
+ assert.equal(h.node("workflow-status").textContent,"Source check timed out.");
+ assert.equal(h.node("retry-workflow").dataset.mapOnly,"true");
+ assert.equal(h.t.controller().active,false);
+});
+await check("a failed source check after the notes arrive leaves Notes ready and offers a workflow retry",async()=>{
+ const h=ready();
+ let polls=0;
+ const captured={...approved("unused"),summary:"Captured answer",memo_findings:[],coverage:[]};
+ h.route(url=>url==="/api/conversation/turn"?response({...approved("What happens next?"),conversation_token:"session-one",revision:REVISION}):
+   response({state:"ready",conversation_token:"session-one",revision:REVISION,capture:captured,workflow_state:"ready",
+     workflow_capture:map("Request intake"),workflow_version:1,workflow_checked:false,workflow_check_state:++polls===1?"working":"error"}));
+ await h.t.request("/api/interview",{...h.t.snapshot(),action:"answer"});
+ await h.timer(650);await h.timer(650);
+ assert.equal(h.t.analysis().state,"ready");
+ assert.equal(h.t.state.summary,"Captured answer");
+ assert.equal(h.node("workflow-status").textContent,"Updated through the latest answer · check incomplete");
+ assert.equal(h.node("retry-workflow").dataset.mapOnly,"true");
+ assert.equal(h.node("retry-workflow").hidden,false);
+ assert.equal(h.t.controller().active,false);
+});
+await check("polling progress retains the answer number on a checkpoint diagram",async()=>{
+ const h=ready(),earlier=h.t.snapshot().turns;
+ h.t.state.turns.push({id:"u2",role:"user",text:"The manager approves it."});
+ h.route(url=>url==="/api/conversation/turn"?response({...approved("What happens next?"),conversation_token:"session-one",revision:REVISION}):
+   response({state:"working",conversation_token:"session-one",revision:REVISION,workflow_state:"working",
+     workflow_checkpoint:{revision:"earlier",through_turn_id:"u1",turns:earlier,workflow_capture:map("Through the first answer"),version:1}}));
+ await h.t.request("/api/interview",{...h.t.snapshot(),action:"answer"});
+ await h.timer(650);
+ assert.equal(h.t.conversationUI.workflow.title,"Through the first answer");
+ assert.equal(h.node("workflow-status").textContent,"Map through answer 1 · later answers pending");
+});
+await check("failed notes and a failed diagram each show their own error with a workflow retry",async()=>{
+ for(const first of ["working","error"]){
+  const h=ready();
+  let polls=0;
+  h.route(url=>url==="/api/conversation/turn"?response({...approved(),conversation_token:"session-one",revision:REVISION}):
+    response({state:"error",conversation_token:"session-one",revision:REVISION,error:"Notes timed out.",
+      workflow_state:++polls===1?first:"error",workflow_error:"The diagram could not be drawn."}));
+  await h.t.request("/api/interview",{...h.t.snapshot(),action:"answer"});
+  await h.timer(650);
+  if(first==="working")await h.timer(650);
+  assert.equal(h.node("analysis-status").textContent,"Notes timed out.");
+  assert.equal(h.node("workflow-status").textContent,"The diagram could not be drawn.");
+  assert.equal(h.node("retry-workflow").dataset.mapOnly,"true");
+  assert.equal(h.t.controller().active,false);
+ }
+});
+await check("a failed check on a visible diagram leaves the original notes error and a diagram retry",async()=>{
+ const h=ready();
+ let polls=0;
+ h.route(url=>url==="/api/conversation/turn"?response({...approved(),conversation_token:"session-one",revision:REVISION}):
+   response({state:"error",conversation_token:"session-one",revision:REVISION,error:"Notes timed out.",
+     workflow_state:"ready",workflow_capture:map("Drawn intake"),workflow_checked:false,workflow_check_state:++polls===1?"working":"error"}));
+ await h.t.request("/api/interview",{...h.t.snapshot(),action:"answer"});
+ await h.timer(650);await h.timer(650);
+ assert.equal(h.node("analysis-status").textContent,"Notes timed out.");
+ assert.equal(h.t.conversationUI.workflow.title,"Drawn intake");
+ assert.match(h.node("workflow-status").textContent,/check incomplete/);
+ assert.equal(h.node("retry-workflow").dataset.mapOnly,"true");
+ assert.equal(h.t.controller().active,false);
 });
 await check("during the interview the line names the answer the map goes through and whether it was checked",async()=>{
  const h=ready(),earlier=h.t.snapshot();

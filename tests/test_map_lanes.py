@@ -191,6 +191,134 @@ class MapLaneTests(unittest.TestCase):
         self.assertEqual(service.status(edited)["workflow_capture"]["workflow"]["steps"][0]["title"],
                          "Correction: the manager receives the invoice.")
 
+    def test_replaced_intake_evidence_or_file_scope_starts_from_a_fresh_map(self):
+        for replacement in ({"context": {"process_name": "Invoices", "background": "Replacement system"}},
+                            {"document_scope": "another-workspace"}):
+            with self.subTest(replacement=replacement):
+                service, team = self.service()
+                ordinary_draw = team.workflow_draw
+
+                def draw(work):
+                    result = ordinary_draw(work)
+                    if "context" in replacement:
+                        step = result["capture"]["workflow"]["steps"][0]
+                        step["evidence_turns"].append("context")
+                        step["operating_details"] = [{"field": "system", "text": work["context"]["background"],
+                                                      "evidence_turns": ["context"]}]
+                    return result
+
+                team.workflow_draw = draw
+                value = {**answers("The clerk receives the request."), "document_scope": "first-workspace"}
+                value["context"]["background"] = "System in the first intake"
+                first = service.turn(value)
+                value["conversation_token"] = first["conversation_token"]
+                wait_for(lambda: service.status(value).get("workflow_checked"))
+                changed = {**value, **replacement}
+                service.turn(changed)
+                wait_for(lambda: service.status(changed).get("workflow_checked"))
+                self.assertNotIn("previous_capture", team.draws[-1])
+                self.assertNotIn("previous_capture", team.checks[-1]["work"])
+
+    def test_rejected_incremental_draw_keeps_its_checkpoint_and_retries_whole(self):
+        service, team = self.service()
+        first = service.turn(answers("Receive the invoice."))
+        token = first["conversation_token"]
+        one = {**answers("Receive the invoice."), "conversation_token": token}
+        wait_for(lambda: service.status(one).get("workflow_checked"))
+        team.draw_error = ValueError("This update refers to an unknown step")
+        two = {**answers("Receive the invoice.", "Approve it."), "conversation_token": token}
+        service.turn(two)
+        wait_for(lambda: service.status(two)["workflow_state"] == "error")
+        self.assertEqual(service.status(two)["workflow_checkpoint"]["through_turn_id"], "u1")
+        team.draw_error = None
+        service.sync(two)
+        wait_for(lambda: service.status(two).get("workflow_checked"))
+        self.assertNotIn("previous_capture", team.draws[-1])
+
+    def test_wrap_up_turn_then_sync_keeps_the_ready_map(self):
+        service, team = self.service()
+        service.map_wait = .02
+        first = service.turn(answers("Receive the invoice."))
+        value = {**answers("Receive the invoice."), "conversation_token": first["conversation_token"]}
+        wait_for(lambda: service.status(value).get("workflow_checked"))
+        closing = {**value, "action": "close"}
+        self.assertTrue(service.turn(closing)["sync_required"])
+        result = service.sync(closing)
+        self.assertEqual(result["workflow_state"], "ready")
+        self.assertTrue(result["workflow_checked"])
+        self.assertEqual(len(team.draws), 1)
+
+    def test_a_map_arriving_as_wrap_up_replies_is_included(self):
+        service, team = self.service()
+        service.map_wait = 0
+        team.draw_gate = threading.Event()
+        first = service.turn(answers("Receive the invoice."))
+        value = {**answers("Receive the invoice."), "conversation_token": first["conversation_token"]}
+        wait_for(lambda: service.status(value)["state"] == "ready" and len(team.draws) == 1)
+        read_map = service._synchronize_workflow
+
+        def draw_before_reply(*args):
+            result = read_map(*args)
+            self.assertIsNone(result)
+            team.draw_gate.set()
+            wait_for(lambda: service.status(value).get("workflow_checked"))
+            return result
+
+        service._synchronize_workflow = draw_before_reply
+        result = service.sync({**value, "action": "close"})
+        self.assertFalse(result["workflow_pending"])
+        self.assertEqual(self.step_ids(result["workflow_capture"]), ["S_u1"])
+
+    def test_late_notes_do_not_overwrite_a_synchronized_review(self):
+        service, team = self.service()
+        notes_started, release_notes = threading.Event(), threading.Event()
+        self.addCleanup(release_notes.set)
+        usual_capture = team.interview
+
+        def capture(work):
+            result = usual_capture(work)
+            if work.get("_notes_only"):
+                notes_started.set()
+                release_notes.wait(3)
+                result["marker"] = "background notes"
+            return result
+
+        team.interview = capture
+        first = service.turn(answers("Receive the invoice."))
+        self.assertTrue(notes_started.wait(2))
+        snapshot = {**answers("Receive the invoice."), "conversation_token": first["conversation_token"],
+                    "capture_token": "existing-capability"}
+        review = service.sync(snapshot)
+        release_notes.set()
+        wait_for(lambda: not service._sessions[first["conversation_token"]]["running"])
+        self.assertEqual(service.status(snapshot)["capture"]["marker"], review["marker"])
+
+    def test_intake_change_retires_the_pending_notes_checkpoint(self):
+        service, team = self.service()
+        first_started, second_started = threading.Event(), threading.Event()
+        first_gate, later_gate = threading.Event(), threading.Event()
+        self.addCleanup(first_gate.set)
+        self.addCleanup(later_gate.set)
+        usual_capture = team.interview
+
+        def capture(work):
+            started, gate = (first_started, first_gate) if len(work["turns"]) == 1 else (second_started, later_gate)
+            started.set()
+            gate.wait(3)
+            return usual_capture(work)
+
+        team.interview = capture
+        first = service.turn(answers("Receive the invoice."))
+        self.assertTrue(first_started.wait(2))
+        two = {**answers("Receive the invoice.", "Approve it."), "conversation_token": first["conversation_token"]}
+        service.turn(two)
+        first_gate.set()
+        self.assertTrue(second_started.wait(2))
+        self.assertIn("checkpoint", service.status(two))
+        changed = {**two, "context": {"process_name": "Invoices", "background": "Intake was corrected."}}
+        service.turn(changed)
+        self.assertNotIn("checkpoint", service.status(changed))
+
     def test_the_drawn_map_is_shown_before_its_source_check_and_says_so(self):
         # Finding 2: the check took longer than the draw (112 s against 41 s) and stood in front of it.
         service, team = self.service()
@@ -339,6 +467,67 @@ class MapLaneTests(unittest.TestCase):
         self.assertEqual(status["workflow_error"], "The provider is busy. Try again shortly.")
         self.assertEqual(self.step_ids(status["workflow_checkpoint"]["workflow_capture"]), ["S_u1"])
 
+    def test_a_late_failure_does_not_mark_a_newer_draw_as_failed(self):
+        service, team = self.service()
+        first_check = team.check_gate = threading.Event()
+        self.addCleanup(first_check.set)
+        team.check_error = APIError("First check timed out", 504, "timeout")
+        first = service.turn(answers("Receive the invoice."))
+        wait_for(lambda: len(team.checks) == 1)
+        second = {**answers("Receive the invoice.", "Approve it."), "conversation_token": first["conversation_token"]}
+        service.turn(second)
+        wait_for(lambda: "workflow_capture" in service.status(second))
+        team.check_error = None
+        first_check.set()
+        wait_for(lambda: service.status(second).get("workflow_check_state") != "working")
+        self.assertTrue(service.status(second)["workflow_checked"])
+        self.assertEqual(len(team.checks), 2)
+
+    def test_a_failed_redraw_of_edited_wording_does_not_repeat_the_obsolete_check(self):
+        service, team = self.service()
+        first_check = team.check_gate = threading.Event()
+        self.addCleanup(first_check.set)
+        first = service.turn(answers("Receive the invoice."))
+        token = first["conversation_token"]
+        wait_for(lambda: len(team.checks) == 1)
+        team.draw_error = APIError("Draw failed")
+        edited = {**answers("Correction: receive a quote."), "conversation_token": token}
+        service.turn(edited)
+        wait_for(lambda: service.status(edited)["workflow_state"] == "error")
+        # Hold a mistakenly repeated call so the test can count it without a busy loop.
+        team.check_gate = threading.Event()
+        first_check.set()
+        wait_for(lambda: not service._sessions[token]["check_running"] or len(team.checks) > 1)
+        self.assertEqual(len(team.checks), 1)
+        self.assertNotIn("workflow_checkpoint", service.status(edited))
+
+    def test_discarded_checks_waiting_for_a_worker_do_not_call_the_provider(self):
+        service, team = self.service(map_workers=2)
+        team.check_gate = threading.Event()
+        service.turn(answers("First interview."))
+        wait_for(lambda: len(team.checks) == 1)
+        second = service.turn(answers("Second interview."))
+        token = second["conversation_token"]
+        session = service._sessions[token]
+        wait_for(lambda: session["check_running"])
+        service.discard(token)
+        team.check_gate.set()
+        wait_for(lambda: not session["check_running"])
+        self.assertEqual(len(team.checks), 1)
+
+    def test_shutdown_cancels_the_active_draw_and_check(self):
+        service, team = self.service()
+        team.check_gate = threading.Event()
+        first = service.turn(answers("First interview."))
+        wait_for(lambda: len(team.checks) == 1)
+        token = first["conversation_token"]
+        team.draw_gate = threading.Event()
+        service.turn({**answers("First interview.", "Second answer."), "conversation_token": token})
+        wait_for(lambda: len(team.draws) == 2)
+        service.close()
+        self.assertIn(team.draws[-1]["agent_run_id"], team.cancelled)
+        self.assertIn(team.checks[-1]["work"]["agent_run_id"], team.cancelled)
+
     def test_discarding_a_conversation_ends_its_draw_and_its_check(self):
         service, team = self.service()
         team.check_gate, team.draw_gate = threading.Event(), None
@@ -415,6 +604,27 @@ class MapLaneTests(unittest.TestCase):
         self.assertEqual((status["workflow_version"], status["workflow_checked"]), (version, True))
         self.assertNotIn("workflow_check_state", status)
         self.assertEqual(len(team.checks), checks, "A map that was kept is not checked again")
+        service.sync({**two, "action": "close"})
+        wait_for(lambda: not session["graph_running"])
+        self.assertEqual(len(team.draws), 3, "One comparison per revision, including when the map was kept")
+
+    def test_wrap_up_retries_the_failed_check_after_its_second_look(self):
+        service, team = self.service()
+        first = service.turn(answers("Receive the invoice."))
+        token = first["conversation_token"]
+        wait_for(lambda: service.status({**answers("Receive the invoice."), "conversation_token": token}).get("workflow_checked"))
+        team.check_error = APIError("Check failed")
+        second = {**answers("Receive the invoice.", "Approve it."), "conversation_token": token}
+        service.turn(second)
+        wait_for(lambda: service.status(second).get("workflow_check_state") == "error")
+        team.check_error = None
+        team.draw_gate = threading.Event()
+        wrapped = service.sync({**second, "action": "close"})
+        self.assertFalse(wrapped["workflow_checked"])
+        team.draw_gate.set()
+        wait_for(lambda: service.status(second).get("workflow_check_state") != "working")
+        self.assertTrue(service.status(second)["workflow_checked"])
+        self.assertEqual(len(team.checks), 3)
 
     def test_a_map_drawn_whole_needs_no_second_look(self):
         service, team = self.service()

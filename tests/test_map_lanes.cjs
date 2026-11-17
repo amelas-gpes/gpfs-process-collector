@@ -6,10 +6,10 @@ const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("n
 const source=fs.readFileSync(path.join(__dirname,"../web/concurrent-interview.js"),"utf8");
 const flush=async()=>{for(let i=0;i<30;i++)await Promise.resolve();};
 const R="a".repeat(64),EARLIER="b".repeat(64);
-function setup(route,turns){
+function setup(route,turns,clock=Date){
  let serial=0;const timers=new Map(),calls=[],applied=[],statuses=[],workflows=[];
  const snapshot={context:{process_name:"Fictional process"},turns:turns||[{id:"u1",role:"user",text:"The clerk receives a request."}],document_revision:"doc1"};
- const window={},context={window,AbortController,DOMException,JSON,Error,TypeError,Set,Date};vm.createContext(context);vm.runInContext(source,context);
+ const window={},context={window,AbortController,DOMException,JSON,Error,TypeError,Set,Date:clock};vm.createContext(context);vm.runInContext(source,context);
  const controller=new window.CollectorConcurrentInterview({request:async(url,data,options)=>{calls.push({url,data,options});return route(url,data,options);},
   getSnapshot:()=>snapshot,getGeneration:()=>1,applyCapture:(capture,meta)=>applied.push({capture,meta}),applyWorkflow:(capture,meta)=>workflows.push({capture,meta}),
   onStatus:status=>statuses.push(status),setTimeout:fn=>{const id=++serial;timers.set(id,fn);return id;},clearTimeout:id=>timers.delete(id)});
@@ -106,6 +106,21 @@ await test("a checked map released by wrap up needs no further poll",async()=>{
  const h=setup(url=>url.endsWith("/sync")?{...question,workflow_state:"ready",workflow_pending:false,workflow_capture:map("Checked"),workflow_checked:true,workflow_version:2}:{});
  await h.controller.sync(h.snapshot);assert.equal(h.timers.size,0);assert.equal(h.statuses.at(-1).state,"ready");assert.equal(h.statuses.at(-1).workflow,undefined);
 });
+await test("when polling ends at the source-check deadline, the map reports a retry",async()=>{
+ let now=1000;
+ const reply={...base,state:"ready",capture:{summary:"Accepted"},workflow_state:"ready",workflow_capture:map("Drawn"),workflow_checked:false,workflow_check_state:"working"};
+ for(const wrapUp of [true,false]){
+  const h=setup(url=>url.endsWith("/turn")?question:reply,undefined,{now:()=>now});
+  if(wrapUp)await h.controller.sync(h.snapshot);else await h.controller.turn(h.snapshot);
+  await h.tick();
+  assert.equal(h.timers.size,1);
+  now+=900001;
+  await h.tick();
+  assert.equal(h.timers.size,0);
+  assert.equal(h.statuses.at(-1).scope,"workflow");
+  assert.match(h.statuses.at(-1).message,/Update workflow/);
+ }
+});
 await test("when the notes fail the map is still fetched until its check has finished, and the failure is said once",async()=>{
  const failed={...base,state:"error",error:"The provider timed out. Your answers are retained.",workflow_state:"ready",workflow_capture:map("Drawn"),workflow_checked:false,workflow_check_state:"working",workflow_version:1};
  const h=setup(scripted([failed,failed,{...failed,workflow_capture:map("Checked"),workflow_checked:true,workflow_check_state:undefined,workflow_version:2}]));
@@ -121,6 +136,21 @@ await test("a server that does not say whether the map was checked is treated as
  const h=setup(scripted([{...base,state:"ready",capture:{summary:"Notes"},workflow_state:"ready",workflow_capture:map("Plain")}]));
  await h.controller.turn(h.snapshot);await h.tick();
  assert.equal(h.applied.length,1);assert.equal(h.applied[0].meta.check,"");assert.equal(h.timers.size,0);assert.equal(h.statuses.at(-1).state,"ready");
+});
+await test("when notes fail before the first map, the page still receives the completed map",async()=>{
+ const failed={...base,state:"error",error:"Notes timed out.",agent_team:{run_id:"map-run"}};
+ const h=setup(scripted([
+   {...failed,workflow_state:"working"},
+   {...failed,workflow_state:"ready",workflow_capture:map("Drawn"),workflow_checked:false,workflow_check_state:"working",workflow_version:1},
+   {...failed,workflow_state:"ready",workflow_capture:map("Checked"),workflow_checked:true,workflow_version:2}
+ ]));
+ await h.controller.turn(h.snapshot);
+ await h.tick();assert.equal(h.timers.size,1,"The map draw outlives the failed notes");
+ await h.tick();assert.equal(h.workflows[0].capture.workflow.title,"Drawn");
+ await h.tick();assert.equal(h.workflows[1].capture.workflow.title,"Checked");
+ assert.equal(h.timers.size,0);
+ assert.equal(h.statuses.at(-1).message,"Notes timed out.");
+ assert.equal(h.statuses.filter(status=>status.state==="error").length,1);
 });
 console.log(JSON.stringify({tests_passed:passed}));
 })().catch(error=>{console.error(error);process.exitCode=1;});

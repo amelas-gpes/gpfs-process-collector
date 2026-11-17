@@ -28,8 +28,16 @@
     for(const edge of draft.connections)if(ids.has(edge.from)&&ids.has(edge.to))lines.push("  "+ids.get(edge.from)+" -->"+(edge.label?'|"'+label(edge.label)+'"|':"")+" "+ids.get(edge.to));
     return lines.join("\n");
   }
-  function bpmn(draft,layout){
+  function bpmn(draft,layout,drawnGraph){
     const ids=new Map(draft.steps.map((step,index)=>[step.id,"Node_"+(index+1)])),positions=new Map((layout?.children||[]).map(box=>[box.id,box]));
+    const routeKey=edge=>JSON.stringify([edge.from,edge.to,(edge.label||"").trim()]);
+    const layoutById=new Map((layout?.edges||[]).map(edge=>[edge.id,edge]));
+    // Older saved drafts can repeat the same route with different citations. The canvas
+    // combines those routes. Give each saved flow the geometry of its own drawn route.
+    const projectedRoutes = new Map();
+    if (drawnGraph && drawnGraph.connections.length < draft.connections.length) {
+      drawnGraph.connections.forEach((edge,index)=>projectedRoutes.set(routeKey(edge),index));
+    }
     const stages={start:"startEvent",trigger:"startEvent",end:"endEvent",decision:"exclusiveGateway",merge:"exclusiveGateway",parallel_join:"parallelGateway",parallel_split:"parallelGateway",subprocess:"subProcess"};
     const rows=['<?xml version="1.0" encoding="UTF-8"?>','<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="urn:ai-process-collector:workflow">','<process id="Process_1" isExecutable="false" name="'+xml(draft.title||"Draft process")+'"><documentation>DRAFT — process owner review required.</documentation>'];
     const lanes=new Map();
@@ -57,7 +65,9 @@
       rows.push('<bpmndi:BPMNShape id="Shape_'+id+'" bpmnElement="'+id+'"><dc:Bounds x="'+box.x+'" y="'+box.y+'" width="'+box.width+'" height="'+box.height+'"/></bpmndi:BPMNShape>');
     }
     for(const [i,edge] of draft.connections.entries()){
-      const from=positions.get(edge.from),to=positions.get(edge.to),section=layout?.edges?.find(row=>row.id==="edge-"+i)?.sections?.[0];
+      const drawnIndex = projectedRoutes.size ? projectedRoutes.get(routeKey(edge)) : i;
+      const section = layoutById.get("edge-"+drawnIndex)?.sections?.[0];
+      const from=positions.get(edge.from),to=positions.get(edge.to);
       const coordinates=section?[section.startPoint,...(section.bendPoints||[]),section.endPoint]:[{x:from.x+from.width,y:from.y+from.height/2},{x:to.x,y:to.y+to.height/2}];
       rows.push('<bpmndi:BPMNEdge id="Edge_'+routeIds[i]+'" bpmnElement="'+routeIds[i]+'">'+coordinates.map(point=>'<di:waypoint x="'+point.x+'" y="'+point.y+'"/>').join("")+'</bpmndi:BPMNEdge>');
     }

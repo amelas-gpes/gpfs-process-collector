@@ -3004,7 +3004,7 @@
       if(notesToo)mapNote("Couldn’t update. Try again in Workflow.","issue");
       if(!conversationUI.flowErrorNotified){
         conversationUI.flowErrorNotified=true;
-        notice("The diagram and notes haven’t updated. Your transcript and earlier notes are still here. Try again in Workflow."+unsavedReminder(),true);
+        notice((options.mapOnly?"The workflow could not update. Try again in Workflow.":"The diagram and notes haven’t updated. Your transcript and earlier notes are still here. Try again in Workflow.")+unsavedReminder(),true);
       }
     }}finally{
       options.signal?.removeEventListener("abort",abort);
@@ -3689,9 +3689,11 @@
         getSnapshot:snapshot,getGeneration:()=>state.generation,
         applyCapture:(capture,{snapshot:captured,check})=>applyBackgroundCapture(capture,captured,check),
         applyWorkflow:(capture,{snapshot:captured,check})=>applyLateWorkflow(capture,captured,check),
+        onWorkflowError:mapNeedsRetry,
         onStatus:status=>{
           if(status.agent_team)agentTeamUI?.render(status.agent_team);
-          if((["queued","working"].includes(status.state)||status.workflow==="working")&&conversationUI.applied!==conversationUI.revision&&$("workflow-status"))$("workflow-status").textContent="Updating the map for your latest answer…";
+          const drawing=status.workflow==="working"||!status.workflow&&["queued","working"].includes(status.state);
+          if(drawing&&conversationUI.applied!==conversationUI.revision&&$("workflow-status"))$("workflow-status").textContent="Updating the map for your latest answer…";
           // A failure of the map alone is the map's: the notes are in, and the map has its own retry.
           const mapOnly=status.state==="error"&&status.scope==="workflow";
           if(mapOnly||status.state==="error"&&/workflow|\bmap\b/i.test(status.message||""))mapNeedsRetry(status.message);
@@ -3744,9 +3746,12 @@
   // the synchronized ones: nothing but the map is taken, and the review state stays as it is.
   // What the Workflow line says of a map that was applied. The map is drawn first and checked
   // against its sources beside it: check is "" once checked, "working" or "error" until then.
-  function mapAppliedStatus(current,check=""){
-    if(!current)return "Map through answer "+mapProgress.count+" · later answers pending";
-    return "Updated through the latest answer"+(check==="working"?" · check pending":check==="error"?" · check incomplete":"");
+  function showMapStatus(current,check=""){
+    if(current&&check==="error"){
+      mapNeedsRetry("Updated through the latest answer · check incomplete");return;
+    }
+    $("workflow-status").textContent=current?"Updated through the latest answer"+(check==="working"?" · check pending":""):
+      "Map through answer "+mapProgress.count+" · later answers pending";
   }
   function applyLateWorkflow(capture,captured,check=""){
     if(intakeActive()||!workflowEvidenceStillValid(captured))return;
@@ -3758,7 +3763,7 @@
     const current=mapProgress.basis===captureProgressMark().basis;
     if(current){conversationUI.applied=conversationUI.revision;settleMapStatus();}
     applyProcessTitle(workflow.title);renderWorkingMap();
-    $("workflow-status").textContent=mapAppliedStatus(current,check);
+    showMapStatus(current,check);
     state.dirty=true;updateControls();updateSaveHint();knowledgeUI?.captureChanged?.();
   }
   function applyBackgroundCapture(result,captured,check=""){
@@ -3793,7 +3798,7 @@
     if(workflow){publishWorkingMap(workflow,result.workflow_capture,captured.turns);mapProgress=captureProgressMark(captured.turns);
       const current=mapProgress.basis===captureProgressMark().basis;
       if(current){conversationUI.applied=conversationUI.revision;settleMapStatus();}
-      applyProcessTitle(workflow.title);renderWorkingMap();$('workflow-status').textContent=mapAppliedStatus(current,check);}
+      applyProcessTitle(workflow.title);renderWorkingMap();showMapStatus(current,check);}
     renderCoverage();updateControls();updateSaveHint();
   }
   function rememberCompletionReview(result,liveCaptureSource=null){
@@ -3917,7 +3922,14 @@
       facts:normalizedFacts(result.fact_provenance,state.turns,documentEvidence)
     };
     const repairs=memo?reviewedRepairs(result,memo.findings,state.turns,documentEvidence):null;
-    if(graph){state.documentEvidence=documentEvidence;publishWorkingMap(graph,result.workflow_capture,state.turns);conversationUI.applied=conversationUI.revision;mapProgress=captureProgressMark();applyProcessTitle(graph.title);renderWorkingMap();$("workflow-status").textContent=mapAppliedStatus(true,result.workflow_checked===false?(result.workflow_check_state==="error"?"error":"working"):"");settleMapStatus();}
+    if(graph){
+      state.documentEvidence=documentEvidence;publishWorkingMap(graph,result.workflow_capture,state.turns);
+      conversationUI.applied=conversationUI.revision;mapProgress=captureProgressMark();
+      applyProcessTitle(graph.title);renderWorkingMap();
+      const check=result.workflow_checked===false?(result.workflow_check_state==="error"?"error":"working"):"";
+      if(check==="error"&&analysisState.scope==="workflow")mapNeedsRetry(analysisState.message);
+      else{showMapStatus(true,check);settleMapStatus();}
+    }
     if(typeof result.capture_token==="string"&&result.capture_token&&result.capture_token.length<=4096)state.captureToken=result.capture_token;
     state.coverageVerified=result.coverage_verified===true;
     state.completion=result.completion||null;
@@ -6761,7 +6773,7 @@
       try{
         if(format==="csv"){download(api.csv(graph),name+"-steps.csv","text/csv;charset=utf-8");return;}
         const canvas=await readyExportCanvas();if(graph!==state.draft)return;
-        if(format==="bpmn"){download(api.bpmn(graph,canvas?.exportLayout?.()||canvas?.layout),name+".bpmn","application/xml");return;}
+        if(format==="bpmn"){download(api.bpmn(graph,canvas?.exportLayout?.()||canvas?.layout,canvas?.graph),name+".bpmn","application/xml");return;}
         if(format==="print"){preparePrint();window.print();return;}
         const svg=exportDiagram("process-map");if(!svg)throw Error("The diagram is still being prepared. Try again after it appears.");
         download(await api.png(svg),name+".png","image/png");

@@ -49,11 +49,13 @@ time the map is drawn (`present` in `web/workflow-graph.js`) and adds three kind
 A marker is not evidence and does not become any. It has an ID no step can have, cites no
 source, is not a control, cannot be selected or followed, and is not saved, sent to the service
 or written to a saved interview. The SVG file says of itself that its steps and routes carry their
-evidence, so the markers are left out of it; the Mermaid, DOT and BPMN downloads are produced from
-the evidence as before. The step list, the details panel, Follow path, the keyboard and the
-screen-reader description speak of the reported steps and connections only. Steps that are not
-joined to the main route are drawn as they are, detached, without markers. A map of a single
-step, or of steps nobody connected, has no route to mark.
+evidence, so the SVG reconnects each branch to its reported source when it removes the markers.
+PNG, print and BPMN use the same reported connections. Mermaid and DOT also use the evidence graph.
+The step list, the details panel, Follow
+path, the keyboard and the screen-reader description speak of the reported steps and connections
+only. Detached groups receive no implied start or end. A branching activity in a detached group
+still gets a gateway, including when one route loops back to the same activity. A map with no
+reported connection has no route to mark.
 
 Not part of the picture yet: lanes by role, compact decision diamonds with the label outside,
 a main path kept straight, positions that stay put between updates, and the open question of a

@@ -73,7 +73,7 @@
     return {type,width,height,contentWidth,contentHeight,blocks,diamond};
   }
   function edgeMetrics(value){const width=clamp(measureText(value,11,500)+24,44,200),lines=wrapText(value,width-24,11,500);return {width,height:lines.length*15+14,lines};}
-  const stepTooltip=step=>`${step.id}: ${step.title}\n${step.description||""}\nOwner: ${step.actor||"Not established"}\nSystem: ${step.system||"Not established"}`;
+  const stepTooltip=step=>`${step.id}: ${step.title}\n${step.description||""}\nOwner: ${step.actor||"Not established"}\nSystem: ${step.system||"Not established"}\nSources: ${(step.evidence_turns||[]).join(", ")||"No cited source"}`;
   const edgeTooltip=edge=>`${edge.from} → ${edge.to}${edge.label?": "+edge.label:""}. Sources: ${(edge.evidence_turns||[]).join(", ")||"No source references in this view; open details to review evidence"}`;
   function cinematicNodeMetrics(step) {
     const width=150;
@@ -121,7 +121,7 @@
   //   - A small gateway after a step with several ways out. The routing rules keep a
   //     decision the participant did not name off the map, so its routes would leave one
   //     point of an ordinary box; the gateway shows that they are separate ways on.
-  // Steps that are not connected to the main route stay as they are, shown as detached.
+  // Detached routes keep their branches but gain no start or end marker.
   const GATEWAYS=new Set(["decision","parallel_split","parallel_join","merge"]);
   function present(graph) {
     const steps=graph.steps.map(step=>({...step})),connections=graph.connections.map(edge=>({...edge}));
@@ -153,7 +153,7 @@
       }
     }
     for(const step of steps){
-      const exits=outgoing.get(step.id).filter(edge=>edge.to!==step.id);
+      const exits=outgoing.get(step.id);
       if(GATEWAYS.has(step.type)||exits.length<2)continue;
       const gate={id:`~gate:${step.id}`,type:"decision",title:"",implied:"gateway",of:step.id};
       markers.push(gate);
@@ -1048,6 +1048,9 @@
       const stepIndex=new Map(data.steps.map((step,index)=>[step.id,index]));
       this.edgeTitles=new Map();this.stepTitles=[];
       layout.edges.forEach(edge=>{
+        for(const section of edge.sections||[]){
+          this.miniWorld.append(svgNode(doc,"path",{class:"wf-mini-edge",d:roundedPath(points(section),0),fill:"none",stroke:"#a4b0be","stroke-width":3}));
+        }
         if(drawnEdges.get(edge.id)?.implied){
           // A link to or from a marker: part of the picture, not a reported connection.
           const link=svgNode(doc,"g",{"data-implied-edge":""});
@@ -1057,7 +1060,7 @@
         const original=byEdgeId.get(edge.id);if(!original)return;
         const group=svgNode(doc,"g",{"data-edge-id":edge.id}),tooltip=svgNode(doc,"title",{},edgeTooltip(original));
         group.append(tooltip);this.edgeTitles.set(edge.id,tooltip);
-        (edge.sections||[]).forEach(section=>{const p=points(section);group.append(svgNode(doc,"path",{class:"wf-edge",d:roundedPath(p),fill:"none",stroke:"#718197","stroke-width":1.6,"stroke-linejoin":"round","marker-end":`url(#${this.uid}-arrow)`}));this.miniWorld.append(svgNode(doc,"path",{class:"wf-mini-edge",d:roundedPath(p,0),fill:"none",stroke:"#a4b0be","stroke-width":3}));});edges.append(group);
+        (edge.sections||[]).forEach(section=>{const p=points(section);group.append(svgNode(doc,"path",{class:"wf-edge",d:roundedPath(p),fill:"none",stroke:"#718197","stroke-width":1.6,"stroke-linejoin":"round","marker-end":`url(#${this.uid}-arrow)`}));});edges.append(group);
         const labelGroup=svgNode(doc,"g",{"data-edge-label-for":edge.id});
         (edge.labels||[]).forEach(label=>{
           const x=label.x||0,y=label.y||0,words=edgeMetrics(original.label).lines;labelGroup.append(svgNode(doc,"rect",{class:"wf-edge-label",x,y,width:label.width,height:label.height,rx:5,fill:"#ffffff",stroke:"#d9e0e8","stroke-width":.8}));
@@ -1121,20 +1124,25 @@
       this.camera.x=node.x+node.width/2-width/this.camera.scale/2;this.camera.y=node.y+node.height/2-height/this.camera.scale/2;this.fitMode=false;this.paintView();
       if(keyboard)[...this.world.querySelectorAll("[data-step-id]")].find(item=>item.getAttribute("data-step-id")===id)?.focus({preventScroll:true});
     }
-    // The layout of the reported steps and connections alone, for a file that states evidence
-    // (the BPMN download). Markers are left out. A connection that leaves a gateway in the picture
-    // is given back its whole way: from its step, through the place of the gateway, to its target.
+    // Reconnect each branch through its display-only gateway to the reported source step.
+    // SVG, PNG, print and BPMN use the same geometry after the gateway is removed.
     exportLayout(){
       const picture=this.picture||this.graph;
       if(!this.layout||!this.graph||picture===this.graph)return this.layout;
-      const routes=new Map(this.layout.edges.map(edge=>[edge.id,edge])),drawn=new Map(picture.connections.map(edge=>[edge.id,edge]));
+      const routes=new Map(this.layout.edges.map(edge=>[edge.id,edge]));
+      const gateways=new Map(this.layout.children.map(node=>[node.id,node]));
       const stubs=new Map(picture.connections.filter(edge=>edge.implied&&edge.to.startsWith("~gate:")).map(edge=>[edge.to,routes.get(edge.id)]));
       return {...this.layout,children:this.layout.children.filter(node=>this.graph.incoming.has(node.id)),
-        edges:this.graph.connections.map(edge=>{
-          const route=routes.get(edge.id),from=drawn.get(edge.id)?.from,section=route?.sections?.[0],lead=from!==edge.from?stubs.get(from)?.sections?.[0]:null;
-          if(!route||!section||!lead)return route;
-          return {...route,sections:[{...section,startPoint:lead.startPoint,bendPoints:[...(lead.bendPoints||[]),lead.endPoint,section.startPoint,...(section.bendPoints||[])]}]};
-        }).filter(Boolean)};
+        edges:this.graph.connections.map((edge,index)=>{
+          const route=routes.get(edge.id),from=picture.connections[index].from;
+          if(from===edge.from)return route;
+          const stub=stubs.get(from),gate=gateways.get(from),section=route.sections[0],lead=stub.sections[0];
+          // The incoming and outgoing ports may be on adjacent sides (a rework loop).
+          // Both ports line up with the centre of this marker on their respective axes.
+          const center={x:gate.x+gate.width/2,y:gate.y+gate.height/2};
+          const bendPoints=[...(lead.bendPoints||[]),lead.endPoint,center,section.startPoint,...(section.bendPoints||[])];
+          return {...route,sources:stub.sources,sections:[{...section,incomingShape:lead.incomingShape,startPoint:lead.startPoint,bendPoints},...route.sections.slice(1)]};
+        })};
     }
     exportSVG(metadata=null){
       if(!this.layout||this.pending||this.layoutError||this.dead)return null;
@@ -1153,7 +1161,7 @@
           const step=this.graph.steps.find(row=>row.id===group.getAttribute("data-step-id"));
           if(!step)continue;
           if(!step.evidence_turns?.length||step.reviewed_fields?.length){
-            const title=group.querySelector?.("title");if(title)title.textContent+=" · "+(step.reviewed_fields?.length?"Edited in review · verify sources":"No cited source");
+            const title=group.querySelector?.("title");if(title&&step.reviewed_fields?.length)title.textContent+=" · Edited in review · verify sources";
             group.querySelector?.(".workflow-node-shape")?.setAttribute("stroke-dasharray","5 3");
           }
         }
@@ -1161,6 +1169,13 @@
       // The file says of itself that its steps and routes carry their evidence. The markers the
       // picture adds (a start or end nobody stated, a gateway) carry none and are left out of it.
       for(const selector of ["[data-implied]","[data-implied-edge]"])svg.querySelectorAll?.(selector).forEach(node=>node.remove());
+      if(this.picture?.connections.some(edge=>edge.implied)){
+        const routes=new Map(this.exportLayout().edges.map(route=>[route.id,route]));
+        for(const group of svg.querySelectorAll("[data-edge-id]")){
+          const route=routes.get(group.getAttribute("data-edge-id"));
+          group.querySelectorAll(".wf-edge").forEach((path,index)=>path.setAttribute("d",roundedPath(points(route.sections[index]))));
+        }
+      }
       svg.querySelectorAll?.("[tabindex]").forEach(node=>{node.removeAttribute("tabindex");node.removeAttribute("role");node.removeAttribute("aria-pressed");});
       // Focus is a navigation aid; an exported full workflow retains every route equally.
       svg.querySelectorAll?.("[opacity]").forEach(node=>node.removeAttribute("opacity"));

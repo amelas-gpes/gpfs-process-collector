@@ -9,6 +9,8 @@ working tree). See [docs/DESKTOP.md](docs/DESKTOP.md#which-build-is-running).
 
 ## Unreleased
 
+- Corrected how the interview handles late diagram checks, retries and Wrap up. A failed notes update can still deliver a diagram, and a late map leaves synchronized review notes intact. Diagram exports reconnect branches to their reported source steps, including rework loops and routes repeated in older saved drafts. [Review findings and verification](docs/testing/runs/2026-11-17-diagram-review/README.md)
+
 The workflow diagram keeps up with a typed interview. This is the first part of the [diagram brief](docs/enhancements/diagram-speed-and-layout.md), for findings 1 to 5 of the [November 17 stress run](docs/testing/runs/2026-11-17-stress/README.md). It was verified with stand-in providers only; [what was checked and what still needs a run against the AI service](docs/testing/runs/2026-11-17-map-lanes/README.md).
 
 - **A new answer no longer cancels the map being drawn.** The map of an earlier answer is kept when the conversation has only grown since. Workflow shows it as “Map through answer N · later answers pending”, and the next map starts from it instead of from nothing. A map of wording that was edited since is still discarded. (Finding 1)

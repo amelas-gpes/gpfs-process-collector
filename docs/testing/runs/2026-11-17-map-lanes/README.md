@@ -14,6 +14,7 @@ The baseline for comparison is the [November 17 stress run](../2026-11-17-stress
 | 4. One map worker serves every interview | Two maps are drawn at once by default (`COLLECTOR_MAP_WORKERS`), one job at a time, the oldest first. Background work leaves two provider slots free for questions. | `tests/test_map_lanes.py`, `tests/test_provider_cancellation.py` |
 | 5. Live voice starts a map from a partial sentence | The map starts from a finished caption. | `tests/test_ui_state.cjs` |
 | 6. File review is serial and the first question waits for all of it | The first question about a text-only file is asked after its first pass. Two files are reviewed side by side; one file's requests stay in order. | `tests/test_document_review_lanes.py`, `tests/test_document_intake.cjs` |
+| 7. Diagrams lack start and end nodes and branch from activity boxes | The diagram draws a picture of the evidence with implied start and end markers and a gateway after a step with several exits. | `tests/test_workflow_presentation.cjs`, and a render in headless Chromium |
 | 9. The Live interviewer asked three questions about a stated unknown | Its instructions say one question per turn and no second request for a stated unknown. Wording only. | `tests/test_live.py` |
 
 ## Simulated pacing

@@ -19,6 +19,7 @@ function environment(Engine=RealmELK,width=900,height=500){
   setAttribute(k,v){this.attributes[k]=String(v);}getAttribute(k){return this.attributes[k]??null;}removeAttribute(k){delete this.attributes[k];}
   append(...values){values.forEach(value=>{value.parentElement=this;this.children.push(value);});}
   replaceChildren(...values){this.children.forEach(c=>c.parentElement=null);this.children=[];this._text='';this.append(...values);}
+  remove(){const parent=this.parentElement;if(parent){parent.children=parent.children.filter(child=>child!==this);this.parentElement=null;}}
   set textContent(value){this.replaceChildren();this._text=String(value);}get textContent(){return this._text+this.children.map(c=>c.textContent).join('');}
   addEventListener(name,fn){(this.listeners[name]??=[]).push(fn);}removeEventListener(name,fn){this.listeners[name]=(this.listeners[name]||[]).filter(f=>f!==fn);}
   emit(name,event={}){for(const fn of this.listeners[name]||[])fn({target:this,preventDefault(){},...event});}

@@ -13,7 +13,7 @@
     parallel_split:{label:"Parallel split",fill:"#eff4fc",stroke:"#8398b8"},parallel_join:{label:"Parallel join",fill:"#eff4fc",stroke:"#8398b8"},merge:{label:"Merge alternatives",fill:"#f5f3fa",stroke:"#a395b5"},
     wait:{label:"Wait",fill:"#fbf3eb",stroke:"#c49c77"},subprocess:{label:"Subprocess",fill:"#f6f3fa",stroke:"#a395b5"},
     document:{label:"Document",fill:"#f1f7f8",stroke:"#85a8ae"},data_store:{label:"Stored data",fill:"#f1f7f8",stroke:"#85a8ae"}};
-  const MIN_BOX_TEXT=120,DENSE_CONNECTIONS=60;
+  const MIN_BOX_TEXT=120,DENSE_CONNECTIONS=60,MARKER_SIZE=36;
   let measureContext,graphemeSegmenter;
   const measurements=new Map();
   function measureText(value,size=14,weight=400){
@@ -45,6 +45,8 @@
   }
   const known=value=>Boolean(string(value).trim())&&!/^(?:unknown(?:\s*\/\s*tbd)?|tbd|not established|not applicable|n\/?a)$/i.test(string(value).trim());
   function nodeMetrics(step){
+    // A marker of the picture (see present): a small circle or diamond with no text of its own.
+    if(step.implied)return {type:TYPES[step.type]?step.type:"activity",width:MARKER_SIZE,height:MARKER_SIZE,contentWidth:0,contentHeight:0,blocks:[],diamond:step.type==="decision"};
     const type=TYPES[step.type]?step.type:"activity",diamond=["decision","parallel_split","parallel_join","merge"].includes(type);
     let width=diamond?360:280,contentWidth=diamond?186:type==="wait"?208:232;
 
@@ -92,9 +94,10 @@
     if(type==="wait")return svgNode(doc,"path",{...attrs,d:`M ${x} ${y} H ${x+w-40} Q ${x+w} ${y} ${x+w} ${y+h/2} Q ${x+w} ${y+h} ${x+w-40} ${y+h} H ${x} Z`});
     return svgNode(doc,"rect",{...attrs,x,y,width:w,height:h,rx:["start","end"].includes(type)?Math.min(48,h/2):8});
   }
-  function model(graph) {
+  // The size limit is that of a reported map. Its picture adds markers (see present) and is not held to it.
+  function model(graph,limited=true) {
     if(!graph||!Array.isArray(graph.steps)||!Array.isArray(graph.connections))throw new Error("The workflow is missing steps or connections.");
-    if(graph.steps.length>80||graph.connections.length>150)throw new Error("This workflow is too large to display in one canvas.");
+    if(limited&&(graph.steps.length>80||graph.connections.length>150))throw new Error("This workflow is too large to display in one canvas.");
     const seen=new Set(),steps=graph.steps.map(step=>{
       if(!step||typeof step.id!=="string"||!step.id||seen.has(step.id))throw new Error("Workflow step IDs must be unique.");
       seen.add(step.id);return {...step};
@@ -107,6 +110,64 @@
     connections.forEach(edge=>{incoming.get(edge.to).push(edge);outgoing.get(edge.from).push(edge);});
     return {title:string(graph.title),steps,connections,incoming,outgoing};
   }
+  // The picture of a map: the reported steps and connections, with the marks a reader of
+  // process diagrams looks for. The reported graph is the evidence and is never altered:
+  // this returns a copy, which is laid out and drawn and goes nowhere else (it is not
+  // saved, sent, selected, navigated or exported). Every addition is marked `implied`
+  // and has an ID no reported step can have ("~" is not allowed in a step ID).
+  //   - A start marker in front of the first step of the main route, and an end marker
+  //     after each step of that route nothing follows, unless the account itself states
+  //     the start or the end. Participants rarely say "this is where it starts".
+  //   - A small gateway after a step with several ways out. The routing rules keep a
+  //     decision the participant did not name off the map, so its routes would leave one
+  //     point of an ordinary box; the gateway shows that they are separate ways on.
+  // Steps that are not connected to the main route stay as they are, shown as detached.
+  const GATEWAYS=new Set(["decision","parallel_split","parallel_join","merge"]);
+  function present(graph) {
+    const steps=graph.steps.map(step=>({...step})),connections=graph.connections.map(edge=>({...edge}));
+    const picture={title:graph.title,steps,connections};
+    const known=new Set(steps.map(step=>step.id));
+    if(known.size!==steps.length||connections.some(edge=>!known.has(edge.from)||!known.has(edge.to))||!connections.length)return picture;
+    const incoming=new Map(steps.map(step=>[step.id,[]])),outgoing=new Map(steps.map(step=>[step.id,[]]));
+    connections.forEach(edge=>{incoming.get(edge.to).push(edge);outgoing.get(edge.from).push(edge);});
+    // The main route is the connected group of the step the map opens on (see initialStep).
+    const connected=steps.filter(step=>outgoing.get(step.id).length),entries=connected.filter(step=>!incoming.get(step.id).length);
+    const first=entries.find(step=>step.type==="start")||entries[0]||connected.find(step=>step.type==="start")||connected[0];
+    const main=new Set(),queue=[first.id];
+    while(queue.length){
+      const id=queue.pop();if(main.has(id))continue;main.add(id);
+      for(const edge of outgoing.get(id))queue.push(edge.to);
+      for(const edge of incoming.get(id))queue.push(edge.from);
+    }
+    const markers=[],links=[];
+    const route=steps.filter(step=>main.has(step.id));
+    if(!route.some(step=>step.type==="start")){
+      const opening=route.filter(step=>!incoming.get(step.id).length&&outgoing.get(step.id).length);
+      markers.push({id:"~start",type:"start",title:"Start",implied:"start"});
+      for(const step of opening.length?opening:[first])links.push({from:"~start",to:step.id,label:"",implied:true});
+    }
+    for(const step of route){
+      if(step.type!=="end"&&!outgoing.get(step.id).length&&incoming.get(step.id).length){
+        markers.push({id:`~end:${step.id}`,type:"end",title:"End",implied:"end",of:step.id});
+        links.push({from:step.id,to:`~end:${step.id}`,label:"",implied:true});
+      }
+    }
+    for(const step of steps){
+      const exits=outgoing.get(step.id).filter(edge=>edge.to!==step.id);
+      if(GATEWAYS.has(step.type)||exits.length<2)continue;
+      const gate={id:`~gate:${step.id}`,type:"decision",title:"",implied:"gateway",of:step.id};
+      markers.push(gate);
+      // The reported connections keep their place in the list (and so their identity on the
+      // canvas); in the picture they leave from the gateway.
+      for(const edge of exits)edge.from=gate.id;
+      links.push({from:step.id,to:gate.id,label:"",implied:true});
+    }
+    steps.push(...markers);connections.push(...links);
+    return picture;
+  }
+  const markerTooltip=marker=>marker.implied==="start"?"Start. Added to the picture; the account does not state where the work starts."
+    :marker.implied==="end"?"End. Added to the picture; the account does not state that the work ends here."
+    :"Several routes lead on from the step before this point.";
   // Walk actual connections from their entry points. An edge back to an active
   // ancestor closes a cycle; it remains a real edge and gets its own return port.
   // The order supplied by the interviewer only breaks ties between ready steps.
@@ -582,7 +643,7 @@
       const revision=++this.version;
       this.reshapeJob?.cancel();
       if(this.autoDirectionPending&&this.size().width){this.direction=this.size().width<640?"DOWN":"RIGHT";this.autoDirectionPending=false;}
-      let data,renderKey,layoutKey;
+      let data,picture,renderKey,layoutKey;
       try{
         renderKey=JSON.stringify({direction:this.direction,title:string(graph?.title),steps:graph?.steps,connections:graph?.connections});
         if(this.layout&&this.renderKey===renderKey){
@@ -597,6 +658,8 @@
         // The interview editor can mutate its draft while the engine is running.
         this.requestedGraph=JSON.parse(renderKey);
         data=model(this.requestedGraph);
+        // What is laid out and drawn. Selection, path navigation and export read `data`, the evidence.
+        picture=this.options.presentation===true?model(present(this.requestedGraph),false):data;
         layoutKey=JSON.stringify([this.direction,data.steps.map(s=>[s.id,s.type,s.title,s.actor,s.system]),data.connections.map(e=>[e.from,e.to,e.label])]);
       }catch(error){this.dropLayoutJob();this.requestedGraph=null;this.pending=false;this.layoutError=true;this.notify();throw error;}
       if(this.layout&&this.layoutKey===layoutKey){
@@ -623,14 +686,14 @@
         if(!job||job.key!==layoutKey){
           // A different map is wanted now: stop computing the one it replaces.
           job?.cancel();
-          job=layeredLayout(data,this.direction,this.size(),
+          job=layeredLayout(picture,this.direction,this.size(),
             graph=>workerLayouts()?workerLayout(graph):this.engine?this.engine.layout(graph):pageLayout(graph));
           job.key=layoutKey;
           this.layoutJob=job;
         }
         positions=await job.result;
         if(this.dead||revision!==this.version)return false;
-        validateLayeredRoutes(positions,data);
+        validateLayeredRoutes(positions,picture);
       }catch(error){
         if(this.dead||revision!==this.version)return false;
         this.pending=false;this.layoutError=true;this.notify();throw error;
@@ -639,17 +702,17 @@
       }
       this.pending=false;this.layoutError=false;
       this.strip={key:layoutKey,layout:job.strip};this.layoutShape=job.shape;
-      this.show(data,orderedComponents(positions,data));
+      this.show(data,orderedComponents(positions,picture),picture);
       this.layoutKey=layoutKey;this.renderKey=renderKey;
       this.notify();
       this.queueReshape();
       return true;
     }
     // Draws a new layout of `data` in place of the one on screen.
-    show(data,positions){
+    show(data,positions,picture=data){
       const previousLayout=this.layout,previousGraph=this.graph,previousSelected=this.selected;
       const focusedStep=this.doc.activeElement?.getAttribute?.("data-step-id");
-      this.graph=data;this.layout=positions;
+      this.graph=data;this.picture=picture;this.layout=positions;
       const path=this.following&&previousGraph&&previousGraph!==data?this.reconcilePath(previousGraph,data):null;
       if(!this.following&&previousGraph&&previousSelected){
         const old=previousGraph.steps.find(step=>step.id===previousSelected),same=data.steps.find(step=>step.id===previousSelected);
@@ -686,8 +749,10 @@
         const after=before&&positions.children.find(node=>node.id===(renamed&&before.id===renamed?this.selected:before.id));
         if(before&&after){this.camera.x+=after.x+after.width/2-before.x-before.width/2;this.camera.y+=after.y+after.height/2-before.y-before.height/2;}
         // Whatever the update did, the reader is not left looking at an empty canvas.
-        if(width&&height&&positions.children.length&&!positions.children.some(inView)){
-          const nearest=nearestNode(positions.children,{x:this.camera.x+viewWidth/2,y:this.camera.y+viewHeight/2});
+        // (Reported steps only: a marker of the picture left alone in view is still an empty canvas.)
+        const boxes=positions.children.filter(node=>data.incoming.has(node.id));
+        if(width&&height&&boxes.length&&!boxes.some(inView)){
+          const nearest=nearestNode(boxes,{x:this.camera.x+viewWidth/2,y:this.camera.y+viewHeight/2});
           this.camera.x=nearest.x+nearest.width/2-viewWidth/2;this.camera.y=nearest.y+nearest.height/2-viewHeight/2;
         }
       }
@@ -744,21 +809,21 @@
     // drawing (its legend and step bar appear), when the reply box opens and when it is expanded;
     // once the shape has settled, the fold is decided again for the canvas as it now is.
     queueReshape(){
-      if(this.dead||!this.layout||!scope.setTimeout||canvasShape(this.size(),this.graph)===this.layoutShape)return;
+      if(this.dead||!this.layout||!scope.setTimeout||canvasShape(this.size(),this.picture||this.graph)===this.layoutShape)return;
       scope.clearTimeout?.(this.reshapeTimer);
       this.reshapeTimer=scope.setTimeout(()=>{this.reshapeTimer=undefined;this.reshape().catch(()=>{/* The map on screen stays. */});},RESHAPE_SETTLE_MS);
     }
     async reshape(){
       // An update that is under way reads the canvas itself and asks again when it is done.
       if(this.dead||!this.layout||this.pending||this.layoutError)return false;
-      const view=this.size(),data=this.graph,revision=this.version,shape=canvasShape(view,data);
+      const view=this.size(),data=this.graph,picture=this.picture||data,revision=this.version,shape=canvasShape(view,picture);
       if(shape===this.layoutShape)return false;
       this.reshapeJob?.cancel();
-      const job=this.reshapeJob=layeredLayout(data,this.direction,view,
+      const job=this.reshapeJob=layeredLayout(picture,this.direction,view,
         graph=>workerLayouts()?workerLayout(graph):this.engine?this.engine.layout(graph):pageLayout(graph),
         this.strip?.key===this.layoutKey?this.strip.layout:null);
       let positions;
-      try{positions=await job.result;validateLayeredRoutes(positions,data);}
+      try{positions=await job.result;validateLayeredRoutes(positions,picture);}
       // The map on screen is still a sound drawing of the same process; it simply stays.
       catch{return false;}
       finally{if(this.reshapeJob===job)this.reshapeJob=null;}
@@ -769,7 +834,7 @@
       // A reader who has not moved the opening view gets the opening view of the new drawing.
       const opening=this.opening,camera=this.camera;
       if(opening&&opening.x===camera.x&&opening.y===camera.y&&opening.scale===camera.scale)this.fitted=false;
-      this.show(data,orderedComponents(positions,data));
+      this.show(data,orderedComponents(positions,picture),picture);
       this.notify();
       return true;
     }
@@ -780,7 +845,11 @@
       const start=initialStep(this.graph),anchor=this.layout.children.find(node=>node.id===start.id);
       const scale=clamp(Math.min(.8,(width-40)/anchor.width,(height-56)/anchor.height),.05,.8);
       // Larger flows start on a complete readable first step, including on a phone.
-      this.camera={x:width<500||this.direction==="DOWN"?anchor.x+anchor.width/2-width/scale/2:anchor.x-28/scale,y:anchor.y-28/scale,scale};this.fitMode=false;this.fitted=true;this.opening={...this.camera};this.paintView();
+      this.camera={x:width<500||this.direction==="DOWN"?anchor.x+anchor.width/2-width/scale/2:anchor.x-28/scale,y:anchor.y-28/scale,scale};
+      // The start marker of the picture stands in front of that step: the opening view takes it in.
+      const marker=this.layout.children.find(node=>node.id==="~start");
+      if(marker){this.camera.x=Math.min(this.camera.x,marker.x-16/scale);this.camera.y=Math.min(this.camera.y,marker.y-16/scale);}
+      this.fitMode=false;this.fitted=true;this.opening={...this.camera};this.paintView();
     }
     fit(){
       if(!this.layout)return;const {width,height}=this.size();if(!width||!height)return;
@@ -798,11 +867,13 @@
         const center={x:this.camera.x+this.lastSize.width/this.camera.scale/2,y:this.camera.y+this.lastSize.height/this.camera.scale/2};
         this.camera.x=center.x-size.width/this.camera.scale/2;this.camera.y=center.y-size.height/this.camera.scale/2;
         const viewWidth=size.width/this.camera.scale,viewHeight=size.height/this.camera.scale,right=this.camera.x+viewWidth,bottom=this.camera.y+viewHeight;
-        const fitting=this.layout.children.filter(n=>n.width<=viewWidth&&n.height<=viewHeight);
+        // The reported steps decide what counts as something to look at, not the markers of the picture.
+        const boxes=this.layout.children.filter(n=>this.graph.incoming.has(n.id));
+        const fitting=boxes.filter(n=>n.width<=viewWidth&&n.height<=viewHeight);
         const fullyVisible=fitting.some(n=>n.x>=this.camera.x&&n.x+n.width<=right&&n.y>=this.camera.y&&n.y+n.height<=bottom);
-        const intersects=this.layout.children.some(n=>n.x+n.width>this.camera.x&&n.x<right&&n.y+n.height>this.camera.y&&n.y<bottom);
-        if((fitting.length?!fullyVisible:!intersects)&&this.layout.children.length){
-          const nearest=nearestNode(fitting.length?fitting:this.layout.children,center);
+        const intersects=boxes.some(n=>n.x+n.width>this.camera.x&&n.x<right&&n.y+n.height>this.camera.y&&n.y<bottom);
+        if((fitting.length?!fullyVisible:!intersects)&&boxes.length){
+          const nearest=nearestNode(fitting.length?fitting:boxes,center);
           this.camera.x=nearest.x+nearest.width/2-size.width/this.camera.scale/2;this.camera.y=nearest.y+nearest.height/2-size.height/this.camera.scale/2;
         }
       }
@@ -886,7 +957,8 @@
     // Keeps part of the map in view: at least a thumb's width of the area the steps occupy, and,
     // when the move started with a step in view, a step. `from` is the camera before the move.
     clampCamera(from=null){
-      const {width,height}=this.size(),nodes=this.layout?.children||[];if(!width||!height||!nodes.length)return;
+      // Reported steps bound the view; the markers of the picture lie beside them.
+      const {width,height}=this.size(),nodes=(this.layout?.children||[]).filter(n=>!this.graph||this.graph.incoming.has(n.id));if(!width||!height||!nodes.length)return;
       const viewWidth=width/this.camera.scale,viewHeight=height/this.camera.scale;
       const left=Math.min(...nodes.map(n=>n.x)),right=Math.max(...nodes.map(n=>n.x+n.width)),top=Math.min(...nodes.map(n=>n.y)),bottom=Math.max(...nodes.map(n=>n.y+n.height));
       const keepX=Math.min(48/this.camera.scale,(right-left)/2),keepY=Math.min(48/this.camera.scale,(bottom-top)/2);
@@ -949,6 +1021,7 @@
       ]);
       let best=null,bestLinked=false,bestDistance=Infinity;
       for(const node of this.layout.children){
+        if(!this.graph.incoming.has(node.id))continue;  // A marker of the picture is not a step.
         const dx=node.x+node.width/2-x,dy=node.y+node.height/2-y;
         const ahead=sign*(horizontal?dx:dy),across=Math.abs(horizontal?dy:dx);
         // Search the quadrant facing this arrow. A node on the next parallel
@@ -968,10 +1041,19 @@
       this.description.textContent=`${data.steps.length} reported steps and ${data.connections.length} reported connections. ${data.steps.map(step=>`${step.id}: ${step.title}, ${step.actor||"owner not established"}`).join(". ")}`;
       const defs=svgNode(doc,"defs"),arrow=svgNode(doc,"marker",{id:`${this.uid}-arrow`,viewBox:"0 0 10 10",refX:9,refY:5,markerWidth:7,markerHeight:7,orient:"auto-start-reverse"});arrow.append(svgNode(doc,"path",{class:"wf-arrow",d:"M 1 1 L 9 5 L 1 9 z",fill:"#718197"}));defs.append(arrow);this.world.append(defs);
       const edges=svgNode(doc,"g",{class:"workflow-edges"}),edgeLabels=svgNode(doc,"g");this.world.append(edges);
+      const picture=this.picture||data;
       const byEdgeId=new Map(data.connections.map(edge=>[edge.id,edge]));
+      const drawnEdges=new Map(picture.connections.map(edge=>[edge.id,edge]));
+      const markers=new Map(picture.steps.filter(step=>step.implied).map(step=>[step.id,step]));
       const stepIndex=new Map(data.steps.map((step,index)=>[step.id,index]));
       this.edgeTitles=new Map();this.stepTitles=[];
       layout.edges.forEach(edge=>{
+        if(drawnEdges.get(edge.id)?.implied){
+          // A link to or from a marker: part of the picture, not a reported connection.
+          const link=svgNode(doc,"g",{"data-implied-edge":""});
+          (edge.sections||[]).forEach(section=>{const p=points(section);link.append(svgNode(doc,"path",{class:"wf-edge wf-implied-edge",d:roundedPath(p),fill:"none",stroke:"#9aa7b6","stroke-width":1.4,"stroke-dasharray":"4 3","stroke-linejoin":"round","marker-end":`url(#${this.uid}-arrow)`}));});
+          edges.append(link);return;
+        }
         const original=byEdgeId.get(edge.id);if(!original)return;
         const group=svgNode(doc,"g",{"data-edge-id":edge.id}),tooltip=svgNode(doc,"title",{},edgeTooltip(original));
         group.append(tooltip);this.edgeTitles.set(edge.id,tooltip);
@@ -985,6 +1067,18 @@
       this.world.append(edgeLabels);
       if(!data.steps.some(step=>step.id===this.tabStep))this.tabStep=data.steps[0]?.id;
       layout.children.forEach(position=>{
+        const marker=markers.get(position.id);
+        if(marker){
+          // Drawn apart from the reported steps: dashed, without a label, and not a control.
+          const {x,y,width:w,height:h}=position,theme=TYPES[marker.type]||TYPES.activity;
+          const mark=svgNode(doc,"g",{"data-implied":marker.implied,"data-node-box":`${x} ${y} ${w} ${h}`,"aria-hidden":"true"});
+          mark.append(svgNode(doc,"title",{},markerTooltip(marker)));
+          const outline=nodeShape(doc,marker.type,x,y,w,h);outline.classList.add("workflow-implied-shape");
+          outline.setAttribute("stroke-dasharray","4 3");outline.setAttribute("stroke-width",marker.implied==="end"?2.4:1.4);mark.append(outline);
+          this.world.append(mark);
+          const small=nodeShape(doc,marker.type,x,y,w,h,true);small.classList.add("wf-mini-node");small.setAttribute("fill",theme.stroke);small.setAttribute("opacity",.6);this.miniWorld.append(small);
+          return;
+        }
         const index=stepIndex.get(position.id),step=data.steps[index],{x,y,width:w,height:h}=position,metrics=nodeMetrics(step),type=metrics.type,theme=TYPES[type],color=colorFor(step.actor);
         const group=svgNode(doc,"g",{"data-step-id":step.id,"data-step-type":type,"data-node-box":`${x} ${y} ${w} ${h}`,tabindex:step.id===(this.tabStep||this.selected||this.layout.children[0]?.id)?"0":"-1",role:"button","aria-label":`${step.id}: ${step.title}. ${theme.label}. ${step.actor||"Owner not established"}. Show details.`,"aria-pressed":"false"});group.style.setProperty?.("--actor-color",color);styles(group,{cursor:"pointer",outline:"none"});
         const tooltip=svgNode(doc,"title",{},stepTooltip(step));group.append(tooltip);this.stepTitles[index]=tooltip;
@@ -1049,6 +1143,9 @@
           }
         }
       }
+      // The file says of itself that its steps and routes carry their evidence. The markers the
+      // picture adds (a start or end nobody stated, a gateway) carry none and are left out of it.
+      for(const selector of ["[data-implied]","[data-implied-edge]"])svg.querySelectorAll?.(selector).forEach(node=>node.remove());
       svg.querySelectorAll?.("[tabindex]").forEach(node=>{node.removeAttribute("tabindex");node.removeAttribute("role");node.removeAttribute("aria-pressed");});
       // Focus is a navigation aid; an exported full workflow retains every route equally.
       svg.querySelectorAll?.("[opacity]").forEach(node=>node.removeAttribute("opacity"));
@@ -1061,5 +1158,5 @@
       this.dead=true;this.pending=false;this.version++;this.dropLayoutJob();this.reshapeJob?.cancel();scope.clearTimeout?.(this.reshapeTimer);this.observer?.disconnect();try{this.engine?.terminateWorker?.();}catch{/* ELK's in-process browser worker has no terminate method. */}this.listeners.forEach(([target,name,fn,options])=>target.removeEventListener(name,fn,options));this.listeners=[];this.container.replaceChildren();this.container.classList.remove("workflow-canvas");
     }
   }
-  scope.CollectorWorkflow={create:(container,options)=>new Canvas(container,options),model,elkGraph,cinematicLayout,roundedPath,measureText,wrapText,known,nodeMetrics,edgeMetrics,types:TYPES};
+  scope.CollectorWorkflow={create:(container,options)=>new Canvas(container,options),model,present,elkGraph,cinematicLayout,roundedPath,measureText,wrapText,known,nodeMetrics,edgeMetrics,types:TYPES};
 })(typeof window!=="undefined"?window:globalThis);

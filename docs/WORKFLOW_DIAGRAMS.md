@@ -22,11 +22,42 @@ reported, and an attractive layout is not evidence that a process is complete.
 
 These are process-map conventions, not formal BPMN conformance. A document or system mentioned as an
 input does not become an invented extra action. The first/last known task is not automatically a
-start/end. Two approvals with unknown order do not imply either sequential or parallel execution.
+start/end in the map itself (the picture marks them; see Evidence and picture). Two approvals with unknown order do not imply either sequential or parallel execution.
 Alternative branches may converge on an ordinary action or an explicit merge when needed to preserve
 the routing logic; they do not require a join-all gateway. For example, an identity-check branch may
 accept a document immediately or require correction. Those alternative outcomes converge before the
 identity branch joins completed IT and facilities work; the join does not wait for both outcomes.
+
+## Evidence and picture
+
+The map the interview keeps is evidence: steps and connections a participant or a supplied file
+stated, each with its sources. The rules above hold for it without exception. The first known
+task is not typed as a start, the last is not typed as an end, and a branch the participant did
+not name as a decision leaves an ordinary step. Maps read that way were hard to follow: of the
+fourteen final maps of the November 17 stress run six had a start, one had an end and twelve had
+branches leaving one point of a box.
+
+The Workflow and Review diagrams therefore draw a **picture** of the evidence. It is derived each
+time the map is drawn (`present` in `web/workflow-graph.js`) and adds three kinds of marker:
+
+| Marker | Drawn as | When |
+| --- | --- | --- |
+| Start | Small dashed circle in front of the first step | The main route has no step the account itself states as the start |
+| End | Small dashed circle with a heavier outline after a step | Nothing follows that step on the main route and it is not a stated end |
+| Gateway | Small dashed diamond after a step | Several routes lead on from a step that is not itself a decision, split, join or merge; the routes and their captions leave the gateway |
+
+A marker is not evidence and does not become any. It has an ID no step can have, cites no
+source, is not a control, cannot be selected or followed, and is not saved, sent to the service
+or written to a saved interview. The SVG file says of itself that its steps and routes carry their
+evidence, so the markers are left out of it; the Mermaid, DOT and BPMN downloads are produced from
+the evidence as before. The step list, the details panel, Follow path, the keyboard and the
+screen-reader description speak of the reported steps and connections only. Steps that are not
+joined to the main route are drawn as they are, detached, without markers. A map of a single
+step, or of steps nobody connected, has no route to mark.
+
+Not part of the picture yet: lanes by role, compact decision diamonds with the label outside,
+a main path kept straight, positions that stay put between updates, and the open question of a
+dead-end branch shown at that branch. An end marker says only that nothing reported follows.
 
 ## Layout and navigation
 

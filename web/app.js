@@ -5883,7 +5883,7 @@
     const fail=()=>{notice("The diagram couldn’t be drawn. Your process is still here — try the layout again.",true,"layout");renderWorkflowFallback(root,graph);};
     try{
       root.classList.remove("workflow-fallback");
-      if(!canvas){canvas=window.CollectorWorkflow.create(root,{onSelectStep:step=>showWorkflowStep(step,root.id),onViewChange:info=>updateCanvasControls(root.id,info)});workflowCanvases.set(root.id,canvas);}
+      if(!canvas){canvas=window.CollectorWorkflow.create(root,{presentation:true,onSelectStep:step=>showWorkflowStep(step,root.id),onViewChange:info=>updateCanvasControls(root.id,info)});workflowCanvases.set(root.id,canvas);}
       const current=()=>state.generation===generation&&workflowCanvases.get(root.id)===canvas&&!deferredDiagrams.has(root.id)&&!workflowPlayers.get(root.id)?.diagramDirty;
       const pending=canvas.update(graph);
       return pending.then(applied=>{
@@ -5902,7 +5902,7 @@
     await ensureWorkflowAssets();
     if(generation!==state.generation||graph!==state.draft||!window.CollectorWorkflow?.create)return null;
     let canvas=workflowCanvases.get(id);
-    if(!canvas){canvas=window.CollectorWorkflow.create(root,{onSelectStep:step=>showWorkflowStep(step,id),onViewChange:info=>updateCanvasControls(id,info)});workflowCanvases.set(id,canvas);}
+    if(!canvas){canvas=window.CollectorWorkflow.create(root,{presentation:true,onSelectStep:step=>showWorkflowStep(step,id),onViewChange:info=>updateCanvasControls(id,info)});workflowCanvases.set(id,canvas);}
     await canvas.update(mapProjection(graph));
     if(generation!==state.generation||state.draft!==graph)return null;
     return canvas;

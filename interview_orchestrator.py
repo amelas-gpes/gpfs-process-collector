@@ -27,8 +27,19 @@ from interview_coverage import finding_reports_unavailable_knowledge, refused_re
 MAP_GENERATION_SECONDS = 120
 MAP_AUDIT_SECONDS = 180
 MAP_AUDIT_WITH_FILES_SECONDS = 240
-BACKGROUND_MAP_GENERATION_SECONDS = 180
-BACKGROUND_MAP_AUDIT_SECONDS = 240
+BACKGROUND_MAP_GENERATION_SECONDS = 300
+BACKGROUND_MAP_AUDIT_SECONDS = 420
+# Output allowance of the draw. A long first answer reached the earlier 12,000 tokens and the
+# map was thrown away. Time and allowance go together: at the measured 79 tokens a second,
+# 16,000 tokens take about 200 seconds, so the background limits above were raised with it
+# (a larger allowance under the old 180 seconds would only have turned a cut-off reply into
+# a timeout). A map the page waits for keeps its shorter limits and cannot use more.
+MAP_DRAW_OUTPUT_TOKENS = 16000
+MAP_DRAW_WITH_FILES_OUTPUT_TOKENS = 24000
+# A background draw that is still cut off is asked for once more with this allowance and
+# this much time, and never a third time: one larger request, not a loop.
+MAP_DRAW_RETRY_OUTPUT_TOKENS = 32000
+BACKGROUND_MAP_RETRY_SECONDS = 420
 # Output allowance of the source audit. Reasoning is counted against it: the audit of a
 # six-answer account spent 11,245 of the earlier 12,000 tokens reasoning and was cut off
 # before it could return its review, which discarded a map that had been drawn correctly.
@@ -103,7 +114,8 @@ def capture_instructions(api, notes_only=False, document_followup=False):
 
 
 def workflow_instructions(api, map_only):
-    return api.WORKFLOW_INSTRUCTIONS.partition("In memo_findings return")[0] if map_only else api.WORKFLOW_INSTRUCTIONS
+    """The map instructions; without the memo rules for a map drawn alongside the notes."""
+    return api.WORKFLOW_MAP_INSTRUCTIONS if map_only else api.WORKFLOW_INSTRUCTIONS
 
 
 class Coordinator:
@@ -1586,20 +1598,103 @@ class Coordinator:
 
     @provider_usage.track_generation
     def workflow(self, payload):
+        """Draw a map and check it against its sources, in one request the caller waits for."""
+        job = _MapJob(self, payload)
+        return job.publish(job.check(job.draw()["update"]))
+
+    def workflow_draw(self, payload):
+        """Draw a map and return it as drawn, before any source check.
+
+        The concurrent interview calls this for the map it shows alongside the conversation.
+        What comes back has passed every check the application makes without a model (schema,
+        limits, source IDs, the wording of operating details, removal quotations, structure
+        questions); its new routes have not been compared with quoted passages yet. The
+        caller keeps the returned update so that workflow_check can review it later, off
+        the path between an answer and the map on screen.
+        """
+        job = _MapJob(self, payload)
+        drawn = job.draw()
+        return {"capture": job.publish(drawn["capture"], drawn_only=True), "update": drawn["update"]}
+
+    def workflow_check(self, payload, drawn, corrections=()):
+        """Check a drawn map against its sources; the result replaces it as the checked map.
+
+        payload carries the last checked map of the conversation as its baseline (or none),
+        drawn is the map as it is drawn now, in the baseline form, and corrections are the
+        removal records of the draws since that last check. Only what changed since then
+        is reviewed (server.workflow_delta): what was checked before is not sent through
+        the review again. When that difference cannot be written as an update, when
+        applying it does not give the drawn map, or when the checked baseline no longer
+        validates against this request's sources, the whole drawn map is checked against
+        the empty baseline instead. All three arguments are the server's own, never a browser's.
+        """
         api = self.api
-        started = time.monotonic()
+        job = _MapJob(self, payload, draws=False)
+
+        def reproduces(update):
+            if update is None:
+                return False
+            try:
+                applied = api.apply_workflow_update(copy.deepcopy(update), job.previous, job.turns, job.evidence,
+                                                    job.carried, context=job.context)
+            except ValueError:
+                return False
+            return api.same_map(applied["workflow"], drawn["workflow"])
+
+        update = None if job.baseline_dropped else api.workflow_delta(job.previous, drawn, corrections)
+        whole = not reproduces(update)
+        if whole:
+            job.restart()
+            update = api.workflow_delta(job.previous, drawn)
+            if not reproduces(update):
+                raise ValueError("The drawn map does not validate against its sources.")
+        raw_trace.emit("coordinator.workflow.check", {"revision": job.run.ledger.revision, "whole_map": whole,
+            "steps": len(update["upsert_steps"]), "connections": len(update["upsert_connections"])})
+        return job.publish(job.check(update))
+
+    def workflow_rebase(self, payload, checked_from, drawn, corrections=()):
+        """Carry the draws made while a source check ran onto that check's result. No model is asked.
+
+        payload carries the checked map as its baseline and the sources of the latest draw.
+        Raises ValueError when the later draws cannot be applied to the checked map; the
+        caller then keeps the map as drawn and checks it whole the next time.
+        """
+        api = self.api
         supporting = payload.get("_supporting_documents", {})
         evidence = api.document_evidence_catalog(supporting)
         context, turns = api.validate_payload(payload, require_answers=not bool(evidence))
-        lead_model = self.client.agent_models["process_reviewer"]
+        carried = api.carried_document_sources(payload)
+        previous = api.workflow_previous_capture(payload.get("previous_capture"), turns, evidence, carried, context=context)
+        update = api.workflow_rebase_update(previous, checked_from, drawn, corrections)
+        if update is None:
+            raise ValueError("The later draws cannot be applied to the checked map.")
+        capture = api.apply_workflow_update(update, previous, turns, evidence, carried, context=context)
+        if evidence:
+            capture["document_evidence"] = evidence
+        return capture
+
+
+class _MapJob:
+    """One map request: what its draw and its source check share."""
+
+    def __init__(self, coordinator, payload, draws=True):
+        api = coordinator.api
+        self.coordinator, self.client, self.api = coordinator, coordinator.client, api
+        self.started = time.monotonic()
+        self.supporting = payload.get("_supporting_documents", {})
+        self.evidence = api.document_evidence_catalog(self.supporting)
+        self.context, self.turns = api.validate_payload(payload, require_answers=not bool(self.evidence))
+        self.lead_model = self.client.agent_models["process_reviewer"]
         # Earlier citations whose text this request could not carry: valid on what
         # was already accepted and never on anything new. A changed step or topic
         # keeps the ones it had only under the rules of api.settle_carried_edits.
-        carried = api.carried_document_sources(payload)
+        self.carried = api.carried_document_sources(payload)
+        self.baseline_dropped = False
         try:
-            previous = api.workflow_previous_capture(payload.get("previous_capture"), turns, evidence, carried, context=context)
+            self.previous = api.workflow_previous_capture(payload.get("previous_capture"), self.turns, self.evidence,
+                                                          self.carried, context=self.context)
         except ValueError:
-            # The concurrent interview supplies its session's own last published map and
+            # The concurrent interview supplies its session's own last map and
             # marks it with the server-owned key _session_baseline (removed from every
             # request body at the HTTP boundary). That map is a starting point nobody
             # asserted: when it no longer validates against this request's sources (a file
@@ -1607,91 +1702,129 @@ class Coordinator:
             # it was before a baseline was kept. A browser's baseline is still refused.
             if payload.get("_session_baseline") is not True:
                 raise
-            previous = api.workflow_previous_capture(None, turns, evidence, carried, context=context)
-        token, run = self._new_run(payload, context, turns, evidence, include_document_analyst=bool(evidence),
-                                  lead_model=lead_model)
-        run.defer_roles(("coverage_reviewer", "process_reviewer"))
-        map_only = payload.get("_map_only") is True
+            self.baseline_dropped = True
+            self.previous = api.workflow_previous_capture(None, self.turns, self.evidence, self.carried, context=self.context)
+        self.token, self.run = coordinator._new_run(payload, self.context, self.turns, self.evidence,
+                                                    include_document_analyst=bool(self.evidence), lead_model=self.lead_model)
+        self.run.defer_roles(("coverage_reviewer", "process_reviewer"))
         # _map_only is set by the concurrent interview's own worker (it is removed from every
         # request body at the HTTP boundary): that map is background work.
-        generation_seconds = BACKGROUND_MAP_GENERATION_SECONDS if map_only else MAP_GENERATION_SECONDS
-        audit_seconds = (BACKGROUND_MAP_AUDIT_SECONDS if map_only else MAP_AUDIT_WITH_FILES_SECONDS if evidence
-                         else MAP_AUDIT_SECONDS)
-        memo = {"memo_findings": [], "summary": previous["summary"], "focus": previous["focus"],
-                "parking_lot": previous["parking_lot"]}
+        self.map_only = payload.get("_map_only") is True
+        self.generation_seconds = BACKGROUND_MAP_GENERATION_SECONDS if self.map_only else MAP_GENERATION_SECONDS
+        self.audit_seconds = (BACKGROUND_MAP_AUDIT_SECONDS if self.map_only else MAP_AUDIT_WITH_FILES_SECONDS if self.evidence
+                              else MAP_AUDIT_SECONDS)
+        # The second route review and the route repair run inside the time the requests
+        # before them left unused. A check without a draw has the audit's time alone.
+        self.deadline = self.started + (self.generation_seconds if draws else 0) + self.audit_seconds
+        self.memo = {"memo_findings": [], "summary": self.previous["summary"], "focus": self.previous["focus"],
+                     "parking_lot": self.previous["parking_lot"]}
 
-        def map_schema(schema):
-            if not map_only:
-                return schema
-            return {**schema, "properties": {key: spec for key, spec in schema["properties"].items() if key not in memo},
-                    "required": [key for key in schema["required"] if key not in memo]}
+    def restart(self):
+        """Work from the empty baseline: the whole map is the update."""
+        self.previous = self.api.workflow_previous_capture(None, self.turns, self.evidence, self.carried, context=self.context)
+        self.memo.update(summary="", focus="", parking_lot=[])
+
+    def schema(self, schema):
+        if not self.map_only:
+            return schema
+        return {**schema, "properties": {key: spec for key, spec in schema["properties"].items() if key not in self.memo},
+                "required": [key for key in schema["required"] if key not in self.memo]}
+
+    def role(self, role, callback):
+        try:
+            return self.run.run_role(role, callback)
+        except agent_team.TeamBlockedError as error:
+            raise self.api.APIError("This workflow was cancelled or replaced. Your map is retained.", 409) from error
+
+    def live(self):
+        status = self.run.public_status()
+        return not (status["cancelled"] or status["stale"])
+
+    def draw(self):
+        api = self.api
+
+        def request(allowance, seconds):
+            return self.client.structured(
+                workflow_instructions(api, self.map_only),
+                {"context": self.context, "turns": self.turns, "previous_capture": self.previous,
+                 "supporting_documents": self.supporting},
+                self.schema(api.WORKFLOW_UPDATE_SCHEMA), "team_working_process_map", allowance,
+                reasoning_effort="medium", request_timeout=seconds, model_override=self.lead_model)
 
         def initial_workflow():
-            update = self.client.structured(
-                workflow_instructions(api, map_only),
-                {"context": context, "turns": turns, "previous_capture": previous, "supporting_documents": supporting},
-                map_schema(api.WORKFLOW_UPDATE_SCHEMA), "team_working_process_map", 22000 if evidence else 12000,
-                reasoning_effort="medium", request_timeout=generation_seconds,
-                model_override=lead_model)
-            if map_only:
-                update.update(copy.deepcopy(memo))
+            try:
+                update = request(MAP_DRAW_WITH_FILES_OUTPUT_TOKENS if self.evidence else MAP_DRAW_OUTPUT_TOKENS,
+                                 self.generation_seconds)
+            except Exception as error:
+                # A reply cut off at its allowance is asked for once more with a larger one,
+                # inside this same role call (a second lead call would use up the call the
+                # source check of a transcript-only map needs). Only in the background: a
+                # request the page waits for has no time for a second draw. A cancelled or
+                # replaced run cannot publish, so it does not pay for that request.
+                if not (self.map_only and isinstance(error, getattr(api, "OutputTruncated", ())) and self.live()):
+                    raise
+                raw_trace.emit("coordinator.workflow.draw_retry", {"revision": self.run.ledger.revision,
+                                                                   "max_output_tokens": MAP_DRAW_RETRY_OUTPUT_TOKENS})
+                self.deadline += BACKGROUND_MAP_RETRY_SECONDS
+                update = request(MAP_DRAW_RETRY_OUTPUT_TOKENS, BACKGROUND_MAP_RETRY_SECONDS)
+            if self.map_only:
+                update.update(copy.deepcopy(self.memo))
             # A source the model cited wrongly is settled before the audit reads the
             # candidate: the reviewer then judges what can stand, and the participant is
             # never handed the model's citation slip to resolve.
-            update = api.settle_generated_citations(update, previous, turns, evidence, carried, context)
+            update = api.settle_generated_citations(update, self.previous, self.turns, self.evidence, self.carried, self.context)
             # Validate within the role's execution boundary. Invalid graph/source
             # output must report an error rather than a completed lead review.
-            capture = api.apply_workflow_update(copy.deepcopy(update), previous, turns, evidence, carried, context=context)
+            capture = api.apply_workflow_update(copy.deepcopy(update), self.previous, self.turns, self.evidence,
+                                                self.carried, context=self.context)
             return {"update": update, "capture": capture}
-        def map_role(role, callback):
-            try:
-                return run.run_role(role, callback)
-            except agent_team.TeamBlockedError as error:
-                raise api.APIError("This workflow was cancelled or replaced. Your map is retained.", 409) from error
-        proposed = map_role("lead_interviewer", initial_workflow)
-        update, capture = proposed["update"], proposed["capture"]
+        return self.role("lead_interviewer", initial_workflow)
+
+    def check(self, update):
+        api, previous = self.api, self.previous
+        reviewer = self.client.agent_models["document_analyst"] if self.evidence else self.client.team_map_audit_model
+
         def audited_workflow():
             proposals = api.proposed_routes_to_verify(update, previous)
             audit = self.client.structured(api.WORKFLOW_AUDIT_INSTRUCTIONS,
-                {"context": context, "turns": turns, "previous_capture": previous,
-                 "supporting_documents": supporting, "candidate_update": update,
+                {"context": self.context, "turns": self.turns, "previous_capture": previous,
+                 "supporting_documents": self.supporting, "candidate_update": update,
                  "proposed_routes_to_verify": proposals},
-                api.route_audit_schema(map_schema(api.WORKFLOW_AUDIT_SCHEMA), proposals), "team_working_map_source_audit", MAP_AUDIT_OUTPUT_TOKENS,
-                reasoning_effort="medium", request_timeout=audit_seconds,
-                model_override=self.client.agent_models["document_analyst"] if evidence else self.client.team_map_audit_model)
-            if map_only:
-                audit.update(copy.deepcopy(memo))
+                api.route_audit_schema(self.schema(api.WORKFLOW_AUDIT_SCHEMA), proposals), "team_working_map_source_audit", MAP_AUDIT_OUTPUT_TOKENS,
+                reasoning_effort="medium", request_timeout=self.audit_seconds, model_override=reviewer)
+            if self.map_only:
+                audit.update(copy.deepcopy(self.memo))
             # A quotation the application could not verify gets one second request inside this
-            # same audit step, within the time the two requests above left unused. A cancelled
+            # same audit step, within the time the requests above left unused. A cancelled
             # or replaced run cannot publish, so it does not pay for that request.
-            status = run.public_status()
-            recheck = None if status["cancelled"] or status["stale"] else api.RouteRecheck(
-                self.client, context, turns, supporting, "team_working_map_source_audit",
-                started + generation_seconds + audit_seconds,
-                model_override=self.client.agent_models["document_analyst"] if evidence else self.client.team_map_audit_model)
-            audited = api.apply_workflow_audit(update, audit, previous, context=context, turns=turns, documents=evidence,
-                                               recheck=recheck, carried=carried)
-            reviewed = api.apply_workflow_update(audited, previous, turns, evidence, carried, context=context)
+            recheck = api.RouteRecheck(self.client, self.context, self.turns, self.supporting, "team_working_map_source_audit",
+                                       self.deadline, model_override=reviewer) if self.live() else None
+            audited = api.apply_workflow_audit(update, audit, previous, context=self.context, turns=self.turns,
+                                               documents=self.evidence, recheck=recheck, carried=self.carried)
+            reviewed = api.apply_workflow_update(audited, previous, self.turns, self.evidence, self.carried, context=self.context)
             # Before it is published, the reviewed map is checked for parts its route passes by
             # (a check, a selection or a hold no connection reaches). The sources are asked
-            # once how those parts join, inside the time the two requests above left unused;
+            # once how those parts join, inside the time the requests above left unused;
             # a cancelled or replaced run cannot publish, so it does not pay for that request.
-            status = run.public_status()
-            repair = None if status["cancelled"] or status["stale"] else api.RouteRepair(
-                self.client, context, turns, supporting, "team_working_map_source_audit",
-                started + generation_seconds + audit_seconds,
-                model_override=self.client.agent_models["document_analyst"] if evidence else self.client.team_map_audit_model)
+            repair = api.RouteRepair(self.client, self.context, self.turns, self.supporting, "team_working_map_source_audit",
+                                     self.deadline, model_override=reviewer) if self.live() else None
             return api.connect_detached_routes(
-                reviewed, repair, context=context, turns=turns, documents=evidence, baseline=previous["workflow"],
+                reviewed, repair, context=self.context, turns=self.turns, documents=self.evidence, baseline=previous["workflow"],
                 judged=api.judged_route_steps([*proposals, *audit["upsert_connections"]], reviewed["workflow"]["connections"]))
         # Transcript-only maps need the same source check as documentary maps.
         # This stays in the bounded background worker, never the question path.
         # The lead's existing two-call budget covers generation plus source audit.
-        capture = map_role("document_analyst" if evidence else "lead_interviewer", audited_workflow)
-        run.defer_roles(("coverage_reviewer", "process_reviewer"))
-        if run.public_status()["cancelled"] or run.public_status()["stale"]:
-            raise api.APIError("This workflow response was cancelled or replaced. The existing map is unchanged.", 409)
-        self._publish(token, run, capture, supporting)
-        if evidence:
-            capture["document_evidence"] = evidence
+        return self.role("document_analyst" if self.evidence else "lead_interviewer", audited_workflow)
+
+    def publish(self, capture, drawn_only=False):
+        run = self.run
+        # Roles this request never asked: the reviewers always, the analyst of a map that was
+        # only drawn, the lead of a documentary map that was only checked.
+        unused = [row["role"] for row in run.public_status()["agents"] if row["status"] in ("pending", "idle")]
+        run.defer_roles(tuple(unused))
+        if not self.live():
+            raise self.api.APIError("This workflow response was cancelled or replaced. The existing map is unchanged.", 409)
+        self.coordinator._publish(self.token, run, capture, self.supporting)
+        if self.evidence:
+            capture["document_evidence"] = self.evidence
         return capture

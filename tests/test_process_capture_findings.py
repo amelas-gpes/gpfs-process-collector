@@ -277,7 +277,8 @@ class MapBudgetTests(unittest.TestCase):
         orchestrator = server.interview_orchestrator
         self.assertEqual((orchestrator.MAP_GENERATION_SECONDS, orchestrator.MAP_AUDIT_SECONDS,
                           orchestrator.MAP_AUDIT_WITH_FILES_SECONDS), (120, 180, 240))
-        self.assertEqual((orchestrator.BACKGROUND_MAP_GENERATION_SECONDS, orchestrator.BACKGROUND_MAP_AUDIT_SECONDS), (180, 240))
+        # Raised with the draw allowance: 16,000 tokens at the measured 79 a second need about 200 seconds.
+        self.assertEqual((orchestrator.BACKGROUND_MAP_GENERATION_SECONDS, orchestrator.BACKGROUND_MAP_AUDIT_SECONDS), (300, 420))
         self.assertEqual(orchestrator.MAP_AUDIT_OUTPUT_TOKENS, 24000)
         # A map the page waits for must still finish inside the page's own limit.
         self.assertLessEqual((orchestrator.MAP_GENERATION_SECONDS + orchestrator.MAP_AUDIT_SECONDS) * 1000,
@@ -293,10 +294,12 @@ class MapBudgetTests(unittest.TestCase):
                 client.coordinator.workflow(value)
                 calls = {call.args[1]['text']['format']['name']: call for call in client.request.call_args_list}
                 drawn, audited = calls['team_working_process_map'], calls['team_working_map_source_audit']
-                self.assertEqual(drawn.kwargs['timeout'], 180 if background else 120)
-                self.assertEqual(audited.kwargs['timeout'], 240 if background else 180)
+                self.assertEqual(drawn.kwargs['timeout'], 300 if background else 120)
+                self.assertEqual(audited.kwargs['timeout'], 420 if background else 180)
                 self.assertEqual(audited.args[1]['max_output_tokens'], 24000)
-                self.assertEqual(drawn.args[1]['max_output_tokens'], 12000)
+                # A long first answer reached the earlier 12,000 and the map was thrown away.
+                self.assertEqual(drawn.args[1]['max_output_tokens'], orchestrator.MAP_DRAW_OUTPUT_TOKENS)
+                self.assertEqual(orchestrator.MAP_DRAW_OUTPUT_TOKENS, 16000)
 
     def test_the_route_repair_is_a_short_low_effort_request(self):
         client = Mock()

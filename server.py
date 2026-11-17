@@ -4379,9 +4379,13 @@ def workflow_rebase_update(checked, checked_from, drawn, corrections=()):
     update["upsert_connections"] = [edge for edge in update["upsert_connections"]
                                     if edge["from"] in present and edge["to"] in present]
     update["remove_connections"] = [row for row in update["remove_connections"] if route_key(row) in edges]
-    # What the check itself noted (a route it could not verify, a part left detached) stays.
+    # What the check itself noted (a route it could not verify) stays. Its questions about the
+    # shape of the checked map do not: the later draws changed that shape, and validation asks
+    # the ones that are still true of the result.
+    shape = set(workflow_structure_questions(checked["workflow"]["steps"], checked["workflow"]["connections"]))
     noted = [question for question in checked["workflow"]["open_questions"]
-             if question not in checked_from["workflow"]["open_questions"] and question not in update["open_questions"]]
+             if question not in checked_from["workflow"]["open_questions"] and question not in update["open_questions"]
+             and question not in shape]
     update["open_questions"] = (noted + update["open_questions"])[:500]
     return update
 

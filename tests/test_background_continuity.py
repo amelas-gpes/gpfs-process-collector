@@ -200,12 +200,15 @@ class ScriptedTeam(server.OpenAIClient):
 def settled(read, seconds=15):
     """Poll until the notes and the map of this snapshot have both finished.
 
-    A capture that failed queues no map, so that state is final by itself.
+    A capture that failed queues no map, so that state is final by itself. The map is drawn
+    first and checked against its sources beside it; these cases read the checked map, so a
+    map whose check is still running is not finished yet.
     """
     deadline = time.monotonic() + seconds
     while time.monotonic() < deadline:
         status = read()
-        if status["state"] == "error" or (status["state"] == "ready" and status["workflow_state"] in ("ready", "error")):
+        if status["state"] == "error" or (status["state"] == "ready" and status["workflow_state"] in ("ready", "error")
+                                          and status.get("workflow_check_state") != "working"):
             return status
         time.sleep(.01)
     raise AssertionError("Background analysis did not settle")

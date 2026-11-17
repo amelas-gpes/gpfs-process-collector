@@ -4393,6 +4393,8 @@ def workflow_rebase_update(checked, checked_from, drawn, corrections=()):
 
 
 PROVIDER_FOREGROUND_RESERVE = 2
+# Files reviewed side by side. The requests of one file stay in order: each builds on the last.
+DOCUMENT_REVIEW_WORKERS = 2
 
 
 def whole_setting(settings, name, default, lowest, highest):
@@ -6064,9 +6066,12 @@ class InterviewServer(ThreadingHTTPServer):
                 self.documents_store.diagnostic = self.record_event
                 service = local_module("document_service", "document_service.py")
                 self.documents_store.trace = raw_trace
-                self.documents = service.DocumentService(self.documents_store,
-                    lambda context, record, chunks, phase: self.client.analyze_document(context, record, chunks, phase, self.documents_store),
-                    trace=raw_trace)
+                def review_document(context, record, chunks, phase):
+                    # Nobody waits for a file review: the provider client keeps slots free of it.
+                    provider_usage.background_work.set(True)
+                    return self.client.analyze_document(context, record, chunks, phase, self.documents_store)
+                self.documents = service.DocumentService(self.documents_store, review_document, trace=raw_trace,
+                                                         workers=DOCUMENT_REVIEW_WORKERS)
             self.knowledge_auth = KnowledgeAuthorization(settings, knowledge_authorizer)
             graph = local_module("knowledge_graph", "knowledge_graph.py")
             if knowledge_analyzer is None and getattr(self.client, "key", None) and callable(getattr(self.client, "structured", None)):

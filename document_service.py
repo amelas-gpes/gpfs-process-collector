@@ -156,7 +156,7 @@ def _shorten(context, size, limit):
 
 
 class DocumentService:
-    def __init__(self, store, analyze_callback, trace=None):
+    def __init__(self, store, analyze_callback, trace=None, workers=1):
         if not callable(analyze_callback):
             raise TypeError('A document analysis callback is required.')
         self.store, self.analyze = store, analyze_callback
@@ -168,8 +168,15 @@ class DocumentService:
         self._queued, self._running, self._contexts, self._failures = {}, {}, {}, {}
         self._support_memo, self._support_lock = {}, threading.Lock()
         self._closed = False
-        self._worker = threading.Thread(target=self._loop, name='document-review', daemon=True)
-        self._worker.start()
+        # Files are reviewed side by side, each by one worker at a time: the requests of one
+        # file build on one another (its summary and notes grow batch by batch), the files do
+        # not depend on each other. One thread used to review every file of every interview
+        # in turn, so three files meant three first passes before the first question.
+        self._workers = [threading.Thread(target=self._loop, name='document-review', daemon=True)
+                         for _ in range(max(1, int(workers)))]
+        self._worker = self._workers[0]
+        for worker in self._workers:
+            worker.start()
 
     def attribute_scope(self, scope, interview_id):
         if isinstance(scope, str) and isinstance(interview_id,str) and 0 < len(interview_id) <= 100:
@@ -185,10 +192,11 @@ class DocumentService:
             self._failures.clear()
             self._contexts.clear()
             self._condition.notify_all()
-        if threading.current_thread() is not self._worker:
-            # Let an idle worker or short local transaction settle, while never
-            # waiting for an unbounded provider/parser call during shutdown.
-            self._worker.join(timeout=.05)
+        for worker in self._workers:
+            if threading.current_thread() is not worker:
+                # Let an idle worker or short local transaction settle, while never
+                # waiting for an unbounded provider/parser call during shutdown.
+                worker.join(timeout=.05)
 
     @staticmethod
     def _context(context):
@@ -329,13 +337,26 @@ class DocumentService:
         record = self.store.get(scope, document_id)
         return record if not record['archived'] and (record.get('analysis') or {}).get('intent_version', 0) == generation else None
 
+    def _next_task(self):
+        """The oldest waiting task of a file no worker is on: first passes before in-depth ones. Caller holds the lock."""
+        for queue in (self._urgent, self._deep):
+            for task in queue:
+                if task[:2] not in self._running:
+                    queue.remove(task)
+                    return task
+        return None
+
     def _loop(self):
         while True:
             with self._condition:
-                self._condition.wait_for(lambda: self._closed or self._urgent or self._deep)
+                task = None
+                while not self._closed:
+                    task = self._next_task()
+                    if task:
+                        break
+                    self._condition.wait()
                 if self._closed:
                     return
-                task = (self._urgent or self._deep).popleft()
                 run = self._queued.pop(task)
                 scope, document_id, generation, phase = task
                 self._running[(scope, document_id)] = (generation, phase)
@@ -393,6 +414,8 @@ class DocumentService:
                 self._running.pop((scope, document_id), None)
                 if continuation:
                     self._schedule(scope, document_id, generation, continuation)
+                # A task of this file that waited for this one can be taken now.
+                self._condition.notify_all()
 
     def _batch(self, chunks, sample=False):
         batch, size, vision = [], 0, 0
@@ -718,6 +741,7 @@ class DocumentService:
                 return
             analysis.update(phase=phase, intent_version=generation)
             if phase == 'quick':
+                analysis.pop('question_ready', None)
                 analysis.update(basis_turn_id=last_user.get('id', context.get('turn_id', '')), basis_question=basis_question)
             record = self.store.update(scope, document_id, {'analysis': analysis})
         # cursor is the place in the index; reviewed_chunks counts the sections
@@ -828,6 +852,12 @@ class DocumentService:
                 elif total == len(batch) and not visual and set(c['id'] for c in batch) == set(c['id'] for c in self.store.chunks(scope,document_id,limit=total)['chunks']):
                     complete = True
                     merged.update(phase='complete', cursor=total, reviewed_chunks=total, review_complete=self._review_complete(record,merged,total,total))
+                else:
+                    # A file whose text is all indexed can be asked about now: the question
+                    # reads the indexed text, not the notes of the review, and nothing the
+                    # in-depth pass adds changes what a question is bound to. A file with a
+                    # page or image still to be read waits for that reading, which does.
+                    merged['question_ready'] = self._question_ready(record, merged)
             self.store.update(scope, document_id, {'analysis': merged})
             return None if complete else 'deep'
 
@@ -854,6 +884,15 @@ class DocumentService:
                 self._condition.wait_for(lambda: self._closed, timeout=delay)
                 if not self._current(scope, document_id, generation):
                     return None
+
+    @staticmethod
+    def _question_ready(record, analysis):
+        """Whether the question this file raises can be asked while its in-depth pass still runs."""
+        inventory, coverage = record.get('inventory') or {}, record.get('coverage') or {}
+        return bool(record.get('status') in ('ready', 'partial')
+                    and analysis.get('disposition') not in ('needs_reason', 'parked')
+                    and not analysis.get('review_stopped') and not inventory.get('requires_vision')
+                    and not coverage.get('visual_pending_units') and not record.get('visual_reread_pending'))
 
     @staticmethod
     def _notes_full(analysis):

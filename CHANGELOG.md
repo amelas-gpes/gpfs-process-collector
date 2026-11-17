@@ -22,6 +22,7 @@ The workflow diagram keeps up with a typed interview. This is the first part of 
 - **In Live voice the map starts from a finished caption**, as the notes do. It started one second after the first words, from part of a sentence. (Finding 5)
 - **The Live interviewer is told to ask one question per turn and to leave a detail alone once the speaker has said they do not know it.** This is wording in its instructions; no voice session was run to confirm the effect. (Finding 9)
 - Not changed: spelling hints for Live voice captions (finding 10). Reviewed voice sends `TRANSCRIPTION_KEYWORDS` to the transcription endpoint; no such setting is documented for a Live session, and a field the provider refuses would stop voice from starting.
+- **The first question about a text file comes after its first review pass**, not after the whole review, which took 161 seconds for an 85-page PDF. The in-depth pass goes on in the background. A file with a scanned page or an image still waits for that reading. Two files are reviewed side by side. (Finding 6)
 - The status reply of a conversation says whether its map was checked (`workflow_checked`, `workflow_check_state`, `workflow_version`) and can carry the map through an earlier answer (`workflow_checkpoint`). [HTTP interface](docs/API_CONTRACT.md)
 
 Testing material reorganized; no change to the app.

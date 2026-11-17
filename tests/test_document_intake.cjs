@@ -271,5 +271,43 @@ async function check(name,run){try{await run();results.push({name,passed:true});
   const h=setup();h.intake.begin({batchId:"first",names:["Source.pdf"]});h.intake.observe(state([file()]));h.intake.settle("first");await tick();
   assert.deepEqual(Object.keys(h.calls.begin[0]).sort(),["names","retry","signal"]);assert.deepEqual(Object.keys(h.calls.baseline[0]).sort(),["documents","signal"]);assert.deepEqual(Object.keys(h.calls.question[0]).sort(),["baseline","documents","signal"]);assert.equal(JSON.stringify(h.calls.complete).includes("rawFile"),false);
  });
+ // Finding 6 of docs/testing/runs/2026-11-17-stress: the first question waited for the whole review
+ // of a file (161 seconds for an 85-page PDF). A file whose text is all indexed is asked about after
+ // its first pass; the server says which files those are (analysis.question_ready).
+ const reviewing=(id,version=2,extra={})=>file(id,{analysis:{phase:"deep",version,intent_version:0,disposition:"relevant",review_complete:false,question_ready:true,...extra}});
+ await check("a text file is asked about after its first pass, while its in-depth pass runs",async()=>{
+   const h=setup({provisional:true});h.intake.begin({batchId:"new"});h.intake.observe(state([reviewing("one")]));h.intake.settle("new");await tick();
+   assert.equal(h.calls.provisional.length,1,"The question did not wait for the in-depth pass");
+   assert.deepEqual(copy(h.calls.provisional[0].documents.map(item=>item.id)),["one"]);
+   assert.equal(h.intake.phase,"ready");assert.equal(h.calls.complete.length,1);assert.equal(h.calls.baseline.length,0);
+ });
+ await check("progress of the in-depth pass does not cancel the question being asked or ask it again",async()=>{
+   const pending=deferred(),h=setup({provisional:()=>pending.promise});
+   h.intake.begin({batchId:"new"});h.intake.observe(state([reviewing("one",2)]));h.intake.settle("new");await tick();
+   assert.equal(h.calls.provisional.length,1);
+   for(const version of [3,4,5]){h.intake.observe(state([reviewing("one",version)]));await tick();}
+   // The in-depth pass finishes while the question is still on its way.
+   h.intake.observe(state([file("one",{analysis:{phase:"complete",version:6,intent_version:0,disposition:"relevant",review_complete:true,question_ready:true}})]));await tick();
+   assert.equal(h.calls.provisional[0].signal.aborted,false);assert.equal(h.calls.provisional.length,1);
+   pending.resolve({question:"What happens after that review?"});await tick();
+   assert.equal(h.calls.complete.length,1);assert.equal(h.intake.phase,"ready");
+ });
+ await check("a file the server has not released keeps the interview waiting",async()=>{
+   for(const extra of [{question_ready:false},{question_ready:undefined},{question_ready:true,error:"Review paused."}]){
+     const h=setup({provisional:true});h.intake.begin({batchId:"new"});h.intake.observe(state([reviewing("one",2,extra)]));h.intake.settle("new");await tick();
+     assert.equal(h.calls.provisional.length,0);assert.notEqual(h.intake.phase,"ready");
+   }
+   // A second file whose review has not reported keeps the question back for both.
+   const h=setup({provisional:true});h.intake.begin({batchId:"new"});
+   h.intake.observe(state([reviewing("one"),file("two",{analysis:{phase:"quick",version:1,intent_version:0}})]));h.intake.settle("new");await tick();
+   assert.equal(h.calls.provisional.length,0);assert.equal(h.intake.phase,"reviewing");
+   h.intake.observe(state([reviewing("one"),reviewing("two")]));await tick();
+   assert.equal(h.calls.provisional.length,1);assert.deepEqual(copy(h.calls.provisional[0].documents.map(item=>item.id)),["one","two"]);
+ });
+ await check("a baseline that is built first still needs the whole review",async()=>{
+   const h=setup();h.intake.begin({batchId:"new"});h.intake.observe(state([reviewing("one")]));h.intake.settle("new");await tick();
+   assert.equal(h.calls.baseline.length,0);assert.equal(h.intake.phase,"reviewing");
+   h.intake.observe(state([file("one")]));await tick();assert.equal(h.calls.baseline.length,1);
+ });
  const failed=results.filter(result=>!result.passed);console.log(JSON.stringify({tests_passed:results.length-failed.length,tests_failed:failed.length,provider_calls:0,network_calls:0,physical_audio:false,failures:failed},null,2));if(failed.length)process.exitCode=1;
 })().catch(error=>{console.error(error);process.exitCode=1;});

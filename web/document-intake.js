@@ -40,13 +40,27 @@
       this.intentSignature=JSON.stringify([snapshot.scope,snapshot.generation,snapshot.documents
         .map(file=>[file.id,file.archived===true,file.analysis?.intent_version||0,file.analysis?.disposition||""])
         .sort((a,b)=>a[0].localeCompare(b[0]))]);
+      // A file that can be asked about while its in-depth pass runs (askable) reports progress with
+      // every batch. That progress changes nothing the question depends on, so it is not a change here:
+      // it would cancel the question that is being asked and ask it again.
       const signature=JSON.stringify([snapshot.scope,snapshot.generation,snapshot.uploading,snapshot.mutating,
         (snapshot.uploadErrors||[]).filter(error=>!this.oldErrors?.has(JSON.stringify(error))),
-        snapshot.documents.map(file=>[file.id,file.archived,file.status,file.chunk_count,file.analysis?.intent_version,file.analysis?.version,file.analysis?.phase,file.analysis?.disposition,file.analysis?.error])]);
+        snapshot.documents.map(file=>[file.id,file.archived,file.status,file.chunk_count,file.analysis?.intent_version,
+          ...(this.askable(file)||file.analysis?.question_ready===true&&file.analysis?.phase==="complete"&&!file.analysis?.error?["askable"]:[file.analysis?.version,file.analysis?.phase]),
+          file.analysis?.disposition,file.analysis?.error])]);
       if(signature!==this.signature){this.signature=signature;if(this.active)this.invalidate();}
       if(this.active)this.pump();
     }
     invalidate() {this.sequence++;this.run?.abort();this.run=null;}
+    // The file's own question can be asked once its first pass is in, when the server says so
+    // (question_ready: its text is all indexed and no page or image waits for a reading). Its
+    // in-depth pass goes on in the background. An 85-page PDF used to hold its first question back
+    // for twelve requests in a row, 161 seconds. Only the question that is asked from the file's
+    // excerpts at once can do this; a baseline built first still needs the whole review.
+    askable(file) {
+      return this.hooks.provisional?.()===true&&file.analysis?.question_ready===true&&file.analysis?.phase==="deep"&&
+        !file.analysis?.review_stopped&&!file.analysis?.error&&["ready","partial"].includes(file.status)&&Number(file.chunk_count)>0;
+    }
     setPhase(phase,error="",retryAvailable=false) {this.phase=phase;this.error=error;this.retryAvailable=retryAvailable;this.hooks.onStatus?.(this);}
     retry() {if(!this.active)return;this.failedIntent=null;this.invalidate();this.error="";if(this.pauseFailed)this.pause(true);this.pump();}
     async pump() {
@@ -61,9 +75,9 @@
       if(newErrors.length||failed.length){this.setPhase("error","Check the file issue in Assets. Your interview is still available in this tab.");return;}
       // phase complete is terminal even when extraction/review coverage is partial.
       // review_complete=false describes coverage, not a still-running job.
-      const waiting=relevant.filter(file=>!file.analysis?.review_stopped&&!["error"].includes(file.status)&&file.analysis?.phase!=="error"&&file.analysis?.phase!=="complete");
+      const waiting=relevant.filter(file=>!this.askable(file)&&!file.analysis?.review_stopped&&!["error"].includes(file.status)&&file.analysis?.phase!=="error"&&file.analysis?.phase!=="complete");
       if(waiting.length){this.setPhase("reviewing");return;}
-      const available=relevant.filter(file=>["ready","partial"].includes(file.status)&&file.analysis?.phase==="complete"&&Number(file.chunk_count)>0);
+      const available=relevant.filter(file=>["ready","partial"].includes(file.status)&&(file.analysis?.phase==="complete"||this.askable(file))&&Number(file.chunk_count)>0);
       const run=new AbortController(),sequence=this.sequence;this.run=run;
       const valid=()=>this.active&&this.run===run&&this.sequence===sequence&&!run.signal.aborted;
       try {

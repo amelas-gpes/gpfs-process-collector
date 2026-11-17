@@ -15,7 +15,7 @@ Status: in progress. Evidence: [the November 17 stress run](../testing/runs/2026
 | Phase 3, a presentation layer | Not started. |
 | Phase 4, push and a job runner | Partly. Jobs are taken one at a time, the oldest first, and a cancelled request is released. Pushed updates and streamed output are not built. |
 | Phase 5, Live voice orchestrated by the server | Not started beyond Phase 1.5. The Live instructions now say one question per turn and no second request for a stated unknown. Transcription hints for Live sessions are not sent: the provider documents `prompt` and `keywords` for transcription sessions, not for a `gpt-live-1` session, and an undocumented field could stop voice from starting. Feeding stated unknowns to the Live model earlier needs a voice test. |
-| Phase 6, files | Not started. |
+| Phase 6, files | Partly. The first question about a text-only file is asked after its first pass, and two files are reviewed side by side. Not done: parallel requests inside one file (the notes of each request build on the one before, and review quality could not be judged without the AI service), skipping the first pass's sections in the in-depth pass (nine suites pin that sweep; it saves at most one request per file), the 12-request stop and the coverage shortfall in Assets. |
 | Phase 7, notes speed | Not started; it is the owner's decision. |
 
 Sections 4 and 5 below describe the app at `04e6ee3`. Where a row above says done, the code no longer matches them.

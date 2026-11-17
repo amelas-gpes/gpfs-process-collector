@@ -7,7 +7,6 @@
 .agent-team-shell[open] { width:100%; background:var(--surface); box-shadow:inset 0 0 0 1px var(--line); }
 .agent-team-shell:not([open]) .agent-team-heading { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
 .agent-team-summary { display:flex; align-items:center; flex-wrap:wrap; gap:6px; min-height:32px; padding:4px 6px; border-radius:var(--r-lg); cursor:pointer; list-style:none; }
-.agent-team-shell:not([open]) > .agent-team-summary { margin-right:-6px; }
 .agent-team-summary:hover { background:var(--surface-2); }
 .agent-team-shell[open] > .agent-team-summary { padding-inline:13px; }
 .agent-team-summary::-webkit-details-marker,.agent-card-summary::-webkit-details-marker { display:none; }

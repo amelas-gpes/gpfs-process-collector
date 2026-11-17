@@ -1228,16 +1228,16 @@
       const discussion=topicDiscussion.find(row=>row.key===key);
       const discussed=discussion?discussion.discussed===true:Boolean(finding&&finding.status!=='unknown'&&finding.evidence_turns?.some(id=>participantIds.has(id)));
       const awaitingReview=provisionalFinding(finding)||(!coverageVerified()&&!finding&&item?.status==="covered");
-      const status = awaitingReview?"partial":finding ? (["not_applicable","captured"].includes(finding.status) ? "covered" : finding.status==="partial" ? "partial" : "missing") : ["partial","covered"].includes(item?.status) ? item.status : "missing";
+      const status = awaitingReview?"captured":finding ? (["not_applicable","captured"].includes(finding.status) ? "covered" : finding.status==="partial" ? "partial" : "missing") : ["partial","covered"].includes(item?.status) ? item.status : "missing";
       const advisory=awaitingReview?advisoryFor(finding):null,checking=awaitingReview&&!advisory&&Boolean(advisoryCheck);
       if(awaitingReview)provisional++;
       if(advisory?.complete)prechecked++;
       if (status === "covered") completed++;
-      // The headline figure: captured or confirmed not applicable, reviewed or not.
-      if(finding?["captured","not_applicable"].includes(finding.status):item?.status==="covered")captured++;
+      // The headline counts the same solid circles shown in the list.
+      if(status==="captured"||status==="covered")captured++;
       if(documentOnlyFinding(finding))documented++;
       const entry = coverageButton(key,label), node = entry.node, repaired = Boolean(repairFor("memo",finding));
-      for(const name of ["covered","partial","missing"])node.classList.toggle(name, status === name);
+      for(const name of ["captured","covered","partial","missing"])node.classList.toggle(name, status === name);
       node.classList.toggle("selected", foundationTopic === key && Boolean($("foundation-dialog")?.open));
       node.classList.toggle("advisory-ok", Boolean(advisory?.complete));
       node.classList.toggle("advisory-gap", Boolean(advisory&&!advisory.complete));
@@ -1250,7 +1250,7 @@
       if(node.title!==title){node.title=title;node.setAttribute("aria-label",title);}
       setText(entry.dot, status === "covered" ? "✓" : advisory?.complete ? "·" : "");
       // The tick already says "covered"; the tooltip keeps the full state of each row.
-      setText(entry.detail, needsDetail?"Needs detail":awaitingReview?"Captured":finding?.status === "not_applicable" ? "Not applicable" : status === "covered" ? "" : status === "partial" ? (documentOnlyFinding(finding)?"Documented":topicStatusLabel("partial")) : "");
+      setText(entry.detail, awaitingReview?(needsDetail?"Captured · needs detail":"Captured"):needsDetail?"Needs detail":finding?.status === "not_applicable" ? "Not applicable" : status === "covered" ? "" : status === "partial" ? (documentOnlyFinding(finding)?"Documented":topicStatusLabel("partial")) : "");
     });
     // In place: the list is filled once (and again only if something emptied it).
     const buttons=TOPICS.map(([key])=>coverageNodes.get(key).node),listed=root.children||[];
@@ -1264,8 +1264,7 @@
     setText($("coverage-count"), `${captured} / ${TOPICS.length}`);
     $("coverage-progress").style.width = `${captured / TOPICS.length * 100}%`;
     if($("coverage-mobile-count")) setText($("coverage-mobile-count"), `${captured}/${TOPICS.length}`);
-    // Beside the figure once the completion review has checked it. Before that the rows carry
-    // half marks instead of ticks, and the line above Wrap up says what the final check is for.
+    // The completion review adds a tick to a captured topic's solid circle.
     if($("coverage-check")) setText($("coverage-check"), captured&&state.config?.agent_team?.enabled&&coverageVerified() ? "Checked" : "");
     const consolidation=$("coverage-consolidation");
     if(consolidation){const labels=(state.consolidation||[]).map(key=>MEMO_HEADINGS[key]||key);consolidation.hidden=!labels.length;setText(consolidation,labels.length?"Consolidate these sections before adding more detail: "+labels.join(", ")+".":"");}

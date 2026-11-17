@@ -194,6 +194,9 @@
           <div class="coverage-overview">
             <div class="coverage-heading"><span>Topics captured</span><span class="coverage-figure"><small id="coverage-check" class="coverage-check" role="status"></small><span id="coverage-count">0 / 16</span></span></div>
             <div class="coverage-track" aria-hidden="true"><span id="coverage-progress"></span></div>
+          </div>
+          <div class="memo-scroll"><div id="foundation-details"><div id="coverage-list" class="coverage-list" aria-label="Topics"></div></div></div>
+          <div class="memo-updates">
             <!-- One line is shown: the first source that reports trouble, then work in progress, then the rest (style.css). -->
             <div class="notes-status">
               <p id="analysis-through" class="coverage-update-status" hidden></p>
@@ -203,8 +206,10 @@
               <button class="text-button small" id="update-notes" type="button" data-icon="refresh" hidden>Update notes</button>
               <button class="text-button small" id="update-workflow" type="button" data-icon="refresh" hidden>Update workflow</button>
             </div>
+            <div id="memo-focus-block" class="memo-focus active-only"><span class="section-eyebrow">Now discussing</span><p id="memo-focus">Getting started</p></div>
+            <button type="button" class="text-button" id="notes-recheck" hidden>Recheck saved coverage</button>
+            <p id="coverage-consolidation" role="status" hidden></p>
           </div>
-          <div class="memo-scroll"><div id="memo-focus-block" class="memo-focus active-only"><span class="section-eyebrow">Now discussing</span><p id="memo-focus">Getting started</p></div><button type="button" class="text-button" id="notes-recheck" hidden>Recheck saved coverage</button><p id="coverage-consolidation" role="status" hidden></p><div id="foundation-details"><div id="coverage-list" class="coverage-list" aria-label="Topics"></div></div></div>
         </section>
         <section id="memo-panel-summary" class="memo-panel" role="tabpanel" aria-labelledby="memo-tab-summary" tabindex="0" hidden>
           <div class="memo-scroll memo-summary-scroll">

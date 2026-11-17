@@ -694,9 +694,13 @@ body:not(.interview-started) .voice-stage > .conversation-dock { margin-bottom: 
 .notes-status > [data-level="issue"] { color: var(--ink-2); }
 .notes-status > [data-level="issue"]::before { background: var(--amber); }
 .notes-status > [data-level="info"]::before { background: var(--faint); }
-.notes-status > .text-button { flex: none; margin: 2px 0 -4px -6px; color: var(--accent); }
+.notes-status > .text-button { flex: none; margin-top: 2px; color: var(--accent); }
 .memo-scroll { flex: 1; min-height: 0; margin: 16px -6px 0; padding: 0 6px; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; }
-.memo-focus { margin-bottom: 10px; padding: 0 2px 12px; border-bottom: 1px solid var(--line); }
+/* Live notes and follow-up actions can grow while someone is pointing at a topic.
+   They use space below the topic list so its buttons keep their positions. */
+#memo-panel-notes .memo-scroll { scrollbar-gutter: stable; }
+.memo-updates { flex: none; max-height: 35%; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.memo-focus { margin: 8px 0 0; padding: 8px 2px 0; border-top: 1px solid var(--line); }
 .memo-focus .section-eyebrow { color: var(--muted); font: 600 12px/1.35 var(--font); letter-spacing: normal; text-transform: none; }
 .memo-focus p { margin: 4px 0 0; color: var(--ink); font-family: var(--font-serif); font-size:var(--text-lg); line-height: 1.4; overflow-wrap: anywhere; }
 .coverage-list { display: flex; flex-direction: column; gap: 1px; }
@@ -704,11 +708,12 @@ body:not(.interview-started) .voice-stage > .conversation-dock { margin-bottom: 
 .coverage-item:hover, .coverage-item.selected { background: var(--surface-2); }
 .coverage-item:focus-visible { outline-offset: -2px; }
 .coverage-dot { position: relative; display: grid; place-items: center; flex: none; width: 16px; height: 16px; border: 1.5px solid color-mix(in srgb, var(--muted) 72%, var(--surface)); border-radius: 50%; color: transparent; font-size: 0; transition: background var(--dur), border-color var(--dur); }
-.coverage-item.covered .coverage-dot { border-color: var(--sage); background: var(--sage); }
+.coverage-item.captured .coverage-dot, .coverage-item.covered .coverage-dot { border-color: var(--sage); background: var(--sage); }
 .coverage-item.covered .coverage-dot::after { content: ""; width: 11px; height: 11px; background: var(--surface); -webkit-mask: var(--i-check) center/contain no-repeat; mask: var(--i-check) center/contain no-repeat; }
 .coverage-item.partial .coverage-dot { border-color: var(--sage); background: conic-gradient(var(--sage) 0 50%, transparent 0); }
 .coverage-item.needs-detail .coverage-dot { border-color: var(--gpfs-feldspar); }
 .coverage-item.partial.needs-detail .coverage-dot { background: conic-gradient(var(--gpfs-feldspar) 0 50%, transparent 0); }
+.coverage-item.captured.needs-detail .coverage-dot { background: var(--gpfs-feldspar); }
 .coverage-label { flex: 1; }
 .coverage-item.covered .coverage-label { color: var(--ink); }
 .coverage-state { max-width: 47%; color: var(--muted); font-size:var(--text-xs); line-height: 1.3; text-align: right; }
@@ -755,9 +760,16 @@ dialog[open] > .notice { top: 12px; }
 .memo-sheet #close-memo:hover { background: var(--surface-2); }
 #memo-sheet-body { height: 100%; }
 .memo-sheet .memo-rail { padding-top: 20px; background: var(--surface); }
-.memo-sheet .memo-heading { padding-right: 48px; }
-.memo-sheet #memo-panel-notes { overflow: auto; overscroll-behavior: contain; }
-.memo-sheet #memo-panel-notes .memo-scroll { flex: none; margin-inline: 0; padding-inline: 0; overflow: visible; }
+.memo-sheet .memo-heading { display: grid; grid-template-columns: auto minmax(0, 1fr); min-height: 44px; padding-right: 48px; }
+.memo-sheet .memo-heading .agent-team { justify-self: end; }
+.memo-sheet .memo-heading .agent-team:has(.agent-team-shell[open]) { grid-column: 1 / -1; justify-self: stretch; }
+.memo-sheet .agent-team-shell:not([open]) .agent-team-summary { flex-wrap: nowrap; }
+.memo-sheet .agent-team-shell:not([open]) .agent-team-aggregate { min-width: 0; overflow-wrap: anywhere; }
+.memo-sheet #memo-panel-notes .memo-scroll { margin-inline: 0; padding-inline: 0; }
+@media (max-width:319px) {
+  .memo-sheet .memo-heading { grid-template-columns: 1fr; grid-template-rows: auto minmax(44px, auto); }
+  .memo-sheet .memo-heading .agent-team { justify-self: start; }
+}
 @media (max-width:560px) {
   .memo-sheet { inset: auto 0 0; width: 100%; max-width: none; height: min(92dvh, 780px); max-height: 100dvh; margin: 0; border: 0; border-radius: 14px 14px 0 0; }
   .memo-sheet .memo-rail { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
@@ -1198,6 +1210,10 @@ dialog.excerpt-dialog { inset: 0; width: min(660px, calc(100vw - 32px)); margin:
   .example-art { width: 50px; height: 44px; }
 }
 @media (max-height:500px) {
+  /* Short sheets scroll the topics and their trailing updates together. */
+  .memo-sheet #memo-panel-notes { overflow: auto; overscroll-behavior: contain; }
+  .memo-sheet #memo-panel-notes .memo-scroll { flex: none; overflow: visible; }
+  .memo-sheet .memo-updates { max-height: none; overflow: visible; }
   .memo-rail, .memo-sheet .memo-rail { padding-top: 12px; padding-bottom: 12px; }
   .memo-heading { margin-bottom: 8px; }
   .memo-heading h2 { font-size:var(--text-heading); }

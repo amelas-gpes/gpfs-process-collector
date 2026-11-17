@@ -21,6 +21,7 @@ function interview(page,verified){
 const topic=(page,key)=>page.document.querySelector(`[data-foundation-topic="${key}"]`);
 const headline=page=>({count:page.text("coverage-count"),pill:page.text("coverage-mobile-count"),bar:page.$("coverage-progress").style.width,check:page.text("coverage-check"),label:page.$("coverage-count").parentNode.parentNode.textContent.replace(/\s+/g," ").trim()});
 const ticks=page=>KEYS.filter(key=>topic(page,key).querySelector(".coverage-dot").textContent==="✓").length;
+const solidTopics=page=>KEYS.filter(key=>["captured","covered"].some(status=>topic(page,key).classList.contains(status)));
 let passed=0;const failed=[];
 async function check(name,fn){
  try{await fn();passed++;console.log("PASS "+name);}
@@ -33,6 +34,7 @@ async function check(name,fn){
   const shown=headline(page);
   assert.equal(shown.count,"13 / 16","Twelve captured and one not applicable");assert.equal(shown.pill,"13/16","The Workspace button of the narrow layout shows the same figure");
   assert.equal(shown.bar,"81.25%");
+  assert.deepEqual(solidTopics(page),KEYS.slice(0,13),"Every topic counted in the headline has a solid circle");
   assert.equal(shown.check,"","Nothing is marked as checked before the final check");
   assert.match(shown.label,/^Topics captured/);assert.doesNotMatch(shown.label,/fully/,"The label does not claim more than the figure means");
   // Nothing is presented as covered before the review.
@@ -49,6 +51,27 @@ async function check(name,fn){
   assert.match(topic(page,"name").title,/Covered$/);
   assert.equal(topic(page,"rules").querySelector(".coverage-state").textContent,"Not applicable");
   assert.equal(topic(page,"connections").classList.contains("partial"),true);assert.equal(topic(page,"volume").classList.contains("missing"),true);
+  assert.deepEqual(solidTopics(page),KEYS.slice(0,13));
+ });
+ await check("a captured topic with a follow-up gap remains identifiable among partial and empty topics",async()=>{
+  const page=await open({config,expose:EXPOSE});interview(page,false);
+  const emptyKeys=["name","risk"];
+  page.state.memo_findings=KEYS.map(key=>({key,
+   status:emptyKeys.includes(key)?"unknown":key==="purpose"?"captured":"partial",
+   answer:emptyKeys.includes(key)?"":`Recorded detail for ${key}.`,evidence_turns:emptyKeys.includes(key)?[]:["t002"]
+  }));
+  page.state.advisory.purpose={answer:"Recorded detail for purpose.",complete:false,gaps:["Clarify the result."]};
+  page.t.renderCoverage();
+  assert.equal(headline(page).count,"1 / 16");assert.equal(ticks(page),0);
+  assert.deepEqual(solidTopics(page),["purpose"]);
+  assert.equal(topic(page,"purpose").querySelector(".coverage-state").textContent,"Captured · needs detail");
+  assert.match(topic(page,"purpose").title,/captured; the advisory check noted a gap: Clarify the result/);
+  assert.equal(KEYS.filter(key=>topic(page,key).classList.contains("partial")).length,13);
+  assert.equal(topic(page,"trigger").querySelector(".coverage-state").textContent,"Needs detail");
+  assert.deepEqual(KEYS.filter(key=>topic(page,key).classList.contains("missing")),emptyKeys);
+  page.state.coverageVerified=true;page.t.renderCoverage();
+  assert.deepEqual(solidTopics(page),["purpose"]);assert.equal(ticks(page),1);
+  assert.equal(topic(page,"purpose").classList.contains("captured"),false);
  });
  await check("a new answer withdraws the check, not the progress",async()=>{
   const page=await open({config,expose:EXPOSE});interview(page,true);

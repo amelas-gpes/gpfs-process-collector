@@ -82,13 +82,29 @@ were in this module and its callers, and each is changed:
   review again. A step or route that left the map travels with the participant's
   quotation the draw already verified. When that difference cannot be written as
   an update, or applying it does not reproduce the drawn map, the whole map is
-  checked against the empty baseline.
+  checked against the empty baseline. The check corrects the map and does not
+  rearrange it: what it keeps stays in the order it was drawn in.
+- **What a draw took from a file the check can no longer read stays as drawn.**
+  A file excerpt that was read when a step or route was drawn may be out of reach
+  when the check runs: the file was saved for later or removed, or the excerpt is
+  outside what one request can carry. Such an excerpt may keep what already
+  cites it and may support nothing new, and for a check "already" is the map as
+  drawn, not the map as last checked: the check establishes nothing. Those steps
+  and routes join the map the reviewer starts from, with the steps their routes
+  need, and are not reviewed (`server.keep_unread_as_drawn`); the rest of the
+  difference is. The diagnostics event `coordinator.workflow.check` counts them
+  as `held_as_drawn`. Before this rule the check of such a map was refused
+  before any request was sent, after every further answer.
 - **A check that finishes after later draws is carried under them.** The later
   draws are applied to the checked map (`Coordinator.workflow_rebase`, no model):
   the check's corrections stay, a route it refused stays off, and the later
   answers stay. A later edit of a component wins over the check's version of it
-  and is reviewed by the next check. When that cannot be done the result is left
-  out, the map stays as drawn and its next check covers the same ground.
+  and is reviewed by the next check. That holds for a step the check took off
+  the map as well: when a later answer stated it again it returns with its
+  routes, and the next check reviews all of them. A step the check took off and
+  no later answer touched stays off, and a later route to it is left out. When
+  the later draws cannot be applied the result is left out, the map stays as
+  drawn and its next check covers the same ground.
 - **A check that fails leaves the map in place.** The status reply then carries
   `workflow_check_state: "error"` and `workflow_check_error` beside the unchanged
   `workflow_capture`. The check is not started again for the same map by itself;
@@ -114,6 +130,11 @@ Until that second look is done the status reply does not call the map checked
 asking and receives the fuller map if there is one.
 The threshold is a judgement that has not been measured against the real
 provider.
+
+The map in a status reply carries the record of the models that made it
+(`generated_by`, `app_version`), as a map from one request does: the latest
+draw and the latest check, one row for each stage. The page files that record
+with a saved interview and an export.
 
 The background draw is given every rule of the map
 (`server.WORKFLOW_MAP_INSTRUCTIONS`): the routing, component and step-detail

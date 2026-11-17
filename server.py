@@ -4312,8 +4312,9 @@ def workflow_delta(checked, drawn, corrections=()):
 
     Returns None when the difference cannot be written as an update (a component is gone
     and no draw recorded its removal). The caller then checks the whole drawn map against
-    the empty baseline, which is always possible. The caller also applies the result to
-    checked and compares it with drawn before it relies on it (see Coordinator.workflow_check).
+    the empty baseline. The caller also applies the result to checked and compares it with
+    drawn before it relies on it, and takes what cites a file excerpt it cannot read as it
+    was drawn (see Coordinator.workflow_check and keep_unread_as_drawn).
     """
     old_steps = {step["id"]: step for step in checked["workflow"]["steps"]}
     new_steps = {step["id"]: step for step in drawn["workflow"]["steps"]}
@@ -4369,13 +4370,26 @@ def workflow_rebase_update(checked, checked_from, drawn, corrections=()):
     reviewed and drawn the map as it is now. What the later draws changed is applied to
     the checked map, so that the check's corrections are kept and the later answers are
     too. A later edit of a component wins over the check's version of it (it is reviewed
-    by the next check); an edit that needs something the check took off the map is left out.
+    by the next check), also when the check had taken that step off the map: it returns
+    with its routes. An edit that needs a step the check took off, and that no later draw
+    stated again, is left out.
     """
     update = workflow_delta(checked_from, drawn, corrections)
     if update is None:
         return None
     steps = {step["id"] for step in checked["workflow"]["steps"]}
     edges = {route_key(edge) for edge in checked["workflow"]["connections"]}
+    # A step the check took off the map and a later draw states again is back on it, for the
+    # next check to review. The check dropped that step's routes with it, and the later draw
+    # did not change them, so they are not in the difference: they return with the step, for
+    # the same review. Left out, the step would stand alone and no check would see the route.
+    returned = ({step["id"] for step in update["upsert_steps"]}
+                & {step["id"] for step in checked_from["workflow"]["steps"]}) - steps
+    if returned:
+        listed = {route_key(edge) for edge in update["upsert_connections"]}
+        update["upsert_connections"] += [copy.deepcopy(edge) for edge in drawn["workflow"]["connections"]
+                                         if route_key(edge) not in listed and route_key(edge) not in edges
+                                         and (edge["from"] in returned or edge["to"] in returned)]
     update["remove_steps"] = [row for row in update["remove_steps"] if row["id"] in steps]
     present = (steps - {row["id"] for row in update["remove_steps"]}) | {step["id"] for step in update["upsert_steps"]}
     update["upsert_connections"] = [edge for edge in update["upsert_connections"]
@@ -4390,6 +4404,67 @@ def workflow_rebase_update(checked, checked_from, drawn, corrections=()):
              and question not in shape]
     update["open_questions"] = (noted + update["open_questions"])[:500]
     return update
+
+
+def keep_drawn_order(workflow, drawn):
+    """Put a workflow's steps and connections in the order the drawn map has them, in place.
+
+    A check corrects the map on screen and a rebase carries later answers onto a check; neither
+    rearranges it. What the drawn map holds keeps its place there, and anything else follows
+    in the order it had.
+    """
+    for name, key in (("steps", lambda step: step["id"]), ("connections", route_key)):
+        place = {key(item): index for index, item in enumerate(drawn[name])}
+        workflow[name].sort(key=lambda item: place.get(key(item), len(place)))
+    return workflow
+
+
+def keep_unread_as_drawn(update, previous, documents=None, carried=()):
+    """For an update that only repeats what a draw accepted: take what cites an unread file as it is.
+
+    A draw accepts a step or a route from a file excerpt it read. When the map is checked
+    against its sources later, or a finished check is carried under later draws, that
+    excerpt may be out of reach: the file was saved for later or removed (retained_only),
+    or the excerpt is outside what this request could carry (carried). Such an excerpt may
+    keep what already cites it and may support nothing new (apply_workflow_update,
+    settle_carried_edits). Those rules measure "already" against the baseline, and for
+    these two operations the baseline is the last checked map, where a step drawn since
+    then is new. Neither operation establishes anything: every edit in update is on the
+    map the participant has. So the edits that cite such an excerpt join the baseline as
+    they were drawn, with the steps their routes need, and are not reviewed; the rest of
+    the update is. Without this the check of such a map was refused before any request was
+    sent, after every further answer.
+
+    Returns (previous, update): the same two objects when no edit cites such an excerpt.
+    """
+    unread = {source["id"] for source in documents or [] if source.get("retained_only")} | set(carried)
+
+    def cites_unread(item):
+        cited = set(item["evidence_turns"])
+        for detail in item.get("operating_details", []):
+            cited.update(detail["evidence_turns"])
+        return bool(cited & unread)
+
+    held_edges = {route_key(edge): edge for edge in update["upsert_connections"] if cites_unread(edge)}
+    steps = {step["id"]: step for step in previous["workflow"]["steps"]}
+    # A route needs both of its steps: one that is new to the baseline comes with it.
+    ends = {end for edge in held_edges.values() for end in (edge["from"], edge["to"])} - steps.keys()
+    held_steps = {step["id"]: step for step in update["upsert_steps"] if cites_unread(step) or step["id"] in ends}
+    if not held_steps and not held_edges:
+        return previous, update
+    steps.update(held_steps)
+    # As apply_workflow_update does: a route stated with its condition replaces the unlabelled one.
+    unspecific = ("", "tbd", "unknown")
+    specified = {key[:2] for key in held_edges if key[2] not in unspecific}
+    edges = {key: edge for key, edge in ((route_key(edge), edge) for edge in previous["workflow"]["connections"])
+             if not (key[:2] in specified and key[2] in unspecific)}
+    edges.update(held_edges)
+    previous = copy.deepcopy({**previous, "workflow": {**previous["workflow"], "steps": list(steps.values()),
+                                                       "connections": list(edges.values())}})
+    update = {**update,
+              "upsert_steps": [step for step in update["upsert_steps"] if step["id"] not in held_steps],
+              "upsert_connections": [edge for edge in update["upsert_connections"] if route_key(edge) not in held_edges]}
+    return previous, update
 
 
 PROVIDER_FOREGROUND_RESERVE = 2

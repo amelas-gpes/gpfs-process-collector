@@ -310,12 +310,23 @@ class CheckedBesideTheDraw(unittest.TestCase):
     def test_wrap_up_returns_the_map_with_its_check_state(self):
         self.say("u1")
         self.say("u2")
+        # The second look is held until Wrap up has answered: with a stand-in that draws at once it
+        # could be over before the reply is put together, and the reply would rightly say so.
+        looking, release = threading.Event(), threading.Event()
+        self.addCleanup(release.set)
+
+        def hold(_sent):
+            looking.set()
+            release.wait(10)
+        self.client.hooks["team_working_process_map"] = hold
         result = self.service.sync({**self.interview.payload(), "action": "close"})
         # The map is released at once. It was built answer by answer, so Wrap up looks at the whole
         # account once more, and until that look is done the map is not reported as final.
         self.assertEqual((result["workflow_state"], result["workflow_pending"]), ("ready", False))
         self.assertEqual((result["workflow_checked"], result["workflow_check_state"]), (False, "working"))
         self.assertEqual([item["id"] for item in result["workflow_capture"]["workflow"]["steps"]], ["S1", "S2"])
+        self.assertTrue(looking.wait(5))
+        release.set()
         query = {"conversation_token": result["conversation_token"], "revision": result["revision"]}
         final = checked_within(lambda: self.service.status_for_revision(query))
         # The second look added nothing here, so the map that was on screen stays, checked as it was.
@@ -356,6 +367,281 @@ class DrawAllowance(unittest.TestCase):
         capture = self.client.coordinator.workflow({**account("u1", "u2"), "_map_only": True})
         self.assertEqual([body["name"] for body in self.client.bodies], ["team_working_process_map", "team_working_map_source_audit"])
         self.assertEqual([item["id"] for item in capture["workflow"]["steps"]], ["S1"])
+
+
+EXCERPT = {"id": "doc_abc_c1", "label": "Section 1", "location": {},
+           "text": "A supplier emails an invoice to the shared AP mailbox, per the AP manual."}
+ACTIVE = {"documents": [{"id": "doc_abc", "name": "ap.txt", "excerpts": [EXCERPT]}]}
+# The same file after Save for later: its excerpt is still handed over, as inactive evidence.
+PARKED = {"documents": [], "retained_evidence": [{**EXCERPT, "document_id": "doc_abc", "name": "ap.txt",
+                                                  "retained_only": True, "archived": True, "disposition": "parked"}]}
+# The same excerpt when it is real but outside what one request can carry.
+CARRIED = [{"id": "doc_abc_c1", "document_id": "doc_abc", "name": "ap.txt", "characters": 80}]
+
+
+def route(start, end, sources, label="then"):
+    return {"from": start, "to": end, "label": label, "evidence_turns": list(sources)}
+
+
+class AFileTheCheckCannotRead(unittest.TestCase):
+    """What a draw took from a file excerpt stays as drawn when the check can no longer read that excerpt.
+
+    Found by review after the lanes were merged: the check measured "already on the map"
+    against the last checked map, so a step drawn from a file that was then saved for later
+    (or whose excerpt no longer fitted the request) was refused as new evidence from an
+    inactive file. The whole-map fallback was refused the same way, before any request was
+    sent, after every further answer.
+    """
+
+    def drawn(self):
+        # S1 from the first answer; S2 and the route to it from the file; S3 and its route from the second answer.
+        return baseline({"title": "Invoice handling", "open_questions": [],
+                         "steps": [step("S1", "Receive invoice", "Supplier", ["u1"]),
+                                   step("S2", "Log invoice", "AP clerk", ["doc_abc_c1"]),
+                                   step("S3", "Approve invoice", "AP manager", ["u2"])],
+                         "connections": [route("S1", "S2", ["doc_abc_c1"]), route("S2", "S3", ["u2"])]})
+
+    def sources(self):
+        return {"saved for later": {"_supporting_documents": copy.deepcopy(PARKED)},
+                "outside the reading limit": {"_supporting_documents": {"documents": []},
+                                              "_carried_document_sources": copy.deepcopy(CARRIED)}}
+
+    def test_the_check_reviews_the_rest_and_keeps_what_cites_the_file_as_it_was_drawn(self):
+        for name, sources in self.sources().items():
+            with self.subTest(file=name):
+                client = RecordingTeam()
+                drawn = self.drawn()
+                checked = client.coordinator.workflow_check({**account("u1", "u2"), **sources, "_map_only": True}, drawn)
+                audits = client.sent("team_working_map_source_audit")
+                self.assertEqual(len(audits), 1, "The check was sent")
+                # What cites the file is part of the map the reviewer starts from, with the step its route needs.
+                self.assertEqual([item["id"] for item in audits[0]["previous_capture"]["workflow"]["steps"]], ["S1", "S2"])
+                self.assertEqual([(edge["from"], edge["to"]) for edge in audits[0]["previous_capture"]["workflow"]["connections"]],
+                                 [("S1", "S2")])
+                # The rest is reviewed like any difference.
+                self.assertEqual([item["id"] for item in audits[0]["candidate_update"]["upsert_steps"]], ["S3"])
+                self.assertEqual([(edge["from"], edge["to"]) for edge in audits[0]["proposed_routes_to_verify"]], [("S2", "S3")])
+                # The checked map is the drawn one, in the order it was drawn.
+                self.assertEqual(checked["workflow"]["steps"], drawn["workflow"]["steps"])
+                self.assertEqual(checked["workflow"]["connections"], drawn["workflow"]["connections"])
+
+    def test_a_checked_map_stays_the_baseline_and_only_the_difference_travels(self):
+        for name, sources in self.sources().items():
+            with self.subTest(file=name):
+                client = RecordingTeam()
+                drawn = self.drawn()
+                earlier = baseline({"title": "Invoice handling", "open_questions": [], "connections": [],
+                                    "steps": [step("S1", "Receive invoice", "Supplier", ["u1"])]})
+                client.coordinator.workflow_check({**account("u1", "u2"), **sources, "_map_only": True,
+                                                   "previous_capture": earlier, "_session_baseline": True}, drawn)
+                audit = client.sent("team_working_map_source_audit")[0]
+                self.assertEqual([item["id"] for item in audit["previous_capture"]["workflow"]["steps"]], ["S1", "S2"])
+                self.assertEqual([item["id"] for item in audit["candidate_update"]["upsert_steps"]], ["S3"])
+
+    def test_nothing_is_set_aside_while_every_cited_excerpt_can_be_read(self):
+        payload = {**account("u1", "u2"), "_supporting_documents": copy.deepcopy(ACTIVE)}
+        context, turns = server.validate_payload(payload, require_answers=False)
+        evidence = server.document_evidence_catalog(payload["_supporting_documents"])
+        empty = server.workflow_previous_capture(None, turns, evidence, {}, context=context)
+        update = server.workflow_delta(empty, self.drawn())
+        previous, kept = server.keep_unread_as_drawn(update, empty, evidence, {})
+        self.assertIs(previous, empty)
+        self.assertIs(kept, update)
+        # And the review then sees every step, the one from the file included.
+        client = RecordingTeam()
+        client.coordinator.workflow_check({**payload, "_map_only": True}, self.drawn())
+        audit = client.sent("team_working_map_source_audit")[0]
+        self.assertEqual([item["id"] for item in audit["candidate_update"]["upsert_steps"]], ["S1", "S2", "S3"])
+
+    def test_an_edit_that_cites_the_file_newly_is_still_refused_when_a_map_is_drawn(self):
+        # The rule itself is unchanged: an inactive file establishes nothing in a draw.
+        payload = {**account("u1", "u2"), "_supporting_documents": copy.deepcopy(PARKED)}
+        context, turns = server.validate_payload(payload, require_answers=False)
+        evidence = server.document_evidence_catalog(payload["_supporting_documents"])
+        empty = server.workflow_previous_capture(None, turns, evidence, {}, context=context)
+        with self.assertRaisesRegex(ValueError, "Inactive document evidence"):
+            server.apply_workflow_update(server.workflow_delta(empty, self.drawn()), empty, turns, evidence, {}, context=context)
+
+    def test_a_file_saved_for_later_during_a_check_does_not_stop_the_checks_that_follow(self):
+        script = copy.deepcopy(SCRIPT)
+        script["u1"]["cites"] = "shared AP mailbox"        # the step of the first answer also cites the file
+        client = RecordingTeam(script)
+        service = concurrent.ConcurrentInterview(client, server)
+        self.addCleanup(service.close)
+        interview = TypedInterview(service)
+        reading, release = threading.Event(), threading.Event()
+        self.addCleanup(release.set)
+
+        def hold(_sent):
+            if not reading.is_set():
+                reading.set()
+                release.wait(10)
+        client.hooks["team_working_map_source_audit"] = hold
+        interview.send(script["u1"]["say"], _supporting_documents=copy.deepcopy(ACTIVE))
+        self.assertTrue(reading.wait(5))
+        # The participant saves the file for later and answers again while the first check still reads.
+        parked = lambda: service.status(interview.payload(_supporting_documents=copy.deepcopy(PARKED)))
+        seen = []
+        for turn in ("u2", "u3", "u4"):
+            interview.send(script[turn]["say"], _supporting_documents=copy.deepcopy(PARKED))
+            release.set()
+            status = checked_within(parked)
+            seen.append(status.get("workflow_check_state"))
+        graph = status["workflow_capture"]["workflow"]
+        self.assertEqual([item["id"] for item in graph["steps"]], ["S1", "S2", "S3", "S4"])
+        self.assertEqual(graph["steps"][0]["evidence_turns"], ["u1", "doc_abc_c1"])
+        self.assertEqual(seen, [None, None, None], "No check failed")
+        later = client.sent("team_working_map_source_audit")[1:]
+        self.assertGreaterEqual(len(later), 3, "Every answer after the file was set aside had its check")
+        for audit in later:
+            # The step from the file is on the map the reviewer starts from and is never proposed anew.
+            self.assertIn("S1", [item["id"] for item in audit["previous_capture"]["workflow"]["steps"]])
+            self.assertNotIn("S1", [item["id"] for item in audit["candidate_update"]["upsert_steps"]])
+
+
+class AStepTheCheckTookOffAndALaterAnswerStatedAgain(unittest.TestCase):
+    """Found by review: such a step came back alone, and no check ever saw the route into it."""
+
+    def test_it_returns_with_its_routes_for_the_next_check(self):
+        context, turns = server.validate_payload(account("u1", "u2", "u3"), require_answers=False)
+        valid = lambda workflow: server.workflow_previous_capture(baseline(workflow), turns, None, (), context=context)
+        first, second, third = (step("S1", "Receive invoice", "Supplier", ["u1"]), step("S2", "Log invoice", "AP clerk", ["u2"]),
+                                step("S3", "Approve invoice", "AP manager", ["u3"]))
+        title = {"title": "Invoice handling", "open_questions": []}
+        checked_from = valid({**title, "steps": [first, second], "connections": [route("S1", "S2", ["u2"])]})
+        # The check took the new step off; its route went with it.
+        checked = valid({**title, "steps": [first], "connections": []})
+        # Meanwhile the third answer was drawn: it says where the clerk logs the invoice and adds a step after that.
+        restated = {**second, "system": "Invoice register", "evidence_turns": ["u2", "u3"]}
+        drawn = valid({**title, "steps": [first, restated, third],
+                       "connections": [route("S1", "S2", ["u2"]), route("S2", "S3", ["u3"])]})
+        update = server.workflow_rebase_update(checked, checked_from, drawn)
+        rebased = server.apply_workflow_update(update, checked, turns, None, (), context=context)
+        self.assertEqual([item["id"] for item in rebased["workflow"]["steps"]], ["S1", "S2", "S3"])
+        self.assertEqual({(edge["from"], edge["to"]) for edge in rebased["workflow"]["connections"]}, {("S1", "S2"), ("S2", "S3")})
+        self.assertFalse(any("step S1 " in question for question in rebased["workflow"]["open_questions"]))
+        # Nothing was checked by coming back: the next check is asked about the step and both routes.
+        review = server.workflow_delta(checked, baseline(rebased["workflow"]))
+        self.assertEqual([item["id"] for item in review["upsert_steps"]], ["S2", "S3"])
+        self.assertEqual({(edge["from"], edge["to"]) for edge in review["upsert_connections"]}, {("S1", "S2"), ("S2", "S3")})
+
+    def test_a_step_no_later_answer_touched_stays_off_and_takes_the_route_to_it_along(self):
+        context, turns = server.validate_payload(account("u1", "u2", "u3"), require_answers=False)
+        valid = lambda workflow: server.workflow_previous_capture(baseline(workflow), turns, None, (), context=context)
+        first, second, third = (step("S1", "Receive invoice", "Supplier", ["u1"]), step("S2", "Log invoice", "AP clerk", ["u2"]),
+                                step("S3", "Approve invoice", "AP manager", ["u3"]))
+        title = {"title": "Invoice handling", "open_questions": []}
+        checked_from = valid({**title, "steps": [first, second], "connections": [route("S1", "S2", ["u2"])]})
+        checked = valid({**title, "steps": [first], "connections": []})
+        drawn = valid({**title, "steps": [first, second, third],
+                       "connections": [route("S1", "S2", ["u2"]), route("S2", "S3", ["u3"])]})
+        update = server.workflow_rebase_update(checked, checked_from, drawn)
+        rebased = server.apply_workflow_update(update, checked, turns, None, (), context=context)
+        self.assertEqual([item["id"] for item in rebased["workflow"]["steps"]], ["S1", "S3"])
+        self.assertEqual(rebased["workflow"]["connections"], [])
+
+    def test_through_the_interview_the_route_is_reviewed_and_the_map_keeps_its_order(self):
+        script = copy.deepcopy(SCRIPT)
+        script["u3"]["revise"] = ("u2", {"system": "Invoice register"})
+        client = RecordingTeam(script)
+        service = concurrent.ConcurrentInterview(client, server)
+        self.addCleanup(service.close)
+        interview = TypedInterview(service)
+        read = lambda: service.status(interview.payload())
+        interview.send(script["u1"]["say"])
+        checked_within(read)
+        reading, release = threading.Event(), threading.Event()
+        self.addCleanup(release.set)
+
+        def hold(_sent):
+            if not reading.is_set():
+                reading.set()
+                release.wait(10)
+        client.hooks["team_working_map_source_audit"] = hold
+        # The reviewer finds the step of the second answer unsupported, once.
+        client.broken["team_working_map_source_audit"] = lambda result: result["discard_step_upserts"].append("S2")
+        interview.send(script["u2"]["say"])
+        self.assertTrue(reading.wait(5))
+        interview.send(script["u3"]["say"])
+        drawn = drawn_within(read)
+        self.assertEqual([item["id"] for item in drawn["workflow_capture"]["workflow"]["steps"]], ["S1", "S2", "S3"])
+        release.set()
+        status = checked_within(read)
+        graph = status["workflow_capture"]["workflow"]
+        self.assertEqual([(item["id"], item["system"]) for item in graph["steps"]],
+                         [("S1", "UNKNOWN"), ("S2", "Invoice register"), ("S3", "UNKNOWN")])
+        self.assertEqual([(edge["from"], edge["to"]) for edge in graph["connections"]], [("S1", "S2"), ("S2", "S3")])
+        last = client.sent("team_working_map_source_audit")[-1]
+        self.assertEqual({(edge["from"], edge["to"]) for edge in last["proposed_routes_to_verify"]}, {("S1", "S2"), ("S2", "S3")})
+        # The map carried under the later draw keeps the record of the models that made it.
+        self.assertEqual([row["stage"] for row in status["workflow_capture"]["generated_by"]],
+                         ["team_working_process_map", "team_working_map_source_audit"])
+
+
+class TheMapKeepsItsRecord(unittest.TestCase):
+    """Found by review: the background map had lost the record of the model and prompt behind it.
+
+    The page files that record with a saved interview and prints it with an export. Only the
+    whole operation was tracked; the draw and the check that replaced it in the background were not.
+    """
+
+    def setUp(self):
+        self.client = RecordingTeam()
+        self.service = concurrent.ConcurrentInterview(self.client, server)
+        self.addCleanup(self.service.close)
+        self.interview = TypedInterview(self.service)
+        self.read = lambda: self.service.status(self.interview.payload())
+
+    def record(self, status):
+        return [(row["stage"], row["model"]) for row in status["workflow_capture"].get("generated_by", [])]
+
+    def test_a_drawn_map_names_its_draw_and_a_checked_map_its_check_as_well(self):
+        reading, release = threading.Event(), threading.Event()
+        self.addCleanup(release.set)
+
+        def hold(_sent):
+            reading.set()
+            release.wait(10)
+        self.client.hooks["team_working_map_source_audit"] = hold
+        self.interview.send(SCRIPT["u1"]["say"])
+        self.assertTrue(reading.wait(5))
+        drawn = drawn_within(self.read)
+        self.assertEqual(self.record(drawn), [("team_working_process_map", "synthetic-process")])
+        self.assertEqual(drawn["workflow_capture"]["app_version"], server.VERSION)
+        del self.client.hooks["team_working_map_source_audit"]
+        release.set()
+        checked = checked_within(self.read)
+        self.assertEqual(self.record(checked), [("team_working_process_map", "synthetic-process"),
+                                                ("team_working_map_source_audit", "synthetic-process")])
+        self.assertEqual(checked["workflow_capture"]["app_version"], server.VERSION)
+        for row in checked["workflow_capture"]["generated_by"]:
+            self.assertTrue(row["prompt_id"] and row["generated_at"], row)
+
+    def test_the_record_follows_the_map_through_later_answers_one_row_a_stage(self):
+        self.interview.send(SCRIPT["u1"]["say"])
+        first = checked_within(self.read)["workflow_capture"]["generated_by"]
+        reading, release = threading.Event(), threading.Event()
+        self.addCleanup(release.set)
+
+        def hold(_sent):
+            reading.set()
+            release.wait(10)
+        self.client.hooks["team_working_map_source_audit"] = hold
+        self.interview.send(SCRIPT["u2"]["say"])
+        self.assertTrue(reading.wait(5))
+        # Drawn again and not yet checked: the new draw, and the check the map before it had passed.
+        drawn = drawn_within(self.read)["workflow_capture"]["generated_by"]
+        self.assertEqual([row["stage"] for row in drawn], ["team_working_process_map", "team_working_map_source_audit"])
+        self.assertNotEqual(drawn[0], first[0])
+        self.assertEqual(drawn[1], first[1])
+        del self.client.hooks["team_working_map_source_audit"]
+        release.set()
+        checked = checked_within(self.read)["workflow_capture"]["generated_by"]
+        self.assertEqual([row["stage"] for row in checked], ["team_working_process_map", "team_working_map_source_audit"])
+        self.assertEqual(checked[0], drawn[0])
+        self.assertNotEqual(checked[1], first[1])
+        # A baseline never carries the record into the next request.
+        self.assertNotIn("generated_by", self.client.sent("team_working_process_map")[-1]["previous_capture"])
 
 
 if __name__ == "__main__":

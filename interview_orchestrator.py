@@ -1602,6 +1602,7 @@ class Coordinator:
         job = _MapJob(self, payload)
         return job.publish(job.check(job.draw()["update"]))
 
+    @provider_usage.track_generation(artifact="capture")
     def workflow_draw(self, payload):
         """Draw a map and return it as drawn, before any source check.
 
@@ -1616,6 +1617,7 @@ class Coordinator:
         drawn = job.draw()
         return {"capture": job.publish(drawn["capture"], drawn_only=True), "update": drawn["update"]}
 
+    @provider_usage.track_generation
     def workflow_check(self, payload, drawn, corrections=()):
         """Check a drawn map against its sources; the result replaces it as the checked map.
 
@@ -1626,31 +1628,46 @@ class Coordinator:
         the review again. When that difference cannot be written as an update, when
         applying it does not give the drawn map, or when the checked baseline no longer
         validates against this request's sources, the whole drawn map is checked against
-        the empty baseline instead. All three arguments are the server's own, never a browser's.
+        the empty baseline instead. Either way, what the drawn map holds on a file excerpt
+        this request cannot read stays as it was drawn and is not reviewed
+        (server.keep_unread_as_drawn). All three arguments are the server's own, never a browser's.
         """
         api = self.api
         job = _MapJob(self, payload, draws=False)
 
-        def reproduces(update):
-            if update is None:
-                return False
+        def difference(records):
+            """The update that turns the job's baseline into the drawn map, or None when none does."""
+            whole = api.workflow_delta(job.previous, drawn, records)
+            if whole is None:
+                return None
             try:
-                applied = api.apply_workflow_update(copy.deepcopy(update), job.previous, job.turns, job.evidence,
+                previous, update = api.keep_unread_as_drawn(whole, job.previous, job.evidence, job.carried)
+                if previous is not job.previous:
+                    previous = api.workflow_previous_capture(previous, job.turns, job.evidence, job.carried,
+                                                             context=job.context)
+                applied = api.apply_workflow_update(copy.deepcopy(update), previous, job.turns, job.evidence,
                                                     job.carried, context=job.context)
             except ValueError:
-                return False
-            return api.same_map(applied["workflow"], drawn["workflow"])
+                return None
+            if not api.same_map(applied["workflow"], drawn["workflow"]):
+                return None
+            job.previous = previous
+            return update, sum(len(whole[key]) - len(update[key]) for key in ("upsert_steps", "upsert_connections"))
 
-        update = None if job.baseline_dropped else api.workflow_delta(job.previous, drawn, corrections)
-        whole = not reproduces(update)
+        found = None if job.baseline_dropped else difference(corrections)
+        whole = found is None
         if whole:
             job.restart()
-            update = api.workflow_delta(job.previous, drawn)
-            if not reproduces(update):
+            found = difference(())
+            if found is None:
                 raise ValueError("The drawn map does not validate against its sources.")
+        update, held = found
         raw_trace.emit("coordinator.workflow.check", {"revision": job.run.ledger.revision, "whole_map": whole,
-            "steps": len(update["upsert_steps"]), "connections": len(update["upsert_connections"])})
-        return job.publish(job.check(update))
+            "steps": len(update["upsert_steps"]), "connections": len(update["upsert_connections"]),
+            **({"held_as_drawn": held} if held else {})})
+        capture = job.check(update)
+        api.keep_drawn_order(capture["workflow"], drawn["workflow"])
+        return job.publish(capture)
 
     def workflow_rebase(self, payload, checked_from, drawn, corrections=()):
         """Carry the draws made while a source check ran onto that check's result. No model is asked.
@@ -1668,7 +1685,11 @@ class Coordinator:
         update = api.workflow_rebase_update(previous, checked_from, drawn, corrections)
         if update is None:
             raise ValueError("The later draws cannot be applied to the checked map.")
+        # A later draw's step that cites a file excerpt this request cannot read is on the
+        # map already; carrying it over establishes nothing.
+        previous, update = api.keep_unread_as_drawn(update, previous, evidence, carried)
         capture = api.apply_workflow_update(update, previous, turns, evidence, carried, context=context)
+        api.keep_drawn_order(capture["workflow"], drawn["workflow"])
         if evidence:
             capture["document_evidence"] = evidence
         return capture

@@ -64,21 +64,28 @@ def stamp_generation(result, version):
         result["app_version"] = version
 
 
-def track_generation(function):
-    """Collect successful model stages for one returned artifact, including concurrent reviews."""
-    @wraps(function)
-    def tracked(owner, *args, **kwargs):
-        token = _generation.set((threading.Lock(), []))
-        try:
-            result = function(owner, *args, **kwargs)
-            stages = generated_by()
-            if stages:
-                stamp_generation(result, getattr(getattr(owner, "api", owner), "VERSION", ""))
-        finally:
-            _generation.reset(token)
-        remember_stages(stages)
-        return result
-    return tracked
+def track_generation(function=None, *, artifact=None):
+    """Collect successful model stages for one returned artifact, including concurrent reviews.
+
+    The artifact is the returned dict, or its entry named by artifact when the call
+    returns the artifact together with something else.
+    """
+    def decorate(function):
+        @wraps(function)
+        def tracked(owner, *args, **kwargs):
+            token = _generation.set((threading.Lock(), []))
+            try:
+                result = function(owner, *args, **kwargs)
+                stages = generated_by()
+                if stages:
+                    stamp_generation(result[artifact] if artifact else result,
+                                     getattr(getattr(owner, "api", owner), "VERSION", ""))
+            finally:
+                _generation.reset(token)
+            remember_stages(stages)
+            return result
+        return tracked
+    return decorate(function) if function else decorate
 
 
 def interview_id(value):

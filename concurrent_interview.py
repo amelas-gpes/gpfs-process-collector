@@ -396,6 +396,26 @@ class ConcurrentInterview:
             "workflow": {key: workflow[key] for key in ("title", "steps", "connections", "open_questions")},
             **{key: capture[key] for key in ("memo_findings", "summary", "focus", "parking_lot")}})
 
+    @staticmethod
+    def _carry_record(capture, *earlier):
+        """Give a map the record of the models that made it, across its draws and checks.
+
+        Each draw and each check returns the stages of its own requests. A map on screen is
+        the work of several: the draws since the last map drawn whole, and the checks taken
+        into it. The page keeps one record per stage, the latest; so does this.
+        """
+        rows = {}
+        for source in (*earlier, capture):
+            for row in (source or {}).get("generated_by", []):
+                rows[row["stage"]] = row
+        if rows:
+            capture["generated_by"] = copy.deepcopy(list(rows.values()))
+            version = next((source["app_version"] for source in (capture, *reversed(earlier))
+                            if (source or {}).get("app_version")), None)
+            if version:
+                capture["app_version"] = version
+        return capture
+
     def _analysis_payload(self, payload, previous=None, continued=True):
         value = copy.deepcopy(payload)
         value["_notes_only"] = True
@@ -724,6 +744,7 @@ class ConcurrentInterview:
                 if kept:
                     if baseline:
                         session["workflow_incremental"] = True
+                        self._carry_record(graph, session.get("workflow_capture"))
                         version = session["workflow_version"] + 1
                         session["workflow_corrections"] += [(version, copy.deepcopy(row)) for row in graph.get("recent_corrections", [])]
                     else:
@@ -907,11 +928,12 @@ class ConcurrentInterview:
                     if key in capture:
                         checked.setdefault(key, copy.deepcopy(capture[key]))
             base = self._baseline_form(capture)
+            checked = self._carry_record(copy.deepcopy(checked), session["workflow_capture"], capture)
         except Exception as error:
             raw_trace.emit("worker.workflow.check_discarded", {"revision": revision, "version": result["version"],
                                                                "reason": "rebase", "error_type": type(error).__name__})
             return
-        session.update(workflow_capture=copy.deepcopy(checked), workflow_checked=same, checked=base,
+        session.update(workflow_capture=checked, workflow_checked=same, checked=base,
                        workflow_corrections=later, check_failed_version=None)
         session["workflow_version"] += 1
         raw_trace.emit("worker.workflow.checked", {"revision": revision, "version": session["workflow_version"],

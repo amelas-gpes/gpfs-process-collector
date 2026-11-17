@@ -26,6 +26,13 @@ The workflow diagram keeps up with a typed interview. This is the first part of 
 - **The diagram marks where the work starts and ends and where it branches.** A small dashed circle stands in front of the first step and after each last step when the account does not state a start or an end, and a small dashed diamond follows a step that several routes leave. The markers are part of the picture only: they are not steps, cannot be selected, are not saved or sent, and are left out of the SVG file. Lanes by role and compact decision shapes are not included. [Workflow diagrams](docs/WORKFLOW_DIAGRAMS.md#evidence-and-picture) (Finding 7)
 - The status reply of a conversation says whether its map was checked (`workflow_checked`, `workflow_check_state`, `workflow_version`) and can carry the map through an earlier answer (`workflow_checkpoint`). [HTTP interface](docs/API_CONTRACT.md)
 
+Three corrections to the map's source check, found by an independent review after the change above was merged. Each has a test that fails on the code as first merged.
+
+- **A file set aside during an interview no longer stops the map's source checks.** A step drawn from a file that was then saved for later or removed, or whose passage no longer fitted into one request, was refused as new evidence from a file that could not be read. The check failed before anything was sent, after every further answer, and Workflow stayed on “· check incomplete”. Such a step stays as it was drawn and the check reviews the rest.
+- **The map keeps the record of the model and prompt that made it.** A saved interview and an export name the model and prompt behind each result. The map drawn in the background had lost that record.
+- **A step the check removed and a later answer stated again returns with its route.** It came back alone, and no later check was asked about the route into it.
+- The check keeps the steps and routes of a map in the order they were drawn in.
+
 Testing material reorganized; no change to the app.
 
 - `docs/testing` now separates what a new test needs from what earlier tests left behind: the business process library in `process-library/`, the participant harness in `harness/`, and one dated folder per past run under `runs/`. The November 16 run moved to `docs/testing/runs/2026-11-16-process-capture`. [Testing index](docs/testing/README.md)

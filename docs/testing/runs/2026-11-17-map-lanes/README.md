@@ -61,6 +61,18 @@ Thirteen final maps of the stress run that have no file evidence and validate ag
 
 The diagram then showed the three reported steps between an implied start and an implied end, with no page errors. The same run found that the page stopped asking once the notes of an answer had failed, so a map whose check finished afterwards stayed on “check pending”; the page now keeps fetching the map in that case. Saved maps from the stress run were also drawn in Chromium with and without the picture: no boxes overlapped and a layout took 60 to 300 ms.
 
+## Found by review after the merge
+
+An independent review of the merged change, with a reproduction for each point, found three defects in the map's source check. All three are fixed, and `tests/test_map_check_delta.py` has a case for each that fails on the code as first merged.
+
+| Defect | Cause | Now |
+| --- | --- | --- |
+| After a file was saved for later or removed, or when a cited passage no longer fitted into one request, the check failed after every further answer and nothing was sent for review | The check measured "already on the map" against the last checked map. A step drawn since then from that file counted as new evidence from a file that could not be read, and the whole-map fallback was refused the same way | Such a step joins the map the reviewer starts from, as drawn, and the rest is reviewed |
+| The map in a status reply had no record of the model and prompt that made it, so saved interviews and exports lost it | Only the single draw-and-check operation was tracked, not the separate draw and check that replaced it in the background | Draws and checks are tracked, and the record follows the map |
+| A step the check took off and a later answer stated again came back without the route into it, and no later check was asked about that route | The route had not changed between the map the check read and the later map, so it was not in the difference carried over | The step returns with its routes and the next check reviews them |
+
+The review covered the provider client, the map helpers and the document service. Its other three parts (the scheduling in `concurrent_interview.py`, the page, and the diagram's picture layer) had not run when this was written.
+
 ## Not verified, and how to verify it
 
 1. **Timings with the AI service.** Replay `T01`, `T02`, `T07`, `T11`, `V01` and `V03` at 45 s pacing with the [harness](../../harness/README.md) and compare with the stress run: time to the first diagram, the wait after each answer, and the final diagram. `stages.py` now also has `worker.workflow.checkpoint`, `worker.workflow.check_started`, `check_finished`, `check_error`, `check_discarded` and `worker.workflow.checked` to read.

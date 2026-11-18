@@ -8,6 +8,7 @@ import contextvars
 import errno
 import gzip
 import importlib.util
+import io
 import json
 from datetime import datetime, timezone
 import math
@@ -41,6 +42,39 @@ class NoProviderRedirect(HTTPRedirectHandler):
         return None
 
 
+class ProviderResponseReader(io.RawIOBase):
+    """Check cancellation between bounded socket reads, underneath HTTP's buffer."""
+    def __init__(self, sock, owner, check_active):
+        self.sock, self.owner, self.check_active = sock, owner, check_active
+        self.previous_timeout = sock.gettimeout()
+        sock.settimeout(min(.25, self.previous_timeout) if self.previous_timeout is not None else .25)
+
+    def readable(self):
+        return True
+
+    def readinto(self, buffer):
+        while True:
+            self.check_active()
+            try:
+                return self.sock.recv_into(buffer)
+            except TimeoutError:
+                # No bytes were returned by this recv. The HTTP buffer keeps everything
+                # from earlier reads, including an unfinished header or body.
+                continue
+
+    def close(self):
+        if not self.closed:
+            try:
+                self.sock.settimeout(self.previous_timeout)
+            except OSError:
+                pass
+            finally:
+                # HTTPResponse's original file keeps the transport alive after the
+                # HTTPConnection hands ownership to its response.
+                self.owner.close()
+                super().close()
+
+
 class NamesProviderSockets:
     """Names each connection's socket to the request that opened it (request.provider_sockets).
 
@@ -55,6 +89,19 @@ class NamesProviderSockets:
 
         def watched(host, **options):
             connection = http_class(host, **options)
+            check_active = getattr(req, "check_provider_active", None)
+            if check_active is not None:
+                response_type = connection.response_class
+
+                def watched_response(sock, *args, **kwargs):
+                    response = response_type(sock, *args, **kwargs)
+                    # HTTPResponse has opened its socket file but has not started parsing.
+                    # A local shutdown may leave a Windows readiness wait blocked. Check
+                    # on the reading thread even when no status line or body bytes arrive.
+                    response.fp = io.BufferedReader(ProviderResponseReader(sock, response.fp, check_active))
+                    return response
+
+                connection.response_class = watched_response
             if sockets is not None:
                 connect = connection.connect
 
@@ -4942,6 +4989,7 @@ class OpenAIClient:
                             "path": path, "byte_count": len(data), "timeout_seconds": timeout, **sent})
                     remaining = max(.01, deadline - time.monotonic())
                     request.provider_sockets = []
+                    request.check_provider_active = check_active
                     stack.enter_context(self._release_on_deadline(request.provider_sockets, remaining, check_abort))
                     if role_binding:
                         run, role = role_binding

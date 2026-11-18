@@ -26,6 +26,7 @@
     const make=(tag,className,text)=>{const node=doc.createElement(tag);if(className)node.className=className;if(text!==undefined)node.textContent=text;return node;};
     const shell=make("details","agent-team-shell");
     const summary=make("summary","agent-team-summary");
+    summary.setAttribute("aria-description","See which interview roles are working and what they have completed.");
     const heading=make("span","agent-team-heading","Interview team");heading.id=id;
     const aggregate=make("span","agent-team-aggregate","Standing by");
     const disclosure=make("span","agent-team-disclosure");disclosure.setAttribute("aria-hidden","true");
@@ -36,6 +37,7 @@
       const item=make("div","agent-team-item");item.setAttribute("role","listitem");item.dataset.role=role;
       const details=make("details","agent-card");details.dataset.status="idle";
       const trigger=make("summary","agent-card-summary");
+      trigger.setAttribute("aria-description","Inspect this role’s current task and recent results.");
       const line=make("span","agent-card-heading"),name=make("span","agent-card-name",config.name),badge=make("span","agent-card-badge",BADGES.idle);
       line.append(name,badge);
       const activity=make("span","agent-card-activity");trigger.append(line,activity);details.append(trigger);

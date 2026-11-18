@@ -27,6 +27,7 @@
       const type = document.createElement("strong");
       type.textContent = row.type;
       summary.setAttribute("aria-label", `${row.type} · ${time.textContent}`);
+      summary.setAttribute("aria-description", "Expand the event to inspect its recorded details.");
       summary.append(time, type);
       const content = document.createElement("pre");
       content.tabIndex = 0;

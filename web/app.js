@@ -4974,7 +4974,9 @@
     return [["","Choose a source"],...state.turns.filter(turn=>turn.role==="user"&&!turn.document_event).map(turn=>[turn.id,sourceCaption(turn.id)+" · "+turn.text.slice(0,80)]),...state.documentEvidence.map(row=>[row.id,row.label+" · "+row.text.slice(0,80)])];
   }
   function editEvidence(item,after){
-    const wrap=el("details","step-extra"),title=el("summary","","Review citations");wrap.append(title);
+    const wrap=el("details","step-extra"),title=el("summary","","Review citations");
+    title.setAttribute("aria-description","Inspect, add or remove sources for this item.");
+    wrap.append(title);
     const select=formControl("Cite an answer or file excerpt","select","",id=>{
       if(!id||item.evidence_turns.includes(id))return;
       structuralCheckpoint();item.evidence_turns.push(id);markReviewed(item,"evidence_turns");draftChanged(true);after();
@@ -4982,6 +4984,7 @@
     wrap.append(select);
     for(const id of item.evidence_turns){
       const button=el("button","text-button","Clear "+sourceCaption(id));button.type="button";
+      button.setAttribute("aria-description", "Remove this citation from the draft item.");
       button.addEventListener("click",()=>{
         structuralCheckpoint();item.evidence_turns=item.evidence_turns.filter(ref=>ref!==id);
         if(item.rule_source_ref===id)item.rule_source_ref="";
@@ -5205,7 +5208,9 @@
         }else{
           row.append(formControl("Relationship","select",item.relationship_type,v=>{item.relationship_type=v;draftChanged();},{choices:options(draftRelations)}),formControl("Connected process","input",item.counterpart,v=>{item.counterpart=v;draftChanged();},{max:500}),formControl("Condition","textarea",item.condition,v=>{item.condition=v;draftChanged();},{max:12000}));
         }
-        const remove=el("button","remove-button","Remove");remove.type="button";remove.addEventListener("click",()=>{
+        const remove=el("button","remove-button","Remove");remove.type="button";
+        remove.setAttribute("aria-description",key==="taxonomy" ? "Remove this classification from the draft." : "Remove this link to the other process.");
+        remove.addEventListener("click",()=>{
           if(!confirm("Remove this classification or connection from the draft?"))return;
           structuralCheckpoint();list.splice(list.indexOf(item),1);draftChanged();renderClassifications();root.focus();
         });row.append(evidenceRow(item.evidence_turns||[]),remove);root.append(row);
@@ -5230,11 +5235,49 @@
     renderVariations();
     selectReviewSection(reviewUI.section);
   }
+  const draftFieldHelp = {
+    "Relationship": "Choose how this process connects to the other work.",
+    "Connected process": "Name the other process involved in this relationship.",
+    "Condition": "Describe when the relationship between these processes applies.",
+    "Classification": "Choose the category supported by the account.",
+    "Classification note": "Explain the evidence behind this classification.",
+    "Cite an answer or file excerpt": "Attach a source that supports this part of the draft.",
+    "Owner / role": "Identify who carries out this step.",
+    "System / tool": "Name the system or tool used to do the work.",
+    "Step type": "Choose the workflow symbol that describes this step.",
+    "Input": "Record what the step needs before it can begin.",
+    "Output": "Record what this step produces or changes.",
+    "Completion criteria": "Describe how someone can tell that this step is complete.",
+    "Next handoff": "Identify who receives the work next and what they receive.",
+    "Data origin": "Identify where the data used in this step comes from.",
+    "Parent process": "Name the wider procedure that includes this work.",
+    "Rule source": "Select the cited answer or file that establishes the rule.",
+    "Entry mode": "Identify how data enters the system at this step.",
+    "Entity scope": "List the entities this step applies to, one per line.",
+    "Work item / document": "Name the item that moves through the process.",
+    "Stages, in order": "List the states the item passes through, in sequence.",
+    "Locations / systems": "Identify where the item is held at each stage.",
+    "Handoffs": "List where responsibility for the item changes.",
+    "Standard route step": "Choose the usual step from which this variation differs.",
+    "Reported source": "Identify who or what reported this variation.",
+    "Who / what it applies to": "Identify the clients, teams or cases affected.",
+    "What differs": "Describe what changes from the usual route.",
+    "Why it exists": "Record the reason given for this variation.",
+    "What it costs us": "Record the reported estimate and who provided it.",
+    "Do we charge for it?": "Record any reported charge for this variation.",
+    "Could it go away?": "Capture the participant’s view of whether the difference is still needed.",
+    "Variation class": "Categorize the reason this version of the process differs.",
+    "Nature of difference": "Distinguish a change in the work from a change in its presentation.",
+    "Process boundary": "Record whether this is a variation or potentially a separate process.",
+    "Reason for boundary assessment": "Explain why the work belongs inside or outside this process."
+  };
   function formControl(label, tag, value, change, options = {}) {
     const wrap = el("div");
     const name = el("label", "", label);
     const control = el(tag);
     control.dir="auto";
+    const help = draftFieldHelp[label.split(" · ")[0]];
+    if (help) control.setAttribute("aria-description", help);
     control.setAttribute("aria-label", options.aria && !options.aria.startsWith(label)?label+" · "+options.aria:options.aria||label);
     if (tag === "select") {
       (options.choices || []).forEach(([val, caption]) => {
@@ -5375,6 +5418,15 @@
     if(questions.length){root.append(el("h3","","Routing questions"));const list=el("ul","");for(const question of questions)list.append(el("li","",question));root.append(list);}
     return questions;
   }
+  const controlTypeHelp = {
+    gpfs_operational: "The operations team checks the work while carrying it out.",
+    gpfs_supervisory: "A supervisor reviews the work.",
+    client_review: "The client inspects the work.",
+    client_approval: "The client must authorize the work to proceed.",
+    system_enforced: "The system applies the check automatically.",
+    exception_escalation: "An exception must be referred to someone for a decision.",
+    none_reported: "The account identifies no control for this step."
+  };
   function renderSteps() {
     renderStructureQuestions();
     const root = $("procedure-steps");
@@ -5393,6 +5445,7 @@
         const button=el("button","text-button small",direction<0?"Move up":"Move down"),target=index+direction;
         button.type="button";button.disabled=target<0||target>=state.draft.steps.length;
         button.setAttribute("aria-label",button.textContent+" · step "+step.id);
+        button.setAttribute("aria-description", "Reorder this step in the procedure. Its routes stay connected.");
         button.addEventListener("click",()=>{
           if(button.disabled)return;
           structuralCheckpoint();
@@ -5403,6 +5456,7 @@
         return button;
       };
       const remove = el("button", "remove-button", "Remove");
+      remove.setAttribute("aria-description", "Remove this step and its connected routes from the draft.");
       remove.setAttribute("aria-label", `Remove step ${step.id}`);
       remove.addEventListener("click", () => {
         if (!confirm(`Remove step ${step.id} and its connections?`)) return;
@@ -5448,7 +5502,9 @@
         evidence.append(source);
       });
       const extra = el("details","step-extra");
-      extra.append(el("summary","","Inputs, outputs and handoff"));
+      const extraHeading=el("summary","","Inputs, outputs and handoff");
+      extraHeading.setAttribute("aria-description","Inspect what this step needs, produces and passes to the next owner.");
+      extra.append(extraHeading);
       const extras = el("div","detail-two-columns");
       [["input","Input"],["output","Output"],["completion_criteria","Completion criteria"],["handoff","Next handoff"],["data_origin","Data origin"],["parent_process","Parent process",500]].forEach(([key,label,max=6000]) => extras.append(formControl(label,"textarea",step[key],v => {markReviewed(step,key);step[key]=v;draftChanged(true);},{max,aria:`${label} for step ${step.id}`})));
       const ruleSources=[["","No rule source selected"],...step.evidence_turns.map(id=>[id,sourceCaption(id)])];
@@ -5459,6 +5515,7 @@
       const controls=el("fieldset","step-control-types");controls.append(el("legend","","Type of control"));
       for(const kind of draftFacets.control_type){
         const input=el("input");input.type="checkbox";input.checked=step.control_type?.includes(kind)||false;
+        input.setAttribute("aria-description",controlTypeHelp[kind]);
         input.addEventListener("change",()=>{markReviewed(step,"control_type");const items=new Set(step.control_type||[]);if(input.checked)items.add(kind);else items.delete(kind);step.control_type=[...items];draftChanged();});
         const label=el("label");label.append(input,el("span","",readableTerm(kind)));controls.append(label);
       }
@@ -5478,10 +5535,12 @@
       description.append(el("strong","",`${names.get(connection.from)} → ${names.get(connection.to)}`));
       if(connection.label)description.append(el("span","",connection.label));
       const edit=el("button","text-button","Edit");
+      edit.setAttribute("aria-description", "Change the endpoints, condition or sources for this route.");
       edit.setAttribute("aria-label",`Edit connection ${index+1}`);
       edit.addEventListener("click",()=>openConnectionEditor(connection));
       row.append(description,edit);
       const remove = el("button", "remove-button", "×");
+      remove.setAttribute("aria-description", "Remove this route while keeping both steps.");
       remove.setAttribute("aria-label", `Remove connection ${index + 1}`);
       remove.addEventListener("click", () => {if(!confirm("Remove the connection from "+connection.from+" to "+connection.to+" and its citations?"))return;structuralCheckpoint();state.draft.connections.splice(index, 1); draftChanged(); renderConnections(); scheduleMap();focusAfterEditorRemoval("connection-rows",index,"add-connection");});
       row.append(remove);
@@ -5631,6 +5690,7 @@
       el("p","repair-earlier-text",repair.previous_answer),evidenceRow(repair.previous_evidence_turns,beforeJump));
     if(restore){
       const button=el("button","text-button small","Use the earlier wording");
+      button.setAttribute("aria-description", "Restore the earlier wording for this finding.");
       button.type="button";
       button.addEventListener("click",()=>restore(repair));
       earlier.append(button);
@@ -5655,6 +5715,7 @@
     state.draft.memo_summary.forEach((finding,index) => {
       const item = el("details","memo-finding");
       const summary = el("summary","memo-finding-summary");
+      summary.setAttribute("aria-description", "Open the finding to review its wording, status and cited evidence.");
       const topic = `${String(index+1).padStart(2,"0")} · ${MEMO_HEADINGS[finding.key]||finding.key}`;
       const badge = el("span",`memo-status ${finding.status}`,draftStatusLabel(finding));
       summary.append(el("span","memo-topic",topic),badge);
@@ -5663,6 +5724,7 @@
       const title = el("label","",topic);
       title.htmlFor = `memo-answer-${finding.key}`;
       const status = el("select");
+      status.setAttribute("aria-description","Record how completely the current evidence answers this topic.");
       status.setAttribute("aria-label",`Review status for ${finding.key.replaceAll("_"," ")}`);
       ["unknown","partial","captured","not_applicable"].map(value=>[value,topicStatusLabel(value)]).forEach(([value,label]) => {const option=el("option","",label);option.value=value;status.append(option);});
       status.value = finding.status;
@@ -5674,6 +5736,7 @@
       });
       const answer = el("textarea");
       answer.id = `memo-answer-${finding.key}`;
+      answer.setAttribute("aria-description","Edit the topic finding that appears in the draft.");
       answer.value = finding.answer;
       answer.rows = 3;
       answer.maxLength = 12000;
@@ -5905,6 +5968,7 @@
         const item=el("li",""),button=el("button","workflow-route-link");
         button.type="button";
         button.dataset.iconEnd="arrow-right";button.dataset.stepAction="route:"+edge.to+":"+edge.label;
+        button.setAttribute("aria-description", "Follow this route to the next step and its evidence.");
         const destination=el("span","route-destination");
         const condition=edge.label||(step.type==="decision"?"Condition not recorded":"");
         if(condition)destination.append(el("span","route-condition",condition),el("span","sr-only"," → "));

@@ -22,6 +22,19 @@
   const fileMessage = error => /interviewer|interview service|your answer is safe|failed to fetch|networkerror|load failed/i.test(message(error)) ? "Could not reach the local file service. Keep this interview open and try again." : message(error);
   const label = value => typeof value === "string" ? value : "";
 
+  const fileActionHelp = {
+    "discuss": "Bring this file’s question into the interview.",
+    "park": "Keep this file for later and set it aside for current updates.",
+    "review-now": "Review this file using the reason you supplied.",
+    "retry-review": "Try the file review again.",
+    "revisit": "Review this file again for the current interview.",
+    "use-anyway": "Include this file even though its relevance is uncertain.",
+    "restore": "Return this file to the interview’s active assets.",
+    "purge": "Permanently delete the removed file from this workspace.",
+    "source": "Read the cited excerpt from this file.",
+    "discard_failed": "Remove this failed upload attempt.",
+    "retry-action": "Try the file operation that failed again."
+  };
   class Documents {
     constructor(options) {
       if (typeof options?.requestJSON !== "function") throw new TypeError("A same-origin JSON request function is required.");
@@ -46,6 +59,7 @@
     node(tag,className,text) {const node=this.doc.createElement(tag);if(className)node.className=className;if(text!==undefined)node.textContent=String(text);return node;}
     button(text,className,fn) {const button=this.node("button",className,text);button.type="button";button.addEventListener("click",fn);return button;}
     control(button,document,action,identity="") {
+      if (fileActionHelp[action]) button.setAttribute("aria-description",fileActionHelp[action]);
       button.classList.add("document-control");button.dataset.documentControl=JSON.stringify([document.id,action,identity]);
       if(this.options.voiceActive?.()&&["review-now","retry-review","revisit"].includes(action)){
         button.title="Pauses voice while the file is reviewed. Select Continue talking when ready.";
@@ -175,11 +189,14 @@
       const formats=this.node("p","documents-assets-formats",FILE_FORMATS);
       this.usage=this.node("p","documents-assets-formats documents-usage");this.usage.id="documents-usage";this.usage.hidden=true;
       this.attachButton.setAttribute("aria-describedby","documents-usage");
+      this.attachButton.setAttribute("aria-description","Attach reference files for the interviewer to review.");
       header.append(this.attachButton,this.input,formats,this.usage);
       this.liveStatus=this.node("p","documents-live-status");this.liveStatus.setAttribute("role","status");this.liveStatus.setAttribute("aria-live","polite");this.liveStatus.setAttribute("aria-atomic","true");
       this.body=this.node("div","documents-body");this.body.setAttribute("aria-live","off");this.body.setAttribute("aria-label","Uploaded files");
       const footer=this.node("details","documents-assets-privacy");
-      footer.append(this.node("summary","",FILE_NOTICE_LEAD),this.node("p","",FILE_NOTICE),this.node("p","",EXTRACTION_LIMITS));
+      const noticeSummary=this.node("summary","",FILE_NOTICE_LEAD);
+      noticeSummary.setAttribute("aria-description","Inspect file storage, AI review and extraction limits.");
+      footer.append(noticeSummary,this.node("p","",FILE_NOTICE),this.node("p","",EXTRACTION_LIMITS));
       this.assets.replaceChildren(header,this.liveStatus,this.body,footer);
     }
     attach() {if(!this.allowed())return;this.input.click();}

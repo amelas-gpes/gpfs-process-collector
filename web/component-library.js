@@ -39,6 +39,7 @@
     search.type = "search"; search.placeholder = "Search components";
     search.setAttribute("aria-label","Search components");
     family.setAttribute("aria-label","Component family");
+    family.setAttribute("aria-description","Filter the catalog by symbol or design family.");
     const all = node("option","","All families"); all.value = ""; family.append(all);
     for (const name of [...new Set(items.map(item=>item.family))].sort()) {
       const option = node("option","",name); option.value = name; family.append(option);
@@ -76,6 +77,7 @@
         if (record.key === appliedDesign) actions.append(node("span","cl-current","Current design"));
         for (const [label,id] of choices) {
           const action = node("button","",label); action.type = "button";
+          action.setAttribute("aria-description",id ? "Apply this design to the selected step." : "Let the app choose a design for this step.");
           action.addEventListener("click",()=>{
             if (applyDesign(id) !== false) { dialog.close(); return; }
             actions.replaceChildren(node("p","","The step has changed. Close the library and select the step again."));
@@ -108,6 +110,7 @@
         const tile = node("button","cl-tile"), thumb = node("span","cl-thumb");
         tile.type = "button"; tile.dataset.key = thumb.dataset.key = record.key;
         tile.setAttribute("aria-label",record.label);
+        tile.setAttribute("aria-description",record.description);
         tile.append(thumb,node("span","cl-tile-label",record.label)); grid.append(tile);
         if (observer) observer.observe(thumb); else preview(thumb,record);
         tile.addEventListener("click",()=>display(record,true));

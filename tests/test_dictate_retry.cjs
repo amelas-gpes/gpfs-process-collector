@@ -151,7 +151,22 @@ run(async()=>{
 
   await check("the banner's controls are wired to the kept dictation before the voice session's retry",async()=>{
     const app=fs.readFileSync(path.join(__dirname,"..","web","app.js"),"utf8"),html=fs.readFileSync(path.join(__dirname,"..","web","index.html"),"utf8");
-    assert.match(html,/<button type="button" id="retry-transcription" hidden>Retry recording<\/button><button type="button" id="discard-recording" hidden>Discard recording<\/button><\/div>/);
+    const {createDocument,parse}=require("./fixtures/app_page.cjs");
+    const {document}=createDocument();
+    document.documentElement=parse(html,document);
+    const banner=document.getElementById("interview-error");
+    for(const [id,label,help] of [
+      ["retry-transcription","Retry recording","Transcribe the same recording again."],
+      ["discard-recording","Discard recording","Discard the audio for this reply."]
+    ]){
+      const button=document.getElementById(id);
+      assert.equal(button.parentElement,banner);
+      assert.equal(button.tagName,"BUTTON");
+      assert.equal(button.getAttribute("type"),"button");
+      assert.equal(button.hidden,true);
+      assert.equal(button.textContent,label);
+      assert.equal(button.getAttribute("aria-description"),help);
+    }
     assert.match(app,/\$\('retry-transcription'\)\?\.addEventListener\('click',async\(\)=>\{\s*if\(failedDictation\)\{await retryDictation\(\);return;\}/);
     assert.match(app,/\$\('discard-recording'\)\?\.addEventListener\('click',\(\)=>\{discardFailedDictation\(\);/);
     assert.match(app,/const DICTATION_RETRY_BYTES=12\*1024\*1024,DICTATION_RETRY_MS=10\*60\*1000;/,"The bounds are the voice controller's");

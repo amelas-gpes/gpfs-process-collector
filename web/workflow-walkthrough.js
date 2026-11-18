@@ -119,6 +119,7 @@
     }
     function link(label, selection, endpoint) {
       const button = el("button","ww-link",label); button.type = "button";
+      button.setAttribute("aria-description",selection.stepId ? "Inspect this connected step." : "Inspect this route and its supporting sources.");
       button.dataset.focusKey = JSON.stringify([endpoint,selection.stepId || selection.edgeKey]);
       button.addEventListener("click",() => { select(selection,true); inspector.querySelector("h4")?.focus({preventScroll:true}); });
       return button;

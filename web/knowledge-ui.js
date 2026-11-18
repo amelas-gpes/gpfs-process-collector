@@ -275,6 +275,10 @@
       }
       if(current.draft&&current.draft_stale)text("p","knowledge-status",staleDraftNotice(current),submit);
       const form=node("form","knowledge-form");const participant=field(form,"Participant describing the work","participant",""),team=field(form,"Team","team",""),department=field(form,"Department","department",""),scope=field(form,"Business scope","scope","Client, fund or jurisdiction");
+      participant.setAttribute("aria-description","Name the person whose account is being filed.");
+      team.setAttribute("aria-description","Identify the team that carries out the work.");
+      department.setAttribute("aria-description","Identify the department responsible for the process.");
+      scope.setAttribute("aria-description","Specify the client, fund or jurisdiction this account covers.");
       const fields={participant,team,department,scope},touched=new Set(),fieldHint=text("p","knowledge-muted","",form);
       for(const [key,input] of Object.entries(fields))input.addEventListener("input",()=>touched.add(key));
       let newProcess=null;if(processId && !revisionsAvailable)text("p","knowledge-status","This interview was already filed. Submitting again will file a new, separate process.",form);
@@ -296,6 +300,7 @@
       const unavailable=unavailableCitations(current);
       if(unavailable.ids.size)text("p","knowledge-status",unavailableNotice(unavailable.names),form);
       const status=text("p","knowledge-status","",form);status.setAttribute("role","status");status.hidden=true;const gate=text("p","knowledge-status","",form);gate.setAttribute("role","status");gate.hidden=true;const send=node("button","button primary","Submit process");send.type="submit";
+      send.setAttribute("aria-description","File this account in company knowledge using the details above.");
       // Shown when the server refuses the snapshot over file citations: the affected files and a way to file without them.
       const cited=node("div","knowledge-citations"),citedList=node("ul","knowledge-list");cited.hidden=true;
       cited.append(citedList,node("p","knowledge-muted","Submit without these citations files those steps and notes without that file as their source. Your interview keeps them."),button("Submit without these citations",()=>{view.omit=true;return onSubmit();}));

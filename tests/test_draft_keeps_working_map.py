@@ -136,10 +136,12 @@ class DraftFromCheckedMapTests(unittest.TestCase):
         result = self.client.draft(newer)["draft"]
         self.assertEqual([step["actor"] for step in result["steps"]], [self.draft["steps"][0]["actor"], "Supervisor"])
         self.assertEqual(result["steps"][1]["evidence_turns"], ["u4"])
-        for change in ("answer", "map", "scope", "context"):
+        for change in ("answer", "question", "map", "scope", "context"):
             other = copy.deepcopy(payload)
             if change == "answer":
                 other["turns"][1]["text"] += " Correction."
+            if change == "question":
+                other["turns"][0]["text"] = "What stops the process?"
             if change == "map":
                 other["previous_capture"]["workflow"]["steps"][0]["title"] = "Changed in a saved file"
             if change == "scope":
@@ -148,7 +150,13 @@ class DraftFromCheckedMapTests(unittest.TestCase):
                 other["context"]["process_owner"] = "Different team"
             other["workflow_checked"] = True  # A browser flag cannot certify a map.
             self.client.draft(dict(other, prepare_only=True))
-        self.assertEqual(self.schemas(), [server.DRAFT_FROM_MAP_SCHEMA] + [server.DRAFT_SCHEMA] * 4)
+        self.assertEqual(self.schemas(), [server.DRAFT_FROM_MAP_SCHEMA] + [server.DRAFT_SCHEMA] * 5)
+
+    def test_new_trailing_wrap_up_question_preserves_eligibility(self):
+        payload = self.draft_payload()
+        payload["turns"].append({"id": "wrapup", "role": "assistant", "text": "Anything else to add?"})
+        self.client.draft(dict(payload, prepare_only=True))
+        self.assertEqual(self.schemas(), [server.DRAFT_FROM_MAP_SCHEMA])
 
     def test_document_binding_normalized_legacy_browser_values_and_unchecked_ancestry(self):
         context, turns = server.validate_payload(self.account)

@@ -2964,8 +2964,12 @@ def checked_map_key(workflow, context, turns, documents, scope):
 
 
 def _map_account(turns):
-    # Assistant captions may be revised when switching between live voice and typing.
-    return [[turn["id"], turn["text"]] for turn in turns if turn["role"] == "user" and not turn.get("document_event")]
+    # The question gives a brief answer such as "yes" its meaning. Include the questions
+    # through the last answer, while allowing the interviewer to ask its next question.
+    end = len(turns)
+    while end and turns[end - 1]["role"] == "assistant":
+        end -= 1
+    return turns[:end]
 
 
 def check_draft_candidate(result):

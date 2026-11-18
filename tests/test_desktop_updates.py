@@ -87,7 +87,7 @@ class Installation:
     def __init__(self, case):
         folder = tempfile.TemporaryDirectory(prefix="update-qa-")
         case.addCleanup(folder.cleanup)
-        self.case, self.folder = case, Path(folder.name)
+        self.case, self.folder = case, Path(folder.name).resolve()
         self.remote, self.root = self.folder / "remote", self.folder / "installed"
         self.proof = self.folder / "proof.txt"
         self.signers = self.folder / "trusted" / "allowed_signers"

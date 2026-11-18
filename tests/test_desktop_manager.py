@@ -398,7 +398,7 @@ class StartupFailures(unittest.TestCase):
         for folder in (check["documents"], check["knowledge"], check["cwd"]):
             self.assertFalse(Path(folder).resolve().is_relative_to(inside), folder)
             self.assertFalse(Path(folder).exists(), "the check's scratch folder was left behind")
-        self.assertEqual(Path(check["documents"]).parent, Path(check["cwd"]) / "work")
+        self.assertEqual(Path(check["documents"]).parent.resolve(), Path(check["cwd"]).resolve() / "work")
         # The window itself gets this checkout's settings and stores, as before.
         self.assertEqual(real["key"], "synthetic-offline-fixture")
         self.assertEqual(real["port"], int(port))

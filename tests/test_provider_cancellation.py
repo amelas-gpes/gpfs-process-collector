@@ -26,6 +26,7 @@ class SlowProvider:
     def __init__(self, delay=5.0):
         self.delay, self.release, self.outcomes = delay, threading.Event(), []
         self.waiting = threading.Event()
+        self.outcome_recorded = threading.Event()
         self.prefix_bytes = 0
         owner = self
 
@@ -47,6 +48,7 @@ class SlowProvider:
                     owner.outcomes.append("answered")
                 except OSError:
                     owner.outcomes.append("client_gone")
+                owner.outcome_recorded.set()
 
         self.httpd = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
         self.worker = threading.Thread(target=self.httpd.serve_forever, kwargs={"poll_interval": 0.01}, daemon=True)
@@ -151,6 +153,7 @@ class ProviderCancellationTests(unittest.TestCase):
         thread, outcome = self.ask(cancelled=lambda: False)
         thread.join(5)
         self.assertEqual(outcome["result"]["status"], "completed")
+        self.assertTrue(self.provider.outcome_recorded.wait(3), "The provider did not record its outcome")
         self.assertEqual(self.provider.outcomes, ["answered"])
 
     def test_a_cancelled_request_is_recorded_as_cancelled(self):

@@ -1,0 +1,670 @@
+{
+ "case": "C03",
+ "process": "FA-18A",
+ "mode": "typed, five at once on one server",
+ "style": "two steps per answer",
+ "build": "fixed",
+ "participant": "script",
+ "context": {
+  "process_name": "European Bank Account Administration",
+  "process_owner": "",
+  "objective": "Document how we carry out European Bank Account Administration, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "To begin with, we confirm request, entity, and regional route. Before starting we need approved request and entity information. What we do: confirm whether the event is a new account, bank transition, mandate change, or signatory refresh; confirm legal entity and jurisdiction; identify the applicable regional review chain; record the business need and target timing. The check on it: confirm the correct entity and jurisdiction before submission. Next, we assemble the bank documentation package. Before starting we need expected activity, investor profile, economic purpose, and regulatory information. What we do: prepare the expected activity profile; prepare the investor profile using approved KYC and AML sources; document the economic purpose; include applicable regulatory thresholds and supporting records; complete bank-specific forms without changing approved facts. The check on it: confirm that all information can be traced to approved sources."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "Talk me through what happens after the bank documentation package is assembled."
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "After that, we confirm CDD, mandate, and signatory readiness. Before starting we need CDD status and information about authorized signatories. What we do: confirm the required KYC and CDD status through and the current regional schedule; prepare the bank mandate and signatory information; for a transition, refresh the mandate and signatories instead of reusing them without review; apply the callback-verification checks to new or changed payment instructions when applicable. The check on it: do not use unsupported or outdated signatory information. Then, we complete regional review and submit to bank. Before starting we need complete package and approved mandate. What we do: route the package through the applicable Administration, Fund Accounting, Controller, and Head of Jurisdiction review chain; resolve review comments; submit through the bank-approved channel; keep the submission record. The check on it: obtain the required regional approval before submission."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What confirms the account administration is complete after submission to the bank?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "Once that is done, we resolve bank queries and regulatory exceptions. Before starting we need bank query or identified regulatory issue. What we do: record the query and prepare the response from approved records; obtain regional or client approval for changed facts or additional written confirmations; if a Guernsey financial-resources or liquidity breach is identified, escalate it so the GFSC receives immediate written notice; keep the response and decision record. The check on it: do not provide a speculative response or delay a required GFSC notification. Following that, we confirm account, mandate, and Kyriba setup. Before starting we need bank confirmation of the account opening or transition. What we do: confirm the account identity and status from bank records; confirm mandate and signatories match the approved package; confirm that Treasury can see the account in Kyriba when it is in scope; update approved operational records. Do not store unredacted bank data outside authorized locations. The check on it: confirm that the bank setup matches the approved mandate and signatories."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "After you confirm the account, mandate, and Kyriba setup, what observable condition tells you the administration work is finished?"
+  },
+  {
+   "id": "t008",
+   "role": "assistant",
+   "text": "This capture still has open sections. 15 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794969723.084,
+   "turn": 0,
+   "seconds": 0.022,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794969724.628,
+   "turn": 2,
+   "seconds": 1.493,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969737.376,
+   "turn": 3,
+   "seconds": 14.24
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969746.087,
+   "turn": 3,
+   "seconds": 22.95,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 3,
+   "connections": 2
+  },
+  {
+   "kind": "question",
+   "at": 1794969748.317,
+   "turn": 4,
+   "seconds": 2.172,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969748.322,
+   "turn": 5,
+   "seconds": 2.18,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 3,
+   "connections": 2
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794969793.373,
+   "turn": 5,
+   "notes_state": "working",
+   "map_state": "queued",
+   "seconds": 47.23
+  },
+  {
+   "kind": "question",
+   "at": 1794969794.837,
+   "turn": 6,
+   "seconds": 1.413,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794969839.888,
+   "turn": 7,
+   "notes_state": "queued",
+   "map_state": "working",
+   "seconds": 46.46
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794969930.243,
+   "turn": 7,
+   "seconds": 90.287,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794970136.076,
+   "turn": 8,
+   "seconds": 205.783,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [],
+ "notes": {
+  "summary": "After submission, the team handles bank queries and regulatory issues using approved records, obtains approval for changed facts or additional confirmations, and escalates specified Guernsey breaches for immediate GFSC notice. For openings and transitions it checks bank-confirmed setup, mandate and signatories, Kyriba visibility when applicable, and operational records. Overall closure and accountability remain open.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "captured",
+    "answer": "European Bank Account Administration"
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The work administers European bank account events, including openings and transitions, and confirms account and mandate setup against approved information."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "Before work begins, an approved request and entity information are needed. The work confirms whether the event is a new account, bank transition, mandate change, or signatory refresh."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "For an account opening or transition, the participant describes bank confirmation, checks of account status and approved mandate and signatories, Treasury visibility in Kyriba when in scope, and updated operational records.\nThe overall closure condition, including for mandate changes and signatory refreshes, remains to be clarified."
+   },
+   {
+    "key": "accountable",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "At the outset, the work confirms the event type, legal entity and jurisdiction, identifies the applicable regional review chain, and records the business need and target timing. Before submission, the bank documentation package is assembled: an expected activity profile and economic purpose are prepared, an investor profile is prepared using approved KYC and AML sources, applicable regulatory thresholds and supporting records are included, and bank-specific forms are completed without changing approved facts.\nAfter assembling the package, the team confirms CDD, mandate and signatory readiness using CDD status and authorized-signatory information. It confirms required KYC and CDD status and the current regional schedule, and prepares the bank mandate and signatory information. For a transition it refreshes the mandate and signatories rather than reusing them without review; callback-verification checks apply to new or changed payment instructions when applicable.\nThe source or method used to confirm KYC and CDD status needs clarification; the participant's description is incomplete at that point.\nWith a complete package and approved mandate, the team routes the package through the applicable Administration, Fund Accounting, Controller and Head of Jurisdiction review chain, resolves review comments, submits through the bank-approved channel and keeps the submission record. Required regional approval precedes submission.\nWhen a bank query or regulatory issue arises, the team records it and prepares a response from approved records. It obtains regional or client approval for changed facts or additional written confirmations, and keeps the response and decision record.\nIf a Guernsey financial-resources or liquidity breach is identified, the team escalates it so the GFSC receives immediate written notice.\nAfter bank confirmation of an account opening or transition, the team confirms account identity and status against bank records, matches the mandate and signatories to the approved package, checks Treasury can see the account in Kyriba when in scope, and updates approved operational records."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "Before submission, confirm the correct entity and jurisdiction. For the documentation package, confirm that all information can be traced to approved sources.\nThe team does not use unsupported or outdated signatory information. It applies callback-verification checks to new or changed payment instructions when applicable, resolves review comments and obtains required regional approval before bank submission.\nResponses must not be speculative, and required GFSC notification must not be delayed. Bank setup is checked against the approved mandate and signatories."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "Other differences between event types and regional review chains, including steps, checks, timing and outputs, remain to be established.\nFor a bank transition, the team refreshes the mandate and signatories instead of reusing them without review.\nAn identified Guernsey financial-resources or liquidity breach follows an escalation route for immediate written notice to the GFSC."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "The participant identifies speculative responses, delayed required GFSC notification, mismatched bank setup and unredacted data stored outside authorized locations as things to avoid."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The bank documentation package includes an expected activity profile, an investor profile prepared using approved KYC and AML sources, documented economic purpose, applicable regulatory thresholds and supporting records, and completed bank-specific forms.\nThe work uses the current regional schedule and prepares bank mandate and signatory information; the team keeps a record of the bank submission.\nThe team keeps query responses and decision records, uses bank records to confirm account identity and status, compares setup with the approved package, and updates approved operational records. Their locations are not specified."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The described work concerns European bank account administration and considers legal entity, jurisdiction and the applicable regional review chain.\nThe full set of entities and regions covered remains to be established; a Guernsey-specific exception is reported."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The investor profile uses approved KYC and AML sources; package information must be traceable to approved sources, and bank-specific forms are completed without changing approved facts.\nThe source hierarchy and how conflicts between sources are resolved remain to be established.\nA complete package and approved mandate are needed for regional review and bank submission, and required regional approval must be obtained before submission. Unsupported or outdated signatory information must not be used.\nChanged facts or additional written confirmations require regional or client approval. A Guernsey financial-resources or liquidity breach is escalated for immediate written notice to the GFSC; unredacted bank data must not be stored outside authorized locations."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The team submits the reviewed package to the bank through a bank-approved channel after obtaining required regional approval.\nThe team uses bank confirmation and bank records for account opening or transition setup checks. For changed facts or additional written confirmations, it obtains regional or client approval.\nFor an identified Guernsey financial-resources or liquidity breach, the team escalates so the GFSC receives immediate written notice.\nRequires approval from Regional or client approver: Approval is obtained for changed facts or additional written confirmations; the applicable choice is unspecified."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "Approved KYC and AML sources are used to prepare the investor profile, and package information is checked for traceability to approved sources.\nOther systems, authorized storage locations and entry methods remain to be established; Kyriba is used for Treasury account visibility when in scope.\nThe team checks Treasury visibility of the account in Kyriba when in scope and must not store unredacted bank data outside authorized locations."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": ""
+   }
+  ]
+ },
+ "map": {
+  "title": "European Bank Account Administration",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Confirm request, entity, and regional route",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "With an approved request and entity information, confirm the event type, legal entity, jurisdiction and regional review chain. Record the business need and target timing, and confirm the correct entity and jurisdiction before submission."
+   },
+   {
+    "id": "S2",
+    "type": "document",
+    "title": "Assemble bank documentation package",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Prepare the expected activity profile; prepare the investor profile using approved KYC and AML sources; document the economic purpose; include applicable regulatory thresholds and supporting records; complete bank-specific forms without changing approved facts."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Check package source traceability",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Confirm that all package information can be traced to approved sources."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Confirm CDD and signatory readiness",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Confirm required KYC and CDD status and prepare mandate and signatory information. For a transition, refresh the mandate and signatories; apply callback verification to new or changed payment instructions when applicable."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Complete regional review",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Route the package through the applicable Administration, Fund Accounting, Controller and Head of Jurisdiction review chain and resolve review comments."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Obtain regional approval",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Obtain the required regional approval before submission."
+   },
+   {
+    "id": "S7",
+    "type": "document",
+    "title": "Submit package to bank",
+    "actor": "UNKNOWN",
+    "system": "Bank-approved channel; specific system UNKNOWN",
+    "description": "Submit through the bank-approved channel and keep the submission record."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Resolve queries and regulatory issues",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "For a bank query or identified regulatory issue, record the query and prepare a response from approved records. Keep the response and decision record; do not provide a speculative response."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Obtain approval for changed facts",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Obtain regional or client approval for changed facts or additional written confirmations."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Escalate Guernsey resources breach",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "If a Guernsey financial-resources or liquidity breach is identified, escalate it so the GFSC receives immediate written notice. Do not delay the required notification."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Confirm account and mandate setup",
+    "actor": "UNKNOWN",
+    "system": "Kyriba, when in scope; operational record locations UNKNOWN",
+    "description": "Confirm account identity and status from bank records and match the mandate and signatories to the approved package. Confirm Treasury can see the account in Kyriba when in scope, and update approved operational records."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": ""
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": "Complete package and approved mandate available"
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": ""
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Required regional approval obtained"
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": "Bank query or identified regulatory issue"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "Changed facts or additional written confirmations"
+   },
+   {
+    "from": "S8",
+    "to": "S10",
+    "label": "Guernsey financial-resources or liquidity breach identified"
+   },
+   {
+    "from": "S8",
+    "to": "S11",
+    "label": "Issues resolved, including required approvals and notification, AND bank confirmation received"
+   }
+  ],
+  "open_questions": [
+   "What initiates the work, who receives it, and how are the approved request and entity information produced?",
+   "Who performs each action and who is accountable for the overall result?",
+   "What is the observable finish, who uses the updated records next, and is there further closure work?",
+   "How do approval and Guernsey escalation handling return to issue resolution, and what happens if approval is rejected or delayed?",
+   "How does setup confirmation proceed when there is no bank query or identified regulatory issue?",
+   "Who performs each review and check, what does each reviewer check, and what happens when a check fails?",
+   "What proof of reviews, approvals, callbacks and decisions is retained, where, and by whom?",
+   "How do event type, jurisdiction, entity type or client requirements change the route, reviews or work? What is the basis for any general GPFS practice?",
+   "Where do package inputs and regulatory thresholds come from, and who interprets applicable rules or resolves conflicts?",
+   "What does the reference to confirming KYC and CDD status through the current regional schedule mean in practice?",
+   "Which systems and locations are used, what is the authoritative record, and how is information entered?",
+   "When is Kyriba in scope, and who confirms Treasury visibility?",
+   "What deadlines, volumes, exception frequencies, risks and practical pain points apply?",
+   "What existing procedures or templates are available, and how does this work fit into a broader process?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "Current-practice draft: European Bank Account Administration",
+  "overview": "The participant describes confirming a request and regional route, assembling and reviewing bank documentation, submitting it, handling bank queries or regulatory issues, and confirming setup after bank confirmation. The initiating event, performers, overall accountable role and final completion condition remain UNKNOWN. This draft requires participant and process-owner review.",
+  "trigger": "UNKNOWN. An approved request and entity information are needed before the first reported action.",
+  "inputs": [
+   "Approved request and entity information",
+   "Expected activity, investor profile, economic purpose and regulatory information",
+   "CDD status and authorized-signatory information",
+   "Complete package and approved mandate",
+   "Bank query or identified regulatory issue, where applicable",
+   "Bank confirmation of account opening or transition"
+  ],
+  "outputs": [
+   "Bank documentation package and submission record",
+   "Query response and decision record, where applicable",
+   "Confirmed account and mandate setup and updated operational records"
+  ],
+  "exceptions": [
+   "Review comments are resolved; the correction and re-review mechanics are UNKNOWN.",
+   "Changed facts or additional written confirmations require regional or client approval; rejection, delay and return route are UNKNOWN.",
+   "An identified Guernsey financial-resources or liquidity breach is escalated so the GFSC receives immediate written notice; subsequent handling is UNKNOWN."
+  ],
+  "controls": [
+   "Confirm the correct entity and jurisdiction before submission.",
+   "Confirm package information can be traced to approved sources and do not change approved facts in bank forms.",
+   "Do not use unsupported or outdated signatory information; apply callback verification to applicable new or changed payment instructions.",
+   "Obtain required regional approval before bank submission.",
+   "Do not provide speculative responses or delay required GFSC notification.",
+   "Confirm bank setup matches the approved mandate and signatories; do not store unredacted bank data outside authorized locations."
+  ],
+  "validation_notes": [
+   "AI-generated current-practice draft pending participant confirmation and appropriate process-owner review. The participant's role and interview date are UNKNOWN.",
+   "S5 is a known approval activity with no evidenced incoming handoff. Its relationship and order relative to S4 are UNKNOWN; both regional review and required approval precede submission. The two dependency edges do not assert their order, concurrent execution or a coordination mechanism.",
+   "The account places setup confirmation following query and exception handling and requires bank confirmation. It does not establish the exits from approval or escalation, or the route when no issue arises. Those paths remain open.",
+   "The participant reports checks and an immediate GFSC notice requirement. No supporting documents were supplied or independently reviewed; operation and legal authority are not independently verified.",
+   "The account does not establish an approved GPFS standard or a complete process finish. Package preparation and its traceability check remain combined without implying the check was independently verified.",
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Confirm request and regional route",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Confirm whether the event is a new account, bank transition, mandate change or signatory refresh; confirm the legal entity and jurisdiction; identify the applicable regional review chain; and record the business need and target timing. Confirm the correct entity and jurisdiction before submission."
+   },
+   {
+    "id": "S2",
+    "type": "document",
+    "title": "Assemble bank documentation package",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Prepare the expected activity profile and the investor profile using approved KYC and AML sources. Document the economic purpose, include applicable regulatory thresholds and supporting records, and complete bank-specific forms without changing approved facts. Confirm that all information can be traced to approved sources."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Confirm CDD and mandate readiness",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Confirm required KYC and CDD status; the participant's reference to doing so 'through and the current regional schedule' needs clarification. Prepare the bank mandate and signatory information. For a transition, refresh the mandate and signatories instead of reusing them without review. Apply callback-verification checks to new or changed payment instructions when applicable. Do not use unsupported or outdated signatory information."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Complete regional review",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Route the complete package and approved mandate through the applicable Administration, Fund Accounting, Controller and Head of Jurisdiction review chain, and resolve review comments. Which reviewers apply, their order, individual checks and the relationship between review and approval are UNKNOWN."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Obtain regional approval",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Obtain the required regional approval before bank submission. The approver, how the approval is obtained, and its ordering relative to resolving review comments are UNKNOWN."
+   },
+   {
+    "id": "S6",
+    "type": "document",
+    "title": "Submit package to bank",
+    "actor": "UNKNOWN",
+    "system": "Bank-approved channel; specific system UNKNOWN",
+    "description": "Submit through the bank-approved channel after regional review and the required regional approval, and keep the submission record. Its location is UNKNOWN."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Handle queries and regulatory issues",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "When there is a bank query or identified regulatory issue, record the query and prepare the response from approved records. Keep the response and decision record. Do not provide a speculative response. Changed facts or additional written confirmations require regional or client approval; an identified Guernsey financial-resources or liquidity breach is escalated for immediate written notice to the GFSC."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Obtain changed-facts approval",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Obtain regional or client approval for changed facts or additional written confirmations. The choice of approver, approval record and rejection or delay handling are UNKNOWN."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Escalate Guernsey breach",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "If a Guernsey financial-resources or liquidity breach is identified, escalate it so the GFSC receives immediate written notice. Do not delay the required notification. The sender and escalation mechanism are UNKNOWN."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Confirm account and mandate setup",
+    "actor": "UNKNOWN",
+    "system": "Kyriba when in scope; operational record locations UNKNOWN",
+    "description": "With bank confirmation of account opening or transition, confirm account identity and status from bank records and check that the mandate and signatories match the approved package. Confirm Treasury can see the account in Kyriba when in scope, and update approved operational records. Do not store unredacted bank data outside authorized locations."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "Next"
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": "After package assembly"
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "Complete package and approved mandate available"
+   },
+   {
+    "from": "S4",
+    "to": "S6",
+    "label": "Regional review complete AND required regional approval obtained"
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": "Regional review complete AND required regional approval obtained"
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Bank query or identified regulatory issue"
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": "Changed facts or additional written confirmations"
+   },
+   {
+    "from": "S7",
+    "to": "S9",
+    "label": "Guernsey financial-resources or liquidity breach identified"
+   },
+   {
+    "from": "S7",
+    "to": "S10",
+    "label": "Following query and exception handling; bank confirmation available"
+   }
+  ],
+  "open_questions": [
+   "What event initiates the work, who receives it, and how are the approved request and entity information produced?",
+   "Who performs each material action, and who is accountable for the overall result?",
+   "What observable condition finishes the work, and who uses the updated records next?",
+   "How are regional review and approval coordinated, when is approval obtained relative to resolving comments, and how is the approved mandate obtained?",
+   "How do changed-facts approval and Guernsey escalation return to query or exception handling, and what happens if approval is rejected or delayed?",
+   "How does setup confirmation proceed if there is no bank query or identified regulatory issue, and how do mandate changes and signatory refreshes reach their finish?",
+   "What does each applicable reviewer check, and what happens when checks fail?",
+   "What evidence of review, approval, callbacks and decisions is retained, where and by whom?",
+   "What does the reference to confirming KYC and CDD status 'through and the current regional schedule' mean in practice?",
+   "Which event types, jurisdictions, entities or clients change the route, and is any route general GPFS practice? What is the basis?",
+   "Where do package inputs and regulatory thresholds originate, who interprets rules, and how are conflicts resolved?",
+   "Which systems and locations are used, what are the authoritative records, and how is information entered?",
+   "When is Kyriba in scope, and who confirms Treasury visibility?",
+   "What cadence, deadlines, volumes, exception frequencies, risks and practical pain points apply?",
+   "What procedures or templates exist, and how does this work fit into a broader process?",
+   "Does any incoming route start S6 (Submit package to bank), or must all prerequisites finish?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "The intake calls this European Bank Account Administration. The reported work includes request confirmation, bank documentation, regional review, submission, issue handling and setup confirmation. Other names and exact boundaries are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The work prepares and submits bank documentation and confirms account, mandate and, where in scope, Kyriba setup. The ultimate delivered result and recipient are UNKNOWN."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "An approved request and entity information precede confirmation of a new account, transition, mandate change or signatory refresh. The initiating event, receiver, cadence and ordinary deadlines are UNKNOWN. The participant reports immediate written GFSC notice for an identified Guernsey financial-resources or liquidity breach."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "After bank confirmation of opening or transition, account identity and status and the mandate and signatories are checked, Treasury visibility in Kyriba is confirmed when in scope, and operational records are updated. Whether this finishes the process, the finish for other event types and the downstream consumer are UNKNOWN."
+   },
+   {
+    "key": "accountable",
+    "status": "unknown",
+    "answer": "UNKNOWN. Overall accountability and the performers of individual actions were not identified."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The participant describes confirming the request and regional route; assembling a source-traceable package; confirming CDD, mandate and signatory readiness; regional review and required approval; bank submission; handling queries or issues; and confirming setup after bank confirmation. Transitions refresh mandates and signatories. Conditional approvals and Guernsey escalation are reported, but their returns, performers, locations and the no-query route are UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "Reported checks include entity and jurisdiction, source traceability, current signatory information, applicable callbacks, regional approval before submission and matching bank setup to the approved mandate. The applicable review chain includes Administration, Fund Accounting, Controller and Head of Jurisdiction; comments are resolved. Individual review checks, proof, failure handling, segregation, enforcement and approval authority are UNKNOWN."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "For a transition, mandates and signatories are refreshed rather than reused without review. Callback checks apply to new or changed payment instructions when applicable; Treasury visibility in Kyriba is confirmed when in scope. A Guernsey financial-resources or liquidity breach is escalated for immediate written GFSC notice. Further applicability criteria, boundaries, effort, charging and removal constraints are UNKNOWN."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": "UNKNOWN. No practical friction or effort estimate was reported."
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "The participant identifies speculative responses, outdated or unsupported signatory information, delayed GFSC notice and storage of unredacted bank data outside authorized locations as things to avoid. Concrete consequences were not described."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The participant mentions bank-specific forms, approved KYC and AML sources, a regional schedule, bank records and approved operational records. Their locations and availability are UNKNOWN; no documents were supplied or reviewed."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The intake names European Bank Account Administration. The participant includes new accounts, transitions, mandate changes and signatory refreshes, with a specific Guernsey escalation. Entity types, client applicability, parent process and basis for any GPFS-wide standard are UNKNOWN."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The participant reports approved sources, a regional schedule, applicable regulatory thresholds and regional approval, plus immediate GFSC notice for an identified Guernsey breach. The governing sources, interpreter, conflict authority and implementation details are UNKNOWN. No written rule was reviewed."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "Approved request and entity information, approved KYC and AML sources, CDD status and bank confirmation are inputs. The bank receives the submission; Treasury visibility in Kyriba is checked when in scope. Named upstream processes, subsequent consumers and handoff mechanics are UNKNOWN."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The participant mentions approved sources, bank records, submission and decision records, approved operational records and Kyriba when in scope. Specific storage, authoritative records, entry modes and calculation locations are UNKNOWN. The participant says not to store unredacted bank data outside authorized locations."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": "UNKNOWN. Counts, peaks, exception frequency and effort were not reported."
+   }
+  ]
+ },
+ "draft_error": null
+}

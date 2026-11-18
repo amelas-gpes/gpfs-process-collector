@@ -1,0 +1,1268 @@
+{
+ "case": "F11",
+ "process": "MC-04",
+ "mode": "file",
+ "style": "procedure PDF, then a correction that contradicts it",
+ "build": "fixed",
+ "participant": "script",
+ "context": {
+  "process_name": "Monitoring Fee Billing & Revenue Recognition",
+  "process_owner": "",
+  "objective": "Document how we carry out Monitoring Fee Billing & Revenue Recognition, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "assistant",
+   "text": "Thanks for sharing. Give me a moment to digest the file. Then I’ll follow up with a question.",
+   "document_event": true
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "The procedure describes a quarterly schedule review about 30 days before quarter end, followed by invoice drafting and client confirmation. Is that the process you carry out today?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "Yes, that file is our written procedure and most of it is still right."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "You mentioned that most of the procedure is still right; which parts, if any, no longer match how the work is done today?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "One correction to the file: step 2, draft and internally review invoices, is no longer done the way the file says. Since this quarter the team lead does that step herself in a shared tracker and emails me when it is finished, so I only start my part after her email arrives. Everything else in the file is current."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "What does the team lead check in the shared tracker before emailing you that the step is finished?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "After that, we obtain client approval and send invoices. That is done by: One Rock fund team or client approves; the GPFS preparer sends the. We use Sage drafts and email or another approved delivery channel for it. The check on it: the invoices sent and their amounts must match the approved drafts."
+  },
+  {
+   "id": "t009",
+   "role": "user",
+   "text": "Then, we post invoices and recognize revenue. That is done by: GPFS preparer and reviewer. We use Sage and the central schedule for it. The check on it: the posted invoices and accounting entry must match the approved list and posting date."
+  },
+  {
+   "id": "t010",
+   "role": "assistant",
+   "text": "Who is accountable for the overall monitoring-fee billing and revenue-recognition process?"
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "This capture still has open sections. 15 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794969259.131,
+   "turn": 0,
+   "seconds": 0.049,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.session",
+   "at": 1794969259.235,
+   "turn": 1,
+   "seconds": 0.024,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.upload",
+   "at": 1794969259.24,
+   "turn": 1,
+   "seconds": 0.006,
+   "status": 202,
+   "retries": 0,
+   "file": "U8 MC-04 Monitoring Fee Billing & Revenue Recognition.pdf",
+   "bytes": 234388
+  },
+  {
+   "kind": "doc.extracted",
+   "at": 1794969259.756,
+   "turn": 1,
+   "seconds": 0.55,
+   "file": "U8 MC-04 Monitoring Fee Billing & Revenue Recognition.pdf",
+   "chunks": 5,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 5,
+    "total_units": 5,
+    "text_indexed_units": 5,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_started",
+   "at": 1794969259.756,
+   "turn": 1,
+   "seconds": 0.55,
+   "file": "U8 MC-04 Monitoring Fee Billing & Revenue Recognition.pdf",
+   "chunks": 5,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 5,
+    "total_units": 5,
+    "text_indexed_units": 5,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_deep",
+   "at": 1794969264.351,
+   "turn": 1,
+   "seconds": 5.14,
+   "file": "U8 MC-04 Monitoring Fee Billing & Revenue Recognition.pdf",
+   "chunks": 5,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 5,
+    "total_units": 5,
+    "text_indexed_units": 5,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_complete",
+   "at": 1794969264.351,
+   "turn": 1,
+   "seconds": 5.14,
+   "file": "U8 MC-04 Monitoring Fee Billing & Revenue Recognition.pdf",
+   "chunks": 5,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 5,
+    "total_units": 5,
+    "text_indexed_units": 5,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.followup_question",
+   "at": 1794969265.777,
+   "turn": 2,
+   "seconds": 1.425,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.first_question",
+   "at": 1794969265.777,
+   "turn": 3,
+   "seconds": 6.57,
+   "reading": {
+    "omitted_documents": 0,
+    "documents": [
+     {
+      "id": "doc_5390499f96bc60d01c9b7ceb",
+      "included_chunks": 5,
+      "total_chunks": 5
+     }
+    ]
+   }
+  },
+  {
+   "kind": "doc.left_pending",
+   "at": 1794969295.869,
+   "turn": 3,
+   "notes_state": "working",
+   "map_state": "working",
+   "seconds": 31.52
+  },
+  {
+   "kind": "question",
+   "at": 1794969297.642,
+   "turn": 4,
+   "seconds": 1.721,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794969342.649,
+   "turn": 5,
+   "notes_state": "working",
+   "map_state": "queued",
+   "seconds": 46.73
+  },
+  {
+   "kind": "question",
+   "at": 1794969345.81,
+   "turn": 6,
+   "seconds": 3.102,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794969390.882,
+   "turn": 7,
+   "notes_state": "queued",
+   "map_state": "working",
+   "seconds": 48.17
+  },
+  {
+   "kind": "question",
+   "at": 1794969397.314,
+   "turn": 8,
+   "seconds": 6.381,
+   "status": 502,
+   "retries": 0,
+   "error": "The model's response was longer than this step allows and was cut off before it finished. Your session is retained. Trying again unchanged may end the same way."
+  },
+  {
+   "kind": "question",
+   "at": 1794969400.982,
+   "turn": 9,
+   "seconds": 3.608,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969423.63,
+   "turn": 10,
+   "seconds": 26.26,
+   "audited": false,
+   "answers_behind": 2,
+   "through": "t006",
+   "steps": 28,
+   "connections": 25
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794969446.252,
+   "turn": 10,
+   "notes_state": "working",
+   "map_state": "working",
+   "seconds": 48.88
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794969457.949,
+   "turn": 10,
+   "seconds": 11.628,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "working",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.map_ready",
+   "at": 1794969461.074,
+   "turn": 11,
+   "seconds": 14.75,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 28,
+   "connections": 25
+  },
+  {
+   "kind": "draft",
+   "at": 1794969892.492,
+   "turn": 11,
+   "seconds": 431.354,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [
+  {
+   "name": "U8 MC-04 Monitoring Fee Billing & Revenue Recognition.pdf",
+   "kind": "pdf",
+   "size": 234388,
+   "status": "ready",
+   "chunk_count": 5,
+   "coverage": {
+    "indexed_units": 5,
+    "total_units": 5,
+    "text_indexed_units": 5,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  }
+ ],
+ "notes": {
+  "summary": "The participant says all of the written procedure remains current except step 2: since this quarter the team lead handles draft and internal review in a shared tracker and emails the participant before their part begins. The participant also described approval, invoice delivery and posting checks; the lead's tracker checks remain unclear.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "captured",
+    "answer": "The work is called Monitoring Fee Billing & Revenue Recognition; the procedure identifies it as MC-04."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The procedure describes billing portfolio companies for monitoring fees and recording the related receivable and revenue."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The procedure schedules the review approximately 30 days before quarter end, invoice delivery typically around the 15th before quarter end, and posting on the first business day of the quarter.\nThe event or person initiating the schedule review, and whether the stated dates are fixed deadlines, are not established."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "Documented outputs include approved invoices sent, posted receivables and revenue, cleared prepayments, a posted reconciled offset, a fund-team report and an up-to-date receivable-exceptions log.\nThe overall cycle's final closure condition and treatment of outstanding receivables remain to be confirmed."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The role accountable for the overall result is not identified; the procedure names preparers and reviewers but does not establish overall accountability."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The procedure says the GPFS management company preparer reviews each company, contact, fee and fund using the current schedule, agreements and investment or exit information. The preparer confirms changes and billing status with the One Rock fund team, checks agreement coverage and separately records outside-Sage invoices and client holds, producing a client-confirmed billing list.\nSince this quarter the team lead handles draft and internal invoice review herself in a shared tracker and emails the participant when finished; the participant starts their part after that email. For the next step, the procedure says drafts go to the One Rock fund team for approval, changes are resolved in the schedule and drafts, and the preparer sends approved invoices to portfolio companies and retains approval and delivery evidence.\nThe procedure directs the GPFS preparer and reviewer to post approved Sage invoices on the approved date, normally recording Dr 1100 / Cr 4005, and compare posted totals with the approved schedule, resolving differences.\nFor verified cash received before posting, the documented route identifies the future invoice, records Dr Cash / Cr 2100 on receipt and Dr 2100 / Cr 4005 on the invoice date, then records and closes or applies the prepayment to the invoice. Cash, invoice status and accounts 1100, 2100 and 4005 are compared to prevent duplicate receivable or revenue. Unidentified cash or payments after the invoice date follow normal receivable and cash-application rules.\nAt month-end close the documented GPFS preparer and reviewer compare account 4005 activity to support, enter fees into the offset spreadsheet, check ownership and LP percentages and fund factors against current management-fee workpapers, apply the approved formula and factor by fund and portfolio company, and post Dr 4015 / Cr 2205. The procedure requires reconciling the accrual against the list of fees and revenue and resolving differences.\nThe procedure has the GPFS management company preparer provide the Monitoring Fees Received Report to the fund team at least twice quarterly, communicate investment and fee changes, maintain classifications, review aging with One Rock, document collection, hold and write-off decisions, and track manual invoices on the central schedule.\nThe written procedure says the outside-Sage invoice preparation procedure is undocumented and work must not proceed without an approved manual procedure. The exact Sage steps to apply or close a prepayment also need confirmation.\nThe participant says One Rock fund team or client approves, and the GPFS preparer sends the invoices using Sage drafts and email or another approved delivery channel."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The procedure prohibits drafting from unsupported or outdated schedule lines and directs unclear agreement coverage or status to the client and accounting owner. Sent invoices and amounts must match approved drafts, and client hold instructions must be documented before sending or posting.\nThe procedure requires posted invoices and entries to match the approved list and posting date; report, revenue, offset and aging lists and totals must agree. Write-off requires specific client instruction and an approved accounting entry.\nWhat the team lead checks in the shared tracker before emailing that step 2 is finished remains unclear.\nThe participant says the posted invoices and accounting entry must match the approved list and posting date; the GPFS preparer and reviewer perform posting and revenue recognition."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "The procedure describes different handling for genuine pre-invoice cash, client-directed delayed revenue, and manual invoices outside Sage; these are conditional routes rather than evidence of a general client variant."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The written procedure references a central monitoring-fee schedule, supporting agreements, Sage invoice drafts, client approvals and sent records, cash records, an offset spreadsheet, management-fee workpapers, the Monitoring Fees Received Report and Sage aging report. A broken, draft, incomplete or unapproved client workbook or example is not an official source under the procedure.\nThe team lead uses a shared tracker for the changed draft and internal review step and emails the participant when it is finished."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The participant identifies the file as the team's written procedure and says everything except the changed step 2 is current.\nThe participant says step 2 changed this quarter and everything else in the file is current.\nThe documented route involves GPFS management company staff, One Rock, portfolio companies and associated funds.\nWhether the One Rock route reflects a general GPFS standard remains unclear."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The procedure states that current approved policy recognizes the full normal invoice amount as revenue on the invoice date, not over three months; a client instruction to delay revenue requires specifically approved accounting treatment.\nThe procedure requires quarterly review of offset percentages and factors against the LPA and another comparison source whose binding is unclear in the extraction; the entry must match recognized revenue. It prohibits use of the formula or factor table until the owner, approved version, LPA basis and sign convention are confirmed.\nThe approved offset formula, factor-table owner and version, LPA basis and sign convention need confirmation; one required reconciliation and comparison source is unclear in the extracted procedure."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The documented offset calculation consumes current management-fee workpapers for ownership, LP percentages and fund factors.\nThe documented process sends draft invoices to the One Rock fund team or client for approval and provides the Monitoring Fees Received Report to the fund team.\nThe exact relationship to MC-05 is unclear in the extracted procedure."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The procedure uses Sage for drafts, posting and aging; an offset spreadsheet for the accrual calculation; a central schedule for billing and manual-invoice tracking; and email or another approved channel for delivery.\nStep 2 is now handled in a shared tracker; the participant says Sage and the central schedule are used to post invoices and recognize revenue."
+   },
+   {
+    "key": "volume",
+    "status": "partial",
+    "answer": "The procedure specifies a Monitoring Fees Received Report to the fund team at least twice per quarter.\nTransaction counts and effort remain unestablished."
+   }
+  ]
+ },
+ "map": {
+  "title": "Monitoring Fee Billing & Revenue Recognition",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Review monitoring-fee schedule",
+    "actor": "GPFS management company preparer",
+    "system": "Central schedule and supporting agreements",
+    "description": "The procedure calls for reviewing portfolio companies, contacts, fees and associated funds; confirming changes and billing status with One Rock; checking agreement coverage; and separately recording manual invoices and client holds. Unsupported or outdated lines must not be used for invoices."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Resolve unclear coverage or status",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The procedure says to ask the client and accounting owner to resolve unclear agreement coverage or status. The subsequent handoff is not specified."
+   },
+   {
+    "id": "S3",
+    "type": "wait",
+    "title": "Wait for manual invoice procedure",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The procedure says not to proceed with an outside-Sage invoice until an approved manual procedure is available; that procedure is not documented in this file."
+   },
+   {
+    "id": "S4",
+    "type": "document",
+    "title": "Draft monitoring-fee invoices",
+    "actor": "Team lead",
+    "system": "Shared tracker",
+    "description": "Since this quarter, the team lead drafts invoices as part of the shared-tracker step. The former written drafting method and checks require confirmation."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Review draft invoices",
+    "actor": "Team lead",
+    "system": "Shared tracker",
+    "description": "Since this quarter, the team lead also performs the internal review in the shared tracker. Which checks, comment-resolution requirements and records from the former procedure still apply is UNKNOWN."
+   },
+   {
+    "id": "S6",
+    "type": "document",
+    "title": "Send drafts for approval",
+    "actor": "UNKNOWN",
+    "system": "Sage drafts and email or another approved delivery channel",
+    "description": "Send reviewed drafts to the One Rock fund team for approval."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Approve draft invoices",
+    "actor": "One Rock fund team or client",
+    "system": "UNKNOWN",
+    "description": "The client or fund team approves the drafts; client changes are resolved and the schedule and drafts updated."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Resolve client changes",
+    "actor": "UNKNOWN",
+    "system": "Schedule and drafts",
+    "description": "Resolve client changes and update the schedule and drafts. The procedure does not specify the resubmission route."
+   },
+   {
+    "id": "S9",
+    "type": "document",
+    "title": "Send approved invoices",
+    "actor": "GPFS preparer",
+    "system": "Sage drafts and email or another approved delivery channel",
+    "description": "Send approved invoices to portfolio companies and retain the client approval and evidence of sending. Sent invoices and amounts must match approved drafts; the procedure says to document client holds before sending or posting."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Post invoices and recognize revenue",
+    "actor": "GPFS preparer and reviewer",
+    "system": "Sage and central schedule",
+    "description": "Post approved invoices on the approved date, normally the first business day of the quarter. The procedure calls for recording receivable and full invoice-date revenue rather than spreading revenue over three months, and resolving differences against the approved schedule."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Obtain delayed-revenue treatment",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "If the client instructs issuance with delayed revenue, obtain specific approved accounting treatment rather than assuming the normal entry applies."
+   },
+   {
+    "id": "S12",
+    "type": "decision",
+    "title": "Classify received cash",
+    "actor": "GPFS preparer and reviewer",
+    "system": "Cash records, Sage and invoice schedule",
+    "description": "Is the receipt a genuine monitoring-fee prepayment before the invoice is posted? Identify its future invoice; unidentified cash or payments received after the invoice date follow normal receivables and cash-application rules."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Record prepayment receipt",
+    "actor": "GPFS preparer and reviewer",
+    "system": "Sage and cash records",
+    "description": "On receipt, debit cash and credit the prepayment liability."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Recognize prepaid revenue",
+    "actor": "GPFS preparer and reviewer",
+    "system": "Sage",
+    "description": "On the invoice date, debit the prepayment liability and credit revenue for the prepaid amount."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Record and apply prepayment",
+    "actor": "GPFS preparer and reviewer",
+    "system": "Sage",
+    "description": "Record the invoice and close it or apply the prepayment using the approved workflow. The exact Sage steps require confirmation by the process owner or an appropriate expert."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Reconcile prepayment accounting",
+    "actor": "GPFS preparer and reviewer",
+    "system": "Cash records, Sage and invoice schedule",
+    "description": "Compare cash, invoice status and the receivable, prepayment and revenue accounts; resolve differences and confirm no duplicate receivable or revenue remains."
+   },
+   {
+    "id": "S17",
+    "type": "subprocess",
+    "title": "Apply normal cash rules",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "For unidentified cash or payments received after the invoice date, follow normal accounts-receivable and cash-application rules instead of defaulting to the prepayment account."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Check revenue for offset",
+    "actor": "GPFS preparer and reviewer",
+    "system": "Sage and supporting records",
+    "description": "During month-end close, compare monitoring-fee revenue activity with supporting records and resolve differences."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Prepare offset inputs",
+    "actor": "GPFS preparer and reviewer",
+    "system": "Offset spreadsheet and management-fee workpapers",
+    "description": "Enter fees in the spreadsheet and obtain and check ownership and limited-partner percentages and fund factors from current management-fee workpapers. The procedure requires quarterly review against the LPA and another source whose name is absent from the supplied text."
+   },
+   {
+    "id": "S20",
+    "type": "decision",
+    "title": "Are offset rules confirmed?",
+    "actor": "UNKNOWN",
+    "system": "Offset spreadsheet and factor table",
+    "description": "The procedure prohibits use of the formula or factor table until its owner, approved version, LPA basis and sign convention are confirmed."
+   },
+   {
+    "id": "S21",
+    "type": "wait",
+    "title": "Wait for offset confirmations",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Do not use the formula or factor table while the required confirmations are outstanding."
+   },
+   {
+    "id": "S22",
+    "type": "activity",
+    "title": "Calculate offset accrual",
+    "actor": "GPFS preparer and reviewer",
+    "system": "Offset spreadsheet",
+    "description": "Apply the approved formula and factor for each fund and portfolio company."
+   },
+   {
+    "id": "S23",
+    "type": "activity",
+    "title": "Post and reconcile offset",
+    "actor": "GPFS preparer and reviewer",
+    "system": "Sage, offset spreadsheet and management-fee workpapers",
+    "description": "Post the offset accrual and compare it with fees and revenue, resolving differences. The procedure also names another comparison source, but its name is absent from the supplied text."
+   },
+   {
+    "id": "S24",
+    "type": "document",
+    "title": "Provide monitoring-fee report",
+    "actor": "GPFS management company preparer",
+    "system": "Monitoring Fees Received Report, Sage aging report, central schedule and email",
+    "description": "Provide the Monitoring Fees Received Report to the fund team at least twice per quarter and communicate new investments, exits and fee changes. The procedure says the fund team and One Rock review step 7 and requires the report, revenue, offset and aging lists and totals to agree."
+   },
+   {
+    "id": "S25",
+    "type": "data_store",
+    "title": "Maintain invoice classifications",
+    "actor": "GPFS management company preparer",
+    "system": "UNKNOWN",
+    "description": "Maintain portfolio-company fund subtype and invoice-reference classification."
+   },
+   {
+    "id": "S26",
+    "type": "activity",
+    "title": "Review receivables aging",
+    "actor": "GPFS management company preparer and One Rock",
+    "system": "Sage accounts-receivable aging report, central schedule and email",
+    "description": "Review aging with One Rock and document collection, hold and write-off decisions. The procedure prohibits write-off without specific client instruction and an approved accounting entry."
+   },
+   {
+    "id": "S27",
+    "type": "data_store",
+    "title": "Track outside-Sage invoices",
+    "actor": "GPFS management company preparer",
+    "system": "Central schedule",
+    "description": "Track manual and outside-Sage invoices on the central schedule."
+   },
+   {
+    "id": "S28",
+    "type": "document",
+    "title": "Email completion to participant",
+    "actor": "Team lead",
+    "system": "Email",
+    "description": "The team lead emails the participant when drafting and internal review are finished. The participant starts their part only after the email arrives."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "Agreement coverage or status unclear"
+   },
+   {
+    "from": "S1",
+    "to": "S3",
+    "label": "Outside-Sage invoice procedure needed"
+   },
+   {
+    "from": "S1",
+    "to": "S4",
+    "label": "Confirmed, supported and current schedule line"
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": ""
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": ""
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": "Client changes requested"
+   },
+   {
+    "from": "S7",
+    "to": "S9",
+    "label": "Drafts approved"
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": "Approved list and posting date available"
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": "Client instructs invoice issuance with delayed revenue"
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": "Verified genuine pre-invoice monitoring-fee cash"
+   },
+   {
+    "from": "S12",
+    "to": "S17",
+    "label": "Unidentified cash or payment after invoice date"
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": "Invoice date"
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": ""
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": ""
+   },
+   {
+    "from": "S10",
+    "to": "S18",
+    "label": "Revenue activity, current management-fee workpapers and approved factor table available"
+   },
+   {
+    "from": "S18",
+    "to": "S19",
+    "label": ""
+   },
+   {
+    "from": "S19",
+    "to": "S20",
+    "label": ""
+   },
+   {
+    "from": "S20",
+    "to": "S21",
+    "label": "Required confirmations outstanding"
+   },
+   {
+    "from": "S20",
+    "to": "S22",
+    "label": "Owner, approved version, LPA basis and sign convention confirmed"
+   },
+   {
+    "from": "S21",
+    "to": "S22",
+    "label": "Owner, approved version, LPA basis and sign convention confirmed"
+   },
+   {
+    "from": "S22",
+    "to": "S23",
+    "label": ""
+   },
+   {
+    "from": "S10",
+    "to": "S24",
+    "label": "Posted invoices, cash activity, offsets and aging report all available"
+   },
+   {
+    "from": "S23",
+    "to": "S24",
+    "label": "Posted invoices, cash activity, offsets and aging report all available"
+   },
+   {
+    "from": "S5",
+    "to": "S28",
+    "label": "Drafting and internal review finished"
+   },
+   {
+    "from": "S28",
+    "to": "S6",
+    "label": "Completion email arrives"
+   }
+  ],
+  "open_questions": [
+   "UNKNOWN: Who sends the drafts for client approval, and what other actions are included in the participant's part after the team lead's email?",
+   "UNKNOWN: Which former step 2 checks, inputs, records and outside-Sage hold still apply to the team lead's shared-tracker work?",
+   "UNKNOWN: Which parts of the current One Rock procedure represent general GPFS practice, and what is the basis for that scope?",
+   "UNKNOWN: What event initiates the work, who detects it, who is accountable overall, and what evidence marks completion?",
+   "UNKNOWN: Where do coverage-resolution cases, approved manual procedures and client-requested draft changes resume?",
+   "UNKNOWN: How are client hold instructions recorded and released, and what is the route after approved treatment for delayed revenue is obtained?",
+   "UNKNOWN: What are the approved Sage steps for prepayments, and how are corrections and review evidence recorded?",
+   "UNKNOWN: Who owns and interprets the offset formula and factors, what are their approved versions and sign convention, and what sources are missing from the page 4 comparisons?",
+   "UNKNOWN: How do classification maintenance, aging review and outside-Sage tracking connect to reporting and to each other? Where is the receivables exception log kept?",
+   "UNKNOWN: Are schedule review and cash classification separate routes, or is there a handoff between them?",
+   "UNKNOWN: How is readiness coordinated for the required offset-calculation and reporting inputs, and how do the fund team and One Rock perform their reported review?",
+   "UNKNOWN: What systems are authoritative for each result, and what are the calculation details, review assignments, escalation authority and retention locations?",
+   "UNKNOWN: What client or entity variations, charging or removal constraints, volumes, effort, risks and pain points apply in current practice?",
+   "Does any incoming route start S22 (Calculate offset accrual), or must all prerequisites finish?",
+   "Does any incoming route start S24 (Provide monitoring-fee report), or must all prerequisites finish?",
+   "How does step S25 (Maintain invoice classifications) connect to the rest of this process, if at all?",
+   "How does step S26 (Review receivables aging) connect to the rest of this process, if at all?",
+   "How does step S27 (Track outside-Sage invoices) connect to the rest of this process, if at all?",
+   "Are the routes containing S1 (Review monitoring-fee schedule) and S12 (Classify received cash) separate, or is there a reported handoff between them?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "Current-practice draft: Monitoring Fee Billing & Revenue Recognition",
+  "overview": "Draft for participant and process-owner review. One participant said the written procedure remains current except for the invoice-drafting and internal-review step, which the team lead has performed in a shared tracker since this quarter. Written requirements are attributed to the procedure; the account has not been independently verified. Several handoffs, checks and the overall finish remain UNKNOWN.",
+  "trigger": "UNKNOWN. The procedure schedules a review approximately 30 days before quarter end, but does not identify the initiating event or detector.",
+  "inputs": [
+   "Current monitoring-fee schedule, agreements, and investment or exit information.",
+   "Reviewed invoice drafts, followed by an approved invoice list and approved posting date.",
+   "Verified monitoring-fee cash received before invoice posting, where applicable.",
+   "Monitoring-fee revenue activity, current management-fee workpapers and an approved factor table.",
+   "Posted invoices, cash activity, offsets and the accounts-receivable aging report."
+  ],
+  "outputs": [
+   "Client-confirmed list of portfolio companies to bill.",
+   "Approved invoices sent to portfolio companies, with client approval and sending record retained as specified by the procedure.",
+   "Posted accounts receivable and revenue.",
+   "Cleared prepayment and revenue recorded in the correct period, where applicable.",
+   "Posted and reconciled monitoring-fee offset accrual.",
+   "Fund-team report and an up-to-date accounts-receivable exception log."
+  ],
+  "exceptions": [
+   "Unclear agreement coverage or status: the procedure directs a request to the client and accounting owner; return route UNKNOWN.",
+   "Requested draft changes are resolved and the schedule and drafts updated; resubmission and reapproval route UNKNOWN.",
+   "Client hold instructions must be documented before sending or posting; hold release and routing UNKNOWN.",
+   "A client instruction to issue an invoice but delay revenue requires specific approved accounting treatment; subsequent route UNKNOWN.",
+   "Genuine pre-invoice cash follows the documented prepayment route; unidentified cash or payment after invoice date follows normal receivables and cash-application rules.",
+   "The former written step 2 says outside-Sage invoice preparation is undocumented and must not proceed until an approved manual procedure is available. Applicability after the correction is UNKNOWN.",
+   "The offset formula and factor table must not be used until the documented confirmations are complete.",
+   "The procedure prohibits write-off without specific client instruction and an approved accounting entry."
+  ],
+  "controls": [
+   "The procedure prohibits invoice preparation from unsupported or outdated schedule lines.",
+   "The participant starts their part only after the team lead's completion email arrives.",
+   "One Rock fund team or client approval precedes sending; sent invoices and amounts must match approved drafts.",
+   "Posted invoices and the accounting entry must match the approved list and posting date.",
+   "The procedure calls for prepayment reconciliation and confirmation that no duplicate receivable or revenue remains.",
+   "The procedure requires offset formula and factor confirmations before use, quarterly review of percentages and factors, and reconciliation to recognized revenue.",
+   "The procedure requires report, revenue, offset and aging lists and totals to agree and restricts write-offs."
+  ],
+  "validation_notes": [
+   "AI-generated current-practice draft requiring participant and process-owner review. It is not an independently verified or executable procedure.",
+   "The participant corrected only step 2, effective since this quarter, and said everything else in the file is current. This is a participant account, not independent verification that each written rule operates.",
+   "The former written step 2 assigned drafting and review to a preparer and internal reviewer and described Sage drafting and detailed checks. Those superseded details are not assumed current; later Sage drafts, approvals, delivery and posting remain in the account.",
+   "The former step 2 outside-Sage hold is not placed in the current graph because its continuing applicability after the correction is UNKNOWN. Later outside-Sage tracking is retained.",
+   "The delayed-revenue edge enters the exception during posting; it does not assert that the normal revenue entry was completed first. Its exit is UNKNOWN.",
+   "Reporting requires all four named inputs. Both the posted-invoice and posted-offset dependencies carry the full joint condition. Cash activity and the aging report are external inputs; their preparation, order and readiness coordination are UNKNOWN.",
+   "The early-cash fragment has no established entry from the invoice route. Classification maintenance, aging review and outside-Sage tracking are known but their connections to other activities are UNKNOWN. No exception return is invented.",
+   "The underlying approved revenue policy, LPA and other referenced materials were not supplied. Two page 4 comparison references are incomplete in the indexed text.",
+   "The PDF has native indexed text for 5 of 5 pages; all 5 indexed sections were supplied. AI review is complete for 5 of 5 chunks, was not stopped, and reports no unread visual units. This is file coverage, not operational verification.",
+   "Interview date and participant identity or role are UNKNOWN. The reviewed excerpts are from U8 MC-04 Monitoring Fee Billing & Revenue Recognition.pdf. External connections are reported leads, not approved graph links.",
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified.",
+   "Document-derived statements describe supplied reference material; current practice and control effectiveness have not been confirmed.",
+   "The independent audit changed or removed 3 proposed exception(s).",
+   "The independent audit removed one or more proposed citations from the trigger section."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Review monitoring-fee schedule",
+    "actor": "GPFS management company preparer; One Rock confirms client data",
+    "system": "Central schedule and supporting agreements",
+    "description": "The procedure calls for review of each portfolio company, contact and address, fee and associated fund. Confirm changes, new investments, exits, fee changes and billing status with the One Rock fund team; verify management-agreement coverage and flag unsupported companies. Record manual or outside-Sage invoices separately from client hold instructions. The procedure prohibits preparing an invoice from an unsupported or outdated schedule line."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Resolve unclear agreement coverage",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "If agreement coverage or status is unclear, the procedure says to ask the client and accounting owner to resolve it."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Draft and review invoices",
+    "actor": "Team lead",
+    "system": "Shared tracker",
+    "description": "Since this quarter the team lead performs the invoice-drafting and internal-review step herself in a shared tracker. The detailed checks, current inputs, draft record and applicability of the former outside-Sage instruction are UNKNOWN."
+   },
+   {
+    "id": "S4",
+    "type": "document",
+    "title": "Email completion to participant",
+    "actor": "Team lead",
+    "system": "Email",
+    "description": "The team lead emails the participant when drafting and internal review are finished. The participant starts their part only after the email arrives."
+   },
+   {
+    "id": "S5",
+    "type": "document",
+    "title": "Send drafts for approval",
+    "actor": "UNKNOWN",
+    "system": "Sage drafts; sending mechanism UNKNOWN",
+    "description": "The procedure says to send reviewed drafts to the One Rock fund team for approval. The participant begins their part after the team lead's completion email arrives. The sender of the drafts is not identified."
+   },
+   {
+    "id": "S6",
+    "type": "decision",
+    "title": "Are invoice drafts approved?",
+    "actor": "One Rock fund team or client",
+    "system": "Sage drafts; approval recording location UNKNOWN",
+    "description": "One Rock fund team or client approves. The procedure also calls for changes to be resolved and the schedule and drafts updated. How updated drafts are resubmitted or reapproved is UNKNOWN."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Resolve requested changes",
+    "actor": "UNKNOWN",
+    "system": "Schedule and drafts; locations UNKNOWN",
+    "description": "The procedure says to resolve changes and update the schedule and drafts. The return or resubmission route is UNKNOWN."
+   },
+   {
+    "id": "S8",
+    "type": "document",
+    "title": "Send approved invoices",
+    "actor": "GPFS preparer",
+    "system": "Sage drafts and email or another approved delivery channel",
+    "description": "The procedure calls for approved invoices to be sent to portfolio companies, typically around the 15th before quarter end, and for client approval and a sending record to be kept. Sent invoices and amounts must match approved drafts. Client hold instructions must be documented before sending or posting."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Post invoices and revenue",
+    "actor": "GPFS preparer and reviewer",
+    "system": "Sage and central schedule",
+    "description": "The procedure calls for approved Sage invoices to be posted on the first business day of the quarter, with a normal receivable debit and revenue credit. It says to confirm the full amount is revenue on the invoice date, not spread over three months, attributing this to current approved policy. Compare posted totals with the approved schedule and resolve differences. The posted invoices and entry must match the approved list and date. A client instruction to delay revenue follows the separate exception, not an assumed normal entry."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Obtain delayed-revenue treatment",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "If the client instructs GPFS to issue an invoice but delay revenue, the procedure requires specific approved accounting treatment and says not to assume the normal entry applies."
+   },
+   {
+    "id": "S11",
+    "type": "decision",
+    "title": "Is cash a genuine prepayment?",
+    "actor": "GPFS preparer and reviewer",
+    "system": "Cash records, Sage and invoice schedule",
+    "description": "Confirm whether the receipt is a monitoring-fee prepayment and identify the future invoice. The procedure directs unidentified cash or payments received after the invoice date to normal receivables and cash-application rules."
+   },
+   {
+    "id": "S12",
+    "type": "activity",
+    "title": "Record prepayment receipt",
+    "actor": "GPFS preparer and reviewer",
+    "system": "Cash records and Sage",
+    "description": "For verified genuine early monitoring-fee cash, the procedure says to debit cash and credit the prepayment liability on receipt."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Recognize prepaid revenue",
+    "actor": "GPFS preparer and reviewer",
+    "system": "Sage",
+    "description": "On the invoice date, the procedure says to debit the prepayment liability and credit revenue for the prepaid amount."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Record and apply prepayment",
+    "actor": "GPFS preparer and reviewer",
+    "system": "Sage",
+    "description": "Record the invoice in Sage and close it or apply the prepayment using the approved workflow. The procedure says the exact Sage steps are not yet confirmed and should be confirmed by the process owner or an appropriate process expert."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Reconcile prepayment accounting",
+    "actor": "GPFS preparer and reviewer",
+    "system": "Cash records, Sage and invoice schedule",
+    "description": "Compare cash, invoice status and the receivable, prepayment and revenue accounts; resolve differences and confirm that no duplicate receivable or revenue remains."
+   },
+   {
+    "id": "S16",
+    "type": "subprocess",
+    "title": "Apply normal cash rules",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "For unidentified cash or payments received after the invoice date, the procedure says to follow normal accounts-receivable and cash-application rules, not default to the prepayment account. Those separate rules and subsequent route are not supplied."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Check revenue for offset",
+    "actor": "GPFS preparer and reviewer",
+    "system": "Sage and supporting records",
+    "description": "During month-end close, compare monitoring-fee revenue activity with supporting records and resolve differences. The procedure lists revenue activity, current management-fee workpapers and the approved factor table as prerequisites for the offset step."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Prepare offset inputs",
+    "actor": "GPFS preparer and reviewer",
+    "system": "Offset spreadsheet and management-fee workpapers",
+    "description": "Enter fees into the offset spreadsheet and obtain and check ownership and limited-partner percentages and fund factors from current management-fee workpapers. The procedure requires quarterly review against the LPA and another source whose name is missing from the supplied text."
+   },
+   {
+    "id": "S19",
+    "type": "decision",
+    "title": "Are offset rules confirmed?",
+    "actor": "UNKNOWN",
+    "system": "Offset spreadsheet and factor table",
+    "description": "The procedure prohibits use of the formula or factor table until its owner, approved version, LPA basis and positive-or-negative sign convention are confirmed."
+   },
+   {
+    "id": "S20",
+    "type": "wait",
+    "title": "Wait for offset confirmations",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Do not use the formula or factor table while required confirmations are outstanding. The owner and coordination of confirmation are UNKNOWN."
+   },
+   {
+    "id": "S21",
+    "type": "activity",
+    "title": "Calculate offset accrual",
+    "actor": "GPFS preparer and reviewer",
+    "system": "Offset spreadsheet",
+    "description": "Apply the approved formula and factor for each fund and portfolio company, only after the required confirmations. The formula and sign convention are not supplied."
+   },
+   {
+    "id": "S22",
+    "type": "activity",
+    "title": "Post and reconcile offset",
+    "actor": "GPFS preparer and reviewer",
+    "system": "Sage and offset spreadsheet",
+    "description": "The procedure specifies a debit to account 4015 and credit to account 2205. Compare the accrual with the list of fees and revenue and resolve differences; another comparison source is missing from the supplied text. The entry must match recognized revenue."
+   },
+   {
+    "id": "S23",
+    "type": "document",
+    "title": "Provide monitoring-fee report",
+    "actor": "GPFS management company preparer; fund team and One Rock review",
+    "system": "Monitoring Fees Received Report, Sage aging report, central schedule and email",
+    "description": "With posted invoices, cash activity, offsets and the aging report available, provide the Monitoring Fees Received Report to the fund team at least twice per quarter and communicate new investments, exits and fee changes. The procedure says the fund team and One Rock review and that report, revenue, offset and aging lists and totals must agree. Their individual checks are UNKNOWN."
+   },
+   {
+    "id": "S24",
+    "type": "activity",
+    "title": "Maintain invoice classifications",
+    "actor": "GPFS management company preparer",
+    "system": "UNKNOWN",
+    "description": "Maintain portfolio-company fund subtype and invoice-reference classification. The procedure places this within reporting and receivables management but does not state its precise connection to the report."
+   },
+   {
+    "id": "S25",
+    "type": "activity",
+    "title": "Review receivables aging",
+    "actor": "GPFS management company preparer and One Rock",
+    "system": "Sage accounts-receivable aging report; decision-record location UNKNOWN",
+    "description": "Review aging with One Rock and document collection, hold and write-off decisions. The procedure prohibits write-off without specific client instruction and an approved accounting entry, and calls for an up-to-date receivables exception log."
+   },
+   {
+    "id": "S26",
+    "type": "data_store",
+    "title": "Track outside-Sage invoices",
+    "actor": "GPFS management company preparer",
+    "system": "Central schedule",
+    "description": "Track manual and outside-Sage invoices on the central schedule. The procedure does not state the precise handoff to other reporting and receivables activities."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "Agreement coverage or status unclear"
+   },
+   {
+    "from": "S1",
+    "to": "S3",
+    "label": "Confirmed, supported and current schedule line"
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "Drafting and internal review finished"
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": "Completion email arrives"
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": "Drafts sent for approval"
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Client changes requested"
+   },
+   {
+    "from": "S6",
+    "to": "S8",
+    "label": "Drafts approved"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "Approved list and posting date available"
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": "Client instructs invoice issuance with delayed revenue"
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": "Verified genuine pre-invoice monitoring-fee cash"
+   },
+   {
+    "from": "S11",
+    "to": "S16",
+    "label": "Unidentified cash or payment after invoice date"
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": "Invoice date"
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": ""
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": ""
+   },
+   {
+    "from": "S9",
+    "to": "S17",
+    "label": "Revenue activity, current management-fee workpapers and approved factor table available"
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": ""
+   },
+   {
+    "from": "S18",
+    "to": "S19",
+    "label": ""
+   },
+   {
+    "from": "S19",
+    "to": "S20",
+    "label": "Required confirmations outstanding"
+   },
+   {
+    "from": "S19",
+    "to": "S21",
+    "label": "Owner, approved version, LPA basis and sign convention confirmed"
+   },
+   {
+    "from": "S20",
+    "to": "S21",
+    "label": "Owner, approved version, LPA basis and sign convention confirmed"
+   },
+   {
+    "from": "S21",
+    "to": "S22",
+    "label": ""
+   },
+   {
+    "from": "S9",
+    "to": "S23",
+    "label": "Posted invoices, cash activity, offsets and aging report all available"
+   },
+   {
+    "from": "S22",
+    "to": "S23",
+    "label": "Posted invoices, cash activity, offsets and aging report all available"
+   }
+  ],
+  "open_questions": [
+   "UNKNOWN: Who is accountable for the overall result, what initiates the work, and what observable evidence establishes that the whole process is finished?",
+   "UNKNOWN: In the corrected shared-tracker step, which inputs and checks apply, how do its outputs become the Sage drafts, and does the former outside-Sage restriction still apply?",
+   "UNKNOWN: Who sends drafts for approval, and where do coverage-resolution and client-change cases resume?",
+   "UNKNOWN: How are client holds released, and what happens after approved treatment for delayed revenue is obtained?",
+   "UNKNOWN: Who owns and interprets the offset formula and factor table, what are the approved version and sign convention, and which comparison sources are missing from page 4?",
+   "UNKNOWN: What are the approved Sage prepayment steps and how is the early-cash route connected to the invoice route?",
+   "UNKNOWN: How are the four reporting prerequisites coordinated, and how do classification maintenance, aging review and outside-Sage tracking connect to reporting and each other?",
+   "UNKNOWN: What does each reviewer check, who resolves failed checks, and where and by whom are approvals, sending evidence and exception decisions retained?",
+   "UNKNOWN: Which One Rock practices apply generally across GPFS, and what is the participant's basis? What other client or entity differences, charging and removal constraints apply?",
+   "UNKNOWN: What are the authoritative records, rule interpreters and conflict escalation, remaining calculation details, system restrictions, volumes, effort, pain points and failure consequences?",
+   "UNKNOWN: Participant confirmation of the draft and process-owner approval remain pending.",
+   "Does any incoming route start S21 (Calculate offset accrual), or must all prerequisites finish?",
+   "Does any incoming route start S23 (Provide monitoring-fee report), or must all prerequisites finish?",
+   "How does step S24 (Maintain invoice classifications) connect to the rest of this process, if at all?",
+   "How does step S25 (Review receivables aging) connect to the rest of this process, if at all?",
+   "How does step S26 (Track outside-Sage invoices) connect to the rest of this process, if at all?",
+   "Are the routes containing S1 (Review monitoring-fee schedule) and S11 (Is cash a genuine prepayment?) separate, or is there a reported handoff between them?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "The intake calls this Monitoring Fee Billing & Revenue Recognition. The procedure also covers early payments, offset accruals, fund-team reporting and receivables management. Other names and the exact boundary are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The described work bills monitoring fees, records receivables and revenue, accounts for applicable prepayments and offsets, and reports fee information to the fund team. The participant has not separately confirmed the overall delivered result or boundary."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The procedure schedules review about 30 days before quarter end, invoice delivery typically around the 15th before quarter end, posting on the first business day of the quarter, and offset work during month-end close. The initiating event, detector and upstream readiness signal are UNKNOWN."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The procedure identifies sent approved invoices, posted receivables and revenue, reconciled offsets, a fund-team report and an up-to-date receivables exception log. Which combined condition closes the overall work, and all downstream consumers, are UNKNOWN."
+   },
+   {
+    "key": "accountable",
+    "status": "unknown",
+    "answer": "UNKNOWN: Overall accountability was not established. The team lead, preparer, reviewer, One Rock and fund team have step roles, but none is identified as accountable for the whole result."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The procedure reviews and confirms the schedule. Since this quarter the team lead drafts and internally reviews in a shared tracker, then emails the participant. Reviewed drafts go for One Rock or client approval; changes are resolved, approved invoices sent, and invoices and revenue posted. The procedure separately describes early-cash accounting and reconciliation, month-end offset calculation and posting, and reporting and receivables management. Corrected-step checks, change resubmission, branch exits and several handoffs are UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The procedure excludes unsupported or outdated schedule lines and calls for client approval, sent invoices to match approved drafts, postings to match the approved list and date, reconciled prepayments and offsets, and agreement of report and aging totals. It restricts write-offs and formula use. The participant reports the sending and posting checks and the email prerequisite. Exact reviewer assignments, corrected-step checks, failed-check routes, evidence locations, thresholds, overrides and system enforcement are UNKNOWN."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "The procedure describes different handling for genuine early cash, unidentified or later cash, client holds, delayed revenue and manual or outside-Sage invoices. The current manual-invoice restriction needs confirmation after the step 2 correction. Other client and entity differences, costs, charging and removal constraints are UNKNOWN."
+   },
+   {
+    "key": "pain_points",
+    "status": "partial",
+    "answer": "The procedure says exact Sage prepayment steps are unconfirmed and the former outside-Sage invoice procedure is undocumented; formula and factor confirmations are conditions before use. Whether these cause current delays or manual effort, and the magnitude, are UNKNOWN."
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "The procedure checks for duplicate receivable or revenue after prepayments and restricts unsupported invoices, unconfirmed offset rules and unauthorized write-offs. Actual failures and their concrete consequences were not described and remain UNKNOWN."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The supplied U8 MC-04 PDF is the participant's written procedure; its five indexed pages were supplied and reviewed as text. It references agreements, an approved policy, management-fee workpapers, a factor table and an LPA, but those underlying materials were not supplied. Their locations and availability are UNKNOWN."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The procedure identifies a GPFS management company preparer, One Rock, fund teams and portfolio companies, with offsets calculated by fund and portfolio company. Whether this is general GPFS practice, a One Rock-only route, or part of a broader parent process is UNKNOWN."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The procedure cites agreement coverage, written client directions, an approved revenue policy and LPA-based percentage and factor checks. It describes full invoice-date revenue, early-payment entries and an offset formula by fund and portfolio company. The formula, approved version, owner, sign convention and two comparison references are unresolved. Interpreters, conflict authority, calculation dates, rounding and overrides are UNKNOWN; the underlying policy and LPA were not reviewed."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "Schedule review uses agreements and investment or exit information; the offset uses revenue activity and management-fee workpapers. Reporting requires posted invoices, cash activity, offsets and aging and provides a report to the fund team. Upstream owners, readiness signals, the relationship of early-cash work to billing and downstream use beyond the fund team are UNKNOWN."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The corrected drafting and review step uses a shared tracker and email; later work uses Sage drafts, email or an approved delivery channel, Sage and the central schedule. The offset uses a spreadsheet and management-fee workpapers; fees are entered into the spreadsheet. Authoritative records, file locations, spreadsheet logic ownership, rekeying and detailed prepayment workflow are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "partial",
+    "answer": "The procedure calls for the fund-team report at least twice per quarter and quarterly review of percentages and factors. Counts, peak volumes, exception frequency and effort by step are UNKNOWN."
+   }
+  ]
+ },
+ "draft_error": null
+}

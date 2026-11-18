@@ -1,0 +1,1116 @@
+{
+ "case": "F04",
+ "process": "FA-21",
+ "mode": "file",
+ "style": "47-page PDF of the whole process",
+ "build": "untouched",
+ "participant": "agent",
+ "context": {
+  "process_name": "Client Data Migration",
+  "process_owner": "",
+  "objective": "Document how we carry out Client Data Migration, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "assistant",
+   "text": "Thanks for sharing. Give me a moment to digest the file. Then I’ll follow up with a question.",
+   "document_event": true
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "FA-21 describes scope confirmation before mapping and final Manager sign-off. Does that reflect how client data migrations are carried out today?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "Yes, that matches how we do it today. The Manager and I, as the preparer, confirm the scope first, meaning the entities, the historical period, the target system, which is either Entrilia or Allvue, the types of data, the source provider and the output reports we need. The Manager confirms that scope before any mapping starts. At the end the Manager reviews the mapping and the reconciliations and gives the final sign-off. We only treat the migration as complete once the source and target reports fully agree and that sign-off is kept."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What event or request usually starts a migration, and how does it reach you?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "It is event-driven, so it only happens when it is needed. A migration starts when a new client is onboarded, when a fund changes administrators, or when historical data has to be migrated into Entrilia or Allvue. What I need in hand before I begin is the client-onboarding or administrator-transition request and a decision on the target system. As for how it reaches me, I don't know of a standard scope form or a fixed channel for that request, so I can't give you one. The process owner would have to confirm that."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "What do you check in the source data before treating it as ready for mapping?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "Before mapping I check that the general ledger covers the whole period from the fund's start through the migration cutoff date. I compare the general ledger and trial balance periods and totals and note any differences. I look for missing or duplicate rows and files and for required fields that are incomplete, and I check the investor reference, contact and banking data against the agreed scope. If something is wrong I ask the source provider to clarify or correct it. I don't treat incomplete source data as ready unless the Manager approves that decision, and the Manager reviews any significant issues. I don't know the formal rules for accepting source data or whether any tolerance applies. The service-line governance owner would need to confirm that."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "Once the source data is ready, how do you map its accounts and fields to the target structure?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "First I build the Excel migration reconciliation workbook, with tabs for the general ledger, the trial balance, the client chart of accounts, the general mapping and the investor mapping. I load the preserved source data without touching the unchanged source copy, and I record the source totals and record counts. Then I map each client general-ledger code and category to the target chart-of-accounts code and transcode, and I apply the approved formulas to the historical entries line by line. I also map the investor reference, contact and banking fields to the target structure. If an account has no direct equivalent I flag it, and I only propose a new account code when it is necessary and send that request to the authorized approver. I record the reason for every mapping decision and any exception. The Manager reviews and approves the mapping, and every source code has to be either mapped or recorded as an exception. I don't know who actually has authority to approve a new code. The service-line governance owner would need to confirm that."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "How do you check the prepared upload files against the approved mapping before they are imported?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "I place the mapped data into each Entrilia or Allvue upload template. Then I check the required fields, formats, dates, positive and negative signs, identifiers and the source totals that are available in the template. The upload totals and record counts have to agree with the approved source files, and I make sure I am using the current target template. I save each version of the upload files and link it to the approved mapping, and I do that check for each batch. I get Manager review where it is required. I don't know of a system-specific validation checklist or who would approve it. The process owner would have to confirm that."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "After the Manager’s sign-off, what happens to the migration outputs for the first accounting close?"
+  },
+  {
+   "id": "t014",
+   "role": "assistant",
+   "text": "This capture still has open sections. 16 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794966595.259,
+   "turn": 0,
+   "seconds": 0.026,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.session",
+   "at": 1794966598.843,
+   "turn": 1,
+   "seconds": 0.014,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.upload",
+   "at": 1794966598.847,
+   "turn": 1,
+   "seconds": 0.003,
+   "status": 202,
+   "retries": 0,
+   "file": "N01 FA-21 Client Data Migration full process.pdf",
+   "bytes": 553664
+  },
+  {
+   "kind": "doc.extracted",
+   "at": 1794966601.437,
+   "turn": 1,
+   "seconds": 2.61,
+   "file": "N01 FA-21 Client Data Migration full process.pdf",
+   "chunks": 47,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 47,
+    "total_units": 47,
+    "text_indexed_units": 47,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_started",
+   "at": 1794966601.437,
+   "turn": 1,
+   "seconds": 2.61,
+   "file": "N01 FA-21 Client Data Migration full process.pdf",
+   "chunks": 47,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 47,
+    "total_units": 47,
+    "text_indexed_units": 47,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_deep",
+   "at": 1794966606.536,
+   "turn": 1,
+   "seconds": 7.71,
+   "file": "N01 FA-21 Client Data Migration full process.pdf",
+   "chunks": 47,
+   "status": "ready",
+   "phase": "deep",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 47,
+    "total_units": 47,
+    "text_indexed_units": 47,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_complete",
+   "at": 1794966678.629,
+   "turn": 1,
+   "seconds": 79.8,
+   "file": "N01 FA-21 Client Data Migration full process.pdf",
+   "chunks": 47,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 47,
+    "total_units": 47,
+    "text_indexed_units": 47,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.followup_question",
+   "at": 1794966680.534,
+   "turn": 2,
+   "seconds": 1.905,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.first_question",
+   "at": 1794966680.534,
+   "turn": 3,
+   "seconds": 81.7,
+   "reading": {
+    "omitted_documents": 0,
+    "documents": [
+     {
+      "id": "doc_49e2c66d33de6bc0c6edca9d",
+      "included_chunks": 44,
+      "total_chunks": 47
+     }
+    ]
+   }
+  },
+  {
+   "kind": "doc.left_pending",
+   "at": 1794966711.025,
+   "turn": 3,
+   "notes_state": "working",
+   "map_state": "working",
+   "seconds": 32.4
+  },
+  {
+   "kind": "question",
+   "at": 1794966724.536,
+   "turn": 4,
+   "seconds": 1.923,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794966769.783,
+   "turn": 5,
+   "notes_state": "working",
+   "map_state": "queued",
+   "seconds": 47.17
+  },
+  {
+   "kind": "question",
+   "at": 1794966799.595,
+   "turn": 6,
+   "seconds": 5.428,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794966844.935,
+   "turn": 7,
+   "notes_state": "queued",
+   "map_state": "working",
+   "seconds": 50.77
+  },
+  {
+   "kind": "question",
+   "at": 1794966866.024,
+   "turn": 8,
+   "seconds": 1.847,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794966911.258,
+   "turn": 9,
+   "notes_state": "queued",
+   "map_state": "queued",
+   "seconds": 47.08
+  },
+  {
+   "kind": "question",
+   "at": 1794966932.87,
+   "turn": 10,
+   "seconds": 2.254,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794966978.229,
+   "turn": 11,
+   "notes_state": "working",
+   "map_state": "queued",
+   "seconds": 47.61
+  },
+  {
+   "kind": "question",
+   "at": 1794966998.138,
+   "turn": 12,
+   "seconds": 6.064,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794967043.299,
+   "turn": 13,
+   "notes_state": "working",
+   "map_state": "working",
+   "seconds": 51.23
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794967056.819,
+   "turn": 13,
+   "seconds": 4.491,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "working",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.map_ready",
+   "at": 1794967142.356,
+   "turn": 14,
+   "seconds": 90.03,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 20,
+   "connections": 21
+  },
+  {
+   "kind": "draft",
+   "at": 1794967488.916,
+   "turn": 14,
+   "seconds": 341.417,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [
+  {
+   "name": "N01 FA-21 Client Data Migration full process.pdf",
+   "kind": "pdf",
+   "size": 553664,
+   "status": "ready",
+   "chunk_count": 47,
+   "coverage": {
+    "indexed_units": 47,
+    "total_units": 47,
+    "text_indexed_units": 47,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  }
+ ],
+ "notes": {
+  "summary": "The preparer described per-batch upload preparation and validation, including source agreement, version linkage and Manager review where required. The system-specific checklist and its approver remain unknown. FA-21's later import and first-close handoff remain to be confirmed as current practice.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "Client Data Migration is identified as FA-21 in the supplied procedure."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The documented result is historical general ledger, trial balance and investor reference data migrated into Entrilia or Allvue, reconciled against source data and approved."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The preparer says migration is event-driven and occurs as needed for new client onboarding, a change of fund administrator or a need to migrate historical data. Before beginning, the preparer needs the onboarding or transition request and a target-system decision.\nThe preparer does not know a standard request channel or scope form; the process owner would need to confirm these. The procedure specifies no standard SLA or milestone calendar."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The preparer says the migration is complete only when source and target reports fully agree and the Manager's final sign-off is kept. The Manager reviews the mapping and reconciliations before signing off.\nFA-21 lists a completed handoff to the first accounting close among its completion criteria.\nWhether the documented first-close handoff is a completion condition in current practice remains to be confirmed."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The procedure identifies the Manager as accountable for final sign-off, but says the organizational title and overall program owner are unconfirmed."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The preparer and Manager confirm entities, historical period, Entrilia or Allvue target, data types, source provider and required output reports. The Manager confirms scope before mapping begins.\nBefore mapping, the preparer checks GL coverage from fund start to cutoff, compares GL and trial-balance periods and totals, checks for missing or duplicate rows and files and incomplete required fields, and compares investor reference, contact and banking data with scope. Problems go to the source provider for clarification or correction; incomplete data is not treated as ready without Manager approval.\nThe preparer builds an Excel reconciliation workbook with GL, trial balance, client chart of accounts, general mapping and investor mapping tabs; loads preserved source data without altering the unchanged copy; and records source totals and record counts.\nThe preparer maps each client GL code and category to a target chart-of-accounts code and transcode, applies approved formulas to historical entries line by line, and maps investor reference, contact and banking fields. The reason for every mapping decision and any exception is recorded.\nIf an account has no direct equivalent, the preparer flags it and proposes a new code only when necessary, sending the request to the authorized approver. The Manager reviews and approves mapping; every source code must be mapped or recorded as an exception.\nThe preparer places mapped data into each Entrilia or Allvue upload template, checks fields, formats, dates, signs, identifiers and available source totals, and checks each batch's totals and counts against approved source files. The preparer uses the current target template, saves each upload version linked to approved mapping and obtains Manager review where required. FA-21 then documents an import operator confirming entity, environment and template version before importing; the operator's exact role is unspecified.\nFA-21 documents running target GL, trial-balance and scoped investor reports after import, retaining settings and outputs, and comparing target GL and trial balance to source. Investor and required prior-administrator reports are also compared, with differences and causes recorded.\nFA-21 documents identifying the cause of each difference, correcting the mapping or upload file in a new controlled version, re-importing using the approved method and rerunning reports and reconciliations until no unexplained difference remains. The safe re-import, restoration and duplicate-removal procedures require system-owner confirmation."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The Manager reviews significant source issues and must approve treating incomplete source data as ready. The preparer asks the source provider for correction or clarification.\nThe preparer does not know the formal source-data acceptance rules or whether a tolerance applies; the service-line governance owner would need to confirm them.\nThe Manager reviews and approves the mapping, with each source code mapped or recorded as an exception, and reviews final reconciliations before sign-off.\nThe preparer does not know who may approve a new account code; the service-line governance owner would need to confirm that authority.\nFor each upload batch, the preparer checks required fields, formats, dates, signs, identifiers and available source totals; upload totals and record counts must agree with approved source files, using the current target template. Manager review is obtained where required.\nThe preparer does not know a system-specific validation checklist or who would approve it; the process owner would need to confirm it. The circumstances requiring Manager review of upload files also remain unspecified."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "FA-21 says Entrilia and Allvue require different templates and reports; charts of accounts, source quality, history, categories, volume and investor data also vary by migration. Current practice and the practical effect of these differences remain to be explored.\nWhen approved scope includes Allvue CRM firms, investors, contacts and communication choices, FA-21 documents additional separate batches, prerequisite export refreshes, count comparisons and reconciliations. The document says current approval and role confirmation are required."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "FA-21 warns that one incorrect mapping or formula can affect the full history or multiple upload batches; wrong templates or mappings can cause rejected, incomplete, duplicated or incorrectly classified records."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The working Excel migration reconciliation workbook contains source totals and record counts and tabs for GL, trial balance, client chart of accounts, general mapping and investor mapping. An unchanged source copy is preserved separately.\nFA-21 identifies source files, an intake inventory, upload templates, target reports, import logs, reconciliation and difference records, and Manager sign-off as working or retained artifacts.\nThe procedure does not specify the approved secure delivery channel, repository path or retention period.\nThe preparer saves each version of the Entrilia or Allvue upload files and links it to the approved mapping."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "FA-21 covers client migration of historical GL, trial balance and investor reference data. It excludes the separate Data Team Allvue-to-Entrilia platform migration, correction of client- or prior-administrator-owned source data, business-process redesign and the first accounting close."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The preparer applies approved formulas to historical entries line by line and records mapping reasons and exceptions. FA-21 describes a transcode as a system code translating a source classification into a target reporting category.\nFA-21 says governing laws and executed documents take priority over lower-priority methods, and that system settings, workbook formulas, previous outputs, checklists and memory are not governing rules unless approved by a higher-priority source.\nThe source and approval of the formulas actually used for a migration, and the authority for new account codes, remain to be established. The preparer identifies the service-line governance owner as the person to confirm new-code authority.\nThe preparer says each upload batch must use the current target template and its totals and record counts must agree with approved source files."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The preparer needs a client-onboarding or administrator-transition request before starting. FA-21 documents a handoff to the first accounting close after final review.\nFA-21 directs platform-wide Allvue-to-Entrilia migration to the separate Data Team program rather than this client-onboarding process.\nUses the output of Client onboarding or administrator transition: Request and target-system decision needed before the preparer begins.\nHands off to Data Team platform migration program: Platform-wide Allvue-to-Entrilia work is routed to the separate program according to FA-21.\nThe current-practice method and recipient details for the documented first-close handoff remain to be confirmed."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The preparer uses an Excel reconciliation workbook and maps data for the selected Entrilia or Allvue target. FA-21 documents system upload templates and target-system reporting after import.\nThe preparer puts mapped data into the selected Entrilia or Allvue upload templates and checks each batch before import."
+   },
+   {
+    "key": "volume",
+    "status": "partial",
+    "answer": "FA-21 says timing depends on history, transaction volume, source quality, chart-of-accounts alignment and classification complexity; it gives no standard milestone calendar."
+   }
+  ]
+ },
+ "map": {
+  "title": "Client Data Migration",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "start",
+    "title": "Migration need arises",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "A new client onboarding, administrator change, or need to migrate historical data starts the event-driven work."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Confirm migration scope",
+    "actor": "Preparer and Manager",
+    "system": "UNKNOWN",
+    "description": "Confirm entities, historical period, target system, data types, source provider and required reports. The Manager confirms scope before mapping begins."
+   },
+   {
+    "id": "S3",
+    "type": "decision",
+    "title": "Is this platform-wide migration?",
+    "actor": "Manager and preparer",
+    "system": "UNKNOWN",
+    "description": "FA-21 distinguishes client migration from the separate platform-wide Allvue-to-Entrilia program. Current use of this routing has not been confirmed by the participant."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Send platform work to Data Team",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "FA-21 directs platform-wide Allvue-to-Entrilia work to the separate Data Team program and requires a scope handoff record."
+   },
+   {
+    "id": "S5",
+    "type": "data_store",
+    "title": "Receive and inventory source files",
+    "actor": "Junior team member or preparer",
+    "system": "Intake log and approved secure source file location",
+    "description": "FA-21 says to receive the source package, list files with their entity, period, version and provider, preserve unchanged copies, and record missing or replaced items. The secure channel and location need confirmation."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Check source completeness",
+    "actor": "Preparer",
+    "system": "Intake checks and reconciliation workbook",
+    "description": "Check ledger coverage from fund start to cutoff, compare ledger and trial-balance periods and totals, note differences, and check missing or duplicate rows and files, required fields, and investor, contact and banking data against scope. The Manager reviews significant issues."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Request source clarification or correction",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "When source data is wrong, ask the source provider to clarify or correct it. The participant does not treat incomplete data as ready without Manager approval; FA-21 requires the correction or decision to be recorded."
+   },
+   {
+    "id": "S8",
+    "type": "document",
+    "title": "Build reconciliation workbook",
+    "actor": "Preparer",
+    "system": "Excel migration reconciliation workbook",
+    "description": "Create ledger, trial-balance, client chart-of-accounts, general-mapping and investor-mapping tabs. Load preserved data without changing the source copy and record source totals and counts; FA-21 also calls for target account and transcode reference data."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Map accounts and investor fields",
+    "actor": "Preparer",
+    "system": "Excel migration reconciliation workbook",
+    "description": "Map each client ledger code and category to the target account code and transcode, apply approved formulas to historical entries line by line, and map investor reference, contact and banking fields. Record reasons and exceptions; flag accounts without a direct equivalent."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Request necessary new account code",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "When no direct equivalent exists, the preparer flags it and proposes a new code only if necessary, sending the request to the authorized approver. The identity of that approver is UNKNOWN."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Obtain classification interpretation",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "For an unclear classification, FA-21 says to obtain and record the client or Manager's interpretation, its reason and supporting source. Affected work continues only after interpretation and approval are recorded."
+   },
+   {
+    "id": "S12",
+    "type": "activity",
+    "title": "Review and approve mapping",
+    "actor": "Manager",
+    "system": "Mapping tabs",
+    "description": "The Manager reviews and approves the mapping. Every source code must be mapped or recorded as an exception."
+   },
+   {
+    "id": "S13",
+    "type": "document",
+    "title": "Prepare and validate upload files",
+    "actor": "Preparer",
+    "system": "Entrilia or Allvue upload templates",
+    "description": "Place mapped data in current target templates; check required fields, formats, dates, signs, identifiers and available source totals for each batch. Save versions linked to approved mapping and obtain Manager review where required."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Import validated data",
+    "actor": "Import operator; exact role UNKNOWN",
+    "system": "Entrilia or Allvue",
+    "description": "FA-21 says to confirm target entity, environment and template version, import data, and retain available logs, error records and batch identifiers. A successful load alone does not prove correctness."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Correct and re-import failed batch",
+    "actor": "Preparer or system owner",
+    "system": "Entrilia or Allvue and controlled upload files",
+    "description": "FA-21 directs correction of an import error or failed, duplicate, missing or partly processed records using a controlled version and the safe re-import method. Stop the affected batch until corrected and the new import reconciled; the safe method needs confirmation."
+   },
+   {
+    "id": "S16",
+    "type": "document",
+    "title": "Run target-system reports",
+    "actor": "Junior team member, preparer, or system operator",
+    "system": "Entrilia or Allvue reports",
+    "description": "FA-21 says to run ledger, trial-balance and scoped investor-reference reports after import and keep settings, cutoff, entity and output. Reports must cover the source entities and periods."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Reconcile target to source",
+    "actor": "Junior team member or preparer",
+    "system": "Migration reconciliation workbook",
+    "description": "FA-21 says to compare target trial balance, ledger, investor-reference data and required reports with source or prior-administrator records, recording each difference and cause. The Manager reviews the work."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Correct reconciliation differences",
+    "actor": "Junior team member or preparer",
+    "system": "Reconciliation workbook, upload files and Entrilia or Allvue",
+    "description": "FA-21 says to identify each difference's cause, correct mapping or upload files in a new controlled version and re-import using the approved method. Link each correction to the original difference and new result; the Manager reviews judgment decisions."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Review and sign off migration",
+    "actor": "Manager",
+    "system": "Final migration package",
+    "description": "The Manager reviews mapping and reconciliations and gives final sign-off. The participant treats migration as complete only when source and target reports fully agree and sign-off is kept."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Hand off to accounting close",
+    "actor": "Manager",
+    "system": "Final migration package",
+    "description": "FA-21 says to keep approved migration records and hand the account to the first accounting close. The first accounting close itself is outside this migration process."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "Request and target-system decision available"
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "Platform-wide Allvue-to-Entrilia migration"
+   },
+   {
+    "from": "S3",
+    "to": "S5",
+    "label": "Client-onboarding migration"
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": ""
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Source data has a problem"
+   },
+   {
+    "from": "S6",
+    "to": "S8",
+    "label": "Source data ready"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": ""
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": "No direct equivalent and a new code is necessary"
+   },
+   {
+    "from": "S9",
+    "to": "S11",
+    "label": "Classification is unclear"
+   },
+   {
+    "from": "S9",
+    "to": "S12",
+    "label": "Mapping ready for review"
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": "Mapping approved"
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": "Upload files validated"
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": "Import error or failed, duplicate, missing or partly processed records"
+   },
+   {
+    "from": "S14",
+    "to": "S16",
+    "label": "Import completed"
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": "Corrected data re-imported"
+   },
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": ""
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": "Differences require correction"
+   },
+   {
+    "from": "S18",
+    "to": "S16",
+    "label": "Corrected data re-imported"
+   },
+   {
+    "from": "S17",
+    "to": "S19",
+    "label": "Source and target reports fully agree"
+   },
+   {
+    "from": "S19",
+    "to": "S20",
+    "label": "Manager sign-off given"
+   }
+  ],
+  "open_questions": [
+   "Does any incoming route start S16 (Run target-system reports), or must all prerequisites finish?",
+   "UNKNOWN: Who is accountable for the overall process, and who receives migration requests? Is there a standard request channel or scope form?",
+   "UNKNOWN: Does the participant's route apply generally across GPFS or only to particular clients or entities? Which entity types are in scope, and what other names are used?",
+   "FA-21 documents source inventory, import, reporting, correction, accounting-close handoff and platform routing; does each reflect current practice? The participant confirmed scope and final sign-off, but has not confirmed all these documented steps.",
+   "For historical migrations not arising from an onboarding or administrator-transition request, what request supplies the starting input, and how do they enter the documented client-migration route?",
+   "UNKNOWN: What are the normal deadlines, milestones, volumes, peaks, exception frequency and effort by step?",
+   "When a source provider clarifies or corrects data, how is readiness rechecked and where does work resume? Who can accept incomplete source data, what formal criteria or tolerance apply, and how is the decision recorded?",
+   "Who authorizes new account codes, and where do approved code requests and recorded classification interpretations rejoin mapping? What happens when a request or interpretation is rejected or delayed?",
+   "What does the Manager check when approving mapping and reviewing upload batches, when is upload review required, and how are failed checks corrected and rechecked?",
+   "Which approvals, if any, are required from clients or others, at what points, and what remains blocked while they are pending? Are any segregation or system-enforced controls used?",
+   "FA-21 permits an authorized treatment for a remaining difference in some passages, while the participant requires reports to fully agree for completion. Is any remaining difference currently permitted, and who has authority to decide?",
+   "What are the approved import, restoration and duplicate-prevention methods, and who may approve imports? How are upload validation failures handled before import?",
+   "What exact target reports and settings are used, and how are report-scope failures resolved? How are final sign-off and the accounting-close handoff recorded and delivered?",
+   "Where are source files, workbooks, upload versions, logs, reconciliations and approvals stored; what is the system of record, secure delivery method, retention period and banking-data validation standard?",
+   "FA-21 describes an additional Allvue CRM variation when specifically in approved scope. Is it currently used, and where do its separate batches, export refreshes and reconciliations enter and rejoin the general route?",
+   "Which client or system differences change the work, effort, deadlines, charging or ability to remove a step? FA-21 documents different templates and reports and client choices, but their current application and commercial treatment are UNKNOWN.",
+   "Who interprets governing or client rules and resolves conflicting sources, where is that interpretation recorded, and who owns and approves workbook formulas and changes?",
+   "What manual friction, frequent exceptions and concrete operational risks occur in practice, and what materials beyond FA-21 and the reported workbook and templates are used?",
+   "Document coverage: FA-21 has indexed native text for 47 of 47 pages; 43 of 47 text sections were supplied here. The recorded AI review is complete for 47 of 47 chunks, with no unread visual units; four unsupplied sections were not available for this capture."
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "Client Data Migration — current-practice draft for review",
+  "overview": "The participant describes scope confirmation, source checks, mapping, upload preparation and final Manager sign-off. FA-21 supplies additional written procedures for intake, import, reconciliation, correction and handoff. Those documentary instructions are not evidence that every step is currently performed. This draft needs participant and process-owner review; it is not an executable procedure or an approved GPFS standard.",
+  "trigger": "Event-driven: new client onboarding, a fund changing administrators, or a need to migrate historical data into Entrilia or Allvue. Before beginning, the preparer needs an onboarding or administrator-transition request and a target-system decision. The request channel is UNKNOWN.",
+  "inputs": [
+   "Client-onboarding or administrator-transition request and target-system decision.",
+   "Source general ledger, trial balance, investor reference, contact and banking data, and the agreed migration scope.",
+   "Preserved source data, client and target account codes, transcodes and approved formulas.",
+   "Approved source files and current Entrilia or Allvue upload templates.",
+   "FA-21 also lists prior reports and target reference information as inputs; their current intake procedure is unconfirmed."
+  ],
+  "outputs": [
+   "Manager-confirmed scope and Manager-approved mapping.",
+   "Saved upload-file versions linked to the approved mapping.",
+   "Source and target reports that fully agree, with retained Manager sign-off, as the participant's completion condition.",
+   "FA-21 specifies a migration package and handoff to the first accounting close; current practice and handoff method are unconfirmed."
+  ],
+  "exceptions": [
+   "Source problems are sent to the provider for clarification or correction; incomplete data is not ready without Manager approval. Return and recheck are UNKNOWN.",
+   "Accounts without direct equivalents are flagged; necessary new-code requests go to an authorized approver whose identity is UNKNOWN.",
+   "FA-21 documents handling unclear classifications, failed imports and reconciliation differences. Safe re-import and restoration methods remain unconfirmed.",
+   "FA-21 says to stop an affected step if a required system, version, mapping, access or record location is unavailable or unclear; current operation is unconfirmed."
+  ],
+  "controls": [
+   "Manager confirms scope before mapping and reviews significant source issues.",
+   "Manager approves mapping; each source code is mapped or recorded as an exception.",
+   "For each upload batch the preparer checks fields, formats, dates, signs, identifiers and available totals; counts and totals must agree with approved source files.",
+   "Manager reviews mapping and reconciliations and signs off; the participant requires full source-to-target report agreement and retained sign-off for completion.",
+   "FA-21 documents further import, report, reconciliation and exception checks; their current operation has not been confirmed."
+  ],
+  "validation_notes": [
+   "Current-practice draft pending participant confirmation and process-owner review. No overall owner has been identified, and no approved GPFS-wide standard is established.",
+   "FA-21 has native text indexed for 47 of 47 pages. This request supplied 43 of 47 indexed text sections. The recorded AI review is complete for 47 of 47 chunks and was not stopped; no visual units are marked unread. Four unsupplied sections were not available for this capture.",
+   "The participant confirmed scope confirmation and final Manager review and sign-off, not every FA-21 instruction. Documentary steps and connections remain attributed to FA-21 rather than asserted as observed practice.",
+   "FA-21 refers both to full agreement and to a possible authorized treatment of a remaining difference. The participant requires full report agreement for completion. Which condition applies in current practice requires confirmation.",
+   "Source correction, new-code approval and classification interpretation have known entries but no evidenced exact return point. No return edge has been invented.",
+   "The proposed S15-to-S17 label 'Reports fully agree' was replaced by FA-21's explicit zero-difference AND complete-records condition for sign-off. The participant's separate completion condition remains in S17 and the memo.",
+   "FA-21 describes an additional Allvue CRM procedure when explicitly in scope, but does not establish its precise insertion and rejoin points in this map. It is retained as a documented variation, not an orphan route or an assumed bypass.",
+   "FA-21 describes a separate platform-wide Allvue-to-Entrilia Data Team program, not a confirmed client-migration branch.",
+   "The interview remains incomplete. All sixteen memo topics are partial or unknown; no participant confirmation or owner approval has been recorded.",
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified.",
+   "Document-derived statements describe supplied reference material; current practice and control effectiveness have not been confirmed.",
+   "The independent audit changed or removed 1 proposed exception(s)."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "start",
+    "title": "Migration need arises",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "A new client is onboarded, a fund changes administrators, or historical data needs migration into Entrilia or Allvue. Work is event-driven."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Confirm migration scope",
+    "actor": "Preparer and Manager",
+    "system": "UNKNOWN",
+    "description": "Confirm the entities, historical period, target system, data types, source provider and required output reports. The Manager confirms scope before mapping starts."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Receive and inventory source files",
+    "actor": "Junior team member or preparer, according to FA-21",
+    "system": "Approved secure source-file location and intake log, according to FA-21; actual location UNKNOWN",
+    "description": "FA-21 directs receipt of the ledger, trial balance, prior reports, investor, contact and banking data, charts of accounts, transcodes and templates. It directs listing each file, entity, period, version and provider, retaining unchanged source copies, recording missing or replaced items and checking the package against scope. Current operation is unconfirmed."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Check source completeness",
+    "actor": "Preparer; Manager reviews significant issues",
+    "system": "UNKNOWN in the participant account; FA-21 names intake checks and reconciliation workbook",
+    "description": "Before mapping, check general-ledger coverage from fund start through cutoff; compare ledger and trial-balance periods and totals and note differences; look for missing or duplicate rows and files and incomplete required fields; check investor reference, contact and banking data against scope. The Manager reviews significant issues. Formal acceptance rules and tolerances are UNKNOWN."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Request source correction",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "When something is wrong, ask the source provider to clarify or correct it. The participant does not treat incomplete source data as ready without Manager approval. FA-21 directs recording the correction or decision and stopping affected work until the issue is resolved; current use of that written route and the exact return point are UNKNOWN."
+   },
+   {
+    "id": "S6",
+    "type": "document",
+    "title": "Build reconciliation workbook",
+    "actor": "Preparer",
+    "system": "Excel migration reconciliation workbook",
+    "description": "Build tabs for the general ledger, trial balance, client chart of accounts, general mapping and investor mapping. Load preserved source data without changing the unchanged copy, and record source totals and counts. FA-21 also specifies adding target chart-of-accounts and transcode reference data."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Map accounts and investor fields",
+    "actor": "Preparer",
+    "system": "Excel migration reconciliation workbook",
+    "description": "Map each client ledger code and category to the target account code and transcode; apply approved formulas to historical entries line by line; map investor reference, contact and banking fields. Record the reason for every mapping decision and exception, and flag accounts without a direct equivalent. Each source code must be mapped or recorded as an exception."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Request necessary account code",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "Flag an account without a direct equivalent. Propose a new code only when necessary and send the request to the authorized approver, whose identity is UNKNOWN. FA-21 says affected work continues only after the required action is complete and approval is recorded; the exact return point is UNKNOWN."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Obtain classification interpretation",
+    "actor": "UNKNOWN; FA-21 identifies the client or Manager as interpreter",
+    "system": "UNKNOWN",
+    "description": "For an unclear classification, FA-21 directs obtaining and recording the client or Manager's interpretation, reason and supporting source. Affected mapping and later handoffs remain open until interpretation and approval are recorded. Current operation and exact resumption point are UNKNOWN."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Review and approve mapping",
+    "actor": "Manager",
+    "system": "Mapping in the reconciliation workbook",
+    "description": "The Manager reviews and approves the mapping. Every source code must be mapped or recorded as an exception. Exact review checks, rejection and rework handling are UNKNOWN."
+   },
+   {
+    "id": "S11",
+    "type": "document",
+    "title": "Prepare and validate uploads",
+    "actor": "Preparer; Manager reviews where required",
+    "system": "Entrilia or Allvue upload templates",
+    "description": "Place mapped data into each target upload template. For each batch check required fields, formats, dates, signs, identifiers and source totals available in the template. Upload totals and counts must agree with approved source files and the current target template must be used. Save each upload version linked to the approved mapping; obtain Manager review where required. Review criteria and failure handling are UNKNOWN."
+   },
+   {
+    "id": "S12",
+    "type": "activity",
+    "title": "Import validated data",
+    "actor": "Import operator; exact role UNKNOWN, according to FA-21",
+    "system": "Entrilia or Allvue",
+    "description": "FA-21 directs confirming target entity, environment and template version, importing files, and keeping available import logs, errors and batch identifiers linked to source files. It says a successful load alone does not prove correctness. Current use and import authority are unconfirmed."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Correct failed import",
+    "actor": "Preparer or system owner, according to FA-21",
+    "system": "Controlled upload files and target system, according to FA-21",
+    "description": "FA-21 directs correcting an import error or failed, duplicate, missing or partly processed intended records and re-importing using a controlled safe method. The affected batch remains stopped until corrected and reconciled. Safe re-import, restoration and duplicate-removal methods need confirmation."
+   },
+   {
+    "id": "S14",
+    "type": "document",
+    "title": "Run target reports",
+    "actor": "Junior team member, preparer or system operator, according to FA-21",
+    "system": "Entrilia or Allvue reports",
+    "description": "After import, FA-21 directs running target ledger, trial-balance and scoped investor-reference reports and retaining report settings, cutoff date, entity and output. Reports must cover the same entities and periods as source data. Exact report names and settings need system-owner confirmation."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Reconcile target to source",
+    "actor": "Junior team member or preparer; Manager reviews, according to FA-21",
+    "system": "Migration reconciliation workbook, according to FA-21",
+    "description": "FA-21 directs comparing target trial balance, ledger, investor-reference data and required reports with source or prior-administrator records, recording each difference and its cause. The participant confirms Manager review of reconciliations and full agreement of source and target reports as part of completion."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Correct reconciliation differences",
+    "actor": "Junior team member or preparer; Manager reviews judgment decisions, according to FA-21",
+    "system": "Reconciliation workbook, upload files and Entrilia or Allvue, according to FA-21",
+    "description": "FA-21 directs identifying whether each difference arose from classification, mapping, transcode, format, missing or duplicate records; correcting the mapping or upload file in a new controlled version; re-importing; linking the original difference to the corrected file and new result; and repeating reports and reconciliation until no unexplained difference remains. Safe re-import requires confirmation."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Review and sign off",
+    "actor": "Manager",
+    "system": "Final migration package described by FA-21; actual sign-off location UNKNOWN",
+    "description": "The Manager reviews the mapping and reconciliations and gives final sign-off. The participant treats migration as complete only once source and target reports fully agree and sign-off is kept. FA-21 also describes reviewing judgment decisions and correction history; those details are not separately confirmed."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Hand off to accounting close",
+    "actor": "Manager, according to FA-21",
+    "system": "UNKNOWN",
+    "description": "FA-21 directs keeping approved migration records and handing the account to the first accounting close, which it places outside this migration process. The participant has not confirmed the handoff or its mechanism."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "Request and target decision available"
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": "FA-21: scope approved"
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "FA-21: source package received"
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": "Source data is wrong"
+   },
+   {
+    "from": "S4",
+    "to": "S6",
+    "label": "Source data ready"
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Workbook built"
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": "No direct equivalent and new code necessary"
+   },
+   {
+    "from": "S7",
+    "to": "S9",
+    "label": "FA-21: classification unclear"
+   },
+   {
+    "from": "S7",
+    "to": "S10",
+    "label": "Mapping ready for review"
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": "Mapping approved"
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": "FA-21: upload files validated"
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": "FA-21: import error or failed, duplicate, missing or partly processed records"
+   },
+   {
+    "from": "S12",
+    "to": "S14",
+    "label": "FA-21: import completed"
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": "FA-21: corrected data re-imported"
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": "FA-21: target reports available"
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": "FA-21: differences require correction"
+   },
+   {
+    "from": "S16",
+    "to": "S14",
+    "label": "FA-21: corrected data re-imported"
+   },
+   {
+    "from": "S15",
+    "to": "S17",
+    "label": "FA-21: difference zero AND required records complete"
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": "FA-21: Manager approval"
+   }
+  ],
+  "open_questions": [
+   "Does any incoming route start S14 (Run target reports), or must all prerequisites finish?",
+   "Who is accountable for the overall migration, and does the participant's route apply generally across GPFS or only to particular clients or entities?",
+   "Does FA-21's intake, import, report, correction and first-close handoff reflect current practice, and who performs each?",
+   "How are corrected or clarified source files rechecked and returned to the route? What acceptance criteria and tolerances apply to incomplete source data?",
+   "Who can approve a new account code, and where do approved code requests and classification interpretations return to mapping?",
+   "What completion and sign-off conditions apply when a difference remains, given the participant's full-agreement condition and FA-21's references to authorized treatment?",
+   "How are upload-check or Manager-review failures corrected and rechecked, and when is Manager upload review required?",
+   "What safe import, restoration, duplicate-prevention and re-import methods and approval authorities apply?",
+   "For historical migrations outside onboarding or administrator transition, what request is supplied and how does it enter the route?",
+   "What are the actual target reports, report-scope failure handling, sign-off storage and first-close handoff mechanism?",
+   "Which client or other approvals, segregation, overrides or system-enforced restrictions apply, and what is blocked pending them?",
+   "Where are records stored, what is authoritative, what are the secure channel and retention period, and how is banking data validated?",
+   "Is the documented Allvue CRM variation used currently, and where does it enter and rejoin the general route?",
+   "Who interprets conflicting rules and owns and approves workbook formulas? What client or system differences affect effort, charging or removability?",
+   "What deadlines, volumes, peaks, exception rates, effort, practical friction and consequences are observed?",
+   "Does the documented routing of platform-wide work to the Data Team occur in current practice?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "Client Data Migration is the intake name and FA-21's process name. FA-21 includes receipt, mapping, import, reconciliation and sign-off, and excludes the separate platform-wide migration and first accounting close. Other team or system names are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "FA-21 describes migrating historical ledger, trial-balance and investor-reference data into Entrilia or Allvue, validating it against target reports and obtaining Manager approval. The participant confirms full report agreement and retained sign-off as the completion condition; the recipient's use of the result is not confirmed."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The work is event-driven for onboarding, an administrator change or required historical migration. Before beginning, the preparer needs an onboarding or transition request and target-system decision. The request channel, event receiver, deadlines and request for other historical migrations are UNKNOWN. FA-21 specifies no standard milestone calendar."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The participant requires source and target reports to fully agree and Manager sign-off to be kept. FA-21 also describes a first-close handoff, but its current use and method are unconfirmed. Its possible authorized treatment of a remaining difference needs reconciliation with the participant's condition."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The Manager confirms scope, approves mapping and gives final sign-off; the preparer performs the described source, mapping and upload work. Overall process ownership is UNKNOWN. FA-21 likewise leaves the overall program owner unconfirmed."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The Manager and preparer confirm scope. The preparer checks source coverage and consistency, asks the provider to correct problems, builds an Excel workbook, maps accounts and investor fields, and prepares and checks versioned uploads. The Manager approves mapping and later reviews reconciliations and signs off. FA-21 additionally describes intake, import, reports, correction and re-import, and close handoff. Current downstream mechanics and the source and mapping exception returns remain UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The preparer checks source period coverage, ledger and trial-balance totals, missing or duplicate data and scoped investor fields. The Manager reviews significant issues and approves mapping. Upload fields, formats, dates, signs, identifiers, available totals and counts are checked per batch; Manager review is obtained where required. The Manager reviews final reconciliations and signs off. Review criteria, failure rework, proof locations, client approvals, segregation, thresholds and enforcement are UNKNOWN. FA-21 describes additional checks but does not prove operation."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "The participant uses the selected Entrilia or Allvue upload templates. FA-21 says templates and reports differ by system, client choices affect mapping and outputs, and extra Allvue CRM batches apply only when approved in scope. Current use, exact boundaries, extra effort, charging and removal constraints are UNKNOWN."
+   },
+   {
+    "key": "pain_points",
+    "status": "partial",
+    "answer": "The work reported includes line-by-line historical mapping, source checks, per-batch validation and requests for source correction. The participant did not identify which are painful or quantify effort. FA-21 warns that workbook knowledge may reside with its creator; that is not a confirmed observed problem."
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "FA-21 warns that an incorrect mapping or formula can affect the full history or multiple batches, and wrong templates can cause rejected, partial, duplicate or incorrectly classified records. Participant-observed failures and consequences are UNKNOWN."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "FA-21, the Excel reconciliation workbook and target upload templates are identified. The supplied FA-21 excerpts were reviewed for this draft; four indexed text sections were not supplied. The participant does not know of a standard scope form or system-specific validation checklist, but their existence is not ruled out."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "A fund changing administrators is one trigger, and each migration's scope identifies entities. The full set of entity types and client applicability are UNKNOWN. FA-21 excludes the Data Team's platform-wide migration, source-owned corrections and first accounting close. General GPFS standard status and the parent-process boundary are unconfirmed."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The preparer applies approved formulas line by line, records mapping reasons and exceptions, and uses Manager-approved mapping. Formula ownership, calculation details, new-code authority and source acceptance tolerance are UNKNOWN. FA-21 sets out source-priority instructions and directs the client or Manager to interpret unclear classifications; these written rules are not confirmed as current practice."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "Onboarding or administrator-transition requests and a target decision are prerequisites. The source provider is asked to clarify or correct problems. FA-21 describes target-system administration and a first-close handoff, plus a separate Data Team platform program. The current downstream handoff and other dependencies remain unconfirmed."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The preparer uses an Excel reconciliation workbook, preserved source data and Entrilia or Allvue upload templates; approved formulas transform historical entries. FA-21 describes target imports and reports. Authoritative records, file locations, retention, secure delivery, formula ownership and exact entry methods are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "partial",
+    "answer": "Migration counts, peaks, exception frequency and time or effort by step are UNKNOWN. FA-21 says timing depends on history, transaction volume, data quality, chart alignment and classification complexity, but gives no measured volume or effort."
+   }
+  ]
+ },
+ "draft_error": null
+}

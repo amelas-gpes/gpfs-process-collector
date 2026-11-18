@@ -1,0 +1,950 @@
+{
+ "case": "V03",
+ "process": "FA-17",
+ "mode": "recorded voice",
+ "style": "two monologues of over two minutes",
+ "build": "fixed",
+ "participant": "script",
+ "context": {
+  "process_name": "Payment Execution & Callback Verification Controls",
+  "process_owner": "",
+  "objective": "Document how we carry out Payment Execution & Callback Verification Controls, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "To begin with, we open and classify the payment, that is done by Payment Preparer, what we do: create or update the payment in the payments log, where the payments log has these fields: record the documented payee, amount, purpose, entity, requested value date, and payment folder reference. Set the correct current status. Determine whether the instructions are new or changed. If they are, a callback is required. The check on it. Every payment must follow the payments log and status process. Next, we confirm the required client or entity approvals. That is done by Payment Preparer, what we do: for United States, U.S. payments, obtain client approval before release. For European payments, identify the applicable GP Fund Solutions, GPFS, regulated approval sequence under for regulated entities. Complete the required capital adequacy check, confirming that the entity has the required financial resources, where applicable. The check on it. Complete the applicable client or regional approval before release. After that, we perform callback for new or changed details. That is done by Callback Performer, what we do: obtain the phone number from an approved source independent of the request, not from the instruction email. Call the known contact. Confirm the contact's name and relationship to the counterparty. Verify the IBAN and SWIFT bank code for a European payment, or the ABA routing number for a United States payment. Also verify any other applicable account information. Record performer, contact, relationship, date, and time. Keep only the masked bank details allowed by Section 7. Compare the payee name with the account holder name. The check on it. Independently sourced callback, name match, only the permitted masked details are kept. Then we complete payment, duplicate, and screening checks. That is done by Payment Preparer Reviewer, what we do: compare the invoice or payment documents with the amount, payee, purpose, and entity. Check whether the payment is a duplicate. Complete required Exiger screening for sanctions and high-risk countries. Send any potential high-risk country match to two signatory A, SIG A, approvers. Complete United Kingdom, UK, construction industry scheme, CIS, supplier verification where applicable. The check on it. Do not release the payment while a screening result or possible duplicate is unresolved."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "Once the checks and required approvals are clear, who actually releases the payment?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "Once that is done, we confirm funding, timing, and foreign exchange, FX, that is done by payment preparer treasury. What we do: save a bank statement screenshot showing the balance, confirm sufficient funds for the payment and non-pending obligations, confirm the bank cutoff time and value date, arrange foreign exchange, FX, when required. If funds are insufficient, set status to insufficient funds and route to the check on it. Sufficient funds are available. The cutoff time and value date are confirmed. Foreign exchange is addressed. Following that, we input and obtain dual approval. That is done by payment preparer, signatory one, signatory two. What we do: enter the payment in the bank platform for review, update status to payment input for review or the applicable current status, obtain signatory one approval, obtain independent signatory two approval, complete any requirement for two signatory approvals, schedule or release the payment with sufficient time before the bank cutoff. The check on it: both required signatories and any specialist signatories have approved. Following that, we monitor settlement and handle exceptions. That is done by payment preparer treasury. What we do: monitor payment status, update the payment log from in progress to settled, or use pending query or not paid by GPFS as applicable, investigate rejects, returns, and pending queries, verify the instructions again before resubmitting with changed details. The check on it: the payment log status matches the bank platform's final status. Following that, we file records and obtain senior sign-off. That is done by payment preparer, an assistant fund controller, AFC or higher signs off. What we do: file the approval, callback, screening, balance, payment, and final bank status records in the digital binder or payment folder, confirm the payment log references the folder, obtain sign-off from an assistant fund controller, AFC, or higher that the records are complete. The check on it: an assistant fund controller, AFC, or higher confirms the post-payment records are complete."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What event or input normally prompts the Payment Preparer to open and classify a payment?"
+  },
+  {
+   "id": "t006",
+   "role": "assistant",
+   "text": "This capture still has open sections. 14 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794969655.011,
+   "turn": 0,
+   "seconds": 0.029,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794969665.636,
+   "turn": 1,
+   "seconds": 5.736,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 148.0,
+   "audio_bytes": 4736470,
+   "wer": 0.005,
+   "heard": "To begin with, we open and classify the payment, that is done by Payment Preparer, what we do: create or update the payment in the payments log, where the payments log has these fields: record the documented payee, amount, purpose, entity, requested value date, and payment folder reference. Set the correct current status. Determine whether the instructions are new or changed. If they are, a callback is required. The check on it. Every payment must follow the payments log and status process. Next, we confirm the required client or entity approvals. That is done by Payment Preparer, what we do: for United States, U.S. payments, obtain client approval before release. For European payments, identify the applicable GP Fund Solutions, GPFS, regulated approval sequence under for regulated entities. Complete the required capital adequacy check, confirming that the entity has the required financial resources, where applicable. The check on it. Complete the applicable client or regional approval before release. After that, we perform callback for new or changed details. That is done by Callback Performer, what we do: obtain the phone number from an approved source independent of the request, not from the instruction email. Call the known contact. Confirm the contact's name and relationship to the counterparty. Verify the IBAN and SWIFT bank code for a European payment, or the ABA routing number for a United States payment. Also verify any other applicable account information. Record performer, contact, relationship, date, and time. Keep only the masked bank details allowed by Section 7. Compare the payee name with the account holder name. The check on it. Independently sourced callback, name match, only the permitted masked details are kept. Then we complete payment, duplicate, and screening checks. That is done by Payment Preparer Reviewer, what we do: compare the invoice or payment documents with the amount, payee, purpose, and entity. Check whether the payment is a duplicate. Complete required Exiger screening for sanctions and high-risk countries. Send any potential high-risk country match to two signatory A, SIG A, approvers. Complete United Kingdom, UK, construction industry scheme, CIS, supplier verification where applicable. The check on it. Do not release the payment while a screening result or possible duplicate is unresolved."
+  },
+  {
+   "kind": "question",
+   "at": 1794969668.12,
+   "turn": 2,
+   "seconds": 2.431,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969690.128,
+   "turn": 3,
+   "seconds": 24.44
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794969713.157,
+   "turn": 3,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 47.47
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794969721.613,
+   "turn": 3,
+   "seconds": 5.458,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 131.0,
+   "audio_bytes": 4191922,
+   "wer": 0.027,
+   "heard": "Once that is done, we confirm funding, timing, and foreign exchange, FX, that is done by payment preparer treasury. What we do: save a bank statement screenshot showing the balance, confirm sufficient funds for the payment and non-pending obligations, confirm the bank cutoff time and value date, arrange foreign exchange, FX, when required. If funds are insufficient, set status to insufficient funds and route to the check on it. Sufficient funds are available. The cutoff time and value date are confirmed. Foreign exchange is addressed. Following that, we input and obtain dual approval. That is done by payment preparer, signatory one, signatory two. What we do: enter the payment in the bank platform for review, update status to payment input for review or the applicable current status, obtain signatory one approval, obtain independent signatory two approval, complete any requirement for two signatory approvals, schedule or release the payment with sufficient time before the bank cutoff. The check on it: both required signatories and any specialist signatories have approved. Following that, we monitor settlement and handle exceptions. That is done by payment preparer treasury. What we do: monitor payment status, update the payment log from in progress to settled, or use pending query or not paid by GPFS as applicable, investigate rejects, returns, and pending queries, verify the instructions again before resubmitting with changed details. The check on it: the payment log status matches the bank platform's final status. Following that, we file records and obtain senior sign-off. That is done by payment preparer, an assistant fund controller, AFC or higher signs off. What we do: file the approval, callback, screening, balance, payment, and final bank status records in the digital binder or payment folder, confirm the payment log references the folder, obtain sign-off from an assistant fund controller, AFC, or higher that the records are complete. The check on it: an assistant fund controller, AFC, or higher confirms the post-payment records are complete."
+  },
+  {
+   "kind": "question",
+   "at": 1794969723.438,
+   "turn": 4,
+   "seconds": 1.798,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969723.442,
+   "turn": 5,
+   "seconds": 1.8,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 8,
+   "connections": 9
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794969768.948,
+   "turn": 5,
+   "notes_state": "working",
+   "map_state": "working",
+   "seconds": 47.31
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794969771.037,
+   "turn": 5,
+   "seconds": 2.021,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "working",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.map_ready",
+   "at": 1794969795.173,
+   "turn": 6,
+   "seconds": 26.16,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 20,
+   "connections": 22
+  },
+  {
+   "kind": "draft",
+   "at": 1794970064.087,
+   "turn": 6,
+   "seconds": 268.841,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [],
+ "notes": {
+  "summary": "The participant described funding checks, bank input and independent dual approval, settlement monitoring, exception handling, record filing and AFC-or-higher sign-off. The initiating event, overall accountable role and insufficient-funds routing remain open.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "captured",
+    "answer": "Payment Execution & Callback Verification Controls"
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The described work executes and monitors payments with verification, approvals and documented post-payment records."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The initiating event, recipient or detection, normal cadence and any fixed deadlines beyond the bank cutoff remain unestablished.\nThe bank cutoff time and value date are confirmed, and the payment is scheduled or released with sufficient time before the cutoff."
+   },
+   {
+    "key": "completion",
+    "status": "captured",
+    "answer": "The payment log must match the bank platform's final status, and an AFC or higher confirms that the post-payment records are complete. The log can show settled, pending query or not paid by GPFS as applicable."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The Payment Preparer opens and classifies the payment, creates or updates its log entry, and confirms required client or entity approvals.\nA Callback Performer carries out callbacks for new or changed payment details. Payment Preparer Reviewer performs the payment, duplicate and screening checks.\nThe role accountable for the overall payment result has not been identified; the AFC or higher signs off on record completeness."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The Payment Preparer opens and classifies the payment, creates or updates the payments log with documented payee, amount, purpose, entity, requested value date and payment-folder reference, sets the current status, and determines whether instructions are new or changed. A callback is required when they are new or changed.\nThe Payment Preparer confirms required approvals before release: for U.S. payments, obtain client approval; for European payments, identify the applicable GPFS regulated-entity approval sequence. Complete the capital adequacy check where applicable, confirming the entity has required financial resources, and complete the applicable client or regional approval before release.\nFor new or changed details, the Callback Performer obtains a phone number from an approved source independent of the request (not the instruction email), calls the known contact, confirms the contact's name and relationship to the counterparty, and verifies the applicable bank details. Verify IBAN and SWIFT bank code for European payments or ABA routing number for U.S. payments, plus other applicable account information. Record performer, contact, relationship, date and time, and retain only bank details masked as permitted by Section 7.\nThe Payment Preparer Reviewer compares invoice or payment documents with amount, payee, purpose and entity; checks for duplicates; completes required Exiger screening for sanctions and high-risk countries; and completes UK CIS supplier verification where applicable. A potential high-risk-country match is sent to two SIG A approvers. Do not release while a screening result or possible duplicate is unresolved.\nAfter the payment checks, Payment Preparer Treasury saves a bank statement screenshot, confirms funds cover the payment and non-pending obligations, confirms cutoff and value date, and arranges FX when required. If funds are insufficient, the status is set to insufficient funds; the participant's routing instruction was incomplete.\nThe destination and subsequent handling of an insufficient-funds payment are unclear.\nPayment Preparer, signatory one and signatory two handle bank input and dual approval: enter the payment for review, update its status, obtain signatory one and independent signatory two approvals and any required specialist approvals, then schedule or release before cutoff. The specific release actor is not assigned.\nPayment Preparer Treasury monitors status, updates the log from in progress to settled or uses pending query or not paid by GPFS as applicable, and investigates rejects, returns and pending queries. Instructions are verified again before resubmission with changed details.\nPayment Preparer files approval, callback, screening, balance, payment and final bank-status records in the digital binder or payment folder, confirms the log references the folder, and obtains AFC-or-higher sign-off that records are complete."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The reported callback controls are use of an independently sourced phone number, confirmation of contact name and relationship, comparison of payee name with account-holder name, and retention of only permitted masked bank details. Callback evidence recorded includes performer, contact, relationship, date and time.\nPayment documents are compared with amount, payee, purpose and entity; duplicate and required Exiger sanctions/high-risk-country screening checks are performed. A potential high-risk-country match goes to two SIG A approvers, and release is blocked while screening or a possible duplicate is unresolved. UK CIS supplier verification is performed where applicable.\nPayment Preparer Treasury checks sufficient funds for the payment and non-pending obligations, cutoff, value date and required FX. Both required signatories and any specialist signatories must approve; signatory two's approval is independent.\nThe payment log is checked against the bank platform's final status; an AFC or higher signs off that post-payment records are complete."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "Reported conditional routes vary by payment region: U.S. payments require client approval before release and callback verification of the ABA routing number; European payments use the applicable regulated-entity approval sequence and callback verification of IBAN and SWIFT bank code. The source of these regional differences is not stated.\nCapital adequacy checks apply where applicable, and UK CIS supplier verification is performed where applicable; the specific applicability conditions are not stated.\nFX is arranged when required; insufficient funds produce an insufficient-funds status. Rejects, returns and pending queries are investigated, with instructions verified again before resubmission if details have changed."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The payments log records the documented payee, amount, purpose, entity, requested value date and payment-folder reference, and tracks status. Invoice or payment documents support comparison checks.\nA bank statement screenshot records the balance. Approval, callback, screening, balance, payment and final bank-status records are filed in a digital binder or payment folder, which is referenced in the log."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The described work includes U.S. and European payment routes and UK CIS supplier verification where applicable.\nEntity types, client applicability and whether the route is general GPFS practice remain unestablished."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "Every payment must follow the payments log and status process; new or changed instructions require a callback. Applicable client or regional approval and capital adequacy checks must be completed before release.\nFor callback verification, use a phone number from an approved source independent of the instruction request, compare the payee name with the account-holder name, and retain only bank details masked as permitted by Section 7. Section 7 and the identity of the approved sources are not supplied here.\nDo not release while a screening result or possible duplicate remains unresolved; potential high-risk-country matches are referred to two SIG A approvers.\nThe governing sources for the log, callback and approval requirements have not been identified.\nHow unresolved screening or duplicate results are cleared or escalated beyond the SIG A referral remains unspecified.\nRequired signatory approvals, including applicable specialist approvals, precede scheduling or release; instructions must be verified again before resubmitting with changed details."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The Payment Preparer Reviewer uses invoice or payment documents as inputs to payment comparison checks. Potential high-risk-country matches are sent to two SIG A approvers; the subsequent decision or handoff outcome is not stated."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "Payment information and current status are created or updated in a payments log. The payment is entered in the bank platform for review, and its final bank status is compared with the log.\nThe payments log's software and storage location, and callback and approval tools, remain unidentified."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": ""
+   }
+  ]
+ },
+ "map": {
+  "title": "Payment Execution & Callback Verification Controls",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "data_store",
+    "title": "Open and classify payment",
+    "actor": "Payment Preparer",
+    "system": "Payments log",
+    "description": "Create or update the payment record, set its current status and determine whether instructions are new or changed. Every payment follows the log and status process."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Confirm required approvals",
+    "actor": "Payment Preparer",
+    "system": "UNKNOWN",
+    "description": "Obtain US client approval before release. For European payments, identify the applicable GPFS regulated approval sequence for regulated entities; complete the capital adequacy check where applicable and the applicable client or regional approval before release."
+   },
+   {
+    "id": "S3",
+    "type": "decision",
+    "title": "Are instructions new or changed?",
+    "actor": "Payment Preparer",
+    "system": "UNKNOWN",
+    "description": "Use the instruction classification established when opening the payment. A callback is required for new or changed instructions."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Perform and record callback",
+    "actor": "Callback Performer",
+    "system": "UNKNOWN",
+    "description": "Obtain a telephone number from an approved source independent of the request, call the known contact and confirm their name and relationship. Verify the applicable bank identifiers and other account information, compare the payee and account-holder names, and retain only permitted masked details. European payments use IBAN and SWIFT bank code; US payments use ABA routing number."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Check payment and duplicates",
+    "actor": "Payment Preparer Reviewer",
+    "system": "UNKNOWN",
+    "description": "Compare the invoice or payment documents with the amount, payee, purpose and entity, and check whether the payment is a duplicate. Do not release while a possible duplicate is unresolved."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Screen payment in Exiger",
+    "actor": "Payment Preparer Reviewer",
+    "system": "Exiger",
+    "description": "Complete required sanctions and high-risk country screening. An unresolved screening result blocks payment release."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Send high-risk country match",
+    "actor": "Payment Preparer Reviewer",
+    "system": "UNKNOWN",
+    "description": "Send any potential high-risk country match to two signatory A approvers."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Verify UK CIS supplier",
+    "actor": "Payment Preparer Reviewer",
+    "system": "UNKNOWN",
+    "description": "Complete UK construction industry scheme supplier verification where applicable."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Confirm funding, timing and FX",
+    "actor": "Payment Preparer Treasury",
+    "system": "UNKNOWN",
+    "description": "Save a bank statement screenshot showing the balance; check funds for the payment and non-pending obligations, bank cutoff and value date. Arrange FX when required."
+   },
+   {
+    "id": "S10",
+    "type": "data_store",
+    "title": "Record insufficient funds",
+    "actor": "Payment Preparer Treasury",
+    "system": "Payments log",
+    "description": "Set the status to insufficient funds. The participant's stated routing after this status is unclear."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Input payment for review",
+    "actor": "Payment Preparer",
+    "system": "Bank platform; payments log",
+    "description": "Enter the payment in the bank platform for review and update its status to payment input for review or the applicable current status."
+   },
+   {
+    "id": "S12",
+    "type": "activity",
+    "title": "Obtain required signatory approvals",
+    "actor": "Payment Preparer, Signatory One, Signatory Two and any required specialist signatories",
+    "system": "Bank platform",
+    "description": "Obtain signatory one approval and independent signatory two approval, and complete any requirement for two signatory approvals. Any required specialist signatories must also approve before release; their timing is UNKNOWN."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Schedule or release payment",
+    "actor": "Payment Preparer, Signatory One, Signatory Two; individual releasing actor UNKNOWN",
+    "system": "Bank platform",
+    "description": "Schedule or release the payment with sufficient time before the bank cutoff. Required client or regional and signatory approvals must be complete, and unresolved screening or possible duplicates block release."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Monitor payment status",
+    "actor": "Payment Preparer Treasury",
+    "system": "Bank platform",
+    "description": "Monitor payment status and identify rejects, returns or pending queries for investigation."
+   },
+   {
+    "id": "S15",
+    "type": "data_store",
+    "title": "Update payment log status",
+    "actor": "Payment Preparer Treasury",
+    "system": "Payments log; bank platform",
+    "description": "Update the log from in progress to settled, or use pending query or not paid by GPFS as applicable. The log status must match the bank platform's final status."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Investigate payment exceptions",
+    "actor": "Payment Preparer Treasury",
+    "system": "UNKNOWN",
+    "description": "Investigate rejects, returns and pending queries. The resolution and subsequent handoff are UNKNOWN unless changed instructions require reverification before resubmission."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Reverify changed instructions",
+    "actor": "Payment Preparer Treasury",
+    "system": "UNKNOWN",
+    "description": "Verify the instructions again before resubmitting a payment with changed details. The reverification method is UNKNOWN."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Resubmit changed payment",
+    "actor": "Payment Preparer Treasury",
+    "system": "UNKNOWN",
+    "description": "Resubmit with changed details after the instructions have been verified again."
+   },
+   {
+    "id": "S19",
+    "type": "document",
+    "title": "File post-payment records",
+    "actor": "Payment Preparer",
+    "system": "Digital binder or payment folder; payments log",
+    "description": "File approval, callback, screening, balance, payment and final bank status records. Confirm that the payment log references the folder."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Obtain senior record sign-off",
+    "actor": "Assistant Fund Controller or higher",
+    "system": "UNKNOWN",
+    "description": "An assistant fund controller or higher signs off that the post-payment records are complete."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "Instructions are new or changed"
+   },
+   {
+    "from": "S3",
+    "to": "S5",
+    "label": "Instructions are not new or changed"
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": "Callback completed"
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": ""
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Potential high-risk country match"
+   },
+   {
+    "from": "S6",
+    "to": "S8",
+    "label": "No potential high-risk country match AND UK CIS verification applies"
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": "UK CIS verification applies"
+   },
+   {
+    "from": "S6",
+    "to": "S9",
+    "label": "No potential high-risk country match AND UK CIS verification not applicable AND checks complete"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "Applicable checks complete"
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": "Insufficient funds"
+   },
+   {
+    "from": "S9",
+    "to": "S11",
+    "label": "Sufficient funds, timing confirmed and FX addressed"
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": ""
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": "Both required signatories and any required specialist signatories approved"
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": ""
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": "Applicable payment status identified"
+   },
+   {
+    "from": "S14",
+    "to": "S16",
+    "label": "Reject, return or pending query"
+   },
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": "Changed details require resubmission"
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": "Changed instructions verified again"
+   },
+   {
+    "from": "S15",
+    "to": "S19",
+    "label": "Final bank status available and log matches"
+   },
+   {
+    "from": "S19",
+    "to": "S20",
+    "label": ""
+   }
+  ],
+  "open_questions": [
+   "What initiates the payment work, who detects it, and what input is ready?",
+   "Who is accountable for the overall result, and what is the basis for treating this as general GPFS or client-specific practice?",
+   "Who uses the completed records or payment result next, and is any reconciliation or other closure required?",
+   "What approval sequence and capital adequacy checks apply to each relevant entity, and how are approvals evidenced?",
+   "What happens if callback details or names do not match, or a callback cannot be completed?",
+   "How are possible duplicates, unresolved screening results and potential high-risk country matches resolved? What do the two SIG A approvers do, and when may the payment proceed?",
+   "After a potential high-risk country match is sent to SIG A approvers, when is UK CIS verification performed, and what happens if it does not apply?",
+   "What does the stated routing after an insufficient-funds status mean, and how does the payment resume?",
+   "Who individually schedules or releases the payment, when are specialist signatories required, and how are approvals recorded?",
+   "How are rejects, returns and pending queries resolved? How are changed instructions reverified, and where does the resubmitted payment resume?",
+   "Where are callback and screening records retained before filing, and what is the authoritative record for each result?",
+   "What deadlines, volumes, practical difficulties and material failure consequences apply?",
+   "What is Section 7, is it available for review, and who interprets rules or resolves conflicts between sources?",
+   "What other client, entity or regional variations apply, and what are their source, effort, charging and removal constraints where relevant?",
+   "Does any incoming route start S5 (Check payment and duplicates), or must all prerequisites finish?",
+   "Does any incoming route start S8 (Verify UK CIS supplier), or must all prerequisites finish?",
+   "Does any incoming route start S9 (Confirm funding, timing and FX), or must all prerequisites finish?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "Current-practice draft: Payment Execution & Callback Verification Controls",
+  "overview": "Draft for process-owner review, based on one participant account. The initiating event, overall accountable role, process boundary and several exception routes remain UNKNOWN. No supporting document was supplied or reviewed; participant confirmation and approval are pending.",
+  "trigger": "UNKNOWN. The first reported action is for the Payment Preparer to open and classify the payment; the initiating event was not established.",
+  "inputs": [
+   "Documented payee, amount, purpose, entity, requested value date and payment folder reference.",
+   "Invoice or payment documents and payment instructions.",
+   "Bank balance and payment-status information."
+  ],
+  "outputs": [
+   "Payment log with applicable status and folder reference.",
+   "Payment scheduled or released, with status monitored.",
+   "Filed payment records and AFC-or-higher sign-off on their completeness."
+  ],
+  "exceptions": [
+   "Potential high-risk country matches are sent to two SIG A approvers; response and resolution are UNKNOWN.",
+   "Unresolved screening results and possible duplicates block release; resolution is UNKNOWN.",
+   "Insufficient funds are recorded as a status; subsequent routing and recovery are UNKNOWN.",
+   "Rejects, returns and pending queries are investigated. Instructions are verified again before resubmission with changed details; other outcomes and the resubmission return route are UNKNOWN."
+  ],
+  "controls": [
+   "Every payment follows the payments log and status process, according to the participant.",
+   "Applicable client or regional approval is completed before release; US payments require client approval. Capital adequacy is checked where applicable.",
+   "New or changed instructions require an independently sourced callback, name comparison and permitted masking.",
+   "An unresolved screening result or possible duplicate blocks release; potential high-risk country matches are sent to two SIG A approvers.",
+   "Sufficient funding, cutoff and value date are checked, and FX is addressed when required.",
+   "Both required signatories and any required specialist signatories approve; the second signatory is independent.",
+   "The payment log status is checked against the bank platform's final status; an AFC or higher signs off on post-payment record completeness."
+  ],
+  "validation_notes": [
+   "AI-generated current-practice draft requiring process-owner review. Participant confirmation and approval are pending.",
+   "The intake supplies a process name and objective, not an established trigger or owner. No supporting documents were supplied or reviewed; Section 7 is only mentioned.",
+   "One participant account is not independent corroboration of an approved or general GPFS standard.",
+   "The route for instructions that are not new or changed is not explicitly stated and is omitted. The callback route remains connected.",
+   "The high-risk match handler has no evidenced resolution or rejoin. Continuing to other checks does not establish that a match has been resolved; unresolved screening still blocks release.",
+   "The proposed S15-to-S19 label was replaced: final-status matching is a reported check and final bank status is a filing item, but the account does not explicitly state that a successful match alone gates filing. Handling of pending and exception outcomes before filing remains UNKNOWN.",
+   "The exact order or concurrency of signatory approvals is UNKNOWN. Overall process finish and downstream consumer remain UNKNOWN.",
+   "External connections are reported leads, not independently verified process links. Empty entity scope does not establish that the work is enterprise-wide.",
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified.",
+   "The independent audit changed or removed 1 proposed exception(s)."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "data_store",
+    "title": "Open and classify payment",
+    "actor": "Payment Preparer",
+    "system": "Payments log",
+    "description": "Create or update the payment in the log, record the documented payee, amount, purpose, entity, requested value date and payment folder reference, and set the current status. Determine whether instructions are new or changed. The participant says every payment follows the log and status process."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Confirm required approvals",
+    "actor": "Payment Preparer",
+    "system": "UNKNOWN",
+    "description": "For US payments, obtain client approval before release. For European payments, identify the applicable GPFS regulated approval sequence for regulated entities. Complete the capital adequacy check where applicable, confirming required financial resources, and complete the applicable client or regional approval before release. The detailed sequence and evidence are UNKNOWN."
+   },
+   {
+    "id": "S3",
+    "type": "decision",
+    "title": "Are instructions new or changed?",
+    "actor": "Payment Preparer",
+    "system": "UNKNOWN",
+    "description": "Use the classification reported at opening. A callback is required for new or changed instructions. The route for other instructions is UNKNOWN."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Perform and record callback",
+    "actor": "Callback Performer",
+    "system": "UNKNOWN",
+    "description": "Obtain a phone number from an approved source independent of the request, not the instruction email, and call the known contact. Confirm the contact's name and relationship to the counterparty. Verify the applicable European bank identifiers or US routing identifier and other applicable account information; compare payee and account-holder names. Record performer, contact, relationship, date and time. Retain only the masked details permitted by the participant's reference to Section 7; that section was not supplied."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Check payment and duplicates",
+    "actor": "Payment Preparer Reviewer",
+    "system": "UNKNOWN",
+    "description": "Compare invoice or payment documents with the amount, payee, purpose and entity, and check whether the payment is a duplicate. An unresolved possible duplicate blocks release; resolution is UNKNOWN."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Screen payment in Exiger",
+    "actor": "Payment Preparer Reviewer",
+    "system": "Exiger",
+    "description": "Complete required Exiger screening for sanctions and high-risk countries. Send any potential high-risk country match to two SIG A approvers. An unresolved screening result blocks release."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Send high-risk country match",
+    "actor": "Payment Preparer Reviewer",
+    "system": "UNKNOWN",
+    "description": "Send a potential high-risk country match to two SIG A approvers. Their response, resolution and return route are UNKNOWN; an unresolved screening result blocks release."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Verify UK CIS supplier",
+    "actor": "Payment Preparer Reviewer",
+    "system": "UNKNOWN",
+    "description": "Complete UK construction industry scheme supplier verification where applicable. Precise applicability and result handling are UNKNOWN."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Confirm funding, timing and FX",
+    "actor": "Payment Preparer Treasury",
+    "system": "UNKNOWN",
+    "description": "Save a bank statement screenshot showing the balance. Confirm sufficient funds for the payment and non-pending obligations, confirm bank cutoff and value date, and arrange FX when required. If funds are insufficient, set the status to insufficient funds; the participant's subsequent routing wording is unclear."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Record insufficient funds",
+    "actor": "Payment Preparer Treasury",
+    "system": "UNKNOWN",
+    "description": "Set the status to insufficient funds. The participant said to route it to “the check on it”; the destination and recovery are UNKNOWN."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Input payment for review",
+    "actor": "Payment Preparer",
+    "system": "Bank platform; payments log",
+    "description": "Enter the payment in the bank platform for review and update the status to payment input for review or the applicable current status."
+   },
+   {
+    "id": "S12",
+    "type": "activity",
+    "title": "Obtain signatory approvals",
+    "actor": "Payment Preparer, Signatory One and Signatory Two; specialist signatories where required",
+    "system": "UNKNOWN",
+    "description": "Obtain signatory one approval and independent signatory two approval and complete any requirement for two signatory approvals. Both required signatories and any required specialist signatories must approve. Approval order, specialist applicability and evidence location are UNKNOWN."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Schedule or release payment",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Schedule or release with sufficient time before bank cutoff. Applicable client or regional approvals, both required signatories and any required specialist signatories must approve before release. An unresolved screening result or possible duplicate blocks release. The individual who schedules or releases is UNKNOWN."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Monitor payment status",
+    "actor": "Payment Preparer Treasury",
+    "system": "Bank platform",
+    "description": "Monitor payment status and investigate rejects, returns and pending queries when applicable."
+   },
+   {
+    "id": "S15",
+    "type": "data_store",
+    "title": "Update payment log status",
+    "actor": "Payment Preparer Treasury",
+    "system": "Payments log; bank platform",
+    "description": "Update the log from in progress to settled, or use pending query or not paid by GPFS as applicable. The reported check is that the payment log status matches the bank platform's final status."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Investigate payment exceptions",
+    "actor": "Payment Preparer Treasury",
+    "system": "UNKNOWN",
+    "description": "Investigate rejects, returns and pending queries. Resolution and subsequent handoff are UNKNOWN except that instructions must be verified again before resubmission with changed details."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Reverify changed instructions",
+    "actor": "Payment Preparer Treasury",
+    "system": "UNKNOWN",
+    "description": "Verify instructions again before resubmitting with changed details. The verification method and whether it follows the callback procedure are UNKNOWN."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Resubmit changed payment",
+    "actor": "Payment Preparer Treasury",
+    "system": "UNKNOWN",
+    "description": "Resubmit with changed details after verifying the instructions again. The subsequent route is UNKNOWN."
+   },
+   {
+    "id": "S19",
+    "type": "document",
+    "title": "File post-payment records",
+    "actor": "Payment Preparer",
+    "system": "Digital binder or payment folder; payments log",
+    "description": "File approval, callback, screening, balance, payment and final bank status records in the digital binder or payment folder. Confirm the payment log references the folder. Records applicable when no callback occurs are UNKNOWN."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Sign off record completeness",
+    "actor": "Assistant Fund Controller or higher",
+    "system": "UNKNOWN",
+    "description": "An AFC or higher signs off that the post-payment records are complete. How sign-off is recorded and any subsequent consumer are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "Next"
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": "After approvals"
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "Instructions new or changed"
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": "After callback"
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": "Payment and duplicate checks performed"
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Potential high-risk country match"
+   },
+   {
+    "from": "S6",
+    "to": "S8",
+    "label": "UK CIS verification applicable"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "Applicable payment checks completed"
+   },
+   {
+    "from": "S6",
+    "to": "S9",
+    "label": "UK CIS verification not applicable; payment checks completed"
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": "Insufficient funds"
+   },
+   {
+    "from": "S9",
+    "to": "S11",
+    "label": "Sufficient funds; cutoff and value date confirmed; FX addressed"
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": "Payment entered for review"
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": "Required and any specialist signatories approved"
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": "Following scheduling or release"
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": "Status identified"
+   },
+   {
+    "from": "S14",
+    "to": "S16",
+    "label": "Reject, return or pending query"
+   },
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": "Resubmission with changed details"
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": "Instructions verified again"
+   },
+   {
+    "from": "S15",
+    "to": "S19",
+    "label": "Following monitoring and status handling"
+   },
+   {
+    "from": "S19",
+    "to": "S20",
+    "label": "Records filed and folder reference confirmed"
+   }
+  ],
+  "open_questions": [
+   "What event initiates payment work, who detects it, and what input is ready?",
+   "Who is accountable for the overall result, and is this general GPFS practice or a client-specific route?",
+   "For instructions that are not new or changed, how does the payment reach the payment checks?",
+   "How are possible duplicates, unresolved screening results and high-risk country matches resolved, and how do they affect subsequent work and release?",
+   "What does the insufficient-funds routing mean, and how does the payment resume?",
+   "What happens when a callback cannot be completed or details or names do not match?",
+   "What are the applicable European approval sequences and capital adequacy checks, and how are approvals evidenced?",
+   "When UK CIS verification applies, how is it coordinated with a potential high-risk match, and what happens if verification fails?",
+   "Who individually schedules or releases payment, when are specialist signatories required, and how are approvals recorded?",
+   "How are rejects, returns and pending queries resolved, how are changed instructions reverified, and where does a resubmitted payment resume?",
+   "When can post-payment records be filed for a pending or exception outcome, and what is required when there was no callback?",
+   "What is the observable overall finish, who uses the result next, and is further reconciliation or closure required?",
+   "What is Section 7, can it be reviewed, and who interprets rules or resolves conflicts?",
+   "What systems are authoritative for each result, and where are records held before final filing?",
+   "What cadence, volumes, effort, practical difficulties, failure consequences and other relevant variations apply?",
+   "Are there other outcomes from decision S3 (Are instructions new or changed?), and where do they lead?",
+   "Does any incoming route start S9 (Confirm funding, timing and FX), or must all prerequisites finish?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "The intake calls the work Payment Execution & Callback Verification Controls. The participant describes payment classification, approvals, callback, checks, execution, monitoring and record sign-off. Other names and formal boundaries are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The reported work schedules or releases a payment, monitors its status and assembles records for completeness sign-off. The ultimate recipient value and full completion boundary are UNKNOWN."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The first reported action is opening and classifying a payment; the initiating event, receiver, upstream readiness and cadence are UNKNOWN. Scheduling or release should leave sufficient time before bank cutoff; other deadlines are UNKNOWN."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "Treasury monitors status and the log should match the bank platform's final status. The preparer files records and an AFC or higher signs off on completeness. Overall closure, reconciliation and downstream consumer are UNKNOWN."
+   },
+   {
+    "key": "accountable",
+    "status": "unknown",
+    "answer": "UNKNOWN. Performers and the record-completeness sign-off role are named, but the role accountable for the overall result is not."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The preparer logs and classifies the payment and confirms applicable approvals. A Callback Performer verifies new or changed instructions. The Payment Preparer Reviewer compares documents, checks duplicates, screens and performs applicable UK CIS verification. Treasury checks funds, timing and FX; the payment is entered, approved, scheduled or released, then monitored. The log can move from in progress to settled, pending query or not paid by GPFS. Treasury investigates exceptions and reverifies instructions before resubmission with changed details. The preparer files records for AFC-or-higher sign-off. The trigger, non-callback route, several handoffs and exception returns remain UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "Reported checks include client or regional approvals, applicable capital adequacy, an independently sourced callback and name comparison, document and duplicate checks, Exiger screening, applicable CIS verification, funding and cutoff checks, two signatories including an independent second signatory, any required specialist signatories, final-status matching and senior record-completeness sign-off. Unresolved screening or possible duplicates block release. Failed-check handling, review depth, thresholds, enforcement and proof for each approval are UNKNOWN."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "US payments require client approval and verification of the US routing identifier during an applicable callback. European payments have an applicable regulated-entity approval sequence and verification of European bank identifiers during an applicable callback. UK CIS supplier verification applies where relevant. New or changed instructions require callback, and FX is arranged when required. Reasons, boundaries, effort, charging and removal constraints are UNKNOWN."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": "UNKNOWN. Checks and exception handling were described, but specific friction and effort were not."
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": "UNKNOWN. Release blocks and verification checks were reported, but concrete failure consequences were not described."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The participant referred to Section 7 for permitted masked bank details. It was not supplied or reviewed; its document identity and availability are UNKNOWN."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The account covers US and European payments, regulated entities where applicable, and applicable UK CIS supplier verification. Specific entity types, parent process, client coverage and basis for a general GPFS standard are UNKNOWN."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The participant reports callback for new or changed instructions, regional approvals, screening and duplicate release blocks, funding checks and signatory requirements. Section 7 is mentioned for masking but was not reviewed. Rule sources, interpretation, conflicts and implementation details are UNKNOWN; no material calculation was described."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "Payment documents, instructions and bank information feed the work; payment details are entered in a bank platform and records are filed. Named upstream processes, downstream consumers, readiness signals and parallel dependencies are UNKNOWN."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The payments log holds reported fields and statuses; Exiger is used for screening; a bank platform is used for payment entry and final-status comparison; records are filed in a digital binder or payment folder. Authoritative records, entry modes, earlier storage and any workbook logic are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": "UNKNOWN. Counts, peaks, exception rates and effort by step were not provided."
+   }
+  ]
+ },
+ "draft_error": null
+}

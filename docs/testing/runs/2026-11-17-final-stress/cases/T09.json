@@ -1,0 +1,1255 @@
+{
+ "case": "T09",
+ "process": "FA-20",
+ "mode": "typed",
+ "style": "two steps per answer",
+ "build": "untouched",
+ "participant": "script",
+ "context": {
+  "process_name": "KYC & Sanctions Screening",
+  "process_owner": "",
+  "objective": "Document how we carry out KYC & Sanctions Screening, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "To begin with, we open the KYC event and identify the requirements. That is done by: KYC and AML preparer. Before starting we need trigger notice and investor and entity details. What we do: record the trigger: new subscription, ownership change, transfer, subsequent investor close, periodic review, or another trigger event; identify investor type, jurisdiction, structure complexity, regulatory classification, and existing status; determine the approved document and screening requirements for that profile; keep capital acceptance, portal access, and allocation participation blocked until clearance. The check on it: do not provide access or accept capital before documented clearance. Next, we collect and validate identity and entity documentation. That is done by: KYC and AML preparer. Before starting we need list of requirements and investor submissions. What we do: collect subscription agreement, identity records, entity documents, and required supporting data; check legal names, jurisdiction, required addresses and identifiers, and controlling-person information for completeness and consistency; record missing, expired, inconsistent, or unreadable documents and request correction. The check on it: all required documents are complete and internally consistent If something goes wrong: Do not proceed to clearance while required documents are."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "How does the preparer learn that one of those trigger events has occurred?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "After that, we identify beneficial owners and controlling persons. That is done by: KYC and AML preparer. Before starting we need entity and ownership documents and the approved threshold policy. What we do: map direct and indirect ownership through every entity level; trace ownership through holding companies and intermediate feeder or blocker entities until reaching individuals who meet the approved BO threshold; identify controlling persons even when ownership threshold is not met, as required by policy; compare ownership percentages and relationships, resolve differences, and document any gaps. The check on it: all required ownership levels are traced, and the list of parties to screen is complete. Then, we perform sanctions screening and resolve potential matches. That is done by: KYC and AML preparer; AML reviewer. Before starting we need complete list of parties to screen and verified legal names and aliases. What we do: use Exiger to screen the investor, legal names, aliases, beneficial owners, and controlling persons against approved sanctions and restricted-party sources; keep the search inputs, date, and results; for each potential match, compare identifiers and supporting information to decide whether it is a false positive, a possible match, or a true match; document the resolution and reviewer decision; escalate unresolved or true-match concerns. The check on it: every potential match has documented resolution or active escalation."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What has to be true for the KYC event to be documented as cleared?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "Once that is done, we review PEP status and adverse media. That is done by: KYC and AML preparer; AML reviewer. Before starting we need list of parties to screen and approved tools and sources. What we do: screen for PEP status, close associates, and adverse media; under the approved policy, assess each flag's relevance, identity match, recency, and risk; perform EDD when required by a flag; document the findings and the risk that remains after controls (residual risk). The check on it: flags are resolved or escalated before clearance If something goes wrong: EDD requirements and who may approve them are not specified. Following that, we assign risk rating and approval route. That is done by: KYC and AML preparer; AML reviewer. Before starting we need documents, BO, sanctions, PEP, and adverse-media results. What we do: assess jurisdiction, structure complexity, PEP exposure, connections to sanctions risks, and adverse media; apply the approved risk model; record the risk rating, rationale, required approver, and review frequency; send the case to the required reviewer. The check on it: the rating rationale and required approver are documented If something goes wrong: The rating scale, scoring, thresholds, approval matrix, and review-."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "How does the risk rating determine the approval route?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "Following that, we make and record the AML decision. That is done by: AML reviewer; Compliance Officer for escalations. Before starting we need complete case and risk assessment. What we do: review completeness, screening match resolutions, EDD, the risk rating, and open items; approve clearance only when all required issues are resolved; record the approval, approver, date, conditions, and review requirement; if screening fails or remains prohibited or unresolved, keep the required block in place, escalate to the Compliance Officer, and notify the client as applicable. The check on it: the reviewer signs off; an urgent business need cannot override failed screening. Following that, we apply clearance status and retain the record. That is done by: KYC and AML preparer and the applicable onboarding or operations role. Before starting we need documented AML decision. What we do: communicate the clearance or blocked status to , , , and the applicable payment or event teams; allow capital acceptance, portal access, and allocation participation only after clearance; store the screening, beneficial-ownership, risk, approval, and resolution records under the AML retention policy; record the next review and monitoring requirement. The check on it: the status in operational systems matches the AML decision If something goes wrong: System fields, repository, and retention period require."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "What result is this screening process meant to deliver for the investor or the business?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "Following that, we perform periodic, trigger, and payment-time monitoring. That is done by: KYC and AML monitoring role; the exact title is not specified. Before starting we need list of active investors, review schedule, trigger alerts, and payment event. What we do: perform the annual or risk-based review under the approved schedule; open a review for changes to a name, entity, ownership, transfer, screening alert, adverse media, or country risk; complete payment-time screening where required by or another checklist; update the risk and clearance status, and communicate any blocks; for European distribution payees blocked by CDD, withhold payment and follow the 30/60/90-day follow-up schedule in . The check on it: do not defer trigger events until the next periodic review If something goes wrong: The monitoring owner, alert source, and review service-level."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "Where does this work create the most manual effort or delay in practice?"
+  },
+  {
+   "id": "t012",
+   "role": "assistant",
+   "text": "This capture still has open sections. 13 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794968415.144,
+   "turn": 0,
+   "seconds": 0.039,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794968419.729,
+   "turn": 2,
+   "seconds": 4.529,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968433.056,
+   "turn": 3,
+   "seconds": 17.86
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794968446.905,
+   "turn": 3,
+   "seconds": 31.7,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 5,
+   "connections": 4
+  },
+  {
+   "kind": "question",
+   "at": 1794968452.169,
+   "turn": 4,
+   "seconds": 5.2,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794968452.175,
+   "turn": 5,
+   "seconds": 5.21,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 5,
+   "connections": 4
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794968480.965,
+   "turn": 5,
+   "seconds": 34.0,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 9,
+   "connections": 8
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968486.607,
+   "turn": 5,
+   "seconds": 39.64
+  },
+  {
+   "kind": "question",
+   "at": 1794968490.13,
+   "turn": 6,
+   "seconds": 3.451,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794968490.138,
+   "turn": 7,
+   "seconds": 3.46,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t004",
+   "steps": 9,
+   "connections": 8
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968509.684,
+   "turn": 7,
+   "seconds": 23.0
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794968527.183,
+   "turn": 7,
+   "seconds": 40.5,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 14,
+   "connections": 15
+  },
+  {
+   "kind": "question",
+   "at": 1794968531.118,
+   "turn": 8,
+   "seconds": 3.881,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794968531.128,
+   "turn": 9,
+   "seconds": 3.89,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t006",
+   "steps": 14,
+   "connections": 15
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968565.035,
+   "turn": 9,
+   "seconds": 37.8
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794968576.417,
+   "turn": 9,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 49.18
+  },
+  {
+   "kind": "question",
+   "at": 1794968578.015,
+   "turn": 10,
+   "seconds": 1.515,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794968579.575,
+   "turn": 11,
+   "seconds": 3.08,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t008",
+   "steps": 23,
+   "connections": 27
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968610.454,
+   "turn": 11,
+   "seconds": 33.95
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794968613.569,
+   "turn": 11,
+   "seconds": 37.07,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 28,
+   "connections": 29
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794968613.659,
+   "turn": 11,
+   "seconds": 0.017,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794968951.681,
+   "turn": 12,
+   "seconds": 337.965,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [],
+ "notes": {
+  "summary": "Monitoring includes scheduled and event-driven reviews, payment-time screening where required, and a specific follow-up route for CDD-blocked European distribution payees. The monitoring owner, alert source and review service level remain open.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "captured",
+    "answer": "KYC & Sanctions Screening"
+   },
+   {
+    "key": "purpose",
+    "status": "captured",
+    "answer": "The work establishes and communicates an AML clearance or blocked status for an investor event, governing whether capital acceptance, portal access and allocation participation may proceed."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The KYC and AML preparer records a trigger event, which may be a new subscription, ownership change, transfer, subsequent investor close, periodic review, or another trigger event. Trigger notice and investor and entity details are needed before starting.\nMonitoring includes annual or risk-based reviews and reviews triggered by changes to names, entities, ownership or transfers, screening alerts, adverse media or country risk. A payment event is an input to payment-time monitoring.\nThe monitoring alert source and review service level are unspecified."
+   },
+   {
+    "key": "completion",
+    "status": "captured",
+    "answer": "Clearance requires all required issues to be resolved and reviewer sign-off. Closeout includes communicating the decision, retaining case records, recording the next review and monitoring requirement, and checking that operational-system status matches the AML decision."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The KYC and AML preparer performs the opening and document-collection steps.\nThe role accountable for the overall KYC and sanctions screening result, distinct from the preparer, is not established.\nThe monitoring role's exact title and monitoring owner are unspecified."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The KYC and AML preparer opens the KYC event, identifies requirements, and records the trigger. The preparer identifies investor type, jurisdiction, structure complexity, regulatory classification, and existing status, then determines approved document and screening requirements for that profile.\nThe preparer collects and validates identity and entity documentation, including subscription agreements, identity records, entity documents, and required supporting data. The preparer checks legal names, jurisdiction, required addresses and identifiers, and controlling-person information for completeness and consistency; missing, expired, inconsistent, or unreadable documents are recorded and correction is requested.\nAfter document validation, the KYC and AML preparer uses entity and ownership documents and the approved threshold policy to map direct and indirect ownership through every entity level, including holding companies and intermediate feeders or blockers, to individuals meeting the approved beneficial ownership threshold. The preparer also identifies controlling persons below the threshold as policy requires, compares percentages and relationships, resolves differences and documents gaps.\nThe KYC and AML preparer and AML reviewer perform sanctions screening using Exiger, a complete list of parties and verified legal names and aliases. They screen the investor, beneficial owners and controlling persons against approved sanctions and restricted-party sources, compare identifiers and supporting information for potential matches, document resolutions and reviewer decisions, and escalate unresolved or true-match concerns.\nAfter sanctions screening, the KYC and AML preparer and AML reviewer screen the listed parties for PEP status, close associates and adverse media using approved tools and sources. Under approved policy they assess each flag's relevance, identity match, recency and risk, perform enhanced due diligence (EDD) when a flag requires it, and document findings and residual risk.\nAfter the PEP and adverse-media review, the preparer and AML reviewer use the documents, beneficial ownership, sanctions, PEP and adverse-media results to assess jurisdiction, structure complexity, PEP exposure, sanctions-risk connections and adverse media. They apply the approved risk model, record the rating, rationale, required approver and review frequency, and send the case to the required reviewer.\nWith the complete case and risk assessment, the AML reviewer reviews completeness, screening-match resolutions, EDD, the risk rating and open items. The reviewer approves clearance only when all required issues are resolved and records approval, approver, date, conditions and review requirement; the Compliance Officer handles escalations.\nIf screening fails or remains prohibited or unresolved, the required block remains in place, the case is escalated to the Compliance Officer and the client is notified as applicable.\nAfter a documented AML decision, the KYC and AML preparer and applicable onboarding or operations role communicate clearance or blocked status to applicable payment or event teams, retain the screening, beneficial-ownership, risk, approval and resolution records under the AML retention policy, and record the next review and monitoring requirement.\nThe KYC and AML monitoring role performs annual or risk-based reviews under the approved schedule, using the active-investor list and review schedule. It opens a review for changes to a name, entity, ownership or transfer, or for a screening alert, adverse media or country risk; it updates risk and clearance status and communicates blocks.\nThe monitoring role completes payment-time screening where required. For European distribution payees blocked by CDD, payment is withheld and the 30/60/90-day follow-up schedule is followed."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "Capital acceptance, portal access, and allocation participation remain blocked until documented clearance. Required documents must be complete and internally consistent; the preparer records missing, expired, inconsistent, or unreadable documents and requests correction, and does not proceed to clearance while required documents are missing.\nThe repository where screening evidence is retained remains unspecified.\nThe ownership check requires all required levels to be traced and the list of parties to screen to be complete. Each potential screening match is classified as a false positive, possible match or true match using identifiers and supporting information; every match must have a documented resolution or active escalation.\nPEP and adverse-media flags must be resolved or escalated before clearance. The risk-rating check requires the rating rationale and required approver to be documented.\nThe AML reviewer signs off after reviewing the complete case, including match resolutions, EDD, risk rating and open items. An urgent business need cannot override failed screening; operational-system status is checked against the AML decision.\nTrigger events must not be deferred until the next periodic review."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "Document and screening requirements are determined for the investor profile, including investor type, jurisdiction, structure complexity, regulatory classification and existing status.\nSpecific differences in profile-based requirements and any client- or fund-specific routes remain unspecified.\nWhere ownership passes through holding companies or intermediate feeder or blocker entities, the preparer traces it through those levels to qualifying individuals.\nA flag requiring EDD adds enhanced due diligence to the PEP and adverse-media review.\nFor European distribution payees blocked by CDD, payment is withheld and a 30/60/90-day follow-up schedule applies."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "Capital acceptance, portal access and allocation participation are blocked until documented clearance.\nFailed, prohibited or unresolved screening keeps the required block in place, triggers escalation to the Compliance Officer and may require client notification."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The described collection includes subscription agreements, identity records, entity documents, and required supporting data; investor submissions are inputs to collection and validation.\nEntity and ownership documents and the approved threshold policy are inputs to ownership tracing. Screening retains search inputs, date, results, match resolutions and reviewer decisions.\nPEP and adverse-media findings and residual risk are documented. The risk-rating record includes the rating, rationale, required approver and review frequency.\nThe AML decision record includes approval, approver, date, conditions and review requirement. Screening, beneficial-ownership, risk, approval and resolution records are retained under the AML retention policy.\nThe active-investor list, review schedule and trigger alerts are inputs to monitoring; the participant also refers to an approved schedule and a 30/60/90-day follow-up schedule.\nThe repository and retention period for AML records require clarification."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "Requirements depend on the investor profile; ownership tracing can extend through holding companies and intermediate feeder or blocker entities.\nWhether the route is GPFS-wide or client-specific is not established."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The preparer determines approved document and screening requirements for the investor profile. Required documents must be complete and internally consistent before clearance proceeds.\nDocumented clearance is a prerequisite to providing access or accepting capital, and clearance is also a prerequisite to allocation participation.\nThe source and authority for profile-specific requirements and the approved beneficial ownership threshold policy remain unspecified.\nThe approved beneficial ownership threshold policy governs which individuals are identified by ownership; controlling persons are also identified when the threshold is not met, as required by policy.\nThe reported approved policy governs flag assessment and whether EDD is required; the approved risk model is applied to assign the risk rating.\nEDD requirements and who may approve EDD are unspecified. The rating scale, scoring, thresholds and approval matrix are also unspecified.\nClearance is approved only after all required issues are resolved; an urgent business need cannot override failed screening. Capital acceptance, portal access and allocation participation are allowed only after clearance.\nMonitoring follows an approved annual or risk-based schedule. Trigger events must not be deferred to the next periodic review; CDD-blocked European distribution payees follow a 30/60/90-day follow-up schedule with payment withheld.\nThe source and criteria for required payment-time screening and the document containing the European distribution follow-up schedule are not identified."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The clearance or blocked status is communicated to applicable payment or event teams so the operational activities remain blocked or may proceed after clearance. Other intended recipients were not named in the account."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "Exiger is used to screen the investor and relevant parties against approved sanctions and restricted-party sources.\nThe operational system fields and record repository are unspecified."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": ""
+   }
+  ]
+ },
+ "map": {
+  "title": "KYC & Sanctions Screening",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Open KYC event",
+    "actor": "KYC and AML preparer",
+    "system": "UNKNOWN",
+    "description": "Open the KYC event and record the trigger: a new subscription, ownership change, transfer, subsequent investor close, periodic review or another trigger event."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Identify profile and requirements",
+    "actor": "KYC and AML preparer",
+    "system": "UNKNOWN",
+    "description": "Identify investor type, jurisdiction, structure complexity, regulatory classification and existing status; determine the approved document and screening requirements for that profile. Keep capital acceptance, portal access and allocation participation blocked until clearance; do not provide access or accept capital before documented clearance."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Collect identity and entity documents",
+    "actor": "KYC and AML preparer",
+    "system": "UNKNOWN",
+    "description": "Collect the subscription agreement, identity records, entity documents and required supporting data."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Validate document information",
+    "actor": "KYC and AML preparer",
+    "system": "UNKNOWN",
+    "description": "Check legal names, jurisdiction, required addresses and identifiers, and controlling-person information for completeness and consistency. The reported check is that all required documents are complete and internally consistent."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Record defects and request correction",
+    "actor": "KYC and AML preparer",
+    "system": "UNKNOWN",
+    "description": "Record missing, expired, inconsistent, or unreadable documents and request correction."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Identify owners and controlling persons",
+    "actor": "KYC and AML preparer",
+    "system": "UNKNOWN",
+    "description": "Trace direct and indirect ownership through entity levels to individuals meeting the approved beneficial ownership threshold. Identify controlling persons as required by policy, compare percentages and relationships, resolve differences and document gaps."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Screen parties in Exiger",
+    "actor": "KYC and AML preparer; AML reviewer (individual assignments UNKNOWN)",
+    "system": "Exiger",
+    "description": "Screen the investor, legal names, aliases, beneficial owners and controlling persons against approved sanctions and restricted-party sources. Keep the search inputs, date and results."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Assess potential screening matches",
+    "actor": "KYC and AML preparer; AML reviewer (individual assignments UNKNOWN)",
+    "system": "UNKNOWN",
+    "description": "Compare identifiers and supporting information for each potential match to decide whether it is a false positive, possible match or true match. Document the resolution and reviewer decision."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Escalate match concerns",
+    "actor": "KYC and AML preparer; AML reviewer (individual assignments UNKNOWN)",
+    "system": "UNKNOWN",
+    "description": "Escalate unresolved or true-match concerns. The recipient and subsequent handling are UNKNOWN."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Screen and assess PEP and media",
+    "actor": "KYC and AML preparer; AML reviewer (individual assignments UNKNOWN)",
+    "system": "Approved tools and sources; details UNKNOWN",
+    "description": "Screen for PEP status, close associates and adverse media. Assess each flag's relevance, identity match, recency and risk under the approved policy."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Perform required EDD",
+    "actor": "KYC and AML preparer; AML reviewer (individual assignments UNKNOWN)",
+    "system": "UNKNOWN",
+    "description": "Perform enhanced due diligence when a flag requires it. EDD requirements and who may approve them were not specified."
+   },
+   {
+    "id": "S12",
+    "type": "document",
+    "title": "Document findings and residual risk",
+    "actor": "KYC and AML preparer; AML reviewer (individual assignments UNKNOWN)",
+    "system": "UNKNOWN",
+    "description": "Document the PEP and adverse-media findings and the risk remaining after controls."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Assign risk rating and route",
+    "actor": "KYC and AML preparer; AML reviewer (individual assignments UNKNOWN)",
+    "system": "UNKNOWN",
+    "description": "Assess jurisdiction, structure complexity, PEP exposure, connections to sanctions risks and adverse media, then apply the approved risk model. Record the rating, rationale, required approver and review frequency."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Send case for review",
+    "actor": "KYC and AML preparer; AML reviewer (individual assignments UNKNOWN)",
+    "system": "UNKNOWN",
+    "description": "Send the case to the required reviewer identified by the risk and approval route."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Review the AML case",
+    "actor": "AML reviewer; Compliance Officer for escalations",
+    "system": "UNKNOWN",
+    "description": "Review completeness, screening match resolutions, EDD, the risk rating and open items."
+   },
+   {
+    "id": "S16",
+    "type": "decision",
+    "title": "Is clearance approved?",
+    "actor": "AML reviewer",
+    "system": "UNKNOWN",
+    "description": "Approve clearance only when all required issues are resolved. An urgent business need cannot override failed screening."
+   },
+   {
+    "id": "S17",
+    "type": "document",
+    "title": "Record clearance approval",
+    "actor": "AML reviewer; Compliance Officer for escalations (individual recording assignment UNKNOWN)",
+    "system": "UNKNOWN",
+    "description": "Record the approval, approver, date, conditions and review requirement. The reviewer signs off."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Escalate blocked screening",
+    "actor": "AML reviewer; Compliance Officer for escalations (individual assignments UNKNOWN)",
+    "system": "UNKNOWN",
+    "description": "If screening fails or remains prohibited or unresolved, keep the required block in place, escalate to the Compliance Officer and notify the client as applicable."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Communicate clearance or blocked status",
+    "actor": "KYC and AML preparer and applicable onboarding or operations role",
+    "system": "UNKNOWN",
+    "description": "Communicate clearance or blocked status to the applicable payment or event teams. Other recipients are UNKNOWN because the supplied account leaves them blank."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Allow activities after clearance",
+    "actor": "KYC and AML preparer and applicable onboarding or operations role (individual release assignment UNKNOWN)",
+    "system": "Operational systems; details UNKNOWN",
+    "description": "Allow capital acceptance, portal access and allocation participation only after clearance. The release mechanism is UNKNOWN."
+   },
+   {
+    "id": "S21",
+    "type": "data_store",
+    "title": "Retain AML case records",
+    "actor": "KYC and AML preparer and applicable onboarding or operations role (individual storage assignment UNKNOWN)",
+    "system": "Repository UNKNOWN",
+    "description": "Store screening, beneficial-ownership, risk, approval and resolution records under the AML retention policy. The repository and retention period are UNKNOWN."
+   },
+   {
+    "id": "S22",
+    "type": "data_store",
+    "title": "Record review and monitoring requirements",
+    "actor": "KYC and AML preparer and applicable onboarding or operations role (individual recording assignment UNKNOWN)",
+    "system": "UNKNOWN",
+    "description": "Record the next review and monitoring requirement."
+   },
+   {
+    "id": "S23",
+    "type": "activity",
+    "title": "Check operational status against decision",
+    "actor": "KYC and AML preparer and applicable onboarding or operations role (individual checking assignment UNKNOWN)",
+    "system": "Operational systems; fields UNKNOWN",
+    "description": "Check that the status in operational systems matches the AML decision. Handling of a mismatch is UNKNOWN."
+   },
+   {
+    "id": "S24",
+    "type": "activity",
+    "title": "Perform scheduled investor reviews",
+    "actor": "KYC and AML monitoring role; exact title UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Perform annual or risk-based reviews under the approved schedule."
+   },
+   {
+    "id": "S25",
+    "type": "activity",
+    "title": "Open trigger-event reviews",
+    "actor": "KYC and AML monitoring role; exact title UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Open a review for changes to a name, entity, ownership, transfer, screening alert, adverse media or country risk. Do not defer trigger events until the next periodic review."
+   },
+   {
+    "id": "S26",
+    "type": "activity",
+    "title": "Perform required payment-time screening",
+    "actor": "KYC and AML monitoring role; exact title UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Complete payment-time screening where required. The applicable requirement or checklist is not identified in the account."
+   },
+   {
+    "id": "S27",
+    "type": "activity",
+    "title": "Update and communicate monitoring status",
+    "actor": "KYC and AML monitoring role; exact title UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Update risk and clearance status and communicate any blocks."
+   },
+   {
+    "id": "S28",
+    "type": "activity",
+    "title": "Withhold blocked distribution payments",
+    "actor": "KYC and AML monitoring role; exact title UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "For European distribution payees blocked by CDD, withhold payment and follow the 30/60/90-day follow-up schedule. The schedule source and subsequent outcome are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": ""
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": "Documents missing, expired, inconsistent or unreadable"
+   },
+   {
+    "from": "S4",
+    "to": "S6",
+    "label": ""
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Complete list of parties and verified legal names and aliases available"
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": "Potential match"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "Unresolved or true-match concern"
+   },
+   {
+    "from": "S8",
+    "to": "S10",
+    "label": "Screening complete; all potential matches resolved"
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": "Screening complete; every potential match resolved or actively escalated"
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": "Flag requires EDD"
+   },
+   {
+    "from": "S10",
+    "to": "S12",
+    "label": "EDD not required"
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": "EDD performed"
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": ""
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": ""
+   },
+   {
+    "from": "S7",
+    "to": "S10",
+    "label": "Screening complete; no potential matches"
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": ""
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": ""
+   },
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": "Clearance approved; all required issues resolved"
+   },
+   {
+    "from": "S16",
+    "to": "S18",
+    "label": "Screening fails or remains prohibited or unresolved"
+   },
+   {
+    "from": "S17",
+    "to": "S19",
+    "label": "Documented clearance"
+   },
+   {
+    "from": "S18",
+    "to": "S19",
+    "label": "Documented blocked decision"
+   },
+   {
+    "from": "S19",
+    "to": "S20",
+    "label": "Clearance"
+   },
+   {
+    "from": "S19",
+    "to": "S21",
+    "label": "Blocked status"
+   },
+   {
+    "from": "S20",
+    "to": "S21",
+    "label": ""
+   },
+   {
+    "from": "S21",
+    "to": "S22",
+    "label": ""
+   },
+   {
+    "from": "S19",
+    "to": "S23",
+    "label": "Status applied"
+   },
+   {
+    "from": "S24",
+    "to": "S27",
+    "label": ""
+   },
+   {
+    "from": "S26",
+    "to": "S27",
+    "label": ""
+   }
+  ],
+  "open_questions": [
+   "Does any incoming route start S10 (Screen and assess PEP and media), or must all prerequisites finish?",
+   "Does any incoming route start S12 (Document findings and residual risk), or must all prerequisites finish?",
+   "Does any incoming route start S19 (Communicate clearance or blocked status), or must all prerequisites finish?",
+   "Does any incoming route start S21 (Retain AML case records), or must all prerequisites finish?",
+   "Does any incoming route start S27 (Update and communicate monitoring status), or must all prerequisites finish?",
+   "How does step S25 (Open trigger-event reviews) connect to the rest of this process, if at all?",
+   "How does step S28 (Withhold blocked distribution payments) connect to the rest of this process, if at all?",
+   "Are the routes containing S1 (Open KYC event) and S24 (Perform scheduled investor reviews) separate, or is there a reported handoff between them?",
+   "Who sends and receives the trigger notice, how is it detected, and what cadence or deadlines apply?",
+   "What was intended by the unfinished statement about not proceeding to clearance while required documents are incomplete or otherwise deficient?",
+   "Who receives correction requests, what happens after correction, and where does that route resume? Does ownership identification wait for document corrections?",
+   "How are ownership differences resolved and gaps handled?",
+   "Who performs each sanctions and PEP screening, match-resolution and risk-rating action? What does each reviewer check, and where are results and decisions kept?",
+   "Who receives escalated sanctions concerns, and what happens after escalation?",
+   "What requires EDD, what does it involve, who may approve it, and how are flags resolved or escalated?",
+   "What was intended by the unfinished statement about the rating scale, scoring, thresholds, approval matrix and review?",
+   "How is a blocked decision documented, and what happens after Compliance Officer escalation or client notification?",
+   "Who releases the blocks on capital acceptance, portal access and allocation participation, and how are those blocks enforced?",
+   "When is the operational-status check performed, who performs it, and what happens if the status does not match the decision?",
+   "Where are the event, document checks, correction requests, risk rating and clearance recorded? What are the operational system fields, repository and retention period?",
+   "How does the recorded review requirement reach the monitoring role, and what work follows an opened trigger review before status is updated?",
+   "What identifies a European distribution payee as blocked by CDD, where does the withholding route start, what happens at each follow-up date, and how does it resolve?",
+   "Which requirement or checklist calls for payment-time screening? Who owns monitoring, what produces alerts, and what review service levels apply?",
+   "Who receives monitoring status and block communications, and where are updates recorded?",
+   "Who is accountable for the overall result, and what other reviews, approvals or overrides apply?",
+   "What is the observable process finish, and which entity types and clients are in scope?",
+   "Who interprets the approved requirements, threshold policy and risk model, and is this general GPFS practice or a client-specific route?",
+   "What variations, practical difficulties, risks, volumes and supporting materials are reported?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "DRAFT — KYC & Sanctions Screening",
+  "overview": "Current-practice account of investor KYC, sanctions screening, AML decisions and subsequent monitoring. The initiating notice, overall accountable role, several handoffs and the overall finished condition remain UNKNOWN. This draft is pending participant and process-owner review; no supporting document was supplied or reviewed.",
+  "trigger": "Reported KYC triggers include new subscriptions, ownership changes, transfers, subsequent investor closes, periodic reviews and other events. The origin and detection of the trigger notice are UNKNOWN. Monitoring also includes annual or risk-based reviews, trigger events and payment-time screening where required.",
+  "inputs": [
+   "Trigger notice and investor and entity details",
+   "Investor submissions and identity, entity and ownership documents",
+   "Approved requirements, beneficial-ownership threshold policy, screening sources and risk model",
+   "Active investor list, review schedule, trigger alerts and payment event for monitoring"
+  ],
+  "outputs": [
+   "Documented AML approval or blocked status",
+   "Screening, ownership, risk, approval and resolution records",
+   "Recorded next review and monitoring requirements",
+   "Updated monitoring status and communicated blocks"
+  ],
+  "exceptions": [
+   "Missing, expired, inconsistent or unreadable documents are recorded and correction requested; the recipient and return route are UNKNOWN.",
+   "Unresolved or true sanctions-match concerns are escalated; the recipient and ultimate resolution are UNKNOWN.",
+   "Flags may require EDD; its requirements and approval authority are unspecified.",
+   "Failed, prohibited or unresolved screening remains blocked and is escalated to the Compliance Officer; the client is notified as applicable.",
+   "European distribution payees blocked by CDD have payment withheld and follow a 30/60/90-day schedule; detailed handling and outcome are UNKNOWN."
+  ],
+  "controls": [
+   "Capital acceptance, portal access and allocation participation remain blocked until clearance; access and capital acceptance require documented clearance.",
+   "Required documents are checked for completeness and consistency; ownership levels and the list of parties to screen are checked for completeness.",
+   "Potential sanctions matches require documented resolution or active escalation; PEP and adverse-media flags are resolved or escalated before clearance.",
+   "The AML decision review covers case completeness, match resolutions, EDD, rating and open items; clearance is approved only when required issues are resolved. Urgency cannot override failed screening.",
+   "The reported operational check is that system status matches the AML decision. Trigger events are not deferred to the next periodic review."
+  ],
+  "validation_notes": [
+   "This is a current-practice draft requiring review. Participant confirmation and process-owner approval are pending; participant identity and interview date were not supplied.",
+   "No supporting document was supplied or reviewed. Mentioned policies, model, schedule and checklist are unverified references, not independently established written rules.",
+   "The participant's statements about required documents, risk-rating details, system fields and monitoring service levels are incomplete; their intended endings are UNKNOWN.",
+   "S4 to S6 reflects the reported sequence, not proof that defective documents may be bypassed. The correction route's return and any blocking condition remain UNKNOWN.",
+   "The sanctions-to-PEP routes represent the reported next review after sanctions work is done, including the reported active-escalation check. They do not resolve an escalation or permit clearance while required issues remain unresolved.",
+   "Blocked-status communication, retention, review recording and status checking are reported but their exact sequencing and blocked-decision documentation are not established. S21–S23 remain disconnected known activities.",
+   "The proposed S24-to-S27 and S26-to-S27 links are not retained: the monitoring activities and status update are reported, but the account does not establish each proposed direct transition. S24–S28 remain disconnected fragments pending clarification.",
+   "S17 to S20 represents the clearance prerequisite, not a claim that release immediately follows approval or occurs in every case.",
+   "No reported practice is independently corroborated as a GPFS standard. The sixteen-topic memo remains incomplete; no executable or independently verified procedure is claimed.",
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified.",
+   "The independent audit changed or removed 3 proposed exception(s)."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Open the KYC event",
+    "actor": "KYC and AML preparer",
+    "system": "UNKNOWN",
+    "description": "Open the KYC event and record the applicable trigger: new subscription, ownership change, transfer, subsequent investor close, periodic review or another trigger event."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Identify profile and requirements",
+    "actor": "KYC and AML preparer",
+    "system": "UNKNOWN",
+    "description": "Identify investor type, jurisdiction, structure complexity, regulatory classification and existing status. Determine the approved document and screening requirements for the profile. Keep capital acceptance, portal access and allocation participation blocked until clearance; do not provide access or accept capital before documented clearance."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Collect investor documents",
+    "actor": "KYC and AML preparer",
+    "system": "UNKNOWN",
+    "description": "Collect the subscription agreement, identity records, entity documents and required supporting data."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Validate document information",
+    "actor": "KYC and AML preparer",
+    "system": "UNKNOWN",
+    "description": "Check legal names, jurisdiction, required addresses and identifiers, and controlling-person information for completeness and consistency. The reported check is that all required documents are complete and internally consistent. The participant's separate sentence about not proceeding to clearance while required documents are deficient was unfinished."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Request document corrections",
+    "actor": "KYC and AML preparer",
+    "system": "UNKNOWN",
+    "description": "Record missing, expired, inconsistent or unreadable documents and request correction. The recipient and subsequent correction or recheck route are UNKNOWN."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Identify owners and controllers",
+    "actor": "KYC and AML preparer",
+    "system": "UNKNOWN",
+    "description": "Map direct and indirect ownership through every entity level, including holding companies and intermediate feeders or blockers, until reaching individuals meeting the approved beneficial-ownership threshold. Identify controlling persons even below the threshold as required by policy. Compare percentages and relationships, resolve differences and document gaps. Check that all required levels are traced and the screening list is complete."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Screen parties in Exiger",
+    "actor": "KYC and AML preparer; AML reviewer; individual assignments UNKNOWN",
+    "system": "Exiger",
+    "description": "Screen the investor, legal names, aliases, beneficial owners and controlling persons against approved sanctions and restricted-party sources. Keep the search inputs, date and results; their storage location is UNKNOWN."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Assess potential sanctions matches",
+    "actor": "KYC and AML preparer; AML reviewer; individual assignments UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "For each potential match, compare identifiers and supporting information to decide whether it is a false positive, possible match or true match. Document the resolution and reviewer decision. Every potential match must have documented resolution or active escalation."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Escalate sanctions concerns",
+    "actor": "KYC and AML preparer; AML reviewer; individual assignments UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Escalate unresolved or true-match concerns. The escalation recipient and ultimate resolution route at this point are UNKNOWN."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Review PEP and adverse media",
+    "actor": "KYC and AML preparer; AML reviewer; individual assignments UNKNOWN",
+    "system": "Approved tools and sources; details UNKNOWN",
+    "description": "Screen for PEP status, close associates and adverse media. Under the approved policy, assess each flag's relevance, identity match, recency and risk. Flags are resolved or escalated before clearance."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Perform required enhanced due diligence",
+    "actor": "KYC and AML preparer; AML reviewer; individual assignments UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Perform enhanced due diligence (EDD) when a flag requires it. The requirements and who may approve EDD are not specified."
+   },
+   {
+    "id": "S12",
+    "type": "activity",
+    "title": "Document findings and residual risk",
+    "actor": "KYC and AML preparer; AML reviewer; individual assignments UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Document the findings and the risk remaining after controls. EDD is performed first when required by a flag."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Assign risk rating and route",
+    "actor": "KYC and AML preparer; AML reviewer; individual assignments UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Assess jurisdiction, structure complexity, PEP exposure, connections to sanctions risks and adverse media. Apply the approved risk model and record the rating, rationale, required approver and review frequency. The participant's statement about the rating scale, scoring, thresholds, approval matrix and review was unfinished."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Send case for review",
+    "actor": "KYC and AML preparer; AML reviewer; individual sender UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Send the case to the required reviewer identified by the risk and approval route."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Review the AML case",
+    "actor": "AML reviewer; Compliance Officer for escalations",
+    "system": "UNKNOWN",
+    "description": "Review completeness, screening match resolutions, EDD, the risk rating and open items before making the AML decision. Individual assignments within the reported roles are UNKNOWN."
+   },
+   {
+    "id": "S16",
+    "type": "decision",
+    "title": "Is clearance approved?",
+    "actor": "AML reviewer; Compliance Officer for escalations",
+    "system": "UNKNOWN",
+    "description": "Approve clearance only when all required issues are resolved. If screening fails or remains prohibited or unresolved, keep the block and escalate. Urgent business need cannot override failed screening."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Record clearance approval",
+    "actor": "AML reviewer; individual recording assignment UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Record the approval, approver, date, conditions and review requirement. The reviewer signs off."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Escalate blocked screening",
+    "actor": "AML reviewer; Compliance Officer for escalations; individual assignments UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "If screening fails or remains prohibited or unresolved, keep the required block in place, escalate to the Compliance Officer and notify the client as applicable. Subsequent resolution is UNKNOWN."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Communicate AML status",
+    "actor": "KYC and AML preparer and applicable onboarding or operations role; individual assignments UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Communicate clearance or blocked status to the applicable payment or event teams. Other recipients are blank in the participant's account."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Permit activities after clearance",
+    "actor": "KYC and AML preparer and applicable onboarding or operations role; individual assignments UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Allow capital acceptance, portal access and allocation participation only after clearance. The release mechanism is UNKNOWN."
+   },
+   {
+    "id": "S21",
+    "type": "data_store",
+    "title": "Retain AML case records",
+    "actor": "KYC and AML preparer and applicable onboarding or operations role; individual assignments UNKNOWN",
+    "system": "Repository UNKNOWN",
+    "description": "Store screening, beneficial-ownership, risk, approval and resolution records under the AML retention policy. The repository and retention period are UNKNOWN."
+   },
+   {
+    "id": "S22",
+    "type": "activity",
+    "title": "Record monitoring requirements",
+    "actor": "KYC and AML preparer and applicable onboarding or operations role; individual assignments UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Record the next review and monitoring requirement."
+   },
+   {
+    "id": "S23",
+    "type": "activity",
+    "title": "Check status against decision",
+    "actor": "UNKNOWN; the check is reported within work assigned to the KYC and AML preparer and applicable onboarding or operations role",
+    "system": "Operational systems; fields UNKNOWN",
+    "description": "The reported check is that status in operational systems matches the AML decision. The individual checker, timing and mismatch handling are UNKNOWN."
+   },
+   {
+    "id": "S24",
+    "type": "activity",
+    "title": "Perform scheduled investor reviews",
+    "actor": "KYC and AML monitoring role; exact title UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Perform annual or risk-based reviews under the approved schedule."
+   },
+   {
+    "id": "S25",
+    "type": "activity",
+    "title": "Open trigger-event review",
+    "actor": "KYC and AML monitoring role; exact title UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Open a review for changes to a name, entity, ownership, transfer, screening alert, adverse media or country risk. Do not defer trigger events until the next periodic review."
+   },
+   {
+    "id": "S26",
+    "type": "activity",
+    "title": "Screen at payment time",
+    "actor": "KYC and AML monitoring role; exact title UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Complete payment-time screening where required. The applicable requirement or checklist is not identified in the account."
+   },
+   {
+    "id": "S27",
+    "type": "activity",
+    "title": "Update monitoring status",
+    "actor": "KYC and AML monitoring role; exact title UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Update risk and clearance status and communicate any blocks. Recording location, recipients and the precise incoming routes are UNKNOWN."
+   },
+   {
+    "id": "S28",
+    "type": "activity",
+    "title": "Withhold blocked distribution payments",
+    "actor": "KYC and AML monitoring role; exact title and individual action assignments UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "For European distribution payees blocked by customer due diligence (CDD), withhold payment and follow the 30/60/90-day follow-up schedule. The schedule source, entry point and subsequent outcome are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": ""
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": "Missing, expired, inconsistent or unreadable documents"
+   },
+   {
+    "from": "S4",
+    "to": "S6",
+    "label": "After document collection and validation"
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Complete party list and verified names and aliases available"
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": "Potential match"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "Unresolved or true-match concern"
+   },
+   {
+    "from": "S7",
+    "to": "S10",
+    "label": "Sanctions work done; no potential matches"
+   },
+   {
+    "from": "S8",
+    "to": "S10",
+    "label": "Sanctions work done; matches resolved"
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": "Sanctions work done; concern actively escalated"
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": "Flag requires EDD"
+   },
+   {
+    "from": "S10",
+    "to": "S12",
+    "label": "EDD not required"
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": "EDD performed"
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": ""
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": ""
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": "Case and risk assessment ready for review"
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": ""
+   },
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": "Clearance approved; all required issues resolved"
+   },
+   {
+    "from": "S16",
+    "to": "S18",
+    "label": "Screening fails or remains prohibited or unresolved"
+   },
+   {
+    "from": "S17",
+    "to": "S19",
+    "label": "Documented clearance"
+   },
+   {
+    "from": "S17",
+    "to": "S20",
+    "label": "Documented clearance"
+   }
+  ],
+  "open_questions": [
+   "Does any incoming route start S10 (Review PEP and adverse media), or must all prerequisites finish?",
+   "Does any incoming route start S12 (Document findings and residual risk), or must all prerequisites finish?",
+   "Are the outgoing paths from S17 (Record clearance approval) alternatives, or must they all occur?",
+   "How does step S21 (Retain AML case records) connect to the rest of this process, if at all?",
+   "How does step S22 (Record monitoring requirements) connect to the rest of this process, if at all?",
+   "How does step S23 (Check status against decision) connect to the rest of this process, if at all?",
+   "How does step S24 (Perform scheduled investor reviews) connect to the rest of this process, if at all?",
+   "How does step S25 (Open trigger-event review) connect to the rest of this process, if at all?",
+   "How does step S26 (Screen at payment time) connect to the rest of this process, if at all?",
+   "How does step S27 (Update monitoring status) connect to the rest of this process, if at all?",
+   "How does step S28 (Withhold blocked distribution payments) connect to the rest of this process, if at all?",
+   "Who is accountable for the overall result, how is the trigger notice produced and detected, and what observable conditions finish this work?",
+   "When documents are defective, who receives the correction request and what happens after correction? Can ownership tracing proceed before defects are resolved, and what was the unfinished clearance restriction intended to say?",
+   "How are sanctions escalations resolved, what requires EDD, and who performs and approves the individual review and risk-routing actions?",
+   "How is a blocked decision documented and communicated, what happens after Compliance Officer escalation, and how are blocks enforced and released?",
+   "Where do record retention, review-requirement recording and the operational-status check sit on the cleared and blocked routes, and what happens on a status mismatch?",
+   "How do scheduled reviews, trigger reviews and payment-time screening each connect to status updates, and how does the recorded review requirement reach monitoring?",
+   "Where does the European CDD withholding route enter, what happens at each follow-up date, and how is it resolved?",
+   "What are the rating scale, scoring, thresholds, approval matrix and review rules referenced in the unfinished statement?",
+   "Which requirement or checklist calls for payment-time screening, and what are the monitoring owner, alert source and review service levels?",
+   "Where are the event, checks, decisions and case records held; what operational fields and retention period apply?",
+   "Which entity types and clients are in scope, and is this general GPFS practice or a client-specific route? What is the participant's basis?",
+   "Who interprets the approved policies and model, and how are conflicts or overrides handled?",
+   "What other variations, manual difficulties, consequences of failure, volumes and existing materials apply?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "The intake calls the work KYC & Sanctions Screening. The reported work covers investor KYC, AML decisions and monitoring; other names and the precise boundary are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The work produces an AML clearance or blocked status and controls access, capital acceptance and allocation participation. The participant did not explicitly state the overall intended result or value."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "Reported triggers include subscriptions, ownership changes, transfers, subsequent investor closes, periodic reviews and other events. Monitoring is annual or risk-based and also addresses trigger events and payment-time screening where required. European CDD-blocked distributions follow a 30/60/90-day schedule. Notice origin, receiver and other deadlines are UNKNOWN."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The reviewer signs off; status is communicated, records are retained and operational status is checked against the decision. Clearance permits specified activities, while failed or unresolved screening is blocked and escalated. The overall finish, the sequence of status and record activities, and blocked-case resolution are UNKNOWN."
+   },
+   {
+    "key": "accountable",
+    "status": "unknown",
+    "answer": "UNKNOWN. Preparers, reviewers, the Compliance Officer and a monitoring role perform reported work, but overall accountability was not identified."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The preparer opens and profiles the event, collects and checks documents, requests correction for defects and traces owners and controllers. The preparer and AML reviewer screen sanctions and PEP/media, assess flags and rate risk; the case is sent to the required reviewer for an AML decision. Status and records are then handled, and periodic, trigger and payment-time monitoring is reported. Correction returns, individual assignments, record locations and monitoring handoffs remain UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "Reported checks cover document consistency, complete ownership tracing, match resolution or escalation, flag resolution or escalation, rating rationale and approver, reviewer sign-off and operational status against the AML decision. Clearance requires all required issues to be resolved; failed screening cannot be overridden for urgency. Evidence locations, segregation, system enforcement, thresholds, failed-check rework and client approval scope are UNKNOWN."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "EDD is performed when a flag requires it; payment-time screening is performed where required; European distribution payees blocked by CDD have payments withheld and a 30/60/90-day follow-up. Detailed criteria, sources, effort, charging, removal constraints and boundary comparisons remain UNKNOWN."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": "UNKNOWN. The participant did not describe manual effort, delays or workarounds."
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "Failed, prohibited or unresolved screening and CDD blocks are reported conditions requiring escalation or withholding. Concrete consequences of process failure were not explained."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The participant mentions approved requirements, a threshold policy, screening sources, a PEP policy, a risk model, an AML retention policy, a schedule and a checklist. None was supplied or reviewed; locations and exact versions are UNKNOWN."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The work concerns investors and entity ownership, including tracing through holding companies, feeders and blockers. European distribution payees are specifically mentioned for CDD withholding. Serviced entity and client scope, the parent boundary and the basis for general GPFS applicability are UNKNOWN."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The participant reports an approved ownership threshold policy, screening sources, PEP policy, risk model, retention policy and monitoring schedule. The preparer traces ownership and the preparer and reviewer apply the model. Interpreters, source authority, conflicts, thresholds, scoring, EDD criteria and detailed policy contents are UNKNOWN; no document was reviewed."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "Trigger notices, investor submissions, ownership documents and screening inputs feed the work. Cases go to required reviewers, failed screening is escalated to the Compliance Officer, and status goes to applicable payment or event teams. Monitoring uses active-investor lists, schedules, alerts and payment events. Upstream ownership, readiness signals and several handoffs remain UNKNOWN."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "Exiger is used for sanctions screening, and search inputs, dates and results are kept. Operational system status is checked against the decision. The repository, fields, authoritative records, entry modes, other tools and storage locations are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": "UNKNOWN. Counts, peaks, exception frequency and effort by step were not reported."
+   }
+  ]
+ },
+ "draft_error": null
+}

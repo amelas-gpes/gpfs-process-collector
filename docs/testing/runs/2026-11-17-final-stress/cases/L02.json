@@ -1,0 +1,320 @@
+{
+ "case": "L02",
+ "process": "GP-01",
+ "mode": "compatibility routes",
+ "style": "T10 transcript through /api/interview and /api/workflow, which the page does not use",
+ "build": "fixed",
+ "participant": "replay",
+ "context": {
+  "process_name": "Two-Ledger Allocation Framework (Capital vs Carry Interest)",
+  "process_owner": "",
+  "objective": "Document how we carry out Two-Ledger Allocation Framework (Capital vs Carry Interest), the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "To begin with, we confirm event and authority. That is done by: GPFS Preparer. Before starting we need approved event total or upstream amount. What we do: identify the event and governing basis; create separate capital and carry sections; record the source period and calculation purpose."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "What event or notification prompts the preparer to begin this work?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "Next, we lock population and schedules. That is done by: GPFS Preparer; client confirms. Before starting we need current schedules, prior member population, and  and changes. What we do: reconcile the changes; confirm effective dates and the components covered; freeze the dated approved versions."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What do you reconcile the population changes against before freezing the schedules?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "After that, we calculate capital-interest ledger. That is done by: GPFS Preparer. Before starting we need approved allocation method and reconciled contributions. What we do: use the approved whole-population, deal, or tranche basis; isolate contributions for realized events; calculate the capital components; independently reconcile the sources and formulas."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "What determines whether you use the whole-population, deal, or tranche basis?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "Then, we calculate carry-interest ledger. That is done by: GPFS Preparer. Before starting we need approved carry base, schedules, and carry recorded in prior periods. What we do: calculate each applicable schedule on a life-to-date basis; subtract all carry recorded in prior periods; apply approved changes."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "What approved changes do you apply to the carry calculation?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "Once that is done, we combine and analyze. That is done by: GPFS Preparer; Reviewer. Before starting we need completed component ledgers. What we do: combine the results by member; reconcile the components with the event total; explain results that move in different directions; obtain client confirmation when the intended result is unclear."
+  }
+ ],
+ "events": [
+  {
+   "kind": "live.notes",
+   "at": 1794969341.881,
+   "turn": 2,
+   "seconds": 12.643,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "live.map",
+   "at": 1794969428.232,
+   "turn": 2,
+   "seconds": 86.351,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "live.notes",
+   "at": 1794969456.044,
+   "turn": 4,
+   "seconds": 27.811,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "live.map",
+   "at": 1794969620.119,
+   "turn": 4,
+   "seconds": 164.075,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "live.notes",
+   "at": 1794969645.96,
+   "turn": 6,
+   "seconds": 25.84,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "live.map",
+   "at": 1794969815.033,
+   "turn": 6,
+   "seconds": 169.073,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "live.notes",
+   "at": 1794969833.787,
+   "turn": 8,
+   "seconds": 18.752,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "live.map",
+   "at": 1794969956.449,
+   "turn": 8,
+   "seconds": 122.662,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "live.notes",
+   "at": 1794969975.555,
+   "turn": 10,
+   "seconds": 19.105,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "live.map",
+   "at": 1794970173.19,
+   "turn": 10,
+   "seconds": 197.634,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [],
+ "notes": {
+  "summary": "After both ledgers are complete, the preparer and reviewer combine results by member, reconcile them to the event total and explain opposing movements. Client confirmation is obtained if the intended result is unclear.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "captured",
+    "answer": "The work is called “Two-Ledger Allocation Framework (Capital vs Carry Interest).”"
+   },
+   {
+    "key": "purpose",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The work begins by confirming the event and authority; an approved event total or upstream amount is needed before starting.\nThe specific event that initiates the work, its cadence and any fixed deadline have not been established."
+   },
+   {
+    "key": "completion",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The GPFS Preparer confirms the event and authority.\nThe role accountable for the completed result, distinct from the person performing the initial confirmation, has not been established."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "At the beginning, the GPFS Preparer identifies the event and governing basis, creates separate capital and carry sections, and records the source period and calculation purpose.\nNext, the GPFS Preparer locks the population and schedules, with client confirmation. Current schedules, the prior member population and changes are needed; the work reconciles changes, confirms effective dates and covered components, and freezes dated approved versions.\nAfter locking the population and schedules, the GPFS Preparer calculates the capital-interest ledger using an approved allocation method and reconciled contributions. The preparer uses the approved whole-population, deal or tranche basis, isolates contributions for realized events, calculates capital components and independently reconciles sources and formulas.\nAfter the capital-interest calculation, the GPFS Preparer calculates the carry-interest ledger using an approved carry base, schedules and carry recorded in prior periods. The preparer calculates each applicable schedule life-to-date, subtracts all carry recorded in prior periods and applies approved changes.\nOnce both component ledgers are complete, the GPFS Preparer and Reviewer combine results by member, reconcile components to the event total and explain results moving in different directions. They obtain client confirmation when the intended result is unclear."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "Before starting, an approved event total or upstream amount is required; the initial work also includes identifying the event and governing basis.\nHow the approved amount and governing basis are verified, who approves the amount, and what evidence demonstrates approval are not established.\nThe population and schedule step includes reconciling changes and confirming effective dates and covered components; the client confirms, and dated approved versions are frozen.\nThe exact subject and evidence of client confirmation, who approves the versions, and how discrepancies are resolved remain unclear.\nThe capital-interest calculation requires an approved allocation method and reconciled contributions; its sources and formulas are independently reconciled.\nThe comparison used to reconcile population changes, and the person and mechanism for the independent reconciliation of capital sources and formulas, remain unclear.\nThe carry-interest calculation requires an approved carry base, schedules and prior-period recorded carry; changes applied are approved.\nThe combine-and-analyze step reconciles components to the event total and explains results moving in different directions; client confirmation is obtained when the intended result is unclear.\nThe respective preparer and reviewer responsibilities, evidence of the reconciliation and client confirmation, and handling of discrepancies are not yet established."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "For realized events, the capital-interest work isolates contributions. The approved calculation basis can be whole-population, deal or tranche.\nHow the approved basis is chosen and how the calculation differs under each basis remain unclear."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "Current schedules, the prior member population and changes are inputs to the population-locking step; dated approved versions are frozen.\nThe approved allocation method and reconciled contributions are required inputs to the capital-interest ledger calculation.\nThe approved carry base, schedules and prior-period recorded carry are inputs to the carry-interest calculation; approved changes are applied.\nCompleted capital and carry component ledgers are inputs to combining results by member and reconciling them to the event total."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The framework separates capital and carry into distinct sections.\nThe applicable entity types and whether the approach varies by entity or client remain unestablished."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The initial work identifies the governing basis.\nThe population and schedule step confirms effective dates and covered components and freezes dated approved versions.\nThe source of the governing basis, selection of the approved capital allocation basis, detailed capital and carry calculation mechanics, and application of approved carry changes remain unspecified.\nThe capital-interest calculation uses the approved whole-population, deal or tranche basis; contributions are isolated for realized events.\nFor carry interest, each applicable schedule is calculated life-to-date, all carry recorded in prior periods is subtracted, and approved changes are applied.\nWhen the intended combined result is unclear, client confirmation is obtained."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "An approved event total or upstream amount is required before this work starts.\nThe source process or provider of the approved event total or upstream amount has not been named."
+   },
+   {
+    "key": "data_systems",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": ""
+   }
+  ]
+ },
+ "map": {
+  "title": "Two-Ledger Allocation Framework (Capital vs Carry Interest)",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Confirm Event and Authority",
+    "actor": "GPFS Preparer",
+    "system": "UNKNOWN",
+    "description": "Confirm the event and governing basis, then set up separate capital and carry sections and record the source period and calculation purpose."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Lock Population and Schedules",
+    "actor": "GPFS Preparer",
+    "system": "UNKNOWN",
+    "description": "Reconcile the changes, confirm the effective dates and covered components, obtain client confirmation, and freeze the dated approved versions."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Calculate Capital-Interest Ledger",
+    "actor": "GPFS Preparer",
+    "system": "UNKNOWN",
+    "description": "Use the approved whole-population, deal, or tranche basis to isolate contributions for realized events, calculate the capital components, and independently reconcile the sources and formulas."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Calculate Carry-Interest Ledger",
+    "actor": "GPFS Preparer",
+    "system": "UNKNOWN",
+    "description": "Calculate each applicable schedule on a life-to-date basis, subtract carry recorded in prior periods, and apply approved changes."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Combine and Analyze Results",
+    "actor": "GPFS Preparer; Reviewer",
+    "system": "UNKNOWN",
+    "description": "Combine the completed capital and carry results by member, reconcile them to the event total, explain results that move in different directions, and get client confirmation when the intended result is unclear."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "next"
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": "then"
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "then"
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": "once both ledgers are complete"
+   },
+   {
+    "from": "S3",
+    "to": "S5",
+    "label": "once both ledgers are complete"
+   }
+  ],
+  "open_questions": [
+   "What exact event starts the work?",
+   "Is the approved event total or upstream amount the trigger, or only a prerequisite before the trigger?",
+   "How is the approved event total or upstream amount verified, and who approves it?",
+   "How is the client confirmation evidenced?",
+   "What comparison is used to reconcile population changes?",
+   "How is the independent reconciliation of sources and formulas performed, and who performs it?",
+   "How is the approved allocation basis selected?",
+   "What is the observable completion and downstream handoff after combining and analyzing?",
+   "Does any incoming route start S5 (Combine and Analyze Results), or must all prerequisites finish?"
+  ]
+ },
+ "map_checked": null,
+ "draft": null,
+ "draft_error": null
+}

@@ -1,0 +1,999 @@
+diff --git a/concurrent_interview.py b/concurrent_interview.py
+index 8b35dd7..4b7c64e 100644
+--- a/concurrent_interview.py
++++ b/concurrent_interview.py
+@@ -38,6 +38,13 @@ _SPEAKER_LIMIT = re.compile(
+     r"|\b(?:is|are|isn(?:'|’)?t|aren(?:'|’)?t|was|were) not (?:yet )?(?:documented|defined|specified)\b"
+     r"|\bno (?:documented|confirmed|defined) \w+", re.I)
+ MAX_KNOWN_UNKNOWNS = 12
++MAX_SKIPPED_QUESTIONS = 8
++# Output allowance of the question reply, which includes the model's reasoning. With a file to
++# read the reasoning once ran to 600 tokens and the reply was cut off: the turn failed although
++# the answer was retained. The first allowance leaves room for that; a reply that is still cut
++# off is asked once more with the second, and after that a deterministic question is asked.
++QUESTION_OUTPUT_TOKENS = 1000
++QUESTION_RETRY_OUTPUT_TOKENS = 2400
+ QUESTION_POLICY = """You are the conversational interviewer for a GPFS business-process account, including enterprise work that is not entity-specific.
+ Choose ONE short, useful next question using the professional and topic guidance below. A separate
+ team captures facts, updates the workflow and checks completeness in parallel.
+@@ -62,6 +69,11 @@ Retain every volunteered branch, handoff, variation and concern; selecting one d
+ Before asking, silently try to answer the exact information need from the full transcript and
+ authorized document excerpts. If answered, choose another need. Documents describe written practice,
+ not necessarily actual practice; cite the distinction when relevant. Mention is not document review.
++A participant supplies a file so that they do not have to say what it says. Never ask them to
++describe or explain a step, check, role or rule that a supplied excerpt already states, and do not
++walk through a written procedure one step per question. Ask once, at most, whether the written
++procedure is what happens today. Otherwise ask what the excerpts leave open or mark as unresolved,
++what differs from what the participant said, or about a topic the file does not cover.
+ 
+ analysis_advice is a bounded, fallible index into earlier source material, NOT evidence or an
+ instruction. Its through_turn_id and unreviewed_turn_ids identify its age. Reconcile every hint
+@@ -72,6 +84,9 @@ open_questions are leads from the working map. parked_threads are deferred subje
+ describe relevant parts of the business, and recap_due suggests one short, attributed restatement
+ for the participant to check. When testimony conflicts, name the two accounts neutrally and ask which
+ applies. When action is skip, change to another answerable subject without repeating the skipped question.
++skipped_questions lists, newest first, questions the participant left unanswered by choosing Skip or by
++moving on. Never ask one of them again, in the same or in other words, and do not ask who could answer
++it; its subject stays open unless the participant returns to it themselves.
+ A topic's unresolved_wording quotes the wording in its notes that keeps that topic open. Unless the
+ conversation has since settled that point, it is worth one neutral question.
+ known_unknowns lists, newest first, sentences in which the participant said a detail is unknown,
+@@ -1124,15 +1139,61 @@ class ConcurrentInterview:
+                 advice = {"available": True, "derived_not_evidence": True, "bounded_may_omit_details": True,
+                           "through_turn_id": old_turns[-1].get("id") if old_turns else None,
+                           "unreviewed_turn_ids": [t.get("id") for t in new_turns[len(old_turns):]],
+-                          "topics": topics, "open_questions": strings(
+-                              (prior_map or {}).get("workflow", {}).get("open_questions") or capture.get("open_questions"), 12),
++                          "topics": topics, "open_questions": strings(self._question_leads(
++                              (prior_map or {}).get("workflow", {}).get("open_questions") or capture.get("open_questions")), 12),
+                           "parked_threads": strings(capture.get("parking_lot"), 12)}
+                 advice.update(active_modules=capture.get("active_modules", []),
+                               recap_due=capture.get("recap_due", "none"),
+                               untouched_topics=[key for key, row in discussed.items() if row.get("discussed") is False])
+         return {"context": context, "turns": turns, "action": payload.get("action", "answer"),
+                 "supporting_documents": copy.deepcopy(payload.get("_supporting_documents", {})),
+-                "analysis_advice": advice, "known_unknowns": self._known_unknowns(turns)}
++                "analysis_advice": advice, "known_unknowns": self._known_unknowns(turns),
++                "skipped_questions": self._skipped_questions(
++                    payload.get("turns") if isinstance(payload.get("turns"), list) else turns, payload.get("action", "answer"))}
++
++    @staticmethod
++    def _question_leads(register):
++        """The open questions shown to the question model: the first eight and the last four.
++
++        A map's register holds what its reviewer asked first and the application's own routing
++        questions last. Twelve from the front alone would never include a routing question once
++        the reviewer has asked twelve, and the interviewer would stop hearing about unconnected
++        steps and unlabelled outcomes.
++        """
++        register = register if isinstance(register, list) else []
++        return register if len(register) <= 12 else register[:8] + register[-4:]
++
++    def _skipped_questions(self, turns, action="answer"):
++        """Questions the participant left unanswered, newest first.
++
++        Skip adds no turn: the skipped question is simply followed by the next one. The question
++        model saw only the Skip being made, so two answers later it asked the skipped question
++        again. A question followed directly by another question was passed over; with action skip
++        the last question is being passed over now.
++
++        Read from the turns as the page sent them. Validation drops file notices, and a question
++        that was open when a file was added is followed by the notice and the file's question:
++        that question was displaced, not skipped, and may be asked again. A line that is not a
++        question (an acknowledgement, a Wrap up reply) neither counts as skipped nor makes the
++        question before it one. Advice to the question model, never evidence and never a status.
++        """
++        askable = getattr(self.api, "question_rejection", None)
++
++        def asked(turn):
++            text = turn.get("text")
++            if (not isinstance(text, str) or not text.strip() or turn.get("role") != "assistant"
++                    or turn.get("document_event") or turn.get("document_id")):
++                return False
++            return not askable(text.strip(), 1200) if callable(askable) else "?" in text
++        lines = [turn for turn in turns if isinstance(turn, dict)]
++        found = []
++        for index, turn in enumerate(lines):
++            if not asked(turn):
++                continue
++            following = lines[index + 1] if index + 1 < len(lines) else None
++            if (following is None and action == "skip") or (following is not None and asked(following)):
++                found.append({"turn_id": turn.get("id"), "question": turn["text"].strip()[:300]})
++        return found[::-1][:MAX_SKIPPED_QUESTIONS]
+ 
+     def _known_unknowns(self, turns):
+         """Sentences in which the participant said they do not have a detail, newest first.
+@@ -1431,10 +1492,21 @@ class ConcurrentInterview:
+             model_input = self._question_input(session, payload, context, turns)
+             raw_trace.emit("interview.fast_question.input", {"revision": revision,
+                 "content": {"turns": model_input["turns"], "analysis_advice": model_input["analysis_advice"]}})
+-            try:
+-                response = self.client.structured(question_policy(self.api, file_followup), model_input,
+-                    QUESTION_SCHEMA, "conversation_question", 600, reasoning_effort="low",
++            cut_off = getattr(self.api, "OutputTruncated", None)
++
++            def ask(allowance):
++                return self.client.structured(question_policy(self.api, file_followup), model_input,
++                    QUESTION_SCHEMA, "conversation_question", allowance, reasoning_effort="low",
+                     model_override=self.client.agent_models["lead_interviewer"])
++            try:
++                try:
++                    response = ask(QUESTION_OUTPUT_TOKENS)
++                except Exception as error:
++                    if not (cut_off and isinstance(error, cut_off)):
++                        raise
++                    # Nothing else was wrong with the request: ask once more with more room.
++                    raw_trace.emit("interview.fast_question.retry", {"revision": revision, "reason": "output_truncated"})
++                    response = ask(QUESTION_RETRY_OUTPUT_TOKENS)
+                 # The provider's schema constrains question length. If an adapter
+                 # still returns an oversized string, the local wording fallback
+                 # handles it without losing the accepted answer.
+@@ -1445,15 +1517,19 @@ class ConcurrentInterview:
+                     checked["question"] = checked["question"][:1200]
+                 self.api.check_schema(checked, QUESTION_REPLY_SCHEMA)
+             except Exception as error:
+-                if not file_followup:
++                # A reply cut off twice never fails the turn: the answer is retained and queued.
++                if not file_followup and not (cut_off and isinstance(error, cut_off)):
+                     raise
+                 raw_trace.emit("interview.fast_question.error", {"revision": revision, "error_type": type(error).__name__,
+                                                                 "error_category": getattr(error, "category", None)})
+                 response = None
+             kind = "question"
+-            if response is None:
++            if response is None and file_followup:
+                 route, sync_required, reason = "file_fallback", False, ""
+                 question = self._file_question(payload, turns)
++            elif response is None:
++                route, sync_required, reason = "truncated_fallback", False, ""
++                question = self._fallback_question(session, payload, context, turns, "output_truncated")
+             else:
+                 sync_required = response["request_review"] and not file_followup
+                 question = response["question"].strip()
+diff --git a/server.py b/server.py
+index ba0e3f0..a600d0d 100644
+--- a/server.py
++++ b/server.py
+@@ -180,10 +180,21 @@ DRAFT_GENERATION_TIMEOUT = 120
+ DRAFT_GENERATION_TIMEOUT_MAX = 300
+ DRAFT_GENERATION_CHARACTERS_PER_SECOND = 25
+ DRAFT_AUDIT_TIMEOUT = 240
++# The audit writes the candidate out again with a quoted row per connection, so the time it
++# needs follows the candidate (see draft_audit_timeout). Measured with the real provider on
++# 2026-11-17: fifteen audits wrote a median of 14,600 tokens in 163 s, about 90 a second. Three
++# candidates could not be audited in a fixed 240 s on any attempt: two of about 20,000 tokens
++# from long interviews and one of 14,400 tokens from a seven-page procedure, so the accounts
++# with the most to report, and a file on its own, never produced a draft.
++DRAFT_AUDIT_TIMEOUT_MAX = 540
++DRAFT_AUDIT_TOKENS_PER_SECOND = 60
++# A generated candidate is kept for a retry of its audit. It has to outlive the longest audit by
++# the time a person takes to choose Try again, or the retry writes the whole draft a second time.
++DRAFT_CANDIDATE_SECONDS = DRAFT_AUDIT_TIMEOUT_MAX + 600
+ # Browser wait includes all sequential provider calls plus delivery of the response.
+ REQUEST_TIMEOUTS_MS = {
+     "default": 150000, "capture": 330000, "workflow": 330000, "workflow_with_files": 510000,
+-    "draft": (DRAFT_GENERATION_TIMEOUT_MAX + DRAFT_AUDIT_TIMEOUT + 120 + 30) * 1000,
++    "draft": (DRAFT_GENERATION_TIMEOUT_MAX + DRAFT_AUDIT_TIMEOUT_MAX + 120 + 30) * 1000,
+     "live_session": 55000, "voice_session": 60000,
+ }
+ DRAFT_OUTPUT_TOKENS = 22000
+@@ -1739,9 +1750,33 @@ def next_question_instructions(document_followup):
+     return NEXT_QUESTION_INSTRUCTIONS + (DOCUMENT_FOLLOWUP_INSTRUCTIONS if document_followup else "")
+ 
+ 
+-def draft_instructions():
+-    return (DRAFT_INSTRUCTIONS + foundation_instructions("draft")
+-            + "\nUse the working map only as a prior interpretation. Recheck its steps and routes against the participant turns and authorized excerpts. Describe material differences in validation_notes.")
++# The most steps of a working map that a draft is told to keep. A draft writes about 380 output
++# tokens for each step, everything else included. Measured with the real provider on 2026-11-17:
++# 27 steps wrote 10,300 tokens and 52 steps 20,100, and a draft told to keep a 60-step map was
++# cut off at the 22,000-token allowance on every attempt. Forty steps leave it a quarter to spare.
++DRAFT_KEEPS_MAP_STEPS = 40
++_DRAFT_KEEPS_MAP = ("\nThe working map is the map the participant has been shown while answering. Keep its step ids, steps and "
++                    "routes wherever the participant turns and authorized excerpts support them, so that the draft shows the same "
++                    "process the participant saw; do not drop or renumber a supported step or route. Change or leave out a step "
++                    "or route only when the sources contradict it or do not support it. Describe material differences in validation_notes.")
++_DRAFT_REDRAWS_MAP = ("\nUse the working map only as a prior interpretation. Recheck its steps and routes against the participant "
++                      "turns and authorized excerpts. Describe material differences in validation_notes.")
++
++
++def draft_instructions(working_map=None):
++    """The draft's instructions; working_map is the map the page holds, when the draft has one.
++
++    A draft used to re-derive the map from the turns, with the working map as "a prior
++    interpretation" only. Its steps were then renumbered, regrouped or left unconnected: Review
++    showed a different map from the one the participant had watched being drawn, and open
++    questions cited step ids that meant something else there. It is now told to keep the working
++    map where the sources support it; the audit that follows still checks every route and removes
++    what they do not support. A map too large to be written out step for step inside the draft's
++    output allowance keeps the earlier instruction, under which such a draft was completed.
++    """
++    steps = working_map.get("steps") if isinstance(working_map, dict) else None
++    too_large = isinstance(steps, list) and len(steps) > DRAFT_KEEPS_MAP_STEPS
++    return DRAFT_INSTRUCTIONS + foundation_instructions("draft") + (_DRAFT_REDRAWS_MAP if too_large else _DRAFT_KEEPS_MAP)
+ 
+ 
+ def draft_audit_instructions():
+@@ -3265,16 +3300,22 @@ def workflow_structure_questions(steps, connections):
+ 
+ 
+ def add_workflow_questions(existing, questions, maximum=100):
++    """Add the application's own questions about the map after the questions already there.
++
++    The existing register holds what a reviewer asked about the work, which a process owner
++    can answer and which the draft calls its priority questions. The generated routing
++    questions name step ids; they were shown ahead of that register and now follow it.
++    """
+     added = [question for question in dict.fromkeys(questions) if question not in existing]
+     if len(existing) > maximum:
+         raise ValueError(f"The map contains more than {maximum} open questions.")
+     if len(added) + len(existing) <= maximum:
+-        return added + existing
++        return [*existing, *added]
+     # Keep the user's full open register and combine generated routing clarifications.
+     combined = " ".join(added)
+     room = maximum - len(existing)
+     if room and len(combined) <= 6000:
+-        return [combined, *existing]
++        return [*existing, combined]
+     raise ValueError("The map's open-question register is full. Resolve some open questions before expanding this map.")
+ 
+ 
+@@ -3800,6 +3841,25 @@ def draft_audit_output_tokens(candidate, proposals):
+     return max(DRAFT_OUTPUT_TOKENS, min(estimate, DRAFT_AUDIT_MAX_TOKENS))
+ 
+ 
++def draft_audit_timeout(candidate, proposals):
++    """Seconds allowed for the audit of one candidate draft, by how much it has to write.
++
++    The audit returns the candidate again, slightly longer, with one quoted row for each
++    connection. A short candidate keeps the base allowance; a longer one gets the time its
++    output takes at a rate below the measured one, up to the ceiling the browser waits for.
++    """
++    try:
++        size = len(json.dumps(candidate, ensure_ascii=False).encode("utf-8"))
++    except (TypeError, ValueError):
++        size = 0
++    # About 3.5 bytes of JSON per token and a tenth more after correction. A route row with
++    # quotations from a file runs to about 200 tokens. The rate is two thirds of the measured
++    # one: an allowance that is too long only delays the report of a request that has stalled,
++    # one that is too short fails the draft after minutes of waiting, on every attempt.
++    expected = int(size / 3.5 * 1.1) + 200 * (len(proposals) if isinstance(proposals, list) else 0)
++    return max(DRAFT_AUDIT_TIMEOUT, min(DRAFT_AUDIT_TIMEOUT_MAX, expected // DRAFT_AUDIT_TOKENS_PER_SECOND + 60))
++
++
+ def validate_draft(draft, turns, documents=None, context=None):
+     # First-pass and historical drafts retain their string fields. The final audit can bind those exact values to evidence.
+     checked = {key: value for key, value in draft.items() if key != "field_evidence"}
+@@ -5595,13 +5655,13 @@ class OpenAIClient:
+         candidate_key = hashlib.sha256(json.dumps(source_payload, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+         with self._draft_lock:
+             now = time.monotonic()
+-            self._draft_candidates = {k: v for k, v in self._draft_candidates.items() if now - v[0] < 600}
++            self._draft_candidates = {k: v for k, v in self._draft_candidates.items() if now - v[0] < DRAFT_CANDIDATE_SECONDS}
+             cached = self._draft_candidates.get(candidate_key)
+         if cached:
+             result = copy.deepcopy(cached[1])
+             provider_usage.remember_stages(cached[2])
+         else:
+-            result = self.structured(draft_instructions(),
++            result = self.structured(draft_instructions(prior),
+                                  source_payload, DRAFT_SCHEMA, "process_draft", DRAFT_OUTPUT_TOKENS,
+                                  request_timeout=generation_timeout, model_override=self.draft_model)
+         # A separate evidence audit checks for plausible but unsupported process links and controls.
+@@ -5622,12 +5682,13 @@ class OpenAIClient:
+                     self._draft_candidates.pop(next(iter(self._draft_candidates)))
+                 self._draft_candidates[candidate_key] = (time.monotonic(), copy.deepcopy(result), provider_usage.generated_by())
+         candidate = result
++        audit_timeout = draft_audit_timeout(candidate, proposals)
+         result = self.structured(draft_audit_instructions(),
+                                  {"context": context, "turns": turns, "candidate_draft": result,
+                                   "supporting_documents": supporting, "proposed_routes_to_verify": proposals},
+                                  route_audit_schema(DRAFT_AUDIT_SCHEMA, proposals), "process_draft_audit",
+                                  draft_audit_output_tokens(result, proposals), reasoning_effort="medium",
+-                                 request_timeout=DRAFT_AUDIT_TIMEOUT, model_override=self.draft_audit_model)
++                                 request_timeout=audit_timeout, model_override=self.draft_audit_model)
+         try:
+             check_schema(result, DRAFT_AUDIT_SCHEMA, "draft_audit")
+             # Only the reviewed public map crosses the API boundary.
+@@ -5638,7 +5699,7 @@ class OpenAIClient:
+             result["connections"], gaps = grounded_routes(
+                 result["connections"], reviews, result["steps"], context, turns, active_evidence,
+                 recheck=RouteRecheck(self, context, turns, supporting, "process_draft_audit",
+-                                     started + generation_timeout + DRAFT_AUDIT_TIMEOUT,
++                                     started + generation_timeout + audit_timeout,
+                                      model_override=self.draft_audit_model))
+             result["open_questions"] = add_workflow_questions(result["open_questions"], gaps)
+             for item in result.get("taxonomy", []) + result.get("variations", []):
+diff --git a/tests/test_documents_asset_states.cjs b/tests/test_documents_asset_states.cjs
+index 6a56bf3..46af3f3 100644
+--- a/tests/test_documents_asset_states.cjs
++++ b/tests/test_documents_asset_states.cjs
+@@ -31,7 +31,7 @@ function matches(node,selector){
+  const match=selector.match(/^\[data-document-id="([^"]+)"\]$/);if(match)return node.dataset.documentId===match[1];
+  return node.tagName===selector.toUpperCase();
+ }
+-function setup(request,config={}){
++function setup(request,config={},options={}){
+  const document={activeElement:null};document.body=new Element("body",document);document.createElement=tag=>new Element(tag,document);document.createElementNS=(_,tag)=>new Element(tag,document);document.getElementById=id=>walk(document.body).find(node=>node.id===id)||null;
+  const dropTarget=document.createElement("section");dropTarget.id="interview-view";document.body.append(dropTarget);
+  const assets=document.createElement("div");assets.id="document-assets";dropTarget.append(assets);
+@@ -39,7 +39,7 @@ function setup(request,config={}){
+  const window={document,addEventListener(){},removeEventListener(){}};
+  const ctx={window,DOMException,AbortController,setTimeout:(fn,delay)=>{const id=++timerId;timers.set(id,{fn,delay});return id;},clearTimeout:id=>timers.delete(id)};
+  vm.createContext(ctx);vm.runInContext(source,ctx);
+- const api=window.CollectorDocuments.create({document,config:()=>({csrf_token:"test-csrf",...config}),getContext:()=>({context:{},turns:[],focus:"",current_question:""}),canUpload:()=>true,
++ const api=window.CollectorDocuments.create({document,config:()=>({csrf_token:"test-csrf",...config}),getContext:()=>({context:{},turns:[],focus:"",current_question:""}),canUpload:()=>true,...options,
+   requestJSON:(url,body,options)=>{calls.push({url,body});return request(url,body,options);},onEvent:event=>events.push(event),onDirty:()=>dirty++,notice:(...args)=>notices.push(args),onOpen(){},onCountChange:value=>counts.push(value)});
+  const buttons=text=>api.body.querySelectorAll("button").filter(button=>button.textContent===text);
+  return{api,document,events,notices,calls,counts,buttons,timers,get dirty(){return dirty;},card:()=>api.body.querySelector(".documents-card"),text:()=>api.assets.textContent};
+@@ -244,5 +244,32 @@ await check("a kind whose reader is missing is announced, not offered by the pic
+ });
+ 
+ 
++// ---- Add files follows state the page owns, which changes without the list being redrawn ----
++await check("Add files is refreshed when the page leaves the example, opens a file or finishes a draft",async()=>{
++ // The page resets the file list while the example is still open, then leaves the example.
++ const page={example:true,draft:false};
++ const h=setup(async()=>({documents:[]}),{},{canUpload:()=>!page.example&&!page.draft,
++  uploadBlockedReason:()=>page.example?"Choose Start your own before adding a real file.":"Wait for the draft to finish, then add the file."});
++ h.api.reset();
++ assert.equal(h.api.attachButton.disabled,true);assert.equal(h.api.attachButton.title,"Choose Start your own before adding a real file.");
++ page.example=false;
++ assert.equal(h.api.attachButton.disabled,true,"Nothing redraws the list when the example closes");
++ h.api.syncAttach();
++ assert.equal(h.api.attachButton.disabled,false,"Add files stayed disabled after Start your own");assert.equal(h.api.attachButton.title,"Add files");
++ // A draft in flight blocks uploads, and its end allows them again.
++ page.draft=true;h.api.syncAttach();
++ assert.equal(h.api.attachButton.disabled,true);assert.equal(h.api.attachButton.title,"Wait for the draft to finish, then add the file.");
++ page.draft=false;h.api.syncAttach();
++ assert.equal(h.api.attachButton.disabled,false);assert.equal(h.api.attachButton.title,"Add files");
++ // A full interview stays full whatever the page allows.
++ h.api.scope="local-scope";h.api.setDocuments(Array.from({length:20},(_,index)=>doc({id:`doc_${index}`})),false);h.api.syncAttach();
++ assert.equal(h.api.attachButton.disabled,true);
++ h.api.dispose();h.api.syncAttach();
++ // The page refreshes it with its own controls.
++ const app=fs.readFileSync(path.join(__dirname,"..","web","app.js"),"utf8");
++ const controls=app.slice(app.indexOf("function updateControls() {"),app.indexOf("function updateControls() {")+400);
++ assert.match(controls,/documentController\?\.syncAttach\?\.\(\)/,"updateControls no longer refreshes Add files");
++});
++
+ console.log(JSON.stringify({tests_passed:passed,provider_calls:0,network_calls:0,real_browser:false}));
+ })().catch(error=>{console.error(error);process.exitCode=1;});
+diff --git a/tests/test_draft_keeps_working_map.py b/tests/test_draft_keeps_working_map.py
+new file mode 100644
+index 0000000..8e2d148
+--- /dev/null
++++ b/tests/test_draft_keeps_working_map.py
+@@ -0,0 +1,70 @@
++"""The draft keeps the map the participant was shown, where the sources support it.
++
++Measured with the real provider on 2026-11-17. A draft was told to use the working map "only as
++a prior interpretation" and re-derived its own: in three interviews it kept 13 of 24, 21 of 31
++and 22 of 46 of the working map's routes and 20 of 24, 21 of 28 and 8 of 34 of its steps under
++the same id and title, and one draft folded a 27-step map into five steps. With the instruction
++below the same interviews kept 23 of 24, 29 of 31 and 33 of 46 routes and 24 of 24, 27 of 28 and
++33 of 34 steps. The audit still removes any route the sources do not support. No provider here.
++"""
++import copy
++import unittest
++from unittest.mock import Mock
++
++from test_server import server, interview_payload, process_draft, fixture_draft_audit
++
++
++class DraftKeepsWorkingMapTests(unittest.TestCase):
++    def test_the_draft_is_told_to_keep_supported_steps_and_routes_of_the_working_map(self):
++        instructions = server.draft_instructions()
++        for wording in ("The working map is the map the participant has been shown while answering.",
++                        "Keep its step ids, steps and routes wherever the participant turns and authorized excerpts support them",
++                        "do not drop or renumber a supported step or route",
++                        "Change or leave out a step or route only when the sources contradict it or do not support it",
++                        "Describe material differences in validation_notes."):
++            self.assertIn(wording, instructions)
++        self.assertNotIn("only as a prior interpretation", instructions)
++        # The evidence rules the audit enforces are unchanged.
++        self.assertIn("Never invent an implied branch", instructions)
++        self.assertIn("Every connection must cite its supporting USER turn IDs", instructions)
++
++    def test_a_map_too_large_for_the_draft_allowance_keeps_the_earlier_instruction(self):
++        # A draft told to keep a 60-step map was cut off at its output allowance on every attempt;
++        # under the earlier instruction the same interview's draft was completed with 52 steps.
++        step = {"id": "S1", "type": "activity", "title": "Do the work"}
++        def working_map(count):
++            return {"title": "Map", "steps": [dict(step, id=f"S{index + 1}") for index in range(count)], "connections": [], "open_questions": []}
++        limit = server.DRAFT_KEEPS_MAP_STEPS
++        self.assertLessEqual(limit * 380 + 5000, server.DRAFT_OUTPUT_TOKENS, "A kept map must fit the draft's output allowance")
++        for count in (1, 27, limit):
++            self.assertEqual(server.draft_instructions(working_map(count)), server.draft_instructions())
++        for count in (limit + 1, 60, 80):
++            large = server.draft_instructions(working_map(count))
++            self.assertIn("Use the working map only as a prior interpretation.", large)
++            self.assertNotIn("do not drop or renumber a supported step or route", large)
++        for missing in (None, {}, {"steps": None}, "not a map"):
++            self.assertEqual(server.draft_instructions(missing), server.draft_instructions())
++
++    def test_the_draft_request_carries_that_instruction_and_the_audit_still_follows(self):
++        client = server.OpenAIClient({"OPENAI_API_KEY": "fictional"})
++        draft = process_draft()
++        seen = []
++
++        def structured(instructions, payload, schema, name, *args, **kwargs):
++            seen.append((name, instructions, payload))
++            if name == "process_draft":
++                return copy.deepcopy(draft)
++            if name == "process_draft_audit":
++                return fixture_draft_audit(draft, payload["turns"])
++            raise server.APIError("No further scripted reply.", 503)
++        client.structured = Mock(side_effect=structured)
++        result = client.draft(interview_payload())
++        self.assertIn("draft", result)
++        self.assertEqual([name for name, _, _ in seen[:2]], ["process_draft", "process_draft_audit"])
++        self.assertEqual(seen[0][1], server.draft_instructions())
++        self.assertIn("working_map", seen[0][2], "The draft request names the working map it was given, also when there is none")
++        self.assertIn("proposed_routes_to_verify", seen[1][2], "Every route of the candidate still goes to the audit")
++
++
++if __name__ == "__main__":
++    unittest.main()
+diff --git a/tests/test_draft_time_budget.py b/tests/test_draft_time_budget.py
+index 5d1f92d..91049e1 100644
+--- a/tests/test_draft_time_budget.py
++++ b/tests/test_draft_time_budget.py
+@@ -144,9 +144,76 @@ class DraftRequestBudgetTests(unittest.TestCase):
+ 
+     def test_the_browser_waits_at_least_as_long_as_the_server_may_take(self):
+         source = (APP / "web" / "app.js").read_text(encoding="utf-8")
+-        self.assertIn('timeout:requestTimeout("draft",690000)', source)
+-        server_total = server.DRAFT_GENERATION_TIMEOUT_MAX + server.DRAFT_AUDIT_TIMEOUT + COVERAGE_REVIEW_TIMEOUT
++        self.assertIn('timeout:requestTimeout("draft",990000)', source)
++        server_total = server.DRAFT_GENERATION_TIMEOUT_MAX + server.DRAFT_AUDIT_TIMEOUT_MAX + COVERAGE_REVIEW_TIMEOUT
+         self.assertGreaterEqual(server.REQUEST_TIMEOUTS_MS["draft"], (server_total + 30) * 1000)
++        self.assertGreaterEqual(990000, server.REQUEST_TIMEOUTS_MS["draft"])
++
++    def test_the_audit_and_the_second_route_review_use_the_allowance_of_the_candidate(self):
++        # A long candidate is given longer than the base allowance; the same figure bounds the
++        # audit request and the deadline of the second route review.
++        payload = long_payload(9000)
++        allowed = server.draft_generation_timeout(payload["turns"])
++        clock = Clock()
++        started = clock.now
++        client = self.client(clock, {"process_draft": 100, "process_draft_audit": 300})
++        deadlines = []
++        real = server.RouteRecheck
++
++        def recorded(*args, **kwargs):
++            deadlines.append(args[5])
++            return real(*args, **kwargs)
++        with patch.object(server.time, "monotonic", clock), patch.object(server, "RouteRecheck", recorded), \
++                patch.object(server, "draft_audit_timeout", return_value=410) as timeout:
++            result = client.draft(payload)
++        self.assertIn("draft", result)
++        candidate, proposals = timeout.call_args.args
++        self.assertEqual(proposals, candidate["connections"])
++        self.assertEqual(client.structured.call_args_list[1].kwargs["request_timeout"], 410)
++        self.assertEqual(deadlines, [started + allowed + 410])
++
++
++class DraftAuditTimeoutTests(unittest.TestCase):
++    """The audit writes the candidate out again, so a fixed allowance failed the longest drafts.
++
++    Measured with the real provider on 2026-11-17: fifteen audits wrote a median of 14,600
++    tokens in 163 s (about 90 a second). Two candidates of about 20,000 tokens, from interviews
++    of 2,100 and 2,600 participant words, and one of 14,400 tokens from a seven-page procedure
++    with a single answer, timed out at the fixed 240 s on every attempt.
++    """
++    @staticmethod
++    def candidate(tokens):
++        return {"overview": "x" * int(tokens * 3.5)}
++
++    def test_a_short_candidate_keeps_the_base_allowance(self):
++        self.assertEqual(server.draft_audit_timeout({}, []), server.DRAFT_AUDIT_TIMEOUT)
++        self.assertEqual(server.draft_audit_timeout(self.candidate(7000), [0] * 14), server.DRAFT_AUDIT_TIMEOUT)
++        self.assertEqual(server.draft_audit_timeout(object(), None), server.DRAFT_AUDIT_TIMEOUT)
++
++    def test_the_allowance_grows_with_the_candidate_and_its_routes_up_to_the_ceiling(self):
++        sizes = (0, 5000, 10000, 15000, 20000, 22000, 40000, 200000)
++        allowed = [server.draft_audit_timeout(self.candidate(size), [0] * 30) for size in sizes]
++        self.assertEqual(allowed, sorted(allowed))
++        self.assertGreater(allowed[4], allowed[1])
++        self.assertEqual(allowed[-1], server.DRAFT_AUDIT_TIMEOUT_MAX)
++        self.assertTrue(all(server.DRAFT_AUDIT_TIMEOUT <= value <= server.DRAFT_AUDIT_TIMEOUT_MAX for value in allowed))
++        self.assertTrue(all(type(value) is int for value in allowed))
++        self.assertGreater(server.draft_audit_timeout(self.candidate(15000), [0] * 100),
++                           server.draft_audit_timeout(self.candidate(15000), [0] * 10))
++
++    def test_the_two_drafts_that_could_not_be_audited_are_allowed_the_time_their_output_takes(self):
++        # About 20,000 candidate tokens with 53 and 69 connections: the audit writes the candidate
++        # again plus about 110 tokens a connection, at about 90 tokens a second.
++        for tokens, routes in ((19557, 53), (19958, 69), (14426, 23)):
++            needed = (tokens + 200 * routes) / 90
++            self.assertGreaterEqual(server.draft_audit_timeout(self.candidate(tokens), [0] * routes), needed * 1.3)
++
++    def test_a_candidate_is_kept_long_enough_to_retry_its_longest_audit(self):
++        self.assertGreaterEqual(server.DRAFT_CANDIDATE_SECONDS, server.DRAFT_AUDIT_TIMEOUT_MAX + 300)
++
++    def test_the_ceiling_covers_the_whole_audit_output_allowance(self):
++        self.assertGreaterEqual(server.DRAFT_AUDIT_TIMEOUT_MAX, server.DRAFT_AUDIT_MAX_TOKENS / 90)
++        self.assertGreater(90, server.DRAFT_AUDIT_TOKENS_PER_SECOND)
+ 
+ 
+ 
+diff --git a/tests/test_open_question_order.py b/tests/test_open_question_order.py
+new file mode 100644
+index 0000000..2646663
+--- /dev/null
++++ b/tests/test_open_question_order.py
+@@ -0,0 +1,46 @@
++"""The questions a reviewer wrote come before the application's own routing questions.
++
++Generated questions about the shape of the map name step ids ("Does any incoming route start
++S7 (Enter wire), or must all prerequisites finish?"). They were placed ahead of the questions
++a reviewer wrote about the work, so they led the Questions for the process owner list and the
++report, while the draft's own notes call its first questions the priority ones. No provider.
++"""
++import unittest
++
++from test_server import server
++
++
++OWNER = ["Who approves a payment above the limit?", "What happens to a held payment?"]
++ROUTING = ["Does any incoming route start S7 (Enter wire), or must all prerequisites finish?",
++           "How does step S9 (File confirmation) connect to the rest of this process, if at all?"]
++
++
++class OpenQuestionOrderTests(unittest.TestCase):
++    def test_generated_questions_follow_the_register_they_are_added_to(self):
++        self.assertEqual(server.add_workflow_questions(list(OWNER), ROUTING), OWNER + ROUTING)
++
++    def test_a_question_already_in_the_register_is_not_repeated_or_moved(self):
++        existing = [ROUTING[1], *OWNER]
++        self.assertEqual(server.add_workflow_questions(existing, ROUTING), existing + [ROUTING[0]])
++        self.assertEqual(server.add_workflow_questions(list(OWNER), []), OWNER)
++        self.assertEqual(server.add_workflow_questions([], ROUTING + ROUTING), ROUTING)
++
++    def test_a_nearly_full_register_keeps_its_questions_first_and_combines_the_generated_ones(self):
++        existing = [f"Owner question {index}?" for index in range(99)]
++        combined = server.add_workflow_questions(existing, ROUTING)
++        self.assertEqual(combined[:99], existing)
++        self.assertEqual(combined[99], " ".join(ROUTING))
++        with self.assertRaises(ValueError):
++            server.add_workflow_questions([f"Owner question {index}?" for index in range(100)], ROUTING)
++
++    def test_a_drawn_map_lists_its_own_questions_before_the_routing_questions(self):
++        steps = [{"id": "S1", "type": "activity", "title": "Prepare"}, {"id": "S2", "type": "activity", "title": "File"}]
++        generated = server.workflow_structure_questions(steps, [])
++        self.assertTrue(generated)
++        register = server.add_workflow_questions(list(OWNER), generated)
++        self.assertEqual(register[:len(OWNER)], OWNER)
++        self.assertEqual(register[len(OWNER):], generated)
++
++
++if __name__ == "__main__":
++    unittest.main()
+diff --git a/tests/test_question_repeats.py b/tests/test_question_repeats.py
+new file mode 100644
+index 0000000..7192135
+--- /dev/null
++++ b/tests/test_question_repeats.py
+@@ -0,0 +1,203 @@
++"""What keeps the next question from repeating: skipped questions and supplied files.
++
++Found in the 2026-11-17 final stress run with the real provider. A participant pressed Skip on
++"What event normally prompts the preparer to start this work?"; two answers later the interviewer
++asked "What event usually prompts the preparer to begin this work?". Skip adds no turn, so the
++question model was never told. And after a complete written procedure was uploaded, five of six
++questions asked the participant to explain a step the file states. No provider here.
++"""
++import types
++import unittest
++
++from test_server import server
++
++concurrent_interview = server.concurrent_interview
++
++
++def turns_with_a_skip():
++    return [
++        {"id": "t1", "role": "assistant", "text": "What starts this work?"},
++        {"id": "t2", "role": "user", "text": "The preparer confirms the trigger and the approved model."},
++        {"id": "t3", "role": "assistant", "text": "What event normally prompts the preparer to start this work?"},
++        {"id": "t4", "role": "assistant", "text": "What result is the waterfall work intended to produce?"},
++        {"id": "t5", "role": "user", "text": "I'm not sure. The Controller would be the person to ask."},
++        {"id": "t6", "role": "assistant", "text": "Which entities does this work cover?"},
++    ]
++
++
++class SkippedQuestionTests(unittest.TestCase):
++    def service(self):
++        api = types.SimpleNamespace(interview_coverage=server.interview_coverage, question_rejection=server.question_rejection)
++        service = concurrent_interview.ConcurrentInterview(types.SimpleNamespace(coordinator=types.SimpleNamespace()), api)
++        self.addCleanup(service.close)
++        return service
++
++    def test_a_question_followed_by_another_question_was_skipped(self):
++        found = self.service()._skipped_questions(turns_with_a_skip())
++        self.assertEqual([row["turn_id"] for row in found], ["t3"])
++        self.assertEqual(found[0]["question"], "What event normally prompts the preparer to start this work?")
++
++    def test_the_question_being_skipped_now_is_listed_first(self):
++        service = self.service()
++        self.assertEqual([row["turn_id"] for row in service._skipped_questions(turns_with_a_skip(), "skip")], ["t6", "t3"])
++        # An answered question is never listed, and an unanswered last question is only pending.
++        self.assertEqual(service._skipped_questions(turns_with_a_skip()[:2]), [])
++        self.assertEqual(service._skipped_questions(turns_with_a_skip()[:3]), [])
++
++    FILE_TURNS = [
++        {"id": "t1", "role": "assistant", "text": "What can go wrong if this is late?"},
++        {"id": "t2", "role": "assistant", "text": "Thanks for sharing. Give me a moment to digest the file.", "document_event": True},
++        {"id": "t3", "role": "assistant", "text": "The file lists three checks. Is that how it is done today?"},
++        {"id": "t4", "role": "user", "text": "Yes."},
++    ]
++
++    def test_a_file_notice_between_two_questions_is_not_a_skip(self):
++        self.assertEqual(self.service()._skipped_questions(self.FILE_TURNS), [])
++
++    def test_the_question_open_when_a_file_was_added_is_not_banned_after_validation(self):
++        # Validation drops file notices before the question model's input is built, so the
++        # displaced question and the file's question arrive side by side. The page's own turns
++        # still carry the notice, and those are the ones read.
++        service = self.service()
++        payload = {"context": {"process_name": "Billing", "objective": "Document billing."},
++                   "turns": [dict(turn) for turn in self.FILE_TURNS], "action": "answer"}
++        context, validated = server.validate_payload(payload)
++        self.assertEqual([turn["id"] for turn in validated], ["t1", "t3", "t4"], "The notice is gone after validation")
++        session = {"capture": None, "capture_basis": None, "workflow_capture": None, "workflow_turns": None}
++        self.assertEqual(service._question_input(session, payload, context, validated)["skipped_questions"], [])
++        # A question a participant picked from a file in Assets carries the file's id and no notice.
++        picked = [dict(self.FILE_TURNS[0]), {"id": "t2", "role": "assistant", "text": "From returns.csv: who signs the log?", "document_id": "doc_1"}]
++        self.assertEqual(service._skipped_questions(picked), [])
++
++    def test_a_wrap_up_reply_or_an_acknowledgement_is_neither_skipped_nor_a_skip(self):
++        service = self.service()
++        turns = [
++            {"id": "t1", "role": "assistant", "text": "Who approves the invoice?"},
++            {"id": "t2", "role": "assistant", "text": "This capture still has open sections. 14 of 16 are open; the Notes list shows which. You can create a partial draft."},
++            {"id": "t3", "role": "assistant", "text": "Let me check that I have everything before we finish."},
++            {"id": "t4", "role": "assistant", "text": "Before we finish, is there anything else needed to understand this process?"},
++            {"id": "t5", "role": "user", "text": "One more thing: the analyst files the approval email."},
++        ]
++        self.assertEqual(service._skipped_questions(turns), [], "The question open at Wrap up may be asked again")
++        # Two interviewer lines in a row where the second is not a question (a voice caption).
++        captions = [{"id": "c1", "role": "assistant", "text": "What starts this work?"},
++                    {"id": "c2", "role": "assistant", "text": "Take your time."},
++                    {"id": "c3", "role": "user", "text": "A request form."}]
++        self.assertEqual(service._skipped_questions(captions), [])
++        # Malformed entries are ignored.
++        self.assertEqual(service._skipped_questions(["x", None, {"role": "assistant"}], "skip"), [])
++
++    def test_only_the_most_recent_skips_are_listed_and_long_questions_are_cut(self):
++        turns = []
++        for index in range(12):
++            turns.append({"id": f"q{index}", "role": "assistant",
++                          "text": f"For case {index}, " + "and the related ledger entry, " * 12 + "what happens next?"})
++        found = self.service()._skipped_questions(turns)
++        self.assertEqual(len(found), concurrent_interview.MAX_SKIPPED_QUESTIONS)
++        self.assertEqual(found[0]["turn_id"], "q10")
++        self.assertTrue(all(len(row["question"]) <= 300 for row in found))
++
++    def test_the_question_model_is_given_the_skipped_questions_and_told_not_to_repeat_them(self):
++        service = self.service()
++        session = {"capture": None, "capture_basis": None, "workflow_capture": None, "workflow_turns": None}
++        turns = turns_with_a_skip()
++        model_input = service._question_input(session, {"turns": turns, "action": "answer"}, {"process_name": "Waterfall"}, turns)
++        self.assertEqual([row["turn_id"] for row in model_input["skipped_questions"]], ["t3"])
++        policy = concurrent_interview.question_policy(server)
++        for wording in ("skipped_questions lists, newest first", "Never ask one of them again"):
++            self.assertIn(wording, policy)
++
++
++class SuppliedFileQuestionTests(unittest.TestCase):
++    def test_the_fast_question_policy_forbids_reciting_a_supplied_file(self):
++        # BASE_INSTRUCTIONS already told reviewed turns never to ask for a retelling of a supplied
++        # file; the fast question policy, which asks most questions, did not carry the rule.
++        self.assertIn("Never ask the person to retell", server.BASE_INSTRUCTIONS)
++        for followup in (False, True):
++            policy = concurrent_interview.question_policy(server, followup)
++            for wording in ("Never ask them to\ndescribe or explain a step, check, role or rule that a supplied excerpt already states",
++                            "do not\nwalk through a written procedure one step per question",
++                            "Ask once, at most, whether the written\nprocedure is what happens today"):
++                self.assertIn(wording, policy)
++
++
++class QuestionLeadTests(unittest.TestCase):
++    def test_the_question_model_is_shown_both_ends_of_a_long_register(self):
++        # The reviewer's questions come first and the generated routing questions last (see
++        # test_open_question_order.py). The first twelve alone would never reach the routing ones.
++        owner = [f"Owner question {index}?" for index in range(18)]
++        routing = [f"Does any incoming route start S{index} (Step), or must all prerequisites finish?" for index in range(6)]
++        leads = concurrent_interview.ConcurrentInterview._question_leads(owner + routing)
++        self.assertEqual(leads, owner[:8] + routing[-4:])
++        self.assertEqual(len(leads), 12)
++        short = owner[:5] + routing[:2]
++        self.assertEqual(concurrent_interview.ConcurrentInterview._question_leads(short), short)
++        self.assertEqual(concurrent_interview.ConcurrentInterview._question_leads(owner[:12]), owner[:12])
++        self.assertEqual(concurrent_interview.ConcurrentInterview._question_leads(None), [])
++
++
++class CutOffQuestionTests(unittest.TestCase):
++    """A question reply that reaches its output allowance never fails the participant's turn.
++
++    On 2026-11-17 a question about an uploaded procedure spent its whole 600-token allowance on
++    reasoning; the turn returned HTTP 502 although the answer had been retained.
++    """
++    TURNS = [{"id": "t1", "role": "assistant", "text": "What starts this work?"},
++             {"id": "t2", "role": "user", "text": "A payment request starts it and the preparer logs it."}]
++
++    def service(self, replies):
++        allowances = []
++
++        def structured(instructions, data, schema, name, allowance, **options):
++            allowances.append(allowance)
++            reply = replies.pop(0)
++            if isinstance(reply, Exception):
++                raise reply
++            return reply
++        client = types.SimpleNamespace(agent_models={"lead_interviewer": "offline-model"}, structured=structured,
++                                       coordinator=types.SimpleNamespace(interview=lambda value: {"question": "unused"},
++                                                                         workflow=lambda value: {"workflow": {"steps": []}}))
++        api = types.SimpleNamespace(
++            APIError=server.APIError, OutputTruncated=server.OutputTruncated, interview_coverage=server.interview_coverage,
++            check_schema=server.check_schema, question_rejection=server.question_rejection,
++            record_question_rejection=server.record_question_rejection, next_uncovered_question=server.next_uncovered_question,
++            participant_requested_stop=lambda turns, action="answer": False,
++            document_reading_summary=server.document_reading_summary, validate_payload=lambda value: (value["context"], value["turns"]))
++        service = concurrent_interview.ConcurrentInterview(client, api)
++        self.addCleanup(service.close)
++        return service, allowances
++
++    def turn(self, service):
++        return service.turn({"context": {"process_name": "Payments"}, "turns": [dict(turn) for turn in self.TURNS],
++                             "_supporting_documents": {}, "action": "answer"})
++
++    def test_the_allowance_leaves_room_for_reasoning(self):
++        self.assertGreaterEqual(concurrent_interview.QUESTION_OUTPUT_TOKENS, 1000)
++        self.assertGreater(concurrent_interview.QUESTION_RETRY_OUTPUT_TOKENS, concurrent_interview.QUESTION_OUTPUT_TOKENS)
++        service, allowances = self.service([{"need": "who releases", "question": "Who releases the payment?", "request_review": False}])
++        self.assertEqual(self.turn(service)["question"], "Who releases the payment?")
++        self.assertEqual(allowances, [concurrent_interview.QUESTION_OUTPUT_TOKENS])
++
++    def test_a_cut_off_reply_is_asked_once_more_with_more_room(self):
++        service, allowances = self.service([server.OutputTruncated("cut off"),
++                                            {"need": "who releases", "question": "Who releases the payment?", "request_review": False}])
++        self.assertEqual(self.turn(service)["question"], "Who releases the payment?")
++        self.assertEqual(allowances, [concurrent_interview.QUESTION_OUTPUT_TOKENS, concurrent_interview.QUESTION_RETRY_OUTPUT_TOKENS])
++
++    def test_a_reply_cut_off_twice_still_asks_a_question(self):
++        service, allowances = self.service([server.OutputTruncated("cut off"), server.OutputTruncated("cut off again")])
++        result = self.turn(service)
++        self.assertEqual(len(allowances), 2)
++        self.assertTrue(result["question"].endswith("?"))
++        self.assertNotEqual(result["question"], "What starts this work?", "Never the question just asked")
++        self.assertFalse(result["sync_required"])
++
++    def test_any_other_provider_failure_is_still_reported(self):
++        service, allowances = self.service([server.APIError("The AI service is unavailable.", 503)])
++        with self.assertRaises(server.APIError):
++            self.turn(service)
++        self.assertEqual(len(allowances), 1)
++
++
++if __name__ == "__main__":
++    unittest.main()
+diff --git a/tests/test_server.py b/tests/test_server.py
+index db2ac89..b9d02fa 100644
+--- a/tests/test_server.py
++++ b/tests/test_server.py
+@@ -401,8 +401,9 @@ class GraphRoutingContractTests(unittest.TestCase):
+         original_edges = copy.deepcopy(workflow['connections'])
+         result = server.validate_workflow(workflow, interview_payload()['turns'])
+         self.assertEqual(result['connections'], original_edges)
+-        self.assertIn('s3 (Reconcile the ledger)', result['open_questions'][0])
+-        self.assertEqual(result['open_questions'][1], 'Who owns the handoff?')
++        # The reviewer's own question stays first; the generated routing question follows it.
++        self.assertEqual(result['open_questions'][0], 'Who owns the handoff?')
++        self.assertIn('s3 (Reconcile the ledger)', result['open_questions'][1])
+         self.assertEqual(len(server.validate_workflow(result, interview_payload()['turns'])['open_questions']), 2)
+         result['connections'].append({'from':'s3', 'to':'s3', 'label':'Retry', 'evidence_turns':['u1']})
+         result['open_questions'] = []
+diff --git a/tests/test_ui_state.cjs b/tests/test_ui_state.cjs
+index 06ea29a..789c79c 100644
+--- a/tests/test_ui_state.cjs
++++ b/tests/test_ui_state.cjs
+@@ -1762,5 +1762,24 @@ if(process.argv.includes("--usability-only")){
+   assert.throws(()=>t.applyInterview({question:"?",preserve_capture:true}),/interview is full/);
+   passes++;
+  }
++ {
++  // A step's rule source is a source id. The report and the Markdown export show it the way
++  // every other source is shown ("Answer 1"), never as the internal turn id ("t002").
++  checkpoint();t.clearState();
++  const raw=JSON.stringify({schema_version:1,context:{process_name:"Rule source label",objective:"QA"},draft_stale:false,
++   turns:[{id:"t001",role:"assistant",text:"What starts this work?"},{id:"t002",role:"user",text:"We never rely on last year's rules without confirming them again."}],
++   draft:{title:"Rule source label",steps:[{id:"S1",title:"Check the letter",description:"Check the current letter.",evidence_turns:["t002"],rule_source_ref:"t002"},
++    {id:"S2",title:"File it",description:"File the letter.",evidence_turns:["t002"],rule_source_ref:""}]}});
++  await t.importSession({size:raw.length,text:async()=>raw});
++  assert.equal(t.state.draft.steps[0].rule_source_ref,"t002","The saved rule source is kept as its source id");
++  t.renderReport();const shown=document.getElementById("report-content").textContent;
++  assert.match(shown,/Rule source\s*Answer 1/,"The report names the rule source as it names every other source");
++  assert.doesNotMatch(shown,/Rule source\s*t002/,"The report showed the internal turn id as the rule source");
++  const exported=t.markdown();
++  assert.ok(exported.includes("- Rule source: Answer 1 (t002)"),"The Markdown export names the rule source and keeps the id its evidence section uses");
++  assert.ok(exported.includes("- Rule source: UNKNOWN / TBD"),"A step without a rule source still says so");
++  assert.ok(!exported.includes("- Rule source: t002"),"The Markdown export showed the internal turn id");
++  passes++;
++ }
+  checkpoint();console.log(JSON.stringify({tests_passed:passes,provider_calls:providerCalls,network_calls:0,real_browser:false}));
+ })().catch(error=>{console.error(error);process.exitCode=1;});
+diff --git a/web/app.js b/web/app.js
+index 1bf8013..fd65474 100644
+--- a/web/app.js
++++ b/web/app.js
+@@ -94,7 +94,7 @@
+   let documentController=null, pendingDocumentReason=null, restoringDocuments=false;
+   let knowledgeUI=null;
+   // A Create draft / Update draft request that has not returned, and how many drafts such requests delivered.
+-  let draftInFlight=null,draftArrivals=0;
++  let draftInFlight=null,draftArrivals=0,draftClock=null;
+   const INTERVIEW_ID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+   let gpfsPresence=null, auxiliaryVoiceState="idle", voiceEnded=false;
+   let agentTeamUI=null, activeTeamRun=null, reviewedPlaybackLevel=0, reviewedPlaybackActive=false;
+@@ -1004,6 +1004,8 @@
+   }
+   function updateControls() {
+     notifyIntakeWaiters();
++    // Add files follows state.example, state.importing and a draft in flight, none of which redraws the file list.
++    documentController?.syncAttach?.();
+     const ready = Boolean(state.config?.api_configured);
+     const working = state.busy || state.transcribing || state.requestingMic;
+     if($('retry-transcription'))$('retry-transcription').disabled=working||Boolean(state.recording)||Boolean(conversationUI.live?.operation?.processing);
+@@ -4756,12 +4758,12 @@
+     const version = state.version;
+     const evidence = draftEvidenceMark();
+     const flight = draftInFlight = {};state.draftStartedAt=Date.now();
+-    setBusy(true, "Building a process map and procedure from the conversation…");
++    setBusy(true, "Building your draft · usually 3 to 6 minutes");renderDraftElapsed();
+     scrollConversation();
+     try {
+-      // The server may take up to 300 s for the draft of a long interview, 240 s for its
++      // The server may take up to 300 s for the draft of a long interview, up to 540 s for its
+       // source audit and 120 s for the coverage review; the rest is transport overhead.
+-      const result = await request("/api/draft", {...snapshot(),previous_capture:captureForFollowup()}, {timeout:requestTimeout("draft",690000)});
++      const result = await request("/api/draft", {...snapshot(),previous_capture:captureForFollowup()}, {timeout:requestTimeout("draft",990000)});
+       if(generation!==state.generation)return;
+       if(version!==state.version){notice("The interview changed while the draft was being prepared. Create the draft again to include the latest details.",false,"draft",true);return;}
+       const documentEvidence=mergeDocumentEvidence(result.document_evidence);
+@@ -4798,7 +4800,20 @@
+       if(dialog?.open)dialog.addEventListener("close",()=>{if(generation===state.generation&&state.draft){tab("review", true);notice(ready);}},{once:true});
+       else{tab("review", true);notice(ready);}
+     } catch (error) { if (generation === state.generation&&!intakeActive()&&error.name!=="AbortError") notice(error.message, true); }
+-    finally { if(draftInFlight===flight)draftInFlight=null; if (generation === state.generation) setBusy(false); }
++    finally { if(draftInFlight===flight)draftInFlight=null; if (generation === state.generation) setBusy(false); renderDraftElapsed(); }
++  }
++  // A draft takes minutes. The time spent so far sits beside the one status line, so the wait
++  // is seen to be moving; it is not announced, since the status line already is.
++  function renderDraftElapsed() {
++    clearTimeout(draftClock);draftClock=null;
++    const running=Boolean(draftInFlight&&state.draftStartedAt);
++    const seconds=running?Math.max(0,Math.floor((Date.now()-state.draftStartedAt)/1000)):0;
++    for(const id of ["thinking-elapsed","review-elapsed"]){
++      const node=$(id);if(!node)continue;
++      node.hidden=!running;
++      if(running)node.textContent=Math.floor(seconds/60)+":"+String(seconds%60).padStart(2,"0");
++    }
++    if(running)draftClock=setTimeout(renderDraftElapsed,1000);
+   }
+   // What the Submit dialog needs to know about draft requests: arrivals counts the drafts that Create
+   // draft or Update draft have delivered on this page, so a revision filed before one can say so.
+@@ -5012,7 +5027,7 @@
+     const reportFindings=part.querySelectorAll(".report-finding");
+     (d.memo_summary||[]).forEach((f,index)=>{const rewrite=repairNote("draft",f);if(rewrite)reportFindings[index]?.append(rewrite);});
+     part=section("4. Detailed business process");
+-    (d.steps||[]).forEach((step,i)=>{const item=el("section","report-step");item.append(el("h3","",`${i+1}. ${step.title||"Untitled step"} · ${step.id}`),el("p","",step.description));fields(item,[["Owner / role",step.actor],["System / tool",step.system],["Type",workflowTypeLabel(step.type)],["Input",step.input],["Output",step.output],["Completion criteria",step.completion_criteria],["Next handoff (the map's routes)",routedHandoff(routes,step)],["Handoff note",step.handoff],...(handoffNoteMismatch(routes,step)?[["Handoff check",handoffNoteMismatch(routes,step)]]:[]),["Control type",(step.control_type||[]).map(readableTerm).join(", ")],["Data origin",step.data_origin],["Entry mode",readableTerm(step.entry_mode)],["Rule source",step.rule_source_ref],["Entity scope",(step.entity_scope||[]).join(", ")],["Parent process",step.parent_process]]);item.append(evidenceRow(step.evidence_turns));if(editedLabel(step))item.append(el("p","report-evidence-note",editedLabel(step)));
++    (d.steps||[]).forEach((step,i)=>{const item=el("section","report-step");item.append(el("h3","",`${i+1}. ${step.title||"Untitled step"} · ${step.id}`),el("p","",step.description));fields(item,[["Owner / role",step.actor],["System / tool",step.system],["Type",workflowTypeLabel(step.type)],["Input",step.input],["Output",step.output],["Completion criteria",step.completion_criteria],["Next handoff (the map's routes)",routedHandoff(routes,step)],["Handoff note",step.handoff],...(handoffNoteMismatch(routes,step)?[["Handoff check",handoffNoteMismatch(routes,step)]]:[]),["Control type",(step.control_type||[]).map(readableTerm).join(", ")],["Data origin",step.data_origin],["Entry mode",readableTerm(step.entry_mode)],["Rule source",step.rule_source_ref?sourceCaption(step.rule_source_ref):""],["Entity scope",(step.entity_scope||[]).join(", ")],["Parent process",step.parent_process]]);item.append(evidenceRow(step.evidence_turns));if(editedLabel(step))item.append(el("p","report-evidence-note",editedLabel(step)));
+       for(const detail of step.operating_details||[]){fields(item,[[detail.field[0].toUpperCase()+detail.field.slice(1),detail.text]]);item.append(evidenceRow(detail.evidence_turns));}
+       part.append(item);});
+     part=section("5. Decisions, branches and connections");
+@@ -5687,6 +5702,7 @@
+           view.player.update(cinematicGraph(id,workflowGraph(id)),{live:false});
+           return true;
+         }}:{}),
++        sourceCaption,
+         renderEvidence(refs){
+           return evidenceRow(refs,()=>{if(sourceOrigin){sourceOrigin.cinematicId=id;sourceOrigin.mode="walkthrough";sourceOrigin.selection=view.player.currentSelection?.();sourceOrigin.theater=view.player.isExpanded?.();}});
+         },
+@@ -6215,7 +6231,7 @@
+     }
+     d.memo_summary.forEach(finding => parts.push(`### ${md(MEMO_HEADINGS[finding.key]||finding.key)}`,`Status: ${md(draftStatusText(finding))}`,md(finding.answer),...(editedLabel(finding)?[md(editedLabel(finding))]:[]),`Sources: ${sources(finding.evidence_turns)}`));
+     parts.push("## Trigger",sourcedList("trigger"),"## Inputs",sourcedList("inputs"),"## Outputs",sourcedList("outputs"),"## Procedure");
+-    d.steps.forEach((s,i) => parts.push(`### ${i+1}. ${md(s.title||"UNKNOWN / TBD")} (${md(s.id)})`,`- Owner / role: ${md(s.actor||"UNKNOWN / TBD")}`,`- System / tool: ${md(s.system||"UNKNOWN / TBD")}`,`- Type: ${md(workflowTypeLabel(s.type))}`,`- Input: ${md(s.input||"UNKNOWN / TBD")}`,`- Output: ${md(s.output||"UNKNOWN / TBD")}`,`- Completion criteria: ${md(s.completion_criteria||"UNKNOWN / TBD")}`,`- Next handoff: ${md(routedHandoff(routes,s))}`,`- Handoff note: ${md(s.handoff||"UNKNOWN / TBD")}`,...(handoffNoteMismatch(routes,s)?[`- Handoff check: ${md(handoffNoteMismatch(routes,s))}`]:[]),`- Control type: ${md((s.control_type||[]).map(readableTerm).join(", ")||"UNKNOWN / TBD")}`,`- Data origin: ${md(s.data_origin||"UNKNOWN / TBD")}`,`- Entry mode: ${md(readableTerm(s.entry_mode||"unknown"))}`,`- Rule source: ${md(s.rule_source_ref||"UNKNOWN / TBD")}`,`- Entity scope: ${md((s.entity_scope||[]).join(", ")||"UNKNOWN / TBD")}`,`- Parent process: ${md(s.parent_process||"UNKNOWN / TBD")}`,...(s.operating_details||[]).map(row=>"- "+md(row.field[0].toUpperCase()+row.field.slice(1))+": "+md(row.text)+" (Sources: "+sources(row.evidence_turns)+")"),"",md(s.description),...(editedLabel(s)?[md(editedLabel(s))]:[]),"",`Sources: ${sources(s.evidence_turns)}`));
++    d.steps.forEach((s,i) => parts.push(`### ${i+1}. ${md(s.title||"UNKNOWN / TBD")} (${md(s.id)})`,`- Owner / role: ${md(s.actor||"UNKNOWN / TBD")}`,`- System / tool: ${md(s.system||"UNKNOWN / TBD")}`,`- Type: ${md(workflowTypeLabel(s.type))}`,`- Input: ${md(s.input||"UNKNOWN / TBD")}`,`- Output: ${md(s.output||"UNKNOWN / TBD")}`,`- Completion criteria: ${md(s.completion_criteria||"UNKNOWN / TBD")}`,`- Next handoff: ${md(routedHandoff(routes,s))}`,`- Handoff note: ${md(s.handoff||"UNKNOWN / TBD")}`,...(handoffNoteMismatch(routes,s)?[`- Handoff check: ${md(handoffNoteMismatch(routes,s))}`]:[]),`- Control type: ${md((s.control_type||[]).map(readableTerm).join(", ")||"UNKNOWN / TBD")}`,`- Data origin: ${md(s.data_origin||"UNKNOWN / TBD")}`,`- Entry mode: ${md(readableTerm(s.entry_mode||"unknown"))}`,`- Rule source: ${md(s.rule_source_ref?sourceCaption(s.rule_source_ref)+" ("+s.rule_source_ref+")":"UNKNOWN / TBD")}`,`- Entity scope: ${md((s.entity_scope||[]).join(", ")||"UNKNOWN / TBD")}`,`- Parent process: ${md(s.parent_process||"UNKNOWN / TBD")}`,...(s.operating_details||[]).map(row=>"- "+md(row.field[0].toUpperCase()+row.field.slice(1))+": "+md(row.text)+" (Sources: "+sources(row.evidence_turns)+")"),"",md(s.description),...(editedLabel(s)?[md(editedLabel(s))]:[]),"",`Sources: ${sources(s.evidence_turns)}`));
+     const raciFields=["responsible","accountable","consulted","informed"];
+     const assigned=d.steps.filter(step=>step.operating_details?.some(row=>raciFields.includes(row.field)));
+     if(assigned.length){
+diff --git a/web/documents.js b/web/documents.js
+index 6dff434..36f606e 100644
+--- a/web/documents.js
++++ b/web/documents.js
+@@ -519,14 +519,22 @@
+       if(analysis.selected_by_participant)parts.push(verdict&&analysis.relevance!=="relevant"?"You chose to use it in the interview anyway.":"You chose to use this file in the interview.");
+       return this.node("p","documents-progress documents-relevance",parts.join(" "));
+     }
++    // Whether a file can be added depends on state the page owns (the example, a saved interview being
++    // opened, a draft in flight) that changes without the file list being redrawn. The page calls this
++    // whenever it refreshes its own controls, so Add files never shows a reason that no longer applies.
++    syncAttach() {
++      if(this.disposed||!this.attachButton)return;
++      const allowed=this.allowed(),disabled=!allowed||this.full(),title=!allowed?(this.options.uploadBlockedReason?.()||"File uploads are unavailable."):"Add files";
++      if(this.attachButton.disabled!==disabled)this.attachButton.disabled=disabled;
++      if(this.attachButton.title!==title)this.attachButton.title=title;
++    }
+     render() {
+       if(this.disposed)return;
+       const total=this.documents.length+this.uploads.length;
+       const counts=new Map();this.documents.forEach(document=>{const status=this.status(document);counts.set(status,(counts.get(status)||0)+1);});
+       const announcement=[`${total} ${total===1?"file":"files"}`,...[...counts].map(([status,count])=>`${count} ${status.toLowerCase()}`),...(this.uploads.length?[`${this.uploads.length} uploading`]:[]),...(this.uploadErrors.length?[`${this.uploadErrors.length} file ${this.uploadErrors.length===1?"issue":"issues"}`]:[]),...(this.removed.length?[`${this.removed.length} removed, can be restored`]:[])].join(". ");
+       if(this.liveStatus.textContent!==announcement)this.liveStatus.textContent=announcement;
+-      this.attachButton.disabled=!this.allowed()||this.full();
+-      this.attachButton.title=!this.allowed()?(this.options.uploadBlockedReason?.()||"File uploads are unavailable."):"Add files";
++      this.syncAttach();
+       // "7 of 20 file slots used, 3 by removed files." and, at the limit, why Add files is unavailable.
+       const usage=this.usageText();if(this.usage.textContent!==usage)this.usage.textContent=usage;this.usage.hidden=!usage;
+       const needsAction=this.documents.filter(file=>!file.archived&&file.analysis?.disposition==="needs_reason").length;
+diff --git a/web/index.html b/web/index.html
+index 7ecef25..867c61e 100644
+--- a/web/index.html
++++ b/web/index.html
+@@ -169,7 +169,7 @@
+               <div class="workflow-update"><p class="workflow-status" id="workflow-status" role="status"></p><button class="text-button small" id="retry-workflow" type="button" data-icon="refresh" hidden>Try again</button></div>
+             </div>
+           </div>
+-          <div id="conversation-dock-host"><div id="conversation-dock" class="conversation-dock"><div class="thinking" id="thinking" hidden><span class="pulse-dot"></span><span id="thinking-text">Thinking…</span><button type="button" class="text-button" id="pause-completion-review" hidden>Pause review</button></div>
++          <div id="conversation-dock-host"><div id="conversation-dock" class="conversation-dock"><div class="thinking" id="thinking" hidden><span class="pulse-dot"></span><span id="thinking-text">Thinking…</span><span id="thinking-elapsed" class="elapsed" aria-hidden="true" hidden></span><button type="button" class="text-button" id="pause-completion-review" hidden>Pause review</button></div>
+           <div class="speech-status" id="speech-status" hidden><span id="speech-status-text"></span><button type="button" class="text-button small" id="stop-reading" data-icon="x" title="Stop reading aloud (Esc)">Stop reading</button></div>
+           <div class="composer-area" id="composer-area" hidden>
+             <p class="dock-question" id="dock-question" hidden><span class="dock-question-label">Current question</span><span id="dock-question-text"></span></p>
+@@ -240,7 +240,7 @@
+           <button class="button primary" id="submit-process-review" data-icon="send">Submit process</button>
+         </div>
+       </header>
+-      <div id="review-empty" class="empty-state"><div class="empty-icon" aria-hidden="true"></div><h1>No draft yet</h1><p id="review-next-step">Describe your process or add a file to start a draft.</p><button class="button primary" id="empty-start" data-icon-end="arrow-right">Go to interview</button><button class="button primary" id="review-create-draft" data-icon-end="arrow-right" hidden>Create draft</button></div>
++      <div id="review-empty" class="empty-state"><div class="empty-icon" aria-hidden="true"></div><h1>No draft yet</h1><p id="review-next-step">Describe your process or add a file to start a draft.</p><p id="review-elapsed" class="elapsed" aria-hidden="true" hidden></p><button class="button primary" id="empty-start" data-icon-end="arrow-right">Go to interview</button><button class="button primary" id="review-create-draft" data-icon-end="arrow-right" hidden>Create draft</button></div>
+       <div id="draft-content" hidden>
+         <nav class="review-tabs" role="tablist" aria-label="Review sections"><button type="button" id="review-tab-report" role="tab" aria-controls="review-report" aria-selected="true" tabindex="0" data-review-target="review-report">Report</button><button type="button" id="review-tab-memo" role="tab" aria-controls="review-memo" aria-selected="false" tabindex="-1" data-review-target="review-memo">Notes</button><button type="button" id="review-tab-map" role="tab" aria-controls="review-map" aria-selected="false" tabindex="-1" data-review-target="review-map">Workflow</button><button type="button" id="review-tab-procedure" role="tab" aria-controls="review-procedure" aria-selected="false" tabindex="-1" data-review-target="review-procedure">Steps</button><button type="button" id="review-tab-lifecycles" role="tab" aria-controls="review-lifecycles" aria-selected="false" tabindex="-1" data-review-target="review-lifecycles">Items</button><button type="button" id="review-tab-variations" role="tab" aria-controls="review-variations" aria-selected="false" tabindex="-1" data-review-target="review-variations">Variations</button><button type="button" id="review-tab-questions" role="tab" aria-controls="review-questions" aria-selected="false" tabindex="-1" data-review-target="review-questions">Open questions</button></nav>
+         <div class="review-panels">
+diff --git a/web/style.css b/web/style.css
+index 8cf090d..80e7cb2 100644
+--- a/web/style.css
++++ b/web/style.css
+@@ -555,6 +555,8 @@ body:not(.interview-started) .voice-stage > .conversation-dock { margin-bottom:
+ .context-lock-note { margin: 0; }
+ .thinking { display: flex; justify-content: center; align-items: center; gap: 10px; margin: 0 auto 10px; width: max-content; max-width: 100%; padding: 6px 14px; border-radius: var(--r-pill); background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink-2); font-size:var(--text-sm); }
+ .thinking:has(#pause-completion-review:not([hidden])) { flex-wrap: wrap; }
++/* Time spent on a draft so far, beside the one status line. */
++.elapsed { font-variant-numeric: tabular-nums; opacity: .72; }
+ #pause-completion-review { flex: none; min-height: 44px; }
+ .speech-status { display: flex; justify-content: center; align-items: center; gap: 8px; margin: 0 auto 10px; width: max-content; max-width: 100%; padding: 2px 6px 2px 14px; border-radius: var(--r-pill); background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink-2); font-size:var(--text-sm); }
+ #transcript-dock-host .speech-status { margin: 0 0 12px; }
+diff --git a/web/workflow-walkthrough.js b/web/workflow-walkthrough.js
+index 95382de..3c1fdf2 100644
+--- a/web/workflow-walkthrough.js
++++ b/web/workflow-walkthrough.js
+@@ -36,7 +36,7 @@
+   const count = (n,noun) => n + " " + noun + (n === 1 ? "" : "s");
+   const typeLabel = step => scope.CollectorWorkflow?.types?.[step.type]?.label || "Activity";
+ 
+-  function create(root, {onDetails,onExit,renderEvidence,onSetDesign}) {
++  function create(root, {onDetails,onExit,renderEvidence,onSetDesign,sourceCaption}) {
+     const media = scope.matchMedia("(prefers-reduced-motion: reduce)");
+     let motionEnabled = true, visible = false, destroyed = false, generation = 0;
+     let fingerprint, graph = {steps:[],connections:[]}, selected = {}, steps = new Map(), edges = new Map(), options = [];
+@@ -170,7 +170,7 @@
+           .map(value=>value.replace(/^gpfs_/,"GPFS ").replaceAll("_"," ")).join(", ") : "";
+         const recorded = [["Input",step.input],["Output",step.output],["Completion",step.completion_criteria],
+           ["Handoff note",step.handoff],["Control",controls],["Entry method",step.entry_mode?.replaceAll("_"," ")],
+-          ["Data source",step.data_origin],["Rule source",step.rule_source_ref]].filter(([,value])=>known(value));
++          ["Data source",step.data_origin],["Rule source",step.rule_source_ref&&sourceCaption?sourceCaption(step.rule_source_ref):step.rule_source_ref]].filter(([,value])=>known(value));
+         if (recorded.length || step.operating_details?.length) {
+           const more=el("details","ww-operating"), dl=el("dl","ww-fields");
+           more.append(el("summary","","Operating details"),dl);

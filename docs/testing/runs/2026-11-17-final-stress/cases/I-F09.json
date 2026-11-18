@@ -1,0 +1,748 @@
+{
+ "case": "I-F09",
+ "process": "FA-13",
+ "mode": "file",
+ "style": "three-row CSV added after two answers",
+ "build": "round2",
+ "participant": "script",
+ "context": {
+  "process_name": "Quarterly Workbook Preparation & Binder",
+  "process_owner": "",
+  "objective": "Document how we carry out Quarterly Workbook Preparation & Binder, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "To begin with, we confirm the approved method and update activity details. That is done by: Fund Accountant. We use Activities and Tax Activities tabs Result: Current-period approved methods and activity details for it. The check on it: every client-specific rule must point to its governing document or approved source."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "What event prompts the Fund Accountant to begin this work?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "Next, we prepare the new-quarter workbook and load the trial balance. That is done by: Fund Accountant. We use Excel workbook and general ledger (GL) / trial balance (TB) report Result: Current-period starting workbook and System and Organization Controls (SOC) for it. The check on it: keep the trial balance source details. Remove or deactivate stale prior-period data."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What happens after the trial balance is loaded?"
+  },
+  {
+   "id": "t006",
+   "role": "assistant",
+   "text": "Thanks for sharing. Give me a moment to digest the file. Then I’ll follow up with a question.",
+   "document_event": true
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "The CSV lists building statement and lead-sheet support, running Check of Checks and clearing-account controls, then assembling binder support. Does that reflect how this work happens today?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "After that, we build statement and lead-sheet support. That is done by: Fund Accountant. We use Excel workbook Result: Linked workbook and account support for it. The check on it: each active account must have supporting records and a completed check."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "What does the Fund Accountant check to determine that each account’s support is complete?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "Then, we record quarter-specific accrual support. That is done by: Fund Accountant. We use Accrual lead sheets and engagement letters Result: Supported accrual calculation for it. The check on it: the accrual basis must point to the applicable engagement letter or other approved support."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "You described the result of preparing the workbook and loading the trial balance as “System and Organization Controls (SOC)”; what does SOC refer to here?"
+  },
+  {
+   "id": "t012",
+   "role": "assistant",
+   "text": "Your account so far is saved. 0 of 16 topics are complete, 9 are partly covered and 7 have not come up; the Notes list shows what is missing. You can create a draft from what is here, or keep answering."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794993796.027,
+   "turn": 0,
+   "seconds": 0.013,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794993798.372,
+   "turn": 2,
+   "seconds": 2.293,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993808.042,
+   "turn": 3,
+   "seconds": 11.96
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794993814.63,
+   "turn": 3,
+   "seconds": 18.55,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 1,
+   "connections": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794993817.329,
+   "turn": 4,
+   "seconds": 2.649,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794993817.332,
+   "turn": 5,
+   "seconds": 2.65,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 1,
+   "connections": 0
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794993835.198,
+   "turn": 5,
+   "seconds": 20.52,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 2,
+   "connections": 1
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993851.042,
+   "turn": 5,
+   "seconds": 36.36
+  },
+  {
+   "kind": "doc.session",
+   "at": 1794993851.126,
+   "turn": 5,
+   "seconds": 0.014,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.upload",
+   "at": 1794993851.129,
+   "turn": 5,
+   "seconds": 0.003,
+   "status": 202,
+   "retries": 0,
+   "file": "F08 FA-13 three steps.csv",
+   "bytes": 133
+  },
+  {
+   "kind": "doc.extracted",
+   "at": 1794993851.648,
+   "turn": 5,
+   "seconds": 0.54,
+   "file": "F08 FA-13 three steps.csv",
+   "chunks": 1,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 4,
+    "total_units": 4,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_started",
+   "at": 1794993851.648,
+   "turn": 5,
+   "seconds": 0.54,
+   "file": "F08 FA-13 three steps.csv",
+   "chunks": 1,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 4,
+    "total_units": 4,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_deep",
+   "at": 1794993858.392,
+   "turn": 5,
+   "seconds": 7.28,
+   "file": "F08 FA-13 three steps.csv",
+   "chunks": 1,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 4,
+    "total_units": 4,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_complete",
+   "at": 1794993858.392,
+   "turn": 5,
+   "seconds": 7.28,
+   "file": "F08 FA-13 three steps.csv",
+   "chunks": 1,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 4,
+    "total_units": 4,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.followup_question",
+   "at": 1794993859.985,
+   "turn": 6,
+   "seconds": 1.592,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.first_question",
+   "at": 1794993859.985,
+   "turn": 7,
+   "seconds": 8.87,
+   "reading": {
+    "omitted_documents": 0,
+    "documents": [
+     {
+      "id": "doc_9bbbf2870fe52d939b753f37",
+      "included_chunks": 1,
+      "total_chunks": 1
+     }
+    ]
+   }
+  },
+  {
+   "kind": "doc.map_ready",
+   "at": 1794993886.901,
+   "turn": 7,
+   "seconds": 28.51,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 5,
+   "connections": 1
+  },
+  {
+   "kind": "doc.left_pending",
+   "at": 1794993889.999,
+   "turn": 7,
+   "notes_state": "working",
+   "map_state": "ready",
+   "seconds": 31.61
+  },
+  {
+   "kind": "question",
+   "at": 1794993891.473,
+   "turn": 8,
+   "seconds": 1.413,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794993891.48,
+   "turn": 9,
+   "seconds": 1.42,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t004",
+   "steps": 5,
+   "connections": 1
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794993908.521,
+   "turn": 9,
+   "seconds": 18.46,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 5,
+   "connections": 2
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993913.675,
+   "turn": 9,
+   "seconds": 23.62
+  },
+  {
+   "kind": "question",
+   "at": 1794993915.635,
+   "turn": 10,
+   "seconds": 1.899,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794993915.644,
+   "turn": 11,
+   "seconds": 1.91,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t008",
+   "steps": 5,
+   "connections": 2
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993933.261,
+   "turn": 11,
+   "seconds": 19.52
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794993936.366,
+   "turn": 11,
+   "seconds": 22.63,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 6,
+   "connections": 3
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794993936.455,
+   "turn": 11,
+   "seconds": 0.028,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794994042.085,
+   "turn": 12,
+   "seconds": 105.578,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [
+  {
+   "name": "F08 FA-13 three steps.csv",
+   "kind": "csv",
+   "size": 133,
+   "status": "ready",
+   "chunk_count": 1,
+   "coverage": {
+    "indexed_units": 4,
+    "total_units": 4,
+    "limitations": []
+   }
+  }
+ ],
+ "notes": {
+  "summary": "How does the Fund Accountant calculate and record the quarter-specific accrual using the engagement letter and lead sheet?",
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "The intake names the work Quarterly Workbook Preparation & Binder."
+   },
+   {
+    "key": "purpose",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The event prompting the Fund Accountant to start, cadence and fixed deadlines remain to be established; the first action alone does not identify the trigger."
+   },
+   {
+    "key": "completion",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The Fund Accountant confirms the method, updates activity details, prepares the new-quarter workbook, loads the trial balance and builds statement and lead-sheet support.\nOverall accountability for the result has not been established."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "First, the Fund Accountant confirms the approved method and updates activity details using the Activities and Tax Activities tabs, producing current-period approved methods and activity details.\nNext, the Fund Accountant prepares the new-quarter Excel workbook and loads the trial balance using the GL/TB report. The participant describes the result as a current-period starting workbook and System and Organization Controls (SOC).\nThe unconfirmed CSV lists building statement and lead-sheet support, then running Check of Checks and clearing-account controls, and assembling binder support. The participant confirms that the Fund Accountant builds statement and lead-sheet support after loading the trial balance.\nThe meaning of SOC as a reported result of workbook preparation and trial balance loading needs clarification.\nAfter loading the trial balance, the Fund Accountant builds statement and lead-sheet support in the Excel workbook, producing a linked workbook and account support.\nHow the Fund Accountant builds and links the statement and lead-sheet support remains to be explained. The performers and mechanisms for the CSV's later controls and binder assembly are also unconfirmed.\nAfter building statement and lead-sheet support, the Fund Accountant records quarter-specific accrual support using accrual lead sheets and engagement letters, producing a supported accrual calculation."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "For the method and activity update, every client-specific rule must point to its governing document or approved source.\nFor workbook preparation and trial balance loading, the participant says to keep trial balance source details and remove or deactivate stale prior-period data.\nThe unconfirmed CSV lists a Check of Checks and clearing-account controls; their operation and performer are not described in the excerpt.\nFor statement and lead-sheet support, each active account must have supporting records and a completed check.\nThe accrual basis must point to the applicable engagement letter or other approved support."
+   },
+   {
+    "key": "variations",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The Fund Accountant uses Activities and Tax Activities tabs to confirm methods and update activity details.\nThe Fund Accountant uses an Excel workbook and GL/TB report for new-quarter workbook preparation and trial balance loading.\nAn unconfirmed CSV lists three workbook and binder support steps; its full indexed text was supplied and reviewed.\nThe Fund Accountant uses the Excel workbook to build statement and lead-sheet support, producing a linked workbook and account support.\nThe Fund Accountant uses accrual lead sheets and engagement letters to record quarter-specific accrual support."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The reported work includes preparation of a new-quarter workbook by a Fund Accountant and checking the sources of client-specific rules."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The participant says every client-specific rule must point to its governing document or an approved source.\nEach active account must have supporting records and a completed check.\nThe participant states that the accrual basis must point to the applicable engagement letter or other approved support."
+   },
+   {
+    "key": "connections",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The reported tools and inputs include an Excel workbook, Activities and Tax Activities tabs, and a general ledger/trial balance report. Trial balance source details are to be kept."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": ""
+   }
+  ]
+ },
+ "map": {
+  "title": "Quarterly Workbook Preparation & Binder",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Confirm method and update activity",
+    "actor": "Fund Accountant",
+    "system": "Activities and Tax Activities tabs",
+    "description": "Confirm the approved method and update activity details. Each client-specific rule must point to its governing document or approved source."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Prepare workbook and load trial balance",
+    "actor": "Fund Accountant",
+    "system": "Excel workbook and GL / TB report",
+    "description": "Prepare the new-quarter workbook and load the trial balance. Keep trial balance source details and remove or deactivate stale prior-period data. The reported SOC result needs clarification."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Build statement and lead-sheet support",
+    "actor": "Fund Accountant",
+    "system": "Excel workbook",
+    "description": "Build statement and lead-sheet support. Each active account must have supporting records and a completed check."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Run workbook and clearing controls",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The CSV lists running Check of Checks and clearing-account controls. The checks performed and their position in current practice are UNKNOWN."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Assemble binder support",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The CSV lists assembling support for the binder; its position in current practice is UNKNOWN."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Record quarter-specific accrual support",
+    "actor": "Fund Accountant",
+    "system": "UNKNOWN",
+    "description": "Record quarter-specific accrual support using accrual lead sheets and engagement letters. The accrual basis must point to the applicable engagement letter or other approved support."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S6",
+    "label": ""
+   }
+  ],
+  "open_questions": [
+   "UNKNOWN: What event starts the work, who detects it, and what upstream input is ready? What are the cadence and deadlines?",
+   "UNKNOWN: Do the CSV's Check of Checks, clearing-account controls and binder-support steps reflect current practice? Where do they sit relative to accrual support, who performs them, and how do they connect?",
+   "UNKNOWN: What is the reported SOC result in workbook preparation?",
+   "UNKNOWN: What exceptions occur, and how are corrections and rechecks handled?",
+   "UNKNOWN: What marks the overall work complete, who receives or uses the output, and who is accountable for the result?",
+   "UNKNOWN: What do the checks actually test, who reviews or approves them, what blocks advancement, and what evidence is retained where?",
+   "UNKNOWN: Which entities and clients are in scope, what variations apply, and is this a general GPFS route or client-specific practice?",
+   "UNKNOWN: What are the governing rule sources, who interprets conflicts, and how are rules implemented?",
+   "UNKNOWN: How is the trial balance loaded, where are the workbook and source details stored, and what is the authoritative record?",
+   "UNKNOWN: How is the accrual calculated, including its inputs, dates, prior-period treatment, rounding, corrections and calculation location?",
+   "UNKNOWN: What are the main manual work, risks, volumes, peaks and effort? Where relevant, what charging or removal constraints apply?",
+   "How does step S4 (Run workbook and clearing controls) connect to the rest of this process, if at all?",
+   "How does step S5 (Assemble binder support) connect to the rest of this process, if at all?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "DRAFT — Quarterly Workbook Preparation & Binder",
+  "overview": "The Fund Accountant described four sequential workbook-preparation activities. A CSV also lists controls and binder assembly, but their sequence and whether they reflect current practice are UNKNOWN. The draft is pending review.",
+  "trigger": "UNKNOWN: The initiating event, receiver, cadence and deadlines were not established. The first reported action is not necessarily the trigger.",
+  "inputs": [
+   "Approved method and activity details; their sources are UNKNOWN.",
+   "General ledger / trial balance report.",
+   "Accrual lead sheets and engagement letters or other approved support."
+  ],
+  "outputs": [
+   "Current-period approved methods and activity details.",
+   "Current-period starting workbook; the reported SOC result requires clarification.",
+   "Linked workbook and account support.",
+   "Supported accrual calculation.",
+   "The CSV lists binder support; its current-practice status is unconfirmed."
+  ],
+  "exceptions": [],
+  "controls": [
+   "The participant says each client-specific rule must point to its governing document or approved source.",
+   "The participant says to keep trial balance source details and remove or deactivate stale prior-period data.",
+   "The participant says every active account must have supporting records and a completed check.",
+   "The participant says the accrual basis must point to the applicable engagement letter or other approved support.",
+   "The CSV lists Check of Checks and clearing-account controls; their operation in current practice is unconfirmed."
+  ],
+  "validation_notes": [
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified.",
+   "The initiating event, overall accountable role and finished condition are unestablished, so the full process boundary remains unclear.",
+   "The CSV lists statement support, controls and binder assembly, but its row order alone does not establish direct transitions. The controls and binder assembly remain disconnected documented activities; their sequence and current-practice placement, including their relationship to accrual support, are UNKNOWN.",
+   "SOC was named as a workbook-preparation result, but its meaning and relevance are unclear.",
+   "The reported checks have limited detail about their operation, review, failure handling and retained evidence; their effectiveness and consistent operation are unverified.",
+   "The account has not established entity scope, client applicability or a basis for an approved GPFS standard.",
+   "Participant confirmation of the draft and process-owner approval are pending.",
+   "Document-derived statements describe supplied reference material; current practice and control effectiveness have not been confirmed."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Confirm method and update activity",
+    "actor": "Fund Accountant",
+    "system": "Activities and Tax Activities tabs",
+    "description": "Confirm the approved method and update activity details for the current period. The participant says every client-specific rule must point to its governing document or an approved source."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Prepare workbook and load trial balance",
+    "actor": "Fund Accountant",
+    "system": "Excel workbook and GL / trial balance report",
+    "description": "Prepare the new-quarter workbook and load the trial balance. Keep trial balance source details and remove or deactivate stale prior-period data. The participant also named System and Organization Controls (SOC) as a result; its meaning in this context is UNKNOWN."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Build statement and lead-sheet support",
+    "actor": "Fund Accountant",
+    "system": "Excel workbook",
+    "description": "Build statement and lead-sheet support in the workbook, producing a linked workbook and account support. Each active account must have supporting records and a completed check. The linking method and the check's substance are UNKNOWN. The CSV also lists this activity alongside controls and binder-support assembly."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Run workbook and clearing controls",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The CSV lists running Check of Checks and clearing-account controls. What is checked, who performs it, its sequence relative to the other CSV entries, and whether and where it occurs in current practice are UNKNOWN."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Assemble binder support",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The CSV lists assembling support for the binder. The contents, performer, completion condition, sequence relative to the other CSV entries and current-practice placement are UNKNOWN."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Record quarter-specific accrual support",
+    "actor": "Fund Accountant",
+    "system": "UNKNOWN",
+    "description": "Record quarter-specific accrual support using accrual lead sheets and engagement letters, producing a supported accrual calculation. The participant says the accrual basis must point to the applicable engagement letter or other approved support. The calculation method and subsequent route are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "Next"
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": "After trial balance loading"
+   },
+   {
+    "from": "S3",
+    "to": "S6",
+    "label": "Then, participant account"
+   }
+  ],
+  "open_questions": [
+   "What event starts the work, and what marks it complete and identifies the overall accountable role?",
+   "Do the CSV's controls and binder assembly reflect current practice, and how are they sequenced relative to statement support, accrual support and each other?",
+   "What do the reported checks test, who reviews them, what happens when they fail, and what evidence is retained?",
+   "How are statement and lead-sheet support built and linked, and how is the accrual calculated and supported?",
+   "Which entities and clients are in scope, and is this a general GPFS route or a client-specific one?",
+   "What does the reported SOC result mean in workbook preparation?",
+   "What exceptions or returns occur, and how are corrections and rechecks handled?",
+   "What are the cadence and deadlines, and who detects the initiating event?",
+   "Who receives or uses the completed output, and what handoffs or dependencies apply?",
+   "Who interprets rule sources or resolves conflicts, and how are rules implemented?",
+   "How is the trial balance loaded, where are workbook and source details stored, and what is the authoritative record?",
+   "What manual friction, risks, volumes, peaks and effort are reported? What client differences and, where relevant, charging or removal constraints apply?",
+   "How does step S4 (Run workbook and clearing controls) connect to the rest of this process, if at all?",
+   "How does step S5 (Assemble binder support) connect to the rest of this process, if at all?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "The intake names the work Quarterly Workbook Preparation & Binder. Other names and detailed boundaries are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "unknown",
+    "answer": "UNKNOWN: The delivered result or value of the overall process has not been established."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The first described action is confirming the approved method and updating activity details. The event that prompts it, its receiver, cadence, deadlines and upstream readiness are UNKNOWN."
+   },
+   {
+    "key": "completion",
+    "status": "unknown",
+    "answer": "UNKNOWN: The overall finished condition, evidence of completion and downstream consumer have not been established."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The Fund Accountant performs the four reported activities, including recording accrual support. Overall accountability for the result is UNKNOWN."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The Fund Accountant confirms the approved method and updates activity details in Activities and Tax Activities tabs; prepares the new-quarter Excel workbook and loads the GL/TB report; builds linked statement and lead-sheet support; then records quarter-specific accrual support using lead sheets and engagement letters. The participant also named SOC as a result of workbook preparation, but its meaning is UNKNOWN. The CSV lists statement support, Check of Checks and clearing-account controls, and binder support. The sequence of those CSV entries, current use and performers of the controls and binder assembly, and their placement relative to accrual support are UNKNOWN. Linking mechanics, exceptions and subsequent handoffs remain UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The participant says client-specific rules must point to a governing document or approved source; trial balance source details must be kept and stale prior-period data removed or deactivated; each active account must have support and a completed check; and the accrual basis must point to an engagement letter or approved support. The CSV separately lists Check of Checks and clearing-account controls, without describing their operation. Review levels, release conditions, failure handling and retained proof are UNKNOWN."
+   },
+   {
+    "key": "variations",
+    "status": "unknown",
+    "answer": "UNKNOWN: Client, entity or other differences in the route, their source, effort, charging and removal constraints have not been established. Mention of client-specific rules alone does not identify a route variation."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": "UNKNOWN: Manual friction, rework and their practical effects have not been described."
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": "UNKNOWN: Material failures and their consequences have not been described."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "Reported materials include Activities and Tax Activities tabs, an Excel workbook, GL/TB report, accrual lead sheets and engagement letters. The supplied CSV lists three steps; its full indexed text was supplied and reviewed, but its current-practice relevance is unconfirmed. Locations and other procedures or templates are UNKNOWN."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The account concerns new-quarter workbook preparation by a Fund Accountant and includes client-specific rule sources. Entity types, parent process, client coverage and whether this is general GPFS practice are UNKNOWN."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The participant says client-specific rules must point to governing documents or approved sources, each active account must have support and a completed check, and the accrual basis must point to an applicable engagement letter or approved support. Specific governing sources, interpretation and conflict authority, implementation and accrual calculation mechanics are UNKNOWN."
+   },
+   {
+    "key": "connections",
+    "status": "unknown",
+    "answer": "UNKNOWN: The upstream producing process, downstream consumers, related processes and readiness dependencies have not been identified."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The Fund Accountant uses Activities and Tax Activities tabs, an Excel workbook and a GL/TB report, with trial balance source details retained. Accrual lead sheets and engagement letters support the accrual work. Loading method, storage, calculation location, logic ownership and authoritative records are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": "UNKNOWN: Counts, peaks, exception frequency and effort by step have not been reported."
+   }
+  ]
+ },
+ "draft_error": null
+}

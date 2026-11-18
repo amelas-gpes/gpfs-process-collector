@@ -1,0 +1,1207 @@
+{
+ "case": "T06",
+ "process": "FA-12",
+ "mode": "typed",
+ "style": "terse",
+ "build": "untouched",
+ "participant": "agent",
+ "context": {
+  "process_name": "Financial Statement Creation, Review & Tie-Out",
+  "process_owner": "",
+  "objective": "Document how we carry out Financial Statement Creation, Review & Tie-Out, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "It starts when the quarterly close reaches the financial-statement stage and the general ledger, trial balance, lead sheets and workbook are available."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "Talk me through how you use those materials to create the financial statements."
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "I export the trial balance from the general ledger, link the statement lines to it in the Excel workbook, and then populate the Word statements from that workbook."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "How do you determine which trial-balance accounts map to each statement line?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "The exact mapping is specific to each fund and its package."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "How is each fund’s package-specific mapping captured in the workbook?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "The statement lines on the build tab are linked to the TB tab, unless a detailed schedule is designed to link to a lead sheet instead."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "What determines whether a detailed schedule links to a lead sheet instead of the TB tab?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "It depends on how the schedule is designed, for example an investment schedule links to a lead sheet."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "What guides the fund-specific account mappings in each package?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "I don't know of anything that guides it beyond it being specific to each fund and package."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "What do you check in the Word statements against the workbook?"
+  },
+  {
+   "id": "t014",
+   "role": "user",
+   "text": "Every amount displayed in the Word statements has to trace to the reconciled workbook."
+  },
+  {
+   "id": "t015",
+   "role": "assistant",
+   "text": "How do you verify that each Word statement amount traces to the reconciled workbook?"
+  },
+  {
+   "id": "t016",
+   "role": "user",
+   "text": "I convert the trial balance and the statements to PDF and mark each statement line with red checks and cross-references."
+  },
+  {
+   "id": "t017",
+   "role": "assistant",
+   "text": "When you mark the PDF statements with red checks and cross-references, what do you compare each line against to confirm it traces to the reconciled workbook?"
+  },
+  {
+   "id": "t018",
+   "role": "user",
+   "text": "Cash ties to the trial balance, investment cost and fair value to the Schedule of Investments, and contributions and distributions to the schedule labeled M-1."
+  },
+  {
+   "id": "t019",
+   "role": "assistant",
+   "text": "What makes the workbook reconciled and ready to use for the statement tie-out?"
+  },
+  {
+   "id": "t020",
+   "role": "user",
+   "text": "Each lead-sheet total ties exactly to its TB line and the check sheet has no unresolved mismatches."
+  },
+  {
+   "id": "t021",
+   "role": "assistant",
+   "text": "What happens when a statement amount does not trace to its source?"
+  },
+  {
+   "id": "t022",
+   "role": "user",
+   "text": "I investigate, correct it and rerun the affected ties, and any difference I can't resolve is escalated to the Controller."
+  },
+  {
+   "id": "t023",
+   "role": "assistant",
+   "text": "While an unresolved difference is with the Controller, what happens to the financial statements?"
+  },
+  {
+   "id": "t024",
+   "role": "user",
+   "text": "They can't be finalized until the difference is resolved."
+  },
+  {
+   "id": "t025",
+   "role": "assistant",
+   "text": "What does the Controller do when you escalate an unresolved difference?"
+  },
+  {
+   "id": "t026",
+   "role": "user",
+   "text": "The Controller decides on it and returns it to me for correction."
+  },
+  {
+   "id": "t027",
+   "role": "assistant",
+   "text": "After you make the Controller’s requested correction, what confirms the difference is resolved?"
+  },
+  {
+   "id": "t028",
+   "role": "user",
+   "text": "I rerun the affected ties until they agree exactly and keep the resolution note."
+  },
+  {
+   "id": "t029",
+   "role": "assistant",
+   "text": "Who receives the financial statements after the tie-out is complete?"
+  },
+  {
+   "id": "t030",
+   "role": "assistant",
+   "text": "This capture still has open sections. 14 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794966543.926,
+   "turn": 0,
+   "seconds": 0.027,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794966552.279,
+   "turn": 2,
+   "seconds": 3.088,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966558.362,
+   "turn": 3,
+   "seconds": 9.17
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966560.393,
+   "turn": 3,
+   "seconds": 11.2,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 1,
+   "connections": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794966570.697,
+   "turn": 4,
+   "seconds": 3.392,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966570.7,
+   "turn": 5,
+   "seconds": 3.4,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 1,
+   "connections": 0
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966584.89,
+   "turn": 5,
+   "seconds": 17.59,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 4,
+   "connections": 3
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966585.396,
+   "turn": 5,
+   "seconds": 18.09
+  },
+  {
+   "kind": "question",
+   "at": 1794966595.603,
+   "turn": 6,
+   "seconds": 3.099,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966595.607,
+   "turn": 7,
+   "seconds": 3.1,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t004",
+   "steps": 4,
+   "connections": 3
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966601.17,
+   "turn": 7,
+   "seconds": 8.67
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966601.17,
+   "turn": 7,
+   "seconds": 8.67,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 4,
+   "connections": 3
+  },
+  {
+   "kind": "question",
+   "at": 1794966612.971,
+   "turn": 8,
+   "seconds": 2.907,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966612.975,
+   "turn": 9,
+   "seconds": 2.91,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t006",
+   "steps": 4,
+   "connections": 3
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966622.599,
+   "turn": 9,
+   "seconds": 12.53,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 4,
+   "connections": 3
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966625.637,
+   "turn": 9,
+   "seconds": 15.57
+  },
+  {
+   "kind": "question",
+   "at": 1794966636.741,
+   "turn": 10,
+   "seconds": 2.882,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966636.747,
+   "turn": 11,
+   "seconds": 2.89,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t008",
+   "steps": 4,
+   "connections": 3
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966642.3,
+   "turn": 11,
+   "seconds": 8.44,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 4,
+   "connections": 3
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966643.818,
+   "turn": 11,
+   "seconds": 9.96
+  },
+  {
+   "kind": "question",
+   "at": 1794966654.854,
+   "turn": 12,
+   "seconds": 1.718,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966654.858,
+   "turn": 13,
+   "seconds": 1.72,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t010",
+   "steps": 4,
+   "connections": 3
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966659.404,
+   "turn": 13,
+   "seconds": 6.27,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 4,
+   "connections": 3
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966665.976,
+   "turn": 13,
+   "seconds": 12.84
+  },
+  {
+   "kind": "question",
+   "at": 1794966675.293,
+   "turn": 14,
+   "seconds": 3.868,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966675.296,
+   "turn": 15,
+   "seconds": 3.87,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t012",
+   "steps": 4,
+   "connections": 3
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966680.853,
+   "turn": 15,
+   "seconds": 9.43
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966685.403,
+   "turn": 15,
+   "seconds": 13.98,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 5,
+   "connections": 4
+  },
+  {
+   "kind": "question",
+   "at": 1794966692.551,
+   "turn": 16,
+   "seconds": 1.776,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966692.555,
+   "turn": 17,
+   "seconds": 1.78,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t014",
+   "steps": 5,
+   "connections": 4
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966698.614,
+   "turn": 17,
+   "seconds": 7.84
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966704.18,
+   "turn": 17,
+   "seconds": 13.41,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 5,
+   "connections": 4
+  },
+  {
+   "kind": "question",
+   "at": 1794966718.185,
+   "turn": 18,
+   "seconds": 3.261,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966718.188,
+   "turn": 19,
+   "seconds": 3.26,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t016",
+   "steps": 5,
+   "connections": 4
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966723.241,
+   "turn": 19,
+   "seconds": 8.32
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966725.775,
+   "turn": 19,
+   "seconds": 10.85,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 5,
+   "connections": 4
+  },
+  {
+   "kind": "question",
+   "at": 1794966733.916,
+   "turn": 20,
+   "seconds": 2.393,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966733.919,
+   "turn": 21,
+   "seconds": 2.4,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t018",
+   "steps": 5,
+   "connections": 4
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966738.979,
+   "turn": 21,
+   "seconds": 7.46
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966744.043,
+   "turn": 21,
+   "seconds": 12.52,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 5,
+   "connections": 4
+  },
+  {
+   "kind": "question",
+   "at": 1794966754.063,
+   "turn": 22,
+   "seconds": 2.593,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966754.067,
+   "turn": 23,
+   "seconds": 2.6,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t020",
+   "steps": 5,
+   "connections": 4
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966763.177,
+   "turn": 23,
+   "seconds": 11.71
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966776.851,
+   "turn": 23,
+   "seconds": 25.38,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 7,
+   "connections": 7
+  },
+  {
+   "kind": "question",
+   "at": 1794966785.069,
+   "turn": 24,
+   "seconds": 3.552,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966785.074,
+   "turn": 25,
+   "seconds": 3.56,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t022",
+   "steps": 7,
+   "connections": 7
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966794.692,
+   "turn": 25,
+   "seconds": 13.18
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966795.708,
+   "turn": 25,
+   "seconds": 14.19,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 8,
+   "connections": 8
+  },
+  {
+   "kind": "question",
+   "at": 1794966807.339,
+   "turn": 26,
+   "seconds": 3.69,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966807.344,
+   "turn": 27,
+   "seconds": 3.7,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t024",
+   "steps": 8,
+   "connections": 8
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966813.923,
+   "turn": 27,
+   "seconds": 10.27
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966834.725,
+   "turn": 27,
+   "seconds": 31.08,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 9,
+   "connections": 10
+  },
+  {
+   "kind": "question",
+   "at": 1794966859.339,
+   "turn": 28,
+   "seconds": 6.313,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966859.343,
+   "turn": 29,
+   "seconds": 6.32,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t026",
+   "steps": 9,
+   "connections": 10
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966869.472,
+   "turn": 29,
+   "seconds": 16.45
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966878.094,
+   "turn": 29,
+   "seconds": 25.07,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 10,
+   "connections": 11
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794966881.442,
+   "turn": 29,
+   "seconds": 0.025,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794967060.216,
+   "turn": 30,
+   "seconds": 176.394,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [],
+ "notes": {
+  "summary": "After a Controller decision and correction, the participant reruns affected ties to exact agreement and keeps the resolution note. The overall finished condition remains open.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "captured",
+    "answer": "Financial Statement Creation, Review & Tie-Out"
+   },
+   {
+    "key": "purpose",
+    "status": "captured",
+    "answer": "The work produces financial statements from the trial balance and workbook."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The work starts when the quarterly close reaches the financial-statement stage and the general ledger, trial balance, lead sheets, and workbook are available."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The workbook is reconciled and ready for statement tie-out when each lead-sheet total ties exactly to its TB line and the check sheet has no unresolved mismatches.\nFinancial statements cannot be finalized while a statement tie-out difference remains unresolved with the Controller.\nResolution of the escalated difference is confirmed by rerunning the affected ties until they agree exactly."
+   },
+   {
+    "key": "accountable",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The participant exports the trial balance from the general ledger, links statement lines to it in the Excel workbook, then populates the Word statements from the workbook.\nStatement lines on the workbook's build tab link to the TB tab, unless a detailed schedule is designed to link to a lead sheet instead.\nFor example, an investment schedule links to a lead sheet; whether a detailed schedule links to a lead sheet rather than the TB tab depends on how the schedule is designed.\nAfter populating the Word statements from the workbook, every displayed amount has to trace to the reconciled workbook.\nTo perform the trace check, the participant converts the trial balance and statements to PDF and marks each statement line with red checks and cross-references.\nFor the statement-line trace check, the participant compares cash to the trial balance, investment cost and fair value to the Schedule of Investments, and contributions and distributions to the schedule labeled M-1.\nWhen a statement amount does not trace to its source, the participant investigates, corrects it and reruns the affected ties. The participant escalates any difference they cannot resolve to the Controller.\nWhen an unresolved difference is escalated to the Controller, the statements cannot be finalized until the difference is resolved.\nFor an unresolved difference escalated to the Controller, the Controller decides on it and returns it to the participant for correction.\nAfter the Controller returns an escalated difference for correction, the participant reruns the affected ties until they agree exactly and keeps the resolution note."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "Every amount displayed in the Word statements has to trace to the reconciled workbook.\nThe participant converts the trial balance and statements to PDF, then marks each statement line with red checks and cross-references to verify the amounts trace to the reconciled workbook.\nIn the PDF trace check, cash is compared to the trial balance; investment cost and fair value are compared to the Schedule of Investments; and contributions and distributions are compared to the schedule labeled M-1.\nWorkbook readiness is checked by confirming that each lead-sheet total ties exactly to its TB line and that the check sheet has no unresolved mismatches.\nFor a statement amount that does not trace, the participant investigates and corrects the difference, reruns affected ties, and escalates any unresolved difference to the Controller.\nAn unresolved statement tie-out difference with the Controller prevents finalization until it is resolved.\nThe Controller decides on an escalated unresolved difference and returns it to the participant for correction.\nFollowing the Controller's requested correction, the participant reruns the affected ties until they agree exactly and keeps the resolution note."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "Account-to-statement-line mapping is specific to each fund and its package.\nExact mapping differences among funds and packages and other differences beyond the schedule-design example remain unspecified. The participant does not know of guidance for the mappings beyond their fund- and package-specific nature.\nA detailed schedule designed to link to a lead sheet uses that source instead of the TB tab.\nAn investment schedule is an example of a detailed schedule that links to a lead sheet rather than the TB tab, depending on how the schedule is designed."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The general ledger, trial balance, lead sheets and workbook are available when the work starts. The participant exports the trial balance from the ledger, links statement lines to it in the Excel workbook and populates Word statements from the workbook.\nStorage locations of the working materials remain to be established.\nLead sheets can serve as the linked source for detailed schedules designed that way; the workbook contains build and TB tabs.\nAn investment schedule is an example of a detailed schedule that links to a lead sheet; the link depends on how the schedule is designed.\nThe reconciled workbook is the source to which every amount displayed in the Word statements has to trace.\nPDF versions of the trial balance and statements are used for the line-by-line trace check; statement lines are marked with red checks and cross-references.\nThe Schedule of Investments and a schedule labeled M-1 are comparison sources for the PDF statement-line trace check: investment cost and fair value are checked to the Schedule of Investments, and contributions and distributions to M-1.\nA check sheet is used to identify unresolved mismatches when establishing whether the workbook is reconciled and ready for statement tie-out.\nThe participant keeps a resolution note after rerunning the affected ties to exact agreement."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The reported statement mapping is specific to each fund and its package."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The exact mapping of trial-balance accounts to statement lines is specific to each fund and its package.\nThe participant does not know of guidance for the fund- and package-specific account mappings beyond their specificity to each fund and package.\nA statement tie-out difference escalated to the Controller must be resolved before the financial statements can be finalized."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The work starts when the quarterly close reaches the financial-statement stage and the general ledger, trial balance, lead sheets and workbook are available."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The participant exports the trial balance from the general ledger, links statement lines to it in Excel and uses the workbook to populate Word statements.\nThe workbook's build-tab statement lines link to the TB tab, with lead-sheet links used instead for detailed schedules designed that way.\nAn investment schedule is an example of a detailed schedule linked to a lead sheet rather than the TB tab, depending on how the schedule is designed."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": ""
+   }
+  ]
+ },
+ "map": {
+  "title": "Financial Statement Creation, Review & Tie-Out",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "start",
+    "title": "Quarterly close reaches statement stage",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Work starts when quarterly close reaches the financial-statement stage and the general ledger, trial balance, lead sheets and workbook are available."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Export trial balance",
+    "actor": "Participant",
+    "system": "General ledger; product UNKNOWN",
+    "description": "Export the trial balance from the general ledger."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Link statement lines",
+    "actor": "Participant",
+    "system": "Excel workbook",
+    "description": "Link statement lines on the build tab to the TB tab, unless a detailed schedule is designed to link to a lead sheet instead. The exact mapping is specific to each fund and its package; an investment schedule is an example that links to a lead sheet."
+   },
+   {
+    "id": "S4",
+    "type": "document",
+    "title": "Populate Word statements",
+    "actor": "Participant",
+    "system": "Word; Excel workbook",
+    "description": "Populate the Word statements from the workbook."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Trace Word statement amounts",
+    "actor": "Participant",
+    "system": "Word statements; reconciled workbook; PDF",
+    "description": "Convert the trial balance and statements to PDF, then mark each statement line with red checks and cross-references. Cash ties to the trial balance, investment cost and fair value to the Schedule of Investments, and contributions and distributions to M-1. A reconciled workbook has each lead-sheet total tied exactly to its TB line and no unresolved check-sheet mismatches."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Investigate and correct differences",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "Investigate a statement amount that does not trace and correct it where possible. Also correct differences returned by the Controller, then rerun the affected ties."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Escalate unresolved difference",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Escalate a difference the participant cannot resolve to the Controller."
+   },
+   {
+    "id": "S8",
+    "type": "wait",
+    "title": "Hold finalization for resolution",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Statements cannot be finalized while the difference remains unresolved. Following a Controller-returned correction, the participant reruns affected ties until they agree exactly; subsequent finalization is UNKNOWN."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Decide and return difference",
+    "actor": "Controller",
+    "system": "UNKNOWN",
+    "description": "The Controller decides on the unresolved difference and returns it to the participant for correction."
+   },
+   {
+    "id": "S10",
+    "type": "document",
+    "title": "Keep resolution note",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "Keep the resolution note after rerunning the affected ties until they agree exactly."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": ""
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": "Amounts populated; workbook reconciled"
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": "Statement amount does not trace"
+   },
+   {
+    "from": "S6",
+    "to": "S5",
+    "label": "Corrected; rerun affected ties"
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Difference cannot be resolved"
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": "Difference unresolved with Controller"
+   },
+   {
+    "from": "S7",
+    "to": "S9",
+    "label": ""
+   },
+   {
+    "from": "S9",
+    "to": "S6",
+    "label": "Returned for correction"
+   },
+   {
+    "from": "S5",
+    "to": "S10",
+    "label": "After Controller-returned correction, affected ties agree exactly"
+   }
+  ],
+  "open_questions": [
+   "Does any incoming route start S5 (Trace Word statement amounts), or must all prerequisites finish?",
+   "Does any incoming route start S6 (Investigate and correct differences), or must all prerequisites finish?",
+   "For detailed schedules that link to a lead sheet, how is the link established and who determines the schedule design?",
+   "Who detects the trigger, and who is accountable for the overall result?",
+   "Who produces the inputs, how is readiness communicated, and how does the exported trial balance reach the TB tab?",
+   "Who reconciles the workbook, how are the lead-sheet and check-sheet conditions established, and how is readiness communicated?",
+   "How are other displayed statement amounts traced?",
+   "Who escalates an unresolved difference, and what happens to the statements after the finalization hold is released?",
+   "Where are the marked PDFs and resolution note retained, and who creates the resolution note?",
+   "What other actions, decisions, handoffs, reviews, approvals and exception routes occur after statement population?",
+   "What finishes the work, what result does it deliver, and who or what uses it next?",
+   "What deadlines, entity and client scope, variations and applicable rules apply?",
+   "How is each fund and package's account mapping determined, and who interprets or maintains it? Its source is UNKNOWN; the participant knows of no guidance beyond fund and package specificity.",
+   "What general ledger product and other records or materials are used, and which record is authoritative?",
+   "What are the main pain points, risks, volumes and effort?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "Current-practice draft: Financial Statement Creation, Review & Tie-Out",
+  "overview": "Draft for review based on one participant’s account. Quarterly close supplies the materials for statement creation and tie-out. Fund- and package-specific mapping, reconciliation criteria, exception handling and the Controller’s role are reported. Overall accountability, final review, delivery and completion remain UNKNOWN. No supporting documents were supplied or independently reviewed.",
+  "trigger": "Quarterly close reaches the financial-statement stage and the general ledger, trial balance, lead sheets and workbook are available.",
+  "inputs": [
+   "General ledger and trial balance",
+   "Lead sheets and Excel workbook",
+   "Schedule of Investments and M-1 schedule"
+  ],
+  "outputs": [
+   "Populated Word financial statements",
+   "PDF trial balance and statements; statement lines marked with red checks and cross-references",
+   "Resolution note kept following the described Controller-returned correction"
+  ],
+  "exceptions": [
+   "A statement amount that does not trace is investigated and corrected; affected ties are rerun. Differences the participant cannot resolve are escalated to the Controller.",
+   "Statements cannot be finalized until an unresolved difference is resolved. The Controller decides and returns the difference for correction; affected ties are rerun until they agree exactly.",
+   "The next action after an ordinary correction and successful recheck is UNKNOWN."
+  ],
+  "controls": [
+   "Every amount displayed in Word statements must trace to the reconciled workbook.",
+   "Reconciled workbook criteria: each lead-sheet total ties exactly to its TB line and the check sheet has no unresolved mismatches.",
+   "Cash ties to the trial balance; investment cost and fair value to the Schedule of Investments; contributions and distributions to M-1.",
+   "Unresolved differences prevent finalization and are escalated to the Controller."
+  ],
+  "validation_notes": [
+   "Current-practice draft for appropriate review. The account is from one participant; the participant’s role, interview date, confirmation and process-owner approval are UNKNOWN.",
+   "No supporting documents were supplied or independently reviewed. The account is not corroborated as a general GPFS standard.",
+   "The finalization restriction is retained on the exception route; no separate wait or release handoff was described.",
+   "The described recheck concerns affected ties. The outcome after an ordinary successful rerun remains UNKNOWN.",
+   "A finalization action, recipient and complete downstream route are not established; no end node has been invented.",
+   "The map does not establish who prepares the reconciled workbook or how readiness is conveyed. The sender of the Controller escalation and the resolution note’s creator and storage are also UNKNOWN.",
+   "Coverage remains incomplete; the questions are ordered so that the first five can serve as the priority owner-review list.",
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "start",
+    "title": "Quarterly close reaches statement stage",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Work starts when quarterly close reaches the financial-statement stage and the general ledger, trial balance, lead sheets and workbook are available."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Export trial balance",
+    "actor": "Participant",
+    "system": "General ledger; product UNKNOWN",
+    "description": "Export the trial balance from the general ledger."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Link statement lines",
+    "actor": "Participant",
+    "system": "Excel workbook",
+    "description": "Link statement lines on the build tab to the TB tab. A detailed schedule links to a lead sheet instead when designed that way; the investment schedule is an example. Exact account mapping is specific to each fund and package. The participant knows of no further mapping guidance."
+   },
+   {
+    "id": "S4",
+    "type": "document",
+    "title": "Populate Word statements",
+    "actor": "Participant",
+    "system": "Excel workbook and Word",
+    "description": "Populate the Word financial statements from the workbook."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Trace statement amounts",
+    "actor": "Participant",
+    "system": "Word, workbook and PDF",
+    "description": "Convert the trial balance and statements to PDF and mark each statement line with red checks and cross-references. Every displayed amount must trace to the reconciled workbook. Cash ties to the trial balance; investment cost and fair value to the Schedule of Investments; contributions and distributions to M-1. A reconciled workbook has each lead-sheet total tied exactly to its TB line and no unresolved check-sheet mismatches. Who establishes readiness and how the remaining amounts are traced are UNKNOWN."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Investigate and correct difference",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "Investigate an amount that does not trace and correct it where possible. For a difference returned by the Controller, make the requested correction. Statements cannot be finalized while a difference remains unresolved."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Escalate unresolved difference",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "A difference the participant cannot resolve is escalated to the Controller. The statements cannot be finalized until the difference is resolved. The person who sends the escalation is UNKNOWN."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Decide and return difference",
+    "actor": "Controller",
+    "system": "UNKNOWN",
+    "description": "The Controller decides on the escalated difference and returns it to the participant for correction. Finalization remains blocked until the difference is resolved."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Rerun affected ties",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "After correction, rerun the affected ties. Following a Controller-returned correction, rerun them until they agree exactly and keep the resolution note. Statements cannot be finalized until the difference is resolved."
+   },
+   {
+    "id": "S10",
+    "type": "document",
+    "title": "Keep resolution note",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "Keep the resolution note following the Controller-returned correction and rerunning affected ties until they agree exactly. The note’s creator and storage location are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "Statement stage and inputs available"
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": "Trial balance exported"
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "Statement lines linked"
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": "Statements populated; reconciled workbook used for tie-out"
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": "Statement amount does not trace"
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Difference cannot be resolved"
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": "Difference escalated"
+   },
+   {
+    "from": "S8",
+    "to": "S6",
+    "label": "Returned for correction"
+   },
+   {
+    "from": "S6",
+    "to": "S9",
+    "label": "Correction made"
+   },
+   {
+    "from": "S9",
+    "to": "S9",
+    "label": "After Controller-returned correction, ties do not yet agree exactly"
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": "After Controller-returned correction, ties agree exactly"
+   }
+  ],
+  "open_questions": [
+   "Does any incoming route start S6 (Investigate and correct difference), or must all prerequisites finish?",
+   "Does any incoming route start S9 (Rerun affected ties), or must all prerequisites finish?",
+   "What is the observable finished condition, who receives the statements, and what happens after tie-out and resolution?",
+   "Who is accountable for the overall result, and who performs any subsequent review or approval?",
+   "Who reconciles the workbook, how are its readiness conditions established, and how is readiness communicated?",
+   "After an ordinary correction and rerun, what happens if the ties agree or still differ?",
+   "What reviews, release conditions and retained evidence apply beyond the reported tie-out and resolution note?",
+   "Who detects the trigger and produces the inputs, and how does the exported trial balance reach the TB tab?",
+   "How are displayed amounts other than the examples traced, and where are the marked PDFs and resolution notes kept?",
+   "Who sends an escalation, and who creates the resolution note?",
+   "Who determines and maintains the fund-specific mapping and schedule design, and what sources guide them?",
+   "What deadlines, client scope, other entity types and differences apply? Is this general GPFS practice or a particular route, and on what basis?",
+   "What systems of record, existing procedures, pain points, risks, volumes and effort apply?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "The intake names the work Financial Statement Creation, Review & Tie-Out. Other names and the full boundary are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The participant creates Word financial statements from a workbook and traces displayed amounts. The final delivered result and recipient are UNKNOWN."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "Work starts at the financial-statement stage of quarterly close when the general ledger, trial balance, lead sheets and workbook are available. The detector, input producers, readiness signal and fixed deadlines are UNKNOWN."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "Statements cannot be finalized while a difference is unresolved. After a Controller-returned correction, affected ties are rerun until they agree exactly and the resolution note is kept. Finalization, delivery and the downstream consumer are UNKNOWN."
+   },
+   {
+    "key": "accountable",
+    "status": "unknown",
+    "answer": "UNKNOWN: overall accountability. The participant performs several actions and the Controller decides escalated differences, but neither statement establishes overall accountability."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The participant exports the trial balance, links workbook statement lines and populates Word statements. The trial balance and statements are converted to PDF and statement lines marked. A difference is investigated and corrected; a difference the participant cannot resolve is escalated to the Controller, who decides and returns it for correction. Affected ties are rerun; after a Controller-returned correction they are rerun until exact agreement and a resolution note is kept. The successful downstream route and several handoff and storage details are UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "Every displayed amount must trace to the reconciled workbook. Cash ties to the trial balance, investment cost and fair value to the Schedule of Investments, and contributions and distributions to M-1. Workbook readiness requires exact lead-sheet-to-TB agreement and no unresolved check-sheet mismatches. Unresolved differences block finalization and are escalated to the Controller; a resolution note is kept following the reported Controller-returned correction. Other review levels, approvals, segregation, enforcement and evidence locations are UNKNOWN."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "Account mapping differs by fund and package. Detailed schedules link to a lead sheet instead of the TB tab when designed that way; an investment schedule is an example. Reasons beyond design, process boundary, effort, charging and removal constraints are UNKNOWN."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": "UNKNOWN: the participant did not describe pain points or effort."
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "An unresolved difference prevents statement finalization. Other failure consequences are UNKNOWN."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The workbook, lead sheets, schedules, Word statements and marked PDFs are described as work materials. Existing procedures or checklists, their locations and availability are UNKNOWN; no supporting document was supplied for review."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The work occurs within quarterly close and mapping is specific to each fund and package. Other entity and client scope, the complete process boundary and the basis for any general GPFS practice are UNKNOWN."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The participant reports fund- and package-specific mappings and schedule-dependent links, but knows of no further mapping guidance. Exact lead-sheet-to-TB agreement, no unresolved check-sheet mismatches and tracing every displayed amount are reported criteria. Written authority, interpretation, implementation ownership and calculation details are UNKNOWN."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "Quarterly close supplies the stage and available materials; the general ledger supplies the exported trial balance. The Controller receives unresolved differences and returns decisions for correction. Downstream consumers and other dependencies are UNKNOWN."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The participant exports from a general ledger, links an Excel workbook, populates Word statements and marks PDFs. The workbook has build, TB and check sheets; some schedules link to lead sheets. Product names, authoritative records, transfer and entry methods, logic ownership and storage are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": "UNKNOWN: counts, peaks, exception frequency and effort by step."
+   }
+  ]
+ },
+ "draft_error": null
+}

@@ -1085,12 +1085,18 @@ class ReportRepairTests(unittest.TestCase):
         for dimension in local["dimensions"]:
             dimension.update(status="supported", detail=self.REPAIRED, evidence_turns=list(evidence))
         client = server.OpenAIClient({"OPENAI_API_KEY": "fictional"})
-        client.structured = Mock(side_effect=[copy.deepcopy(draft), fixture_draft_audit(draft, payload["turns"]), assessment])
+        replies = {"process_draft": copy.deepcopy(draft), "process_draft_audit": fixture_draft_audit(draft, payload["turns"]),
+                   "process_coverage_assessment": assessment}
+        client.structured = Mock(side_effect=lambda instructions, body, schema, name, *args, **kwargs: copy.deepcopy(replies[name]))
         return client, client.draft(payload)
 
     def test_repaired_report_section_is_not_presented_as_covered_and_says_what_changed(self):
         client, result = self.drafted()
-        self.assertEqual(client.structured.call_count, 3, "The report path makes no further provider call")
+        self.assertEqual(sorted({call.args[3] for call in client.structured.call_args_list}),
+                         ["process_coverage_assessment", "process_draft", "process_draft_audit"],
+                         "The report path makes no further kind of provider call")
+        self.assertEqual(client.structured.call_count, 2 + len(server.interview_coverage.COVERAGE_REVIEW_GROUPS),
+                         "The topic review runs as its groups at the same time")
         section = finding(result["draft"]["memo_summary"], "lifecycle")
         self.assertEqual(section["answer"], self.REPAIRED)
         self.assertEqual(section["status"], "partial", "No process reviewer reads a report")

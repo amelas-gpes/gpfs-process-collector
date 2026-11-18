@@ -1,0 +1,561 @@
+{
+ "case": "C05",
+ "process": "MC-02B",
+ "mode": "typed, five at once on one server",
+ "style": "two steps per answer",
+ "build": "fixed",
+ "participant": "script",
+ "context": {
+  "process_name": "AEA Due to Managers Workbook Procedure",
+  "process_owner": "",
+  "objective": "Document how we carry out AEA Due to Managers Workbook Procedure, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "To begin with, we confirm the trigger and complete fund list. That is done by: GPFS preparer. Next, we set up the quarterly workbook. That is done by: GPFS preparer."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "What event or input prompts the preparer to confirm the trigger and complete fund list?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "After that, we import Bilixio expenses and cash receipts. That is done by: GPFS preparer. Then, we update pivot tables and formulas. That is done by: GPFS preparer; reviewer."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What do the updated pivot tables and formulas calculate in the AEA Due to Managers workbook?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "Once that is done, we complete the summary/invoice tab. That is done by: GPFS preparer. Following that, we reconcile every project code to Sage. That is done by: GPFS preparer; reviewer."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "What do the pivot tables and formulas calculate?"
+  },
+  {
+   "id": "t008",
+   "role": "assistant",
+   "text": "This capture still has open sections. 15 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794969723.087,
+   "turn": 0,
+   "seconds": 0.023,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794969724.663,
+   "turn": 2,
+   "seconds": 1.524,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969741.483,
+   "turn": 3,
+   "seconds": 18.34
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969751.733,
+   "turn": 3,
+   "seconds": 28.59,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 2,
+   "connections": 1
+  },
+  {
+   "kind": "question",
+   "at": 1794969754.774,
+   "turn": 4,
+   "seconds": 2.968,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969754.776,
+   "turn": 5,
+   "seconds": 2.97,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 2,
+   "connections": 1
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794969800.243,
+   "turn": 5,
+   "notes_state": "working",
+   "map_state": "working",
+   "seconds": 48.44
+  },
+  {
+   "kind": "question",
+   "at": 1794969801.488,
+   "turn": 6,
+   "seconds": 1.167,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969814.786,
+   "turn": 7,
+   "seconds": 14.47,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t004",
+   "steps": 4,
+   "connections": 3
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969841.418,
+   "turn": 7,
+   "seconds": 41.1,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t004",
+   "steps": 4,
+   "connections": 3
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794969846.548,
+   "turn": 7,
+   "notes_state": "queued",
+   "map_state": "queued",
+   "seconds": 46.23
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794969929.34,
+   "turn": 7,
+   "seconds": 82.713,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794970041.176,
+   "turn": 8,
+   "seconds": 111.782,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [],
+ "notes": {
+  "summary": "After updating pivots and formulas, the GPFS preparer completes the summary/invoice tab. The preparer and reviewer are named for reconciling every project code to Sage; the reconciliation method and their respective actions remain unclear.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "captured",
+    "answer": "AEA Due to Managers Workbook Procedure"
+   },
+   {
+    "key": "purpose",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The GPFS preparer confirms the trigger and complete fund list before setting up the quarterly workbook.\nThe event that triggers the work, how it is identified, and its timing are not established; the preparer confirms the trigger but the trigger itself is not described."
+   },
+   {
+    "key": "completion",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The GPFS preparer confirms the trigger and complete fund list, sets up the quarterly workbook and imports Bilixio expenses and cash receipts. The GPFS preparer and reviewer are named for updating pivot tables and formulas.\nThe role accountable for the completed procedure is not established; the GPFS preparer is identified as performing the initial steps."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "After confirming the trigger and complete fund list, the GPFS preparer sets up the quarterly workbook.\nAfter workbook setup, the GPFS preparer imports Bilixio expenses and cash receipts. The GPFS preparer and reviewer are then named for updating pivot tables and formulas.\nThe import method and the respective actions of the preparer and reviewer when updating pivots and formulas are not described.\nAfter the pivot tables and formulas are updated, the GPFS preparer completes the summary/invoice tab. The GPFS preparer and reviewer are then named for reconciling every project code to Sage."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The GPFS preparer confirms the trigger and complete fund list before workbook setup.\nWhat the preparer checks and how the trigger and fund list are confirmed remain unspecified.\nEvery project code is reconciled to Sage; the GPFS preparer and reviewer are named for this step.\nThe items compared to Sage, reconciliation resolution criteria and respective actions of the preparer and reviewer are not established."
+   },
+   {
+    "key": "variations",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The GPFS preparer sets up a quarterly workbook; subsequent steps include importing Bilixio expenses and cash receipts and updating pivot tables and formulas.\nThe workbook's location and full contents remain unspecified.\nThe workbook includes a summary/invoice tab, which the GPFS preparer completes."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The preparer confirms a complete fund list as part of the procedure."
+   },
+   {
+    "key": "rules",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "connections",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The GPFS preparer imports Bilixio expenses and cash receipts; pivot tables and formulas are subsequently updated by the named preparer and reviewer.\nEvery project code is reconciled to Sage by the named GPFS preparer and reviewer."
+   },
+   {
+    "key": "volume",
+    "status": "partial",
+    "answer": "The workbook is described as quarterly.\nThe number of funds or workbooks and the effort involved are not established."
+   }
+  ]
+ },
+ "map": {
+  "title": "AEA Due to Managers Workbook",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Confirm trigger and fund list",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Confirms the trigger and complete fund list. How completeness is established is UNKNOWN."
+   },
+   {
+    "id": "S2",
+    "type": "document",
+    "title": "Set up quarterly workbook",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Sets up the quarterly workbook; setup details are UNKNOWN."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Import expenses and cash receipts",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Imports Bilixio expenses and cash receipts. The import destination and source of cash receipts are UNKNOWN."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Update pivot tables and formulas",
+    "actor": "GPFS preparer; reviewer",
+    "system": "UNKNOWN",
+    "description": "Updates pivot tables and formulas. The respective actions of the preparer and reviewer are UNKNOWN."
+   },
+   {
+    "id": "S5",
+    "type": "document",
+    "title": "Complete summary and invoice tab",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Completes the summary/invoice tab after the pivot tables and formulas are updated."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Reconcile project codes to Sage",
+    "actor": "GPFS preparer; reviewer",
+    "system": "Sage",
+    "description": "Reconciles every project code to Sage. The preparer's and reviewer's respective actions are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": ""
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": ""
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": ""
+   }
+  ],
+  "open_questions": [
+   "UNKNOWN: What is the initiating trigger, who detects it, and what produces the complete fund list?",
+   "UNKNOWN: How are the trigger and fund list confirmed, and what evidence is retained?",
+   "UNKNOWN: What does workbook setup involve, where are expenses and receipts imported, and what do the pivot tables and formulas calculate?",
+   "UNKNOWN: What are the preparer's and reviewer's respective actions on the pivot tables and formulas and on the Sage reconciliation?",
+   "UNKNOWN: What does completing the summary/invoice tab involve, and what happens after reconciliation?",
+   "UNKNOWN: How are reconciliation differences handled and rechecked, and what evidence is retained?",
+   "UNKNOWN: What result is delivered, when is the work complete, and who uses it next?",
+   "UNKNOWN: Who is accountable for the overall result, and what other checks, reviews or approvals apply?",
+   "UNKNOWN: What deadlines, exceptions, variations, rules and supporting materials apply?",
+   "UNKNOWN: What systems and authoritative records are used, and where do the cash receipts originate?",
+   "UNKNOWN: What is the scope across funds and clients, and is this a general GPFS route or a client-specific practice?",
+   "UNKNOWN: What are the main risks, practical difficulties, volumes and effort?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "DRAFT — AEA Due to Managers Workbook Procedure",
+  "overview": "Partial current-practice draft based on one participant account. The reported sequence runs from confirming the trigger and fund list through reconciling project codes to Sage. The initiating event, business result, overall accountability and finish remain UNKNOWN. Participant confirmation and process-owner review are pending.",
+  "trigger": "UNKNOWN. The GPFS preparer first confirms the trigger and complete fund list; the event prompting that action was not identified.",
+  "inputs": [
+   "Trigger and complete fund list; origins UNKNOWN.",
+   "Bilixio expenses and cash receipts; their precise origins are UNKNOWN.",
+   "Project codes and Sage information for reconciliation; precise data and origins are UNKNOWN."
+  ],
+  "outputs": [
+   "Quarterly workbook set up.",
+   "Summary/invoice tab completed.",
+   "Every project code reconciled to Sage, as reported; final delivery and completion status UNKNOWN."
+  ],
+  "exceptions": [],
+  "controls": [
+   "The preparer confirms the trigger and complete fund list; confirmation method and evidence are UNKNOWN.",
+   "The preparer and reviewer are named for reconciliation of every project code to Sage; their respective actions and handling of differences are UNKNOWN."
+  ],
+  "validation_notes": [
+   "This is a current-practice draft for review, not an executable procedure. Participant confirmation and process-owner approval are UNKNOWN.",
+   "The intake supplies the process name; its documentation objective is not evidence of the business result.",
+   "No supporting documents were supplied or reviewed. No initiating event, terminal condition or exception route was reported.",
+   "The reviewer is named for two actions, but the account does not establish a separate review or approval action or the division of work.",
+   "The quarterly workbook does not by itself establish a quarterly trigger or deadline.",
+   "The account does not explicitly locate the pivot tables, formulas or summary/invoice tab in the quarterly workbook, or establish where project codes are stored.",
+   "The cross-turn connections from setup to import and from updating pivots and formulas to completing the tab cite both the preceding action and the participant's subsequent reference to it.",
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Confirm trigger and fund list",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Confirm the trigger and complete fund list. The initiating event, sources and method of confirming completeness are UNKNOWN."
+   },
+   {
+    "id": "S2",
+    "type": "document",
+    "title": "Set up quarterly workbook",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Set up the quarterly workbook after confirming the trigger and fund list. Setup actions and location are UNKNOWN."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Import expenses and receipts",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Import Bilixio expenses and cash receipts after workbook setup. The import destination and precise sources are UNKNOWN."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Update pivots and formulas",
+    "actor": "GPFS preparer; reviewer",
+    "system": "UNKNOWN",
+    "description": "Update pivot tables and formulas after the import. The respective actions of the preparer and reviewer, where the tables and formulas are located, and what they calculate are UNKNOWN."
+   },
+   {
+    "id": "S5",
+    "type": "document",
+    "title": "Complete summary/invoice tab",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Complete the summary/invoice tab once the pivot tables and formulas have been updated. Its location, required contents and method are UNKNOWN."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Reconcile project codes to Sage",
+    "actor": "GPFS preparer; reviewer",
+    "system": "Sage",
+    "description": "Reconcile every project code to Sage after completing the summary/invoice tab. The comparison, respective preparer and reviewer actions, handling of differences and retained evidence are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "Next"
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": "After setup"
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "Then"
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": "Update done"
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": "Following tab completion"
+   }
+  ],
+  "open_questions": [
+   "What event starts the work, who detects it, and where does the complete fund list come from?",
+   "What result is delivered, what happens after the Sage reconciliation, and what demonstrates completion?",
+   "Who is accountable for the overall result, and what are the preparer's and reviewer's respective responsibilities?",
+   "What do the pivot tables and formulas calculate, and how is the summary/invoice tab completed?",
+   "What is compared in the Sage reconciliation, and what happens when there are differences?",
+   "How are the trigger and fund list confirmed, and what evidence is retained?",
+   "What does workbook setup involve, where are the expenses and receipts imported, and what are their origins?",
+   "What reviews, approvals, release conditions, retained evidence and exception paths apply?",
+   "What cadence and deadlines apply beyond the workbook being described as quarterly?",
+   "Which funds and clients are in scope, is this general GPFS practice or a client-specific route, and what is the basis?",
+   "What rules, calculation methods, supporting materials and connected processes apply?",
+   "What systems and authoritative records are used, and where are the workbook, pivot tables, tab and project-code records located?",
+   "What variations, practical difficulties, risks, volumes and effort apply?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "Intake names the work AEA Due to Managers Workbook Procedure. The reported activities include workbook setup, imports, pivot and formula updates, a summary/invoice tab and Sage reconciliation. Other names and process boundaries are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The participant reports completing a summary/invoice tab and reconciling project codes to Sage. The business result delivered and its recipient are UNKNOWN; the intake objective is to document the work, not a stated business purpose."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The GPFS preparer first confirms the trigger and complete fund list. The initiating event, detector, upstream source, cadence and deadlines are UNKNOWN. The workbook is described as quarterly."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The last reported action is reconciling every project code to Sage. Any later delivery, posting or closure, the observable finished condition and downstream consumer are UNKNOWN."
+   },
+   {
+    "key": "accountable",
+    "status": "unknown",
+    "answer": "UNKNOWN. A GPFS preparer and reviewer are named for actions, but overall accountability was not assigned."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The preparer confirms the trigger and fund list, sets up the quarterly workbook and imports Bilixio expenses and cash receipts. The preparer and reviewer update pivot tables and formulas; the preparer then completes the summary/invoice tab; both are named for reconciling every project code to Sage. Locations, individual responsibilities where both are named, handoff mechanics, exceptions and subsequent work are UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The preparer confirms the trigger and complete fund list. The preparer and reviewer are also named for reconciling every project code to Sage. The confirmation method, reconciliation comparison, individual responsibilities, review and approval levels, failure handling, release conditions and retained proof are UNKNOWN."
+   },
+   {
+    "key": "variations",
+    "status": "unknown",
+    "answer": "UNKNOWN. No client, fund or other differences were described, and no general GPFS standard was established."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": "UNKNOWN. Manual friction, errors, chasing and effort were not described."
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": "UNKNOWN. Failure scenarios and consequences were not described."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "A quarterly workbook and a summary/invoice tab are reported work items. Procedures, templates and other reference materials are UNKNOWN. No supporting documents were supplied or reviewed for this draft."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "A complete fund list is involved. Fund types, clients, applicability across entities, parent process and whether this is general GPFS or client-specific practice are UNKNOWN."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The participant says every project code is reconciled to Sage, but the comparison rules and acceptance criteria are UNKNOWN. Pivot tables and formulas are updated, but their calculations, rule sources, interpretation, implementation and any client modifications are UNKNOWN."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "Bilixio expenses and cash receipts are imported, and project codes are reconciled to Sage. The originating processes, readiness signals, downstream consumers and other dependencies are UNKNOWN."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The account names a quarterly workbook, Bilixio expenses, cash receipts, pivot tables and formulas, a summary/invoice tab and Sage. Expenses and receipts are imported. Their precise origins, import destination, calculation logic, locations and authoritative records are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": "UNKNOWN. Counts, peaks, exception frequency and effort by step were not reported."
+   }
+  ]
+ },
+ "draft_error": null
+}

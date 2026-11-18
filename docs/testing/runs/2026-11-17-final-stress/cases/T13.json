@@ -1,0 +1,1725 @@
+{
+ "case": "T13",
+ "process": "MC-03",
+ "mode": "typed",
+ "style": "two steps per answer, dense in names and numbers",
+ "build": "untouched",
+ "participant": "script",
+ "context": {
+  "process_name": "Due From Funds & Portfolio Companies Billing",
+  "process_owner": "",
+  "objective": "Document how we carry out Due From Funds & Portfolio Companies Billing, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "To begin with, we open the billing cycle and prepare both workbooks. That is done by: GPFS preparer. What we do: record the billing period and populations; copy the prior fund workbook and portfolio-company workbook into the current-cycle location; update period references; for portfolio companies update the “One Rock Capital Partners Transaction Report” header on all approximately 25–27 tabs; confirm fund tabs, affiliate tabs, portfolio-company tabs, Notes tab, formulas, and pivots are present. Next, we pull and clean fund general-ledger activity. That is done by: GPFS preparer. What we do: run Sage GL for accounts 1101–1105, the full billing period, with the applicable location filter; export to Excel, wrap text, and remove merge/center formatting; add a net column equal to debit minus credit, fill through every account section, paste as values, and remove original debit/credit columns; remove all document-number rows beginning with Invoice ; sum remaining transactions by account and compare to the Sage ending balance."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "What do you do if the summed transactions don’t match the Sage ending balance?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "After that, we populate and reconcile main-fund tabs. That is done by: GPFS preparer. What we do: add required blank rows to each fund tab; copy transaction dates through net amount; do not copy Sage running balances; remove unused rows and extend running-balance/sum formulas; confirm each tab agrees with its “Per Sage” amount; leave the general-ledger coding column blank for the internal fund team; mark completed account sections in the source workpaper so they are not processed twice. Then, we populate and reconcile affiliates. That is done by: GPFS preparer. What we do: pull the full Due From Affiliates account with no customer filter and clean it using Step 2; build a pivot with Customer Name as rows and Transaction Amount as values; exclude GP entities, old funds no longer billed, and out-of-population entities only under confirmed population rules; populate each affiliate tab; run a separate Sage report for each affiliate or customer and confirm the tab agrees with it."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "When a cleaned account total doesn’t match the Sage ending balance, what do you do to resolve it?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "Once that is done, we assemble fund and affiliate supporting documents. That is done by: GPFS preparer. What we do: sort detail by document number; retrieve invoice PDFs and allocation support from the cited Box vendor folders; retrieve GJ support from Sage or email and credit/refund support from email; store support in one consolidated cycle folder because items can affect multiple entities; cross-reference support to workbook lines. Following that, we complete fund/affiliate review and client approval. That is done by: Preparer, GPFS reviewer, internal fund team, One Rock. What we do: the GPFS reviewer checks Sage reconciliations and unusual items or missing support; the internal fund team reviews the package, completes the applicable general-ledger coding, and records questions on the Notes tab; preparer resolves internal notes and sends client questions as needed; place the package in the Client Collaboration folder and notify One Rock; record One Rock email feedback, update the workbook, and repeat review until final approval."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "How do you prepare and reconcile the portfolio-company billing tabs?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "Following that, we create fund and affiliate accounts-receivable invoices and hand off payment requests. That is done by: GPFS preparer; internal fund team/Treasury downstream. What we do: create accounts-receivable invoices in Sage, either individually by updating a prior invoice or through an approved bulk import; date each invoice the first day of the month after period end; use reference Q[#]/[Year] ; mirror the memo to the reference; print each invoice and save using entity name, invoice number, and amount; complete internal invoice review and send the package to the fund team; the fund team sends the payment request to Treasury. GPFS asks to receive copies of payment notifications so the received cash can be matched to the correct invoice. Following that, we pull, clean, and split portfolio-company general-ledger activity. That is done by: GPFS preparer. What we do: run the Sage general-ledger report for account 1201, using the quarter date range and no customer or location filter; clean the report using Step 2. Also remove the department column and the 1201 summary header row; remove prior Invoice rows; build a Customer Name / Transaction Amount pivot; identify and exclude approved write-offs/out-of-population entities."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "What do you do with the remaining portfolio-company activity after identifying and excluding those entities?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "Following that, we resolve parent/add-on mappings and populate entity tabs. That is done by: GPFS preparer. What we do: for every add-on/holding customer, inspect Sage AR > Customer > Additional Information > Parent ; combine add-on activity with its parent tab. Examples: Pros DCI → Port EnviroServe; Comfort Investor Holdings → Port Comfort; Island Energy Investor Holdings → Port IES; paste current rows into the correct entity tab; update formulas; refresh the expense-type pivot (filing, audit, accounting, legal, meals, travel, technology, other); run a separate Sage 1201 report for each customer or parent population and confirm the tab agrees with it. Following that, we preserve and exclude “Do Not Bill” items correctly. That is done by: GPFS preparer; reviewer. What we do: keep Do Not Bill items in aggregate detail so the Sage reconciliation remains complete; exclude those items from billable totals; record the classification and confirm the aggregate total still agrees with Sage."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "What determines whether a portfolio-company item is classified as “Do Not Bill”?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "Following that, we complete portfolio-company review and produce deal-team files. That is done by: Same review chain; GPFS preparer produces files. What we do: complete the GPFS, internal fund-team, and One Rock reviews described in Step 6; after approval, create one Excel per portfolio company for deal-team review; include current-quarter expenses only; remove historical activity and historical Do Not Bill items from the deal-team file; preserve the complete current-quarter expense-type pivot; save individual files in the separate approved portfolio-company folder. Following that, we update the Expense Tracker. That is done by: GPFS preparer; One Rock reviews. What we do: enter billable amount per entity and grand total; update previously reimbursed amounts, accrued/credit balances, bank reserves, net amount, prior-quarter comparison, and deal-team approval status; confirm the net amount agrees with Sage; confirm the meaning of “accrued balance” versus “credit” with One Rock."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "What prompts the preparer to open a billing cycle?"
+  },
+  {
+   "id": "t014",
+   "role": "user",
+   "text": "Following that, we create portfolio-company accounts-receivable invoices and route reserve payments. That is done by: GPFS preparer; Treasury for reserve-funded entities. What we do: map detailed expense classes to Professional Fees, Other Expenses, Meals, and Travel; prove grouped classes equal the approved billable amount by entity; prepare the bulk import (approximately 100 lines is a source example) or approved manual invoices; review each imported invoice individually and confirm it remains one page; route reserve-funded entity invoices directly to Treasury for payment from reserves; route all others through the standard approved payment chain."
+  },
+  {
+   "id": "t015",
+   "role": "assistant",
+   "text": "What does Treasury do after receiving an invoice for a reserve-funded entity?"
+  },
+  {
+   "id": "t016",
+   "role": "assistant",
+   "text": "This capture still has open sections. 15 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794968415.16,
+   "turn": 0,
+   "seconds": 0.035,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794968418.31,
+   "turn": 2,
+   "seconds": 3.097,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968440.309,
+   "turn": 3,
+   "seconds": 25.1
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794968452.586,
+   "turn": 3,
+   "seconds": 37.37,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 7,
+   "connections": 6
+  },
+  {
+   "kind": "question",
+   "at": 1794968456.152,
+   "turn": 4,
+   "seconds": 3.496,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794968456.159,
+   "turn": 5,
+   "seconds": 3.5,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 7,
+   "connections": 6
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968479.259,
+   "turn": 5,
+   "seconds": 26.6
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794968490.567,
+   "turn": 5,
+   "seconds": 37.91,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 15,
+   "connections": 14
+  },
+  {
+   "kind": "question",
+   "at": 1794968492.252,
+   "turn": 6,
+   "seconds": 1.613,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794968492.26,
+   "turn": 7,
+   "seconds": 1.62,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t004",
+   "steps": 15,
+   "connections": 14
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968528.186,
+   "turn": 7,
+   "seconds": 37.55
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794968529.22,
+   "turn": 7,
+   "seconds": 38.58,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 24,
+   "connections": 23
+  },
+  {
+   "kind": "question",
+   "at": 1794968532.953,
+   "turn": 8,
+   "seconds": 3.673,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794968532.966,
+   "turn": 9,
+   "seconds": 3.69,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t006",
+   "steps": 24,
+   "connections": 23
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968570.522,
+   "turn": 9,
+   "seconds": 41.24
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794968575.681,
+   "turn": 9,
+   "seconds": 46.4,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 35,
+   "connections": 35
+  },
+  {
+   "kind": "question",
+   "at": 1794968578.421,
+   "turn": 10,
+   "seconds": 2.676,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794968578.434,
+   "turn": 11,
+   "seconds": 2.69,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t008",
+   "steps": 35,
+   "connections": 35
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794968604.168,
+   "turn": 11,
+   "seconds": 28.42,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 40,
+   "connections": 40
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968606.211,
+   "turn": 11,
+   "seconds": 30.47
+  },
+  {
+   "kind": "question",
+   "at": 1794968609.939,
+   "turn": 12,
+   "seconds": 3.676,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794968609.952,
+   "turn": 13,
+   "seconds": 3.69,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t010",
+   "steps": 40,
+   "connections": 40
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968640.392,
+   "turn": 13,
+   "seconds": 34.13
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794968651.807,
+   "turn": 13,
+   "seconds": 45.54,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 49,
+   "connections": 49
+  },
+  {
+   "kind": "question",
+   "at": 1794968655.026,
+   "turn": 14,
+   "seconds": 3.168,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794968655.038,
+   "turn": 15,
+   "seconds": 3.18,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t012",
+   "steps": 49,
+   "connections": 49
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968685.549,
+   "turn": 15,
+   "seconds": 33.69
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794968696.996,
+   "turn": 15,
+   "seconds": 45.14,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 57,
+   "connections": 58
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794968697.085,
+   "turn": 15,
+   "seconds": 0.019,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794969035.116,
+   "turn": 16,
+   "seconds": 337.973,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [],
+ "notes": {
+  "summary": "The preparer groups portfolio-company expenses, ties them to approved billable amounts and prepares invoices by bulk import or approved manual entry. Reserve-funded invoices go directly to Treasury; others follow the standard approved payment chain.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "Due From Funds & Portfolio Companies Billing"
+   },
+   {
+    "key": "purpose",
+    "status": "captured",
+    "answer": "The work produces fund and affiliate receivable invoices and portfolio-company expense files for billing and review."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The event or timing that causes the billing cycle to be opened, who receives or detects it, and the cycle cadence or fixed deadlines have not been established."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The overall billing finished condition, including how payment and cash matching conclude, remains unspecified.\nFund and affiliate review is repeated until final approval from One Rock."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "A GPFS preparer performs the described workbook preparation and GL activity steps; the role accountable for the overall billing result has not been established."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "At the beginning of the work, a GPFS preparer opens the billing cycle and prepares both workbooks: records the billing period and populations, copies the prior fund and portfolio-company workbooks into the current-cycle location, and updates period references. For the portfolio-company workbook, the preparer updates the “One Rock Capital Partners Transaction Report” header on approximately 25–27 tabs, and confirms fund, affiliate, and portfolio-company tabs, a Notes tab, formulas, and pivots are present.\nAfter preparing the workbooks, a GPFS preparer pulls and cleans fund general-ledger activity. The preparer runs Sage GL for accounts 1101–1105 for the full billing period with the applicable location filter, exports to Excel, wraps text, removes merge/center formatting, adds a net column equal to debit minus credit and fills it through every account section, pastes the results as values, removes the original debit/credit columns, and removes document-number rows beginning with “Invoice.”\nThe GPFS preparer populates each main-fund tab by adding blank rows and copying transaction dates through net amount, excluding Sage running balances. The preparer removes unused rows, extends running-balance and sum formulas, confirms each tab agrees with its “Per Sage” amount, leaves the GL coding column blank for the internal fund team, and marks completed account sections in the source workpaper to prevent duplicate processing.\nFor affiliates, the GPFS preparer pulls the full Due From Affiliates account without a customer filter and cleans it using the earlier GL-cleanup step. The preparer builds a pivot with Customer Name as rows and Transaction Amount as values, excludes specified entities only under confirmed population rules, populates each affiliate tab, and runs a separate Sage report for each affiliate or customer to confirm agreement.\nAfter populating and reconciling affiliates, the GPFS preparer sorts fund and affiliate detail by document number, retrieves invoice PDFs and allocation support from cited Box vendor folders, GJ support from Sage or email, and credit/refund support from email. The preparer stores support in one consolidated cycle folder because items can affect multiple entities, and cross-references it to workbook lines.\nFollowing support assembly, the GPFS reviewer checks reconciliations and unusual items or missing support. The internal fund team reviews the package, completes applicable GL coding and records questions on the Notes tab; the preparer resolves internal notes and sends client questions as needed.\nThe package is placed in the Client Collaboration folder and One Rock is notified. One Rock email feedback is recorded, the workbook updated, and review repeated until final approval; the participant did not specify who performs each of these actions.\nFollowing fund and affiliate approval, the GPFS preparer creates accounts-receivable invoices in Sage, either by updating a prior invoice individually or through an approved bulk import. Each is dated the first day of the month after period end, uses reference Q[#]/[Year] and the same memo, and is printed and saved using entity name, invoice number and amount.\nAfter internal invoice review, the package is sent to the fund team, which sends the payment request to Treasury. GPFS asks for copies of payment notifications so received cash can be matched to the correct invoice.\nFollowing the fund and affiliate invoice handoff, the GPFS preparer runs Sage GL for account 1201 for the quarter date range without customer or location filters. The preparer cleans it using the earlier cleanup, removes the department column, 1201 summary header and prior Invoice rows, builds a Customer Name / Transaction Amount pivot, and identifies and excludes approved write-offs and out-of-population entities.\nHow portfolio-company payment routing concludes, including the outcome of the standard approved payment chain, remains unspecified.\nThe GPFS preparer inspects Sage AR > Customer > Additional Information > Parent for every add-on or holding customer and combines its activity with the parent tab. The preparer pastes current rows into the correct entity tab, updates formulas, refreshes the expense-type pivot and compares the tab with a separate Sage 1201 report for each customer or parent population.\nThe preparer and reviewer preserve Do Not Bill items in aggregate detail for Sage reconciliation but exclude them from billable totals, record the classification and confirm the aggregate still agrees with Sage.\nPortfolio-company work follows the GPFS, internal fund-team and One Rock review chain. After approval, the GPFS preparer creates one Excel file per portfolio company for deal-team review, including current-quarter expenses only, removing historical activity and historical Do Not Bill items, retaining the complete current-quarter expense-type pivot, and saving each file in the separate approved portfolio-company folder.\nThe GPFS preparer updates the Expense Tracker with billable amounts per entity and grand total, previously reimbursed amounts, accrued or credit balances, bank reserves, net amount, prior-quarter comparison and deal-team approval status. One Rock reviews, and the net amount is checked against Sage.\nAfter updating the Expense Tracker, the GPFS preparer maps detailed expense classes to Professional Fees, Other Expenses, Meals and Travel and proves the grouped classes equal each entity's approved billable amount. The preparer prepares a bulk import or approved manual invoices and reviews each imported invoice individually for a one-page format.\nPortfolio-company invoices for reserve-funded entities are routed directly to Treasury for payment from reserves; all others go through the standard approved payment chain."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "During workbook preparation, the GPFS preparer confirms that the fund, affiliate, and portfolio-company tabs, Notes tab, formulas, and pivots are present. After cleaning the ledger export, the remaining transactions are summed by account and compared to the Sage ending balance.\nThe acceptance criteria and response when an account sum does not match the Sage ending balance have not been established.\nThe GPFS preparer confirms each main-fund tab agrees with its “Per Sage” amount and each affiliate tab agrees with a separate Sage report for that affiliate or customer. Completed account sections are marked in the source workpaper to avoid processing them twice.\nThe GPFS reviewer checks Sage reconciliations and unusual items or missing support; the internal fund team reviews the package, codes applicable GL entries and records questions. The preparer resolves internal notes, and One Rock feedback leads to workbook updates and repeated review until final approval.\nThe precise evidence of One Rock final approval remains unspecified.\nFund and affiliate invoices undergo internal invoice review before the package is sent to the fund team.\nThe internal invoice reviewer, review criteria and handling of failed review are not described.\nPortfolio-company entity tabs are checked against separate Sage 1201 reports for each customer or parent population; the aggregate including Do Not Bill items is also confirmed against Sage.\nThe portfolio-company package follows the GPFS, internal fund-team and One Rock review chain before deal-team files are created. The Expense Tracker net amount is checked against Sage; One Rock reviews the tracker.\nFor portfolio-company invoicing, the grouped expense classes must equal the approved billable amount by entity; each imported invoice is individually reviewed and confirmed to remain one page."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "Differences across clients, locations or other circumstances beyond the reported fund, affiliate and portfolio-company routes remain open.\nThe reported affiliate route differs from main-fund processing: affiliates use the full Due From Affiliates account without a customer filter, a customer pivot and separate Sage reports for each affiliate or customer; main-fund tabs are checked against their “Per Sage” amounts.\nFund and affiliate invoices can be created individually by updating prior invoices or through an approved bulk import.\nThe portfolio-company extract uses account 1201 for a quarter without customer or location filters and has additional cleanup and a customer pivot; the fund extract uses accounts 1101–1105 with an applicable location filter.\nFor add-on or holding customers, the preparer checks the Sage parent field and combines their activity with the parent entity tab rather than treating the activity as a separate entity tab.\nThe condition for choosing individual invoice creation versus approved bulk import is not stated.\nReserve-funded portfolio-company invoices go directly to Treasury for payment from reserves; other portfolio-company invoices follow the standard approved payment chain. Portfolio-company invoices may be prepared by bulk import or approved manual entry."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The reported working materials are a prior fund workbook and a prior portfolio-company workbook, copied into the current-cycle location and updated for the current cycle. The portfolio-company workbook includes the “One Rock Capital Partners Transaction Report” header on approximately 25–27 tabs; the workbook structure includes fund, affiliate, and portfolio-company tabs, a Notes tab, formulas, and pivots. The Sage GL activity is exported to Excel and cleaned for use.\nThe source workpaper carries marks showing which account sections have been completed; affiliate reconciliation uses a customer pivot and separate Sage reports for each affiliate or customer.\nFund and affiliate supporting materials include invoice PDFs and allocation support from Box vendor folders, GJ support from Sage or email, and credit/refund support from email. They are consolidated by cycle and cross-referenced to workbook lines.\nThe internal fund team records package questions on the workbook Notes tab; One Rock feedback is received by email and recorded, and the package is placed in the Client Collaboration folder.\nFund and affiliate invoices are printed and saved with entity name, invoice number and amount. GPFS requests copies of payment notifications for matching received cash to invoices.\nPortfolio-company entity tabs use an expense-type pivot covering filing, audit, accounting, legal, meals, travel, technology and other; separate Sage 1201 reports support reconciliation.\nIndividual portfolio-company Excel files are saved in a separate approved portfolio-company folder for deal-team review. The Expense Tracker records entity and total billable amounts, balances, comparisons and deal-team approval status.\nPortfolio-company invoicing uses a bulk import or approved manual invoices; imported invoices are reviewed individually for a one-page format."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The described billing work includes fund and portfolio-company workbooks; the fund GL activity step covers accounts 1101–1105 for the full billing period.\nWhether the described route is general GPFS practice or specific to a client or entity remains open."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "For the reported GL cleanup, the net column is calculated as debit minus credit; the cleaned transactions are summed by account and compared to the Sage ending balance. The account given for the report is 1101–1105, the full billing period, with an applicable location filter.\nFor affiliate population, GP entities, old funds no longer billed and out-of-population entities are excluded only under confirmed population rules. Main-fund tab population excludes Sage running balances and leaves GL coding blank for the internal fund team.\nThe fund and affiliate package goes through review and workbook updates in response to One Rock feedback until final approval.\nFund and affiliate invoices are dated the first day of the month after period end, use reference Q[#]/[Year], and mirror that reference in the memo. Bulk import is an approved alternative to updating individual prior invoices.\nThe portfolio-company GL extract excludes approved write-offs and out-of-population entities.\nAdd-on or holding customer activity is combined with its Sage parent tab. Do Not Bill items remain in aggregate detail but are excluded from billable totals.\nThe criteria and authority for classifying an item Do Not Bill remain unspecified.\nPortfolio-company deal-team files are created after approval and contain current-quarter expenses, without historical activity or historical Do Not Bill items; the complete current-quarter expense-type pivot is preserved.\nThe meaning of accrued balance versus credit in the Expense Tracker is pending confirmation with One Rock.\nPortfolio-company invoice expense classes are mapped to Professional Fees, Other Expenses, Meals and Travel, and the grouped total is proved against the approved billable amount for each entity."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The internal fund team reviews the fund and affiliate package, completes applicable GL coding and records questions; the preparer resolves its notes.\nOne Rock is notified when the package is placed in the Client Collaboration folder; its email feedback is recorded and review repeats until final approval.\nAfter internal invoice review, the fund and affiliate invoice package goes to the internal fund team; that team sends the payment request to Treasury. GPFS requests payment-notification copies to match received cash to invoices.\nPortfolio-company work uses the GPFS, internal fund-team and One Rock review chain; after approval, individual files are produced for deal-team review. One Rock also reviews the Expense Tracker.\nProvides input to deal team: After portfolio-company approval, individual Excel files are created for deal-team review.\nReserve-funded portfolio-company invoices are routed directly to Treasury for payment from reserves. Other portfolio-company invoices follow the standard approved payment chain, whose recipients are not specified."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The GPFS preparer runs the GL in Sage and exports the results to Excel for formatting and cleaning. The fund and portfolio-company workbooks are copied into a current-cycle location.\nThe current-cycle workbook location and its storage system are not identified.\nSupport is retrieved from Box vendor folders, Sage and email and stored in a consolidated cycle folder; the review package is placed in a Client Collaboration folder.\nThe storage systems for the consolidated cycle and Client Collaboration folders are unidentified.\nThe GPFS preparer creates fund and affiliate accounts-receivable invoices in Sage, individually from prior invoices or through an approved bulk import.\nThe parent mapping is inspected in Sage under AR > Customer > Additional Information > Parent; current rows are pasted into entity tabs and formulas and the expense-type pivot are updated.\nThe GPFS preparer creates individual portfolio-company Excel files in a separate approved folder and enters entity and total amounts and other balances into the Expense Tracker."
+   },
+   {
+    "key": "volume",
+    "status": "partial",
+    "answer": "The portfolio-company workbook has approximately 25–27 tabs whose report headers are updated.\nUsual billing population size and preparer effort have not been stated.\nThe participant cites approximately 100 lines as a source example for the portfolio-company bulk import, not as a stated normal cycle volume."
+   }
+  ]
+ },
+ "map": {
+  "title": "Due From Funds & Portfolio Companies Billing",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Open cycle and record period",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Open the billing cycle and record the billing period and populations."
+   },
+   {
+    "id": "S2",
+    "type": "document",
+    "title": "Prepare current-cycle workbooks",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Copy the prior fund and portfolio-company workbooks to the current-cycle location and update period references. Update the “One Rock Capital Partners Transaction Report” header on approximately 25–27 portfolio-company tabs."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Confirm workbook contents",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Confirm that fund, affiliate, portfolio-company and Notes tabs, formulas and pivots are present."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Export and format fund GL",
+    "actor": "GPFS preparer",
+    "system": "Sage GL; Excel",
+    "description": "Run Sage GL for accounts 1101–1105 for the full billing period using the applicable location filter. Export to Excel, wrap text and remove merge/center formatting."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Calculate net GL amounts",
+    "actor": "GPFS preparer",
+    "system": "Excel",
+    "description": "Add a net column equal to debit minus credit, fill it through every account section, paste it as values and remove the original debit and credit columns."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Remove invoice document rows",
+    "actor": "GPFS preparer",
+    "system": "Excel",
+    "description": "Remove all document-number rows beginning with “Invoice”."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Compare account totals to Sage",
+    "actor": "GPFS preparer",
+    "system": "Excel; Sage GL",
+    "description": "Sum the remaining transactions by account and compare them to the Sage ending balance."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Populate main-fund tabs",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Add blank rows and copy transaction dates through net amount without Sage running balances. Remove unused rows, extend running-balance and sum formulas, and leave the GL coding column blank for the internal fund team."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Reconcile main-fund tabs",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Confirm each fund tab agrees with its Per Sage amount."
+   },
+   {
+    "id": "S10",
+    "type": "document",
+    "title": "Mark completed account sections",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Mark completed account sections in the source workpaper so they are not processed twice."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Pull and clean affiliate activity",
+    "actor": "GPFS preparer",
+    "system": "Sage GL; Excel",
+    "description": "Pull the full Due From Affiliates account without a customer filter and clean it using the previously described GL-cleaning steps."
+   },
+   {
+    "id": "S12",
+    "type": "activity",
+    "title": "Build affiliate pivot",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Build a pivot with Customer Name as rows and Transaction Amount as values."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Apply affiliate population rules",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Exclude GP entities, old funds no longer billed, and out-of-population entities only under confirmed population rules. The rules and how they are confirmed are UNKNOWN."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Populate affiliate tabs",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Populate each affiliate tab."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Reconcile affiliate tabs",
+    "actor": "GPFS preparer",
+    "system": "Sage",
+    "description": "Run a separate Sage report for each affiliate or customer and confirm the tab agrees with it."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Sort fund and affiliate detail",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Sort fund and affiliate detail by document number for supporting-document assembly."
+   },
+   {
+    "id": "S17",
+    "type": "document",
+    "title": "Retrieve supporting documents",
+    "actor": "GPFS preparer",
+    "system": "Box; Sage; email",
+    "description": "Retrieve invoice PDFs and allocation support from cited Box vendor folders, GJ support from Sage or email, and credit/refund support from email."
+   },
+   {
+    "id": "S18",
+    "type": "document",
+    "title": "Consolidate and cross-reference support",
+    "actor": "GPFS preparer",
+    "system": "Consolidated cycle folder; workbook",
+    "description": "Store support in one consolidated cycle folder because items can affect multiple entities, and cross-reference it to workbook lines."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Review reconciliations and support",
+    "actor": "GPFS reviewer",
+    "system": "UNKNOWN",
+    "description": "Check Sage reconciliations and unusual items or missing support."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Review package and complete coding",
+    "actor": "Internal fund team",
+    "system": "Workbook; Notes tab",
+    "description": "Review the package, complete applicable general-ledger coding and record questions on the Notes tab."
+   },
+   {
+    "id": "S21",
+    "type": "activity",
+    "title": "Resolve notes and send questions",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "Resolve internal notes and send client questions as needed."
+   },
+   {
+    "id": "S22",
+    "type": "document",
+    "title": "Place package and notify One Rock",
+    "actor": "UNKNOWN",
+    "system": "Client Collaboration folder",
+    "description": "Place the package in the Client Collaboration folder and notify One Rock."
+   },
+   {
+    "id": "S23",
+    "type": "document",
+    "title": "Record feedback and update workbook",
+    "actor": "UNKNOWN",
+    "system": "Email; workbook",
+    "description": "Record One Rock email feedback and update the workbook."
+   },
+   {
+    "id": "S24",
+    "type": "activity",
+    "title": "Repeat review to final approval",
+    "actor": "Preparer, GPFS reviewer, internal fund team, One Rock",
+    "system": "UNKNOWN",
+    "description": "After One Rock email feedback is recorded and the workbook is updated, the review cycle repeats until final approval. The exact loop-back step and where final approval is recorded are UNKNOWN."
+   },
+   {
+    "id": "S25",
+    "type": "decision",
+    "title": "Choose invoice creation route",
+    "actor": "GPFS preparer",
+    "system": "Sage",
+    "description": "Create fund and affiliate accounts-receivable invoices individually by updating a prior invoice or through an approved bulk import."
+   },
+   {
+    "id": "S26",
+    "type": "document",
+    "title": "Update prior invoices individually",
+    "actor": "GPFS preparer",
+    "system": "Sage",
+    "description": "Create invoices individually by updating prior invoices. Date each the first day of the month after period end, use the reported quarter/year reference format and mirror it in the memo."
+   },
+   {
+    "id": "S27",
+    "type": "document",
+    "title": "Import invoices in bulk",
+    "actor": "GPFS preparer",
+    "system": "Sage",
+    "description": "Create invoices through an approved bulk import. Date each the first day of the month after period end, use the reported quarter/year reference format and mirror it in the memo."
+   },
+   {
+    "id": "S28",
+    "type": "document",
+    "title": "Print and save invoices",
+    "actor": "GPFS preparer",
+    "system": "Sage; storage location UNKNOWN",
+    "description": "Print each invoice and save it using the entity name, invoice number and amount."
+   },
+   {
+    "id": "S29",
+    "type": "activity",
+    "title": "Complete internal invoice review",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Complete internal invoice review. Reviewer, checks, evidence and failure handling are UNKNOWN."
+   },
+   {
+    "id": "S30",
+    "type": "document",
+    "title": "Send package to fund team",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Send the reviewed invoice package to the fund team."
+   },
+   {
+    "id": "S31",
+    "type": "document",
+    "title": "Send payment request to Treasury",
+    "actor": "Internal fund team",
+    "system": "UNKNOWN",
+    "description": "The fund team sends the payment request to Treasury."
+   },
+   {
+    "id": "S32",
+    "type": "activity",
+    "title": "Request payment notification copies",
+    "actor": "GPFS",
+    "system": "UNKNOWN",
+    "description": "GPFS asks to receive payment notification copies so received cash can be matched to the correct invoice. Receipt and matching are not described."
+   },
+   {
+    "id": "S33",
+    "type": "activity",
+    "title": "Pull portfolio-company GL activity",
+    "actor": "GPFS preparer",
+    "system": "Sage; Excel",
+    "description": "Run the portfolio-company Sage GL report for the quarter without customer or location filters. Clean it using the fund GL steps, also removing the department column and account summary header row."
+   },
+   {
+    "id": "S34",
+    "type": "activity",
+    "title": "Build portfolio-company customer pivot",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Build a Customer Name / Transaction Amount pivot from the cleaned activity."
+   },
+   {
+    "id": "S35",
+    "type": "activity",
+    "title": "Exclude approved portfolio items",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Identify and exclude approved write-offs and out-of-population entities. Approval details and population rules are UNKNOWN."
+   },
+   {
+    "id": "S36",
+    "type": "activity",
+    "title": "Resolve parent and add-on mappings",
+    "actor": "GPFS preparer",
+    "system": "Sage",
+    "description": "Inspect the Parent field in Sage customer additional information for each add-on or holding customer, and combine its activity with the parent tab."
+   },
+   {
+    "id": "S37",
+    "type": "activity",
+    "title": "Populate portfolio-company tabs",
+    "actor": "GPFS preparer",
+    "system": "Portfolio-company workbook",
+    "description": "Paste current rows into the correct entity tabs, update formulas and refresh the expense-type pivot."
+   },
+   {
+    "id": "S38",
+    "type": "activity",
+    "title": "Reconcile portfolio-company tabs",
+    "actor": "GPFS preparer",
+    "system": "Sage; portfolio-company workbook",
+    "description": "Run a separate Sage report for each customer or parent population and confirm that its tab agrees with the report."
+   },
+   {
+    "id": "S39",
+    "type": "activity",
+    "title": "Classify Do Not Bill items",
+    "actor": "GPFS preparer; reviewer — individual assignments UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Keep Do Not Bill items in aggregate detail, exclude them from billable totals and record the classification."
+   },
+   {
+    "id": "S40",
+    "type": "activity",
+    "title": "Confirm aggregate Sage reconciliation",
+    "actor": "GPFS preparer; reviewer — individual assignments UNKNOWN",
+    "system": "Sage",
+    "description": "Confirm the aggregate total still agrees with Sage after the Do Not Bill classification."
+   },
+   {
+    "id": "S41",
+    "type": "activity",
+    "title": "Review portfolio-company reconciliations",
+    "actor": "GPFS reviewer",
+    "system": "UNKNOWN",
+    "description": "Apply the reported GPFS review chain to the portfolio-company package, checking Sage reconciliations and unusual items or missing support."
+   },
+   {
+    "id": "S42",
+    "type": "activity",
+    "title": "Review portfolio package and coding",
+    "actor": "Internal fund team",
+    "system": "Workbook; Notes tab",
+    "description": "Review the package, complete applicable GL coding and record questions on the Notes tab, as in the reported review chain."
+   },
+   {
+    "id": "S43",
+    "type": "activity",
+    "title": "Resolve portfolio review notes",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "Resolve internal notes and send client questions as needed."
+   },
+   {
+    "id": "S44",
+    "type": "document",
+    "title": "Place portfolio package for client",
+    "actor": "UNKNOWN",
+    "system": "Client Collaboration folder",
+    "description": "Place the package in the Client Collaboration folder and notify One Rock, using the reported review chain."
+   },
+   {
+    "id": "S45",
+    "type": "document",
+    "title": "Record portfolio review feedback",
+    "actor": "UNKNOWN",
+    "system": "Email; workbook",
+    "description": "Record One Rock email feedback and update the workbook."
+   },
+   {
+    "id": "S46",
+    "type": "activity",
+    "title": "Repeat portfolio review to approval",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Repeat review until final approval. The participants in repeated checks, approval authority and retained approval evidence are UNKNOWN."
+   },
+   {
+    "id": "S47",
+    "type": "document",
+    "title": "Create deal-team files",
+    "actor": "GPFS preparer",
+    "system": "Excel; approved portfolio-company folder",
+    "description": "After approval, create one Excel file per portfolio company for deal-team review. Include current-quarter expenses, remove historical activity and historical Do Not Bill items, preserve the complete current-quarter expense-type pivot, and save the files in the separate approved folder."
+   },
+   {
+    "id": "S48",
+    "type": "data_store",
+    "title": "Update Expense Tracker",
+    "actor": "GPFS preparer; One Rock consulted on terminology",
+    "system": "Expense Tracker; Sage",
+    "description": "Enter billable amounts by entity and in total; update reimbursements, accrued or credit balances, reserves, net amount, prior-quarter comparison and deal-team approval status. Confirm the net amount agrees with Sage and confirm the meaning of accrued balance versus credit with One Rock."
+   },
+   {
+    "id": "S49",
+    "type": "activity",
+    "title": "Review Expense Tracker",
+    "actor": "One Rock",
+    "system": "Expense Tracker",
+    "description": "One Rock reviews the Expense Tracker. The checks, timing, feedback and evidence are UNKNOWN."
+   },
+   {
+    "id": "S50",
+    "type": "activity",
+    "title": "Group and prove invoice expenses",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Map detailed expense classes to Professional Fees, Other Expenses, Meals and Travel. Prove the grouped classes equal the approved billable amount for each entity."
+   },
+   {
+    "id": "S51",
+    "type": "decision",
+    "title": "Which invoice preparation route?",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Prepare a bulk import or approved manual invoices. The basis for choosing the route is UNKNOWN."
+   },
+   {
+    "id": "S52",
+    "type": "document",
+    "title": "Prepare portfolio invoice import",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Prepare the bulk import. Approximately 100 lines is a reported source example, not a confirmed normal volume."
+   },
+   {
+    "id": "S53",
+    "type": "activity",
+    "title": "Review imported portfolio invoices",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Review each imported invoice individually and confirm it remains one page. Other review checks and correction handling are UNKNOWN."
+   },
+   {
+    "id": "S54",
+    "type": "document",
+    "title": "Prepare approved manual invoices",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Prepare approved manual invoices. Approval authority and evidence are UNKNOWN."
+   },
+   {
+    "id": "S55",
+    "type": "decision",
+    "title": "Is the entity reserve-funded?",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Determine the reported invoice route based on whether the entity is reserve-funded. The source of that classification is UNKNOWN."
+   },
+   {
+    "id": "S56",
+    "type": "document",
+    "title": "Route reserve-funded invoices to Treasury",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Route reserve-funded entity invoices directly to Treasury for payment from reserves. Subsequent payment and confirmation are UNKNOWN."
+   },
+   {
+    "id": "S57",
+    "type": "document",
+    "title": "Route other invoices for payment",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Route invoices for other entities through the standard approved payment chain. Its participants and subsequent steps are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": ""
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": ""
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": ""
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": ""
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": ""
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": ""
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": ""
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": ""
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": ""
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": ""
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": ""
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": ""
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": ""
+   },
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": ""
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": ""
+   },
+   {
+    "from": "S18",
+    "to": "S19",
+    "label": ""
+   },
+   {
+    "from": "S19",
+    "to": "S20",
+    "label": ""
+   },
+   {
+    "from": "S20",
+    "to": "S21",
+    "label": ""
+   },
+   {
+    "from": "S21",
+    "to": "S22",
+    "label": ""
+   },
+   {
+    "from": "S22",
+    "to": "S23",
+    "label": "One Rock email feedback"
+   },
+   {
+    "from": "S23",
+    "to": "S24",
+    "label": ""
+   },
+   {
+    "from": "S24",
+    "to": "S25",
+    "label": "Final approval"
+   },
+   {
+    "from": "S25",
+    "to": "S26",
+    "label": "Individual invoices"
+   },
+   {
+    "from": "S25",
+    "to": "S27",
+    "label": "Approved bulk import"
+   },
+   {
+    "from": "S26",
+    "to": "S28",
+    "label": ""
+   },
+   {
+    "from": "S27",
+    "to": "S28",
+    "label": ""
+   },
+   {
+    "from": "S28",
+    "to": "S29",
+    "label": ""
+   },
+   {
+    "from": "S29",
+    "to": "S30",
+    "label": ""
+   },
+   {
+    "from": "S30",
+    "to": "S31",
+    "label": ""
+   },
+   {
+    "from": "S31",
+    "to": "S32",
+    "label": ""
+   },
+   {
+    "from": "S32",
+    "to": "S33",
+    "label": ""
+   },
+   {
+    "from": "S33",
+    "to": "S34",
+    "label": ""
+   },
+   {
+    "from": "S34",
+    "to": "S35",
+    "label": ""
+   },
+   {
+    "from": "S35",
+    "to": "S36",
+    "label": ""
+   },
+   {
+    "from": "S36",
+    "to": "S37",
+    "label": ""
+   },
+   {
+    "from": "S37",
+    "to": "S38",
+    "label": ""
+   },
+   {
+    "from": "S38",
+    "to": "S39",
+    "label": ""
+   },
+   {
+    "from": "S39",
+    "to": "S40",
+    "label": ""
+   },
+   {
+    "from": "S40",
+    "to": "S41",
+    "label": ""
+   },
+   {
+    "from": "S41",
+    "to": "S42",
+    "label": ""
+   },
+   {
+    "from": "S42",
+    "to": "S43",
+    "label": ""
+   },
+   {
+    "from": "S43",
+    "to": "S44",
+    "label": ""
+   },
+   {
+    "from": "S44",
+    "to": "S45",
+    "label": "One Rock email feedback"
+   },
+   {
+    "from": "S45",
+    "to": "S46",
+    "label": ""
+   },
+   {
+    "from": "S46",
+    "to": "S47",
+    "label": "Final approval"
+   },
+   {
+    "from": "S47",
+    "to": "S48",
+    "label": ""
+   },
+   {
+    "from": "S48",
+    "to": "S49",
+    "label": ""
+   },
+   {
+    "from": "S48",
+    "to": "S50",
+    "label": ""
+   },
+   {
+    "from": "S50",
+    "to": "S51",
+    "label": ""
+   },
+   {
+    "from": "S51",
+    "to": "S52",
+    "label": "Bulk import"
+   },
+   {
+    "from": "S51",
+    "to": "S54",
+    "label": "Approved manual invoices"
+   },
+   {
+    "from": "S52",
+    "to": "S53",
+    "label": "Invoices imported"
+   },
+   {
+    "from": "S53",
+    "to": "S55",
+    "label": ""
+   },
+   {
+    "from": "S54",
+    "to": "S55",
+    "label": ""
+   },
+   {
+    "from": "S55",
+    "to": "S56",
+    "label": "Reserve-funded entity"
+   },
+   {
+    "from": "S55",
+    "to": "S57",
+    "label": "Other entities"
+   }
+  ],
+  "open_questions": [
+   "Does any incoming route start S28 (Print and save invoices), or must all prerequisites finish?",
+   "Are the outgoing paths from S48 (Update Expense Tracker) alternatives, or must they all occur?",
+   "UNKNOWN: What initiates the billing cycle, who detects it, and what are its cadence and deadlines?",
+   "UNKNOWN: What is the observable finish for the overall billing work, and what happens after each portfolio-company payment route?",
+   "UNKNOWN: How are deal-team files delivered, how is deal-team approval obtained and recorded, and what follows it?",
+   "UNKNOWN: What does One Rock check in the Expense Tracker, when does the review occur, and is it required before portfolio-company invoicing? How are feedback and review evidence retained?",
+   "UNKNOWN: What do accrued balance and credit mean in the tracker, and how are its net amount and other balances calculated?",
+   "UNKNOWN: How are payment notifications received and cash matched to invoices?",
+   "UNKNOWN: Who is accountable for the overall result?",
+   "UNKNOWN: How are missing workbook contents, reconciliation differences, missing support and expense-grouping differences resolved, rechecked and evidenced?",
+   "UNKNOWN: Who places each package, records feedback and updates the workbook? Which reviewers repeat their checks, who gives final approval, and where is approval recorded?",
+   "UNKNOWN: Who performs the fund and affiliate internal invoice review, what is checked, and how are failures handled and review evidenced?",
+   "UNKNOWN: What are the affiliate and portfolio-company population and exclusion rules, their sources, and how are they confirmed or approved?",
+   "UNKNOWN: Who classifies Do Not Bill items and who confirms the aggregate reconciliation? What determines the classification?",
+   "UNKNOWN: Who approves bulk imports and manual invoices, and what inputs and approval evidence are used? How is the portfolio-company invoice route chosen?",
+   "UNKNOWN: What else is checked on imported portfolio-company invoices, and what happens if an invoice fails review or exceeds one page?",
+   "UNKNOWN: How is reserve-funded status determined, and who participates in the standard approved payment chain?",
+   "UNKNOWN: What are the input sources, current-cycle file locations and authoritative records?",
+   "UNKNOWN: What procedures or rule sources govern the work, who interprets them, and is this general GPFS or client-specific practice?",
+   "UNKNOWN: What variations, exceptions, risks, manual difficulties, volumes and peaks apply?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "Current-practice draft: Due From Funds & Portfolio Companies Billing",
+  "overview": "Draft based on one participant account and the intake name. It describes fund and affiliate billing followed by portfolio-company billing. The initiating event, overall accountability, final completion condition and status as a general GPFS standard are UNKNOWN. Participant and process-owner review remain pending.",
+  "trigger": "UNKNOWN. Opening the billing cycle and preparing the workbooks is the first reported action, not an established initiating event.",
+  "inputs": [
+   "Billing period and populations; sources UNKNOWN.",
+   "Prior fund and portfolio-company workbooks.",
+   "Sage general-ledger activity and ending balances.",
+   "Invoice PDFs, allocation support, general-journal support and credit/refund support.",
+   "Confirmed population rules and approved exclusions; sources and approval details UNKNOWN.",
+   "Sage customer parent information and portfolio-company expense detail."
+  ],
+  "outputs": [
+   "Reviewed fund and affiliate billing package and accounts-receivable invoices.",
+   "Fund-team payment request to Treasury.",
+   "Portfolio-company deal-team files and updated Expense Tracker.",
+   "Portfolio-company invoices routed for payment."
+  ],
+  "exceptions": [
+   "Reconciliation mismatches, missing support, missing workbook contents and failed invoice or grouping checks have UNKNOWN handling and return paths.",
+   "One Rock feedback is recorded and the workbook updated; review repeats until final approval. The review levels repeated and further feedback mechanics are UNKNOWN.",
+   "Do Not Bill items remain in aggregate reconciliation detail but are excluded from billable totals; classification criteria are UNKNOWN."
+  ],
+  "controls": [
+   "The preparer checks workbook contents, compares cleaned activity and entity tabs to Sage, and marks completed fund account sections.",
+   "Affiliate exclusions are made only under confirmed population rules; portfolio-company exclusions include approved write-offs and out-of-population entities.",
+   "The GPFS reviewer checks reconciliations and unusual items or missing support; the internal fund team reviews and codes; One Rock reviews and review repeats until final approval.",
+   "Portfolio-company aggregate detail remains in the Sage comparison after Do Not Bill treatment, and grouped invoice classes are proved against approved billable amounts.",
+   "Each imported portfolio-company invoice is reviewed individually and checked to remain one page."
+  ],
+  "validation_notes": [
+   "This is a current-practice draft for review, not an executable procedure. Participant confirmation and process-owner approval are pending; account supplier and interview date are UNKNOWN.",
+   "No supporting documents were supplied or reviewed. One participant account does not establish an approved or independently corroborated GPFS standard.",
+   "The participant did not answer the questions about reconciliation mismatch handling, Do Not Bill criteria or the cycle trigger. Subsequent descriptions were retained.",
+   "Fund and company package feedback and repeated review are represented separately so an approval route does not skip the reported update and review. Which review levels repeat remains UNKNOWN.",
+   "The tracker has a reported One Rock review and invoice work follows tracker work. The account does not establish whether completion of that review blocks invoicing; the separate graph routes do not decide that question.",
+   "Imported-invoice review is not imposed on the manual-invoice alternative. No overall terminal node is shown because completion and downstream payment outcomes are UNKNOWN.",
+   "The notification-copy request is retained without assigning its precise timing relative to the fund payment request.",
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified.",
+   "The independent audit changed or removed 2 proposed exception(s)."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Open cycle and prepare workbooks",
+    "actor": "GPFS preparer",
+    "system": "Workbooks; current-cycle location",
+    "description": "Record the billing period and populations. Copy the prior fund and portfolio-company workbooks to the current-cycle location and update period references. Update the One Rock Capital Partners Transaction Report header on approximately 25–27 portfolio-company tabs. Confirm fund, affiliate, portfolio-company and Notes tabs, formulas and pivots are present."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Pull and clean fund activity",
+    "actor": "GPFS preparer",
+    "system": "Sage GL; Excel",
+    "description": "Run Sage GL for accounts 1101–1105 for the full billing period with the applicable location filter. Export to Excel, wrap text and remove merge/center formatting. Add net as debit minus credit throughout every account section, paste as values and remove the original debit and credit columns. Remove document-number rows beginning with Invoice. Sum remaining transactions by account and compare with the Sage ending balance."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Populate and reconcile fund tabs",
+    "actor": "GPFS preparer",
+    "system": "Fund workbook; source workpaper",
+    "description": "Add required blank rows and copy transaction dates through net amount, but not Sage running balances. Remove unused rows and extend running-balance and sum formulas. Confirm each tab agrees with its Per Sage amount. Leave the GL coding column blank for the internal fund team and mark completed account sections in the source workpaper so they are not processed twice."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Prepare and reconcile affiliates",
+    "actor": "GPFS preparer",
+    "system": "Sage; affiliate workbook",
+    "description": "Pull the full Due From Affiliates account without a customer filter and clean it using the fund GL method in S2. Build a pivot with Customer Name as rows and Transaction Amount as values. Exclude GP entities, old funds no longer billed and out-of-population entities only under confirmed population rules. Populate each affiliate tab, run a separate Sage report for each affiliate or customer and confirm the tab agrees."
+   },
+   {
+    "id": "S5",
+    "type": "document",
+    "title": "Assemble fund billing support",
+    "actor": "GPFS preparer",
+    "system": "Box; Sage; email; consolidated cycle folder",
+    "description": "Sort fund and affiliate detail by document number. Retrieve invoice PDFs and allocation support from cited Box vendor folders, GJ support from Sage or email, and credit/refund support from email. Store support in one consolidated cycle folder because items can affect multiple entities, and cross-reference it to workbook lines."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Review fund and affiliate package",
+    "actor": "GPFS reviewer; internal fund team; preparer",
+    "system": "Workbook; Notes tab",
+    "description": "The GPFS reviewer checks Sage reconciliations and unusual items or missing support. The internal fund team reviews the package, completes applicable GL coding and records questions on the Notes tab. The preparer resolves internal notes and sends client questions as needed. Detailed handling of individual findings is UNKNOWN."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Handle One Rock feedback",
+    "actor": "Individual placement, notification, feedback-recording and workbook-update roles UNKNOWN",
+    "system": "Client Collaboration folder; email; workbook",
+    "description": "Place the package in the Client Collaboration folder and notify One Rock. Record One Rock email feedback and update the workbook. The participant names the preparer, GPFS reviewer, internal fund team and One Rock for the overall review, but does not assign these individual actions."
+   },
+   {
+    "id": "S7b",
+    "type": "activity",
+    "title": "Repeat fund package review",
+    "actor": "Review participants and individual assignments on each repeat UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Repeat review until final approval. Which review levels repeat, how further feedback is handled and where approval is retained are UNKNOWN."
+   },
+   {
+    "id": "S8",
+    "type": "document",
+    "title": "Create fund and affiliate invoices",
+    "actor": "GPFS preparer",
+    "system": "Sage",
+    "description": "Create accounts-receivable invoices individually by updating a prior invoice or through an approved bulk import. Date each invoice the first day of the month after period end, use reference Q[#]/[Year] and mirror that reference in the memo. Print each invoice and save it using entity name, invoice number and amount. Route-selection and import-approval details are UNKNOWN."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Review and send invoice package",
+    "actor": "Internal invoice reviewer UNKNOWN; GPFS preparer reported for the overall invoice work",
+    "system": "UNKNOWN",
+    "description": "Complete internal invoice review and send the package to the fund team. The individual reviewer and sender, checks, evidence and failure handling are UNKNOWN."
+   },
+   {
+    "id": "S10",
+    "type": "document",
+    "title": "Send fund payment request",
+    "actor": "Internal fund team; GPFS requests notification copies",
+    "system": "UNKNOWN",
+    "description": "The fund team sends the payment request to Treasury. GPFS asks to receive copies of payment notifications so received cash can be matched to the correct invoice. The timing of that request, notification receipt and actual matching are UNKNOWN."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Clean portfolio-company activity",
+    "actor": "GPFS preparer",
+    "system": "Sage GL; Excel",
+    "description": "Run Sage GL for account 1201 for the quarter, without customer or location filters. Clean it using the fund GL method in S2, also removing the department column and 1201 summary header row and prior Invoice rows. Build a Customer Name / Transaction Amount pivot and identify and exclude approved write-offs and out-of-population entities."
+   },
+   {
+    "id": "S12",
+    "type": "activity",
+    "title": "Map and reconcile company tabs",
+    "actor": "GPFS preparer",
+    "system": "Sage AR; portfolio-company workbook",
+    "description": "For every add-on or holding customer, inspect Sage AR > Customer > Additional Information > Parent and combine its activity with the parent tab. Reported examples are Pros DCI to Port EnviroServe, Comfort Investor Holdings to Port Comfort, and Island Energy Investor Holdings to Port IES. Paste current rows into the correct entity tab, update formulas and refresh the expense-type pivot for filing, audit, accounting, legal, meals, travel, technology and other. Run a separate Sage 1201 report for each customer or parent population and confirm its tab agrees."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Handle Do Not Bill items",
+    "actor": "GPFS preparer and reviewer; individual assignments UNKNOWN",
+    "system": "Portfolio-company detail; Sage",
+    "description": "Keep Do Not Bill items in aggregate detail so the Sage reconciliation remains complete, exclude them from billable totals, record the classification and confirm the aggregate total still agrees with Sage. Classification criteria are UNKNOWN."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Review portfolio-company package",
+    "actor": "GPFS reviewer; internal fund team; preparer; One Rock; individual placement and feedback-recording roles UNKNOWN",
+    "system": "Workbook; Notes tab; Client Collaboration folder; email",
+    "description": "Complete the GPFS, internal fund-team and One Rock reviews described in S6–S7, including the reported checks, coding, notes, package placement, feedback and workbook updates. The participant refers to the same review chain; individual placement and feedback-recording roles are UNKNOWN."
+   },
+   {
+    "id": "S14b",
+    "type": "activity",
+    "title": "Repeat company package review",
+    "actor": "Review participants and individual assignments on each repeat UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Repeat the reported review until final approval. Which review levels repeat, how further feedback is handled and where approval is retained are UNKNOWN."
+   },
+   {
+    "id": "S15",
+    "type": "document",
+    "title": "Create deal-team files",
+    "actor": "GPFS preparer",
+    "system": "Excel; separate approved portfolio-company folder",
+    "description": "After approval, create one Excel file per portfolio company for deal-team review. Include current-quarter expenses only; remove historical activity and historical Do Not Bill items; preserve the complete current-quarter expense-type pivot. Save individual files in the separate approved portfolio-company folder."
+   },
+   {
+    "id": "S16",
+    "type": "data_store",
+    "title": "Update Expense Tracker",
+    "actor": "GPFS preparer",
+    "system": "Expense Tracker; Sage",
+    "description": "Enter billable amount per entity and grand total. Update previously reimbursed amounts, accrued/credit balances, bank reserves, net amount, prior-quarter comparison and deal-team approval status. Confirm the net amount agrees with Sage and confirm the meaning of accrued balance versus credit with One Rock. Sources and calculations for individual tracker balances are UNKNOWN."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Review Expense Tracker",
+    "actor": "One Rock",
+    "system": "Expense Tracker",
+    "description": "One Rock reviews the Expense Tracker. What is checked, feedback and evidence, timing, and whether the review must finish before invoice preparation are UNKNOWN."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Group and prove invoice expenses",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Map detailed expense classes to Professional Fees, Other Expenses, Meals and Travel. Prove grouped classes equal the approved billable amount for each entity. How differences are resolved is UNKNOWN."
+   },
+   {
+    "id": "S19",
+    "type": "decision",
+    "title": "Which invoice preparation route?",
+    "actor": "GPFS preparer; selection authority UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Use a bulk import or approved manual invoices. The basis for choosing between them and approval authority are UNKNOWN."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Prepare and review imported invoices",
+    "actor": "GPFS preparer; individual reviewer UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Prepare the bulk import; approximately 100 lines is a source example, not an established normal volume. Review each imported invoice individually and confirm it remains one page. Other checks and failure handling are UNKNOWN."
+   },
+   {
+    "id": "S21",
+    "type": "document",
+    "title": "Prepare approved manual invoices",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Prepare approved manual portfolio-company invoices. The approval authority and evidence are UNKNOWN; individual imported-invoice review is not reported for this route."
+   },
+   {
+    "id": "S22",
+    "type": "decision",
+    "title": "Is the entity reserve-funded?",
+    "actor": "GPFS preparer; classification authority UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Route portfolio-company invoices according to whether the entity is reserve-funded. The source of the funding classification is UNKNOWN."
+   },
+   {
+    "id": "S23",
+    "type": "document",
+    "title": "Route reserve-funded invoices",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Route reserve-funded entity invoices directly to Treasury for payment from reserves. Subsequent payment and confirmation are UNKNOWN."
+   },
+   {
+    "id": "S24",
+    "type": "document",
+    "title": "Route other company invoices",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "Route all other portfolio-company invoices through the standard approved payment chain. Its participants and subsequent steps are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "Next"
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": "After fund activity preparation"
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "Then"
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": "Once done"
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": "Following support assembly"
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Package for client review"
+   },
+   {
+    "from": "S7",
+    "to": "S7b",
+    "label": "Feedback recorded and workbook updated"
+   },
+   {
+    "from": "S7b",
+    "to": "S7b",
+    "label": "Review repeats until final approval"
+   },
+   {
+    "from": "S7b",
+    "to": "S8",
+    "label": "Final approval"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "Invoices created and saved"
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": "Package sent to fund team"
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": "Following fund invoice handoff"
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": "Following portfolio activity preparation"
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": "Following tab reconciliation"
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": "Following Do Not Bill treatment"
+   },
+   {
+    "from": "S14",
+    "to": "S14b",
+    "label": "Feedback and workbook updates"
+   },
+   {
+    "from": "S14b",
+    "to": "S14b",
+    "label": "Review repeats until final approval"
+   },
+   {
+    "from": "S14b",
+    "to": "S15",
+    "label": "After approval"
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": "Following file preparation"
+   },
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": "One Rock reviews tracker"
+   },
+   {
+    "from": "S16",
+    "to": "S18",
+    "label": "Following tracker update; review dependency UNKNOWN"
+   },
+   {
+    "from": "S18",
+    "to": "S19",
+    "label": "Expense grouping"
+   },
+   {
+    "from": "S19",
+    "to": "S20",
+    "label": "Bulk import"
+   },
+   {
+    "from": "S19",
+    "to": "S21",
+    "label": "Approved manual invoices"
+   },
+   {
+    "from": "S20",
+    "to": "S22",
+    "label": "Imported invoices reviewed"
+   },
+   {
+    "from": "S21",
+    "to": "S22",
+    "label": "Manual invoices prepared"
+   },
+   {
+    "from": "S22",
+    "to": "S23",
+    "label": "Reserve-funded entity"
+   },
+   {
+    "from": "S22",
+    "to": "S24",
+    "label": "Other entities"
+   }
+  ],
+  "open_questions": [
+   "Does any incoming route start S7b (Repeat fund package review), or must all prerequisites finish?",
+   "Does any incoming route start S14b (Repeat company package review), or must all prerequisites finish?",
+   "What initiates the cycle, who detects it, and what are its normal cadence and fixed deadlines?",
+   "Who is accountable for the overall result, and what observable condition marks the whole billing process finished?",
+   "How are Sage mismatches, missing support or workbook contents, and failed invoice or expense-grouping checks corrected and rechecked?",
+   "What happens after Treasury or the standard payment chain receives each invoice, and how are payment notifications and cash matching handled?",
+   "What does One Rock check in the Expense Tracker, and must its review finish before portfolio-company invoicing?",
+   "How are deal-team files delivered, and how are deal-team approval and its status obtained and recorded?",
+   "Who places packages and records feedback, where is final approval retained, and which review activities repeat after corrections?",
+   "Who performs and sends the fund invoice review package, what is checked, and what evidence and rework result?",
+   "What are the confirmed population and exclusion rules, who approves them, and what determines Do Not Bill classification?",
+   "How are accrued balance, credit, reserves and net amounts defined and calculated, and where do their inputs originate?",
+   "Who approves bulk imports or manual invoices, how is the preparation route chosen, and what happens if an imported invoice fails review?",
+   "How is reserve-funded status determined, and who participates in the standard approved payment chain?",
+   "What are the authoritative records, precise working locations, rule sources and rule interpreters?",
+   "Is this account specific to One Rock or general GPFS practice, and what is the basis? What other differences and their effort, charging and removal constraints apply?",
+   "What are the normal volumes, peaks, exception frequency, effort, pain points and consequences of failure?",
+   "What existing procedures or other materials are available for review, and who can confirm this draft?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "The intake calls the work Due From Funds & Portfolio Companies Billing. It includes fund, affiliate and portfolio-company billing; other team or system names and the precise boundary are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The work produces reviewed billing packages, invoices and payment handoffs for funds, affiliates and portfolio companies. The ultimate delivered result and completion boundary are UNKNOWN."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The first reported action is opening a billing cycle and preparing workbooks. The actual initiating event, detector, upstream readiness and cadence are UNKNOWN. Portfolio activity uses a quarter range; fund invoices are dated the first day of the month after period end, an invoice date rather than an established processing deadline."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The fund team sends a payment request to Treasury; reserve-funded company invoices go directly to Treasury and other company invoices to a standard approved payment chain. Treasury processing, cash matching, deal-team completion and the observable finish of the overall work are UNKNOWN."
+   },
+   {
+    "key": "accountable",
+    "status": "unknown",
+    "answer": "UNKNOWN: overall accountability. The GPFS preparer performs much of the work, but performance does not establish accountability."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The preparer opens the cycle, copies and checks workbooks, cleans and reconciles Sage fund and affiliate activity, and assembles support. The GPFS reviewer and internal fund team review the package; One Rock feedback is recorded, the workbook updated and review repeated to final approval. Fund invoices are created and reviewed before the fund team requests payment. Portfolio activity is cleaned, mapped to parent tabs and reconciled; Do Not Bill items stay in aggregate detail but not billable totals. After the reported review and approval, the preparer creates deal-team files, updates the tracker and prepares invoices for reserve or other payment routing. Precise handoffs, correction routes, tracker-review dependency and final closure remain UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "Checks include workbook presence, Sage comparisons, confirmed affiliate population exclusions, reviewer checks of reconciliations and unusual or missing support, internal coding and One Rock review to final approval. Portfolio checks retain Do Not Bill detail in aggregate, compare tracker net to Sage, prove invoice groupings and check each imported invoice remains one page. Review evidence, thresholds, segregation, overrides, detailed rejection and rework handling, and tracker-review blocking are UNKNOWN."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "Fund invoices may be created from prior invoices or an approved bulk import. Portfolio invoices use a bulk import or approved manual route; reserve-funded entities go directly to Treasury while others use the standard approved payment chain. Reasons, route-selection authority, effort, charging and removal constraints are UNKNOWN. No general GPFS standard is independently corroborated."
+   },
+   {
+    "key": "pain_points",
+    "status": "partial",
+    "answer": "The participant describes copying and updating workbooks, cleaning exported activity, collecting support and updating the tracker. Whether these activities cause particular friction or extra effort is UNKNOWN; no pain point or effort estimate was reported."
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "The participant reports marking completed account sections so they are not processed twice and requesting payment notifications so cash can be matched to the correct invoice. Other failure consequences and their materiality are UNKNOWN."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "Prior workbooks, invoice PDFs, allocation and general-journal support, email feedback and the Expense Tracker were mentioned. No procedure or other supporting document was supplied for independent review; availability and location of governing instructions are UNKNOWN."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The account covers funds, affiliates and portfolio companies, including add-on or holding customers and parent tabs. One Rock participates in review. Whether the route is client-specific or general GPFS practice, its parent process and entity-wide applicability are UNKNOWN."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "Reported practices include net debit minus credit, removing Invoice rows, confirmed affiliate population exclusions, parent mapping from Sage, Do Not Bill treatment, invoice date and reference conventions, and expense-class grouping. Written sources, interpreters, conflict authority, approval basis, rounding and tracker calculations are UNKNOWN; no document was reviewed to verify these rules."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "Sage supplies GL activity and customer parent information; the internal fund team reviews and codes, then sends fund payment requests to Treasury. Deal teams are intended to review company files, One Rock reviews packages and the tracker, and Treasury receives reserve-funded invoices. Upstream cycle initiation and downstream payment, approval and closure dependencies remain UNKNOWN."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "Sage supplies GL, customer information and fund invoice creation; activity is exported to Excel and worked in copied workbooks. Box, Sage and email provide support stored in a consolidated cycle folder; Client Collaboration holds packages; company files go to a separate approved folder and the Expense Tracker is updated. Authoritative records, exact locations, workbook logic ownership and detailed tracker inputs are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "partial",
+    "answer": "Approximately 25–27 portfolio-company tabs receive header updates. Approximately 100 import lines is a source example, not a normal volume. Counts, peaks, exception frequency and time by step are UNKNOWN."
+   }
+  ]
+ },
+ "draft_error": null
+}

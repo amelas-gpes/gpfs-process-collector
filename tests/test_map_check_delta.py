@@ -227,7 +227,7 @@ class CheckedBesideTheDraw(unittest.TestCase):
         # A map the page waits for returns the memo as well and keeps the full instructions, unchanged.
         self.assertTrue(server.WORKFLOW_INSTRUCTIONS.startswith(server.ARTIFACT_EVIDENCE_POLICY + server.WORKFLOW_MAP_RULES))
         self.assertIn(server.WORKFLOW_MEMO_RULES, server.WORKFLOW_INSTRUCTIONS)
-        self.assertEqual(server.provider_usage.prompt_id(server.WORKFLOW_INSTRUCTIONS), "8d8a709e27ac0735")
+        self.assertEqual(server.provider_usage.prompt_id(server.WORKFLOW_INSTRUCTIONS), "f57783fe73a74655")
 
     def test_each_check_reviews_only_what_the_latest_answer_changed(self):
         self.say("u1")

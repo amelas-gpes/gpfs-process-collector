@@ -1582,6 +1582,9 @@ def _formula_text(value):
     return _cell_text(json.dumps(attributes, ensure_ascii=False, sort_keys=True))
 
 
+HIDDEN_SHEET_LABEL = ' · hidden sheet'
+
+
 def _row_chunks(record, chunks, sheet_index, sheet_name, rows):
     def get_column_letter(number):
         result = ''
@@ -1750,7 +1753,11 @@ def _workbook(path, record, chunks):
             first_chunk = len(chunks.items)
             item = _row_chunks(record, chunks, index, sheet.title, rows())
             item['visibility'] = sheet.sheet_state
-            for chunk in chunks.items[first_chunk:]: chunk['location']['visibility'] = sheet.sheet_state
+            for chunk in chunks.items[first_chunk:]:
+                chunk['location']['visibility'] = sheet.sheet_state
+                # A hidden sheet is read like any other, so every excerpt from one says so: a reader
+                # of the notes or the draft would otherwise look for cells the workbook does not show.
+                if sheet.sheet_state != 'visible': chunk['label'] += HIDDEN_SHEET_LABEL
             # openpyxl's read-only cell stream intentionally omits worksheet
             # drawings. Preserve their presence rather than claiming the tab
             # was fully read just because its cells were indexed.
@@ -1870,8 +1877,11 @@ def _legacy_xls(path, record, chunks):
                     remaining -= len(row)
                     if remaining < 0: raise ExtractionError('Workbook exceeds two million stored cells.')
                     yield number + 1, [(col, value, None, None) for col,value in enumerate(row,1) if value != '']
+            first_chunk = len(chunks.items)
             item = _row_chunks(record, chunks, index + 1, sheet.name, rows())
             item.update(visibility={0:'visible',1:'hidden',2:'veryHidden'}.get(sheet.visibility,'unknown'), formula_cells=None)
+            if item['visibility'] in ('hidden', 'veryHidden'):
+                for chunk in chunks.items[first_chunk:]: chunk['label'] += HIDDEN_SHEET_LABEL
             sheets.append(item)
         return ({'sheets': sheets, 'sheet_count': len(sheets), 'rows': sum(item['rows'] for item in sheets),
                  'formula_policy': 'Saved legacy cell results only; formula provenance may be unavailable.'},

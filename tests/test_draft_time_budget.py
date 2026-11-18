@@ -144,9 +144,77 @@ class DraftRequestBudgetTests(unittest.TestCase):
 
     def test_the_browser_waits_at_least_as_long_as_the_server_may_take(self):
         source = (APP / "web" / "app.js").read_text(encoding="utf-8")
-        self.assertIn('timeout:requestTimeout("draft",690000)', source)
-        server_total = server.DRAFT_GENERATION_TIMEOUT_MAX + server.DRAFT_AUDIT_TIMEOUT + COVERAGE_REVIEW_TIMEOUT
+        self.assertIn('timeout:requestTimeout("draft",1170000)', source)
+        server_total = server.DRAFT_GENERATION_TIMEOUT_LARGE + server.DRAFT_AUDIT_TIMEOUT_MAX + COVERAGE_REVIEW_TIMEOUT
+        self.assertGreaterEqual(server.DRAFT_GENERATION_TIMEOUT_LARGE, server.DRAFT_GENERATION_TIMEOUT_MAX)
         self.assertGreaterEqual(server.REQUEST_TIMEOUTS_MS["draft"], (server_total + 30) * 1000)
+        self.assertGreaterEqual(1170000, server.REQUEST_TIMEOUTS_MS["draft"])
+
+    def test_the_audit_and_the_second_route_review_use_the_allowance_of_the_candidate(self):
+        # A long candidate is given longer than the base allowance; the same figure bounds the
+        # audit request and the deadline of the second route review.
+        payload = long_payload(9000)
+        allowed = server.draft_generation_timeout(payload["turns"])
+        clock = Clock()
+        started = clock.now
+        client = self.client(clock, {"process_draft": 100, "process_draft_audit": 300})
+        deadlines = []
+        real = server.RouteRecheck
+
+        def recorded(*args, **kwargs):
+            deadlines.append(args[5])
+            return real(*args, **kwargs)
+        with patch.object(server.time, "monotonic", clock), patch.object(server, "RouteRecheck", recorded), \
+                patch.object(server, "draft_audit_timeout", return_value=410) as timeout:
+            result = client.draft(payload)
+        self.assertIn("draft", result)
+        candidate, proposals = timeout.call_args.args
+        self.assertEqual(proposals, candidate["connections"])
+        self.assertEqual(client.structured.call_args_list[1].kwargs["request_timeout"], 410)
+        self.assertEqual(deadlines, [started + allowed + 410])
+
+
+class DraftAuditTimeoutTests(unittest.TestCase):
+    """The audit writes the candidate out again, so a fixed allowance failed the longest drafts.
+
+    Measured with the real provider on 2026-11-17: fifteen audits wrote a median of 14,600
+    tokens in 163 s (about 90 a second). Two candidates of about 20,000 tokens, from interviews
+    of 2,100 and 2,600 participant words, and one of 14,400 tokens from a seven-page procedure
+    with a single answer, timed out at the fixed 240 s on every attempt.
+    """
+    @staticmethod
+    def candidate(tokens):
+        return {"overview": "x" * int(tokens * 3.5)}
+
+    def test_a_short_candidate_keeps_the_base_allowance(self):
+        self.assertEqual(server.draft_audit_timeout({}, []), server.DRAFT_AUDIT_TIMEOUT)
+        self.assertEqual(server.draft_audit_timeout(self.candidate(7000), [0] * 14), server.DRAFT_AUDIT_TIMEOUT)
+        self.assertEqual(server.draft_audit_timeout(object(), None), server.DRAFT_AUDIT_TIMEOUT)
+
+    def test_the_allowance_grows_with_the_candidate_and_its_routes_up_to_the_ceiling(self):
+        sizes = (0, 5000, 10000, 15000, 20000, 22000, 40000, 200000)
+        allowed = [server.draft_audit_timeout(self.candidate(size), [0] * 30) for size in sizes]
+        self.assertEqual(allowed, sorted(allowed))
+        self.assertGreater(allowed[4], allowed[1])
+        self.assertEqual(allowed[-1], server.DRAFT_AUDIT_TIMEOUT_MAX)
+        self.assertTrue(all(server.DRAFT_AUDIT_TIMEOUT <= value <= server.DRAFT_AUDIT_TIMEOUT_MAX for value in allowed))
+        self.assertTrue(all(type(value) is int for value in allowed))
+        self.assertGreater(server.draft_audit_timeout(self.candidate(15000), [0] * 100),
+                           server.draft_audit_timeout(self.candidate(15000), [0] * 10))
+
+    def test_the_two_drafts_that_could_not_be_audited_are_allowed_the_time_their_output_takes(self):
+        # About 20,000 candidate tokens with 53 and 69 connections: the audit writes the candidate
+        # again plus about 110 tokens a connection, at about 90 tokens a second.
+        for tokens, routes in ((19557, 53), (19958, 69), (14426, 23)):
+            needed = (tokens + 200 * routes) / 90
+            self.assertGreaterEqual(server.draft_audit_timeout(self.candidate(tokens), [0] * routes), needed * 1.3)
+
+    def test_a_candidate_is_kept_long_enough_to_retry_its_longest_audit(self):
+        self.assertGreaterEqual(server.DRAFT_CANDIDATE_SECONDS, server.DRAFT_AUDIT_TIMEOUT_MAX + 300)
+
+    def test_the_ceiling_covers_the_whole_audit_output_allowance(self):
+        self.assertGreaterEqual(server.DRAFT_AUDIT_TIMEOUT_MAX, server.DRAFT_AUDIT_MAX_TOKENS / 90)
+        self.assertGreater(90, server.DRAFT_AUDIT_TOKENS_PER_SECOND)
 
 
 

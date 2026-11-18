@@ -176,19 +176,42 @@ DRAFT_GENERATION_TIMEOUT = 120
 # The first draft request arrives whole, so its timeout bounds the entire generation.
 # A short interview keeps the allowance above; a longer one gets one more second for
 # every 25 characters the participant and the reference files supplied (see
-# draft_generation_timeout), up to the time the full 22,000-token allowance takes.
+# draft_generation_timeout), up to the time the full 22,000-token allowance takes. A draft
+# with a larger output allowance (draft_output_tokens) gets the time that allowance takes,
+# up to DRAFT_GENERATION_TIMEOUT_LARGE: 40,000 tokens at the measured 88 a second.
 DRAFT_GENERATION_TIMEOUT_MAX = 300
+DRAFT_GENERATION_TIMEOUT_LARGE = 480
 DRAFT_GENERATION_CHARACTERS_PER_SECOND = 25
 DRAFT_AUDIT_TIMEOUT = 240
+# The audit returns its corrections and a quoted row per connection, so the time it needs
+# follows the candidate (see draft_audit_timeout). Until 2026-11-18 it wrote the whole candidate
+# out again: fifteen audits wrote a median of 14,600 tokens in 163 s, about 90 a second, which was
+# the longer half of every draft wait and changed 1 to 3% of the wording. Three candidates could
+# not be audited in a fixed 240 s on any attempt, so the allowance follows the candidate. It is
+# still sized for an audit that writes the whole candidate again, which one that has to correct
+# most steps does; an audit that corrects little simply finishes sooner.
+DRAFT_AUDIT_TIMEOUT_MAX = 540
+DRAFT_AUDIT_TOKENS_PER_SECOND = 60
+# A generated candidate is kept for a retry of its audit. It has to outlive the longest audit by
+# the time a person takes to choose Try again, or the retry writes the whole draft a second time.
+DRAFT_CANDIDATE_SECONDS = DRAFT_AUDIT_TIMEOUT_MAX + 600
 # Browser wait includes all sequential provider calls plus delivery of the response.
 REQUEST_TIMEOUTS_MS = {
     "default": 150000, "capture": 330000, "workflow": 330000, "workflow_with_files": 510000,
-    "draft": (DRAFT_GENERATION_TIMEOUT_MAX + DRAFT_AUDIT_TIMEOUT + 120 + 30) * 1000,
+    "draft": (DRAFT_GENERATION_TIMEOUT_LARGE + DRAFT_AUDIT_TIMEOUT_MAX + 120 + 30) * 1000,
     "live_session": 55000, "voice_session": 60000,
 }
 DRAFT_OUTPUT_TOKENS = 22000
-# The audit writes the whole draft out again plus a quoted row per connection, so its allowance
-# follows the candidate (draft_audit_output_tokens) up to this bound.
+# The second and last request for a map update whose first reply was cut off at its allowance.
+WORKFLOW_RETRY_OUTPUT_TOKENS = 32000
+WORKFLOW_RETRY_TIMEOUT = 240
+# A draft writes about 380 output tokens for each step, everything else included, so a fixed
+# 22,000 held about 57 of the 80 steps a draft may have: the 60-step interview of 2026-11-17 was
+# cut off after four minutes. The allowance follows the account (draft_output_tokens) up to this.
+DRAFT_OUTPUT_TOKENS_MAX = 40000
+DRAFT_OUTPUT_TOKENS_PER_STEP = 500
+# The audit's allowance follows the candidate (draft_audit_output_tokens) up to this bound, which
+# leaves room for an audit that has to write a large candidate's steps again.
 DRAFT_AUDIT_MAX_TOKENS = 40000
 # One second route review at most, and only inside the time the generation and audit
 # requests left unused, so a map or draft never takes longer than those two limits allow.
@@ -331,7 +354,25 @@ FIELD_EVIDENCE = {"type": "array", "maxItems": 401, "items": obj({
     "field": {"type": "string", "enum": list(DRAFT_FIELDS)}, "index": {"type": "integer"},
     "text": STRING, "evidence_turns": {"type": "array", "items": STRING, "minItems": 1}
 })}
-DRAFT_AUDIT_SCHEMA = obj({**DRAFT_SCHEMA["properties"], "field_evidence": FIELD_EVIDENCE, "route_support": ROUTE_SUPPORT})
+# The audited draft: the candidate with the audit's corrections applied (draft_audit.merge).
+DRAFT_AUDITED_SCHEMA = obj({**DRAFT_SCHEMA["properties"], "field_evidence": FIELD_EVIDENCE, "route_support": ROUTE_SUPPORT})
+# What the audit returns. It used to return the whole draft again, which took longer than
+# writing the draft and left 97 to 99% of it as it was. It now returns its corrections: the
+# steps, connections and findings it changes or adds, what it removes, and in full every other
+# section it names in changed_sections. Everything else stays as the candidate has it.
+DRAFT_AUDIT_SCHEMA = obj({
+    # Named drop_*, not remove_*: the wire schema allows no remove_steps or remove_connections
+    # while no participant has spoken (a rule for map updates), and a draft made from files
+    # alone must still be able to lose a step the files do not support.
+    "steps": DRAFT_SCHEMA["properties"]["steps"], "drop_steps": STRINGS,
+    "connections": DRAFT_SCHEMA["properties"]["connections"],
+    "drop_connections": {"type": "array", "items": obj({"from": STRING, "to": STRING, "label": STRING})},
+    "route_support": ROUTE_SUPPORT,
+    "changed_sections": {"type": "array", "items": {"type": "string", "enum": list(draft_audit.SECTIONS)}},
+    **{key: DRAFT_SCHEMA["properties"][key] for key in draft_audit.SECTIONS},
+    "memo_summary": DRAFT_SCHEMA["properties"]["memo_summary"],
+    "field_evidence": FIELD_EVIDENCE,
+})
 WORKFLOW_AUDIT_SCHEMA = obj({
     "title": STRING,
     "discard_step_upserts": STRINGS,
@@ -647,6 +688,9 @@ the resolving participant answer and describe the resolved fact without retainin
 """
 WORKFLOW_COMPONENT_POLICY = """Use the most specific supported component type, based on reported meaning:
 - activity: an ordinary task or action; this remains the default when no special meaning is established.
+  A step is something a person or a system does. A rule, limit, threshold, definition or policy
+  sentence is not a step: keep it in the description or operating_details of the step it governs.
+  When the source does not say which step that is, put the question in open_questions and draw nothing.
 - decision: a reported choice, test or evaluation with conditional outcomes. State the actual test as
   a concise question in the title and put each reported outcome/condition on its own outgoing edge.
   Support binary AND multi-way choices. Never add a plausible Yes/No alternative that was not reported.
@@ -655,8 +699,14 @@ WORKFLOW_COMPONENT_POLICY = """Use the most specific supported component type, b
   an ALL-branches join. If one shared following activity already represents the reconvergence, connect
   alternatives to that activity instead of adding a redundant gateway. A merge makes no new choice.
 - start: an explicitly reported initiating event or trigger, not simply the first action collected.
+  When the account states what sets the work off (a receipt, a request, a schedule or another event),
+  draw it as the start node and connect it to the first action it sets off, citing that statement.
 - end: an explicitly reported terminal event/result for that route, not merely the last known action.
-  A closing action can remain an activity; do not add redundant start/end nodes just for decoration.
+  When the account states the finished condition or result of the work or of one of its routes (what
+  shows that it is done, such as an acceptance, a sign-off, a closed case or a reconciled total), draw
+  it as an end node reached from the step that produces it, citing that statement. A closing action
+  stays an activity when no finished condition is reported; never add a start or end node that no
+  statement supports.
 - parallel_split: an explicitly reported point where ALL named branches begin concurrently or proceed
   independently. It is not a choice. 'Two people approve' without their ordering is not parallel evidence.
 - parallel_join: an explicitly reported synchronization that waits for ALL the incoming parallel
@@ -1526,7 +1576,11 @@ If exception resolution or rejoin is unknown, end that known branch with the gap
 Inputs/outputs/controls/exceptions must be actually reported. Empty arrays are appropriate if unknown.
 Do not infer that a control is effective, consistently operated, or independently verified.
 Record contradictions, missing checks, incomplete branches, and absent source evidence in validation_notes
-and open_questions. Always include a note that this is an AI-generated draft requiring process-owner review.
+and open_questions. Write validation_notes for the process owner who will review the draft: what is
+uncertain, contradicted or unverified in the account and why it matters, one point to a note. Do not
+describe how this draft was produced (the working map or its step ids, a check or an audit, indexing, page,
+section or chunk counts) and do not add a note that this is an AI-generated draft for review: the
+application adds that one. Mention how much of a file was read only when part of it was not.
 Make the procedure detailed and organized enough for a business-process review, not a short overview.
 Preserve everything operationally relevant that was reported: the normal route, distinct actions,
 decision criteria and outcomes, conditional branches, role responsibilities, systems and records,
@@ -1573,7 +1627,22 @@ inventing sequential or parallel execution. Decision outcomes must originate fro
 
 DRAFT_AUDIT_INSTRUCTIONS = ARTIFACT_EVIDENCE_POLICY + """
 You are checking a candidate draft AGAINST THE ACTUAL EVIDENCE, not polishing a plausible procedure.
-Return a corrected draft in the same schema. Participant statements/context and supplied exact document
+Return your corrections to the candidate, not the candidate again. The application applies them, and
+whatever you do not return stays exactly as the candidate has it:
+- steps: only the steps you correct or add. Write each of them out in full, every field, because a
+  returned step replaces the candidate step that has the same id. drop_steps: the ids of the
+  candidate steps that the sources do not support. Keep the ids of the steps that stay.
+- connections: only the connections you add or correct. drop_connections: the exact from, to and
+  label of each candidate connection that is unsupported or that a corrected connection replaces.
+- memo_summary: only the findings you correct, each in full; it replaces the finding with its key.
+  Correct a finding when the sources contradict it or do not support it. Do not lower its status,
+  and do not add a sentence that something is UNKNOWN, only because a further detail could exist
+  that the account never raised (a process with a stated name is not partial for want of other names).
+- changed_sections: the name of every other section you correct. Write each named section out in
+  full, because it replaces the candidate's. Leave a section you do not name empty; it is ignored.
+Return nothing merely to restate or reword it. An audit that finds nothing to correct returns empty
+correction arrays with the complete route_support and field_evidence registers.
+Participant statements/context and supplied exact document
 excerpts are the factual basis; preserve their distinct provenance. Document-only memo findings remain
 partial. Do not erase sourced documentary steps merely because no participant repeated them aloud.
 Compare every step, connection, control, stage, role, location, timing, variation and memo answer to the
@@ -1655,8 +1724,9 @@ pronounce the interview complete, or change participant confirmation in this cap
 """ + WORKFLOW_GRAPH_POLICIES + STEP_DETAIL_POLICY + WORKFLOW_ROUTE_CLOSING)
 WORKFLOW_AUDIT_INSTRUCTIONS += GRAPH_ROUTING_POLICY + WORKFLOW_COMPONENT_POLICY + "\nKeep the candidate step type and other fields unless the source supports a correction. Former and planned work are separate from current operations."
 DRAFT_AUDIT_INSTRUCTIONS += """
-For each reported trigger, input, output, exception and control, return field_evidence with the field, zero-based
-index (zero for trigger), its exact text, and the actual sources that establish it. A documentary claim stays
+For each reported trigger, input, output, exception and control as it stands after your corrections, return
+field_evidence with the field, zero-based index (zero for trigger), its exact text, and the actual sources that
+establish it. Copy the text of an unchanged entry from the candidate character for character. A documentary claim stays
 attributed to the written procedure. Drop an unsupported claim or move it to open_questions. Keep open_questions
 in priority order. The overview summarizes the cited sections. Any remaining uncertainty requires owner review.
 """
@@ -1739,14 +1809,42 @@ def next_question_instructions(document_followup):
     return NEXT_QUESTION_INSTRUCTIONS + (DOCUMENT_FOLLOWUP_INSTRUCTIONS if document_followup else "")
 
 
-def draft_instructions():
-    return (DRAFT_INSTRUCTIONS + foundation_instructions("draft")
-            + "\nUse the working map only as a prior interpretation. Recheck its steps and routes against the participant turns and authorized excerpts. Describe material differences in validation_notes.")
+_DRAFT_KEEPS_MAP = ("\nThe working map is the map the participant has been shown while answering. Keep its step ids, steps and "
+                    "routes wherever the participant turns and authorized excerpts support them, so that the draft shows the same "
+                    "process the participant saw; do not drop or renumber a supported step or route. Change or leave out a step "
+                    "or route only when the sources contradict it or do not support it. Describe material differences in validation_notes.")
+
+
+_DRAFT_KEEPS_NOTES = ("\nThe working notes are the topic notes the participant has been shown while answering, one for each memo "
+                      "key. Write each memo_summary section from its note: keep the note's status and facts unless the participant "
+                      "turns or authorized excerpts contradict them or add to them, and name the gaps the note names. Do not lower "
+                      "a status, and do not add a sentence that a detail is UNKNOWN, for something the note treats as settled. The "
+                      "notes are a working interpretation, never evidence: cite the sources themselves.")
+
+
+def draft_instructions(with_notes=False):
+    """The draft's instructions; with_notes when the request carries the interview's topic notes.
+
+    A draft used to re-derive the map from the turns, with the working map as "a prior
+    interpretation" only. Its steps were then renumbered, regrouped or left unconnected: Review
+    showed a different map from the one the participant had watched being drawn, and open
+    questions cited step ids that meant something else there. It is now told to keep the working
+    map where the sources support it; the audit that follows still checks every route and removes
+    what they do not support. The output allowance follows the map (draft_output_tokens), so a
+    map of any size can be written out step for step.
+
+    The memo had the same fault: written without the notes, a draft gave a topic a different
+    status from the Notes list in 134 places across 45 drafts (a process name the notes held
+    as captured became partial because the draft added "other names are UNKNOWN"). With the
+    notes it starts each section from what the participant was shown.
+    """
+    return DRAFT_INSTRUCTIONS + foundation_instructions("draft") + _DRAFT_KEEPS_MAP + (_DRAFT_KEEPS_NOTES if with_notes else "")
 
 
 def draft_audit_instructions():
     return (DRAFT_AUDIT_INSTRUCTIONS + ROUTE_SUPPORT_INSTRUCTIONS
-            + "\nThe candidate draft is unpublished. Include route_support for EVERY final draft connection.\n"
+            + "\nThe candidate draft is unpublished. Include route_support for EVERY final draft connection: each "
+              "candidate connection you do not remove and each one you add.\n"
             + foundation_instructions("draft"))
 
 
@@ -1823,19 +1921,36 @@ def own_wording(error, otherwise):
 
 
 FINAL_CHECK_PREFIX = "Before we finish, is there anything else"
-PARTIAL_CHECK_PREFIX = "This capture still has open sections."
+# What a wrap-up says first while sections are open. It used to read "This capture still has open
+# sections. 11 of 16 are open": a participant who had given thirteen full answers was told only
+# what was missing. The reply now says the account is kept and how far it reaches.
+PARTIAL_CHECK_PREFIX = "Your account so far is saved."
+PARTIAL_CHECK_CLOSE = " You can create a draft from what is here, or keep answering."
 # A wrap-up names the open sections while they are few. Early in an interview most of the sixteen
-# are open: the reply then gives their number, and the Notes list beside it shows which they are.
+# are open: the reply then counts them, and the Notes list beside it shows which they are.
 MAX_OPEN_SECTIONS_NAMED = 4
 
 
-def open_sections_detail(labels, separator=", "):
-    """The sentence a wrap-up adds about the open sections ("" when none is open)."""
+def open_sections_detail(labels, separator=", ", partly=None):
+    """The sentence a wrap-up adds about the open sections ("" when none is open).
+
+    partly is how many of the open sections already hold part of an answer, when the caller
+    knows; the rest have not come up at all.
+    """
     if not labels:
         return ""
-    if len(labels) > MAX_OPEN_SECTIONS_NAMED:
-        return f" {len(labels)} of {len(COVERAGE)} are open; the Notes list shows which."
-    return " Still open: " + separator.join(labels) + "."
+    if len(labels) <= MAX_OPEN_SECTIONS_NAMED:
+        return " Still open: " + separator.join(labels) + "."
+    done = len(COVERAGE) - len(labels)
+    parts = [f"{done} of {len(COVERAGE)} topics {'is' if done == 1 else 'are'} complete"]
+    if isinstance(partly, int) and 0 <= partly <= len(labels):
+        untouched = len(labels) - partly
+        if partly:
+            parts.append(f"{partly} {'is' if partly == 1 else 'are'} partly covered")
+        if untouched:
+            parts.append(f"{untouched} {'has' if untouched == 1 else 'have'} not come up")
+    counted = parts[0] if len(parts) == 1 else ", ".join(parts[:-1]) + " and " + parts[-1]
+    return f" {counted}; the Notes list shows what is missing."
 # Closing of the whole interview, not process vocabulary. Rounding an amount up, wrapping
 # up a month-end close, a notice that is ready to draft and "anything else you attach" are
 # ordinary questions about the work. A closing verb counts only when nothing follows it or
@@ -2405,6 +2520,43 @@ def fallback_interview_question(capture=None):
     return "What happens next in the work you just described?"
 
 
+# A second request joined to the end of a question: "..., and how does it reach you?".
+_SECOND_REQUEST = re.compile(
+    r",\s+and\s+(?=(?:what|who|whom|whose|how|when|where|which|why|does|do|did|is|are|was|were|can|could|would|should|will|has|have)\b)"
+    r"[^?.!]*\?", re.IGNORECASE)
+
+
+_QUESTION_OPENING = re.compile(
+    r"(?:what|who|whom|whose|how|which|why|does|do|did|is|are|was|were|can|could|would|should|will|has|have)\b|"
+    r"(?:when|where)\s+(?:does|do|did|is|are|was|were|can|could|would|should|will|has|have)\b", re.IGNORECASE)
+
+
+def one_request(question):
+    """The question without a second request joined to its end by ", and".
+
+    "What starts a migration, and how does it reach you?" asks two things; a participant answers
+    one of them and the other is lost or asked again. Nine of 442 questions in the stress run of
+    2026-11-17 had this form, all with a comma before "and" and an interrogative after it. Only
+    that form is cut, only in the last question of the turn, and only when what is left is itself
+    a question ("When the invoice arrives, and has been matched, what do you do next?" is one
+    question and stays whole); wording inside quotation marks is never touched.
+    """
+    if not isinstance(question, str) or question.count("?") != 1 or any(mark in question for mark in "\"“”‘’"):
+        return question
+    end = question.index("?") + 1
+    match = None
+    for match in _SECOND_REQUEST.finditer(question, 0, end):
+        pass
+    if match is None or match.end() != end:
+        return question
+    start = max(question.rfind(mark, 0, match.start()) for mark in ".!") + 1
+    lead = question[start:match.start()].strip()
+    # What is cut is one clause, and what is kept is a question (after an opening clause at most).
+    if len(lead.split()) < 4 or "," in match.group()[1:] or not _QUESTION_OPENING.match(lead.rsplit(",", 1)[-1].strip()):
+        return question
+    return question[:match.start()].rstrip() + "?" + question[end:]
+
+
 def question_rejection(text, limit=1200, single=False):
     reason = _question_rejection(text, limit, single)
     raw_trace.emit("interview.question.guard", {"limit": limit, "single": single, "reason": reason,
@@ -2491,7 +2643,8 @@ def enforce_response_boundary(result, turns, action):
         if action == "close":
             labels = [COVERAGE[f["key"]] for f in result["memo_findings"]
                       if f["status"] not in ("captured", "not_applicable")]
-            result["question"] = (PARTIAL_CHECK_PREFIX + open_sections_detail(labels, "; ") +
+            partly = sum(1 for f in result["memo_findings"] if f["status"] == "partial")
+            result["question"] = (PARTIAL_CHECK_PREFIX + open_sections_detail(labels, "; ", partly) +
                                   " What would you add or correct in the account so far?")
             result["closure"] = {"asked": False, "confirmed": False}
         elif claimed_confirmation or WRAP_UP_LANGUAGE.search(result["question"]) or not result["question"].strip():
@@ -2572,7 +2725,7 @@ def load_settings():
     allowed = {"OPENAI_API_KEY", "INTERVIEW_MODEL", "DRAFT_MODEL", "DRAFT_AUDIT_MODEL", "DRAFT_COVERAGE_MODEL", "WORKFLOW_AUDIT_MODEL", "TRANSCRIPTION_MODEL", "TRANSCRIPTION_KEYWORDS",
                "COLLECTOR_DEPLOYMENT_MODE", "KNOWLEDGE_LOCAL_OWNER", "AGENT_INTERVIEW_MODEL", "COLLECTOR_MODEL_REASONING", "TRANSCRIPTION_LANGUAGE", "INTERVIEW_TOKEN_CAP", "DAILY_TOKEN_CAP",
                "AGENT_COVERAGE_MODEL", "AGENT_PROCESS_MODEL", "AGENT_DOCUMENT_MODEL", "VOICE_MODE", "VOICE_PAUSE_MS", "RAW_TRACE_MODE",
-               "COLLECTOR_PROVIDER_SLOTS", "COLLECTOR_MAP_WORKERS"}
+               "COLLECTOR_PROVIDER_SLOTS", "COLLECTOR_MAP_WORKERS", "DRAFT_PREPARE"}
     for path in (APP_DIR / ".env.local",):
         if path.is_file() and not path.is_symlink():
             for number, line in enumerate(read_settings_text(path).splitlines(), 1):
@@ -2660,7 +2813,50 @@ def request_body_limit(path):
     return MAX_SNAPSHOT_JSON if path in SNAPSHOT_ROUTES else MAX_JSON
 
 
-def draft_generation_timeout(turns, document_evidence=()):
+# The configured spelling hints and the interview's own together (the settings allow 30).
+MAX_TRANSCRIPTION_KEYWORDS = 30
+MAX_TRANSCRIPTION_HINTS = 20
+
+
+def transcription_hints(header):
+    """Spelling hints the page sends with a recording: names and terms this interview has used.
+
+    The transcriber misheard terms it had no way to know ("Signatory A" lost its letter, a system
+    name was spelt three ways). The page lists the process name and the capitalised terms, acronyms
+    and codes of the answers so far; anything that is not a short plain term is left out, and a
+    header that cannot be read means no hints, never a failed recording.
+    """
+    if not isinstance(header, str) or not header or len(header) > 4000:
+        return []
+    try:
+        listed = unquote(header, errors="strict")
+    except (UnicodeDecodeError, ValueError):
+        return []
+    words = []
+    for word in listed.split(","):
+        word = " ".join(word.split())
+        if 2 <= len(word) <= 60 and re.fullmatch(r"\w[\w &./'’+-]*", word) and word not in words:
+            words.append(word)
+    return words[:MAX_TRANSCRIPTION_HINTS]
+
+
+def check_draft_candidate(result):
+    """The connections of a generated draft, once they are a list the audit can be asked about."""
+    proposals = result.get("connections") if isinstance(result, dict) else None
+    if isinstance(result, dict) and result.get("steps") == []:
+        raise APIError("No process steps were described. Add a concrete example of the work before generating a draft.")
+    if not isinstance(proposals, list) or len(proposals) > 150:
+        raise APIError("The generated draft must supply a list of at most 150 connections for review.")
+    try:
+        # Only validate the register's shape here. The audit can still repair wrong
+        # endpoints, unsupported conditions and missing/incorrect evidence.
+        check_schema(proposals, DRAFT_SCHEMA["properties"]["connections"], "candidate_draft.connections")
+    except ValueError as error:
+        raise APIError(own_wording(error, UNUSABLE_RESULT_MESSAGE)) from None
+    return proposals
+
+
+def draft_generation_timeout(turns, document_evidence=(), output_tokens=DRAFT_OUTPUT_TOKENS):
     """Seconds allowed for the first draft request, by how much there is to report.
 
     Measured with the real provider: 74 s for a 14-step draft and 58 s for a 10-step
@@ -2668,12 +2864,31 @@ def draft_generation_timeout(turns, document_evidence=()):
     fixed two minutes therefore ended at about 21 steps, on every retry, for the
     interviews with the most detail. One second per 25 characters is 6.8 s for each
     step of the densest account; the ceiling is the time the whole output allowance
-    takes at the measured rate (about 88,000 characters at 344 to 377 a second).
+    takes at the measured rate (about 88,000 characters at 344 to 377 a second). A draft
+    given a larger output allowance than the standard one is given the time to write it.
     """
     reported = (sum(len(turn["text"]) for turn in turns if turn["role"] == "user")
                 + sum(len(str(source.get("text", ""))) for source in document_evidence))
-    return max(DRAFT_GENERATION_TIMEOUT,
-               min(DRAFT_GENERATION_TIMEOUT_MAX, reported // DRAFT_GENERATION_CHARACTERS_PER_SECOND))
+    allowed = max(DRAFT_GENERATION_TIMEOUT,
+                  min(DRAFT_GENERATION_TIMEOUT_MAX, reported // DRAFT_GENERATION_CHARACTERS_PER_SECOND))
+    if output_tokens > DRAFT_OUTPUT_TOKENS:
+        allowed = max(allowed, min(DRAFT_GENERATION_TIMEOUT_LARGE, output_tokens // 85 + 30))
+    return allowed
+
+
+def draft_output_tokens(turns, document_evidence=(), working_map=None):
+    """Output allowance for the first draft request, by how much there is to write.
+
+    A draft that runs past its allowance is lost after minutes of waiting, on every attempt, so
+    the allowance follows the account: the steps of the map the draft is told to keep, and the
+    characters reported (the 2,600-word interview of 2026-11-17 wrote 20,100 tokens from about
+    15,000 characters). An allowance that is too large costs nothing; it is only a ceiling.
+    """
+    steps = working_map.get("steps") if isinstance(working_map, dict) else None
+    reported = (sum(len(turn["text"]) for turn in turns if turn["role"] == "user")
+                + sum(len(str(source.get("text", ""))) for source in document_evidence))
+    needed = max((len(steps) if isinstance(steps, list) else 0) * DRAFT_OUTPUT_TOKENS_PER_STEP + 4000, reported * 2)
+    return max(DRAFT_OUTPUT_TOKENS, min(DRAFT_OUTPUT_TOKENS_MAX, needed))
 
 
 def validate_payload(payload, require_answers=False):
@@ -3264,17 +3479,33 @@ def workflow_structure_questions(steps, connections):
     return questions
 
 
+def _question_words(question):
+    return " ".join(re.findall(r"[^\W_]+", str(question).casefold()))
+
+
 def add_workflow_questions(existing, questions, maximum=100):
-    added = [question for question in dict.fromkeys(questions) if question not in existing]
+    """Add the application's own questions about the map after the questions already there.
+
+    The existing register holds what a reviewer asked about the work, which a process owner
+    can answer and which the draft calls its priority questions. The generated routing
+    questions name step ids; they were shown ahead of that register and now follow it.
+    """
+    # The same question is one entry whatever its punctuation: a reviewer writes "step S29, Track
+    # overdue cases, connect" and the application "step S29 (Track overdue cases) connect".
+    known, added = {_question_words(question) for question in existing}, []
+    for question in dict.fromkeys(questions):
+        if _question_words(question) not in known:
+            known.add(_question_words(question))
+            added.append(question)
     if len(existing) > maximum:
         raise ValueError(f"The map contains more than {maximum} open questions.")
     if len(added) + len(existing) <= maximum:
-        return added + existing
+        return [*existing, *added]
     # Keep the user's full open register and combine generated routing clarifications.
     combined = " ".join(added)
     room = maximum - len(existing)
     if room and len(combined) <= 6000:
-        return [combined, *existing]
+        return [*existing, combined]
     raise ValueError("The map's open-question register is full. Resolve some open questions before expanding this map.")
 
 
@@ -3786,10 +4017,12 @@ def connect_detached_routes(capture, repair, *, context, turns, documents=None, 
 def draft_audit_output_tokens(candidate, proposals):
     """Output allowance for the audit of one candidate draft.
 
-    The audit returns the candidate again (corrected, so allow it to grow by about a
-    third), one route_support row with quoted passages per connection, and reasons at
-    medium effort inside the same allowance. A fixed allowance equal to the generator's
-    left a band of larger drafts that could be generated but never audited.
+    The audit returns its corrections, one route_support row with quoted passages per
+    connection, and its reasoning at medium effort inside the same allowance. Most audits
+    correct little, but one that has to write most steps again must still fit, so the
+    allowance covers the candidate written out again and grown by about a third. A fixed
+    allowance equal to the generator's left a band of larger drafts that could be generated
+    but never audited.
     """
     try:
         size = len(json.dumps(candidate, ensure_ascii=False).encode("utf-8"))
@@ -3798,6 +4031,35 @@ def draft_audit_output_tokens(candidate, proposals):
     # About 3.5 bytes of JSON per token; about 110 tokens for a route row and its quotation.
     estimate = int(size / 3.5 * 1.3) + 110 * (len(proposals) if isinstance(proposals, list) else 0) + 5000
     return max(DRAFT_OUTPUT_TOKENS, min(estimate, DRAFT_AUDIT_MAX_TOKENS))
+
+
+def draft_audit_timeout(candidate, proposals):
+    """Seconds allowed for the audit of one candidate draft, by how much it may have to write.
+
+    The audit returns one quoted row for each connection and its corrections, which at most
+    are the candidate again, slightly longer. A short candidate keeps the base allowance; a
+    longer one gets the time that output takes at a rate below the measured one, up to the
+    ceiling the browser waits for.
+    """
+    try:
+        size = len(json.dumps(candidate, ensure_ascii=False).encode("utf-8"))
+    except (TypeError, ValueError):
+        size = 0
+    # About 3.5 bytes of JSON per token and a tenth more after correction. A route row with
+    # quotations from a file runs to about 200 tokens. The rate is two thirds of the measured
+    # one: an allowance that is too long only delays the report of a request that has stalled,
+    # one that is too short fails the draft after minutes of waiting, on every attempt.
+    expected = int(size / 3.5 * 1.1) + 200 * (len(proposals) if isinstance(proposals, list) else 0)
+    return max(DRAFT_AUDIT_TIMEOUT, min(DRAFT_AUDIT_TIMEOUT_MAX, expected // DRAFT_AUDIT_TOKENS_PER_SECOND + 60))
+
+
+# A note that only says the draft is AI-generated or a draft for review, as models word it.
+_DRAFT_DISCLAIMER = re.compile(
+    r"\s*(?:this is an? )?(?:AI-generated (?:current-practice |review )*draft\b|(?:current-practice |review )*draft (?:for|pending|requiring) "
+    r"(?:participant (?:confirmation )?and (?:appropriate )?)?(?:process-owner|owner|participant)\b)"
+    # Nothing of substance may follow: a note that goes on to report a conflict or an open point is kept.
+    r"[^.;:]{0,160}(?:;\s*(?:participant confirmation|owner approval|interview statements|it is not|this is not)\b[^.:]{0,160})?\."
+    r"(?:\s*(?:it is not|this is not|participant confirmation)\b[^.:]{0,160}\.)?\s*$", re.IGNORECASE)
 
 
 def validate_draft(draft, turns, documents=None, context=None):
@@ -3865,8 +4127,9 @@ def validate_draft(draft, turns, documents=None, context=None):
     draft["open_questions"] = add_workflow_questions(
         draft["open_questions"], workflow_structure_questions(draft["steps"], draft["connections"]))
     note = "AI-generated draft. Process-owner review is required; interview statements have not been independently verified."
-    if note not in draft["validation_notes"]:
-        draft["validation_notes"].append(note)
+    # One statement of what this draft is, first: a model's own versions of it give way to this one.
+    draft["validation_notes"] = [note, *(text for text in draft["validation_notes"]
+                                         if text != note and not _DRAFT_DISCLAIMER.match(text))]
     if documents:
         note = "Document-derived statements describe supplied reference material; current practice and control effectiveness have not been confirmed."
         if note not in draft["validation_notes"]:
@@ -4549,6 +4812,11 @@ class OpenAIClient:
         self._background_slots = threading.BoundedSemaphore(max(1, self.provider_slots - PROVIDER_FOREGROUND_RESERVE))
         self._draft_lock = threading.Lock()
         self._draft_candidates = {}
+        # Candidates being written now, by the key of what they are written from (see draft).
+        self._draft_pending = {}
+        # The page asks for the first half of a draft when the participant wraps up, so that
+        # Create draft waits only for the source check. DRAFT_PREPARE=off leaves it to the click.
+        self.draft_prepare = (settings.get("DRAFT_PREPARE") or "on").strip().lower() not in ("off", "false", "0", "no")
         self._coverage_groups = {}
         self.model = settings.get("INTERVIEW_MODEL") or "gpt-5.4-mini"
         self.workflow_audit_model = settings.get("WORKFLOW_AUDIT_MODEL") or "gpt-5.4"
@@ -5456,10 +5724,11 @@ class OpenAIClient:
                              "topics": [], "limitation": "Coverage review could not be completed; full coverage is unconfirmed."}
 
     def apply_coverage_review(self, result, context, turns, supporting, field="memo_findings", model_override=None,
-                              allow_capture_repair=False):
+                              allow_capture_repair=False, split=False):
         findings, assessment = self.assess_coverage(result[field], context, turns, supporting,
             **({"model_override": model_override} if model_override else {}),
-            **({"allow_capture_repair": True} if allow_capture_repair else {}))
+            **({"allow_capture_repair": True} if allow_capture_repair else {}),
+            **({"split": True} if split else {}))
         result[field] = findings
         if assessment is not None:
             result["coverage_assessment"] = assessment
@@ -5479,13 +5748,22 @@ class OpenAIClient:
         carried = carried_document_sources(payload)
         previous = workflow_previous_capture(payload.get("previous_capture"), turns, document_evidence, carried, context)
         has_document_evidence = any(not source.get("retained_only") for source in document_evidence)
-        result = self.structured(WORKFLOW_INSTRUCTIONS,
-                                 {"context": context, "turns": turns, "previous_capture": previous,
-                                  "supporting_documents": supporting},
-                                 WORKFLOW_UPDATE_SCHEMA, "working_process_map",
-                                 22000 if has_document_evidence else 12000,
-                                 reasoning_effort="medium",
-                                 request_timeout=DOCUMENT_WORKFLOW_TIMEOUT if has_document_evidence else None)
+        retried = False
+
+        def draw(output_tokens, seconds):
+            return self.structured(WORKFLOW_INSTRUCTIONS,
+                                   {"context": context, "turns": turns, "previous_capture": previous,
+                                    "supporting_documents": supporting},
+                                   WORKFLOW_UPDATE_SCHEMA, "working_process_map", output_tokens,
+                                   reasoning_effort="medium", request_timeout=seconds)
+        try:
+            result = draw(22000 if has_document_evidence else 12000, DOCUMENT_WORKFLOW_TIMEOUT if has_document_evidence else None)
+        except OutputTruncated:
+            # The update of an ordinary interview ran past a fixed 12,000 tokens in four of six
+            # calls on 2026-11-17 and failed the map. It is asked for once more with room and time
+            # to finish, as the managed team's draw is (interview_orchestrator.MAP_DRAW_RETRY_OUTPUT_TOKENS).
+            retried = True
+            result = draw(WORKFLOW_RETRY_OUTPUT_TOKENS, WORKFLOW_RETRY_TIMEOUT)
         try:
             # Settled before the audit reads the candidate (see settle_generated_citations).
             result = settle_generated_citations(result, previous, turns, document_evidence, carried, context)
@@ -5503,10 +5781,15 @@ class OpenAIClient:
                                       "proposed_routes_to_verify": proposals},
                                      route_audit_schema(WORKFLOW_AUDIT_SCHEMA, proposals), "working_process_map_audit", 24000,
                                      reasoning_effort="medium",
-                                     request_timeout=DOCUMENT_WORKFLOW_AUDIT_TIMEOUT if has_document_evidence else None,
+                                     # A map that needed the second, larger draw is checked with the time
+                                     # the check of a map with files has: at the default it timed out.
+                                     request_timeout=(DOCUMENT_WORKFLOW_AUDIT_TIMEOUT if has_document_evidence or retried
+                                                      else None),
                                      model_override=self.workflow_audit_model)
             # The two requests above have 90 seconds each unless documents raise their limits.
             allowance = DOCUMENT_WORKFLOW_TIMEOUT + DOCUMENT_WORKFLOW_AUDIT_TIMEOUT if has_document_evidence else 180
+            if retried:
+                allowance += WORKFLOW_RETRY_TIMEOUT + (0 if has_document_evidence else DOCUMENT_WORKFLOW_AUDIT_TIMEOUT - 90)
             try:
                 result = apply_workflow_audit(result, audit, previous, context=context, turns=turns,
                                               documents=document_evidence, carried=carried,
@@ -5581,55 +5864,88 @@ class OpenAIClient:
 
     @provider_usage.track_generation
     def draft(self, payload):
+        """Write the review draft: a candidate, its source audit, then the coverage review.
+
+        With prepare_only the request ends once the candidate is written and kept; the audit
+        of that candidate runs under the request that asks for the draft itself.
+        """
         started = time.monotonic()
         supporting = payload.get("_supporting_documents", {})
         document_evidence = document_evidence_catalog(supporting)
         active_evidence = [item for item in document_evidence if not item.get("retained_only")]
         context, turns = validate_payload(payload, require_answers=not active_evidence)
-        generation_timeout = draft_generation_timeout(turns, active_evidence)
-        prior = payload.get("previous_capture")
+        prior, notes = payload.get("previous_capture"), []
         if prior is not None:
-            prior = workflow_previous_capture(prior, turns, document_evidence, carried_document_sources(payload), context)["workflow"]
+            held = workflow_previous_capture(prior, turns, document_evidence, carried_document_sources(payload), context)
+            prior = held["workflow"]
+            # The topic notes shown beside the conversation, once any of them says something.
+            if any(finding["status"] != "unknown" for finding in held["memo_findings"]):
+                notes = held["memo_findings"]
+        output_tokens = draft_output_tokens(turns, active_evidence, prior)
+        generation_timeout = draft_generation_timeout(turns, active_evidence, output_tokens)
         source_payload = {"context": context, "turns": turns, "supporting_documents": supporting,
-                          "working_map": prior}
+                          "working_map": prior, **({"working_notes": notes} if notes else {})}
         candidate_key = hashlib.sha256(json.dumps(source_payload, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
-        with self._draft_lock:
-            now = time.monotonic()
-            self._draft_candidates = {k: v for k, v in self._draft_candidates.items() if now - v[0] < 600}
-            cached = self._draft_candidates.get(candidate_key)
+        # One candidate is written per account. A request that finds the same candidate being
+        # written (the page starts it when the participant wraps up) waits for that one instead
+        # of writing a second; if the first fails or takes too long, this request writes its own.
+        prepare_only = payload.get("prepare_only") is True
+        waited_until = started + generation_timeout + 15
+        while True:
+            with self._draft_lock:
+                now = time.monotonic()
+                self._draft_candidates = {k: v for k, v in self._draft_candidates.items() if now - v[0] < DRAFT_CANDIDATE_SECONDS}
+                cached = self._draft_candidates.get(candidate_key)
+                pending = None if cached else self._draft_pending.get(candidate_key)
+                writing = None
+                if not cached and (pending is None or now >= waited_until):
+                    writing = self._draft_pending[candidate_key] = threading.Event()
+            if cached or writing:
+                break
+            pending.wait(max(0.0, waited_until - time.monotonic()))
+            failed = getattr(pending, "error", None)
+            if failed is not None:
+                # The request that was writing this candidate has just failed. Writing it again now
+                # would double the wait for what is most often the same outcome; say so at once.
+                raise failed
         if cached:
             result = copy.deepcopy(cached[1])
             provider_usage.remember_stages(cached[2])
         else:
-            result = self.structured(draft_instructions(),
-                                 source_payload, DRAFT_SCHEMA, "process_draft", DRAFT_OUTPUT_TOKENS,
-                                 request_timeout=generation_timeout, model_override=self.draft_model)
+            try:
+                result = self.structured(draft_instructions(bool(notes)),
+                                         source_payload, DRAFT_SCHEMA, "process_draft", output_tokens,
+                                         request_timeout=generation_timeout, model_override=self.draft_model)
+                check_draft_candidate(result)
+                with self._draft_lock:
+                    while len(self._draft_candidates) >= 8:
+                        self._draft_candidates.pop(next(iter(self._draft_candidates)))
+                    self._draft_candidates[candidate_key] = (time.monotonic(), copy.deepcopy(result), provider_usage.generated_by())
+            except APIError as error:
+                writing.error = error
+                raise
+            finally:
+                with self._draft_lock:
+                    if self._draft_pending.get(candidate_key) is writing:
+                        del self._draft_pending[candidate_key]
+                writing.set()
         # A separate evidence audit checks for plausible but unsupported process links and controls.
-        proposals = result.get("connections") if isinstance(result, dict) else None
-        if isinstance(result, dict) and result.get("steps") == []:
-            raise APIError("No process steps were described. Add a concrete example of the work before generating a draft.")
-        if not isinstance(proposals, list) or len(proposals) > 150:
-            raise APIError("The generated draft must supply a list of at most 150 connections for review.")
-        try:
-            # Only validate the register's shape here. The audit can still repair wrong
-            # endpoints, unsupported conditions and missing/incorrect evidence.
-            check_schema(proposals, DRAFT_SCHEMA["properties"]["connections"], "candidate_draft.connections")
-        except ValueError as error:
-            raise APIError(own_wording(error, UNUSABLE_RESULT_MESSAGE)) from None
-        if not cached:
-            with self._draft_lock:
-                while len(self._draft_candidates) >= 8:
-                    self._draft_candidates.pop(next(iter(self._draft_candidates)))
-                self._draft_candidates[candidate_key] = (time.monotonic(), copy.deepcopy(result), provider_usage.generated_by())
+        proposals = check_draft_candidate(result)
+        if prepare_only:
+            return {"prepared": True}
         candidate = result
+        audit_timeout = draft_audit_timeout(candidate, proposals)
         result = self.structured(draft_audit_instructions(),
                                  {"context": context, "turns": turns, "candidate_draft": result,
                                   "supporting_documents": supporting, "proposed_routes_to_verify": proposals},
                                  route_audit_schema(DRAFT_AUDIT_SCHEMA, proposals), "process_draft_audit",
                                  draft_audit_output_tokens(result, proposals), reasoning_effort="medium",
-                                 request_timeout=DRAFT_AUDIT_TIMEOUT, model_override=self.draft_audit_model)
+                                 request_timeout=audit_timeout, model_override=self.draft_audit_model)
         try:
-            check_schema(result, DRAFT_AUDIT_SCHEMA, "draft_audit")
+            if isinstance(result, dict) and "changed_sections" in result:
+                check_schema(result, DRAFT_AUDIT_SCHEMA, "draft_audit")
+            result = draft_audit.merge(candidate, result)
+            check_schema(result, DRAFT_AUDITED_SCHEMA, "draft_audit")
             # Only the reviewed public map crosses the API boundary.
             result = dict(result)
             reviews = result.pop("route_support")
@@ -5638,18 +5954,29 @@ class OpenAIClient:
             result["connections"], gaps = grounded_routes(
                 result["connections"], reviews, result["steps"], context, turns, active_evidence,
                 recheck=RouteRecheck(self, context, turns, supporting, "process_draft_audit",
-                                     started + generation_timeout + DRAFT_AUDIT_TIMEOUT,
+                                     started + generation_timeout + audit_timeout,
                                      model_override=self.draft_audit_model))
             result["open_questions"] = add_workflow_questions(result["open_questions"], gaps)
             for item in result.get("taxonomy", []) + result.get("variations", []):
                 gpfs_interview.ground_classification(item, turns, active_evidence)
-            draft = validate_draft(result, turns, active_evidence, context)
-            draft["validation_notes"].extend(note for note in draft_audit.removal_notes(candidate, draft)
+            # The audit no longer writes every step again, so a slip in a detail of a step it left
+            # alone is settled here as it is for a map: the detail goes, the draft does not fail.
+            gpfs_interview.settle_operating_details(result["steps"], turns, active_evidence, context)
+            try:
+                draft = validate_draft(result, turns, active_evidence, context)
+            except ValueError:
+                # Kept, the same candidate would fail the same way on every retry until it expired.
+                with self._draft_lock:
+                    self._draft_candidates.pop(candidate_key, None)
+                raise
+            draft["validation_notes"].extend(note for note in draft_audit.removal_notes(candidate, draft, COVERAGE)
                                             if note not in draft["validation_notes"])
             with self._draft_lock:
                 self._draft_candidates.pop(candidate_key, None)
+            # The sixteen topics are reviewed as four groups at once, as the interview's own review
+            # is: in one request the review was a third wait of 78 s behind the draft and its check.
             self.apply_coverage_review(draft, context, turns, supporting, "memo_summary",
-                                       model_override=self.draft_coverage_model, allow_capture_repair=True)
+                                       model_override=self.draft_coverage_model, allow_capture_repair=True, split=True)
             # Keep the export schema stable; assessment detail belongs beside the
             # draft, while conservative statuses remain inside the memo itself.
             assessment = draft.pop("coverage_assessment", None)
@@ -5659,7 +5986,9 @@ class OpenAIClient:
         except ValueError as error:
             raise APIError(own_wording(error, UNUSABLE_RESULT_MESSAGE)) from None
 
-    def transcribe(self, audio, media_type):
+    def transcribe(self, audio, media_type, hints=()):
+        """Transcribe one recording. hints are names and terms this interview has already used."""
+        keywords = list(dict.fromkeys([*self.transcription_keywords, *hints]))[:MAX_TRANSCRIPTION_KEYWORDS]
         types = {"audio/webm": "webm", "video/webm": "webm", "audio/mp4": "mp4", "audio/mpeg": "mp3",
                  "audio/wav": "wav", "audio/x-wav": "wav", "audio/ogg": "ogg"}
         base_type = media_type.split(";", 1)[0].strip().lower()
@@ -5671,20 +6000,20 @@ class OpenAIClient:
         parts = [f"--{boundary}\r\nContent-Disposition: form-data; name=\"model\"\r\n\r\n{self.transcription_model}\r\n".encode()]
         if self.transcription_language:
             parts.append(f'--{boundary}\r\nContent-Disposition: form-data; name="language"\r\n\r\n{self.transcription_language}\r\n'.encode())
-        if self.transcription_model in ("whisper-1", "gpt-4o-transcribe", "gpt-4o-mini-transcribe") and self.transcription_keywords:
-            prompt = ", ".join(self.transcription_keywords)
+        if self.transcription_model in ("whisper-1", "gpt-4o-transcribe", "gpt-4o-mini-transcribe") and keywords:
+            prompt = ", ".join(keywords)
             parts.append(f'--{boundary}\r\nContent-Disposition: form-data; name="prompt"\r\n\r\n{prompt}\r\n'.encode("utf-8"))
-        if self.transcription_model == "gpt-transcribe" and self.transcription_keywords:
+        if self.transcription_model == "gpt-transcribe" and keywords:
             parts.append(f'--{boundary}\r\nContent-Disposition: form-data; name="prompt"\r\n\r\n'
                          f'{TRANSCRIPTION_INSTRUCTIONS}\r\n'.encode())
             parts.extend(f'--{boundary}\r\nContent-Disposition: form-data; name="keywords[]"\r\n\r\n{word}\r\n'.encode('utf-8')
-                         for word in self.transcription_keywords)
+                         for word in keywords)
         parts.extend([f"--{boundary}\r\nContent-Disposition: form-data; name=\"file\"; filename=\"answer.{types[base_type]}\"\r\nContent-Type: {base_type}\r\n\r\n".encode(),
                  audio, f"\r\n--{boundary}--\r\n".encode()]
         )
         raw_trace.emit("voice.transcription.prepared", {"media_type": base_type, "byte_count": len(audio),
             "model": self.transcription_model, "language": self.transcription_language,
-            "content": {"keywords": self.transcription_keywords}, "omitted_fields": ["audio"]})
+            "content": {"keywords": keywords}, "omitted_fields": ["audio"]})
         result = self.request("audio/transcriptions", b"".join(parts), "multipart/form-data; boundary=" + boundary)
         text = result.get("text", "")
         def report(outcome, category):
@@ -6733,6 +7062,7 @@ class Handler(BaseHTTPRequestHandler):
                            "instance_id": self.server.instance_id, "server_pid": os.getpid(),
                            # The page measures a submission against this before sending it.
                            "max_request_bytes": MAX_JSON, "request_timeouts_ms": REQUEST_TIMEOUTS_MS,
+                           "draft_prepare": getattr(self.server.client, "draft_prepare", False) is True,
                            "documents": {"enabled": "documents" not in storage_problems,
                                          "max_file_bytes": documents.MAX_FILE_BYTES,
                                          "max_files": documents.MAX_FILES_PER_SCOPE,
@@ -7110,7 +7440,9 @@ class Handler(BaseHTTPRequestHandler):
                 elif path == "/api/workflow":
                     result = self._timed_workflow(client.workflow, payload)
                 else:
-                    result = client.transcribe(payload, media_type)
+                    hints = transcription_hints(self.headers.get("X-Transcription-Hints"))
+                    result = (client.transcribe(payload, media_type, hints) if hints and isinstance(client, OpenAIClient)
+                              else client.transcribe(payload, media_type))
             finally:
                 self.server.api_slots.release()
             if document_snapshot is not None:

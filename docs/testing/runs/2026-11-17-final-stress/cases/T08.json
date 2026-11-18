@@ -1,0 +1,1785 @@
+{
+ "case": "T08",
+ "process": "FA-16",
+ "mode": "typed",
+ "style": "mostly what goes wrong",
+ "build": "untouched",
+ "participant": "agent",
+ "context": {
+  "process_name": "Cash Reconciliation & Working Capital Reporting",
+  "process_owner": "",
+  "objective": "Document how we carry out Cash Reconciliation & Working Capital Reporting, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "Three things can start it. Cash activity shows up in the bank portal, or the monthly bank reconciliation turns up activity, or there is a planned capital event that needs a liquidity analysis. We are meant to update the Cash Composition workbook daily whenever cash moves, but honestly that often slips to weekly or monthly, and that is where the trouble starts. The first place it bites is the starting balance. When I carry the workbook into a new period, the beginning balance has to match the prior ending balance and the actual bank balance including the sweep accounts. If it does not, I record the exception and I do not move that item forward until it is resolved or an authorized decision is documented."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "When the starting balances do not match, how do you investigate the discrepancy?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "For the starting balance itself, I trace it back to the prior ending records, meaning the prior reconciled workbook and the bank records, because the beginning balance has to be traceable to those. I should be honest that there is no confirmed correction procedure for the carry-forward, so I do not know the official way to fix it or who approves the fix. The process owner would have to confirm that. Where I do the real digging is later, when the cash categories do not add up to the bank balance. Then I look for four things: missing transactions, duplicated entries, broken formulas or links, and misclassifications, and I keep going until the categorized total matches the actual bank balance including the sweep accounts. There is no tolerance at all. People sometimes say an item under ten dollars is typical, but that is not an approved rounding tolerance and I cannot use it as one. Any difference that is left gets escalated with a variance note, and nobody should rely on the report until it is resolved and documented."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "Once you identify a missing transaction, duplicate, broken formula or misclassification, what do you do to correct it?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "It depends which one it is. A missing movement I add as its own row in the Cash Analysis tab with the date, description, amount and cash category, after I have confirmed the account, entity, date, amount and whether the cash came in or went out against the bank record. Duplicates usually happen because the same movement got picked up from the bank portal and then again from the monthly bank reconciliation, so I make sure it sits in the list only once and matches the bank record. Broken links or formulas I correct and document before the workbook is used again. The hard one is misclassification, because often the real problem is that I cannot tell what the cash was for. If I cannot assign a transaction to a category I do not guess. It stays as an explicit exception, I go to the fund team or the client for the transaction details, and that item stops until it is resolved and documented with the supporting documents or correspondence. One more thing: if the fix would change prior-year history, I only change it when there are supporting records and the change has been reviewed."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "After you correct a transaction, how is that change checked before the workbook is used again?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "Mostly by me, and that is a weakness. On every update I rerun three checks myself: the total of all the cash categories has to equal the bank balance, every category has to trace to identifiable activity, and each movement has to be in the transaction list only once. A reviewer looks at the bank-to-category match, and the reconciliation is the record of that. For the category-support check and the duplicate check, I perform them but who reviews or approves them has never been confirmed, so I cannot tell you who signs those off. The day-to-day copy in the Treasury folder gets a lot less review than the quarterly copy. The proper detailed review only happens quarterly, when the report is copied into the quarterly supporting files and the quarterly reviewer goes through it, and any corrections made in the quarterly copy get listed. If any of the checks fails it is the same rule every time: record the exception and do not advance the affected item until it is resolved or an authorized decision is documented."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "What does the quarterly reviewer examine in the detailed review?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "I am not the reviewer, so I can only tell you what I see from my side. They review the quarterly copy and the differences that have been identified, and the test is that the quarterly output reconciles to the approved source data for that period. What tends to go wrong there is that the quarterly copy and the Treasury-folder copy do not agree. When that happens we identify the differences and escalate the need to keep the two copies aligned. It goes to the reviewer or the process owner, although the final owner of that has not been confirmed. We only proceed once the versions agree or the difference is approved and documented, and we keep a version comparison and a resolution record. What I cannot tell you is how corrections made in the quarterly copy are supposed to get back into the operational copy. That method has not been confirmed, and neither has who owns keeping the two aligned. The process owner and whoever handles records management would need to confirm it. And if someone already relied on an earlier report, they have to be told."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "Which funds or other entities does this cash reconciliation work cover, and does the same process apply across them?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "I cannot give you a list of funds. The bank and account list for this has never been confirmed, so the process owner would have to tell you exactly which funds and entities are in scope. The basic method is the same everywhere: every cash movement gets categorized and the categories have to equal the bank balance. What changes from client to client is the rules around it. Working-capital rules, LPA timing windows, line-of-credit obligations, sweep-account arrangements, affiliate structures and even the workbook design all vary, so we record and apply each client's current approved method and we do not make up a standard formula. That is where it goes wrong. If an LPA or line-of-credit term changes when cash is actually available, we have to apply the governing term through FA-19 or the approved client methodology, and we only proceed once the client or an authorized reviewer has confirmed the treatment and it is documented against the governing documents. People quote 30 to 90 days for when a distribution can happen under an LPA, but that is only typical, the fund's own LPA controls. The other one is affiliates. If an affiliate balance is missing the entity, the transaction or the expected repayment, it goes to the fund team or the client and it is not treated as available cash until the details and treatment are approved."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "What decisions or actions does the cash reconciliation and working-capital report support?"
+  },
+  {
+   "id": "t014",
+   "role": "user",
+   "text": "It is there so people can decide on capital calls, distributions, fees, line-of-credit activity and other liquidity needs, and it feeds the payment funding check in FA-17 as well as quarterly reporting and liquidity conversations with the client. The fund or capital-activity team takes it to the decision-makers and tells them the available cash, what is set aside for a purpose, the pending obligations and the projected ending balance, and says whether a capital call, a hold or some other action is needed. Who is actually allowed to recommend and approve that action has not been confirmed, so I cannot tell you. Two things go wrong here. First, if pending outflows are more than the available cash, I flag the shortfall in the event liquidity view and it goes for a capital-event or payment decision by the client or the fund team, and nothing proceeds until that action is complete and the supporting record is there. That can delay a payment or a distribution. Second, people ask me for a working-capital number. There is no approved formula, forecast period or probability threshold for it, so the working-capital calculation is on hold. If someone asks for a result I stop and escalate, because an unapproved model cannot be used to approve or fund an amount. The examples in the training deck people call the Beta deck are not policy."
+  },
+  {
+   "id": "t015",
+   "role": "assistant",
+   "text": "How do you determine which cash is set aside for a particular purpose in the liquidity view?"
+  },
+  {
+   "id": "t016",
+   "role": "user",
+   "text": "It comes from the categories. In the Cash Composition tab every movement sits in a life-to-date source or use category. Sources are things like capital calls, line-of-credit draws and proceeds, and uses are investments, management fees, expenses, line-of-credit repayments and distributions, with amounts due to or from affiliates kept as their own category. Each categorized amount stays linked to its transaction in the detailed list, so I can show where the cash on hand came from and what it is meant for. On top of that there is a forward-liquidity section where I record expected outflows that are not in the bank or the GL yet, from client advance notices or approved internal commitments, with the amount, timing, purpose and account, and I keep those separate from cash already recorded in the GL. When the cash actually moves I update or close the item. The rule is that I do not treat the bank cash at a point in time as fully available when known obligations are pending. Where it goes wrong is the notices. They come in as separate, uncoordinated emails and one can get missed, and a missing expected item overstates available cash, so I log each approved one rather than relying on the email. There is also no confirmed rule for closing out stale expected items and no standard set of fields for them, so I cannot tell you when an old one should come off. The process owner would need to confirm that. Before an event the decision team reviews that the known outflows are shown separately from available cash."
+  },
+  {
+   "id": "t017",
+   "role": "assistant",
+   "text": "Roughly how many cash movements do you usually categorize in a month?"
+  },
+  {
+   "id": "t018",
+   "role": "user",
+   "text": "I do not have a count I would stand behind. Nobody has measured it, so I would rather not guess, and the process owner would be the person to ask. What I can tell you is that the volume is not the hard part, the detail is. Each movement is one row, and the descriptions carry so little detail that some of the context lives in people's heads. So I am not supposed to rely on a label like Cap Call number 12 received, I add whatever event, investor and transaction detail is available. Capital-event months are where the mistakes happen. If an event is net overall, I have to show the full contribution as a cash inflow and the full distribution as a cash outflow, not just the net amount. Early or late investor receipts go in the Due To/From category with the event reference. I match the investor receipt totals to the Cash Composition amount using the portal and bank details, and when they do not match, the detailed receivable exceptions and any unidentified investor wires go over to FA-02."
+  },
+  {
+   "id": "t019",
+   "role": "assistant",
+   "text": "What does FA-02 do with the detailed receivable exceptions and unidentified investor wires it receives?"
+  },
+  {
+   "id": "t020",
+   "role": "assistant",
+   "text": "This capture still has open sections. 14 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794966543.737,
+   "turn": 0,
+   "seconds": 0.026,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794966558.019,
+   "turn": 2,
+   "seconds": 3.929,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966570.693,
+   "turn": 3,
+   "seconds": 16.6
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966601.599,
+   "turn": 3,
+   "seconds": 47.51,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 9,
+   "connections": 4
+  },
+  {
+   "kind": "question",
+   "at": 1794966621.25,
+   "turn": 4,
+   "seconds": 3.95,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966621.254,
+   "turn": 5,
+   "seconds": 3.95,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 9,
+   "connections": 4
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966637.453,
+   "turn": 5,
+   "seconds": 20.15
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966656.696,
+   "turn": 5,
+   "seconds": 39.4,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 14,
+   "connections": 10
+  },
+  {
+   "kind": "question",
+   "at": 1794966675.218,
+   "turn": 6,
+   "seconds": 2.206,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966675.221,
+   "turn": 7,
+   "seconds": 2.21,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t004",
+   "steps": 14,
+   "connections": 10
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966705.057,
+   "turn": 7,
+   "seconds": 32.05
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966714.197,
+   "turn": 7,
+   "seconds": 41.18,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 20,
+   "connections": 19
+  },
+  {
+   "kind": "question",
+   "at": 1794966732.989,
+   "turn": 8,
+   "seconds": 3.892,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966732.994,
+   "turn": 9,
+   "seconds": 3.9,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t006",
+   "steps": 20,
+   "connections": 19
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966760.309,
+   "turn": 9,
+   "seconds": 31.21
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966777.058,
+   "turn": 9,
+   "seconds": 47.96,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 28,
+   "connections": 28
+  },
+  {
+   "kind": "question",
+   "at": 1794966796.744,
+   "turn": 10,
+   "seconds": 3.576,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966796.749,
+   "turn": 11,
+   "seconds": 3.58,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t008",
+   "steps": 28,
+   "connections": 28
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966815.997,
+   "turn": 11,
+   "seconds": 22.83
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966828.676,
+   "turn": 11,
+   "seconds": 35.51,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 32,
+   "connections": 31
+  },
+  {
+   "kind": "question",
+   "at": 1794966853.306,
+   "turn": 12,
+   "seconds": 2.848,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966853.312,
+   "turn": 13,
+   "seconds": 2.85,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t010",
+   "steps": 32,
+   "connections": 31
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966881.701,
+   "turn": 13,
+   "seconds": 31.24
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966891.33,
+   "turn": 13,
+   "seconds": 40.87,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 36,
+   "connections": 34
+  },
+  {
+   "kind": "question",
+   "at": 1794966916.192,
+   "turn": 14,
+   "seconds": 6.259,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966916.198,
+   "turn": 15,
+   "seconds": 6.26,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t012",
+   "steps": 36,
+   "connections": 34
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966954.711,
+   "turn": 15,
+   "seconds": 44.78,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 42,
+   "connections": 37
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966955.22,
+   "turn": 15,
+   "seconds": 45.29
+  },
+  {
+   "kind": "question",
+   "at": 1794966980.761,
+   "turn": 16,
+   "seconds": 4.212,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966980.77,
+   "turn": 17,
+   "seconds": 4.22,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t014",
+   "steps": 42,
+   "connections": 37
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794967011.74,
+   "turn": 17,
+   "seconds": 35.19
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794967011.74,
+   "turn": 17,
+   "seconds": 35.19,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 45,
+   "connections": 41
+  },
+  {
+   "kind": "question",
+   "at": 1794967034.404,
+   "turn": 18,
+   "seconds": 3.57,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794967034.418,
+   "turn": 19,
+   "seconds": 3.58,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t016",
+   "steps": 45,
+   "connections": 41
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794967062.38,
+   "turn": 19,
+   "seconds": 31.55
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794967063.403,
+   "turn": 19,
+   "seconds": 32.57,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 47,
+   "connections": 43
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794967068.326,
+   "turn": 19,
+   "seconds": 0.031,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794967463.103,
+   "turn": 20,
+   "seconds": 387.294,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [],
+ "notes": {
+  "summary": "The participant does not have a measured monthly movement count. They describe gross recording for net capital events, treatment of early or late receipts, and a receipt-total check that can send exceptions to FA-02.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "captured",
+    "answer": "Cash Reconciliation & Working Capital Reporting"
+   },
+   {
+    "key": "purpose",
+    "status": "captured",
+    "answer": "The cash reconciliation and working-capital report supports decisions about capital calls, distributions, fees, line-of-credit activity and other liquidity needs, and feeds payment funding checks, quarterly reporting and client liquidity conversations."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The work can start when cash activity appears in the bank portal, when a monthly bank reconciliation turns up activity, or when a planned capital event requires liquidity analysis. The Cash Composition workbook is meant to be updated daily whenever cash moves, but the participant reports that updates often slip to weekly or monthly."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "For a remaining difference in cash categories versus the actual bank balance, the report is not to be relied on until the difference is resolved and documented.\nWhere the quarterly and Treasury-folder versions differ, proceeding requires agreement or an approved and documented difference. Anyone who relied on an earlier report must be told.\nWhen pending outflows exceed available cash, proceeding requires completion of the capital-event or payment action and a supporting record."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The process owner is identified as the person who would have to confirm the official carry-forward correction procedure, but the accountable role for the overall result is not established.\nThe final owner of keeping the quarterly and operational copies aligned has not been confirmed; the participant names the process owner and records management as people who would need to confirm it.\nAuthority to recommend and approve the resulting capital or liquidity action has not been confirmed."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "When carrying the Cash Composition workbook into a new period, the participant checks that the beginning balance matches the prior ending balance and the actual bank balance, including sweep accounts. If it does not match, the participant records an exception and does not move that item forward until it is resolved or an authorized decision is documented.\nFor a starting-balance discrepancy, the participant traces the balance to the prior reconciled workbook and bank records. Separately, when cash categories do not add up to the bank balance, the participant investigates until the categorized total matches the actual bank balance, including sweep accounts.\nFor a missing movement, the participant confirms account, entity, date, amount and cash direction against the bank record, then adds a separate row to the Cash Analysis tab with date, description, amount and cash category.\nDuplicates often arise when the same movement is picked up from both the bank portal and monthly bank reconciliation. The participant ensures it appears only once and matches the bank record.\nThe participant corrects and documents broken links or formulas before the workbook is used again.\nIf a transaction cannot be categorized, the participant does not guess: the item remains an explicit exception and stops while the participant seeks details from the fund team or client, until resolved and documented with supporting documents or correspondence.\nQuarterly, the report is copied into the quarterly supporting files for detailed review by the quarterly reviewer; corrections made in the quarterly copy are listed.\nAfter an update, the participant reruns the three checks. If any fails, the participant records the exception and holds the affected item until resolution or a documented authorized decision.\nWhen the quarterly and Treasury-folder copies disagree, the differences are identified and the need to align them is escalated to the reviewer or process owner. Work proceeds only when versions agree or the difference is approved and documented; a version comparison and resolution record are retained.\nIf someone has already relied on an earlier report, they must be told; the participant did not identify who notifies them or the notification method.\nIf an affiliate balance lacks the entity, transaction or expected repayment, it is referred to the fund team or client and is not treated as available cash until the details and treatment are approved.\nThe fund or capital-activity team takes the report to decision-makers, communicating available cash, amounts set aside, pending obligations and projected ending balance, and whether a capital call, hold or other action is needed.\nWhen pending outflows exceed available cash, the participant flags the shortfall in the event liquidity view. It goes to the client or fund team for a capital-event or payment decision; nothing proceeds until the action is complete and a supporting record exists.\nIf asked for a working-capital number while the calculation is on hold, the participant stops and escalates the request.\nIn the Cash Composition tab, each movement is assigned to a life-to-date source or use category and remains linked to its transaction in the detailed list. Sources include capital calls, line-of-credit draws and proceeds; uses include investments, management fees, expenses, line-of-credit repayments and distributions. Affiliate amounts due to or from others have their own category.\nIn the forward-liquidity section, the participant records expected outflows not yet in the bank or GL from client advance notices or approved internal commitments, including amount, timing, purpose and account. These are kept separate from cash already recorded in the GL; when cash moves, the participant updates or closes the item.\nEach movement occupies one row. Rather than rely on a terse label, the participant adds available event, investor and transaction detail.\nFor a net capital event, the participant shows the full contribution as an inflow and the full distribution as an outflow rather than only the net. Early or late investor receipts are entered in Due To/From with the event reference."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "At the new-period carry-forward, the participant checks the beginning balance against both the prior ending balance and the actual bank balance, including sweep accounts. A mismatch is recorded as an exception, and the item is held until resolved or an authorized decision is documented.\nWhen cash categories do not add up to the bank balance, the participant checks for missing transactions, duplicated entries, broken formulas or links, and misclassifications, continuing until the categorized total matches the actual bank balance including sweep accounts.\nThere is no approved rounding tolerance: an item under ten dollars may be described as typical, but it cannot be used as an approved tolerance. Any remaining difference is escalated with a variance note, and the report should not be relied on until the difference is resolved and documented.\nBefore adding a missing movement, the participant checks account, entity, date, amount and direction against the bank record. Duplicate movements must appear only once and match that record.\nIf a fix would change prior-year history, the participant only changes it when supporting records exist and the change has been reviewed; the reviewer is not identified.\nOn every update, the participant reruns three checks: cash category totals equal the bank balance, every category traces to identifiable activity, and each movement appears only once in the transaction list.\nA reviewer examines the bank-to-category match, and the reconciliation records that review.\nThe participant performs the category-support and duplicate checks but does not know who reviews or approves them; sign-off responsibility has not been confirmed.\nThe day-to-day Treasury-folder copy receives much less review than the quarterly copy. Detailed review occurs quarterly, and corrections made in the quarterly copy are listed.\nThe quarterly reviewer reviews the quarterly copy and identified differences, testing whether the quarterly output reconciles to approved source data for the period. The participant describes this from their own side, not as the reviewer.\nThe approver of differences between quarterly and Treasury-folder copies and the notification owner and method for earlier report users were not identified.\nA cash-availability treatment affected by an LPA or line-of-credit term requires confirmation by the client or an authorized reviewer and documentation against governing documents before proceeding. Incomplete affiliate balances are excluded from available cash until details and treatment are approved.\nA shortfall blocks proceeding until a client or fund-team capital-event or payment action is complete and supported by a record.\nBefore an event, the decision team reviews whether known outflows are shown separately from available cash.\nThe participant matches investor receipt totals to the Cash Composition amount using portal and bank details. When they differ, detailed receivable exceptions and unidentified investor wires go to FA-02."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "The participant reports three conditional starting circumstances: bank-portal cash activity, activity found through the monthly bank reconciliation, and a planned capital event needing liquidity analysis. The distinct steps after each trigger and whether they constitute route differences remain unestablished.\nThe participant distinguishes investigating starting-balance discrepancies by tracing prior ending records from later investigation of cash categories that do not add up to the bank balance; the participant did not describe whether these circumstances use otherwise different routes.\nCorrection depends on the cause: missing movements are added after bank-record verification; duplicates are reduced to one matching entry; broken formulas or links are corrected and documented; unclassifiable items are held while details are requested.\nWorking-capital rules, LPA timing windows, line-of-credit obligations, sweep arrangements, affiliate structures and workbook design vary by client. The team records and applies each client's current approved method rather than inventing a standard formula.\nFor net capital events, gross contributions and distributions are shown separately; early or late investor receipts use Due To/From with an event reference."
+   },
+   {
+    "key": "pain_points",
+    "status": "partial",
+    "answer": "The participant reports that the intended daily Cash Composition workbook update often slips to weekly or monthly, and says this is where the trouble starts, first affecting the starting balance.\nMisclassification is difficult when the participant cannot tell what cash was for; duplicate movements can result from picking up the same activity from both the portal and monthly reconciliation.\nThe participant identifies reliance on their own checking as a weakness and says the day-to-day copy receives substantially less review than the quarterly copy.\nThe participant reports that the quarterly copy and Treasury-folder copy tend not to agree.\nThe participant identifies varying client rules and workbook designs as a source of difficulty.\nClient notices arrive in separate, uncoordinated emails and can be missed. The participant logs each approved notice rather than relying on email.\nThe participant says transaction descriptions lack detail and some context resides in people's heads. Capital-event months are where mistakes occur."
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "The participant says a report should not be relied on while a bank-balance difference remains unresolved and undocumented.\nA cash shortfall can delay a payment or distribution.\nA missed expected outflow overstates available cash."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The Cash Composition workbook is updated when cash moves and carried into a new period. The day-to-day copy is in the Treasury folder; a copy is placed in quarterly supporting files for detailed quarterly review.\nThe bank portal is where cash activity may show up and trigger work; the participant did not describe its contents or how it is accessed.\nThe prior reconciled workbook and bank records are used to trace the prior ending balance when investigating a starting-balance discrepancy; their storage and custodian were not stated.\nA variance note is used when a difference remains and is escalated; its format, storage location, and custodian were not stated.\nThe Cash Analysis tab holds movement rows with date, description, amount and cash category. Supporting documents or correspondence document resolution of unclassifiable items; supporting records are needed for changes to prior-year history.\nThe reconciliation records the review of the bank-to-category match. Corrections made in the quarterly report copy are listed in the quarterly review context.\nA version comparison and resolution record are retained when differences between quarterly and Treasury-folder copies are addressed. Approved source data for the period is used to test the quarterly output.\nGoverning documents support documented confirmation of cash-availability treatment; each client's current approved method is recorded and applied. The participant reports the fund's LPA as controlling distribution timing.\nThe event liquidity view records a flagged shortfall, and a supporting record is required before the resulting action proceeds.\nThe Beta training deck contains examples, but the participant says those examples are not policy.\nThe Cash Composition tab and linked detailed transaction list show life-to-date cash sources and uses. The forward-liquidity section records expected outflows using client advance notices or approved internal commitments."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The participant cannot list the funds or entities covered; the bank and account list is unconfirmed, and the process owner would need to establish the scope.\nThe participant reports a common basic method across the entities: categorize every cash movement and reconcile the categories to the bank balance; client-specific rules vary."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "At carry-forward, the beginning balance must match the prior ending balance and actual bank balance, including sweep accounts. A mismatch blocks the item until resolved or an authorized decision is documented.\nThe carry-forward correction procedure and approver are unconfirmed; the participant says the process owner would have to confirm them.\nA fix changing prior-year history requires supporting records and review before the participant changes it. Unassignable transactions must not be categorized by guesswork.\nIf any of the update checks fails, the exception must be recorded and the affected item held until resolved or an authorized decision is documented.\nFor differing quarterly and Treasury-folder copies, proceeding requires the versions to agree or the difference to be approved and documented.\nWhen an LPA or line-of-credit term changes actual cash availability, the governing term is applied through FA-19 or the approved client methodology. The client or an authorized reviewer must confirm the treatment, documented against governing documents, before proceeding.\nThe participant says 30 to 90 days is only a typical quoted LPA distribution window; the particular fund's LPA controls.\nThe working-capital calculation is on hold: an unapproved model cannot be used to approve or fund an amount. The participant stops and escalates requests for a result; examples in the Beta training deck are not policy.\nNo approved working-capital formula, forecast period or probability threshold is available.\nWhen pending outflows exceed available cash, the shortfall must be flagged and nothing proceeds until the capital-event or payment action is complete and supported by a record.\nBank cash at a point in time is not treated as fully available when known obligations are pending.\nThere is no confirmed rule for closing stale expected items and no standard set of fields; the participant says the process owner would need to confirm when an old item should come off.\nA net capital event must be shown as gross contribution inflow and gross distribution outflow, not just net. Early or late investor receipts go in Due To/From with the event reference."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "Monthly bank reconciliation supplies activity that can start this work; the same movement may also be picked up from the bank portal, creating a duplicate.\nFor an unclassifiable transaction, the participant seeks transaction details from the fund team or client and holds the item until resolved and documented.\nThe participant reports applying governing cash-availability terms through FA-19 or the approved client methodology.\nAn affiliate balance missing the entity, transaction or expected repayment is referred to the fund team or client; it is not treated as available cash until details and treatment are approved.\nFA-19's detailed role and output in applying cash-availability terms remain unconfirmed.\nThe report feeds the payment funding check in FA-17 and quarterly reporting.\nThe fund or capital-activity team takes the report to decision-makers; a flagged shortfall goes to the client or fund team for a capital-event or payment decision.\nThe forward-liquidity section uses client advance notices or approved internal commitments as inputs for expected outflows not yet in the bank or GL.\nWhen investor receipt totals do not match the Cash Composition amount, detailed receivable exceptions and unidentified investor wires are handed off to FA-02."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The participant uses a Cash Composition workbook and a bank portal where cash activity appears. The participant adds missing movements as rows in the Cash Analysis tab.\nThe participant investigates broken formulas or links and corrects and documents them before the workbook is used again.\nThe day-to-day copy is kept in the Treasury folder; the report is copied into quarterly supporting files for quarterly review.\nThe method for returning quarterly-copy corrections to the operational copy and ownership of keeping the copies aligned are unconfirmed. The participant says the process owner and records management would need to confirm them.\nThe participant records expected outflows in the forward-liquidity section, separately from cash already recorded in the GL, and logs approved notices rather than relying on email."
+   },
+   {
+    "key": "volume",
+    "status": "partial",
+    "answer": "The participant reports that under-ten-dollar items are sometimes said to be typical, but does not establish their frequency or validate that estimate.\nMonthly cash-movement volume has not been measured. The participant will not estimate it and identifies the process owner as the person to ask."
+   }
+  ]
+ },
+ "map": {
+  "title": "Cash Reconciliation & Working Capital Reporting",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "start",
+    "title": "Cash activity appears",
+    "actor": "UNKNOWN",
+    "system": "Bank portal",
+    "description": "Cash activity appearing in the bank portal can start the work."
+   },
+   {
+    "id": "S2",
+    "type": "start",
+    "title": "Reconciliation finds activity",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Activity found by the monthly bank reconciliation can start the work."
+   },
+   {
+    "id": "S3",
+    "type": "start",
+    "title": "Planned capital event",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "A planned capital event requiring a liquidity analysis can start the work."
+   },
+   {
+    "id": "S4",
+    "type": "document",
+    "title": "Update cash composition workbook",
+    "actor": "Participant",
+    "system": "Cash Composition workbook; Cash Composition tab",
+    "description": "Categorize movements as life-to-date sources or uses, link each amount to its detailed transaction, and add available event, investor and transaction context. For net capital events, show the full contribution as an inflow and the full distribution as an outflow; place early or late investor receipts in Due To/From with the event reference. Updates are intended daily when cash moves but often slip to weekly or monthly."
+   },
+   {
+    "id": "S5",
+    "type": "document",
+    "title": "Carry workbook into period",
+    "actor": "Participant",
+    "system": "Cash Composition workbook",
+    "description": "The participant carries the workbook into a new period."
+   },
+   {
+    "id": "S6",
+    "type": "decision",
+    "title": "Does beginning balance match?",
+    "actor": "Participant",
+    "system": "Cash Composition workbook; bank records",
+    "description": "The beginning balance must match both the prior ending balance and the actual bank balance, including sweep accounts."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Record balance exception",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "If the balances do not match, the participant records the exception and does not move the item forward."
+   },
+   {
+    "id": "S8",
+    "type": "wait",
+    "title": "Hold mismatched item",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "The item is not moved forward after a mismatch until it is resolved or an authorized decision is documented. The subsequent handoff is UNKNOWN."
+   },
+   {
+    "id": "S9",
+    "type": "subprocess",
+    "title": "Perform liquidity analysis",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "A planned capital event can require a liquidity analysis. A shortfall is flagged in the event liquidity view when pending outflows exceed available cash; other analysis steps are UNKNOWN."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Trace beginning balance",
+    "actor": "Participant",
+    "system": "Prior reconciled workbook and bank records",
+    "description": "The participant traces the starting balance to the prior reconciled workbook and bank records. The correction procedure and who approves a fix are not confirmed."
+   },
+   {
+    "id": "S11",
+    "type": "decision",
+    "title": "Do cash categories match?",
+    "actor": "Participant",
+    "system": "Cash Composition workbook; bank records",
+    "description": "On every update, the participant checks that the cash categories total the actual bank balance, including sweep accounts. There is no tolerance; an item under ten dollars is not an approved rounding tolerance."
+   },
+   {
+    "id": "S12",
+    "type": "activity",
+    "title": "Investigate category differences",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "The participant looks for missing transactions, duplicates, broken formulas or links, and misclassifications. Investigation continues until the categorized total matches the bank balance, including sweep accounts."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Escalate remaining difference",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Any difference left is escalated with a variance note. The escalation recipient and note location are UNKNOWN."
+   },
+   {
+    "id": "S14",
+    "type": "wait",
+    "title": "Hold report from reliance",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Nobody should rely on the report while the remaining difference is unresolved or undocumented."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Confirm missing movement",
+    "actor": "Participant",
+    "system": "Bank record",
+    "description": "For a missing movement, confirm the account, entity, date, amount and cash direction against the bank record before adding it."
+   },
+   {
+    "id": "S16",
+    "type": "document",
+    "title": "Add missing cash movement",
+    "actor": "Participant",
+    "system": "Cash Analysis tab",
+    "description": "Add the confirmed movement as its own row with date, description, amount and cash category. If the fix changes prior-year history, supporting records and review are required before the change."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Correct duplicate movement",
+    "actor": "Participant",
+    "system": "Movement list; exact location UNKNOWN",
+    "description": "Ensure the movement appears only once and matches the bank record. Duplicates can arise when the same movement is picked up from the portal and monthly reconciliation. A prior-year change requires supporting records and review."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Correct broken formulas or links",
+    "actor": "Participant",
+    "system": "Workbook",
+    "description": "Correct and document broken formulas or links before the workbook is used again. A prior-year change requires supporting records and review."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Request unclear transaction details",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "When unable to assign a cash category, the participant does not guess. The item remains an explicit exception and the participant asks the fund team or client for transaction details."
+   },
+   {
+    "id": "S20",
+    "type": "wait",
+    "title": "Hold uncategorized transaction",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "The item stops until it is resolved and documented with supporting documents or correspondence."
+   },
+   {
+    "id": "S21",
+    "type": "decision",
+    "title": "Does each category trace to activity?",
+    "actor": "Participant",
+    "system": "Cash Composition workbook",
+    "description": "On every update, the participant checks that every cash category traces to identifiable activity. Who reviews or approves this check is unconfirmed."
+   },
+   {
+    "id": "S22",
+    "type": "decision",
+    "title": "Is each movement listed once?",
+    "actor": "Participant",
+    "system": "Transaction list; exact location UNKNOWN",
+    "description": "On every update, the participant checks that each movement appears in the transaction list only once. Who reviews or approves this check is unconfirmed."
+   },
+   {
+    "id": "S23",
+    "type": "activity",
+    "title": "Review bank-to-category match",
+    "actor": "Reviewer",
+    "system": "UNKNOWN",
+    "description": "A reviewer looks at the bank-to-category match; the reconciliation is the record of that review. Timing and the person recording the evidence are UNKNOWN."
+   },
+   {
+    "id": "S24",
+    "type": "document",
+    "title": "Copy report to quarterly files",
+    "actor": "UNKNOWN",
+    "system": "Quarterly supporting files",
+    "description": "The report is copied into the quarterly supporting files for detailed quarterly review. The day-to-day copy in the Treasury folder receives much less review."
+   },
+   {
+    "id": "S25",
+    "type": "activity",
+    "title": "Review quarterly report",
+    "actor": "Quarterly reviewer",
+    "system": "Quarterly supporting files",
+    "description": "The quarterly reviewer reviews the quarterly copy and identified differences. The reported test is whether the quarterly output reconciles to approved source data for the period."
+   },
+   {
+    "id": "S26",
+    "type": "document",
+    "title": "List quarterly copy corrections",
+    "actor": "UNKNOWN",
+    "system": "Quarterly supporting files",
+    "description": "Any corrections made in the quarterly copy are listed. Who lists them and where the list is kept are UNKNOWN."
+   },
+   {
+    "id": "S27",
+    "type": "activity",
+    "title": "Record failed check exception",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "When any of the three update checks fails, record the exception. The recording location and responsible person are UNKNOWN."
+   },
+   {
+    "id": "S28",
+    "type": "wait",
+    "title": "Hold item after failed check",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Do not advance the affected item until the exception is resolved or an authorized decision is documented. The subsequent handoff is UNKNOWN."
+   },
+   {
+    "id": "S29",
+    "type": "decision",
+    "title": "Do report versions agree?",
+    "actor": "UNKNOWN",
+    "system": "Quarterly supporting files; Treasury folder",
+    "description": "Compare the quarterly and Treasury-folder copies. A version comparison is kept; its owner and location are UNKNOWN."
+   },
+   {
+    "id": "S30",
+    "type": "activity",
+    "title": "Escalate report version differences",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Identify differences and escalate the need to keep the copies aligned to the reviewer or process owner. A resolution record is kept; its owner and location are UNKNOWN."
+   },
+   {
+    "id": "S31",
+    "type": "wait",
+    "title": "Hold for version alignment",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Do not proceed until the versions agree or the difference is approved and documented. The method and owner for aligning the copies are unconfirmed."
+   },
+   {
+    "id": "S32",
+    "type": "activity",
+    "title": "Notify earlier report users",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "If someone already relied on an earlier report, they have to be told. The notifier, message and method are UNKNOWN."
+   },
+   {
+    "id": "S33",
+    "type": "activity",
+    "title": "Apply approved client method",
+    "actor": "Participant's team",
+    "system": "UNKNOWN",
+    "description": "Record and apply each client's current approved method rather than inventing a standard formula. If an LPA or line-of-credit term changes actual cash availability, apply the governing term through FA-19 or the approved client methodology."
+   },
+   {
+    "id": "S34",
+    "type": "wait",
+    "title": "Wait for treatment confirmation",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Do not proceed on the changed-term treatment until the client or an authorized reviewer has confirmed it and it is documented against the governing documents. Who records the documentation and where it is kept are UNKNOWN."
+   },
+   {
+    "id": "S35",
+    "type": "activity",
+    "title": "Refer incomplete affiliate balance",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "If an affiliate balance is missing the entity, transaction or expected repayment, refer it to the fund team or client. The balance is not treated as available cash while the required details and treatment remain unapproved."
+   },
+   {
+    "id": "S36",
+    "type": "wait",
+    "title": "Hold affiliate cash availability",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Do not treat the incomplete affiliate balance as available cash until the details and treatment are approved. The approver and subsequent handoff are UNKNOWN."
+   },
+   {
+    "id": "S37",
+    "type": "activity",
+    "title": "Flag event liquidity shortfall",
+    "actor": "Participant",
+    "system": "Event liquidity view",
+    "description": "If pending outflows exceed available cash, the participant flags the shortfall in the event liquidity view."
+   },
+   {
+    "id": "S38",
+    "type": "activity",
+    "title": "Make shortfall decision",
+    "actor": "Client or fund team",
+    "system": "UNKNOWN",
+    "description": "The shortfall goes to the client or fund team for a capital-event or payment decision. Individual recommendation and approval authority is unconfirmed."
+   },
+   {
+    "id": "S39",
+    "type": "wait",
+    "title": "Hold pending shortfall action",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Nothing proceeds until the shortfall action is complete and the supporting record is present. A payment or distribution can be delayed."
+   },
+   {
+    "id": "S40",
+    "type": "activity",
+    "title": "Present cash position to decision-makers",
+    "actor": "Fund or capital-activity team",
+    "system": "UNKNOWN",
+    "description": "The team takes the report to decision-makers, explains available and set-aside cash, pending obligations and projected ending balance, and says whether a capital call, hold or other action is needed. Authority to recommend and approve the action is unconfirmed."
+   },
+   {
+    "id": "S41",
+    "type": "subprocess",
+    "title": "Perform payment funding check",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The report feeds the payment funding check in FA-17. The check's internal steps and handoff are UNKNOWN."
+   },
+   {
+    "id": "S42",
+    "type": "activity",
+    "title": "Escalate working-capital result request",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "If asked for a working-capital result, the participant stops and escalates. The calculation is on hold because no formula, forecast period or probability threshold is approved; an unapproved model cannot be used to approve or fund an amount."
+   },
+   {
+    "id": "S43",
+    "type": "document",
+    "title": "Log expected outflows",
+    "actor": "Participant",
+    "system": "Forward-liquidity section",
+    "description": "Record expected outflows not yet in the bank or GL from client advance notices or approved internal commitments, separately from cash already recorded in the GL. The participant logs each approved notice because separate, uncoordinated emails can be missed; there is no confirmed standard field set or stale-item closeout rule."
+   },
+   {
+    "id": "S44",
+    "type": "document",
+    "title": "Update or close expected item",
+    "actor": "Participant",
+    "system": "Forward-liquidity section",
+    "description": "When the cash actually moves, the participant updates or closes the expected item. Criteria for choosing between update and closure are UNKNOWN."
+   },
+   {
+    "id": "S45",
+    "type": "activity",
+    "title": "Review outflows before event",
+    "actor": "Decision team",
+    "system": "UNKNOWN",
+    "description": "Before an event, the decision team reviews that known outflows are shown separately from available cash. Bank cash is not treated as fully available when known obligations are pending."
+   },
+   {
+    "id": "S46",
+    "type": "decision",
+    "title": "Do investor receipts match?",
+    "actor": "Participant",
+    "system": "Cash Composition; bank portal; bank details",
+    "description": "Match investor receipt totals to the Cash Composition amount using portal and bank details. A mismatch sends detailed receivable exceptions and any unidentified investor wires to FA-02."
+   },
+   {
+    "id": "S47",
+    "type": "activity",
+    "title": "Refer receivable exceptions to FA-02",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "When investor receipt totals do not match Cash Composition, send detailed receivable exceptions and any unidentified investor wires to FA-02. The sender and subsequent handling are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S3",
+    "to": "S9",
+    "label": "Liquidity analysis needed"
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": ""
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Beginning balance does not match"
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": "Exception recorded; item remains held"
+   },
+   {
+    "from": "S6",
+    "to": "S10",
+    "label": "Beginning balance does not match"
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": "Categorized total does not match bank balance"
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": "Difference remains"
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": "Difference remains unresolved or undocumented"
+   },
+   {
+    "from": "S1",
+    "to": "S4",
+    "label": "Whenever cash moves"
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": ""
+   },
+   {
+    "from": "S12",
+    "to": "S15",
+    "label": "Missing movement identified"
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": "Movement details confirmed"
+   },
+   {
+    "from": "S12",
+    "to": "S17",
+    "label": "Duplicate identified"
+   },
+   {
+    "from": "S12",
+    "to": "S18",
+    "label": "Broken formula or link identified"
+   },
+   {
+    "from": "S12",
+    "to": "S19",
+    "label": "Transaction cannot be assigned to a category"
+   },
+   {
+    "from": "S19",
+    "to": "S20",
+    "label": "Details requested; item remains unresolved"
+   },
+   {
+    "from": "S16",
+    "to": "S11",
+    "label": "Movement added"
+   },
+   {
+    "from": "S17",
+    "to": "S11",
+    "label": "Duplicate corrected"
+   },
+   {
+    "from": "S18",
+    "to": "S11",
+    "label": "Formula or link corrected and documented"
+   },
+   {
+    "from": "S4",
+    "to": "S11",
+    "label": "Every update"
+   },
+   {
+    "from": "S4",
+    "to": "S21",
+    "label": "Every update"
+   },
+   {
+    "from": "S4",
+    "to": "S22",
+    "label": "Every update"
+   },
+   {
+    "from": "S11",
+    "to": "S27",
+    "label": "Bank-to-category check fails"
+   },
+   {
+    "from": "S21",
+    "to": "S27",
+    "label": "Category-support check fails"
+   },
+   {
+    "from": "S22",
+    "to": "S27",
+    "label": "Duplicate check fails"
+   },
+   {
+    "from": "S27",
+    "to": "S28",
+    "label": "Exception recorded; affected item held"
+   },
+   {
+    "from": "S24",
+    "to": "S25",
+    "label": ""
+   },
+   {
+    "from": "S6",
+    "to": "S11",
+    "label": "Beginning balance matches"
+   },
+   {
+    "from": "S29",
+    "to": "S30",
+    "label": "Versions differ"
+   },
+   {
+    "from": "S30",
+    "to": "S31",
+    "label": "Differences escalated; versions not aligned"
+   },
+   {
+    "from": "S29",
+    "to": "S32",
+    "label": "Versions differ and someone already relied on an earlier report"
+   },
+   {
+    "from": "S2",
+    "to": "S4",
+    "label": "Cash movement identified"
+   },
+   {
+    "from": "S33",
+    "to": "S34",
+    "label": "LPA or line-of-credit term changes actual cash availability"
+   },
+   {
+    "from": "S35",
+    "to": "S36",
+    "label": "Affiliate balance referred; details and treatment not yet approved"
+   },
+   {
+    "from": "S9",
+    "to": "S37",
+    "label": "Pending outflows exceed available cash"
+   },
+   {
+    "from": "S37",
+    "to": "S38",
+    "label": "Shortfall flagged"
+   },
+   {
+    "from": "S38",
+    "to": "S39",
+    "label": "Shortfall decision made"
+   },
+   {
+    "from": "S43",
+    "to": "S44",
+    "label": "Cash actually moves"
+   },
+   {
+    "from": "S11",
+    "to": "S23",
+    "label": "Bank-to-category match"
+   },
+   {
+    "from": "S25",
+    "to": "S26",
+    "label": "Corrections made in quarterly copy"
+   },
+   {
+    "from": "S4",
+    "to": "S24",
+    "label": "Quarterly"
+   },
+   {
+    "from": "S4",
+    "to": "S46",
+    "label": "Investor receipt totals matched to Cash Composition"
+   },
+   {
+    "from": "S46",
+    "to": "S47",
+    "label": "Investor receipt totals do not match"
+   }
+  ],
+  "open_questions": [
+   "Are the outgoing paths from S4 (Update cash composition workbook) alternatives, or must they all occur?",
+   "Does any incoming route start S4 (Update cash composition workbook), or must all prerequisites finish?",
+   "Are there other outcomes from decision S21 (Does each category trace to activity?), and where do they lead?",
+   "Are there other outcomes from decision S22 (Is each movement listed once?), and where do they lead?",
+   "Does any incoming route start S27 (Record failed check exception), or must all prerequisites finish?",
+   "Are there other outcomes from decision S46 (Do investor receipts match?), and where do they lead?",
+   "How does step S40 (Present cash position to decision-makers) connect to the rest of this process, if at all?",
+   "How does step S41 (Perform payment funding check) connect to the rest of this process, if at all?",
+   "How does step S42 (Escalate working-capital result request) connect to the rest of this process, if at all?",
+   "How does step S45 (Review outflows before event) connect to the rest of this process, if at all?",
+   "Are the routes containing S1 (Cash activity appears) and S3 (Planned capital event) separate, or is there a reported handoff between them?",
+   "Are the routes containing S1 (Cash activity appears) and S29 (Do report versions agree?) separate, or is there a reported handoff between them?",
+   "Are the routes containing S1 (Cash activity appears) and S33 (Apply approved client method) separate, or is there a reported handoff between them?",
+   "Are the routes containing S1 (Cash activity appears) and S35 (Refer incomplete affiliate balance) separate, or is there a reported handoff between them?",
+   "Are the routes containing S1 (Cash activity appears) and S43 (Log expected outflows) separate, or is there a reported handoff between them?",
+   "Who detects each initiating event? How does a planned capital event connect to the workbook and liquidity-analysis routes?",
+   "Does carry-forward occur only at a period boundary? How does the beginning-balance check relate to the update and its three checks?",
+   "What is the correction procedure and approval authority for carry-forward mismatches? Where are exceptions and authorized decisions recorded, and where does the item resume after release?",
+   "When is the beginning-balance trace performed relative to recording and holding a mismatch, and where does the trace lead?",
+   "Where do successful update checks and a matched beginning balance ultimately lead? Are the update checks all required, and is their order specified?",
+   "Who receives a remaining-difference escalation, where is the variance note kept, and how is the difference resolved and documented? Where does work resume after the reliance hold is released?",
+   "Who reviews a fix that changes prior-year history, where is the review retained, and what happens if supporting records or review are unavailable?",
+   "How is a misclassification corrected when the category is known? After an unclear transaction is resolved and documented, where does the item resume?",
+   "Who reviews or approves the category-support and duplicate checks?",
+   "When does the bank-to-category reviewer act relative to the participant's check and quarterly review? Who records the review, and where is the reconciliation kept?",
+   "Who records failed-check exceptions, where are they retained, who can authorize a decision, and how do correction and recheck relate to release?",
+   "Who copies the report into quarterly files, and how are quarterly review outcomes, including failure to reconcile to approved source data, handled?",
+   "Where does the version comparison sit relative to quarterly review, and where does work proceed when the copies agree or the hold is released?",
+   "Who owns alignment of the copies, how are quarterly corrections transferred to the operational copy, and who can approve a version difference?",
+   "Who keeps the version comparison and resolution record, and where are they retained?",
+   "Who tells prior report users, how are they identified and notified, and where does that action lead?",
+   "Who lists corrections in the quarterly copy, where is the list kept, and what happens after the listing?",
+   "Where does recording and applying the approved client method sit in the workbook and liquidity-analysis routes? What is FA-19 in this process?",
+   "Who documents changed-term treatment, where is it retained, and where does work proceed after confirmation and documentation?",
+   "At what point is an incomplete affiliate balance identified and referred? Who approves its details and treatment, and where does work resume after approval?",
+   "How do client-specific working-capital rules, LPA timing, credit obligations, sweep arrangements, affiliate structures and workbook designs change the work? Are differences charged for, and are there constraints on removing them?",
+   "Where do logging expected outflows and the decision team's pre-event review sit in the liquidity-analysis and reporting routes? What happens if that review finds a problem?",
+   "How are approved notices and commitments identified, and what determines whether an expected item is updated or closed when cash moves? What rule applies to stale items?",
+   "What observable output completes the overall process, and who is accountable? How is the report delivered to the fund or capital-activity team, FA-17 and quarterly reporting?",
+   "Who is authorized to recommend and approve capital actions, and what happens after the team presents the cash position?",
+   "Who carries out the shortfall action, what supporting record is required and retained, and where does work resume once both release conditions are met?",
+   "Who receives a working-capital calculation escalation, and what happens to the request while the calculation is on hold?",
+   "When are investor receipts matched, where does the matched route lead, and who sends exceptions to FA-02? Are unidentified wires referred separately when there is no total mismatch?",
+   "What other approvals, evidence retention, deadlines and exception routes apply?",
+   "Which bank accounts, funds, other entities and clients are in scope? What is the participant's basis for saying the basic method applies everywhere, and is it general GPFS practice?",
+   "What systems, source records, workpapers and procedures support the work, and which records are authoritative?",
+   "What are the consequences and practical frequency of delayed updates or balance mismatches? What are the normal volumes and exception frequencies?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "Current-practice draft: Cash Reconciliation & Working Capital Reporting",
+  "overview": "Draft for process-owner review, based on one participant’s account. It describes cash categorization and reconciliation, event liquidity information, quarterly review and the hold on the working-capital calculation. Overall ownership, scope, completion and several handoffs remain UNKNOWN. No supporting documents were supplied or reviewed.",
+  "trigger": "Cash activity appears in the bank portal, the monthly bank reconciliation identifies activity, or a planned capital event needs liquidity analysis.",
+  "inputs": [
+   "Bank portal activity and bank records, including sweep accounts.",
+   "Monthly bank reconciliation and prior reconciled workbook.",
+   "Client advance notices and approved internal commitments.",
+   "Current approved client methods, applicable governing terms and transaction details.",
+   "Investor receipt totals and portal and bank details."
+  ],
+  "outputs": [
+   "Categorized cash movements and reconciliation.",
+   "Forward-liquidity information and event shortfall flags.",
+   "Cash-position information for decision-makers, quarterly reporting and the FA-17 payment funding check.",
+   "Exceptions, variance notes and referrals where applicable."
+  ],
+  "exceptions": [
+   "Beginning-balance mismatch: record and hold the item until resolved or an authorized decision is documented; the correction procedure and approver are unconfirmed.",
+   "Any failed update check: record the exception and hold the affected item until resolved or an authorized decision is documented.",
+   "Remaining category difference: escalate with a variance note; the report should not be relied on until resolved and documented.",
+   "Unclear transaction purpose: request details from the fund team or client and hold the item until resolved and supported.",
+   "Quarterly and Treasury copies differ: escalate alignment; proceed only on agreement or an approved and documented difference, and tell anyone who relied on an earlier report.",
+   "Incomplete affiliate balance: refer it and exclude it from available cash until details and treatment are approved.",
+   "Liquidity shortfall: flag it and obtain a capital-event or payment decision; nothing proceeds until the action is complete and a supporting record exists.",
+   "Working-capital calculation request: stop and escalate while the calculation is on hold.",
+   "Investor receipt mismatch: refer detailed receivable exceptions and any unidentified wires to FA-02."
+  ],
+  "controls": [
+   "Beginning balance must match the prior ending and actual bank balances including sweeps.",
+   "On every update, the participant checks category-to-bank equality, category support and transaction uniqueness.",
+   "A reviewer looks at the bank-to-category match; the reconciliation records that review.",
+   "Prior-year changes require supporting records and review.",
+   "Quarterly output is tested against approved period source data, and quarterly corrections are listed.",
+   "Changed availability treatment requires client or authorized reviewer confirmation and documentation against governing documents.",
+   "Before an event, the decision team reviews that known outflows are separate from available cash."
+  ],
+  "validation_notes": [
+   "This is an AI-generated current-practice draft for review. Participant confirmation and process-owner approval are pending; the capture is not complete or independently verified.",
+   "No supporting documents were supplied or reviewed. LPA terms, FA-19, FA-17, FA-02 and the Beta deck are participant-reported references, not verified source rules.",
+   "The participant reports intended daily updates and actual slippage to weekly or monthly; neither is treated as a measured performance figure.",
+   "The three update checks are reported for every update. Their relative order, concurrent execution and a joint release gateway are not established.",
+   "The reported correction and recheck routes cite the participant’s answer about checks after correction. The three checks are rerun on every update; the map does not assert their order.",
+   "The proposed S8-to-S19 edge is omitted: a reviewer looks at the bank-to-category match, but the account does not establish that a successful participant check directly hands off to that review. The review remains a known disconnected action.",
+   "The proposed S4-to-S34 edge is omitted: the account describes both updating the workbook and matching investor receipts but does not establish their direct sequence.",
+   "Carry-forward, client-method application, affiliate handling, pre-event review, presentation and other known fragments lack established placement or exits. Their disconnection does not establish separate processes.",
+   "Version-difference and other exception holds retain their reported release conditions without inventing a return after release.",
+   "The participant’s basic method is one account, not an independently corroborated or approved GPFS standard.",
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "start",
+    "title": "Cash activity appears in portal",
+    "actor": "UNKNOWN",
+    "system": "Bank portal",
+    "description": "Cash activity appearing in the bank portal can initiate the work."
+   },
+   {
+    "id": "S2",
+    "type": "start",
+    "title": "Monthly reconciliation finds activity",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The monthly bank reconciliation can identify activity that starts the work."
+   },
+   {
+    "id": "S3",
+    "type": "start",
+    "title": "Planned capital event",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "A planned capital event needing liquidity analysis can initiate the work."
+   },
+   {
+    "id": "S4",
+    "type": "document",
+    "title": "Update cash composition workbook",
+    "actor": "Participant",
+    "system": "Cash Composition workbook and tab",
+    "description": "Categorize movements as life-to-date sources or uses and link each categorized amount to its detailed transaction. Sources include capital calls, credit-line draws and proceeds; uses include investments, management fees, expenses, credit-line repayments and distributions. Amounts due to or from affiliates have their own category. Each movement is one row, with available event, investor and transaction detail. For a net capital event show the full contribution as an inflow and full distribution as an outflow; put early or late investor receipts in Due To/From with the event reference."
+   },
+   {
+    "id": "S5",
+    "type": "document",
+    "title": "Carry workbook into period",
+    "actor": "Participant",
+    "system": "Cash Composition workbook",
+    "description": "Carry the workbook into a new period."
+   },
+   {
+    "id": "S6",
+    "type": "decision",
+    "title": "Does beginning balance match?",
+    "actor": "Participant",
+    "system": "Workbook and bank records",
+    "description": "Check the beginning balance against the prior ending balance and actual bank balance including sweeps. Trace the beginning balance to the prior reconciled workbook and bank records. The precise placement of the trace within the check is UNKNOWN."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Record and hold balance exception",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "Record a beginning-balance mismatch and hold the affected item until it is resolved or an authorized decision is documented. The carry-forward correction procedure and fix approver are unconfirmed."
+   },
+   {
+    "id": "S8",
+    "type": "decision",
+    "title": "Do cash categories match bank?",
+    "actor": "Participant",
+    "system": "Cash Composition workbook and bank records",
+    "description": "On every update, check that cash categories total the actual bank balance including sweeps. There is no tolerance; the commonly mentioned amount under ten dollars is not an approved rounding tolerance."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Investigate category difference",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "Look for missing transactions, duplicate entries, broken formulas or links, and misclassifications. Continue until the categorized total matches the bank balance including sweeps. Escalate any difference left with a variance note; the report should not be relied on until it is resolved and documented."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Confirm missing movement",
+    "actor": "Participant",
+    "system": "Bank record",
+    "description": "Confirm the account, entity, date, amount and whether cash came in or went out against the bank record before adding a missing movement."
+   },
+   {
+    "id": "S11",
+    "type": "document",
+    "title": "Add missing movement",
+    "actor": "Participant",
+    "system": "Cash Analysis tab",
+    "description": "Add the confirmed movement as its own row with date, description, amount and cash category. A fix changing prior-year history is made only with supporting records and review."
+   },
+   {
+    "id": "S12",
+    "type": "activity",
+    "title": "Correct duplicate movement",
+    "actor": "Participant",
+    "system": "Transaction list",
+    "description": "Ensure the movement appears only once and matches the bank record. Duplicates can arise when the same movement is picked up from the portal and monthly reconciliation. A prior-year change requires supporting records and review."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Correct broken formulas or links",
+    "actor": "Participant",
+    "system": "Workbook",
+    "description": "Correct and document broken formulas or links before the workbook is used again. A prior-year change requires supporting records and review."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Request unclear transaction details",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "If a transaction cannot be assigned to a category, do not guess. Keep it as an explicit exception and ask the fund team or client for details. Stop the item until it is resolved and documented with supporting documents or correspondence. A prior-year change also requires supporting records and review."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Escalate remaining variance",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Escalate any difference left with a variance note. Nobody should rely on the report until the difference is resolved and documented. Recipient, note location and resolution procedure are UNKNOWN."
+   },
+   {
+    "id": "S16",
+    "type": "decision",
+    "title": "Does each category trace to activity?",
+    "actor": "Participant",
+    "system": "Cash Composition workbook",
+    "description": "On every update, check that every category traces to identifiable activity. Who reviews or approves this check has not been confirmed."
+   },
+   {
+    "id": "S17",
+    "type": "decision",
+    "title": "Is each movement listed once?",
+    "actor": "Participant",
+    "system": "Transaction list",
+    "description": "On every update, check that each movement appears in the transaction list only once. Who reviews or approves this check has not been confirmed."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Record and hold failed check",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "If any update check fails, record the exception and do not advance the affected item until it is resolved or an authorized decision is documented. Recording location and decision authority are UNKNOWN."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Review bank-to-category match",
+    "actor": "Reviewer",
+    "system": "Reconciliation; location UNKNOWN",
+    "description": "A reviewer looks at the bank-to-category match; the reconciliation is the record of that review. Timing and the person recording it are UNKNOWN."
+   },
+   {
+    "id": "S20",
+    "type": "document",
+    "title": "Copy report to quarterly files",
+    "actor": "UNKNOWN",
+    "system": "Quarterly supporting files",
+    "description": "Copy the report into quarterly supporting files for detailed quarterly review. The day-to-day copy in the Treasury folder receives much less review."
+   },
+   {
+    "id": "S21",
+    "type": "activity",
+    "title": "Review quarterly report",
+    "actor": "Quarterly reviewer",
+    "system": "Quarterly supporting files",
+    "description": "Review the quarterly copy and identified differences. The test is that quarterly output reconciles to approved source data for the period. Corrections made in the quarterly copy are listed; who lists them and where is UNKNOWN."
+   },
+   {
+    "id": "S22",
+    "type": "decision",
+    "title": "Do report versions agree?",
+    "actor": "UNKNOWN",
+    "system": "Treasury folder and quarterly supporting files",
+    "description": "Compare the quarterly and Treasury-folder copies. A version comparison and resolution record are kept; their owner and location are UNKNOWN. Placement relative to quarterly review is unconfirmed."
+   },
+   {
+    "id": "S23",
+    "type": "activity",
+    "title": "Escalate version differences",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Identify differences and escalate the need to align the copies to the reviewer or process owner. Proceed only when versions agree or the difference is approved and documented. If someone already relied on an earlier report, they must be told. The final alignment owner and method for transferring quarterly corrections back to the operational copy are unconfirmed."
+   },
+   {
+    "id": "S24",
+    "type": "activity",
+    "title": "Apply approved client method",
+    "actor": "Participant’s team",
+    "system": "UNKNOWN",
+    "description": "Record and apply each client’s current approved method rather than inventing a standard formula. When an LPA or credit-line term changes actual cash availability, apply the governing term through FA-19 or the approved client methodology. Proceed only once the client or an authorized reviewer confirms the treatment and it is documented against the governing documents. The participant describes 30–90 days as typical, not a rule; the fund’s own LPA controls."
+   },
+   {
+    "id": "S25",
+    "type": "activity",
+    "title": "Refer incomplete affiliate balance",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "If an affiliate balance is missing the entity, transaction or expected repayment, refer it to the fund team or client. Do not treat it as available cash until the details and treatment are approved."
+   },
+   {
+    "id": "S26",
+    "type": "document",
+    "title": "Log expected outflows",
+    "actor": "Participant",
+    "system": "Forward-liquidity section",
+    "description": "Record expected outflows not yet in the bank or GL from client advance notices or approved internal commitments, including amount, timing, purpose and account. Keep them separate from cash already recorded in the GL and log each approved notice rather than relying on uncoordinated emails. There is no confirmed standard field set or stale-item closure rule."
+   },
+   {
+    "id": "S27",
+    "type": "document",
+    "title": "Update or close expected item",
+    "actor": "Participant",
+    "system": "Forward-liquidity section",
+    "description": "When cash actually moves, update or close the expected item. The criteria for choosing update rather than closure are UNKNOWN."
+   },
+   {
+    "id": "S28",
+    "type": "activity",
+    "title": "Review outflows before event",
+    "actor": "Decision team",
+    "system": "UNKNOWN",
+    "description": "Before an event, review that known outflows are shown separately from available cash. The participant does not treat bank cash at a point in time as fully available when known obligations are pending."
+   },
+   {
+    "id": "S29",
+    "type": "activity",
+    "title": "Analyze event liquidity",
+    "actor": "UNKNOWN",
+    "system": "Event liquidity view",
+    "description": "A planned capital event can require liquidity analysis. The full sequence and its relationship to logging outflows, client methods and the pre-event review are UNKNOWN."
+   },
+   {
+    "id": "S30",
+    "type": "activity",
+    "title": "Flag event liquidity shortfall",
+    "actor": "Participant",
+    "system": "Event liquidity view",
+    "description": "If pending outflows exceed available cash, flag the shortfall in the event liquidity view."
+   },
+   {
+    "id": "S31",
+    "type": "activity",
+    "title": "Make shortfall decision",
+    "actor": "Client or fund team",
+    "system": "UNKNOWN",
+    "description": "The shortfall goes for a capital-event or payment decision by the client or fund team. Nothing proceeds until the action is complete and a supporting record exists. This can delay a payment or distribution. Individual recommendation and approval authority is unconfirmed."
+   },
+   {
+    "id": "S32",
+    "type": "activity",
+    "title": "Present cash position",
+    "actor": "Fund or capital-activity team",
+    "system": "UNKNOWN",
+    "description": "Take the report to decision-makers and explain available cash, amounts set aside, pending obligations and projected ending balance, including whether a capital call, hold or another action is needed. Who is authorized to recommend and approve the action is unconfirmed."
+   },
+   {
+    "id": "S33",
+    "type": "activity",
+    "title": "Escalate working-capital request",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "If asked for a working-capital result, stop and escalate. The calculation is on hold because no formula, forecast period or probability threshold is approved. An unapproved model cannot be used to approve or fund an amount. The participant says the Beta training deck examples are not policy."
+   },
+   {
+    "id": "S34",
+    "type": "decision",
+    "title": "Do investor receipts match?",
+    "actor": "Participant",
+    "system": "Cash Composition, bank portal and bank details",
+    "description": "Match investor receipt totals to the Cash Composition amount using portal and bank details. Capital-event months are where mistakes occur."
+   },
+   {
+    "id": "S35",
+    "type": "activity",
+    "title": "Refer exceptions to FA-02",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "When investor receipt totals do not match Cash Composition, detailed receivable exceptions and any unidentified investor wires go to FA-02. Sender and subsequent handling are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S4",
+    "label": "Cash movement identified"
+   },
+   {
+    "from": "S2",
+    "to": "S4",
+    "label": "Cash movement identified"
+   },
+   {
+    "from": "S3",
+    "to": "S29",
+    "label": "Liquidity analysis needed"
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": "Workbook carried into new period"
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Beginning balance does not match"
+   },
+   {
+    "from": "S4",
+    "to": "S8",
+    "label": "Every update"
+   },
+   {
+    "from": "S4",
+    "to": "S16",
+    "label": "Every update"
+   },
+   {
+    "from": "S4",
+    "to": "S17",
+    "label": "Every update"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "Categories do not match bank balance"
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": "Missing movement identified"
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": "Movement details confirmed"
+   },
+   {
+    "from": "S9",
+    "to": "S12",
+    "label": "Duplicate identified"
+   },
+   {
+    "from": "S9",
+    "to": "S13",
+    "label": "Broken formula or link identified"
+   },
+   {
+    "from": "S9",
+    "to": "S14",
+    "label": "Transaction cannot be assigned a category"
+   },
+   {
+    "from": "S9",
+    "to": "S15",
+    "label": "Difference remains"
+   },
+   {
+    "from": "S11",
+    "to": "S8",
+    "label": "Movement added"
+   },
+   {
+    "from": "S12",
+    "to": "S8",
+    "label": "Duplicate corrected"
+   },
+   {
+    "from": "S13",
+    "to": "S8",
+    "label": "Formula or link corrected and documented"
+   },
+   {
+    "from": "S8",
+    "to": "S18",
+    "label": "Bank-to-category check fails"
+   },
+   {
+    "from": "S16",
+    "to": "S18",
+    "label": "Category-support check fails"
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": "Duplicate check fails"
+   },
+   {
+    "from": "S20",
+    "to": "S21",
+    "label": "Quarterly copy available"
+   },
+   {
+    "from": "S22",
+    "to": "S23",
+    "label": "Versions differ"
+   },
+   {
+    "from": "S26",
+    "to": "S27",
+    "label": "Cash actually moves"
+   },
+   {
+    "from": "S29",
+    "to": "S30",
+    "label": "Pending outflows exceed available cash"
+   },
+   {
+    "from": "S30",
+    "to": "S31",
+    "label": "Shortfall flagged"
+   },
+   {
+    "from": "S34",
+    "to": "S35",
+    "label": "Investor receipt totals do not match"
+   }
+  ],
+  "open_questions": [
+   "Are the outgoing paths from S4 (Update cash composition workbook) alternatives, or must they all occur?",
+   "Does any incoming route start S4 (Update cash composition workbook), or must all prerequisites finish?",
+   "Are there other outcomes from decision S6 (Does beginning balance match?), and where do they lead?",
+   "Are there other outcomes from decision S16 (Does each category trace to activity?), and where do they lead?",
+   "Are there other outcomes from decision S17 (Is each movement listed once?), and where do they lead?",
+   "Does any incoming route start S18 (Record and hold failed check), or must all prerequisites finish?",
+   "Are there other outcomes from decision S22 (Do report versions agree?), and where do they lead?",
+   "Are there other outcomes from decision S34 (Do investor receipts match?), and where do they lead?",
+   "How does step S19 (Review bank-to-category match) connect to the rest of this process, if at all?",
+   "How does step S24 (Apply approved client method) connect to the rest of this process, if at all?",
+   "How does step S25 (Refer incomplete affiliate balance) connect to the rest of this process, if at all?",
+   "How does step S28 (Review outflows before event) connect to the rest of this process, if at all?",
+   "How does step S32 (Present cash position) connect to the rest of this process, if at all?",
+   "How does step S33 (Escalate working-capital request) connect to the rest of this process, if at all?",
+   "Are the routes containing S1 (Cash activity appears in portal) and S3 (Planned capital event) separate, or is there a reported handoff between them?",
+   "Are the routes containing S1 (Cash activity appears in portal) and S5 (Carry workbook into period) separate, or is there a reported handoff between them?",
+   "Are the routes containing S1 (Cash activity appears in portal) and S20 (Copy report to quarterly files) separate, or is there a reported handoff between them?",
+   "Are the routes containing S1 (Cash activity appears in portal) and S22 (Do report versions agree?) separate, or is there a reported handoff between them?",
+   "Are the routes containing S1 (Cash activity appears in portal) and S26 (Log expected outflows) separate, or is there a reported handoff between them?",
+   "Are the routes containing S1 (Cash activity appears in portal) and S34 (Do investor receipts match?) separate, or is there a reported handoff between them?",
+   "Who is accountable for the overall result, which entities and bank accounts are in scope, and what observable condition finishes the work?",
+   "How does the beginning-balance carry-forward connect to the current update route, and what correction procedure and authorization apply?",
+   "Where do successful update checks lead, when does the bank-match reviewer act, and how are failed checks corrected and returned for checking?",
+   "Who owns alignment of quarterly and operational copies, how are corrections transferred, and who approves differences and tells prior users?",
+   "How do client methods, expected outflows and the decision team’s pre-event review fit into the liquidity and report route, including a failed review?",
+   "Who detects each trigger, and how does a planned event connect to the workbook?",
+   "Who receives a variance escalation, where is its note retained, and where does work resume after resolution?",
+   "How is a known misclassification corrected, and where does an unclear transaction return after resolution? Who reviews prior-year fixes?",
+   "Who reviews or approves the category-support and duplicate checks, and who records and retains failed-check decisions?",
+   "Who prepares the quarterly copy and correction list, and what happens when quarterly output does not reconcile to approved source data?",
+   "Who confirms and records changed-term treatment, and what is FA-19’s role? Who approves incomplete affiliate details and treatment?",
+   "How do client-specific rules and workbook designs change the work, and what are their effort, charging and removal constraints?",
+   "How are approved notices identified, what determines update versus closure, and what rule applies to stale expected items?",
+   "Who is authorized to recommend and approve capital actions, who performs the shortfall action, and what supporting record is required?",
+   "Who receives a working-capital escalation, and what happens to the request while the calculation is on hold?",
+   "When are investor receipts matched relative to workbook updates, who sends exceptions to FA-02, and what does FA-02 do next? Are unidentified wires referred without a total mismatch?",
+   "What records are authoritative, what procedures are available, and what are the fixed deadlines, normal volumes and exception frequencies?",
+   "What is the basis for saying the basic method applies everywhere, and is it general GPFS practice?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "The intake calls the work Cash Reconciliation & Working Capital Reporting. The participant refers to the Cash Composition workbook, Cash Analysis tab and event liquidity view. Other team or checklist names and the full boundary are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The report supports decisions on capital calls, distributions, fees, credit-line activity and other liquidity needs. It feeds FA-17’s payment funding check, quarterly reporting and client liquidity conversations. The precise delivered result and completion boundary remain UNKNOWN."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "Bank portal activity, activity found in the monthly bank reconciliation, or a planned capital event needing liquidity analysis can start the work. Workbook updates are intended daily when cash moves but often slip to weekly or monthly. Who detects each trigger and any fixed deadlines are UNKNOWN."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "Held items require resolution or a documented authorized decision. Categories must reconcile to bank without tolerance; quarterly versions must agree or their difference be approved and documented before proceeding. The overall finished condition, delivery evidence and closure boundary are UNKNOWN. The report is used by decision-makers, FA-17 and quarterly reporting."
+   },
+   {
+    "key": "accountable",
+    "status": "unknown",
+    "answer": "UNKNOWN. The participant performs updates and checks; a reviewer and quarterly reviewer perform reviews, but overall accountability is not established."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The participant carries the workbook into a new period, checks and traces its opening balance, categorizes movements and reruns three update checks. Differences are investigated and corrected or held and escalated. Expected outflows are logged separately and updated or closed when cash moves. A quarterly copy is reviewed against approved source data, and version differences are escalated. The fund or capital-activity team presents the cash position; a shortfall goes to the client or fund team for a decision. Several placements, handoffs and returns are UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The participant checks bank equality, category traceability and duplicate movements on every update; a reviewer looks at the bank match and the reconciliation records it. Detailed quarterly review tests output against approved period source data. Failed checks hold affected items; prior-year fixes require support and review. Review authority for the other two checks, evidence locations, thresholds, segregation, override authority and several failure routes are UNKNOWN."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "The participant says categorization and bank equality are common, but working-capital rules, LPA timing, credit obligations, sweeps, affiliate structures and workbook design vary by client. Each client’s current approved method is recorded and applied. Exact step differences, charging, removal constraints and the basis for a general GPFS standard are UNKNOWN."
+   },
+   {
+    "key": "pain_points",
+    "status": "partial",
+    "answer": "Daily updates often slip, descriptions lack detail and context can reside in people’s heads. Separate uncoordinated notice emails can be missed; operational and quarterly copies can disagree. The participant describes self-checking as a weakness and says the day-to-day copy receives less review. Quantified effort is UNKNOWN."
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "A missed expected outflow overstates available cash. A shortfall can delay a payment or distribution; capital-event months are where mistakes occur. An unresolved category difference makes the report unsuitable for reliance, and prior users of an earlier report must be told when applicable. Other consequences and frequency are UNKNOWN."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The participant mentions the workbook, bank records, reconciliation, quarterly supporting files, client methods, governing documents and a Beta training deck. The participant says the deck’s examples are not policy. No supporting documents were supplied or reviewed; availability and locations beyond those named are UNKNOWN."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The participant cannot list the funds or confirm the bank and account list. The basic method is said to apply everywhere, with client-specific rules and designs, but the basis for general GPFS applicability and the parent-process boundary are UNKNOWN."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The participant reports no category-to-bank tolerance, client-approved methods, governing LPA or credit terms for changed cash availability, and prior-year support and review requirements. The fund’s own LPA controls rather than the commonly quoted 30–90-day range. Changed-term treatment needs confirmation and documentation. No working-capital formula, forecast period or probability threshold is approved, so that calculation is on hold. Interpretation authority, source conflicts and detailed calculation lineage are UNKNOWN; no governing documents were reviewed."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "Bank activity, monthly reconciliation, client notices and approved commitments supply inputs. The report feeds FA-17’s funding check and quarterly reporting; the fund or capital-activity team takes it to decision-makers. Investor receipt exceptions and unidentified wires go to FA-02 on mismatch. FA-19 or an approved client methodology is used for applicable governing terms. Readiness signals, downstream processing and several handoffs are UNKNOWN."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The participant works with a Cash Composition workbook, Cash Analysis and Cash Composition tabs, a forward-liquidity section, bank portal and records, and Treasury and quarterly file copies. Movements and expected outflows are entered as rows or logged; formulas and links may require correction. The authoritative record, workbook logic ownership, full storage locations and calculation lineage are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "partial",
+    "answer": "The participant would not estimate monthly movement counts because they have not been measured. Capital-event months are where mistakes occur, and transaction detail rather than volume is described as the hard part. Exception rates and effort by step are UNKNOWN."
+   }
+  ]
+ },
+ "draft_error": null
+}

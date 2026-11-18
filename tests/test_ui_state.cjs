@@ -1762,5 +1762,24 @@ if(process.argv.includes("--usability-only")){
   assert.throws(()=>t.applyInterview({question:"?",preserve_capture:true}),/interview is full/);
   passes++;
  }
+ {
+  // A step's rule source is a source id. The report and the Markdown export show it the way
+  // every other source is shown ("Answer 1"), never as the internal turn id ("t002").
+  checkpoint();t.clearState();
+  const raw=JSON.stringify({schema_version:1,context:{process_name:"Rule source label",objective:"QA"},draft_stale:false,
+   turns:[{id:"t001",role:"assistant",text:"What starts this work?"},{id:"t002",role:"user",text:"We never rely on last year's rules without confirming them again."}],
+   draft:{title:"Rule source label",steps:[{id:"S1",title:"Check the letter",description:"Check the current letter.",evidence_turns:["t002"],rule_source_ref:"t002"},
+    {id:"S2",title:"File it",description:"File the letter.",evidence_turns:["t002"],rule_source_ref:""}]}});
+  await t.importSession({size:raw.length,text:async()=>raw});
+  assert.equal(t.state.draft.steps[0].rule_source_ref,"t002","The saved rule source is kept as its source id");
+  t.renderReport();const shown=document.getElementById("report-content").textContent;
+  assert.match(shown,/Rule source\s*Answer 1/,"The report names the rule source as it names every other source");
+  assert.doesNotMatch(shown,/Rule source\s*t002/,"The report showed the internal turn id as the rule source");
+  const exported=t.markdown();
+  assert.ok(exported.includes("- Rule source: Answer 1 (t002)"),"The Markdown export names the rule source and keeps the id its evidence section uses");
+  assert.ok(exported.includes("- Rule source: UNKNOWN / TBD"),"A step without a rule source still says so");
+  assert.ok(!exported.includes("- Rule source: t002"),"The Markdown export showed the internal turn id");
+  passes++;
+ }
  checkpoint();console.log(JSON.stringify({tests_passed:passes,provider_calls:providerCalls,network_calls:0,real_browser:false}));
 })().catch(error=>{console.error(error);process.exitCode=1;});

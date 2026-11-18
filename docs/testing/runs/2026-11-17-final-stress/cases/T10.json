@@ -1,0 +1,1137 @@
+{
+ "case": "T10",
+ "process": "GP-01",
+ "mode": "typed",
+ "style": "one step per answer",
+ "build": "untouched",
+ "participant": "script",
+ "context": {
+  "process_name": "Two-Ledger Allocation Framework (Capital vs Carry Interest)",
+  "process_owner": "",
+  "objective": "Document how we carry out Two-Ledger Allocation Framework (Capital vs Carry Interest), the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "To begin with, we confirm event and authority. That is done by: GPFS Preparer. Before starting we need approved event total or upstream amount. What we do: identify the event and governing basis; create separate capital and carry sections; record the source period and calculation purpose."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "What event or notification prompts the preparer to begin this work?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "Next, we lock population and schedules. That is done by: GPFS Preparer; client confirms. Before starting we need current schedules, prior member population, and  and changes. What we do: reconcile the changes; confirm effective dates and the components covered; freeze the dated approved versions."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What do you reconcile the population changes against before freezing the schedules?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "After that, we calculate capital-interest ledger. That is done by: GPFS Preparer. Before starting we need approved allocation method and reconciled contributions. What we do: use the approved whole-population, deal, or tranche basis; isolate contributions for realized events; calculate the capital components; independently reconcile the sources and formulas."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "What determines whether you use the whole-population, deal, or tranche basis?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "Then, we calculate carry-interest ledger. That is done by: GPFS Preparer. Before starting we need approved carry base, schedules, and carry recorded in prior periods. What we do: calculate each applicable schedule on a life-to-date basis; subtract all carry recorded in prior periods; apply approved changes."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "What approved changes do you apply to the carry calculation?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "Once that is done, we combine and analyze. That is done by: GPFS Preparer; Reviewer. Before starting we need completed component ledgers. What we do: combine the results by member; reconcile the components with the event total; explain results that move in different directions; obtain client confirmation when the intended result is unclear."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "How do you reconcile the combined ledger components to the event total?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "Following that, we apply approved reallocation. That is done by: GPFS Preparer; client names recipients. Before starting we need approved affected ledger, amount, effective date, and recipients. What we do: apply equal and opposite member changes; confirm that the net change is zero for each affected ledger."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "How do you apply the equal-and-opposite changes to the affected members’ ledgers?"
+  },
+  {
+   "id": "t014",
+   "role": "user",
+   "text": "Following that, we review, lock, publish, and close. That is done by: GPFS Reviewer; release role not yet confirmed. Before starting we need complete package with no stop condition. What we do: complete the independent review; lock the approved version; use it to update or the downstream event file; reconcile the output; keep the required records."
+  },
+  {
+   "id": "t015",
+   "role": "assistant",
+   "text": "What do you reconcile the downstream event-file output against?"
+  },
+  {
+   "id": "t016",
+   "role": "assistant",
+   "text": "This capture still has open sections. 14 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794968415.158,
+   "turn": 0,
+   "seconds": 0.035,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794968418.517,
+   "turn": 2,
+   "seconds": 3.3,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968431.319,
+   "turn": 3,
+   "seconds": 16.1
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794968436.454,
+   "turn": 3,
+   "seconds": 21.24,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 3,
+   "connections": 2
+  },
+  {
+   "kind": "question",
+   "at": 1794968439.444,
+   "turn": 4,
+   "seconds": 2.916,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794968439.449,
+   "turn": 5,
+   "seconds": 2.92,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 3,
+   "connections": 2
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794968455.345,
+   "turn": 5,
+   "seconds": 18.82,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 5,
+   "connections": 4
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968463.076,
+   "turn": 5,
+   "seconds": 26.55
+  },
+  {
+   "kind": "question",
+   "at": 1794968465.728,
+   "turn": 6,
+   "seconds": 2.593,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794968465.734,
+   "turn": 7,
+   "seconds": 2.6,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t004",
+   "steps": 5,
+   "connections": 4
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794968481.119,
+   "turn": 7,
+   "seconds": 17.98,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 7,
+   "connections": 6
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968488.295,
+   "turn": 7,
+   "seconds": 25.16
+  },
+  {
+   "kind": "question",
+   "at": 1794968491.432,
+   "turn": 8,
+   "seconds": 3.067,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794968491.435,
+   "turn": 9,
+   "seconds": 3.07,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t006",
+   "steps": 7,
+   "connections": 6
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794968499.666,
+   "turn": 9,
+   "seconds": 11.3,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 8,
+   "connections": 7
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968512.499,
+   "turn": 9,
+   "seconds": 24.13
+  },
+  {
+   "kind": "question",
+   "at": 1794968518.318,
+   "turn": 10,
+   "seconds": 5.751,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794968518.326,
+   "turn": 11,
+   "seconds": 5.76,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t008",
+   "steps": 8,
+   "connections": 7
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968535.762,
+   "turn": 11,
+   "seconds": 23.2
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794968538.331,
+   "turn": 11,
+   "seconds": 25.76,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 11,
+   "connections": 11
+  },
+  {
+   "kind": "question",
+   "at": 1794968541.865,
+   "turn": 12,
+   "seconds": 3.463,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794968541.871,
+   "turn": 13,
+   "seconds": 3.47,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t010",
+   "steps": 11,
+   "connections": 11
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794968562.97,
+   "turn": 13,
+   "seconds": 24.57,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 14,
+   "connections": 15
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968564.003,
+   "turn": 13,
+   "seconds": 25.6
+  },
+  {
+   "kind": "question",
+   "at": 1794968566.97,
+   "turn": 14,
+   "seconds": 2.909,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794968566.977,
+   "turn": 15,
+   "seconds": 2.92,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t012",
+   "steps": 14,
+   "connections": 15
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794968591.053,
+   "turn": 15,
+   "seconds": 26.99,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 19,
+   "connections": 20
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968594.648,
+   "turn": 15,
+   "seconds": 30.59
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794968594.726,
+   "turn": 15,
+   "seconds": 0.024,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794968820.345,
+   "turn": 16,
+   "seconds": 225.567,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [],
+ "notes": {
+  "summary": "After reallocation, the reviewer completes independent review and locks the approved version; the output is reconciled and required records are kept. The release role and exact downstream file action remain unclear.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "captured",
+    "answer": "Two-Ledger Allocation Framework (Capital vs Carry Interest)"
+   },
+   {
+    "key": "purpose",
+    "status": "captured",
+    "answer": "The work produces combined capital- and carry-interest results by member, reconciled with the event total."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The initiating event, who detects or receives it, and the work's cadence or deadline are not established; the described confirmation step does not specify what initiates the work."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The reported analysis combines results by member and reconciles the components with the event total; unclear intended results require client confirmation.\nThe exact action on the downstream event file, any delivery or posting, and how final completion is confirmed remain unclear.\nThe reported closeout includes independent review, locking the approved version, reconciling the output and keeping required records."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The GPFS Preparer performs the opening confirmation and setup and the subsequent population and schedules work; the client confirms the latter.\nThe role accountable for the completed result, distinct from the GPFS Preparer's opening work, is not established."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "At the beginning, the GPFS Preparer confirms the event and authority. Before starting, the preparer needs an approved event total or upstream amount; they identify the event and governing basis, create separate capital and carry sections, and record the source period and calculation purpose.\nNext, the GPFS Preparer locks population and schedules, with client confirmation. The preparer needs current schedules, the prior member population and changes; they reconcile changes, confirm effective dates and components covered, and freeze the dated approved versions.\nAfter locking population and schedules, the GPFS Preparer calculates the capital-interest ledger using an approved allocation method and reconciled contributions. The preparer uses the approved whole-population, deal or tranche basis, isolates contributions for realized events, calculates capital components and independently reconciles sources and formulas.\nThen the GPFS Preparer calculates the carry-interest ledger using the approved carry base, schedules and carry recorded in prior periods. The preparer calculates each applicable schedule life-to-date, subtracts all prior-period recorded carry and applies approved changes.\nOnce both component ledgers are complete, the GPFS Preparer and Reviewer combine results by member, reconcile components with the event total, and explain results that move in different directions. They obtain client confirmation when the intended result is unclear.\nFollowing the combined analysis, the GPFS Preparer applies an approved reallocation, with recipients named by the client. The step requires the approved affected ledger, amount, effective date and recipients; the preparer applies equal and opposite member changes and confirms a zero net change for each affected ledger.\nThe circumstances that call for reallocation remain unspecified.\nAfter reallocation, the GPFS Reviewer completes independent review, locks the approved version, uses it in relation to the downstream event file, reconciles the output and keeps required records. The release role is not yet confirmed."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "Before starting, the GPFS Preparer confirms the event and authority and requires an approved event total or upstream amount.\nThe evidence and method for confirming the event, its authority, and approval of the event total or upstream amount are not specified.\nFor population and schedules, the GPFS Preparer reconciles changes and confirms effective dates and components covered; the client confirms the work, and dated approved versions are frozen.\nThe client confirmation and approval mechanism, evidence and timing for the dated versions are not yet clear.\nThe GPFS Preparer's capital-interest calculation requires an approved allocation method and reconciled contributions; the preparer independently reconciles the sources and formulas.\nThe comparison used to reconcile population changes and the mechanism of the independent capital calculation reconciliation remain unspecified.\nThe GPFS Preparer and Reviewer reconcile combined components to the event total, explain results moving in different directions, and obtain client confirmation if the intended result is unclear.\nThe separate responsibilities of the Preparer and Reviewer in the combined analysis, and the evidence and handling of client confirmation, are not specified.\nFor the approved reallocation, the GPFS Preparer confirms that the net member change is zero for each affected ledger.\nReview, lock, publication and close require a complete package with no stop condition. The GPFS Reviewer completes an independent review and the output is reconciled.\nThe independent review's checks, stop conditions, output reconciliation method, approval evidence and release role remain unclear."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "The capital calculation can use an approved whole-population, deal or tranche basis; for realized events, contributions are isolated.\nThe circumstances determining the approved capital allocation basis remain unspecified."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "Current schedules, prior member population and changes are inputs to locking population and schedules; dated approved versions are frozen.\nThe approved allocation method and reconciled contributions are inputs to the capital-interest ledger calculation.\nThe approved carry base, schedules and prior-period recorded carry are inputs to the carry-interest ledger calculation.\nCompleted capital and carry component ledgers are inputs to combining and analyzing the results by member.\nThe affected ledger, amount, effective date and recipients are approved inputs to the reallocation; the client names the recipients.\nA complete package is needed for closeout; an approved version is locked and used in relation to the downstream event file, and required records are kept."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The named framework distinguishes capital and carry interest; setup creates separate capital and carry sections.\nThe applicable entity types, number of entities, and whether the described route is general GPFS practice or client-specific are not established."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "At setup, the GPFS Preparer identifies the event and its governing basis.\nThe governing basis's source, detailed capital and carry allocation logic, capital basis selection, and review or override authority remain unspecified.\nThe population and schedules step confirms effective dates and components covered and freezes dated approved versions.\nThe capital-interest ledger uses an approved whole-population, deal or tranche allocation basis; contributions are isolated for realized events before capital components are calculated.\nFor carry interest, each applicable schedule is calculated life-to-date, all carry recorded in prior periods is subtracted, and approved changes are applied.\nWhen the intended combined result is unclear, client confirmation is obtained.\nThe nature of the approved changes applied to the carry calculation remains unspecified.\nThe reallocation requires an approved affected ledger, amount, effective date and recipients, and uses equal and opposite member changes with a zero net change in each affected ledger.\nA complete package with no stop condition is required before the review, lock, publish and close stage."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "An approved upstream amount may be an input, but its source process or provider and the handoff method are not identified.\nThe approved version is used in relation to a downstream event file, but the exact action and receiving process are unclear."
+   },
+   {
+    "key": "data_systems",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": ""
+   }
+  ]
+ },
+ "map": {
+  "title": "Capital and Carry Allocation",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Confirm event and authority",
+    "actor": "GPFS Preparer",
+    "system": "UNKNOWN",
+    "description": "Identify the event and governing basis."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Create capital and carry sections",
+    "actor": "GPFS Preparer",
+    "system": "UNKNOWN",
+    "description": "Create separate capital and carry sections."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Record period and purpose",
+    "actor": "GPFS Preparer",
+    "system": "UNKNOWN",
+    "description": "Record the source period and calculation purpose."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Reconcile population and schedules",
+    "actor": "GPFS Preparer",
+    "system": "UNKNOWN",
+    "description": "Reconcile changes and confirm effective dates and components covered. The client confirms within the population-and-schedules stage; the subject and timing of that confirmation are UNKNOWN."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Freeze approved versions",
+    "actor": "GPFS Preparer",
+    "system": "UNKNOWN",
+    "description": "Freeze the dated approved versions for the population and schedules."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Calculate capital-interest ledger",
+    "actor": "GPFS Preparer",
+    "system": "UNKNOWN",
+    "description": "Use the approved whole-population, deal or tranche basis and calculate capital components. Isolate contributions for realized events."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Reconcile sources and formulas",
+    "actor": "GPFS Preparer",
+    "system": "UNKNOWN",
+    "description": "Independently reconcile the sources and formulas. Whether a different person performs the independent reconciliation is UNKNOWN."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Calculate carry-interest ledger",
+    "actor": "GPFS Preparer",
+    "system": "UNKNOWN",
+    "description": "Calculate each applicable schedule life to date, subtract carry recorded in prior periods, and apply approved changes."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Combine results by member",
+    "actor": "GPFS Preparer; Reviewer",
+    "system": "UNKNOWN",
+    "description": "Combine the completed component ledger results by member. The individual responsibilities of the preparer and reviewer are UNKNOWN."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Reconcile and explain results",
+    "actor": "GPFS Preparer; Reviewer",
+    "system": "UNKNOWN",
+    "description": "Reconcile the components with the event total and explain results that move in different directions. The individual responsibilities of the preparer and reviewer are UNKNOWN."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Obtain client confirmation",
+    "actor": "GPFS Preparer; Reviewer; client",
+    "system": "UNKNOWN",
+    "description": "Obtain client confirmation when the intended result is unclear. Which GPFS role requests it and how it is recorded are UNKNOWN."
+   },
+   {
+    "id": "S12",
+    "type": "activity",
+    "title": "Name reallocation recipients",
+    "actor": "Client",
+    "system": "UNKNOWN",
+    "description": "The client names the recipients of the reallocation."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Apply approved reallocation",
+    "actor": "GPFS Preparer",
+    "system": "UNKNOWN",
+    "description": "Apply equal and opposite member changes using the approved reallocation details."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Confirm zero net change",
+    "actor": "GPFS Preparer",
+    "system": "UNKNOWN",
+    "description": "Confirm that the net change is zero for each affected ledger."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Complete independent review",
+    "actor": "GPFS Reviewer",
+    "system": "UNKNOWN",
+    "description": "Complete the independent review. The complete package must have no stop condition before this stage starts."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Lock approved version",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Lock the approved version. The participant identifies the reviewer for the overall stage but has not confirmed the release role."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Use approved version downstream",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Use the locked approved version in relation to the downstream event file. The stated update action is incomplete and needs clarification."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Reconcile output",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Reconcile the output; the reconciliation method and performer are UNKNOWN."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Keep required records",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Keep the required records. Their contents, location and keeper are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": ""
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": ""
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": ""
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": ""
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": ""
+   },
+   {
+    "from": "S7",
+    "to": "S9",
+    "label": "Both component ledgers completed"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "Both component ledgers completed"
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": ""
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": "Intended result unclear"
+   },
+   {
+    "from": "S10",
+    "to": "S13",
+    "label": "Intended result not unclear AND approved ledger, amount, effective date and recipients available"
+   },
+   {
+    "from": "S11",
+    "to": "S13",
+    "label": "Client confirmation obtained AND approved ledger, amount, effective date and recipients available"
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": "Analysis completed, including client confirmation if unclear, AND approved ledger, amount, effective date and recipients available"
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": ""
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": "Complete package with no stop condition"
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": ""
+   },
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": ""
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": ""
+   },
+   {
+    "from": "S18",
+    "to": "S19",
+    "label": ""
+   }
+  ],
+  "open_questions": [
+   "Does any incoming route start S9 (Combine results by member), or must all prerequisites finish?",
+   "Does any incoming route start S13 (Apply approved reallocation), or must all prerequisites finish?",
+   "UNKNOWN: What event initiates the work, who detects it, and where does the approved event total or upstream amount come from?",
+   "UNKNOWN: Where do the current schedules, prior member population and changes come from, what are changes reconciled against, and who approves the dated versions?",
+   "UNKNOWN: What does the client confirm at the population-and-schedules stage, when does confirmation occur, and what happens if it is delayed or withheld?",
+   "UNKNOWN: What determines the allocation basis, and how are the method and reconciled contributions produced and approved? What calculation inputs, dimensions, dates and tie-out rules apply?",
+   "UNKNOWN: Who performs the independent reconciliation, what happens if it fails, and what evidence is retained?",
+   "UNKNOWN: Where do the approved carry base, schedules, prior-period carry and approved changes come from? What calculation and reconciliation rules apply to carry?",
+   "UNKNOWN: How are the preparer and reviewer responsibilities divided during combination and analysis? What does the reviewer check?",
+   "UNKNOWN: What happens if the event-total reconciliation fails or client confirmation is delayed, withheld or changes the result?",
+   "UNKNOWN: When does the client name reallocation recipients, who approves the reallocation details, and how is readiness communicated?",
+   "UNKNOWN: Does every allocation proceed to reallocation, and what happens if a reallocation does not net to zero?",
+   "UNKNOWN: What constitutes a complete package or stop condition, who checks it, and what happens when a stop condition exists?",
+   "UNKNOWN: What does the independent reviewer check, what happens if review fails, and who approves and releases the version?",
+   "UNKNOWN: What exactly is updated or done with the downstream event file, who performs it, and who uses it next?",
+   "UNKNOWN: How is the output reconciled, what happens if it fails, and which records are kept, where and by whom?",
+   "UNKNOWN: What observable conditions establish overall completion, and who is accountable for the result?",
+   "UNKNOWN: What governing sources and systems are used, who interprets the rules, and where are records stored?",
+   "UNKNOWN: What other controls, exceptions and rework apply?",
+   "UNKNOWN: Which entities and clients are in scope, and does the process vary?",
+   "UNKNOWN: What materials, volumes, deadlines, risks and practical difficulties apply?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "Current-practice draft: Two-Ledger Allocation Framework",
+  "overview": "The participant describes separate capital and carry calculations, combination and analysis by member, approved reallocation, and a final review and downstream stage. This is a partial draft for process-owner review, not an approved procedure. The initiating event, overall accountability, systems, downstream action and several controls and exception routes remain UNKNOWN.",
+  "trigger": "UNKNOWN. An approved event total or upstream amount is needed before the preparer starts; the initiating event and how it is detected were not reported.",
+  "inputs": [
+   "Approved event total or upstream amount",
+   "Current schedules, prior member population and changes",
+   "Approved allocation method and reconciled contributions",
+   "Approved carry base, schedules and carry recorded in prior periods",
+   "Approved affected ledger, amount, effective date and recipients for reallocation",
+   "Complete package with no stop condition for the final stage"
+  ],
+  "outputs": [
+   "Capital-interest and carry-interest component ledgers",
+   "Combined results by member",
+   "Equal and opposite reallocation changes",
+   "Locked approved version",
+   "Reconciled output and retained records"
+  ],
+  "exceptions": [
+   "When the intended result is unclear, obtain client confirmation; delayed, withheld or conflicting confirmation handling is UNKNOWN.",
+   "Handling of failed reconciliations, nonzero reallocation, review failure and stop conditions is UNKNOWN."
+  ],
+  "controls": [
+   "Reconcile population changes and confirm effective dates and components covered; the client confirms at this stage, with exact subject UNKNOWN.",
+   "Independently reconcile capital sources and formulas; the performer and retained proof are UNKNOWN.",
+   "Reconcile components with the event total and explain results moving in different directions.",
+   "Obtain client confirmation when the intended result is unclear.",
+   "Confirm zero net change for each affected ledger after reallocation.",
+   "Complete an independent review; the final stage requires a complete package with no stop condition.",
+   "Reconcile the output and keep required records; details are UNKNOWN."
+  ],
+  "validation_notes": [
+   "Current-practice draft requiring process-owner review; participant confirmation and approval are pending.",
+   "The intake supplies the process name. Operational details come from participant turns. No supporting documents were supplied or independently reviewed.",
+   "The routes to combination preserve both completed component ledgers as joint prerequisites; they do not establish parallel starts or a separate handoff from either ledger.",
+   "Recipient naming is a prerequisite for reallocation, but its timing relative to analysis and its communication mechanism are UNKNOWN.",
+   "The participant's incomplete wording about the downstream event file is preserved as an unresolved action, not silently repaired.",
+   "The final stage is described as review, lock, publish and close, but publication and closure mechanics and the overall finished condition are UNKNOWN.",
+   "No general GPFS standard, owner approval, control effectiveness or independent verification is established.",
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Confirm event and authority",
+    "actor": "GPFS Preparer",
+    "system": "UNKNOWN",
+    "description": "Identify the event and governing basis. The specific authority checks are UNKNOWN."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Create capital and carry sections",
+    "actor": "GPFS Preparer",
+    "system": "UNKNOWN",
+    "description": "Create separate capital and carry sections."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Record period and purpose",
+    "actor": "GPFS Preparer",
+    "system": "UNKNOWN",
+    "description": "Record the source period and calculation purpose."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Reconcile population and schedules",
+    "actor": "GPFS Preparer; client confirms",
+    "system": "UNKNOWN",
+    "description": "Reconcile changes and confirm effective dates and components covered. The client confirms within this stage, but the subject and timing of confirmation are UNKNOWN."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Freeze approved versions",
+    "actor": "GPFS Preparer",
+    "system": "UNKNOWN",
+    "description": "Freeze the dated approved versions. The approver and storage location are UNKNOWN."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Calculate capital-interest ledger",
+    "actor": "GPFS Preparer",
+    "system": "UNKNOWN",
+    "description": "Use the approved whole-population, deal or tranche basis, isolate contributions for realized events, and calculate the capital components. Basis selection and detailed calculation are UNKNOWN."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Reconcile sources and formulas",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Independently reconcile the capital calculation's sources and formulas. The preparer is named for the stage, but the performer of this independent reconciliation is UNKNOWN."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Calculate carry-interest ledger",
+    "actor": "GPFS Preparer",
+    "system": "UNKNOWN",
+    "description": "Calculate each applicable schedule on a life-to-date basis, subtract all carry recorded in prior periods, and apply approved changes. The changes and detailed calculation rules are UNKNOWN."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Combine results by member",
+    "actor": "GPFS Preparer; Reviewer",
+    "system": "UNKNOWN",
+    "description": "Combine the completed capital and carry component ledger results by member. Individual responsibilities within the stage are UNKNOWN."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Reconcile and explain results",
+    "actor": "GPFS Preparer; Reviewer",
+    "system": "UNKNOWN",
+    "description": "Reconcile the components with the event total and explain results that move in different directions. Obtain client confirmation if the intended result is unclear. Individual responsibilities and reconciliation method are UNKNOWN."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Obtain client confirmation",
+    "actor": "Client; requesting role UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Obtain client confirmation when the intended result is unclear. The requesting role, method, evidence and response to delay or disagreement are UNKNOWN."
+   },
+   {
+    "id": "S12",
+    "type": "activity",
+    "title": "Name reallocation recipients",
+    "actor": "Client",
+    "system": "UNKNOWN",
+    "description": "The client names recipients. Timing relative to analysis and how recipients are approved or communicated are UNKNOWN."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Apply approved reallocation",
+    "actor": "GPFS Preparer",
+    "system": "UNKNOWN",
+    "description": "Apply equal and opposite member changes after analysis. The affected ledger, amount, effective date and recipients must be approved before starting. The application method is UNKNOWN."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Confirm zero net change",
+    "actor": "GPFS Preparer",
+    "system": "UNKNOWN",
+    "description": "Confirm that the reallocation's net change is zero for each affected ledger. Handling of a nonzero result is UNKNOWN."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Complete independent review",
+    "actor": "GPFS Reviewer",
+    "system": "UNKNOWN",
+    "description": "Complete the independent review. A complete package with no stop condition is needed before the final stage starts. Review checks and failure handling are UNKNOWN."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Lock approved version",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Lock the approved version. The reviewer is named for the overall final stage; the release role is not yet confirmed and the person who locks the version is UNKNOWN."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Use approved version downstream",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Use the approved version in relation to the downstream event file. The participant said 'update or the downstream event file'; the precise action and output are UNKNOWN."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Reconcile output",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Reconcile the output. The comparison, performer, acceptance criteria and failure handling are UNKNOWN."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Keep required records",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Keep the required records. Their contents, keeper, location and retention requirements are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "Next stage"
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": ""
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": "Next stage"
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": ""
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": "Next stage"
+   },
+   {
+    "from": "S7",
+    "to": "S9",
+    "label": "Both component ledgers completed"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "Both component ledgers completed"
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": ""
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": "Intended result unclear"
+   },
+   {
+    "from": "S10",
+    "to": "S13",
+    "label": "Intended result not unclear AND approved ledger, amount, effective date and recipients available"
+   },
+   {
+    "from": "S11",
+    "to": "S13",
+    "label": "Client confirmation obtained AND approved ledger, amount, effective date and recipients available"
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": "Analysis completed, including client confirmation if unclear, AND approved ledger, amount, effective date and recipients available"
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": ""
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": "Complete package with no stop condition"
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": "Approved version available"
+   },
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": ""
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": ""
+   },
+   {
+    "from": "S18",
+    "to": "S19",
+    "label": ""
+   }
+  ],
+  "open_questions": [
+   "Does any incoming route start S9 (Combine results by member), or must all prerequisites finish?",
+   "Does any incoming route start S13 (Apply approved reallocation), or must all prerequisites finish?",
+   "What actually initiates the work, who detects it, and where does the approved event total or upstream amount come from?",
+   "Who is accountable for the overall result, and what observable delivery or closure establishes completion?",
+   "What constitutes a complete package or stop condition, what does the independent reviewer check, and who approves and releases the version?",
+   "What exactly is done with the downstream event file, who performs it, what is the output reconciled against, and who uses it?",
+   "Does every allocation proceed to reallocation, and how are the approved ledger, amount, effective date and recipients obtained and communicated?",
+   "What are population changes reconciled against, who approves the dated versions, and what does the client confirm and when?",
+   "What determines the whole-population, deal or tranche basis, and how are the method and contributions approved and reconciled?",
+   "Who performs the independent capital reconciliation, what does it compare, and what happens if it fails?",
+   "Where do the carry base, schedules, prior-period carry and approved changes originate, and what detailed calculation rules apply?",
+   "How are preparer and reviewer responsibilities divided in analysis, and how is the event-total reconciliation performed?",
+   "What happens if client confirmation is delayed, withheld or changes the intended result?",
+   "When does the client name recipients relative to analysis, and what happens if the reallocation does not net to zero?",
+   "What happens when a stop condition exists or independent review fails? What evidence is retained and where?",
+   "Which governing sources and systems are used, who interprets rules and resolves conflicts, and where are calculations and records stored?",
+   "Which entities and clients are in scope, is the route general GPFS or client-specific, and what differences apply?",
+   "What other exceptions, rework, deadlines, materials, volumes, practical difficulties and consequences of failure apply?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "The intake calls the work Two-Ledger Allocation Framework (Capital vs Carry Interest). It covers separate capital and carry calculations through review and downstream handling. Other names and exact boundaries are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The reported work produces capital and carry results combined by member, with an approved version used in relation to a downstream event file. The final recipient and delivered business result are UNKNOWN."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "Before the preparer begins, an approved event total or upstream amount is needed. The initiating event, detecting role, source, cadence and deadlines are UNKNOWN."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The final stage includes independent review, locking an approved version, downstream event-file handling, output reconciliation and keeping records. The precise downstream action, consumer, release role and observable closure are UNKNOWN."
+   },
+   {
+    "key": "accountable",
+    "status": "unknown",
+    "answer": "UNKNOWN: The preparer and reviewer perform reported stages, but overall accountability is not identified."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The preparer identifies the event and basis, creates separate sections, records period and purpose, reconciles population changes and freezes approved dated versions; the client confirms during that stage. The preparer calculates capital and carry, and capital sources and formulas are independently reconciled. The preparer and reviewer combine and analyze both completed ledgers, obtaining client confirmation if the intended result is unclear. The client names recipients; the preparer applies approved equal and opposite changes and checks that each affected ledger nets to zero. Independent review precedes locking and downstream use of the approved version; output is reconciled and records kept. Systems, detailed handoffs, several individual responsibilities and failure routes are UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "Reported checks include population reconciliation and date/component confirmation, independent capital source and formula reconciliation, component-to-event reconciliation, explanations of differing movements, client confirmation for unclear intent, zero-net reallocation and independent review. The final stage requires a complete package with no stop condition; output is also reconciled and records kept. Review contents, approval authority, thresholds, technical enforcement, evidence locations and failure handling are UNKNOWN."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "Capital calculation uses an approved whole-population, deal or tranche basis, and contributions are isolated for realized events. The basis-selection rule and whether these differences change the process boundary are UNKNOWN. Client or entity-specific differences, effort, charging and removal constraints are UNKNOWN."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": "UNKNOWN: No manual-work difficulty, error pattern or effort estimate was reported."
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": "UNKNOWN: Concrete consequences of failure were not reported."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The participant refers to schedules, approved methods and versions, and required records. Their locations and any procedures or templates are UNKNOWN; no supporting documents were supplied or reviewed."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The work concerns capital and carry interest by member, including approved reallocation. Entity types, client applicability, parent process and whether this is general GPFS practice or a client route are UNKNOWN."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The preparer identifies a governing basis and uses an approved capital method. Carry is calculated life to date for each applicable schedule, less prior-period recorded carry, with approved changes applied. Reallocation uses equal and opposite member changes and must net to zero per affected ledger. Source documents, interpreters, approvals, detailed inputs, dates, rounding and conflict handling are UNKNOWN."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "An approved event total or upstream amount, schedules and reconciled contributions are prerequisites; their producing processes and readiness signals are UNKNOWN. The locked approved version is used in relation to a downstream event file, but the precise action and consumer are UNKNOWN."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The work uses event amounts, schedules, member population, contributions and prior-period carry, and produces component and combined results. The client names reallocation recipients. Systems of record, calculation locations, entry modes, workbook logic and storage are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": "UNKNOWN: Counts, peaks, exception frequency and effort by step were not reported."
+   }
+  ]
+ },
+ "draft_error": null
+}

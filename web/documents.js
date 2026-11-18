@@ -519,14 +519,22 @@
       if(analysis.selected_by_participant)parts.push(verdict&&analysis.relevance!=="relevant"?"You chose to use it in the interview anyway.":"You chose to use this file in the interview.");
       return this.node("p","documents-progress documents-relevance",parts.join(" "));
     }
+    // Whether a file can be added depends on state the page owns (the example, a saved interview being
+    // opened, a draft in flight) that changes without the file list being redrawn. The page calls this
+    // whenever it refreshes its own controls, so Add files never shows a reason that no longer applies.
+    syncAttach() {
+      if(this.disposed||!this.attachButton)return;
+      const allowed=this.allowed(),disabled=!allowed||this.full(),title=!allowed?(this.options.uploadBlockedReason?.()||"File uploads are unavailable."):"Add files";
+      if(this.attachButton.disabled!==disabled)this.attachButton.disabled=disabled;
+      if(this.attachButton.title!==title)this.attachButton.title=title;
+    }
     render() {
       if(this.disposed)return;
       const total=this.documents.length+this.uploads.length;
       const counts=new Map();this.documents.forEach(document=>{const status=this.status(document);counts.set(status,(counts.get(status)||0)+1);});
       const announcement=[`${total} ${total===1?"file":"files"}`,...[...counts].map(([status,count])=>`${count} ${status.toLowerCase()}`),...(this.uploads.length?[`${this.uploads.length} uploading`]:[]),...(this.uploadErrors.length?[`${this.uploadErrors.length} file ${this.uploadErrors.length===1?"issue":"issues"}`]:[]),...(this.removed.length?[`${this.removed.length} removed, can be restored`]:[])].join(". ");
       if(this.liveStatus.textContent!==announcement)this.liveStatus.textContent=announcement;
-      this.attachButton.disabled=!this.allowed()||this.full();
-      this.attachButton.title=!this.allowed()?(this.options.uploadBlockedReason?.()||"File uploads are unavailable."):"Add files";
+      this.syncAttach();
       // "7 of 20 file slots used, 3 by removed files." and, at the limit, why Add files is unavailable.
       const usage=this.usageText();if(this.usage.textContent!==usage)this.usage.textContent=usage;this.usage.hidden=!usage;
       const needsAction=this.documents.filter(file=>!file.archived&&file.analysis?.disposition==="needs_reason").length;

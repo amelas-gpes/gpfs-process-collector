@@ -1,0 +1,824 @@
+{
+ "case": "R-F02",
+ "process": "GP-03",
+ "mode": "file",
+ "style": "F02 answers replayed, no draft",
+ "build": "fixed",
+ "participant": "replay",
+ "context": {
+  "process_name": "Carry Vesting & Carry Point Reallocation",
+  "process_owner": "",
+  "objective": "Document how we carry out Carry Vesting & Carry Point Reallocation, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "assistant",
+   "text": "Thanks for sharing. Give me a moment to digest the file. Then I’ll follow up with a question.",
+   "document_event": true
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "The procedure says a supported departure or another event changing vesting or point allocation starts this work, with schedules reconfirmed before each allocation cycle. Does that describe how the work happens today?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "It reaches me as the change package from the upstream GP-02 process, or as a supported event notice. That package gives me the member's identity, the supported status and effective date, and the change or separation records, and that is what I open the carry change from. It is in the document I uploaded, on the page with Step 1. I can't point you to a more specific channel than that."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "Does this carry change work follow the same route across the carry vehicles you support?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "That is Step 2 in the document I uploaded. I work from the current GPLPA or LPA, including amendments, together with the change or separation record and any approved exception. I identify the standard provision and every approved exception, and I record the governing vested percentage and its scope. What I keep is a final governing-source record that is protected from changes. If the terms, a special permission or the effective date are missing, unclear or conflicting, I stop and get a current written interpretation from the adviser or the client, and I never use a default percentage."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "Does the written procedure describe how you carry this work out today?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "That is Step 3 and the prior carry reconciliation check in my document. I check the original points on the current client-approved schedule against the prior workbook and the full member list. Then I confirm the prior allocations, distributions and recorded amounts from the start through the current period against the accounting records and the prior workbooks, and that the carry calculation base agrees as well. I keep that as a carry rollforward, meaning opening balance, changes and ending balance, and the Reviewer reviews it before I calculate any points. No unexplained difference is allowed. If something does not agree I stop, the Reviewer resolves the starting difference, and the calculation and downstream use stay blocked until there is proof the starting amounts agree."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "How do you calculate the vested and released points from the governing percentage and original points?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "That is Step 4 in my document. Both come as a written client instruction, and the client can only choose a method the governing terms allow. I record the method, the effective date and the named recipients in the decision record, which stays with the change package as the final approved version protected from changes. If the client picks the cumulative true-up, Method B, I apply the hold and keep a hold record instead. I don't know the approved template for the decision record or where it is meant to be stored. That has not been confirmed, and Operations, Technology and Records Management would be the ones to confirm it."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "In practice, who authorizes release of the final schedules and accounting entry?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "That is Step 5 and the point calculation rule in my document. Vested points are the original approved points times the governing vested percentage, and released points are the original points minus the vested points. I allocate all of the released points to the named recipients and confirm that all member point changes total zero. The Reviewer independently recalculates it and the client confirms the recipients, and if it does not work out we stop and correct it. I don't know the rounding convention for points, because none has been set. Until Accounting policy or process governance confirm one, we use exact amounts and allow no unexplained differences."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "Once the point calculation is checked, how do you build and verify the effective-date schedules?"
+  },
+  {
+   "id": "t014",
+   "role": "assistant",
+   "text": "This capture still has open sections. 16 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794969259.111,
+   "turn": 0,
+   "seconds": 0.05,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.session",
+   "at": 1794969259.2,
+   "turn": 1,
+   "seconds": 0.021,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.upload",
+   "at": 1794969259.207,
+   "turn": 1,
+   "seconds": 0.007,
+   "status": 202,
+   "retries": 0,
+   "file": "U10 GP-03 Carry Vesting & Carry Point Reallocation.pdf",
+   "bytes": 390700
+  },
+  {
+   "kind": "doc.extracted",
+   "at": 1794969260.435,
+   "turn": 1,
+   "seconds": 1.26,
+   "file": "U10 GP-03 Carry Vesting & Carry Point Reallocation.pdf",
+   "chunks": 24,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 24,
+    "total_units": 24,
+    "text_indexed_units": 24,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_started",
+   "at": 1794969260.435,
+   "turn": 1,
+   "seconds": 1.26,
+   "file": "U10 GP-03 Carry Vesting & Carry Point Reallocation.pdf",
+   "chunks": 24,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 24,
+    "total_units": 24,
+    "text_indexed_units": 24,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_deep",
+   "at": 1794969264.507,
+   "turn": 1,
+   "seconds": 5.33,
+   "file": "U10 GP-03 Carry Vesting & Carry Point Reallocation.pdf",
+   "chunks": 24,
+   "status": "ready",
+   "phase": "deep",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 24,
+    "total_units": 24,
+    "text_indexed_units": 24,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_complete",
+   "at": 1794969297.052,
+   "turn": 1,
+   "seconds": 37.87,
+   "file": "U10 GP-03 Carry Vesting & Carry Point Reallocation.pdf",
+   "chunks": 24,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 24,
+    "total_units": 24,
+    "text_indexed_units": 24,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.followup_question",
+   "at": 1794969298.542,
+   "turn": 2,
+   "seconds": 1.49,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.first_question",
+   "at": 1794969298.542,
+   "turn": 3,
+   "seconds": 39.36,
+   "reading": {
+    "omitted_documents": 0,
+    "documents": [
+     {
+      "id": "doc_096f7eb8a4d71d64237c99e8",
+      "included_chunks": 24,
+      "total_chunks": 24
+     }
+    ]
+   }
+  },
+  {
+   "kind": "doc.left_pending",
+   "at": 1794969328.704,
+   "turn": 3,
+   "notes_state": "working",
+   "map_state": "working",
+   "seconds": 31.65
+  },
+  {
+   "kind": "question",
+   "at": 1794969335.713,
+   "turn": 4,
+   "seconds": 6.951,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794969380.885,
+   "turn": 5,
+   "notes_state": "queued",
+   "map_state": "queued",
+   "seconds": 52.12
+  },
+  {
+   "kind": "question",
+   "at": 1794969382.373,
+   "turn": 6,
+   "seconds": 1.42,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969421.941,
+   "turn": 7,
+   "seconds": 40.99,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 20,
+   "connections": 20
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794969427.578,
+   "turn": 7,
+   "notes_state": "working",
+   "map_state": "ready",
+   "seconds": 46.63
+  },
+  {
+   "kind": "question",
+   "at": 1794969428.943,
+   "turn": 8,
+   "seconds": 1.304,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969428.951,
+   "turn": 9,
+   "seconds": 1.31,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t006",
+   "steps": 20,
+   "connections": 20
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969462.12,
+   "turn": 9,
+   "seconds": 34.48,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 21,
+   "connections": 22
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794969474.095,
+   "turn": 9,
+   "notes_state": "working",
+   "map_state": "ready",
+   "seconds": 46.46
+  },
+  {
+   "kind": "question",
+   "at": 1794969478.744,
+   "turn": 10,
+   "seconds": 4.571,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969478.76,
+   "turn": 11,
+   "seconds": 4.59,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t008",
+   "steps": 21,
+   "connections": 22
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969512.988,
+   "turn": 11,
+   "seconds": 38.82,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 22,
+   "connections": 25
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969517.176,
+   "turn": 11,
+   "seconds": 43.0
+  },
+  {
+   "kind": "question",
+   "at": 1794969518.78,
+   "turn": 12,
+   "seconds": 1.549,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969518.792,
+   "turn": 13,
+   "seconds": 1.56,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t010",
+   "steps": 22,
+   "connections": 25
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969542.321,
+   "turn": 13,
+   "seconds": 25.09
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969553.395,
+   "turn": 13,
+   "seconds": 36.16,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 22,
+   "connections": 26
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794969553.5,
+   "turn": 13,
+   "seconds": 0.038,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  }
+ ],
+ "files": [
+  {
+   "name": "U10 GP-03 Carry Vesting & Carry Point Reallocation.pdf",
+   "kind": "pdf",
+   "size": 390700,
+   "status": "ready",
+   "chunk_count": 24,
+   "coverage": {
+    "indexed_units": 24,
+    "total_units": 24,
+    "text_indexed_units": 24,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  }
+ ],
+ "notes": {
+  "summary": "The participant calculates vested and released points, allocates released points to named recipients, and checks that changes total zero. The Reviewer recalculates and the client confirms recipients. No point-rounding convention is set; exact amounts are used pending confirmation.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "The procedure names the work Carry Vesting & Carry Point Reallocation, process GP-03, in GP Vehicle Services."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The procedure aims to apply supported vesting terms, reallocate released points to approved recipients, and produce effective-date schedules and an authorized carry calculation through the current period."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The participant opens a carry change from a GP-02 change package or supported event notice. The package supplies member identity, supported status, effective date, and change or separation records.\nThe procedure specifies a supported departure or other event changing vesting or point allocation, and reconfirmation of schedules before each allocation cycle.\nThe participant cannot identify a more specific intake channel. The procedure says contractual and late-change deadlines have not been established."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "Documented completion requires supported original, vested and released points; zero total point changes; complete nonoverlapping dated schedules; agreement of cumulative carry with prior recorded amounts; and downstream outputs using the same final results."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The procedure leaves the process owner and internal release approval authority unconfirmed; it identifies a preparer and reviewer but does not establish their formal release authority."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The participant uses the current GPLPA or LPA and amendments, change or separation record and approved exceptions to identify the standard provision and every approved exception, then records the governing vested percentage and scope in a final record protected from changes.\nIf terms, special permission or the effective date are missing, unclear or conflicting, the participant stops and obtains a current written interpretation from the adviser or client; no default percentage is used.\nThe procedure next has the preparer reconcile original points, prior schedules, allocations, distributions, recorded amounts and calculation base across records. The client selects an allowed method and recipients; the preparer documents the choice and effective date.\nThe documented preparer and reviewer calculate vested and released points, allocate all released points to named recipients and confirm member point changes total zero.\nThe procedure has the preparer retain the prior schedule, create a dated schedule with approved deal or tranche details, and check coverage and totals. Under a go-forward method, earlier amounts stay unchanged, the new schedule applies from the approved date, and cumulative carry less prior recorded amounts produces the current-period entry.\nThe procedure directs the Reviewer to examine the complete, unblocked package, including governing support, calculations, schedules, cumulative carry, accounting entry and outputs. Final schedules are protected from changes and GP-01 and GP-06 are updated.\nThe participant checks original points on the current client-approved schedule against the prior workbook and full member list. The participant confirms allocations, distributions and recorded amounts from inception through the current period against accounting records and prior workbooks, and confirms that the carry calculation base agrees.\nThe participant receives the method and recipient choices as a written client instruction, records the method, effective date and named recipients in a final approved decision record protected from changes, and keeps it with the change package. If the client selects cumulative true-up Method B, the participant applies the hold and keeps a hold record instead.\nThe participant calculates vested points as original approved points multiplied by the governing vested percentage, and released points as original points less vested points. The participant allocates all released points to named recipients and confirms that all member point changes total zero."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The procedure requires the reviewer to independently repeat source, point, schedule, cumulative carry, prior-booking and output checks. The client confirms permitted method, effective date, special permission and recipients, subject to governing terms.\nThe procedure stops calculation and downstream use for unreconciled starting amounts or unsupported exact recipients, requiring resolution or corrected client instructions. Incorrect or incomplete schedules are corrected and reapproved, then affected periods and outputs recalculated.\nFor a change reported after workbook submission or output release, the procedure stops unreleased output, obtains a correction or reissue decision, reruns checks and obtains approval again.\nThe Reviewer reviews the carry rollforward before the participant calculates points. If the starting amounts do not agree, the participant stops and the Reviewer resolves the difference; calculation and downstream use remain blocked until proof of agreement exists.\nThe procedure leaves decision authority for correcting or reissuing late changes unconfirmed.\nThe Reviewer independently recalculates the point calculation and the client confirms the recipients. If the calculation or allocation does not work out, the participant reports that work stops and is corrected."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "The procedure describes go-forward treatment as leaving recorded carry unchanged and applying revised points from the approved date; deal or tranche carry requires more detailed approved schedules, data and comparisons. Method B is conceptual and on hold, not an executable alternative.\nWhether the participant's route is the same across supported carry vehicles remains unanswered; the Step 2 answer describes governing-source work rather than comparing vehicles.\nThe participant reports a conditional Method B route: if the client selects cumulative true-up, the participant applies the hold and keeps a hold record instead of proceeding with that method."
+   },
+   {
+    "key": "pain_points",
+    "status": "partial",
+    "answer": "The procedure notes that unconfirmed ownership, storage, naming and retention can make supporting records difficult to trace or retrieve."
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "The procedure identifies wrong workbook versions or formula ranges, dependence on one person, incorrect period allocation, and difficulty tracing or retrieving support as risks."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The participant uses current governing agreements and amendments, change or separation records and approved exceptions, and retains a protected final governing-source record.\nThe procedure calls for a decision record, dated carry schedule versions and change log, prior carry reconciliation, point calculation and zero-balance proof, cumulative calculation, entry support and output approval records.\nThe participant does not know the approved decision-record template or storage location; Operations, Technology and Records Management would confirm them. The procedure also leaves governing-document and schedule storage, file naming and retention periods unconfirmed.\nThe participant keeps the prior carry reconciliation as a carry rollforward showing opening balance, changes and ending balance; the Reviewer reviews it before points are calculated.\nThe participant keeps the final approved decision record with the change package, protected from changes; it records the method, effective date and named recipients. A Method B choice results in a hold record instead."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The procedure covers vesting, released-point reallocation, dated schedules and authorized carry calculations. Capital commitment treatment, the underlying waterfall or clawback, legal interpretation and Method B execution are excluded."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The participant obtains written interpretation rather than applying a default percentage when terms, permission or date are missing, unclear or conflicting.\nThe procedure gives current governing documents and approved exceptions priority over workbooks, client examples, prior practice and employee knowledge. Vested points equal original approved points times the governing percentage; released points equal original less vested.\nThe procedure prohibits executing Method B, including calculating, withholding, offsetting, posting or releasing a result, until its formula, accounting treatment, release criteria, testing, ownership and approvals are documented. Another authorized go-forward method may still be used.\nThe procedure leaves the formal test for missing or overlapping schedule periods, point rounding, action thresholds and error correction unconfirmed.\nThe participant allows no unexplained starting-position difference; calculation and downstream use are blocked until there is proof that starting amounts agree.\nUntil the standards are confirmed, the procedure calls for exact amounts and no unexplained differences.\nThe participant says the client can select only a method permitted by the governing terms.\nThe participant says no point-rounding convention has been set. Until Accounting policy or process governance confirms one, the team uses exact amounts and permits no unexplained differences."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "GP-02 supplies the change package to the participant. The procedure identifies GP-04 as supplying approved carry entitlement and a calculation base, and GP-01 and GP-06 as downstream users of final schedules and the current-period entry."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The procedure describes a carry schedule workbook for point calculations and effective schedules, and a GP workbook and accounting records for cumulative carry and entry support. Excel and Word files are tools and supporting records, not governing sources.\nThe procedure says no official carry workbook is approved and leaves the approved calculation source, exact accounts, posting path and downstream release records open."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": ""
+   }
+  ]
+ },
+ "map": {
+  "title": "Carry Vesting & Carry Point Reallocation",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "start",
+    "title": "Receive carry change input",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "The participant receives a change package from GP-02 or a supported event notice. The procedure identifies a supported departure or another event affecting vesting or point allocation as the initiating event."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Open carry change",
+    "actor": "Participant; procedure identifies the preparer",
+    "system": "Carry-change record; location UNKNOWN",
+    "description": "The participant opens the carry change from the package, which supplies the member's identity, supported status, effective date and change or separation records. The procedure calls for recording the event, sources, affected accounting records and downstream outputs. A persistent register is not established."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Confirm governing terms",
+    "actor": "Participant; procedure identifies the preparer",
+    "system": "Governing documents; record location UNKNOWN",
+    "description": "The participant identifies the standard provision and every approved exception and records the governing vested percentage and its scope in a final record protected from changes. The procedure says current governing documents and approved exceptions take priority over workbooks and prior practice."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Resolve unclear governing support",
+    "actor": "Participant seeks interpretation from adviser or client",
+    "system": "UNKNOWN",
+    "description": "The participant stops and obtains a current written interpretation when terms, special permission or the effective date are missing, unclear or conflicting; no default percentage is used. The procedure also identifies a governing authority, adviser or client as applicable."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Reconcile starting carry",
+    "actor": "Participant",
+    "system": "Client-approved schedule, prior workbooks and accounting records",
+    "description": "The participant checks original points on the current client-approved schedule against the prior workbook and full member list. They confirm prior allocations, distributions, recorded amounts and the carry calculation base against accounting records and prior workbooks, and keep a carry rollforward."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Resolve starting differences",
+    "actor": "Reviewer",
+    "system": "UNKNOWN",
+    "description": "The Reviewer resolves a starting difference. Calculation and downstream use remain blocked until there is proof the starting amounts agree."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Obtain method and recipients",
+    "actor": "Client; participant records the choice",
+    "system": "Decision record; approved template and location UNKNOWN",
+    "description": "The client supplies the method and named recipients in a written instruction and may select only a method allowed by the governing terms. The participant records the method, effective date and recipients in a final approved decision record protected from changes and kept with the change package; if Method B is selected, the participant instead applies the hold and keeps a hold record."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Apply Method B hold",
+    "actor": "Participant",
+    "system": "Hold record; location UNKNOWN",
+    "description": "When the client selects cumulative true-up Method B, the participant applies the hold and keeps a hold record. The procedure prohibits executing Method B until its documented release requirements are met."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Correct recipient instructions",
+    "actor": "Client",
+    "system": "UNKNOWN",
+    "description": "Stop calculation and downstream use if released points lack exact named recipients; obtain corrected recipient instructions."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Calculate and allocate points",
+    "actor": "Participant; Reviewer; client",
+    "system": "Carry schedule workbook; location UNKNOWN",
+    "description": "The participant calculates vested points as original approved points times the governing vested percentage, and released points as original points less vested points. They allocate all released points to named recipients and confirm that member point changes total zero. The Reviewer independently recalculates and the client confirms recipients; if the calculation or allocation does not work out, work stops for correction."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Correct point calculation or allocation",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Stop and correct a point calculation or allocation that does not work out. The correction owner and subsequent handoff are UNKNOWN."
+   },
+   {
+    "id": "S12",
+    "type": "document",
+    "title": "Build effective schedules",
+    "actor": "GPFS preparer",
+    "system": "Carry schedule workbook",
+    "description": "Keep the prior schedule and create a dated new schedule, including approved deal or tranche details where applicable. Check period coverage, approved member lists and point totals."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Correct and reapprove schedules",
+    "actor": "Client; reviewer",
+    "system": "Carry schedule workbook",
+    "description": "Stop the affected carry calculation, correct the full schedule set and obtain approval again when periods are missing or overlapping, totals are wrong or the member list is wrong."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Recalculate affected outputs",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Recalculate all affected periods and outputs after correcting and reapproving the schedule set. The next handoff is UNKNOWN."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Calculate current-period carry",
+    "actor": "GPFS preparer",
+    "system": "GP workbook and accounting records",
+    "description": "Apply an executable method using approved schedules and the carry base. For a go-forward method, leave earlier amounts unchanged; calculate carry from inception through the current period and subtract previously recorded carry."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Resolve carry calculation difference",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Stop and resolve a difference in the cumulative carry calculation or subtraction of prior recorded amounts. The subsequent handoff is UNKNOWN."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Review final package",
+    "actor": "GPFS reviewer",
+    "system": "Workpapers and output records",
+    "description": "Independently review governing support, points, schedules, cumulative carry, prior bookings, accounting entry and outputs. Independently review every version and each range of cells used in formulas. Before release, final schedules and the entry must agree across outputs and review comments must be resolved."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Publish and update outputs",
+    "actor": "UNKNOWN; release role not confirmed",
+    "system": "GP-01 and GP-06 outputs; locations UNKNOWN",
+    "description": "The procedure requires final schedules to be protected from changes, GP-01 and GP-06 to be updated, supporting records to be kept, and confirmation that all users receive the final schedule. It requires final approved outputs but does not identify the release authority."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Handle late change",
+    "actor": "Decision authority UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "If a change is reported after workbook submission or output release, stop unreleased outputs, obtain a correction or reissue decision, rerun checks and obtain approval again. GP-01 or GP-06 may need reissue."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Reconfirm schedules each cycle",
+    "actor": "UNKNOWN",
+    "system": "Carry schedules",
+    "description": "The document also calls for schedules to be reconfirmed before each carry allocation cycle. Its precise relationship to an individual change is UNKNOWN."
+   },
+   {
+    "id": "S21",
+    "type": "activity",
+    "title": "Review carry rollforward",
+    "actor": "Reviewer",
+    "system": "Carry rollforward; location UNKNOWN",
+    "description": "The Reviewer reviews the carry rollforward before the participant calculates any points. The precise review checks and evidence of review are UNKNOWN."
+   },
+   {
+    "id": "S22",
+    "type": "wait",
+    "title": "Wait for Method B release",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The documented procedure keeps Method B execution on hold until complete approved operating instructions and release requirements exist. It permits point calculation and another authorized go-forward method while Method B remains on hold."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "Governing terms, special permission or effective date missing, unclear or conflicting"
+   },
+   {
+    "from": "S3",
+    "to": "S5",
+    "label": "Governing support is sufficient to proceed"
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": "Original points or prior carry do not agree across records"
+   },
+   {
+    "from": "S3",
+    "to": "S7",
+    "label": "Supported governing terms AND confirmed starting position"
+   },
+   {
+    "from": "S5",
+    "to": "S7",
+    "label": "Supported governing terms AND confirmed starting position"
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": "Client requests Method B"
+   },
+   {
+    "from": "S7",
+    "to": "S9",
+    "label": "Released points lack exact named recipients"
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": "Point calculation check fails"
+   },
+   {
+    "from": "S10",
+    "to": "S12",
+    "label": "Points approved and effective date available"
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": "Missing or overlapping period, wrong total or wrong member list"
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": "Schedules corrected and approved again"
+   },
+   {
+    "from": "S12",
+    "to": "S15",
+    "label": "Approved schedules, carry calculation base and prior recorded amounts available AND an executable method authorized"
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": "Cumulative calculation or prior-amount check fails"
+   },
+   {
+    "from": "S15",
+    "to": "S17",
+    "label": "Complete package with no blocking hold"
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": "Checks pass, comments resolved and required approval obtained"
+   },
+   {
+    "from": "S18",
+    "to": "S19",
+    "label": "Change reported after output release"
+   },
+   {
+    "from": "S10",
+    "to": "S9",
+    "label": "Released points lack exact named recipients"
+   },
+   {
+    "from": "S5",
+    "to": "S21",
+    "label": ""
+   },
+   {
+    "from": "S7",
+    "to": "S10",
+    "label": "Original points, vested percentage and named recipients available AND rollforward reviewed with proof that starting amounts agree"
+   },
+   {
+    "from": "S21",
+    "to": "S10",
+    "label": "Original points, vested percentage and named recipients available AND rollforward reviewed with proof that starting amounts agree"
+   },
+   {
+    "from": "S8",
+    "to": "S22",
+    "label": ""
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "If a starting difference occurred: supported governing terms AND confirmed starting position, including proof amounts agree"
+   },
+   {
+    "from": "S6",
+    "to": "S10",
+    "label": "If a starting difference occurred: original points, vested percentage and named recipients available AND rollforward reviewed with proof that starting amounts agree"
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": "Point allocation or total-point check does not work out"
+   }
+  ],
+  "open_questions": [
+   "UNKNOWN: What produces a supported event notice, how is the initiating event detected, and what channel delivers the package or notice?",
+   "UNKNOWN: Does the documented procedure after point calculation and allocation reflect current practice?",
+   "UNKNOWN: Who is accountable overall, who has formal approval and release authority, and what is the adviser escalation path?",
+   "UNKNOWN: What does the Reviewer check in the rollforward, and where is evidence of that review kept?",
+   "UNKNOWN: How do governing-support, starting-difference, recipient-instruction, point-correction and carry-difference exceptions resume after resolution? Who corrects a failed point calculation or allocation?",
+   "UNKNOWN: Where do recalculated outputs after schedule correction rejoin the process?",
+   "UNKNOWN: Where does a late change reported after workbook submission enter the process, and where does late-change handling resume?",
+   "UNKNOWN: Who performs schedule reconfirmation each cycle, and how does it relate to a carry-change case?",
+   "UNKNOWN: What happens after Method B release conditions are met, and who owns the hold and release?",
+   "UNKNOWN: What approved template and storage location apply to the decision record? The participant identified Operations, Technology and Records Management as the teams to confirm them.",
+   "UNKNOWN: What are the deadlines, late-change cutoff, materiality threshold and formal schedule-coverage test? No point-rounding convention has been set; the participant reports using exact amounts with no unexplained differences in the meantime.",
+   "UNKNOWN: What are the approved calculation source, exact accounting entries, posting path, other record locations, retention periods and system of record?",
+   "UNKNOWN: Which clients and entity types follow this process, what substantive variations apply, and what are their charging and removal constraints?",
+   "UNKNOWN: Is this general GPFS practice or client-specific, and what is the basis for any claimed standard?",
+   "UNKNOWN: What are the actual volume, effort, exception frequency, pain points and current operating risks?",
+   "Does any incoming route start S7 (Obtain method and recipients), or must all prerequisites finish?",
+   "Does any incoming route start S9 (Correct recipient instructions), or must all prerequisites finish?",
+   "Does any incoming route start S10 (Calculate and allocate points), or must all prerequisites finish?",
+   "How does step S20 (Reconfirm schedules each cycle) connect to the rest of this process, if at all?"
+  ]
+ },
+ "map_checked": false,
+ "draft": null,
+ "draft_error": null
+}

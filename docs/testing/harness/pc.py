@@ -136,9 +136,11 @@ class Case:
             if not got_notes and out.get("state") == "error":
                 got_notes = True
                 self.event(tag + ".notes_error", seconds=round(now() - t0, 2), error=out.get("error"), code=out.get("error_code"))
-            pv = out.get("workflow_provisional")
+            # The map through an earlier answer, shown while the map of this revision is still being drawn.
+            pv = out.get("workflow_checkpoint") or out.get("workflow_provisional")
             if pv:
-                key = [pv.get("revision"), bool(pv.get("audited"))]
+                checked = bool(pv.get("checked", pv.get("audited")))
+                key = [pv.get("revision"), pv.get("version"), checked]
                 seen = s.setdefault("seen_provisional", [])
                 if key not in seen:
                     seen.append(key)
@@ -146,12 +148,14 @@ class Case:
                     users = [t["id"] for t in s["turns"] if t["role"] == "user"]
                     behind = len(users) - 1 - users.index(pv["through_turn_id"]) if pv.get("through_turn_id") in users else None
                     s["workflow_shown"] = wfp
-                    self.event(tag + ".map_shown", seconds=round(now() - t0, 2), audited=bool(pv.get("audited")), answers_behind=behind,
+                    self.event(tag + ".map_shown", seconds=round(now() - t0, 2), audited=checked, answers_behind=behind,
                                through=pv.get("through_turn_id"), steps=len(wfp.get("steps", [])), connections=len(wfp.get("connections", [])))
             if not got_map and out.get("workflow_capture"):
                 got_map = True
                 s["workflow"] = out["workflow_capture"].get("workflow"); s["workflow_revision"] = s["revision"]
-                self.event(tag + ".map_ready", seconds=round(now() - t0, 2),
+                s["workflow_checked"] = bool(out.get("workflow_checked")); s["workflow_shown"] = s["workflow"]
+                self.event(tag + ".map_ready", seconds=round(now() - t0, 2), audited=bool(out.get("workflow_checked")),
+                           check_state=out.get("workflow_check_state"), check_error=out.get("workflow_check_error"), answers_behind=0,
                            steps=len((s["workflow"] or {}).get("steps", [])), connections=len((s["workflow"] or {}).get("connections", [])))
             if not got_map and out.get("workflow_state") == "error":
                 got_map = True
@@ -201,11 +205,17 @@ def cmd_start(a):
 
 def cmd_answer(a, action="answer"):
     c = Case(a.case); s = c.s
+    if action == "answer" and getattr(a, "file", None):
+        a.text = open(a.file, encoding="utf-8").read().strip()
+    if action == "answer" and not (a.text or "").strip():
+        sys.exit("answer needs text or --file")
     text = a.text if action == "answer" else None
     extra = ""
     if action == "answer" and a.voice:
         audio, secs = speak_to_wav(text, a.rate)
-        st, out, dt = c.post("/api/transcribe", raw=audio, headers={"Content-Type": "audio/wav"}, timeout=160, label="transcribe")
+        hints = [w for w in dict.fromkeys(re.findall(r"\b(?:[A-Z]{2,}[A-Za-z0-9-]*|[A-Z][a-z]+(?: [A-Z][A-Za-z]*)+)\b", " ".join(t["text"] for t in s["turns"] if t["role"] == "user")))][:20]
+        st, out, dt = c.post("/api/transcribe", raw=audio, headers={"Content-Type": "audio/wav", **({"X-Transcription-Hints": urllib.parse.quote(",".join(hints))} if hints else {})}, timeout=160, label="transcribe")
+        c.s["events"][-1]["hints"] = len(hints)
         if st != 200:
             c.save(); sys.exit(f"TRANSCRIBE FAILED {st}: {out}")
         heard = out.get("text", "")
@@ -344,6 +354,107 @@ def cmd_wrap(a):
     cmd_show(a)
 
 
+def cmd_live(a):
+    """Live voice, simulated with text: the routes the page calls after each finalised spoken answer.
+
+    In Live mode the browser holds the conversation with GPT-Live over WebRTC. After each answer it
+    sends the transcript so far to /api/agent-team/interview with live_notes (the managed team's notes)
+    and to /api/agent-team/workflow with the notes and map it holds (the map); with the managed team on,
+    the page rewrites /api/interview and /api/workflow to those routes and adds a run id. The spoken lines here are the turns of
+    a finished typed case, replayed one exchange at a time.
+    """
+    src = json.load(open(os.path.join(CASES, a.source + ".json")))
+    c = Case(a.case)
+    c.s = {"case": a.case, "port": a.port, "interview_id": uuid.uuid4().hex, "context": src["context"], "turns": [], "events": [],
+           "started": now(), "mode": "live_simulated", "replayed_from": a.source}
+    s = c.s
+    spoken = [t for t in src["turns"] if not t.get("document_event")]
+    answers = 0
+    for t in spoken:
+        s["turns"].append({"id": c.next_id(), "role": t["role"], "text": t["text"]})
+        if t["role"] != "user":
+            continue
+        answers += 1
+        base = {"context": s["context"], "turns": s["turns"], "session": {"closure_requested": False},
+                "document_revision": '[""]', "document_source_ids": []}
+        if s.get("capture_token"): base["capture_token"] = s["capture_token"]
+        st, out, dt = c.post("/api/agent-team/interview", dict(base, action="answer", live_notes=True, agent_run_id=uuid.uuid4().hex), label="live.notes", timeout=340)
+        if st == 200:
+            if out.get("capture_token"): s["capture_token"] = out["capture_token"]
+            s["capture"] = {k: out.get(k) for k in ("memo_findings", "coverage", "summary", "focus", "parking_lot", "connections_out", "taxonomy", "completion")}
+            print(f"[answer {answers}: notes in {dt:.1f}s] topics with notes: {sum(1 for f in out.get('memo_findings') or [] if f.get('status') != 'unknown')}")
+        else:
+            print(f"[answer {answers}: NOTES FAILED after {dt:.1f}s] HTTP {st} {out.get('error')}")
+        cap = s.get("capture") or {}; wf = s.get("workflow") or {}
+        prev = {"workflow": {"title": wf.get("title", ""), "steps": wf.get("steps", []), "connections": wf.get("connections", []),
+                             "open_questions": wf.get("open_questions", [])},
+                "memo_findings": cap.get("memo_findings") or [], "summary": cap.get("summary") or "",
+                "focus": cap.get("focus") or "", "parking_lot": cap.get("parking_lot") or []}
+        base2 = dict(base);
+        if s.get("capture_token"): base2["capture_token"] = s["capture_token"]
+        st, out, dt = c.post("/api/agent-team/workflow", dict(base2, previous_capture=prev, agent_run_id=uuid.uuid4().hex), label="live.map", timeout=520)
+        if st == 200 and out.get("workflow"):
+            s["workflow"] = out["workflow"]; s["workflow_revision"] = s.get("revision")
+            print(f"[answer {answers}: map in {dt:.1f}s] {len(out['workflow'].get('steps', []))} steps, {len(out['workflow'].get('connections', []))} connections")
+        else:
+            print(f"[answer {answers}: MAP FAILED after {dt:.1f}s] HTTP {st} {out.get('error')}")
+        c.save()
+        if answers >= a.max:
+            break
+    s["finished"] = now(); c.save()
+    cmd_show(a)
+
+
+def draft_body(c):
+    s = c.s
+    cap = s.get("capture") or {}; wf = s.get("workflow") or s.get("workflow_shown") or {}
+    prev = {"workflow": {"title": wf.get("title", ""), "steps": wf.get("steps", []), "connections": wf.get("connections", []),
+                         "open_questions": wf.get("open_questions", [])},
+            "memo_findings": cap.get("memo_findings") or [], "summary": cap.get("summary") or "",
+            "focus": cap.get("focus") or "", "parking_lot": cap.get("parking_lot") or []}
+    body = c.snapshot("answer", {"previous_capture": prev})
+    body.pop("conversation_token", None); body.pop("action", None)
+    return body
+
+
+def cmd_prepare(a):
+    """What the page sends when the participant has wrapped up: the first half of the draft, ahead of the click."""
+    c = Case(a.case)
+    st, out, dt = c.post("/api/draft", {**draft_body(c), "prepare_only": True}, label="draft.prepare", timeout=600)
+    c.save()
+    print(f"[prepare in {dt:.1f}s] HTTP {st} {out}")
+
+
+def cmd_draft(a):
+    """Review > Create draft, as the page sends it: the snapshot plus the notes and map it holds."""
+    c = Case(a.case); s = c.s
+    body = draft_body(c)
+    st, out, dt = c.post("/api/draft", body, label="draft", timeout=1160)
+    if st != 200:
+        s["draft_error"] = {"status": st, "error": out.get("error"), "code": out.get("code")}
+        c.save(); print(f"CREATE DRAFT FAILED after {dt:.1f}s: HTTP {st} {out.get('error')}"); return
+    d = out.get("draft") or {}
+    s["draft"] = d
+    s["draft_meta"] = {k: out.get(k) for k in ("coverage_assessment", "generated_by", "audit", "draft_audit", "validation", "document_evidence") if out.get(k) is not None}
+    s["draft_keys"] = sorted(out.keys())
+    c.save()
+    print(f"[draft in {dt:.1f}s] title: {d.get('title')}")
+    print("overview:", (d.get("overview") or "")[:1200])
+    print("trigger:", d.get("trigger"))
+    for k in ("inputs", "outputs", "exceptions", "controls", "open_questions", "validation_notes"):
+        print(f"{k}:"); [print("  -", x) for x in (d.get(k) or [])]
+    print("steps:")
+    for x in d.get("steps") or []:
+        print(f"  {x.get('id')} [{x.get('type')}] {x.get('title')} | actor={x.get('actor') or '-'} | system={x.get('system') or '-'} | {x.get('description') or ''}")
+    for e in d.get("connections") or []:
+        print(f"    {e.get('from')} -> {e.get('to')}" + (f"  [{e.get('label')}]" if e.get("label") else ""))
+    print("memo topics:")
+    for f in d.get("memo_summary") or []:
+        print(f"  - [{f.get('status')}] {f.get('key')}: {f.get('answer')}")
+    for v in d.get("variations") or []:
+        print("  variation:", json.dumps(v)[:400])
+
+
 def cmd_waitmap(a):
     c = Case(a.case); s = c.s
     t0 = next((e["at"] - e["seconds"] for e in reversed(s["events"]) if e["kind"] == "wrap.sync"), now())
@@ -412,15 +523,78 @@ def cmd_timings(a):
     print(json.dumps([e for e in c.s["events"]], indent=1))
 
 
+def timing_summary(s):
+    ev = s.get("events") or []
+    def secs(kind, ok=True):
+        return [e["seconds"] for e in ev if e["kind"] == kind and "seconds" in e and (not ok or e.get("status", 200) in (200, 202))]
+    def med(v):
+        v = sorted(v); return round(v[len(v) // 2], 1) if v else None
+    q = secs("question")
+    notes = [e["seconds"] for e in ev if e["kind"].endswith(".notes_ready")]
+    shown = [e for e in ev if e["kind"].endswith(".map_shown")]
+    ready = [e for e in ev if e["kind"].endswith(".map_ready")]
+    users = sum(1 for t in s.get("turns", []) if t["role"] == "user")
+    return {"answers": users, "question_seconds": [round(x, 1) for x in q], "question_median": med(q), "question_max": round(max(q), 1) if q else None,
+            "notes_ready_seconds": [round(x, 1) for x in notes], "notes_median": med(notes),
+            "answers_with_notes_before_next_answer": len(notes),
+            "map_events": [{"kind": e["kind"], "seconds": e["seconds"], "audited": e.get("audited"), "answers_behind": e.get("answers_behind"), "steps": e.get("steps")} for e in shown + ready],
+            "notes_errors": [e for e in ev if e["kind"].endswith(".notes_error")],
+            "map_errors": [e for e in ev if e["kind"].endswith(".map_error")],
+            "left_pending": [{"kind": e["kind"], "notes": e.get("notes_state"), "map": e.get("map_state"), "seconds": e.get("seconds")} for e in ev if e["kind"].endswith(".left_pending")],
+            "transcribe": [{"seconds": e["seconds"], "audio_seconds": e.get("audio_seconds"), "wer": e.get("wer")} for e in ev if e["kind"] == "transcribe"],
+            "documents": [{k: e.get(k) for k in ("kind", "seconds", "file", "status", "phase", "disposition", "error", "chunks", "bytes")} for e in ev if e["kind"].startswith("doc.")],
+            "wrap": [{k: e.get(k) for k in ("kind", "seconds", "status", "reply_kind", "workflow_state", "workflow_error", "error")} for e in ev if e["kind"].startswith("wrap.")],
+            "draft": [{k: e.get(k) for k in ("seconds", "status", "error")} for e in ev if e["kind"] == "draft"],
+            "failed_requests": [{k: e.get(k) for k in ("kind", "seconds", "status", "retries", "error")} for e in ev if e.get("error") or e.get("status") not in (None, 200, 202) or e.get("retries")]}
+
+
+def cmd_report(a):
+    """Everything about a case in one readable page: transcript with turn ids, timings, notes, map, draft."""
+    c = Case(a.case); s = c.s
+    print(f"CASE {s['case']} | process: {s['context']['process_name']} | port {s['port']}")
+    print("\n=== TRANSCRIPT (turn id, speaker) ===")
+    for t in s["turns"]:
+        who = "INTERVIEWER" if t["role"] == "assistant" else "PARTICIPANT"
+        print(f"[{t['id']}] {who}: {t['text']}\n")
+    print("=== TIMINGS (seconds) ===")
+    print(json.dumps(timing_summary(s), indent=1))
+    if s.get("documents"):
+        print("\n=== FILES ===")
+        for d in s["documents"]:
+            an = d.get("analysis") or {}
+            print(f"- {d.get('name')} | {d.get('kind')} | {d.get('size')} bytes | status={d.get('status')} | chunks={d.get('chunk_count')} | review phase={an.get('phase')} disposition={an.get('disposition')} | coverage={json.dumps(d.get('coverage'))[:300]} | error={d.get('error') or an.get('error')}")
+    cmd_show(a)
+    d = s.get("draft")
+    print("\n=== DRAFT ===" + ("" if d else f" (none: {json.dumps(s.get('draft_error'))})"))
+    if d:
+        print("title:", d.get("title")); print("overview:", d.get("overview")); print("trigger:", d.get("trigger"))
+        for k in ("inputs", "outputs", "exceptions", "controls", "open_questions", "validation_notes"):
+            print(f"{k}:"); [print("  -", x) for x in (d.get(k) or [])]
+        print("steps:")
+        for x in d.get("steps") or []:
+            print(f"  {x.get('id')} [{x.get('type')}] {x.get('title')} | actor={x.get('actor') or '-'} | system={x.get('system') or '-'} | {x.get('description') or ''}")
+        for e in d.get("connections") or []:
+            print(f"    {e.get('from')} -> {e.get('to')}" + (f"  [{e.get('label')}]" if e.get("label") else ""))
+        print("memo topics:")
+        for f in d.get("memo_summary") or []:
+            print(f"  - [{f.get('status')}] {f.get('key')}: {f.get('answer')}")
+        for v in d.get("variations") or []:
+            print("  variation:", json.dumps(v)[:500])
+
+
 def main():
     p = argparse.ArgumentParser(); sub = p.add_subparsers(dest="cmd", required=True)
     x = sub.add_parser("start"); x.add_argument("case"); x.add_argument("--port", type=int, required=True); x.add_argument("--name", required=True); x.add_argument("--objective"); x.add_argument("--background"); x.add_argument("--nofirst", action="store_true")
-    x = sub.add_parser("answer"); x.add_argument("case"); x.add_argument("text"); x.add_argument("--voice", action="store_true"); x.add_argument("--rate", type=int, default=185); x.add_argument("--think", type=float, default=45)
+    x = sub.add_parser("answer"); x.add_argument("case"); x.add_argument("text", nargs="?", default=""); x.add_argument("--file"); x.add_argument("--voice", action="store_true"); x.add_argument("--rate", type=int, default=185); x.add_argument("--think", type=float, default=45)
     x = sub.add_parser("skip"); x.add_argument("case"); x.add_argument("--think", type=float, default=20)
     x = sub.add_parser("upload"); x.add_argument("case"); x.add_argument("files", nargs="+"); x.add_argument("--readwait", type=float, default=600); x.add_argument("--think", type=float, default=60)
     x = sub.add_parser("wrap"); x.add_argument("case"); x.add_argument("--mapwait", type=float, default=450)
     x = sub.add_parser("waitmap"); x.add_argument("case"); x.add_argument("--mapwait", type=float, default=540)
     x = sub.add_parser("show"); x.add_argument("case")
+    x = sub.add_parser("draft"); x.add_argument("case")
+    x = sub.add_parser("prepare"); x.add_argument("case")
+    x = sub.add_parser("report"); x.add_argument("case")
+    x = sub.add_parser("live"); x.add_argument("case"); x.add_argument("--source", required=True); x.add_argument("--port", type=int, required=True); x.add_argument("--max", type=int, default=6)
     x = sub.add_parser("timings"); x.add_argument("case")
     a = p.parse_args()
     if a.cmd == "start": cmd_start(a)
@@ -430,6 +604,10 @@ def main():
     elif a.cmd == "wrap": cmd_wrap(a)
     elif a.cmd == "waitmap": cmd_waitmap(a)
     elif a.cmd == "show": cmd_show(a)
+    elif a.cmd == "draft": cmd_draft(a)
+    elif a.cmd == "prepare": cmd_prepare(a)
+    elif a.cmd == "report": cmd_report(a)
+    elif a.cmd == "live": cmd_live(a)
     elif a.cmd == "timings": cmd_timings(a)
 
 

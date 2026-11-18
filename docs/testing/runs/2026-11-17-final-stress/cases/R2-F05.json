@@ -1,0 +1,726 @@
+{
+ "case": "R2-F05",
+ "process": "MC-05",
+ "mode": "file",
+ "style": "workbook with a hidden sheet, one short answer",
+ "build": "round2",
+ "participant": "script",
+ "context": {
+  "process_name": "Management Fee Calculation & Offsets",
+  "process_owner": "",
+  "objective": "Document how we carry out Management Fee Calculation & Offsets, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "assistant",
+   "text": "Thanks for sharing. Give me a moment to digest the file. Then I’ll follow up with a question.",
+   "document_event": true
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "The workbook starts with confirming the billing period and rule-change triggers, but does not name the initiating event. What normally starts the management-fee calculation work?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "Yes, the file describes how we do this today. I have nothing to add to it."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What does the completed management-fee calculation enable for the fund or its investors?"
+  },
+  {
+   "id": "t006",
+   "role": "assistant",
+   "text": "Your account so far is saved. 1 of 16 topics is complete, 12 are partly covered and 3 have not come up; the Notes list shows what is missing. You can create a draft from what is here, or keep answering."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794993264.698,
+   "turn": 0,
+   "seconds": 0.016,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.session",
+   "at": 1794993264.764,
+   "turn": 1,
+   "seconds": 0.015,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.upload",
+   "at": 1794993264.768,
+   "turn": 1,
+   "seconds": 0.004,
+   "status": 202,
+   "retries": 0,
+   "file": "F05 MC-05 workbook.xlsx",
+   "bytes": 8474
+  },
+  {
+   "kind": "doc.extracted",
+   "at": 1794993265.277,
+   "turn": 1,
+   "seconds": 0.53,
+   "file": "F05 MC-05 workbook.xlsx",
+   "chunks": 3,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 3,
+    "total_units": 3,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_started",
+   "at": 1794993265.277,
+   "turn": 1,
+   "seconds": 0.53,
+   "file": "F05 MC-05 workbook.xlsx",
+   "chunks": 3,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 3,
+    "total_units": 3,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_deep",
+   "at": 1794993272.938,
+   "turn": 1,
+   "seconds": 8.19,
+   "file": "F05 MC-05 workbook.xlsx",
+   "chunks": 3,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 3,
+    "total_units": 3,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_complete",
+   "at": 1794993272.938,
+   "turn": 1,
+   "seconds": 8.19,
+   "file": "F05 MC-05 workbook.xlsx",
+   "chunks": 3,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 3,
+    "total_units": 3,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.followup_question",
+   "at": 1794993274.495,
+   "turn": 2,
+   "seconds": 1.557,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.first_question",
+   "at": 1794993274.495,
+   "turn": 3,
+   "seconds": 9.75,
+   "reading": {
+    "omitted_documents": 0,
+    "documents": [
+     {
+      "id": "doc_1dec1d875bb1313d1e08a7c8",
+      "included_chunks": 3,
+      "total_chunks": 3
+     }
+    ]
+   }
+  },
+  {
+   "kind": "doc.left_pending",
+   "at": 1794993304.598,
+   "turn": 3,
+   "notes_state": "working",
+   "map_state": "working",
+   "seconds": 31.66
+  },
+  {
+   "kind": "question",
+   "at": 1794993309.142,
+   "turn": 4,
+   "seconds": 4.494,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794993350.94,
+   "turn": 5,
+   "seconds": 46.29,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 10,
+   "connections": 9
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794993354.508,
+   "turn": 5,
+   "notes_state": "working",
+   "map_state": "ready",
+   "seconds": 49.86
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794993413.288,
+   "turn": 5,
+   "seconds": 58.728,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794993630.655,
+   "turn": 6,
+   "seconds": 217.316,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [
+  {
+   "name": "F05 MC-05 workbook.xlsx",
+   "kind": "xlsx",
+   "size": 8474,
+   "status": "ready",
+   "chunk_count": 3,
+   "coverage": {
+    "indexed_units": 3,
+    "total_units": 3,
+    "limitations": []
+   }
+  }
+ ],
+ "notes": {
+  "summary": "The participant says the workbook describes current practice but cannot add to its account of the initiating event. It documents calculation, client approval, funding, posting and reconciliation, while leaving the owner, deadlines and several rules unconfirmed.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "captured",
+    "answer": "The work is called Management Fee Calculation & Offsets; the supplied workbook is named F05 MC-05 workbook.xlsx."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The documented work produces an approved management-fee calculation, funded or collected and posted fees, and a reconciled records package."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The initiating event and normal cadence are not specified; asked what starts the work, the participant had nothing to add to the workbook. Deadlines are explicitly unconfirmed in its notes."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The workbook requires posted and funded amounts to equal the approved calculation, and the GL, calculation, notices, workbooks and funding to agree. The final package is filed with the supporting rule versions, inputs, review, approval, funding, posting and reconciliation."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The accountable owner and named reviewer and approver are unconfirmed; the workbook identifies functional participants but does not assign overall accountability."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "According to the workbook, the GPFS preparer identifies the billing period and advance, arrears or stub treatment and checks for rule changes; the reviewer and client confirm. Rules in effect and supporting terms are recorded, and unclear or overlapping rules are resolved before calculation.\nThe preparer gathers fee-base inputs, investor lists, offset amounts, waiver elections, related contribution rollforwards, caps and side-letter exceptions. The preparer reconciles offsets to sources and prior offsets, waivers and carryforwards to the previous standalone calculation and GL, resolving or documenting differences; missing adviser or client terms stop the affected calculation.\nThe preparer applies fund- and investor-specific bases and rates for each effective time segment, approved annualization and proration, and applicable investor rules; gross investor fees are reconciled to fund totals. The preparer then applies offsets, waivers, caps and approved carryforwards and calculates net investor fees using the validated negative-fee rule.\nThe senior reviewer reviews the calculation and reconciles copies; comments are resolved and client approval obtained before the final approved version is identified. Fund accounting and capital-call teams fund or collect and post using permitted methods, although their exact downstream roles are not specified.\nThe GPFS preparer and reviewer reconcile the final standalone calculation to the GL and later notice and workbook outputs, and file the package in the digital binder Q folder."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The workbook assigns the preparer effective-rule, source/prior-balance and investor-to-fund ties, reviewed by a reviewer. It assigns the reviewer the offset-to-source and LPA reconciliation, approved-version control, and approval-to-posting tie.\nThe senior reviewer reviews rules, bases, groups, formulas, offsets, waivers, rollforwards and GL reconciliations. A two-person review is required for a step-down or fee-base change; comments are resolved and client approval obtained, with duplicates agreeing with or linking to the approved version.\nNamed reviewers and approvers, approval evidence and handling of rejected or delayed approvals need confirmation."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "The workbook describes different billing treatments for advance, arrears and stub periods, and fund- and investor-specific bases, rates, side-letter and other rules. Funding can use an LPA-permitted capital call, fund cash or netting; the method for each fund is unconfirmed."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "F05 MC-05 workbook.xlsx contains steps, checks and a hidden notes sheet. The participant says the file describes current practice but adds nothing; its notes retain explicit open items. All three indexed text sections were supplied and reviewed; no unread visuals are reported.\nThe documented working artifacts include a rules record and supporting terms, reconciled input package, investor gross-fee schedule, offset and net-fee schedule, approved standalone calculation and final records package.\nThe exact digital binder path and retention period are unconfirmed, although the workbook names a Q folder."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The workbook describes GPFS preparation of fund- and investor-specific management fees, client approval and downstream funding and posting. The participant says it describes today's work; whether it is a general GPFS route or a particular client route is not established."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The documented rule is to check effective dates, retain supporting terms, resolve overlaps before calculation and not carry forward a prior-period rule without checking its date. Offset allocation uses the LPA rule, applicable fund and portfolio-company list, percentage and timing; approved delays, waiver caps and carryforwards are applied.\nThe workbook leaves Standard Days, annualization, stub and proration rules, negative fees, carryforwards, rounding, waiver/contribution interaction and offset delays unconfirmed. It says not to use generic formulas until Standard Days and annualization are confirmed.\nThe exact debit and credit accounts and accounting entries must be confirmed; funding methods for each fund are also unconfirmed."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The documented calculation requires client approval before fund accounting and capital-call teams fund or collect and post the approved fee; the split between downstream roles is not specified."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The workbook requires reconciliation to the GL, previous standalone calculation and later notices and workbook outputs, with filing in a digital binder Q folder.\nSource-system reports and the exact digital binder path are unconfirmed; the calculation tool and its logic ownership are not identified."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": ""
+   }
+  ]
+ },
+ "map": {
+  "title": "Management Fee Calculation & Offsets",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Confirm period and rules",
+    "actor": "GPFS preparer; reviewer and client confirm",
+    "system": "UNKNOWN",
+    "description": "The workbook directs the preparer to identify the billing period and check rule-change triggers, effective dates and overlaps. It requires unclear or overlapping rules to be resolved before calculation and supporting terms retained."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Gather and reconcile inputs",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "The workbook calls for obtaining fee-base inputs, investor lists, offset sources, waiver elections, contribution rollforwards, caps and side-letter exceptions. Prior offsets, waivers and carryforwards are reconciled to the previous standalone calculation and GL; differences must be resolved or documented."
+   },
+   {
+    "id": "S3",
+    "type": "wait",
+    "title": "Hold affected calculation",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The workbook says to stop the affected calculation if adviser or client terms are missing. The release condition and subsequent handoff are not specified."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Calculate gross investor fees",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "The workbook directs application of fund- and investor-specific bases and rates for each effective time segment, including approved annualization, proration and applicable exceptions. Investor gross fees are reconciled to fund totals; generic formulas must not be used until Standard Days and annualization are confirmed."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Apply offsets and waivers",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "The workbook directs allocation of offsets under applicable LPA rules, application of waiver elections, caps and approved carryforwards, and calculation of net fees using the validated negative-fee rule. It calls for source reconciliation and checks for overlapping rules."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Review fee calculation",
+    "actor": "Senior reviewer",
+    "system": "UNKNOWN",
+    "description": "The workbook calls for review of rules, bases, groups, formulas, offsets, waivers, rollforwards and GL reconciliations, and reconciliation to capital-call or quarterly copies. It requires two-person review for periods with a step-down or fee-base change and resolution of comments."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Obtain client approval",
+    "actor": "Client",
+    "system": "UNKNOWN",
+    "description": "The workbook requires client approval, identification of the final approved version, and confirmation that duplicate copies agree with or link to it. The mechanics of requesting approval and handling rejection are UNKNOWN."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Fund or collect and post",
+    "actor": "Fund accounting and capital-call teams; exact downstream roles UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The workbook specifies an LPA-allowed funding method and an approved accounting pattern. It requires confirmation of exact debit and credit accounts before posting and reconciliation of funding and entries to the approved calculation."
+   },
+   {
+    "id": "S9",
+    "type": "document",
+    "title": "Reconcile and file package",
+    "actor": "GPFS preparer and reviewer",
+    "system": "Digital binder Q folder",
+    "description": "The workbook calls for reconciliation of the final standalone calculation to the GL and later notices and workbooks, and filing the package with supporting evidence. The Checks sheet assigns the approval-to-posting tie to the reviewer at completion."
+   },
+   {
+    "id": "S10",
+    "type": "end",
+    "title": "Complete fee records package",
+    "actor": "UNKNOWN",
+    "system": "Digital binder Q folder",
+    "description": "The workbook identifies a complete management-fee records package as the final result."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": "Adviser or client terms missing"
+   },
+   {
+    "from": "S2",
+    "to": "S4",
+    "label": "Required terms available and unclear or overlapping rules resolved"
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": ""
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": ""
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": ""
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": "Client approval obtained"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": ""
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": "Final package complete"
+   }
+  ],
+  "open_questions": [
+   "The participant says the workbook describes current practice. UNKNOWN: What starts the work, who detects it, and what are its cadence and deadlines?",
+   "UNKNOWN: Who is accountable overall, and who are the named preparer, reviewer and approver?",
+   "UNKNOWN: How are missing adviser or client terms obtained, and where does the stopped calculation resume?",
+   "UNKNOWN: Who interprets unclear or conflicting rules, how are decisions recorded, and how are failed checks, review comments or rejected approvals handled and rechecked?",
+   "UNKNOWN: What are the confirmed Standard Days, annualization, stub-period, proration, rounding, negative-fee and carryforward rules?",
+   "UNKNOWN: What are the confirmed waiver and contribution interactions, offset timing delays, accounting entries and funding methods for each fund?",
+   "UNKNOWN: Which source-system reports, calculation tools and authoritative records are used, and what is the exact binder path?",
+   "UNKNOWN: What is the retention period, who records each item of evidence, and how are client approval and review evidenced?",
+   "UNKNOWN: Which entities and clients follow this process, what variations and charging or removal constraints apply, and what supports any general GPFS standard?",
+   "UNKNOWN: What are the downstream consumers, dependencies, volumes, exception frequency, effort, pain points and material failure consequences?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "DRAFT — Management Fee Calculation & Offsets",
+  "overview": "Current-practice draft pending review. The participant says the workbook describes today's work and has nothing to add. The procedure below attributes its detailed actions and checks to the workbook; operation of each control has not been independently verified.",
+  "trigger": "UNKNOWN: initiating event, receiver, cadence and deadlines.",
+  "inputs": [
+   "Billing period and supporting terms",
+   "Fee-base and investor data, offset sources, waiver elections, contribution rollforwards, caps and side-letter exceptions",
+   "Previous standalone calculation and general ledger (GL)"
+  ],
+  "outputs": [
+   "Client-approved fee calculation",
+   "Funded or collected and posted fee",
+   "Reconciled management-fee records package"
+  ],
+  "exceptions": [
+   "The workbook says missing adviser or client terms stop the affected calculation; how the hold is released or work resumes is UNKNOWN.",
+   "The workbook requires unclear or overlapping rules to be resolved before calculating, and source or prior-balance differences to be resolved or documented. Resolution mechanics are UNKNOWN.",
+   "Review comments must be resolved; handling and recheck mechanics are UNKNOWN."
+  ],
+  "controls": [
+   "The workbook's Checks sheet assigns effective-rule, source/prior-balance and investor-to-fund ties to the preparer, reviewed by a reviewer.",
+   "The workbook assigns the reviewer the offset-to-source and LPA reconciliation, approved-version control and approval-to-posting tie.",
+   "The workbook requires two-person review for a step-down or fee-base change, client approval before funding and posting, and agreement of final records. Actual operation is not independently verified."
+  ],
+  "validation_notes": [
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified.",
+   "Current-practice draft pending review. The participant says the file describes today's work, but the workbook's individual controls and their operation have not been independently verified.",
+   "The workbook does not identify the initiating event or confirmed deadlines, so the first documented action is not established as the trigger.",
+   "The workbook requires both available adviser or client terms and resolution of unclear or overlapping rules before the affected fee calculation. The map preserves both dependencies; who coordinates or confirms them is UNKNOWN.",
+   "The workbook's hidden notes leave named responsibilities, calculation rules, fund-specific funding methods and accounting entries open; these affect execution and review.",
+   "The workbook names a digital binder Q folder, but its exact path and retention period are unconfirmed.",
+   "The missing-terms hold has no documented release or return route, and review rejection and rework mechanics remain unresolved.",
+   "General GPFS applicability and process-owner confirmation of this draft remain UNKNOWN.",
+   "Document-derived statements describe supplied reference material; current practice and control effectiveness have not been confirmed.",
+   "The source check removed a cited source from “Name & other names” that did not support it."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Confirm period and rules",
+    "actor": "GPFS preparer; reviewer and client confirm",
+    "system": "UNKNOWN",
+    "description": "The workbook directs the preparer to identify the billing period and advance, arrears or stub treatment. Check closes, step-downs, investment-period end, impairments, waivers, holidays, start-date overrides and amendments. Record the rules in effect and retain supporting terms; do not change the rules during the calculation or carry a prior-period rule forward without checking its effective date. Resolve unclear or overlapping rules before calculating."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Gather and reconcile inputs",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "The workbook calls for obtaining commitments, contributions, invested capital or NAV and the investor list under the approved fee-base definition. Reconcile monitoring fees and other offsets to sources; obtain waiver elections, lifetime-to-date related contribution rollforwards, caps and side-letter exceptions. Reconcile prior offsets, waivers and carryforwards to the previous standalone calculation and GL, and resolve or document every difference. Missing adviser or client terms stop the affected calculation."
+   },
+   {
+    "id": "S3",
+    "type": "wait",
+    "title": "Hold affected calculation",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The workbook says to stop the affected calculation if adviser or client terms are missing. The release condition and subsequent handoff are UNKNOWN."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Calculate gross investor fees",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "The workbook directs the preparer to apply each fund- and investor-specific fee base and rate to each effective time segment, with approved annualization, proration and stub rules. Apply side-letter, class, holiday, exclusion, start-date and step-down rules. Reconcile investor gross fees to fund totals and trace every calculation to an effective rule and source fee base. Do not use generic formulas until Standard Days and annualization are confirmed."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Apply offsets and waivers",
+    "actor": "GPFS preparer",
+    "system": "UNKNOWN",
+    "description": "The workbook directs allocation of each offset type using its LPA rule, applicable fund and portfolio-company list, percentage and timing. Apply monitoring-fee offsets in the correct period, including approved delays; apply waiver elections and caps on related contributions or excess costs. Apply approved carryforwards and move any remaining approved amount to the next period. Calculate net fees using the validated rule for nonnegative or negative fees. Reconcile offsets and waivers to sources and check for overlapping rules for the same scope and dates."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Review fee calculation",
+    "actor": "Senior reviewer",
+    "system": "UNKNOWN",
+    "description": "The workbook calls for review of rules, fee bases, groups, formulas, offsets, waivers, rollforwards and GL reconciliations, and reconciliation of the standalone calculation to capital-call or quarterly copies. It requires two-person review for periods with a step-down or fee-base change and resolution of comments. The Checks sheet assigns the reviewer the offset-to-source and LPA reconciliation."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Obtain client approval",
+    "actor": "Client; reviewer checks version control",
+    "system": "UNKNOWN",
+    "description": "The workbook requires client approval, identification of the final approved version and confirmation that every duplicate agrees with it or links to it. The Checks sheet assigns version control to the reviewer. How approval is requested and rejection or delay handled is UNKNOWN."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Fund or collect and post",
+    "actor": "Fund accounting and capital-call teams; exact downstream roles UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The workbook directs use of the LPA-allowed method: capital call, fund cash or netting. Use the approved accounting pattern: expense and cash, expense and payable, or an amount Due to Manager. Confirm exact debit and credit accounts before posting. Reconcile funded or collected amounts and entries to the approved calculation; posted and funded amounts must equal it."
+   },
+   {
+    "id": "S9",
+    "type": "document",
+    "title": "Reconcile and file package",
+    "actor": "GPFS preparer and reviewer",
+    "system": "Digital binder Q folder",
+    "description": "The workbook calls for reconciling the final standalone calculation to the GL and later notices and workbook outputs, and filing the package in the digital binder Q folder. Retain rule versions, inputs, review, approval, funding, posting and reconciliation. The GL, calculation, notices, workbooks and funding must agree. The Checks sheet assigns the approval-to-posting tie to the reviewer at completion; the exact binder path and retention period are unconfirmed."
+   },
+   {
+    "id": "S10",
+    "type": "end",
+    "title": "Complete fee records package",
+    "actor": "UNKNOWN",
+    "system": "Digital binder Q folder",
+    "description": "The workbook identifies a complete management-fee records package as the final result."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": "Adviser or client terms missing"
+   },
+   {
+    "from": "S2",
+    "to": "S4",
+    "label": "Required terms available and unclear or overlapping rules resolved"
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": ""
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": ""
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": ""
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": "Client approval obtained"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": ""
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": "Final package complete"
+   },
+   {
+    "from": "S1",
+    "to": "S4",
+    "label": "Required terms available and unclear or overlapping rules resolved"
+   }
+  ],
+  "open_questions": [
+   "UNKNOWN: What starts the work, who detects it, and what are its cadence and deadlines?",
+   "UNKNOWN: Who is accountable overall, and who are the named preparer, reviewer and approver?",
+   "UNKNOWN: How are missing adviser or client terms obtained, and where does the stopped calculation resume?",
+   "UNKNOWN: Who interprets unclear or conflicting rules, how are decisions recorded, and how are failed checks, review comments or rejected approvals handled and rechecked?",
+   "UNKNOWN: What are the confirmed Standard Days, annualization, stub-period, proration, rounding, negative-fee and carryforward rules?",
+   "UNKNOWN: What are the confirmed waiver and contribution interactions, offset timing delays, accounting entries and funding methods for each fund?",
+   "UNKNOWN: Which source-system reports, calculation tools and authoritative records are used, and what is the exact binder path?",
+   "UNKNOWN: What is the retention period, who records each item of evidence, and how are client approval and review evidenced?",
+   "UNKNOWN: Which entities and clients follow this process, what variations and charging or removal constraints apply, and what supports any general GPFS standard?",
+   "UNKNOWN: What are the downstream consumers, dependencies, volumes, exception frequency, effort, pain points and material failure consequences?",
+   "Does any incoming route start S4 (Calculate gross investor fees), or must all prerequisites finish?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "The intake calls the work Management Fee Calculation & Offsets. The supplied workbook is named F05 MC-05 workbook.xlsx. Other team, checklist or system names for the work are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The workbook describes producing an approved management-fee calculation, a funded or collected and posted fee, and a reconciled records package. The resulting value for the fund or investors is UNKNOWN."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The initiating event, receiver and normal cadence are UNKNOWN. Asked what starts the work, the participant had nothing to add to the workbook. The first documented action is to identify the billing period; the workbook's notes leave deadlines unconfirmed."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The workbook requires posted and funded amounts to equal the approved calculation and the GL, calculation, notices, workbooks and funding to agree. The final package is filed with rule versions, inputs, review, approval, funding, posting and reconciliation. The subsequent consumer is UNKNOWN."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The overall accountable owner and named reviewer and approver are unconfirmed. The workbook names functional participants but does not assign overall accountability."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The workbook directs the preparer to identify the period and effective rules, gather and reconcile inputs, calculate gross investor fees, and apply offsets, waivers and carryforwards to produce net fees. Missing adviser or client terms stop the affected calculation. A senior reviewer reviews and comments are resolved; client approval is obtained and the final version identified. Fund accounting and capital-call teams fund or collect and post, with their exact split UNKNOWN. The preparer and reviewer reconcile and file the final package in the digital binder Q folder. Handoff mechanics and the hold's release and return are UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The workbook assigns the preparer effective-rule, source/prior-balance and investor-to-fund ties, reviewed by a reviewer. The reviewer reconciles offsets to sources and the LPA, controls the approved version and ties approval to posting. The senior review covers rules, bases, groups, formulas, offsets, waivers, rollforwards and GL reconciliations; a two-person review is required for a step-down or fee-base change. Comments are resolved and client approval obtained. Named reviewers and approvers, retained approval evidence, rejection handling, escalation and system enforcement remain UNKNOWN; the documented checks are not independently verified."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "The workbook describes advance, arrears and stub billing, fund- and investor-specific bases and rates, side-letter and other rule differences, and LPA-permitted funding by capital call, fund cash or netting. The method for each fund is unconfirmed. Specific applicability, effort, charging, removal constraints and process boundaries remain UNKNOWN."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": "UNKNOWN: manual friction, practical effects and effort."
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": "UNKNOWN: participant-described failures and their consequences."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "F05 MC-05 workbook.xlsx contains Steps, Checks and a hidden Notes sheet. The participant says it describes today's work and has nothing to add; its notes retain open items. The file has indexed text for all 3 of 3 units, and all 3 indexed sections were supplied. The AI review is complete: 3 of 3 chunks reviewed, not stopped; there are 0 unread visual units. Documented artifacts include rules and supporting terms, reconciled inputs, gross and net schedules, the approved standalone calculation and final package. The exact binder path and retention period are unconfirmed."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The workbook describes GPFS preparation of fund- and investor-specific management fees, client approval and downstream funding and posting. The participant says it describes today's work. Whether it is general GPFS practice or a particular client route, the full entity scope and parent process are UNKNOWN."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The workbook directs effective-date checks, retention of supporting terms and resolution of overlaps before calculation. Gross fees use fund and investor bases and rates by effective time segment; offset allocation uses the LPA rule, fund and portfolio-company list, percentage and timing. It leaves Standard Days, annualization, stub and proration rules, negative fees, carryforwards, rounding, waiver/contribution interaction and offset delays unconfirmed; generic formulas must not be used until Standard Days and annualization are confirmed. Exact accounts, entries and fund-specific funding methods are unconfirmed. Rule interpretation and conflict authority are UNKNOWN."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The documented calculation uses source inputs, a previous standalone calculation and GL balances. Client approval precedes funding or collection and posting by fund accounting and capital-call teams, whose precise split is unspecified. Later notices and workbook outputs are reconciled to the final calculation. Upstream producers and later consumers are UNKNOWN."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The workbook requires reconciliation to the GL, previous standalone calculation and later notice and workbook outputs, with filing in a digital binder Q folder. Source-system reports and exact binder path are unconfirmed; calculation tool, entry methods, logic ownership and authoritative records are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": "UNKNOWN: counts, peaks, exception frequency and effort by step."
+   }
+  ]
+ },
+ "draft_error": null
+}

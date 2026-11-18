@@ -1,0 +1,1314 @@
+{
+ "case": "T05",
+ "process": "FA-10",
+ "mode": "typed",
+ "style": "out of order, with a correction",
+ "build": "untouched",
+ "participant": "agent",
+ "context": {
+  "process_name": "Debt Investment Economics: Loan Workbook, Yields, PIK, OID & Warrants",
+  "process_owner": "",
+  "objective": "Document how we carry out Debt Investment Economics: Loan Workbook, Yields, PIK, OID & Warrants, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "I tend to think about this one from the back end, so let me start there. The last thing that happens each month is the period close: I am the workbook preparer, and together with the independent checker we reconcile everything, get a record of the checker's review, and then lock and version the loan workbook for that period. We do not close until principal, income, cash, amortization and the GL and trial balance show zero unexplained difference.\n\nGoing back to your actual question, what starts it. The very first build of a loan workbook starts when the client completes a debt investment and we at GPFS receive the final executed loan documents. The purchase and setup process, FA-09, has to be complete before I begin. After that first build the work recurs every month for interest and amortization recognition, and the cash activity tends to bunch up around month-end and the start of the month. It also gets kicked off by events in between: a new draw or tranche, an amendment, a rate change, a borrower cash or PIK election, a default, a prepayment, an exit fee or make-whole event, a warrant allocation, or a change in maturity."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "Talk me through how you build and update the loan workbook after a new investment or monthly close begins?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "The part people picture is the calculations, so I will start there and then back up. For each period I calculate cash interest as the contractual principal times the cash rate times the contractual day-count fraction, using only the rate, basis and dates in the agreement. I never default to Actual/360 unless the executed terms say so. Then I calculate PIK interest on the contractual principal base and add it to principal on the contractual capitalization date, and the increased principal feeds the later cash and PIK calculations. The roll-forward I hold to is ending principal equals opening principal plus draws minus repayments plus PIK plus approved adjustments. I also build the OID and warrant amortization, which is a straight-line schedule from the start date to maturity, and the cumulative amortization has to equal the total allocated warrant cost by maturity.\n\nBut none of that happens first. For a new investment I start by creating one controlled workbook for that investment in Excel plus a setup checklist, and I record the fund, borrower, issuer or security, investment date, original principal, currency, maturity and document version. I assign an independent checker at that point and list any special features, like PIK, a toggle, warrants, default, exit fee, make-whole, draws, amendments or conversion. Next I validate the executed document set: I confirm the documents are final and executed and for the right parties, inventory the agreement, schedules, notes, warrant documents, side letters, funding notices and amendments, and log anything missing, draft or conflicting. The checker confirms the set is complete. Then I record all the loan terms in the contract-term checklist and cite the document section and page for every material term, and the checker records the material terms separately and we compare.\n\nAfter that I reconcile opening principal to cash and accounting. In a recurring month that means carrying forward the prior ending principal, accrued cash interest, cumulative PIK and the OID or warrant balance from the prior locked workbook, and if there is an unexplained opening difference I pause the current period. Only then do I lay out the schedule, period by period from inception through contractual maturity with no gaps or overlaps, and I show stub periods explicitly instead of forcing them into a standard period."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "When the document review finds something missing or conflicting, what happens before you proceed with the workbook?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "Where it ends up is that the affected calculation sits on hold. If a term is unresolved or two amendments conflict, I do not calculate that piece until it is settled, and I only pick it back up once I have written direction in hand.\n\nBacking up to what I do first: I log the missing, draft or conflicting document in the document checklist and go back to the client or investment team, because they are the ones who provide the final executed documents and clarify the terms. I will not take an economic term from a draft or from an unsupported email when executed support should exist. If the thing that is unclear is a day-count method or a rate term, the independent checker decides how it should be read and gives me that in writing, and in the meantime I do not fall back on Actual/360. Everything that does not depend on the open item can keep moving, but the affected work stays stopped until the record and approval are complete."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "When an opening balance difference is unexplained, what do you do to resolve it before resuming the period?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "First, I need to fix something. I misspoke earlier: it is the client or their legal counsel who decides how an unclear day-count method or rate term should be read, not the independent checker. The checker reviews my work but does not make that call. I wait for written direction from the client or legal counsel.\n\nOn the opening difference, the finish line is that the checker verifies the opening reconciliation and there is zero unexplained difference in principal and in the cumulative income and amortization balances. I do not start the current period's calculations until then.\n\nTo get there I go back through the pieces. I reconcile the original and any later funded principal to the cash records and to accounting. I compare what I carried forward against the prior locked workbook, meaning prior ending principal, accrued cash interest, cumulative PIK and the OID or warrant balance. And I reconcile the prior period's income summary to what was actually posted in the GL and the trial balance. Every difference I find is either resolved or documented before I move on. If I cannot correct it myself I escalate it instead of letting dependent work go ahead, and the opening reconciliation is kept as the record. We do this check every period, not just at setup."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "Who takes an opening-difference escalation and determines how it is resolved?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "Let me say where it lands at the close first, because that part I do know. At the monthly or period close every open variance has to be either resolved or assigned to someone, and if it is not, we keep the period open or explicitly document it as an owned exception. We never overwrite an unresolved item just to get the workbook closed.\n\nAs for who actually takes the escalation and decides how an opening difference gets resolved, I do not know. Nobody has been formally named as the process owner or the accountable approver for this work, and even the preparer and checker role titles have not been confirmed. The service-line governance owner is the person who would have to confirm that.\n\nWhat I can tell you is who touches the pieces. The Accounting or Fund Team maintain the GL, the trial balance and the investment records, and they escalate differences in posting, accounts, balances or reconciliations before close. The Treasury or cash-monitoring role gives me the actual cash receipt detail. So in practice I work the difference with them, but who has the final say is not something I can point to."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "How do you learn that an investment event, such as an amendment or new draw, needs a workbook update?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "I will give you the end of an update first, since that is what makes it count. An amendment or draw update is not done until I have compared the before and after values and have the checker's approval record on that comparison. Stub and amendment formula errors are one of the biggest risks we have, so posting is held until the formulas have been checked.\n\nNow, how I find out. The executed amendment or the draw notice comes to me from the client or investment team, and they are the ones who confirm borrower events. For a cash or PIK election it is the borrower's notice. I need the executed amendment or draw notice and the prior controlled workbook in hand before I touch anything. The other way I know something is coming is my own close routine: at each period close I record the upcoming payment, maturity, toggle, amendment and monitoring dates, so those are on my radar for the next period.\n\nOnce I have the executed support, the order is this. I keep a controlled copy and version of the schedule as it stood before the change. I record the changed principal, rates, dates, maturity, toggle, fees and warrant allocation. I insert a split or stub period at the exact effective date, update principal and rates from that date, and check that the later periods realign to the contractual dates. Then I update the cash, PIK, OID and warrant, fee and income summary sections, and that is when the before and after comparison goes to the checker."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "What does the checker verify in the before-and-after comparison?"
+  },
+  {
+   "id": "t014",
+   "role": "user",
+   "text": "What the checker's approval releases is the posting, so I will start there. Once the change is approved, the updated amounts flow into the monthly income summary. I prepare that summary, the checker reviews it, and the Accounting or Fund Team post the entry after review. The before and after comparison is the gate in front of all that.\n\nGoing back to what the checker actually verifies in the comparison, it is two things. One, every changed term and its effective date can be traced to executed support. Two, nothing is missing or duplicated across the change: no days, no principal, no allocations and no income. That second one is where split and stub periods bite, because it is easy to count a day twice or drop one at the effective date.\n\nIf the check fails, the affected work stops and I correct it or escalate it. In practice that means splitting the stub period at the effective date again and revalidating all the later periods. We do this check for every amendment and every draw, and the before and after comparison itself is kept as the record."
+  },
+  {
+   "id": "t015",
+   "role": "assistant",
+   "text": "How do you determine the yield used in the loan workbook?"
+  },
+  {
+   "id": "t016",
+   "role": "user",
+   "text": "Let me answer from the far end, where the rates get tested. Late in the month the system side runs in Alta Return, which we also call Allvue NAV. That is not me, it is an assigned system and accrual preparer. They set Security Type and Debt Type to Loan, and set Calculation Type to Payment Date for a PIK security or Accrual for a non-PIK one. For a PIK security they do not use First Compounding Date. Then they run Security Filter, then Suggest Lines, and review the journal entry lines it populates. Those suggested lines have to agree to my Excel schedule except for documented, approved rounding. If there is an unexplained difference between Allvue and Excel, it is not posted and the submission is held. What the rounding tolerance is, I do not know. That has not been confirmed, and the system owner would have to say.\n\nGoing back to your question, I do not pick a yield. What the loan earns in the workbook comes straight from the contract. The cash rate and the PIK rate come from the executed credit agreement and its amendments, and I capture the effective dates, tiers, floors, spreads and default provisions and how they change over time. I never take a rate from a worked example or from another client's workbook. The Machine Metrics and Omega Point examples are references, not rules.\n\nThe other piece of the return is the warrant cost allocation that we group with OID. The approved allocated cost is amortized straight-line to maturity and that amortization goes into income each month. The exact convention for that, daily or monthly, the rounding and how later draws are layered in, has not been confirmed, so I cannot tell you. The accounting or audit process expert is who would confirm it."
+  },
+  {
+   "id": "t017",
+   "role": "assistant",
+   "text": "Where does the approved allocated warrant cost come from?"
+  },
+  {
+   "id": "t018",
+   "role": "user",
+   "text": "The place that number really gets tested is at the end of the loan, so I will start there. If the loan pays off early, I separately identify whatever warrant or OID amount is still unamortized, and I get accounting and client approval for how the realized gain or loss is treated before anything is recorded.\n\nGoing back to where the number comes from in the first place: I do not value the warrant. Valuation is outside this process. The allocated cost comes to me from the executed or approved deal and accounting support, and what I do is confirm the allocation date, the amount, which draws or tranches it relates to, and the approved accounting method. The client's tax or accounting adviser owns the conclusion on OID and warrant treatment.\n\nIn the workbook I record each allocated cost by inception or by draw and aggregate them, but I keep the tranche-level support so each allocation traces back to approved support. If a later draw comes with its own warrant allocation, I add the supported allocation as a separate amortization layer, and the client or their accounting adviser decides that treatment. I keep the allocation support and the schedule as the record."
+  },
+  {
+   "id": "t019",
+   "role": "assistant",
+   "text": "You said close requires zero unexplained differences, but also that an open variance can be documented as an owned exception; how does an owned exception affect whether the period can close?"
+  },
+  {
+   "id": "t020",
+   "role": "assistant",
+   "text": "This capture still has open sections. 15 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794966554.604,
+   "turn": 0,
+   "seconds": 0.025,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794966569.954,
+   "turn": 2,
+   "seconds": 3.518,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966587.682,
+   "turn": 3,
+   "seconds": 21.25
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794966615.012,
+   "turn": 3,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 48.58
+  },
+  {
+   "kind": "question",
+   "at": 1794966637.98,
+   "turn": 4,
+   "seconds": 3.51,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966637.984,
+   "turn": 5,
+   "seconds": 3.51,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 9,
+   "connections": 5
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794966683.478,
+   "turn": 5,
+   "notes_state": "working",
+   "map_state": "working",
+   "seconds": 49.01
+  },
+  {
+   "kind": "question",
+   "at": 1794966709.282,
+   "turn": 6,
+   "seconds": 4.714,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966709.285,
+   "turn": 7,
+   "seconds": 4.72,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t004",
+   "steps": 21,
+   "connections": 18
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966733.574,
+   "turn": 7,
+   "seconds": 29.01
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966742.709,
+   "turn": 7,
+   "seconds": 38.14,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 24,
+   "connections": 23
+  },
+  {
+   "kind": "question",
+   "at": 1794966770.485,
+   "turn": 8,
+   "seconds": 6.027,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966770.491,
+   "turn": 9,
+   "seconds": 6.03,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t006",
+   "steps": 24,
+   "connections": 23
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966795.832,
+   "turn": 9,
+   "seconds": 31.37
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966815.165,
+   "turn": 9,
+   "seconds": 50.71,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 26,
+   "connections": 26
+  },
+  {
+   "kind": "question",
+   "at": 1794966839.092,
+   "turn": 10,
+   "seconds": 3.798,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966839.097,
+   "turn": 11,
+   "seconds": 3.8,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t008",
+   "steps": 26,
+   "connections": 26
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966865.482,
+   "turn": 11,
+   "seconds": 30.19
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966877.674,
+   "turn": 11,
+   "seconds": 42.38,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 29,
+   "connections": 27
+  },
+  {
+   "kind": "question",
+   "at": 1794966901.554,
+   "turn": 12,
+   "seconds": 3.944,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966901.56,
+   "turn": 13,
+   "seconds": 3.95,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t010",
+   "steps": 29,
+   "connections": 27
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966932.442,
+   "turn": 13,
+   "seconds": 34.83
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794966946.672,
+   "turn": 13,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 49.06
+  },
+  {
+   "kind": "question",
+   "at": 1794966968.902,
+   "turn": 14,
+   "seconds": 4.591,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966968.909,
+   "turn": 15,
+   "seconds": 4.6,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t012",
+   "steps": 39,
+   "connections": 35
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966988.177,
+   "turn": 15,
+   "seconds": 23.87
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794967013.196,
+   "turn": 15,
+   "seconds": 48.89,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 45,
+   "connections": 46
+  },
+  {
+   "kind": "question",
+   "at": 1794967046.109,
+   "turn": 16,
+   "seconds": 4.066,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794967046.116,
+   "turn": 17,
+   "seconds": 4.07,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t014",
+   "steps": 45,
+   "connections": 46
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794967081.708,
+   "turn": 17,
+   "seconds": 39.67
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794967086.836,
+   "turn": 17,
+   "seconds": 44.79,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 50,
+   "connections": 50
+  },
+  {
+   "kind": "question",
+   "at": 1794967105.126,
+   "turn": 18,
+   "seconds": 3.139,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794967105.134,
+   "turn": 19,
+   "seconds": 3.15,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t016",
+   "steps": 50,
+   "connections": 50
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794967140.816,
+   "turn": 19,
+   "seconds": 38.83
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794967150.568,
+   "turn": 19,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 48.58
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794967155.087,
+   "turn": 19,
+   "seconds": 0.031,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794967622.943,
+   "turn": 20,
+   "seconds": 459.392,
+   "status": 504,
+   "retries": 0,
+   "error": "The request to the AI service timed out. Your session and previous capture are retained. Try again; your saved files do not need to be uploaded again."
+  },
+  {
+   "kind": "draft",
+   "at": 1794967887.588,
+   "turn": 20,
+   "seconds": 240.043,
+   "status": 504,
+   "retries": 0,
+   "error": "The request to the AI service timed out. Your session and previous capture are retained. Try again; your saved files do not need to be uploaded again."
+  }
+ ],
+ "files": [],
+ "notes": {
+  "summary": "Allocated warrant cost comes from approved deal and accounting support, not valuation within this process. Later-draw allocations are separately layered. Early-payoff gain or loss treatment requires accounting and client approval before recording; detailed amortization conventions remain unconfirmed.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "Debt Investment Economics: Loan Workbook, Yields, PIK, OID & Warrants"
+   },
+   {
+    "key": "purpose",
+    "status": "captured",
+    "answer": "The work maintains loan investment economics for monthly interest and amortization recognition and supports the reviewed income summary used for posting."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The first loan workbook build starts when a client completes a debt investment and GPFS receives the final executed loan documents; the purchase and setup process, FA-09, must be complete before the preparer begins.\nAfter the initial build, the work recurs monthly for interest and amortization recognition. Cash activity tends to bunch up around month-end and the start of the month.\nIntervening triggers include a new draw or tranche, amendment, rate change, borrower cash or PIK election, default, prepayment, exit fee or make-whole event, warrant allocation, and maturity change.\nThe client or investment team sends executed amendments or draw notices to the preparer and confirms borrower events; a cash or PIK election is communicated by the borrower's notice. At each close the preparer records upcoming payment, maturity, toggle, amendment and monitoring dates for the next period."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "At monthly period close, the preparer and independent checker reconcile principal, income, cash, amortization, the GL and trial balance; the period is not closed until these show zero unexplained difference. They obtain a record of the checker’s review, then lock and version the loan workbook for that period.\nAt monthly or period close, every open variance must be resolved or assigned; otherwise the period is kept open or the item explicitly documented as an owned exception. Unresolved items are not overwritten to close the workbook.\nThe relationship between the zero-unexplained-difference close requirement and documenting an owned exception needs clarification.\nAn amendment or draw update is complete only after the preparer compares before-and-after values and obtains the checker's approval record on that comparison."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The participant is the workbook preparer and assigns an independent checker at initial setup; the preparer and checker work together at monthly close.\nNo process owner or accountable approver has been formally named, and the preparer and checker role titles have not been confirmed. The service-line governance owner would need to confirm them.\nThe participant does not know who receives an opening-difference escalation or has the final say on its resolution."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "Between regular cycles, the work is also triggered by a new draw or tranche, amendment, rate change, borrower cash or PIK election, default, prepayment, exit fee or make-whole event, warrant allocation, or maturity change.\nFor a new investment, the preparer creates one controlled Excel workbook and a setup checklist, records the fund, borrower, issuer or security, investment date, original principal, currency, maturity and document version, assigns an independent checker, and lists special features.\nThe preparer next validates that the document set is final, executed and for the right parties, inventories its components, and logs missing, draft or conflicting items. The checker confirms completeness; the preparer then records terms with section and page citations, while the checker records material terms separately for comparison.\nAfter documenting and comparing terms, the preparer reconciles opening principal to cash and accounting. In a recurring month, the preparer carries forward prior ending principal, accrued cash interest, cumulative PIK and OID or warrant balance from the prior locked workbook, and pauses the current period for an unexplained opening difference.\nOnly after the opening reconciliation does the preparer lay out a period-by-period schedule from inception through contractual maturity, without gaps or overlaps and with stub periods shown explicitly.\nFor each period, the preparer calculates cash interest and PIK interest, adds PIK to principal on the contractual capitalization date, and builds the OID and warrant amortization schedule. Increased principal feeds later cash and PIK calculations.\nFor a missing, draft or conflicting document, the preparer logs the item in the document checklist and goes back to the client or investment team, who provide final executed documents and clarify terms. The affected calculation stays on hold until the issue is settled, written direction is in hand, and the record and approval are complete; independent work can continue.\nEach period, the preparer reconciles original and later funded principal to cash records and accounting, compares carried-forward balances to the prior locked workbook, and reconciles the prior income summary to the GL and trial balance. Differences are resolved or documented; if the preparer cannot correct one, they escalate it rather than allow dependent work to proceed.\nThe preparer works opening differences with the Accounting or Fund Team and the Treasury or cash-monitoring role.\nBefore an amendment or draw update, the preparer needs the executed amendment or draw notice and prior controlled workbook, and preserves a controlled copy and version of the pre-change schedule.\nWith executed support, the preparer records changed principal, rates, dates, maturity, toggle, fees and warrant allocation; inserts a split or stub at the exact effective date; updates principal and rates from that date; and checks subsequent periods realign to contractual dates. The preparer then updates cash, PIK, OID and warrant, fee and income summary sections and sends the before-and-after comparison to the checker.\nIf the amendment or draw comparison fails, affected work stops and the preparer corrects or escalates it. In practice the preparer splits the stub again at the effective date and revalidates all later periods.\nAfter change approval, updated amounts flow into the monthly income summary. The preparer prepares it, the checker reviews it, and the Accounting or Fund Team posts the entry after review.\nLate in the month, an assigned system and accrual preparer works in Alta Return, also called Allvue NAV. They set Security Type and Debt Type to Loan, choose Payment Date for a PIK security or Accrual for a non-PIK security, and do not use First Compounding Date for PIK. They run Security Filter, then Suggest Lines, and review the populated journal entry lines.\nThe preparer obtains allocated warrant cost from executed or approved deal and accounting support and confirms the allocation date, amount, related draws or tranches and approved accounting method. Warrant valuation is outside this process.\nThe preparer records and aggregates allocated costs by inception or draw while retaining tranche-level support. A later draw with its own supported warrant allocation is added as a separate amortization layer; the client or accounting adviser decides that treatment.\nFor early payoff, the preparer separately identifies unamortized warrant or OID amounts and obtains accounting and client approval of realized gain or loss treatment before recording anything."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "At monthly close, the preparer and independent checker reconcile principal, income, cash, amortization, the GL and trial balance; closure requires zero unexplained difference. A record of the checker’s review is obtained before the workbook is locked and versioned.\nThe monthly closing reconciliation method and the form and retention location of the checker's review evidence remain unspecified.\nThe preparer checks that documents are final, executed and for the correct parties, and logs missing, draft or conflicting items. The independent checker confirms completeness and separately records material terms for comparison with the preparer's cited checklist.\nThe preparer reconciles opening principal to cash and accounting and pauses the current period if a recurring month's opening difference is unexplained. The schedule must have no gaps or overlaps, and cumulative warrant amortization must equal total allocated warrant cost by maturity.\nFor an unclear day-count method or rate term, the client or their legal counsel decides the interpretation. The preparer waits for their written direction; the independent checker reviews the work but does not make that decision.\nThe independent checker verifies the opening reconciliation each period. Current-period calculations cannot start until principal and cumulative income and amortization balances have zero unexplained difference.\nThe Accounting or Fund Team escalate differences in posting, accounts, balances or reconciliations before close.\nThe checker approves the before-and-after comparison for an amendment or draw update; posting is held until the formulas have been checked.\nFor every amendment and draw, the checker verifies that each changed term and effective date traces to executed support and that no days, principal, allocations or income are missing or duplicated across the change.\nSuggested Allvue journal lines must agree to the participant's Excel schedule except for documented, approved rounding. An unexplained difference holds the submission and is not posted.\nThe participant does not know the approved rounding tolerance for the Allvue-to-Excel comparison; the system owner would confirm it.\nOn early payoff, accounting and client approval of realized gain or loss treatment is required before anything is recorded."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "For recurring months, opening balances are carried from the prior locked workbook; the initial investment setup instead creates a new controlled workbook and records initial investment details.\nClient and entity differences and other system or circumstance differences, including their sources and effort, remain to be explored.\nAmendments and draws require a preserved pre-change schedule, an effective-date split or stub, updates to affected sections and a checker-approved before-and-after comparison.\nIn Allvue NAV, PIK securities use Payment Date as Calculation Type and do not use First Compounding Date; non-PIK securities use Accrual.\nA later draw with its own warrant allocation adds a separate supported amortization layer; an early payoff requires identification of the remaining unamortized amount and approval of gain or loss treatment before recording."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "The participant identifies stub and amendment formula errors as among the biggest risks; posting is held until formulas are checked.\nIn split and stub periods, the participant reports that a day can easily be counted twice or dropped at the effective date."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "A controlled Excel loan workbook is created for each new investment and locked and versioned after monthly close.\nThe preparer creates a setup checklist and uses a contract-term checklist with document section and page citations. The checker separately records material terms for comparison.\nThe document inventory includes the agreement, schedules, notes, warrant documents, side letters, funding notices and amendments; missing, draft or conflicting items are logged. These documents were reported, not supplied for this capture.\nThe storage locations and availability of the workbook, checklists, document inventory and review evidence remain unspecified.\nThe document checklist records missing, draft or conflicting documents. Written direction supports resumption of an affected calculation; for unclear day-count or rate terms, the preparer waits for written direction from the client or legal counsel.\nThe opening reconciliation is retained as the record of the period's opening check. The preparer compares carried-forward balances with the prior locked workbook and the prior income summary with the GL and trial balance.\nThe GL, trial balance and investment records are maintained by the Accounting or Fund Team; actual cash receipt detail is supplied by the Treasury or cash-monitoring role.\nFor an amendment or draw, the preparer retains a controlled pre-change schedule copy and version and obtains the checker's approval record on the before-and-after comparison. Executed amendments, draw notices and borrower election notices are reported inputs, not supplied for this capture.\nThe before-and-after comparison is retained as the amendment or draw check record. The preparer also prepares a monthly income summary for checker review and subsequent posting.\nThe executed credit agreement and amendments supply cash and PIK rates. Machine Metrics and Omega Point examples are references, not rules; these materials were reported, not supplied for this capture.\nExecuted or approved deal and accounting support supplies allocated warrant cost. The preparer retains allocation support and the schedule, including tranche-level support tracing each allocation to approved support; these materials were not supplied for this capture."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The described work concerns a debt investment and its loan workbook; the participant describes an initial build followed by recurring monthly work and intervening event-driven updates.\nWarrant valuation is outside the described process; the preparer uses an allocated cost supported by executed or approved deal and accounting documents."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The daily or monthly warrant amortization convention, rounding and detailed layering convention remain unconfirmed; an accounting or audit process expert would confirm them. Override authority and rule-conflict resolution beyond unclear day-count or rate terms also remain unspecified.\nCash interest for each period is contractual principal multiplied by the cash rate and contractual day-count fraction. The preparer uses the agreement's rate, basis and dates and does not default to Actual/360 unless the executed terms specify it.\nPIK interest is calculated on the contractual principal base and added to principal on the contractual capitalization date. Ending principal equals opening principal plus draws minus repayments plus PIK plus approved adjustments.\nOID and warrant amortization use a straight-line schedule from start date to maturity; cumulative warrant amortization must equal total allocated warrant cost by maturity.\nThe preparer cites the document section and page for every material loan term in the contract-term checklist.\nThe preparer does not take an economic term from a draft or unsupported email when executed support should exist, and does not fall back on Actual/360 while a day-count or rate term is unclear.\nThe client or legal counsel decides the interpretation of an unclear day-count method or rate term, and the preparer waits for written direction before proceeding with the affected work.\nFor an amendment or draw, the preparer inserts a split or stub at the exact effective date and applies changed principal and rates from that date; later periods must realign to contractual dates.\nThe checker-approved before-and-after comparison gates posting after an amendment or draw; changed terms and effective dates must trace to executed support, with no missing or duplicated days, principal, allocations or income.\nThe preparer does not select a separate yield: cash and PIK rates come from the executed credit agreement and amendments. The preparer captures effective dates, tiers, floors, spreads and default provisions and their changes over time; worked examples and other clients' workbooks are not rate rules.\nApproved warrant allocated cost, grouped with OID, is amortized straight-line to maturity, with amortization included in monthly income.\nAllvue suggested lines must match the Excel schedule apart from documented, approved rounding; unexplained differences prevent posting and hold submission.\nThe client's tax or accounting adviser owns the conclusion on OID and warrant treatment. For a later draw's separate warrant layer, the client or accounting adviser decides the treatment.\nEarly-payoff realized gain or loss treatment requires accounting and client approval before recording."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The purchase and setup process FA-09 must be complete before the participant begins the initial loan-workbook build.\nThe preparer returns missing, draft or conflicting document issues to the client or investment team, which provides final executed documents and clarifies terms.\nFor an unclear day-count or rate term, this work depends on written interpretation from the client or their legal counsel before the affected calculation resumes.\nUses the output of Client or legal counsel: Written direction on an unclear day-count method or rate term is needed before the affected calculation resumes.\nThe Accounting or Fund Team maintain the GL, trial balance and investment records used in reconciliation, and escalate posting and balance differences before close.\nThe Treasury or cash-monitoring role supplies the preparer with actual cash receipt detail.\nThe client or investment team supplies executed amendments and draw notices and confirms borrower events. Borrower notices communicate cash or PIK elections.\nFor an amendment or draw, the checker’s approval of the before-and-after comparison gates posting. The preparer prepares the monthly income summary, the checker reviews it, and the Accounting or Fund Team posts the entry after review.\nThe assigned system and accrual preparer generates Allvue journal lines that must agree with the loan workbook preparer's Excel schedule before submission and posting can proceed.\nThe work consumes allocated cost from executed or approved deal and accounting support; warrant valuation itself is outside the process.\nThe client's tax or accounting adviser owns the OID and warrant treatment conclusion, and the client or accounting adviser decides the treatment of a later draw's separate allocation layer.\nFor early payoff, the preparer obtains accounting and client approval of realized gain or loss treatment before recording."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The preparer creates a controlled loan workbook in Excel for each investment; the workbook is locked and versioned for each period after close.\nWorkbook storage, formula or logic ownership, and the method of entering changed inputs remain unspecified.\nThe assigned system and accrual preparer uses Alta Return, also called Allvue NAV, to configure loan securities and generate suggested journal lines. The suggested lines are compared with the workbook preparer's Excel schedule."
+   },
+   {
+    "key": "volume",
+    "status": "partial",
+    "answer": "The work recurs monthly; cash activity tends to cluster around month-end and the start of the month. No count or effort estimate is provided.\nThe number of workbooks or investments handled, peak volumes, and effort per step are not established."
+   }
+  ]
+ },
+ "map": {
+  "title": "Loan Workbook Economics",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "start",
+    "title": "Receive executed loan documents",
+    "actor": "GPFS",
+    "system": "UNKNOWN",
+    "description": "The first workbook build starts when GPFS receives the final executed loan documents after the client completes a debt investment."
+   },
+   {
+    "id": "S2",
+    "type": "subprocess",
+    "title": "Complete purchase and setup",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The upstream purchase and setup process, FA-09, must be complete before the preparer begins the first build. Its internal work is not described."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Create controlled loan workbook",
+    "actor": "Workbook preparer",
+    "system": "Excel",
+    "description": "For a new investment, create one controlled workbook and a setup checklist. Record the investment details, assign an independent checker, and list special features."
+   },
+   {
+    "id": "S4",
+    "type": "start",
+    "title": "Start monthly recognition",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "After the first build, the work recurs monthly for interest and amortization recognition."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Recognize interest and amortization",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Monthly work includes interest and amortization recognition. The calculation, recording and handoff are UNKNOWN."
+   },
+   {
+    "id": "S6",
+    "type": "start",
+    "title": "Investment event occurs",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Events include draws, amendments, rate changes, borrower elections, defaults, prepayments, exit fees, make-whole events, warrant allocations and maturity changes. Amendment and draw updates are described; the routes for other events remain partly UNKNOWN."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Reconcile period-close balances",
+    "actor": "Workbook preparer and independent checker",
+    "system": "Loan workbook",
+    "description": "At monthly or period close, the preparer and checker reconcile principal, income, cash, amortization, the GL and trial balance. Open variances must be resolved or assigned; the relationship between owned exceptions and the zero-unexplained-difference close requirement is UNKNOWN."
+   },
+   {
+    "id": "S8",
+    "type": "document",
+    "title": "Obtain checker review record",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "A record of the independent checker's review is obtained before the workbook is locked and versioned. Who records it and where it is retained are UNKNOWN."
+   },
+   {
+    "id": "S9",
+    "type": "document",
+    "title": "Lock and version workbook",
+    "actor": "UNKNOWN",
+    "system": "Loan workbook",
+    "description": "The loan workbook is locked and versioned for the period after reconciliation and the review record. Close requires zero unexplained difference across the stated balances."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Validate loan document set",
+    "actor": "Workbook preparer",
+    "system": "UNKNOWN",
+    "description": "Confirm documents are final, executed, and for the right parties; inventory the reported document types; log missing, draft, or conflicting items."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Confirm document set completeness",
+    "actor": "Independent checker",
+    "system": "UNKNOWN",
+    "description": "The checker confirms that the document set is complete."
+   },
+   {
+    "id": "S12",
+    "type": "document",
+    "title": "Record contract terms",
+    "actor": "Workbook preparer",
+    "system": "UNKNOWN",
+    "description": "Record loan terms in the contract-term checklist, citing the document section and page for every material term. Capture cash and PIK rates and their effective dates, tiers, floors, spreads and default provisions as they change over time."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Compare recorded material terms",
+    "actor": "Independent checker and workbook preparer",
+    "system": "UNKNOWN",
+    "description": "The checker records material terms separately, and the checker and preparer compare their records."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Reconcile opening balances",
+    "actor": "Workbook preparer",
+    "system": "Loan workbook; other systems UNKNOWN",
+    "description": "Each period, reconcile funded principal to cash and accounting, compare carried-forward balances with the prior locked workbook, and reconcile prior income to the GL and trial balance. Resolve or document differences and escalate those the preparer cannot correct; the preparer works differences with Accounting or Fund Team and Treasury or cash monitoring."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Carry forward prior balances",
+    "actor": "Workbook preparer",
+    "system": "Loan workbook",
+    "description": "For a recurring month, carry forward prior ending principal, accrued cash interest, cumulative PIK and the OID or warrant balance from the prior locked workbook."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Lay out period schedule",
+    "actor": "Workbook preparer",
+    "system": "Loan workbook",
+    "description": "Lay out periods from inception through contractual maturity without gaps or overlaps, showing stub periods explicitly."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Calculate cash interest",
+    "actor": "Workbook preparer",
+    "system": "Loan workbook",
+    "description": "For each period, calculate contractual principal multiplied by the cash rate and contractual day-count fraction, using the agreement's rate, basis, and dates."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Calculate and capitalize PIK",
+    "actor": "Workbook preparer",
+    "system": "Loan workbook",
+    "description": "Calculate PIK interest on the contractual principal base and add it to principal on the contractual capitalization date. Increased principal feeds later cash and PIK calculations."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Calculate principal roll-forward",
+    "actor": "Workbook preparer",
+    "system": "Loan workbook",
+    "description": "Calculate ending principal from opening principal, draws, repayments, PIK, and approved adjustments."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Build amortization schedules",
+    "actor": "Workbook preparer",
+    "system": "Loan workbook",
+    "description": "Build straight-line OID and warrant amortization to maturity and include approved warrant-cost amortization in monthly income. Later-draw allocations are separate layers, but the detailed daily or monthly convention, rounding and layering method remain unconfirmed."
+   },
+   {
+    "id": "S21",
+    "type": "wait",
+    "title": "Wait on opening differences",
+    "actor": "Workbook preparer",
+    "system": "Loan workbook",
+    "description": "Pause current-period calculations when an opening difference is unexplained. Differences are resolved or documented for checker verification; calculations remain held until the checker verifies the reconciliation and the stated balances have zero unexplained difference."
+   },
+   {
+    "id": "S22",
+    "type": "activity",
+    "title": "Seek documents or clarification",
+    "actor": "Workbook preparer",
+    "system": "UNKNOWN",
+    "description": "Go back to the client or investment team for final executed documents or clarification. Do not take an economic term from a draft or unsupported email when executed support should exist."
+   },
+   {
+    "id": "S23",
+    "type": "wait",
+    "title": "Hold affected calculation",
+    "actor": "Workbook preparer",
+    "system": "UNKNOWN",
+    "description": "An unresolved term or conflicting amendments hold the affected calculation. Work not dependent on the open item can continue."
+   },
+   {
+    "id": "S24",
+    "type": "activity",
+    "title": "Interpret unclear rate or basis",
+    "actor": "Client or legal counsel",
+    "system": "UNKNOWN",
+    "description": "The client or legal counsel decides how an unclear day-count method or rate term should be read. The preparer waits for written direction; the independent checker reviews the preparer's work but does not make the interpretation."
+   },
+   {
+    "id": "S25",
+    "type": "activity",
+    "title": "Verify opening reconciliation",
+    "actor": "Independent checker",
+    "system": "UNKNOWN",
+    "description": "Verify the opening reconciliation. Current-period calculations cannot start until the checker has verified it and principal and cumulative income and amortization balances have zero unexplained difference."
+   },
+   {
+    "id": "S26",
+    "type": "activity",
+    "title": "Escalate uncorrectable difference",
+    "actor": "Workbook preparer",
+    "system": "UNKNOWN",
+    "description": "Escalate an opening difference the preparer cannot correct rather than allowing dependent work to proceed. The preparer works differences with Accounting or Fund Team and Treasury or cash monitoring, but the escalation recipient and final decision-maker are UNKNOWN."
+   },
+   {
+    "id": "S27",
+    "type": "activity",
+    "title": "Provide cash receipt detail",
+    "actor": "Treasury or cash-monitoring role",
+    "system": "UNKNOWN",
+    "description": "Provide the preparer with actual cash receipt detail. Its precise placement in the process is UNKNOWN."
+   },
+   {
+    "id": "S28",
+    "type": "activity",
+    "title": "Handle unowned close variance",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "If an open variance is not resolved or assigned at close, keep the period open or explicitly document it as an owned exception. Do not overwrite an unresolved item to close the workbook."
+   },
+   {
+    "id": "S29",
+    "type": "activity",
+    "title": "Escalate accounting differences",
+    "actor": "Accounting or Fund Team",
+    "system": "GL, trial balance and investment records; systems UNKNOWN",
+    "description": "The Accounting or Fund Team maintains the GL, trial balance and investment records and escalates differences in posting, accounts, balances or reconciliations before close. The recipient and subsequent handling are UNKNOWN."
+   },
+   {
+    "id": "S30",
+    "type": "document",
+    "title": "Receive amendment or draw notice",
+    "actor": "Workbook preparer",
+    "system": "UNKNOWN",
+    "description": "Receive the executed amendment or draw notice from the client or investment team, who also confirm borrower events."
+   },
+   {
+    "id": "S31",
+    "type": "document",
+    "title": "Preserve pre-change schedule",
+    "actor": "Workbook preparer",
+    "system": "Loan workbook",
+    "description": "Keep a controlled copy and version of the schedule as it stood before the change."
+   },
+   {
+    "id": "S32",
+    "type": "activity",
+    "title": "Record changed investment terms",
+    "actor": "Workbook preparer",
+    "system": "Loan workbook",
+    "description": "Record changed principal, rates, dates, maturity, toggle, fees and warrant allocation."
+   },
+   {
+    "id": "S33",
+    "type": "activity",
+    "title": "Update effective-date schedule",
+    "actor": "Workbook preparer",
+    "system": "Loan workbook",
+    "description": "Insert a split or stub period at the exact effective date, update principal and rates from that date, and check that later periods realign to contractual dates."
+   },
+   {
+    "id": "S34",
+    "type": "activity",
+    "title": "Update economics sections",
+    "actor": "Workbook preparer",
+    "system": "Loan workbook",
+    "description": "Update the cash, PIK, OID and warrant, fee and income summary sections."
+   },
+   {
+    "id": "S35",
+    "type": "activity",
+    "title": "Compare before and after values",
+    "actor": "Workbook preparer",
+    "system": "UNKNOWN",
+    "description": "Compare the before and after values and send the comparison to the checker."
+   },
+   {
+    "id": "S36",
+    "type": "document",
+    "title": "Obtain comparison approval record",
+    "actor": "Independent checker; record keeper UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Obtain the checker's approval record on the before-and-after comparison. Approval is required to complete the amendment or draw update and releases the subsequent summary and posting route."
+   },
+   {
+    "id": "S37",
+    "type": "document",
+    "title": "Receive borrower election notice",
+    "actor": "Workbook preparer",
+    "system": "UNKNOWN",
+    "description": "For a cash or PIK election, the preparer learns of the event from the borrower's notice. The subsequent route is UNKNOWN."
+   },
+   {
+    "id": "S38",
+    "type": "document",
+    "title": "Record upcoming monitoring dates",
+    "actor": "Workbook preparer",
+    "system": "UNKNOWN",
+    "description": "At each period close, record upcoming payment, maturity, toggle, amendment and monitoring dates for the next period."
+   },
+   {
+    "id": "S39",
+    "type": "activity",
+    "title": "Check formulas before posting",
+    "actor": "UNKNOWN",
+    "system": "Loan workbook",
+    "description": "Posting is held until formulas have been checked. Stub and amendment formula errors are a major reported risk; the checker and exact placement of this formula check are UNKNOWN."
+   },
+   {
+    "id": "S40",
+    "type": "decision",
+    "title": "Check change comparison",
+    "actor": "Independent checker",
+    "system": "UNKNOWN",
+    "description": "Check that changed terms and effective dates trace to executed support, and that no days, principal, allocations or income are missing or duplicated. The comparison is retained; its location is UNKNOWN."
+   },
+   {
+    "id": "S41",
+    "type": "activity",
+    "title": "Correct failed change check",
+    "actor": "Workbook preparer",
+    "system": "Loan workbook",
+    "description": "When the check fails, stop affected work and correct it. The reported correction involves splitting the stub at the effective date again and revalidating later periods."
+   },
+   {
+    "id": "S42",
+    "type": "document",
+    "title": "Prepare monthly income summary",
+    "actor": "Workbook preparer",
+    "system": "Loan workbook",
+    "description": "After change approval, prepare the monthly income summary using the updated amounts."
+   },
+   {
+    "id": "S43",
+    "type": "activity",
+    "title": "Review income summary",
+    "actor": "Independent checker",
+    "system": "UNKNOWN",
+    "description": "Review the preparer's monthly income summary. The specific checks and handling of a failed review are UNKNOWN."
+   },
+   {
+    "id": "S44",
+    "type": "activity",
+    "title": "Post income entry",
+    "actor": "Accounting or Fund Team",
+    "system": "GL; system UNKNOWN",
+    "description": "Post the entry after summary review. For the reported amendment or draw route, change approval and the formula check are also required before posting."
+   },
+   {
+    "id": "S45",
+    "type": "activity",
+    "title": "Escalate failed change check",
+    "actor": "Workbook preparer",
+    "system": "UNKNOWN",
+    "description": "Escalate a failed comparison check as an alternative to correcting it. Affected work remains stopped; recipient and subsequent handling are UNKNOWN."
+   },
+   {
+    "id": "S46",
+    "type": "activity",
+    "title": "Set loan calculation types",
+    "actor": "Assigned system and accrual preparer",
+    "system": "Alta Return, also called Allvue NAV",
+    "description": "Late in the month, set Security Type and Debt Type to Loan. Set Calculation Type to Payment Date for a PIK security or Accrual for a non-PIK security; do not use First Compounding Date for a PIK security."
+   },
+   {
+    "id": "S47",
+    "type": "activity",
+    "title": "Run Security Filter",
+    "actor": "Assigned system and accrual preparer",
+    "system": "Alta Return / Allvue NAV",
+    "description": "Run Security Filter after setting the reported loan and calculation types."
+   },
+   {
+    "id": "S48",
+    "type": "activity",
+    "title": "Run Suggest Lines",
+    "actor": "Assigned system and accrual preparer",
+    "system": "Alta Return / Allvue NAV",
+    "description": "Run Suggest Lines to populate journal entry lines."
+   },
+   {
+    "id": "S49",
+    "type": "activity",
+    "title": "Review suggested journal lines",
+    "actor": "Assigned system and accrual preparer",
+    "system": "Alta Return / Allvue NAV",
+    "description": "Review the populated journal entry lines. They must agree to the Excel schedule except for documented, approved rounding; the rounding tolerance is unconfirmed."
+   },
+   {
+    "id": "S50",
+    "type": "wait",
+    "title": "Hold unmatched submission",
+    "actor": "UNKNOWN",
+    "system": "Alta Return / Allvue NAV",
+    "description": "Hold the submission and do not post when an Allvue-to-Excel difference is unexplained. The resolution process and subsequent handoff are UNKNOWN."
+   },
+   {
+    "id": "S51",
+    "type": "activity",
+    "title": "Confirm warrant allocation support",
+    "actor": "Workbook preparer",
+    "system": "UNKNOWN",
+    "description": "Confirm the allocation date, amount, related draws or tranches and approved accounting method from executed or approved deal and accounting support. Valuation is outside this process; the client's tax or accounting adviser owns the OID and warrant treatment conclusion."
+   },
+   {
+    "id": "S52",
+    "type": "activity",
+    "title": "Record allocated warrant costs",
+    "actor": "Workbook preparer",
+    "system": "Loan workbook",
+    "description": "Record and aggregate allocated costs by inception or draw. Keep tranche-level support so each allocation traces to approved support; retain the support and schedule."
+   },
+   {
+    "id": "S53",
+    "type": "activity",
+    "title": "Determine later-draw treatment",
+    "actor": "Client or client’s accounting adviser",
+    "system": "UNKNOWN",
+    "description": "Decide the treatment of a later draw with its own warrant allocation. The timing and how the decision is communicated or recorded are UNKNOWN."
+   },
+   {
+    "id": "S54",
+    "type": "activity",
+    "title": "Add later-draw allocation layer",
+    "actor": "Workbook preparer",
+    "system": "Loan workbook",
+    "description": "When a later draw has its own warrant allocation, add the supported allocation as a separate amortization layer. The detailed layering convention is unconfirmed."
+   },
+   {
+    "id": "S55",
+    "type": "activity",
+    "title": "Identify unamortized payoff amount",
+    "actor": "Workbook preparer",
+    "system": "Loan workbook",
+    "description": "If the loan pays off early, separately identify the remaining unamortized warrant or OID amount."
+   },
+   {
+    "id": "S56",
+    "type": "activity",
+    "title": "Obtain payoff treatment approvals",
+    "actor": "Workbook preparer; accounting and client approvers",
+    "system": "UNKNOWN",
+    "description": "Obtain accounting and client approval for the realized gain or loss treatment before anything is recorded. The approval sequence, records and subsequent recording action are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S3",
+    "label": "Final documents received AND FA-09 complete"
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": "Final documents received AND FA-09 complete"
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": ""
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "Review record obtained AND zero unexplained difference"
+   },
+   {
+    "from": "S3",
+    "to": "S10",
+    "label": ""
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": ""
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": "Document set confirmed complete"
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": ""
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": ""
+   },
+   {
+    "from": "S4",
+    "to": "S15",
+    "label": "Recurring month"
+   },
+   {
+    "from": "S15",
+    "to": "S14",
+    "label": ""
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": ""
+   },
+   {
+    "from": "S18",
+    "to": "S19",
+    "label": "PIK included in principal roll-forward"
+   },
+   {
+    "from": "S10",
+    "to": "S22",
+    "label": "Missing, draft or conflicting document"
+   },
+   {
+    "from": "S22",
+    "to": "S23",
+    "label": "Affected calculation depends on an unresolved term or conflicting amendments"
+   },
+   {
+    "from": "S7",
+    "to": "S9",
+    "label": "Zero unexplained difference AND review record obtained"
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "After first build"
+   },
+   {
+    "from": "S5",
+    "to": "S7",
+    "label": "each month"
+   },
+   {
+    "from": "S14",
+    "to": "S21",
+    "label": "Unexplained opening difference"
+   },
+   {
+    "from": "S14",
+    "to": "S25",
+    "label": "Differences resolved or documented for verification"
+   },
+   {
+    "from": "S21",
+    "to": "S25",
+    "label": "Differences resolved or documented for verification"
+   },
+   {
+    "from": "S14",
+    "to": "S26",
+    "label": "Preparer cannot correct difference"
+   },
+   {
+    "from": "S25",
+    "to": "S16",
+    "label": "Checker verification complete AND zero unexplained difference in principal and cumulative income and amortization"
+   },
+   {
+    "from": "S25",
+    "to": "S17",
+    "label": "Checker verification complete AND zero unexplained difference in principal and cumulative income and amortization"
+   },
+   {
+    "from": "S25",
+    "to": "S20",
+    "label": "Checker verification complete AND zero unexplained difference in principal and cumulative income and amortization"
+   },
+   {
+    "from": "S25",
+    "to": "S5",
+    "label": "Checker verification complete AND zero unexplained difference in principal and cumulative income and amortization"
+   },
+   {
+    "from": "S7",
+    "to": "S28",
+    "label": "Open variance neither resolved nor assigned"
+   },
+   {
+    "from": "S6",
+    "to": "S30",
+    "label": "Amendment or draw notice"
+   },
+   {
+    "from": "S30",
+    "to": "S31",
+    "label": "Executed amendment or draw notice AND prior controlled workbook in hand"
+   },
+   {
+    "from": "S31",
+    "to": "S32",
+    "label": ""
+   },
+   {
+    "from": "S32",
+    "to": "S33",
+    "label": ""
+   },
+   {
+    "from": "S33",
+    "to": "S34",
+    "label": ""
+   },
+   {
+    "from": "S34",
+    "to": "S35",
+    "label": ""
+   },
+   {
+    "from": "S6",
+    "to": "S37",
+    "label": "Cash or PIK election"
+   },
+   {
+    "from": "S35",
+    "to": "S40",
+    "label": "Comparison sent to checker"
+   },
+   {
+    "from": "S40",
+    "to": "S36",
+    "label": "Comparison approved"
+   },
+   {
+    "from": "S40",
+    "to": "S41",
+    "label": "Check fails; preparer corrects"
+   },
+   {
+    "from": "S40",
+    "to": "S45",
+    "label": "Check fails; preparer escalates"
+   },
+   {
+    "from": "S41",
+    "to": "S40",
+    "label": "Corrected comparison requires checker approval"
+   },
+   {
+    "from": "S36",
+    "to": "S42",
+    "label": "Change approved"
+   },
+   {
+    "from": "S42",
+    "to": "S43",
+    "label": ""
+   },
+   {
+    "from": "S43",
+    "to": "S44",
+    "label": "Change approved AND summary reviewed AND formulas checked"
+   },
+   {
+    "from": "S39",
+    "to": "S44",
+    "label": "Change approved AND summary reviewed AND formulas checked"
+   },
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": ""
+   },
+   {
+    "from": "S19",
+    "to": "S20",
+    "label": ""
+   },
+   {
+    "from": "S10",
+    "to": "S24",
+    "label": "If the thing that is unclear is a day-count method or a rate term"
+   },
+   {
+    "from": "S46",
+    "to": "S47",
+    "label": ""
+   },
+   {
+    "from": "S47",
+    "to": "S48",
+    "label": ""
+   },
+   {
+    "from": "S48",
+    "to": "S49",
+    "label": ""
+   },
+   {
+    "from": "S49",
+    "to": "S50",
+    "label": "Unexplained Allvue-to-Excel difference"
+   },
+   {
+    "from": "S6",
+    "to": "S54",
+    "label": "Later draw has a supported warrant allocation"
+   },
+   {
+    "from": "S6",
+    "to": "S55",
+    "label": "Loan pays off early"
+   },
+   {
+    "from": "S55",
+    "to": "S56",
+    "label": ""
+   }
+  ],
+  "open_questions": [
+   "Does any incoming route start S3 (Create controlled loan workbook), or must all prerequisites finish?",
+   "Does S4 (Start monthly recognition) represent a new process start or a return within this process? Its incoming route needs clarification.",
+   "Does any incoming route start S9 (Lock and version workbook), or must all prerequisites finish?",
+   "Does any incoming route start S14 (Reconcile opening balances), or must all prerequisites finish?",
+   "Does any incoming route start S17 (Calculate cash interest), or must all prerequisites finish?",
+   "Does any incoming route start S20 (Build amortization schedules), or must all prerequisites finish?",
+   "Are the outgoing paths from S25 (Verify opening reconciliation) alternatives, or must they all occur?",
+   "Does any incoming route start S25 (Verify opening reconciliation), or must all prerequisites finish?",
+   "Does any incoming route start S44 (Post income entry), or must all prerequisites finish?",
+   "How does step S27 (Provide cash receipt detail) connect to the rest of this process, if at all?",
+   "How does step S29 (Escalate accounting differences) connect to the rest of this process, if at all?",
+   "How does step S38 (Record upcoming monitoring dates) connect to the rest of this process, if at all?",
+   "How does step S51 (Confirm warrant allocation support) connect to the rest of this process, if at all?",
+   "How does step S52 (Record allocated warrant costs) connect to the rest of this process, if at all?",
+   "How does step S53 (Determine later-draw treatment) connect to the rest of this process, if at all?",
+   "Are the routes containing S1 (Receive executed loan documents) and S6 (Investment event occurs) separate, or is there a reported handoff between them?",
+   "Are the routes containing S1 (Receive executed loan documents) and S46 (Set loan calculation types) separate, or is there a reported handoff between them?",
+   "Does the monthly recognition trigger represent a new process start or a return within this process?",
+   "How do the workbook build and calculations connect to monthly recognition and period close? What is the order of the schedule, roll-forward and amortization work?",
+   "How do the opening reconciliation routes and subsequent calculation activities relate? Are the outgoing paths from checker verification separate dependencies or sequential work?",
+   "How does cash receipt detail connect to the rest of the process? Where does the Accounting or Fund Team escalation fit, and who receives it?",
+   "Where are upcoming dates recorded within period close, and where are they kept?",
+   "How are the initial build, investment-event and Alta Return routes related?",
+   "How does the Alta Return / Allvue NAV route connect to the workbook and monthly income posting route? Is its suggested journal entry the same entry posted by the Accounting or Fund Team?",
+   "Who compares Allvue to Excel, documents and approves rounding, and resolves an unexplained difference? How does the held submission resume?",
+   "What rounding tolerance applies in Allvue? The participant says the system owner would confirm it.",
+   "What daily or monthly amortization convention, rounding and detailed later-draw layering method apply? The participant says an accounting or audit process expert would confirm them.",
+   "How do confirming allocation support, recording costs, the client or adviser’s later-draw treatment decision, adding a layer and building the amortization schedule connect? Where is the decision recorded?",
+   "Who records the early-payoff gain or loss after both approvals, and where are those approvals retained?",
+   "How are differences between the preparer's and checker's term records resolved?",
+   "Who receives an opening-difference escalation, determines its resolution and returns it for verification? What happens if the checker cannot verify the reconciliation?",
+   "How do work independent of an open document issue and document-set completeness checking proceed together?",
+   "At what point are unclear rate or day-count terms referred to the client or legal counsel, and how is written direction delivered? Who completes the record and approval needed to release affected work, and where does it resume?",
+   "Who interprets other conflicting terms, where are interpretations recorded, and how are approved adjustments authorized?",
+   "How are period-close differences corrected and rechecked? How does an owned exception relate to the zero-unexplained-difference close requirement, and what happens while a period remains open?",
+   "What does the checker review at period close? Who obtains and retains the review record, and who locks and versions the workbook?",
+   "Where does the formula check sit in the amendment or draw route, who performs it, what is checked, and what happens if it fails?",
+   "Who records and retains the comparison approval, and where are the comparison and approval record kept?",
+   "Who receives an escalated failed change check, and what happens next? How is a corrected comparison returned to the checker?",
+   "What does the checker examine in the monthly income summary, and what happens if that review fails?",
+   "What actions and outcomes follow a borrower election or other investment events not covered by the amendment or draw route?",
+   "How is FA-09 completion communicated to the preparer, and who detects the start of each monthly cycle?",
+   "Who is accountable for the overall result? No process owner or accountable approver has been formally named; service-line governance must confirm the roles.",
+   "Who or what uses the locked workbook next?",
+   "Which entities and clients are in scope? Is this the participant's route or general GPFS practice, and what is the basis?",
+   "What are the remaining calculation input origins, proration, tie-outs, overrides and correction procedures? How is the warrant-cost maturity check applied to the schedules?",
+   "Which systems and files hold authoritative records, checklists, calculations and review evidence, and which inputs are manually entered or imported?",
+   "What client involvement, variations, charging or removal constraints, other exceptions, risks and manual pain points apply?",
+   "What are the normal volumes, effort, peaks, deadlines and exception frequencies, where known?"
+  ]
+ },
+ "map_checked": false,
+ "draft": null,
+ "draft_error": {
+  "status": 504,
+  "error": "The request to the AI service timed out. Your session and previous capture are retained. Try again; your saved files do not need to be uploaded again.",
+  "code": "timeout"
+ }
+}

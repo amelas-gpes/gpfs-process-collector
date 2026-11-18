@@ -36,7 +36,7 @@
   const count = (n,noun) => n + " " + noun + (n === 1 ? "" : "s");
   const typeLabel = step => scope.CollectorWorkflow?.types?.[step.type]?.label || "Activity";
 
-  function create(root, {onDetails,onExit,renderEvidence,onSetDesign}) {
+  function create(root, {onDetails,onExit,renderEvidence,onSetDesign,sourceCaption}) {
     const media = scope.matchMedia("(prefers-reduced-motion: reduce)");
     let motionEnabled = true, visible = false, destroyed = false, generation = 0;
     let fingerprint, graph = {steps:[],connections:[]}, selected = {}, steps = new Map(), edges = new Map(), options = [];
@@ -170,7 +170,7 @@
           .map(value=>value.replace(/^gpfs_/,"GPFS ").replaceAll("_"," ")).join(", ") : "";
         const recorded = [["Input",step.input],["Output",step.output],["Completion",step.completion_criteria],
           ["Handoff note",step.handoff],["Control",controls],["Entry method",step.entry_mode?.replaceAll("_"," ")],
-          ["Data source",step.data_origin],["Rule source",step.rule_source_ref]].filter(([,value])=>known(value));
+          ["Data source",step.data_origin],["Rule source",step.rule_source_ref&&sourceCaption?sourceCaption(step.rule_source_ref):step.rule_source_ref]].filter(([,value])=>known(value));
         if (recorded.length || step.operating_details?.length) {
           const more=el("details","ww-operating"), dl=el("dl","ww-fields");
           more.append(el("summary","","Operating details"),dl);

@@ -31,7 +31,7 @@ function matches(node,selector){
  const match=selector.match(/^\[data-document-id="([^"]+)"\]$/);if(match)return node.dataset.documentId===match[1];
  return node.tagName===selector.toUpperCase();
 }
-function setup(request,config={}){
+function setup(request,config={},options={}){
  const document={activeElement:null};document.body=new Element("body",document);document.createElement=tag=>new Element(tag,document);document.createElementNS=(_,tag)=>new Element(tag,document);document.getElementById=id=>walk(document.body).find(node=>node.id===id)||null;
  const dropTarget=document.createElement("section");dropTarget.id="interview-view";document.body.append(dropTarget);
  const assets=document.createElement("div");assets.id="document-assets";dropTarget.append(assets);
@@ -39,7 +39,7 @@ function setup(request,config={}){
  const window={document,addEventListener(){},removeEventListener(){}};
  const ctx={window,DOMException,AbortController,setTimeout:(fn,delay)=>{const id=++timerId;timers.set(id,{fn,delay});return id;},clearTimeout:id=>timers.delete(id)};
  vm.createContext(ctx);vm.runInContext(source,ctx);
- const api=window.CollectorDocuments.create({document,config:()=>({csrf_token:"test-csrf",...config}),getContext:()=>({context:{},turns:[],focus:"",current_question:""}),canUpload:()=>true,
+ const api=window.CollectorDocuments.create({document,config:()=>({csrf_token:"test-csrf",...config}),getContext:()=>({context:{},turns:[],focus:"",current_question:""}),canUpload:()=>true,...options,
   requestJSON:(url,body,options)=>{calls.push({url,body});return request(url,body,options);},onEvent:event=>events.push(event),onDirty:()=>dirty++,notice:(...args)=>notices.push(args),onOpen(){},onCountChange:value=>counts.push(value)});
  const buttons=text=>api.body.querySelectorAll("button").filter(button=>button.textContent===text);
  return{api,document,events,notices,calls,counts,buttons,timers,get dirty(){return dirty;},card:()=>api.body.querySelector(".documents-card"),text:()=>api.assets.textContent};
@@ -243,6 +243,33 @@ await check("a kind whose reader is missing is announced, not offered by the pic
  }
 });
 
+
+// ---- Add files follows state the page owns, which changes without the list being redrawn ----
+await check("Add files is refreshed when the page leaves the example, opens a file or finishes a draft",async()=>{
+ // The page resets the file list while the example is still open, then leaves the example.
+ const page={example:true,draft:false};
+ const h=setup(async()=>({documents:[]}),{},{canUpload:()=>!page.example&&!page.draft,
+  uploadBlockedReason:()=>page.example?"Choose Start your own before adding a real file.":"Wait for the draft to finish, then add the file."});
+ h.api.reset();
+ assert.equal(h.api.attachButton.disabled,true);assert.equal(h.api.attachButton.title,"Choose Start your own before adding a real file.");
+ page.example=false;
+ assert.equal(h.api.attachButton.disabled,true,"Nothing redraws the list when the example closes");
+ h.api.syncAttach();
+ assert.equal(h.api.attachButton.disabled,false,"Add files stayed disabled after Start your own");assert.equal(h.api.attachButton.title,"Add files");
+ // A draft in flight blocks uploads, and its end allows them again.
+ page.draft=true;h.api.syncAttach();
+ assert.equal(h.api.attachButton.disabled,true);assert.equal(h.api.attachButton.title,"Wait for the draft to finish, then add the file.");
+ page.draft=false;h.api.syncAttach();
+ assert.equal(h.api.attachButton.disabled,false);assert.equal(h.api.attachButton.title,"Add files");
+ // A full interview stays full whatever the page allows.
+ h.api.scope="local-scope";h.api.setDocuments(Array.from({length:20},(_,index)=>doc({id:`doc_${index}`})),false);h.api.syncAttach();
+ assert.equal(h.api.attachButton.disabled,true);
+ h.api.dispose();h.api.syncAttach();
+ // The page refreshes it with its own controls.
+ const app=fs.readFileSync(path.join(__dirname,"..","web","app.js"),"utf8");
+ const controls=app.slice(app.indexOf("function updateControls() {"),app.indexOf("function updateControls() {")+400);
+ assert.match(controls,/documentController\?\.syncAttach\?\.\(\)/,"updateControls no longer refreshes Add files");
+});
 
 console.log(JSON.stringify({tests_passed:passed,provider_calls:0,network_calls:0,real_browser:false}));
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -1,0 +1,1073 @@
+{
+ "case": "T04",
+ "process": "FA-08",
+ "mode": "typed",
+ "style": "knows only the middle",
+ "build": "untouched",
+ "participant": "agent",
+ "context": {
+  "process_name": "Partner Transfers",
+  "process_owner": "",
+  "objective": "Document how we carry out Partner Transfers, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "Honestly, I don't know what starts it. That happens before it reaches me. I only work the middle part of a partner transfer. I'm the Fund Administration transfer preparer for the split, so my part begins once I have two things in hand: the approved transfer basis and the reconciled pre-transfer snapshot. From there the first thing I do is calculate the transfer split in the transfer split schedule."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "How do you use the approved transfer basis and reconciled pre-transfer snapshot to calculate the split in the schedule?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "I take the percentage or amount the agreement directs and apply it to each required economic component from the snapshot. For each one I work out what transfers and what the transferor keeps, so that covers commitment, contributions, distributions, unfunded commitment, P&L, capital and history. I keep the deal, tranche and effective-date detail in there because it's needed for future allocations. Then I apply the documented rounding and note any residual. In the schedule every component shows four figures: pre-transfer, transferor post-transfer, transferee post-transfer and the combined total. My check is that transferor post plus transferee post equals pre-transfer for every component, apart from documented rounding. If a component uses a different basis or there's a residual I can't explain, I escalate it instead of carrying on."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "When you escalate a different basis or unexplained residual, what happens to the split schedule while it is being resolved?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "The affected work stops and the item stays open until it's resolved. Who decides depends on which problem it is. If the percentage applies differently by component, the client or their legal counsel decides, and I need a written methodology from them. I follow the explicit agreement or the client's direction and I don't force the same pro rata method onto every component. If it's a rounding residual, the client or the accounting reviewer decides, I need written direction, and I apply only the approved treatment and keep the reconciliation. Until one of those comes back the schedule is just a draft. Once it's sorted, the draft component-by-component split goes to the second reviewer for an independent review."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "What does the second reviewer check in the draft split?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "They verify the transfer percentage or amount, and how I applied it to each component, against the agreement. They recalculate the material split amounts and confirm the combined totals match the pre-transfer totals. They check the effective-date P&L and the historical allocation, and they check how side letters and any special treatment were handled. If they find an arithmetic problem or a mismatch with the agreement, it comes back to me, or goes to the client or legal counsel. Once the comments are resolved, the client approves the material treatment where that's required. That independent review has to be complete before any system updates, and it's required for every partial transfer split. One thing I can't tell you is the second reviewer's official role title. That has never been confirmed to me, the service-line governance owner would have to confirm it."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "After the independent review and any required client approval, what happens to the split schedule next?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "The approved split becomes the source for the system updates. Before anything is entered I need the approved split and a cleared transferee. The clearance isn't mine, it's done before the transfer reaches me. In the CRM, either I or Investor Services create the transferee's investor record and contacts if they don't already exist, and update the transferor's status and retained interest. The accounting system is done by the Fund Team, the accounting role. What gets entered is the post-transfer commitments, contributions, distributions, unfunded commitment, capital, P&L history and the effective date, and the system link between the transferor and the transferee has to be preserved. Then I compare the system results back to the approved split schedule together with the accounting reviewer. The material balances and the effective date in the systems have to agree to the approved split, and we keep that setup comparison as the record. That's where my part ends. It moves on to Investor Services for the portal, and I don't know what happens from there, how the transfer gets closed, or who gives the final approval."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "If the system results do not agree with the approved split, what happens next?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "I stop the affected work and either correct it or escalate it, and I don't proceed until it's resolved. The escalation goes to the system owner or the accounting reviewer. Part of the difficulty is that the required system fields and entries aren't specified anywhere, so I can't tell you exactly which fields they are. An accounting or audit process expert would have to confirm that. If the real cause is that the system can't represent the historical split or the effective-date history, we need an approved workaround that doesn't lose the effective-date history. The client, the accounting reviewer and the system owner all have to approve it, and we keep a record of the limitation, the workaround and the reconciliation. A workaround like that can affect reporting or future events, so it needs continuing manual checks afterwards. The item stays open until everything is resolved."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "What can go wrong for the fund or its investors if a transfer split or system setup is incorrect?"
+  },
+  {
+   "id": "t014",
+   "role": "assistant",
+   "text": "This capture still has open sections. 15 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794966557.605,
+   "turn": 0,
+   "seconds": 0.025,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794966571.594,
+   "turn": 2,
+   "seconds": 3.232,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966578.679,
+   "turn": 3,
+   "seconds": 10.32,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 1,
+   "connections": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966582.228,
+   "turn": 3,
+   "seconds": 13.87
+  },
+  {
+   "kind": "question",
+   "at": 1794966600.029,
+   "turn": 4,
+   "seconds": 3.029,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966600.031,
+   "turn": 5,
+   "seconds": 3.03,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 1,
+   "connections": 0
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966614.197,
+   "turn": 5,
+   "seconds": 17.2,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 3,
+   "connections": 2
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966623.308,
+   "turn": 5,
+   "seconds": 26.31
+  },
+  {
+   "kind": "question",
+   "at": 1794966636.142,
+   "turn": 6,
+   "seconds": 2.506,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966636.145,
+   "turn": 7,
+   "seconds": 2.51,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t004",
+   "steps": 3,
+   "connections": 2
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966663.449,
+   "turn": 7,
+   "seconds": 29.81
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966672.062,
+   "turn": 7,
+   "seconds": 38.43,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 8,
+   "connections": 9
+  },
+  {
+   "kind": "question",
+   "at": 1794966688.378,
+   "turn": 8,
+   "seconds": 1.98,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966688.381,
+   "turn": 9,
+   "seconds": 1.98,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t006",
+   "steps": 8,
+   "connections": 9
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966716.66,
+   "turn": 9,
+   "seconds": 30.26
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966724.766,
+   "turn": 9,
+   "seconds": 38.37,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 11,
+   "connections": 12
+  },
+  {
+   "kind": "question",
+   "at": 1794966748.102,
+   "turn": 10,
+   "seconds": 3.578,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966748.106,
+   "turn": 11,
+   "seconds": 3.58,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t008",
+   "steps": 11,
+   "connections": 12
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966781.999,
+   "turn": 11,
+   "seconds": 37.48
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966782.509,
+   "turn": 11,
+   "seconds": 37.99,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 14,
+   "connections": 18
+  },
+  {
+   "kind": "question",
+   "at": 1794966798.357,
+   "turn": 12,
+   "seconds": 2.386,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966798.362,
+   "turn": 13,
+   "seconds": 2.39,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t010",
+   "steps": 14,
+   "connections": 18
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966824.211,
+   "turn": 13,
+   "seconds": 28.24
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966829.8,
+   "turn": 13,
+   "seconds": 33.83,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 17,
+   "connections": 21
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794966833.504,
+   "turn": 13,
+   "seconds": 0.025,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794967101.435,
+   "turn": 14,
+   "seconds": 265.826,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [],
+ "notes": {
+  "summary": "System mismatches stop affected work until corrected or escalated and resolved. A system-history workaround requires three approvals, retained reconciliation and continuing manual checks. Exact required system fields remain unconfirmed.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "captured",
+    "answer": "Partner Transfers"
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The participant's part produces an approved transfer split and system setup reflecting the post-transfer positions, checked against that split."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The event that initiates Partner Transfers before the work reaches the participant is unknown to the participant; they work only the middle part.\nThe participant's split-preparation work begins once they have both the approved transfer basis and the reconciled pre-transfer snapshot."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "After an escalated split issue is sorted, the draft component-by-component split goes to a second reviewer for independent review.\nThe overall partner transfer's finished condition has not been established; the participant works only its middle part.\nThe participant's part ends after the system setup comparison with the accounting reviewer; the work then moves to Investor Services for the portal."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The participant identifies their role as Fund Administration transfer preparer for the split; this establishes their preparation role, not accountability for the overall transfer result.\nThe participant cannot confirm the second reviewer's official role title; the service-line governance owner would have to confirm it.\nThe participant does not know who gives final approval for the overall transfer."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "After receiving the approved transfer basis and reconciled pre-transfer snapshot, the participant first calculates the transfer split in the transfer split schedule.\nThe Fund Administration transfer preparer applies the percentage or amount directed by the agreement to each required snapshot component, calculating what transfers and what the transferor keeps. The components include commitment, contributions, distributions, unfunded commitment, P&L, capital and history.\nThe preparer retains deal, tranche and effective-date detail in the schedule for future allocations, applies documented rounding and notes any residual.\nIf a component uses a different basis or the preparer cannot explain a residual, they escalate rather than carry on.\nOn escalation, the affected work stops and the item remains open; the schedule stays a draft until the issue is resolved. Once sorted, the draft component-by-component split goes to a second reviewer for independent review.\nIf the percentage applies differently by component, the client or their legal counsel decides and the preparer requires their written methodology. For a rounding residual, the client or accounting reviewer decides; the preparer requires written direction, applies only the approved treatment and keeps the reconciliation.\nIf the second reviewer finds an arithmetic problem or agreement mismatch, it returns to the preparer or goes to the client or legal counsel. Once comments are resolved, the client approves the material treatment where required.\nBefore any entry, the participant needs the approved split and a cleared transferee. Clearance occurs before the transfer reaches the participant and is not their responsibility.\nIn the CRM, the participant or Investor Services creates the transferee's investor record and contacts if absent and updates the transferor's status and retained interest. The Fund Team's accounting role enters post-transfer commitments, contributions, distributions, unfunded commitment, capital, P&L history and effective date in the accounting system, preserving the transferor–transferee system link.\nWhen system results disagree with the approved split, the participant stops the affected work and corrects or escalates it to the system owner or accounting reviewer. The item stays open and work does not proceed until resolved.\nIf the system cannot represent the historical split or effective-date history, an approved workaround must preserve the effective-date history. The client, accounting reviewer and system owner all approve it; a record of the limitation, workaround and reconciliation is kept, and continuing manual checks are needed afterwards."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The participant requires a reconciled pre-transfer snapshot as an input, but what reconciliation establishes its readiness and what evidence is retained are not stated.\nFor each component, the preparer checks that transferor post-transfer plus transferee post-transfer equals the pre-transfer figure, apart from documented rounding. A different component basis or unexplained residual is escalated rather than carried forward.\nA second reviewer independently reviews the draft component-by-component split after an escalated issue is sorted.\nThe evidence retained for the independent second review has not been specified.\nThe second reviewer verifies the transfer percentage or amount and its application to each component against the agreement, recalculates material split amounts, and confirms combined totals match pre-transfer totals. They also check effective-date P&L, historical allocation, and the handling of side letters and special treatment.\nThe circumstances requiring client approval of material treatment and the evidence of that approval have not been specified.\nThe participant and accounting reviewer compare system results with the approved split schedule. Material balances and the effective date must agree, and the setup comparison is kept as the record.\nA system mismatch stops affected work until corrected or resolved through escalation to the system owner or accounting reviewer. A workaround for an unrepresentable historical split or effective-date history requires approval from the client, accounting reviewer and system owner, plus continuing manual checks.\nThe continuing manual checks after a system-history workaround have not been described, including who performs them and how often."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "When the percentage applies differently by component, the preparer uses the client or legal counsel's written methodology instead of forcing the same pro rata method on every component.\nWhere a system cannot represent the historical split or effective-date history, the work uses an approved workaround preserving effective-date history and requires continuing manual checks."
+   },
+   {
+    "key": "pain_points",
+    "status": "partial",
+    "answer": "The participant reports difficulty because required system fields and entries are not specified, and system-history workarounds require continuing manual checks."
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "The participant reports that a workaround for system limitations can affect reporting or future events."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The split-preparation work uses an approved transfer basis and a reconciled pre-transfer snapshot as inputs; the participant calculates the split in a transfer split schedule.\nThe storage location of the transfer split schedule has not been stated.\nThe transfer split schedule shows four figures for every component: pre-transfer, transferor post-transfer, transferee post-transfer and combined total. It also retains deal, tranche and effective-date detail for future allocations.\nThe participant refers to an agreement directing the percentage or amount and documented rounding used in the split; neither source was supplied for review.\nThe preparer requires written methodology for component-specific percentages and written direction for a rounding residual; the preparer keeps the residual reconciliation.\nThe second reviewer checks how side letters and special treatment were handled in the split; the side letters were not supplied for review.\nThe approved split schedule is the source for system updates and the reference for the setup comparison; the comparison is retained as a record.\nFor a system-history workaround, a record of the limitation, workaround and reconciliation is kept."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The participant works the middle part of a partner transfer as Fund Administration transfer preparer for the split."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The specifics and source of the documented rounding remain unspecified.\nThe agreement directs a percentage or amount applied to each required economic component in the snapshot. The preparer applies documented rounding and notes any residual.\nThe preparer follows the explicit agreement or client direction and does not force a uniform pro rata method on every component. Different component percentages require a written methodology from the client or their legal counsel.\nIndependent review is required for every partial transfer split and must be complete before any system updates. Client approval of material treatment follows resolution of comments where required.\nSystem entry requires both an approved split and a cleared transferee; the transferor–transferee system link must be preserved.\nA system-history workaround must not lose effective-date history and requires approval by the client, accounting reviewer and system owner."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The approved transfer basis and reconciled pre-transfer snapshot are required inputs, but the supplying processes or roles are not identified.\nThe approved split supplies the Fund Team's accounting-system update. After the setup comparison, the work moves to Investor Services for the portal; the participant does not know the subsequent steps.\nTransferee clearance is an upstream dependency, but its responsible role and clearance evidence are not identified.\nProvides input to Fund Team accounting-system update: The approved split is the source for the Fund Team's system entries.\nHands off to Investor Services portal work: After the participant's system setup comparison; subsequent steps are unknown to the participant."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The participant reports CRM updates to investor records, contacts, transferor status and retained interest, and accounting-system entries by the Fund Team using the approved split. System product names are not stated.\nThe participant cannot specify the exact required system fields and entries; an accounting or audit process expert would have to confirm them.\nA system may be unable to represent the historical split or effective-date history, requiring an approved workaround that preserves effective-date history."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": ""
+   }
+  ]
+ },
+ "map": {
+  "title": "Partner Transfers",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Calculate transfer split",
+    "actor": "Fund Administration transfer preparer",
+    "system": "UNKNOWN",
+    "description": "Apply the agreement-directed percentage or amount to commitment, contributions, distributions, unfunded commitment, P&L, capital and history. Retain deal, tranche and effective-date detail, apply documented rounding and note any residual."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Check component tie-outs",
+    "actor": "Fund Administration transfer preparer",
+    "system": "UNKNOWN",
+    "description": "Check that transferor post-transfer plus transferee post-transfer equals pre-transfer for every component, apart from documented rounding."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Escalate split exception",
+    "actor": "Fund Administration transfer preparer",
+    "system": "UNKNOWN",
+    "description": "Escalate a different component basis or an unexplained residual. The affected work stops, the item stays open and the schedule remains a draft until resolved."
+   },
+   {
+    "id": "S4",
+    "type": "wait",
+    "title": "Wait for written methodology",
+    "actor": "Fund Administration transfer preparer",
+    "system": "UNKNOWN",
+    "description": "When the percentage applies differently by component, the client or their legal counsel decides. The preparer needs their written methodology; the schedule remains a draft while the item is unresolved."
+   },
+   {
+    "id": "S5",
+    "type": "wait",
+    "title": "Wait for residual direction",
+    "actor": "Fund Administration transfer preparer",
+    "system": "UNKNOWN",
+    "description": "For a rounding residual, the client or accounting reviewer decides and the preparer needs written direction. The schedule remains a draft while the item is unresolved."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Apply approved residual treatment",
+    "actor": "Fund Administration transfer preparer",
+    "system": "UNKNOWN",
+    "description": "Apply only the approved treatment for the rounding residual and keep the reconciliation."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Review draft split independently",
+    "actor": "Second reviewer; official role title UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Verify the percentage or amount and its application against the agreement, recalculate material amounts, and check combined totals against pre-transfer totals. Check effective-date P&L, historical allocation, side letters and special treatment."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Follow component methodology",
+    "actor": "Fund Administration transfer preparer",
+    "system": "UNKNOWN",
+    "description": "Follow the explicit agreement or client direction rather than forcing the same pro rata method onto every component."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Refer review findings",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "An arithmetic problem or agreement mismatch comes back to the preparer or goes to the client or legal counsel. How the comments are resolved and rechecked is UNKNOWN."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Approve material treatment",
+    "actor": "Client",
+    "system": "UNKNOWN",
+    "description": "After comments are resolved, the client approves the material treatment where client approval is required."
+   },
+   {
+    "id": "S11",
+    "type": "data_store",
+    "title": "Update CRM investor records",
+    "actor": "Fund Administration transfer preparer or Investor Services",
+    "system": "CRM",
+    "description": "Create the transferee's investor record and contacts if they do not already exist, and update the transferor's status and retained interest. System entry requires an approved split and a cleared transferee."
+   },
+   {
+    "id": "S12",
+    "type": "data_store",
+    "title": "Update accounting system",
+    "actor": "Fund Team, accounting role",
+    "system": "Accounting system",
+    "description": "Enter post-transfer commitments, contributions, distributions, unfunded commitment, capital, P&L history and effective date. The link between transferor and transferee must be preserved."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Compare system setup",
+    "actor": "Fund Administration transfer preparer and accounting reviewer",
+    "system": "CRM and accounting system",
+    "description": "Compare system results with the approved split schedule. Material balances and the effective date must agree; retain the setup comparison as the record. Stop affected work if the results do not agree."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Move work to Investor Services",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The work moves to Investor Services for the portal. Subsequent portal work and overall transfer closure are UNKNOWN."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Handle system setup mismatch",
+    "actor": "Fund Administration transfer preparer",
+    "system": "UNKNOWN",
+    "description": "Stop affected work and either correct the mismatch or escalate it to the system owner or accounting reviewer. Do not proceed until it is resolved."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Approve and record workaround",
+    "actor": "Client, accounting reviewer and system owner approve; person recording UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "If the system cannot represent the historical split or effective-date history, use a workaround that preserves effective-date history. The client, accounting reviewer and system owner must all approve it, and a record of the limitation, workaround and reconciliation is kept."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Perform continuing manual checks",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Continue manual checks after a workaround for the system's inability to represent the historical split or effective-date history. The workaround can affect reporting or future events."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "Split calculated without a stated escalation exception"
+   },
+   {
+    "from": "S1",
+    "to": "S3",
+    "label": "Component uses a different basis or residual cannot be explained"
+   },
+   {
+    "from": "S2",
+    "to": "S7",
+    "label": "Check complete and no unresolved exception"
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "Percentage applies differently by component"
+   },
+   {
+    "from": "S3",
+    "to": "S5",
+    "label": "Unexplained rounding residual"
+   },
+   {
+    "from": "S4",
+    "to": "S8",
+    "label": "Written methodology received and issue resolved"
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": "Written direction received and issue resolved"
+   },
+   {
+    "from": "S8",
+    "to": "S7",
+    "label": "Exception sorted"
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Exception sorted"
+   },
+   {
+    "from": "S7",
+    "to": "S9",
+    "label": "Arithmetic problem or agreement mismatch found"
+   },
+   {
+    "from": "S7",
+    "to": "S10",
+    "label": "Comments resolved and client approval required"
+   },
+   {
+    "from": "S7",
+    "to": "S11",
+    "label": "Review complete, comments resolved, client approval not required, approved split and cleared transferee"
+   },
+   {
+    "from": "S7",
+    "to": "S12",
+    "label": "Review complete, comments resolved, client approval not required, approved split and cleared transferee"
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": "Required client approval obtained, approved split and cleared transferee"
+   },
+   {
+    "from": "S10",
+    "to": "S12",
+    "label": "Required client approval obtained, approved split and cleared transferee"
+   },
+   {
+    "from": "S11",
+    "to": "S13",
+    "label": "CRM and accounting updates both complete"
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": "CRM and accounting updates both complete"
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": "Material balances and effective date agree; setup comparison retained"
+   },
+   {
+    "from": "S13",
+    "to": "S15",
+    "label": "System results do not agree with the approved split"
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": "Cause is inability to represent the historical split or effective-date history"
+   },
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": "Approved workaround in place"
+   }
+  ],
+  "open_questions": [
+   "Are the outgoing paths from S7 (Review draft split independently) alternatives, or must they all occur?",
+   "Does any incoming route start S7 (Review draft split independently), or must all prerequisites finish?",
+   "Are the outgoing paths from S10 (Approve material treatment) alternatives, or must they all occur?",
+   "Does any incoming route start S11 (Update CRM investor records), or must all prerequisites finish?",
+   "Does any incoming route start S12 (Update accounting system), or must all prerequisites finish?",
+   "Does any incoming route start S13 (Compare system setup), or must all prerequisites finish?",
+   "What initiates a partner transfer, who detects it, and what cadence or deadlines apply?",
+   "Who produces and provides the approved transfer basis and reconciled pre-transfer snapshot, and how is their readiness communicated?",
+   "What happens if a component tie-out fails, and how are corrections made and rechecked?",
+   "How are split exceptions escalated and tracked, and are affected components rechecked after resolution before independent review?",
+   "How are independent-review comments resolved and rechecked, and how does their resolution reach client approval where required?",
+   "What is the second reviewer's official role title? The participant says the service-line governance owner would need to confirm it.",
+   "When is client approval required, and how is it evidenced?",
+   "Who clears the transferee, and how is clearance communicated as ready for system entry?",
+   "How are the CRM and accounting updates coordinated, and where is the transferor–transferee link maintained?",
+   "How is a system mismatch confirmed as resolved and where does the affected work resume? Where is the retained setup comparison stored?",
+   "Who records the system limitation and workaround, where is the record kept, and who performs the continuing manual checks and how?",
+   "Which system fields and entries are required? The participant says an accounting or audit process expert would need to confirm them.",
+   "What does Investor Services do for the portal, how is the transfer closed, and who gives final approval?",
+   "Who is accountable overall, and what other reviews, approvals and retained evidence apply?",
+   "Where are the schedule and retained reconciliation stored, how are inputs entered, and what is the authoritative record?",
+   "Which entities and clients does this account cover, and are there variations, charging or removal constraints?",
+   "What other practical difficulties and risks apply, and what are the volumes and effort?",
+   "Where are the agreement and rounding rules documented, and how are conflicts between sources resolved?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "DRAFT — Partner Transfers: split and system setup",
+  "overview": "Current-practice draft of the middle portion described by the Fund Administration transfer preparer. The overall initiating event, accountability and closure are UNKNOWN. This account, its unresolved routes and the proposed map require participant and process-owner review; no supporting document was supplied or independently reviewed.",
+  "trigger": "The overall initiating event is UNKNOWN. The preparer's portion begins when the approved transfer basis and reconciled pre-transfer snapshot are in hand.",
+  "inputs": [
+   "Approved transfer basis",
+   "Reconciled pre-transfer snapshot",
+   "Agreement-directed percentage or amount",
+   "Cleared transferee before system entry"
+  ],
+  "outputs": [
+   "Component-by-component transfer split schedule",
+   "Post-transfer CRM and accounting system updates",
+   "Retained setup comparison",
+   "Handoff to Investor Services for the portal"
+  ],
+  "exceptions": [
+   "A different component basis or unexplained residual stops affected work and leaves the schedule draft until resolved; the decision-maker and written direction depend on the issue.",
+   "Independent-review arithmetic problems or agreement mismatches go back to the preparer or to the client or legal counsel. Resolution and recheck mechanics are UNKNOWN.",
+   "System mismatches stop affected work for correction or escalation. A system history limitation requires an approved, recorded workaround and continuing manual checks; the route back to the transfer is UNKNOWN."
+  ],
+  "controls": [
+   "The preparer checks component post-transfer totals against pre-transfer totals, apart from documented rounding.",
+   "Independent review is required for every partial transfer split and before system updates; the participant describes its substantive checks.",
+   "Client approval of material treatment applies where required; the condition and retained proof are UNKNOWN.",
+   "System entry requires the approved split and cleared transferee. The preparer and accounting reviewer compare material balances and effective date to the split and retain the comparison.",
+   "A history-preserving workaround requires approval by the client, accounting reviewer and system owner, a retained record and continuing manual checks."
+  ],
+  "validation_notes": [
+   "Current-practice draft for review: participant confirmation, independent verification and process-owner approval are pending. All sixteen memo topics remain partial or unknown; the capture is not executable or complete.",
+   "The participant describes a middle portion, not the overall initiating event or closure. No start or final-end node has been invented.",
+   "No authorized document excerpt was supplied. The agreement, side letters and documented rounding are participant-reported sources, not independently reviewed rules. An approved GPFS standard is not established.",
+   "Both CRM and accounting updates are represented as prerequisites to comparison. Each edge carries the joint condition; no order, concurrency or coordination between those updates is asserted.",
+   "The review-finding and system-mismatch branches have known entries but unresolved returns. No recheck or rejoin has been invented.",
+   "The proposed wait exits requiring the issue to be resolved before methodology or treatment is applied were replaced with receipt of the relevant written direction; the subsequent independent-review edges still require the exception to be sorted.",
+   "The proposed workaround-to-checks edge has been relabelled to avoid asserting that the workaround is already in place. How the workaround is implemented and how the transfer resumes are UNKNOWN.",
+   "The service-line governance owner was identified as the person who could confirm the second reviewer's official title. An accounting or audit process expert was identified as a potential confirmer of required system fields.",
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Calculate transfer split",
+    "actor": "Fund Administration transfer preparer",
+    "system": "Transfer split schedule; technology UNKNOWN",
+    "description": "With the approved transfer basis and reconciled pre-transfer snapshot in hand, apply the agreement-directed percentage or amount to each required component: commitment, contributions, distributions, unfunded commitment, P&L, capital and history. Calculate what transfers and what the transferor retains. Keep deal, tranche and effective-date detail for future allocations, apply documented rounding and note residuals. The schedule shows pre-transfer, transferor post-transfer, transferee post-transfer and combined figures for each component."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Check component tie-outs",
+    "actor": "Fund Administration transfer preparer",
+    "system": "Transfer split schedule",
+    "description": "Check that transferor post-transfer plus transferee post-transfer equals pre-transfer for every component, apart from documented rounding. Handling of a failed tie-out other than the reported residual exception is UNKNOWN."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Escalate split exception",
+    "actor": "Fund Administration transfer preparer",
+    "system": "UNKNOWN",
+    "description": "Escalate a different component basis or unexplained residual instead of carrying on. Affected work stops, the item stays open and the schedule remains a draft until resolved."
+   },
+   {
+    "id": "S4",
+    "type": "wait",
+    "title": "Wait for written methodology",
+    "actor": "Fund Administration transfer preparer",
+    "system": "UNKNOWN",
+    "description": "Where the percentage applies differently by component, the client or their legal counsel decides and the preparer needs their written methodology. The schedule remains a draft while the issue is unresolved."
+   },
+   {
+    "id": "S5",
+    "type": "wait",
+    "title": "Wait for residual direction",
+    "actor": "Fund Administration transfer preparer",
+    "system": "UNKNOWN",
+    "description": "For a rounding residual, the client or accounting reviewer decides and the preparer needs written direction. The schedule remains a draft while the issue is unresolved."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Apply residual treatment",
+    "actor": "Fund Administration transfer preparer",
+    "system": "Transfer split schedule; reconciliation location UNKNOWN",
+    "description": "Apply only the approved rounding-residual treatment and keep the reconciliation."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Review draft split independently",
+    "actor": "Second reviewer; official role title UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Verify the transfer percentage or amount and its application to each component against the agreement. Recalculate material split amounts, confirm combined totals against pre-transfer totals, and check effective-date P&L, historical allocation, side letters and special treatment. Review is required for every partial transfer split and must be complete before system updates. Arithmetic problems or agreement mismatches come back to the preparer or go to the client or legal counsel."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Follow component methodology",
+    "actor": "Fund Administration transfer preparer",
+    "system": "Transfer split schedule",
+    "description": "Follow the explicit agreement or client direction for the component methodology; do not force the same pro rata method onto every component."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Refer review findings",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "An arithmetic problem or agreement mismatch found in independent review comes back to the preparer or goes to the client or legal counsel. The mechanics of resolution and rechecking are UNKNOWN."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Approve material treatment",
+    "actor": "Client",
+    "system": "UNKNOWN",
+    "description": "Once review comments are resolved, the client approves material treatment where client approval is required. The conditions requiring approval and its evidence are UNKNOWN."
+   },
+   {
+    "id": "S11",
+    "type": "data_store",
+    "title": "Update CRM investor records",
+    "actor": "Fund Administration transfer preparer or Investor Services",
+    "system": "CRM",
+    "description": "Before entry, the approved split and a cleared transferee are required; independent review must also be complete. Create the transferee's investor record and contacts if they do not already exist, and update the transferor's status and retained interest. Clearance is performed before the transfer reaches the preparer, not by the preparer."
+   },
+   {
+    "id": "S12",
+    "type": "data_store",
+    "title": "Update accounting system",
+    "actor": "Fund Team, accounting role",
+    "system": "Accounting system",
+    "description": "With the approved split, cleared transferee and completed independent review, enter post-transfer commitments, contributions, distributions, unfunded commitment, capital, P&L history and effective date. The system link between transferor and transferee must be preserved; its precise location and required fields are UNKNOWN."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Compare system setup",
+    "actor": "Fund Administration transfer preparer and accounting reviewer",
+    "system": "CRM and accounting system",
+    "description": "After system updates, compare system results with the approved split schedule. Material balances and effective date in the systems must agree to the approved split. Keep the setup comparison as the record; its location is UNKNOWN."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Move work to Investor Services",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The preparer's portion ends and the work moves to Investor Services for the portal. Subsequent portal work, final approval and overall transfer closure are UNKNOWN."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Handle system setup mismatch",
+    "actor": "Fund Administration transfer preparer",
+    "system": "UNKNOWN",
+    "description": "Stop affected work and either correct the mismatch or escalate it to the system owner or accounting reviewer. Do not proceed until resolved; the item remains open. How resolution is confirmed and where work resumes are UNKNOWN."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Approve and record workaround",
+    "actor": "Client, accounting reviewer and system owner approve; recorder UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "If the system cannot represent the historical split or effective-date history, a workaround must preserve effective-date history. The client, accounting reviewer and system owner must all approve it; their approval order is UNKNOWN. Keep a record of the limitation, workaround and reconciliation. The item stays open until everything is resolved."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Perform continuing manual checks",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Continue manual checks after a workaround for the system's inability to represent the historical split or effective-date history. The participant reports that such a workaround can affect reporting or future events. Check content, frequency and evidence are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "Split calculated without a stated escalation exception"
+   },
+   {
+    "from": "S1",
+    "to": "S3",
+    "label": "Different component basis or unexplained residual"
+   },
+   {
+    "from": "S2",
+    "to": "S7",
+    "label": "Check complete and no unresolved exception"
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "Percentage applies differently by component"
+   },
+   {
+    "from": "S3",
+    "to": "S5",
+    "label": "Unexplained rounding residual"
+   },
+   {
+    "from": "S4",
+    "to": "S8",
+    "label": "Written methodology received"
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": "Written direction received"
+   },
+   {
+    "from": "S8",
+    "to": "S7",
+    "label": "Exception sorted"
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Exception sorted"
+   },
+   {
+    "from": "S7",
+    "to": "S9",
+    "label": "Arithmetic problem or agreement mismatch"
+   },
+   {
+    "from": "S7",
+    "to": "S10",
+    "label": "Comments resolved and client approval required"
+   },
+   {
+    "from": "S7",
+    "to": "S11",
+    "label": "Review complete, comments resolved, client approval not required, approved split and cleared transferee"
+   },
+   {
+    "from": "S7",
+    "to": "S12",
+    "label": "Review complete, comments resolved, client approval not required, approved split and cleared transferee"
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": "Required approval obtained, approved split and cleared transferee"
+   },
+   {
+    "from": "S10",
+    "to": "S12",
+    "label": "Required approval obtained, approved split and cleared transferee"
+   },
+   {
+    "from": "S11",
+    "to": "S13",
+    "label": "CRM and accounting updates both complete"
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": "CRM and accounting updates both complete"
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": "Material balances and effective date agree; comparison retained"
+   },
+   {
+    "from": "S13",
+    "to": "S15",
+    "label": "System results do not agree with approved split"
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": "System cannot represent historical split or effective-date history"
+   },
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": "Approved workaround; continuing checks afterwards"
+   }
+  ],
+  "open_questions": [
+   "Are the outgoing paths from S7 (Review draft split independently) alternatives, or must they all occur?",
+   "Does any incoming route start S7 (Review draft split independently), or must all prerequisites finish?",
+   "Are the outgoing paths from S10 (Approve material treatment) alternatives, or must they all occur?",
+   "Does any incoming route start S11 (Update CRM investor records), or must all prerequisites finish?",
+   "Does any incoming route start S12 (Update accounting system), or must all prerequisites finish?",
+   "Does any incoming route start S13 (Compare system setup), or must all prerequisites finish?",
+   "What initiates the overall transfer, who is accountable for it, and what observable conditions close it?",
+   "Who supplies the approved basis and reconciled snapshot, and how are their readiness and transferee clearance communicated?",
+   "How are review findings resolved and rechecked, and how does the resolved work reach approval or system entry?",
+   "How is a system mismatch confirmed resolved and where does work resume, including after an approved workaround?",
+   "What does Investor Services do next for the portal, and who gives final approval and closes the transfer?",
+   "What happens when a component tie-out fails, and are split exceptions rechecked after resolution?",
+   "What is the second reviewer's official title? The participant identified the service-line governance owner as the person to confirm it.",
+   "When is client approval required and how is it evidenced?",
+   "How are CRM and accounting updates coordinated, and where is the transferor–transferee link maintained?",
+   "Which system fields and entries are required? The participant identified an accounting or audit process expert as a potential confirmer.",
+   "Who records the workaround, where is it stored, and who performs the continuing manual checks and how?",
+   "Where are the schedule, reconciliation and setup comparison stored, and which records are authoritative?",
+   "Which entities and clients are covered, is the route general GPFS practice, and what differences, charging or removal constraints apply?",
+   "Where are agreement and rounding rules documented, who resolves source conflicts, and how are interpretations recorded?",
+   "What cadence, deadlines, volumes, peaks, exception rates, effort and additional risks apply?",
+   "What materials exist and can be reviewed, and what checks, segregation, escalation authority or system enforcement apply beyond those reported?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "Partner Transfers is the intake name. The participant describes the split and system-setup middle portion; other names and the full process boundary are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The described work calculates and reviews a transfer split, sets up post-transfer records and compares system results with the approved split before handoff to Investor Services. The complete transfer result is UNKNOWN."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The overall trigger and its receiver are UNKNOWN. The preparer begins this portion once the approved transfer basis and reconciled pre-transfer snapshot are in hand. Their providers, readiness signal, cadence and deadlines are UNKNOWN."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The preparer's portion ends after system results are compared to the approved split and the work moves to Investor Services for the portal. Material balances and effective date must agree and the comparison is retained. Portal completion, overall closure and final approval are UNKNOWN."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The participant is the Fund Administration transfer preparer for the split; overall accountability and final approver are UNKNOWN. The independent reviewer's official title is unconfirmed; the service-line governance owner could confirm it."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The preparer calculates and checks a draft schedule from the approved basis and reconciled snapshot; basis or residual exceptions stop affected work until directed. A second reviewer checks the draft, with findings returned or referred; the client approves material treatment where required. With an approved split and cleared transferee, the preparer or Investor Services updates CRM and the Fund Team updates accounting. The preparer and accounting reviewer compare system results and retain the comparison, then work moves to Investor Services. Review rework, mismatch recovery, handoff mechanisms and downstream closure remain UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The preparer ties each component to its pre-transfer figure; the second reviewer verifies agreement application, recalculates material amounts and checks totals, history, P&L and special treatment. Review precedes updates; client approval applies where required. The preparer and accounting reviewer compare system balances and effective date and retain the comparison. Exceptions stop affected work; a history workaround needs three approvals, a record and continuing checks. Review evidence locations, thresholds, segregation, enforcement, approval conditions and detailed rework are UNKNOWN."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "A percentage can apply differently by component, requiring client or legal-counsel methodology; a system history limitation requires an approved workaround and continuing manual checks. These are reported circumstances, not confirmed client variants. Applicability, boundary, effort, charging and removal constraints are UNKNOWN."
+   },
+   {
+    "key": "pain_points",
+    "status": "partial",
+    "answer": "The participant says required system fields and entries are not specified and cannot identify them exactly. A system history limitation can require a workaround and continuing manual checks. Frequency and effort are UNKNOWN."
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "The participant reports that a history workaround can affect reporting or future events and must preserve effective-date history. Other concrete consequences of an incorrect split or setup are UNKNOWN."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The participant mentions the agreement, side letters, documented rounding, split schedule, written directions and retained reconciliation and setup comparison. Locations and availability are UNKNOWN; no supporting document was supplied or reviewed."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The account covers the preparer's middle portion of Partner Transfers, including partial-transfer split review and system setup. Specific entity and client applicability, the full process boundary and whether this is general GPFS practice are UNKNOWN."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The preparer applies the agreement-directed percentage or amount to required components and documented rounding, retaining deal, tranche and effective-date detail. Different component application is decided by the client or legal counsel with written methodology; residual treatment is decided by the client or accounting reviewer with written direction. The reviewer checks the agreement and side-letter treatment. Exact source documents, conflict authority, rounding detail and recorded interpretation are UNKNOWN; none was independently reviewed."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The approved transfer basis, reconciled snapshot and transferee clearance come from upstream work whose owners and readiness signals are UNKNOWN. After setup comparison, work moves to Investor Services for the portal; later processing and closure are UNKNOWN. CRM and accounting updates both precede the comparison; their coordination is UNKNOWN."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The split schedule contains four figures per component plus deal, tranche and effective-date detail. CRM receives the described investor and transferor updates; the accounting system receives post-transfer economic data and history. A setup comparison and residual reconciliation are retained, but storage, entry modes, system of record and exact system fields are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": "UNKNOWN: counts, peaks, exception frequency and effort by step were not reported."
+   }
+  ]
+ },
+ "draft_error": null
+}

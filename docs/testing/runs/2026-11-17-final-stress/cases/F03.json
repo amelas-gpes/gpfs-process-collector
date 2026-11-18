@@ -1,0 +1,1575 @@
+{
+ "case": "F03",
+ "process": "FA-19A",
+ "mode": "file",
+ "style": "small CSV covering only the opening",
+ "build": "untouched",
+ "participant": "agent",
+ "context": {
+  "process_name": "LOC Draw & Repayment Execution",
+  "process_owner": "",
+  "objective": "Document how we carry out LOC Draw & Repayment Execution, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "assistant",
+   "text": "Thanks for sharing. Give me a moment to digest the file. Then I’ll follow up with a question.",
+   "document_event": true
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "The document asks the team to classify the trigger as contractual, lender-driven, or client-planned, but doesn’t describe how it reaches them. How does the trigger usually come to your attention?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "It reaches my team, the fund and capital-activity team, as a communication from the client or from the lender. In practice the work starts when there is a draw request, when an investment or management fees are expected to be funded from the line of credit, when a repayment is due, or when the client plans to repay from proceeds. There is no fixed schedule, it happens whenever one of those events comes up. If the request comes in verbally or it is incomplete, we get written confirmation from the client before we do anything else, because a conversation on its own does not authorize the action."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "Once written confirmation is in, what does your team do first?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "The first thing is what is in the document I uploaded. We work out what kind of event it is, so a draw, a repayment, anticipated investment funding, or repayment of fees that were previously funded by the line of credit. Then we confirm the legal facility, the borrowing entity, the purpose, the requested date, and the required amount and date if those are known, and we record whether the trigger is contractual, lender-driven or client-planned. All of that goes into the event and facility record, and what we come out with is a validated event request. The check at that point is that the correct facility, entity and purpose are confirmed before any calculation starts. The document only covers the opening of the work, up to deciding the funding path, so I can talk you through the rest from there."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "How do you determine the funding path for a repayment, including whether available cash is sufficient?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "We do that together with the client. We take the liquidity position from the working-capital report and the bank records and hold it against the proposed repayment amount to see whether available cash covers it. The decision has to be based on reconciled cash and the forward obligations we already know about. If cash is not enough, the options are to call capital, use approved distribution proceeds, defer if the facility terms permit that, or escalate, and it is the client who decides. We document the client's timing and amount decisions, and the result is an approved funding path kept in the capital-activity file. If cash turns out to be insufficient or it changes later, the working-capital review is done again and the client decides again. I don't know who the internal owner of the insufficient-cash decision is on our side, that has not been set, so the process owner would have to confirm it."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "For a draw, how do you confirm the available borrowing capacity and that no listed issue blocks it?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "That part is not done by my team. The facility compliance preparer and reviewer give us the current capacity and compliance status, and they work from the compliance certificate and the facility tracker. The borrowing-base calculation and the facility certification themselves belong to that separate facility compliance process, we only take the result, and it has to be current as of the proposed draw. What has to be true before a draw is that there is current supported capacity and no blocking term. If capacity is not available or there is a breach, we stop, the draw request is not submitted, and the issue is resolved through the facility compliance process. Depending on the issue it is the client, the Director or the lender who decides, and nothing proceeds until it is resolved and documented. The record we keep is the capacity and compliance check. Whether there is a separate approver for that check beyond the compliance preparer and reviewer has not been specified, so I can't tell you that, the process owner would need to confirm it."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "Once current capacity and compliance are clear, how does your team confirm the draw’s approved purpose and planned use, and what happens next?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "For a draw we confirm the purpose and the planned use of the funds with the client, from the client's written approved instruction, and it has to fit the permitted purpose in the latest executed facility agreement and its amendments. What happens next depends on the kind of event. For a repayment, the fund and capital-activity preparer calculates the amount in the capital-activity Excel model. They compare the principal with the lender statement and the facility tracker, confirm whether interest is paid in cash or capitalized, pull actual interest through the last approved date, which is commonly quarter-end, project interest from that date to the planned event date, document the rates, day-count assumptions, dates and calculation basis, and then add principal, accrued interest and projected interest together. Actual and estimated amounts have to be kept separate. For a draw, the next thing is the draw request. The lender's loan request form is completed with the amount, the purpose and the applicable repayment terms, matched to the capacity and compliance records, signed internally and by the client, and submitted to the lender through the approved channel, and we keep the submission record. The amount must not exceed the approved capacity. I don't know who is supposed to prepare and submit that form, who the signatories are, or what the submission cutoff time is. None of that is confirmed and the process owner would need to say."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "Once the repayment amount is calculated, what happens next to arrange and complete the repayment?"
+  },
+  {
+   "id": "t014",
+   "role": "user",
+   "text": "First it goes into capital activity. My team enters the repayment and the interest in the capital-event inputs when capital has to be called, and we include the amount in the cash modeling before, during and after the event. If the repayment depends on distribution proceeds we line up the timing, but we never treat projected proceeds as cash already received. Then comes the client review. We present the principal, the interest basis, the estimate period, the funding path and the timing, record the client's comments and update the model, and if the event date changes we refresh the projected interest and it is reviewed again. Once the client approves we mark the instruction as final, and the client has to have approved the final amount and date before anything is executed. After that the fund team or the GL preparer initiates or posts the GL entry, and then Treasury completes the payment checks, which include an independent phone callback verification and the approvals, and executes the cash movement with the lender or bank. If the GL posting is not approved and complete, cash is not released. I can't tell you the exact accounts or the journal entry, that is not specified, and I also don't know what form the client approval takes or who the approving authority is. Once the cash has moved we reconcile and close the event."
+  },
+  {
+   "id": "t015",
+   "role": "assistant",
+   "text": "What does your team compare after the cash moves to reconcile and close the event?"
+  },
+  {
+   "id": "t016",
+   "role": "user",
+   "text": "The fund team does that together with Treasury. We compare the amount that was actually executed with the approved request or repayment instruction, and the lender or bank record, the facility tracker, the GL and the cash view all have to agree. Then we update the principal, the accrued interest, the maturity and duration dates and the facility tracker, and we update the categorized cash in the working-capital view. If anything was rejected, only partly applied or misapplied, we resolve it, and if the execution differs from what was approved, Treasury and the fund team investigate, correct it and escalate. The event cannot be closed until the cash, the lender record, the GL and the approved amount agree. Last, we file the facility documents, the model, the approval, the GL record, the bank record and the reconciliation in the digital binder. Two things I don't know are what tolerance is allowed on the reconciliation and who formally reviews and signs off that the event is complete. Neither has been specified."
+  },
+  {
+   "id": "t017",
+   "role": "assistant",
+   "text": "What can happen if a draw or repayment is delayed or executed incorrectly?"
+  },
+  {
+   "id": "t018",
+   "role": "assistant",
+   "text": "This capture still has open sections. 15 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794966584.893,
+   "turn": 0,
+   "seconds": 0.024,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.session",
+   "at": 1794966588.044,
+   "turn": 1,
+   "seconds": 0.014,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.upload",
+   "at": 1794966588.047,
+   "turn": 1,
+   "seconds": 0.003,
+   "status": 202,
+   "retries": 0,
+   "file": "U2 FA-19A LOC Draw & Repayment Execution.csv",
+   "bytes": 1653
+  },
+  {
+   "kind": "doc.extracted",
+   "at": 1794966588.553,
+   "turn": 1,
+   "seconds": 0.52,
+   "file": "U2 FA-19A LOC Draw & Repayment Execution.csv",
+   "chunks": 1,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 11,
+    "total_units": 11,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_started",
+   "at": 1794966588.553,
+   "turn": 1,
+   "seconds": 0.52,
+   "file": "U2 FA-19A LOC Draw & Repayment Execution.csv",
+   "chunks": 1,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 11,
+    "total_units": 11,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_deep",
+   "at": 1794966591.602,
+   "turn": 1,
+   "seconds": 3.57,
+   "file": "U2 FA-19A LOC Draw & Repayment Execution.csv",
+   "chunks": 1,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 11,
+    "total_units": 11,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_complete",
+   "at": 1794966591.602,
+   "turn": 1,
+   "seconds": 3.57,
+   "file": "U2 FA-19A LOC Draw & Repayment Execution.csv",
+   "chunks": 1,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 11,
+    "total_units": 11,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.followup_question",
+   "at": 1794966593.223,
+   "turn": 2,
+   "seconds": 1.621,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.first_question",
+   "at": 1794966593.223,
+   "turn": 3,
+   "seconds": 5.19,
+   "reading": {
+    "omitted_documents": 0,
+    "documents": [
+     {
+      "id": "doc_7baf5f01c997ba07e700ebd9",
+      "included_chunks": 1,
+      "total_chunks": 1
+     }
+    ]
+   }
+  },
+  {
+   "kind": "doc.left_pending",
+   "at": 1794966623.697,
+   "turn": 3,
+   "notes_state": "working",
+   "map_state": "working",
+   "seconds": 32.09
+  },
+  {
+   "kind": "question",
+   "at": 1794966640.161,
+   "turn": 4,
+   "seconds": 3.173,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966657.391,
+   "turn": 5,
+   "seconds": 20.4
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966671.606,
+   "turn": 5,
+   "seconds": 34.62,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 9,
+   "connections": 9
+  },
+  {
+   "kind": "question",
+   "at": 1794966693.65,
+   "turn": 6,
+   "seconds": 1.69,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966693.654,
+   "turn": 7,
+   "seconds": 1.69,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t004",
+   "steps": 9,
+   "connections": 9
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966712.444,
+   "turn": 7,
+   "seconds": 20.48
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966712.444,
+   "turn": 7,
+   "seconds": 20.48,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 9,
+   "connections": 8
+  },
+  {
+   "kind": "question",
+   "at": 1794966732.722,
+   "turn": 8,
+   "seconds": 2.216,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966732.727,
+   "turn": 9,
+   "seconds": 2.22,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t006",
+   "steps": 9,
+   "connections": 8
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966760.145,
+   "turn": 9,
+   "seconds": 29.64
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794966777.94,
+   "turn": 9,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 47.43
+  },
+  {
+   "kind": "question",
+   "at": 1794966799.159,
+   "turn": 10,
+   "seconds": 2.578,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966799.165,
+   "turn": 11,
+   "seconds": 2.59,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t008",
+   "steps": 10,
+   "connections": 10
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966826.092,
+   "turn": 11,
+   "seconds": 29.51
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966828.643,
+   "turn": 11,
+   "seconds": 32.06,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 12,
+   "connections": 12
+  },
+  {
+   "kind": "question",
+   "at": 1794966858.965,
+   "turn": 12,
+   "seconds": 3.976,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966858.971,
+   "turn": 13,
+   "seconds": 3.98,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t010",
+   "steps": 12,
+   "connections": 12
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966886.504,
+   "turn": 13,
+   "seconds": 31.52
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966888.03,
+   "turn": 13,
+   "seconds": 33.04,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 16,
+   "connections": 16
+  },
+  {
+   "kind": "question",
+   "at": 1794966918.16,
+   "turn": 14,
+   "seconds": 2.75,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966918.167,
+   "turn": 15,
+   "seconds": 2.76,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t012",
+   "steps": 16,
+   "connections": 16
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966951.193,
+   "turn": 15,
+   "seconds": 35.78
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794966963.43,
+   "turn": 15,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 48.02
+  },
+  {
+   "kind": "question",
+   "at": 1794966980.536,
+   "turn": 16,
+   "seconds": 3.297,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966980.544,
+   "turn": 17,
+   "seconds": 3.3,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t014",
+   "steps": 25,
+   "connections": 27
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794967010.662,
+   "turn": 17,
+   "seconds": 33.42
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794967022.478,
+   "turn": 17,
+   "seconds": 45.24,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 30,
+   "connections": 32
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794967028.543,
+   "turn": 17,
+   "seconds": 0.036,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794967392.181,
+   "turn": 18,
+   "seconds": 356.964,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [
+  {
+   "name": "U2 FA-19A LOC Draw & Repayment Execution.csv",
+   "kind": "csv",
+   "size": 1653,
+   "status": "ready",
+   "chunk_count": 1,
+   "coverage": {
+    "indexed_units": 11,
+    "total_units": 11,
+    "limitations": []
+   }
+  }
+ ],
+ "notes": {
+  "summary": "The fund team and Treasury reconcile execution against approved instructions and records, resolve discrepancies, update facility and cash information, and file closeout evidence. Tolerance and formal completion sign-off are unspecified.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "The supplied procedure calls the work FA-19A LOC Draw & Repayment Execution."
+   },
+   {
+    "key": "purpose",
+    "status": "captured",
+    "answer": "The work executes LOC draws and repayments, including arranging repayment funding and cash movement with the lender or bank."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The document directs that the trigger be recorded as contractual, lender-driven or client-planned.\nThe fund and capital-activity team receives communications from the client or lender. Work starts with a draw request, expected investment or management-fee funding from the LOC, a repayment due, or a client plan to repay from proceeds. There is no fixed schedule; work occurs when an event arises."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "For repayment, the event is reconciled and closed after cash has moved.\nThe steps from draw-request submission to cash movement remain unclear.\nThe event cannot close until cash, the lender record, the GL and the approved amount agree. Finally, the facility documents, model, approval, GL record, bank record and reconciliation are filed in the digital binder."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The internal owner of the insufficient-cash decision has not been set; the process owner would need to confirm it."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The documented first step is to identify whether the event is a draw, repayment, anticipated investment funding, or repayment of fees previously funded by LOC, and confirm the legal facility, borrowing entity, purpose, requested date, and required amount and date if known.\nNext, the document directs confirmation of borrowing capacity for a draw and checks for blocking compliance issues, followed by identification of required lender and client forms and approvals.\nFor repayment, the documented funding-path step determines whether cash is sufficient and whether a capital call is required or distribution proceeds will be used. For a draw, it confirms approved purpose and planned use; client timing and amount decisions are documented.\nIf a request is verbal or incomplete, the fund and capital-activity team obtains written client confirmation before doing anything else.\nThe team identifies the event type, confirms the facility, borrowing entity, purpose, requested date and required amount and date if known, and records the trigger classification in the event and facility record. The output is a validated event request.\nFor repayment, the team works with the client to compare liquidity from the working-capital report and bank records with the proposed repayment, considering reconciled cash and known forward obligations.\nIf cash is insufficient, the client decides among calling capital, using approved distribution proceeds, deferring if facility terms permit, or escalating. If cash is insufficient or changes later, the working-capital review is repeated and the client decides again.\nThe team documents the client's timing and amount decisions; the resulting approved funding path is kept in the capital-activity file.\nFor a draw, the facility compliance preparer and reviewer provide current capacity and compliance status using the compliance certificate and facility tracker. The result must be current as of the proposed draw.\nIf capacity is unavailable or there is a breach, the team stops and does not submit the draw request. The issue is resolved through facility compliance; depending on the issue, the client, Director or lender decides, and nothing proceeds until resolution is documented.\nFor a draw, the team confirms purpose and planned use with the client using the client's written approved instruction, against the permitted purpose in the latest executed facility agreement and amendments.\nFor repayment, the fund and capital-activity preparer calculates the amount in the capital-activity Excel model: compare principal to the lender statement and facility tracker, confirm cash payment or capitalization of interest, pull actual interest through the last approved date, commonly quarter-end, and project interest to the planned event date. The preparer documents rates, day-count assumptions, dates and basis, then adds principal, accrued interest and projected interest, keeping actual and estimated amounts separate.\nFor a draw, the lender's loan request form is completed with amount, purpose and applicable repayment terms, matched to capacity and compliance records, signed internally and by the client, and submitted to the lender through the approved channel. The submission record is retained.\nThe participant does not know who prepares and submits the draw form, who signs it, or the submission cutoff; the process owner needs to confirm these.\nWhen capital must be called for repayment, the fund and capital-activity team enters repayment and interest in capital-event inputs and includes the amount in cash modeling before, during and after the event. If repayment depends on distribution proceeds, the team aligns timing without treating projected proceeds as received cash.\nThe team presents the client with principal, interest basis, estimate period, funding path and timing, records comments and updates the model. If the event date changes, projected interest is refreshed and reviewed again. After client approval, the instruction is marked final.\nAfter client approval, the fund team or GL preparer initiates or posts the GL entry. Treasury then completes payment checks, including an independent phone callback and approvals, and executes cash movement with the lender or bank. The event is reconciled and closed after cash moves.\nThe participant does not know the exact accounts or journal entry for the GL posting.\nAfter cash moves, the fund team and Treasury compare the executed amount with the approved request or repayment instruction and ensure the lender or bank record, facility tracker, GL and cash view agree.\nThe team updates principal, accrued interest, maturity and duration dates and the facility tracker, and updates categorized cash in the working-capital view. Rejected, partly applied or misapplied items are resolved; Treasury and the fund team investigate, correct and escalate differences from the approved execution."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The document calls for confirmation that no covenant, LPA, maturity, duration, concentration or certification issue blocks the event, and identification of required lender and client forms and approvals. It does not assign the checks or approvals to roles.\nFor a verbal or incomplete request, the team obtains written client confirmation before proceeding.\nThe team confirms the correct facility, entity and purpose before any calculation starts.\nThe repayment funding decision uses reconciled cash and known forward obligations; the client makes the decision when cash is insufficient.\nBefore a draw there must be current supported capacity and no blocking term. The team retains a capacity and compliance check.\nA separate approver for the capacity and compliance check beyond the compliance preparer and reviewer has not been specified; the process owner would need to confirm it.\nThe draw purpose and planned use must match the permitted purpose in the latest executed facility agreement and amendments. The loan request is matched to capacity and compliance records, signed internally and by the client, and its amount must not exceed approved capacity.\nThe participant cannot identify the internal or client signatories on the draw request; the process owner must confirm them.\nThe client reviews principal, interest basis, estimate period, funding path and timing; comments are recorded and the model updated. A changed event date causes projected interest to be refreshed and reviewed again. Client approval of the final amount and date is required before execution.\nTreasury's payment checks include an independent phone callback and approvals. Cash is not released unless the GL posting is approved and complete.\nThe form of client approval and the approving authority are not known to the participant.\nThe fund team and Treasury reconcile actual execution against the approved request or repayment instruction and the lender or bank record, facility tracker, GL and cash view; discrepancies from approval are investigated, corrected and escalated.\nThe participant does not know the permitted reconciliation tolerance or who formally reviews and signs off event completion; neither has been specified."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "The document distinguishes draw and repayment paths: draw capacity and purpose are confirmed, while repayment funding is assessed against cash, a capital call or distribution proceeds.\nA verbal or incomplete request adds an initial written-client-confirmation step before the team proceeds.\nWhen repayment cash is insufficient or changes later, the working-capital review and client decision are repeated; insufficient cash also introduces alternative funding, deferral or escalation options.\nUnavailable draw capacity or a breach changes the route: submission stops and the issue goes through facility compliance, with the client, Director or lender deciding according to the issue.\nAfter the initial checks, repayment follows an Excel calculation of principal and interest, whereas a draw follows a signed lender loan-request submission route.\nA repayment requiring a capital call adds capital-event inputs and cash modeling; a repayment depending on distribution proceeds requires timing alignment without counting projected proceeds as received cash.\nIf the event date changes, projected interest is refreshed and reviewed again before execution.\nRejected, partly applied or misapplied executions require resolution; execution differing from approval requires investigation, correction and escalation by Treasury and the fund team."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The supplied FA-19A CSV describes three initial stages and directs identification of lender and client forms and documentation of client timing and amount decisions.\nFor a draw, the client's written approved instruction supplies the purpose and planned use, which are checked against the latest executed facility agreement and amendments.\nWritten client confirmation is obtained for verbal or incomplete requests before the team takes further action.\nThe event and facility record holds the event classification, confirmed facility and entity details, purpose, dates and amount where known, and trigger classification.\nThe working-capital report and bank records supply liquidity information for the repayment assessment. The capital-activity file holds the approved funding path and documented client timing and amount decisions.\nThe facility compliance preparer and reviewer use the compliance certificate and facility tracker to provide capacity and compliance status. The execution team keeps the capacity and compliance check.\nThe lender statement and facility tracker are compared with repayment principal. The capital-activity Excel model holds the repayment calculation and its documented assumptions.\nThe lender's loan request form records draw amount, purpose and applicable repayment terms. A submission record is retained.\nCapital-event inputs contain repayment and interest when capital must be called. The model is updated for client comments and refreshed projected interest when the event date changes; the instruction is marked final after approval.\nThe digital binder holds the facility documents, model, approval, GL record, bank record and reconciliation after the event."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The documented work covers LOC draws and repayments, including anticipated investment funding and repayment of fees previously funded by LOC; it calls for confirmation of the borrowing entity.\nThe participant identifies the receiving team as the fund and capital-activity team.\nThe participant says the uploaded document covers only the opening of the work, through deciding the funding path.\nBorrowing-base calculation and facility certification belong to a separate facility compliance process; the participant's team consumes its result rather than performing those activities."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The documented requirements include available borrowing capacity for a draw, absence of listed blocking issues, and confirmation of the draw's approved purpose and planned use.\nA conversation alone does not authorize action; verbal or incomplete requests require written client confirmation before further work.\nThe correct facility, entity and purpose must be confirmed before calculation begins.\nRepayment funding decisions must use reconciled cash and known forward obligations; deferral is an option if facility terms permit it.\nA draw must not proceed without supported capacity current as of the proposed draw and without clearance of blocking terms; a capacity shortfall or breach must be resolved and documented before proceeding.\nThe draw's purpose must fit the latest executed facility agreement and amendments, and the requested amount must not exceed approved capacity.\nThe repayment calculation adds principal, accrued actual interest and projected interest; actual and estimated amounts must be kept separate. Rates, day-count assumptions, dates and calculation basis are documented.\nProjected distribution proceeds are not treated as cash already received. The client must approve the final repayment amount and date before execution, and cash cannot be released until GL posting is approved and complete.\nClosure requires agreement among cash, the lender record, the GL and the approved amount."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The repayment assessment uses liquidity information from the working-capital report; the working-capital review is repeated if cash is insufficient or changes later.\nThe execution process consumes current capacity and compliance status from facility compliance. Capacity shortfalls or breaches are resolved through that process before the draw can proceed.\nWhen repayment requires a capital call, the fund and capital-activity team enters repayment and interest in capital-event inputs and includes the amount in cash modeling.\nAfter client approval, the fund team or GL preparer initiates or posts the GL entry; Treasury performs payment checks and executes the cash movement. Approved and complete GL posting is a prerequisite for releasing cash.\nThe client reviews and must approve the final repayment amount and date before execution.\nProvides input to Capital activity: When capital is called for repayment, the team enters repayment and interest in capital-event inputs and includes the amount in cash modeling.\nTreasury and the fund team jointly reconcile execution and investigate, correct and escalate differences from the approved amount."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The team records event and facility details and the trigger classification in an event and facility record.\nLiquidity inputs come from the working-capital report and bank records; the approved funding path is kept in the capital-activity file.\nThe capacity and compliance status supplied to the team is based on the facility compliance certificate and facility tracker; the team keeps a capacity and compliance check.\nThe fund and capital-activity preparer calculates the repayment amount in the capital-activity Excel model, using principal checked against the lender statement and facility tracker.\nThe team enters repayment and interest into capital-event inputs when capital is called and updates the model following client comments; it includes the amount in cash modeling before, during and after the event.\nFollowing execution, the facility tracker and categorized cash in the working-capital view are updated; closeout records are filed in a digital binder."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": ""
+   }
+  ]
+ },
+ "map": {
+  "title": "LOC Draw & Repayment Execution",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Confirm event and facility",
+    "actor": "Fund and capital-activity team",
+    "system": "UNKNOWN",
+    "description": "The team first identifies the event as a draw, repayment, anticipated investment funding, or repayment of fees previously funded by the LOC. It then confirms the legal facility, borrowing entity, purpose, requested date, and required amount and date if known, and records the trigger classification. These details go into the event and facility record and produce a validated event request."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Check capacity and compliance",
+    "actor": "Facility compliance preparer and reviewer; fund and capital-activity team",
+    "system": "Compliance certificate and facility tracker",
+    "description": "For a draw, the facility compliance preparer and reviewer provide current capacity and compliance status to the team, which keeps the capacity and compliance check. The document also requires confirmation that listed issues do not block the event and identification of required lender and client forms and approvals. Current practice and assignment for those documented details remain unknown."
+   },
+   {
+    "id": "S3",
+    "type": "decision",
+    "title": "Is repayment cash sufficient?",
+    "actor": "Fund and capital-activity team, with the client",
+    "system": "Working-capital report and bank records",
+    "description": "The team and client compare liquidity with the proposed repayment. The decision must use reconciled cash and known forward obligations."
+   },
+   {
+    "id": "S4",
+    "type": "decision",
+    "title": "What is the repayment funding path?",
+    "actor": "Client",
+    "system": "UNKNOWN",
+    "description": "If cash is insufficient, the client decides among calling capital, using approved distribution proceeds, deferring if facility terms permit, or escalating. Following a repeated working-capital review, the client decides again; the available outcomes after a later cash change are not specified. The internal GPFS owner of the insufficient-cash decision is not set."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Confirm draw purpose and use",
+    "actor": "Fund and capital-activity team, with the client",
+    "system": "Client's written approved instruction; latest executed facility agreement and amendments",
+    "description": "Confirm the draw purpose and planned use with the client against the written approved instruction. The use must fit the permitted purpose in the latest executed facility agreement and amendments."
+   },
+   {
+    "id": "S6",
+    "type": "document",
+    "title": "Document client timing and amount",
+    "actor": "Fund and capital-activity team",
+    "system": "Capital-activity file",
+    "description": "The team documents the client's timing and amount decisions. The resulting approved funding path is kept in the capital-activity file."
+   },
+   {
+    "id": "S7",
+    "type": "start",
+    "title": "Receive LOC event communication",
+    "actor": "Fund and capital-activity team",
+    "system": "UNKNOWN",
+    "description": "The team receives a client or lender communication. Work starts for a draw request, expected investment or management-fee funding from the line, a repayment due, or a planned repayment from proceeds; there is no fixed schedule."
+   },
+   {
+    "id": "S8",
+    "type": "decision",
+    "title": "Is the request verbal or incomplete?",
+    "actor": "Fund and capital-activity team",
+    "system": "UNKNOWN",
+    "description": "A verbal or incomplete request requires written client confirmation before other work. A conversation alone does not authorize the action."
+   },
+   {
+    "id": "S9",
+    "type": "document",
+    "title": "Obtain written client confirmation",
+    "actor": "Fund and capital-activity team",
+    "system": "UNKNOWN",
+    "description": "For a verbal or incomplete request, the team obtains written confirmation from the client before doing anything else."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Repeat working-capital review",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "If cash turns out to be insufficient or changes later, the working-capital review is repeated and the client decides again."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Stop blocked draw request",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "If capacity is unavailable or there is a breach, the draw is stopped and the request is not submitted."
+   },
+   {
+    "id": "S12",
+    "type": "subprocess",
+    "title": "Resolve facility compliance issue",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The issue is resolved through the separate facility compliance process. Depending on the issue, the client, Director or lender decides; nothing proceeds until resolution is documented."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Calculate repayment amount",
+    "actor": "Fund and capital-activity preparer",
+    "system": "Capital-activity Excel model; lender statement; facility tracker",
+    "description": "Compare principal with the lender statement and facility tracker; confirm whether interest is paid in cash or capitalized. Pull actual interest through the last approved date, commonly quarter-end, project interest to the planned event date, document rates, day-count assumptions, dates and calculation basis, and add principal, accrued interest and projected interest. Keep actual and estimated amounts separate."
+   },
+   {
+    "id": "S14",
+    "type": "document",
+    "title": "Complete lender draw request",
+    "actor": "UNKNOWN",
+    "system": "Lender's loan request form",
+    "description": "Complete the form with the amount, purpose and applicable repayment terms, matching it to capacity and compliance records. The amount must not exceed approved capacity. The preparer is not confirmed."
+   },
+   {
+    "id": "S15",
+    "type": "document",
+    "title": "Sign lender draw request",
+    "actor": "Internal and client signatories; identities UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The loan request form is signed internally and by the client. The signatories and their signing order are UNKNOWN."
+   },
+   {
+    "id": "S16",
+    "type": "document",
+    "title": "Submit draw request",
+    "actor": "UNKNOWN",
+    "system": "Approved lender submission channel; specific channel UNKNOWN",
+    "description": "Submit the signed loan request to the lender through the approved channel and keep the submission record. The submitter and cutoff time are not confirmed."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Include repayment in capital activity",
+    "actor": "Fund and capital-activity team",
+    "system": "Capital-event inputs and cash modeling",
+    "description": "When capital must be called, enter the repayment and interest in capital-event inputs. Include the amount in cash modeling before, during and after the event."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Align distribution proceeds timing",
+    "actor": "Fund and capital-activity team",
+    "system": "UNKNOWN",
+    "description": "When repayment depends on distribution proceeds, align the timing. Projected proceeds are not treated as cash already received."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Review repayment with client",
+    "actor": "Fund and capital-activity team; client",
+    "system": "Capital-activity model",
+    "description": "Present principal, interest basis, estimate period, funding path and timing for client review. Record client comments and update the model; if the event date changes, projected interest is refreshed and reviewed again."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Refresh projected interest",
+    "actor": "Fund and capital-activity team",
+    "system": "Capital-activity model",
+    "description": "Refresh projected interest when the event date changes; the refreshed amount is reviewed again."
+   },
+   {
+    "id": "S21",
+    "type": "activity",
+    "title": "Finalize approved client instruction",
+    "actor": "Client; fund and capital-activity team",
+    "system": "UNKNOWN",
+    "description": "Once the client approves, mark the instruction as final. The client must approve the final amount and date before execution; the approval form and approving authority are UNKNOWN."
+   },
+   {
+    "id": "S22",
+    "type": "activity",
+    "title": "Initiate or post GL entry",
+    "actor": "Fund team or GL preparer",
+    "system": "General ledger",
+    "description": "After client approval and finalization, the fund team or GL preparer initiates or posts the GL entry. The accounts, journal entry and GL approval responsibility are UNKNOWN."
+   },
+   {
+    "id": "S23",
+    "type": "activity",
+    "title": "Complete Treasury payment checks",
+    "actor": "Treasury",
+    "system": "UNKNOWN",
+    "description": "Treasury completes payment checks, including an independent phone callback verification and approvals. The specific approval authorities and retained evidence are UNKNOWN."
+   },
+   {
+    "id": "S24",
+    "type": "activity",
+    "title": "Execute repayment cash movement",
+    "actor": "Treasury",
+    "system": "Lender or bank; specific channel UNKNOWN",
+    "description": "Treasury executes the cash movement with the lender or bank after payment checks and approvals. Cash is not released unless the GL posting is approved and complete."
+   },
+   {
+    "id": "S25",
+    "type": "activity",
+    "title": "Compare execution and records",
+    "actor": "Fund team and Treasury",
+    "system": "Lender or bank record, facility tracker, GL and cash view",
+    "description": "Compare the amount executed with the approved request or repayment instruction. The lender or bank record, facility tracker, GL and cash view must agree."
+   },
+   {
+    "id": "S26",
+    "type": "activity",
+    "title": "Update facility and cash records",
+    "actor": "Fund team and Treasury",
+    "system": "Facility tracker and working-capital view",
+    "description": "Update principal, accrued interest, maturity and duration dates and the facility tracker. Update categorized cash in the working-capital view."
+   },
+   {
+    "id": "S27",
+    "type": "activity",
+    "title": "Resolve application exceptions",
+    "actor": "Fund team and Treasury",
+    "system": "UNKNOWN",
+    "description": "Resolve items that were rejected, partly applied or misapplied. The resolution method and subsequent handoff are UNKNOWN."
+   },
+   {
+    "id": "S28",
+    "type": "activity",
+    "title": "Investigate execution differences",
+    "actor": "Treasury and fund team",
+    "system": "UNKNOWN",
+    "description": "If execution differs from approval, investigate, correct and escalate. The escalation recipient and subsequent handoff are UNKNOWN."
+   },
+   {
+    "id": "S29",
+    "type": "activity",
+    "title": "Close reconciled event",
+    "actor": "Fund team and Treasury; formal sign-off role UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Close the event after reconciliation. The event cannot be closed until cash, the lender record, the GL and the approved amount agree; formal review and sign-off are unspecified."
+   },
+   {
+    "id": "S30",
+    "type": "document",
+    "title": "File event records",
+    "actor": "Fund team and Treasury; individual filer UNKNOWN",
+    "system": "Digital binder",
+    "description": "File the facility documents, model, approval, GL record, bank record and reconciliation in the digital binder."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": "Repayment"
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": ""
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "Verbal or incomplete request"
+   },
+   {
+    "from": "S9",
+    "to": "S1",
+    "label": "Written confirmation received; documented first step"
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "Cash insufficient"
+   },
+   {
+    "from": "S4",
+    "to": "S6",
+    "label": "Client timing and amount decisions made"
+   },
+   {
+    "from": "S10",
+    "to": "S4",
+    "label": "Review repeated; client decides again"
+   },
+   {
+    "from": "S2",
+    "to": "S5",
+    "label": "Draw; current supported capacity and no blocking term"
+   },
+   {
+    "from": "S2",
+    "to": "S11",
+    "label": "Draw; capacity unavailable or breach"
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": ""
+   },
+   {
+    "from": "S1",
+    "to": "S13",
+    "label": "Repayment; facility, entity and purpose confirmed before calculation"
+   },
+   {
+    "from": "S5",
+    "to": "S14",
+    "label": "Draw purpose and planned use confirmed"
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": ""
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": "Internal and client signatures obtained"
+   },
+   {
+    "from": "S3",
+    "to": "S10",
+    "label": "Cash turns out to be insufficient"
+   },
+   {
+    "from": "S13",
+    "to": "S17",
+    "label": ""
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": "Repayment depends on distribution proceeds"
+   },
+   {
+    "from": "S17",
+    "to": "S19",
+    "label": "Repayment does not depend on distribution proceeds"
+   },
+   {
+    "from": "S18",
+    "to": "S19",
+    "label": "Timing aligned"
+   },
+   {
+    "from": "S19",
+    "to": "S20",
+    "label": "Event date changes"
+   },
+   {
+    "from": "S20",
+    "to": "S19",
+    "label": "Projected interest refreshed; review again"
+   },
+   {
+    "from": "S19",
+    "to": "S21",
+    "label": "Client approves final amount and date"
+   },
+   {
+    "from": "S21",
+    "to": "S22",
+    "label": "Instruction marked final"
+   },
+   {
+    "from": "S22",
+    "to": "S23",
+    "label": ""
+   },
+   {
+    "from": "S23",
+    "to": "S24",
+    "label": "Payment checks and approvals complete AND GL posting approved and complete"
+   },
+   {
+    "from": "S24",
+    "to": "S25",
+    "label": "Cash moved"
+   },
+   {
+    "from": "S25",
+    "to": "S26",
+    "label": ""
+   },
+   {
+    "from": "S25",
+    "to": "S27",
+    "label": "Rejected, partly applied or misapplied"
+   },
+   {
+    "from": "S25",
+    "to": "S28",
+    "label": "Execution differs from approval"
+   },
+   {
+    "from": "S26",
+    "to": "S29",
+    "label": "Cash, lender record, GL and approved amount agree; no unresolved exception"
+   },
+   {
+    "from": "S29",
+    "to": "S30",
+    "label": ""
+   }
+  ],
+  "open_questions": [
+   "Are there other outcomes from decision S4 (What is the repayment funding path?), and where do they lead?",
+   "Are there other outcomes from decision S8 (Is the request verbal or incomplete?), and where do they lead?",
+   "Does any incoming route start S19 (Review repayment with client), or must all prerequisites finish?",
+   "Who is accountable overall, what produces the initiating request, and which event-specific deadlines apply?",
+   "For a request that is neither verbal nor incomplete, how does work reach event and facility confirmation, and is written confirmation obtained?",
+   "For an incomplete request, what must written confirmation contain, and what happens if it is delayed or not received?",
+   "Does the documented opening reflect current practice, and what client and entity scope does it cover?",
+   "Who identifies required lender and client forms and approvals and confirms the document's listed blocking issues in current practice?",
+   "When repayment cash is sufficient, how is the funding path decided and documented?",
+   "For each insufficient-cash option, what happens next and where does work resume or stop?",
+   "When is the repeat working-capital review performed relative to the initial insufficient-cash decision, who performs it, and how does a later cash change reach that review?",
+   "Who is the internal owner of the insufficient-cash decision?",
+   "Where does a draw resume after a capacity or compliance issue is resolved and documented?",
+   "Is there a separate approver for the capacity and compliance check beyond the compliance preparer and reviewer?",
+   "What happens if the draw purpose or planned use does not fit the permitted purpose?",
+   "How does the repayment funding-path decision connect to the repayment calculation?",
+   "What are the origins of the remaining calculation inputs, the projection and rounding methods, review and correction steps, and treatment of prior periods and overrides?",
+   "Who prepares and submits the draw form, who are the internal and client signatories, and what is the submission cutoff?",
+   "Where are written confirmations, calculation support, client comments and approvals, payment-check evidence and the draw submission record kept?",
+   "What form does client approval take, who has approving authority, and what happens if approval is delayed or declined?",
+   "Who approves the GL posting, how is its approved and complete status established, and what happens if posting or payment checks fail?",
+   "What reconciliation tolerance is allowed, and who formally reviews and signs off event completion?",
+   "How are rejected, partly applied or misapplied items resolved, and where does work resume after resolution?",
+   "Who receives escalation of an execution difference, and where does work resume after investigation and correction?",
+   "How do record updates and exception handling coordinate when a reconciliation exception is identified?",
+   "Who uses the closed event and digital binder records next?",
+   "What happens after the draw request is submitted, including execution, reconciliation and closure?",
+   "What additional checks, review levels, release conditions and exception escalations apply?",
+   "What client or other variations, charging or removal constraints, manual friction, material risks and volumes apply?",
+   "Who interprets applicable rules or conflicting instructions, and how are interpretations recorded?",
+   "How does client-decision documentation relate to the draw-purpose check where both apply?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "Current-practice draft — LOC Draw & Repayment Execution",
+  "overview": "The participant describes event-driven LOC draw and repayment work from client or lender communication through reported reconciliation and filing. An uploaded procedure separately documents the opening steps. The draw route after lender submission, several exception exits and process accountability remain UNKNOWN. This draft requires participant and process-owner review.",
+  "trigger": "The fund and capital-activity team receives a client or lender communication about a draw request, expected investment or management-fee funding, a repayment due, or planned repayment from proceeds. The work is event-driven, with no fixed schedule.",
+  "inputs": [
+   "Client or lender communication and, for verbal or incomplete requests, written client confirmation",
+   "Event and facility details",
+   "Working-capital report, bank records and known forward obligations",
+   "Current facility compliance capacity and status, supported by the compliance certificate and facility tracker",
+   "Client's written approved draw instruction and latest executed facility agreement and amendments",
+   "Lender statement, principal and interest information, dates, rates and day-count assumptions"
+  ],
+  "outputs": [
+   "Validated event request and event and facility record",
+   "Approved repayment funding path in the capital-activity file",
+   "Draw request submitted to the lender and submission record",
+   "Client-approved final repayment instruction and repayment cash movement",
+   "Reconciled and closed event with records filed in the digital binder"
+  ],
+  "exceptions": [
+   "Verbal or incomplete requests require written client confirmation before other work.",
+   "Insufficient or later changed cash prompts a repeated working-capital review and another client decision; the later entry point is UNKNOWN.",
+   "Unavailable draw capacity or a breach stops submission until the issue is resolved and documented through facility compliance; resumption is UNKNOWN.",
+   "A changed event date triggers refreshed projected interest and renewed review.",
+   "Rejected, partly applied or misapplied items are resolved; execution differences are investigated, corrected and escalated. Returns are UNKNOWN."
+  ],
+  "controls": [
+   "Confirm facility, borrowing entity and purpose before calculation.",
+   "Use reconciled cash and known forward obligations in the repayment funding decision.",
+   "A draw requires current supported capacity, no blocking term, permitted purpose and an amount no greater than approved capacity.",
+   "Client approval of the final repayment amount and date is required before execution.",
+   "Treasury payment checks include an independent phone callback and approvals; cash is not released without approved and complete GL posting.",
+   "Event closure requires agreement of cash, lender record, GL and approved amount.",
+   "The written procedure directs confirmation that no covenant, LPA, maturity, duration, concentration or certification issue blocks the event; whether and how this is performed for repayments is UNKNOWN."
+  ],
+  "validation_notes": [
+   "AI-generated current-practice draft. Participant confirmation and process-owner review and approval are pending; the account is not independently verified.",
+   "S29 and its two documented-sequence connections represent the written procedure, not confirmed operation for repayments. The participant specifically describes current capacity and compliance work for draws. The proposed direct S4-to-S10 edge is not published because it would skip the procedure's intervening documented step.",
+   "S4-to-S14 is an expressly stated pre-calculation dependency, not evidence that funding-path work can be skipped or that calculation immediately follows event validation. The relationship between the funding path and calculation remains UNKNOWN.",
+   "S20-to-S22 and S21-to-S22 are joint prerequisites for cash movement: both labels require payment checks and approvals AND approved, complete GL posting. They do not establish who coordinates the gate or when GL approval occurs relative to the checks.",
+   "The later cash-change entry to S13 is unspecified. No exception return, draw post-submission route or resolution mechanism has been invented.",
+   "The supplied CSV has native indexed text for 11 of 11 units; all indexed sections were supplied. AI review was complete for 1 of 1 chunks, was not stopped, and had no unread visual units. The excerpt establishes documentary content, not that the procedure is followed.",
+   "The participant's account is one account and does not establish a GPFS-wide standard. No former or planned route was reported.",
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified.",
+   "Document-derived statements describe supplied reference material; current practice and control effectiveness have not been confirmed."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "start",
+    "title": "Receive LOC event communication",
+    "actor": "Fund and capital-activity team",
+    "system": "UNKNOWN",
+    "description": "A communication from the client or lender brings a draw request, expected investment or management-fee funding, a repayment due, or planned repayment from proceeds to the team. Events arise as needed."
+   },
+   {
+    "id": "S2",
+    "type": "decision",
+    "title": "Is the request verbal or incomplete?",
+    "actor": "Fund and capital-activity team",
+    "system": "UNKNOWN",
+    "description": "Identify whether the request is verbal or incomplete. In either case written client confirmation is required before other work; a conversation alone does not authorize action."
+   },
+   {
+    "id": "S3",
+    "type": "document",
+    "title": "Obtain written client confirmation",
+    "actor": "Fund and capital-activity team",
+    "system": "UNKNOWN",
+    "description": "For a verbal or incomplete request, obtain written client confirmation before doing anything else. Handling of delayed or absent confirmation is UNKNOWN."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Confirm event and facility",
+    "actor": "Fund and capital-activity team",
+    "system": "Event and facility record; underlying system UNKNOWN",
+    "description": "Identify a draw, repayment, anticipated investment funding, or repayment of fees previously funded by the LOC. Confirm the legal facility, borrowing entity, purpose, requested date, and required amount and date if known. Record the details and whether the trigger is contractual, lender-driven or client-planned. Confirm the correct facility, entity and purpose before calculation. The supplied procedure also directs these opening actions."
+   },
+   {
+    "id": "S5",
+    "type": "decision",
+    "title": "Is draw capacity and compliance clear?",
+    "actor": "Facility compliance preparer and reviewer provide status; fund and capital-activity team receives it",
+    "system": "Compliance certificate and facility tracker",
+    "description": "For a draw, obtain current capacity and compliance status from the separate facility compliance process and keep the capacity and compliance check. Capacity must be supported and current as of the proposed draw, with no blocking term. Borrowing-base calculation and facility certification are performed in facility compliance, not by the participant's team."
+   },
+   {
+    "id": "S6",
+    "type": "subprocess",
+    "title": "Stop and resolve blocked draw",
+    "actor": "Resolution performers UNKNOWN; client, Director or lender decides depending on issue",
+    "system": "UNKNOWN",
+    "description": "Do not submit the draw if capacity is unavailable or there is a breach. Resolve the issue through the separate facility compliance process. Depending on the issue, the client, Director or lender decides; nothing proceeds until resolution is documented. The resumption point is UNKNOWN."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Confirm draw purpose and use",
+    "actor": "Fund and capital-activity team with client",
+    "system": "UNKNOWN",
+    "description": "Confirm the draw purpose and planned use with the client from its written approved instruction. They must fit the permitted purpose in the latest executed facility agreement and amendments. Handling a mismatch is UNKNOWN."
+   },
+   {
+    "id": "S8",
+    "type": "document",
+    "title": "Complete lender draw request",
+    "actor": "UNKNOWN",
+    "system": "Lender loan request form",
+    "description": "Complete the form with amount, purpose and applicable repayment terms; match it to capacity and compliance records. The amount must not exceed approved capacity. The preparer is unconfirmed."
+   },
+   {
+    "id": "S9",
+    "type": "document",
+    "title": "Sign and submit draw request",
+    "actor": "Internal and client signatories; submitter UNKNOWN",
+    "system": "Approved lender channel; specific channel UNKNOWN",
+    "description": "Have the form signed internally and by the client, submit it to the lender through the approved channel and keep the submission record. Signatory identities, signature order, submitter and cutoff are UNKNOWN."
+   },
+   {
+    "id": "S10",
+    "type": "decision",
+    "title": "Is repayment cash sufficient?",
+    "actor": "Fund and capital-activity team with client",
+    "system": "Working-capital report and bank records",
+    "description": "Compare liquidity from the working-capital report and bank records with the proposed repayment. Base the decision on reconciled cash and known forward obligations. If cash is insufficient, the client chooses a path."
+   },
+   {
+    "id": "S11",
+    "type": "decision",
+    "title": "Which funding path does the client choose?",
+    "actor": "Client",
+    "system": "UNKNOWN",
+    "description": "If cash is insufficient, the client decides whether to call capital, use approved distribution proceeds, defer if facility terms permit, or escalate. Following a repeated working-capital review, the client decides again. The internal GPFS owner of the insufficient-cash decision has not been set. Option-specific downstream routes for deferral and escalation are UNKNOWN."
+   },
+   {
+    "id": "S12",
+    "type": "document",
+    "title": "Document approved funding path",
+    "actor": "Fund and capital-activity team",
+    "system": "Capital-activity file",
+    "description": "Document the client's timing and amount decisions and keep the approved funding path in the capital-activity file. How a sufficient-cash decision reaches this record and the exact relationship to repayment calculation are UNKNOWN."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Repeat working-capital review",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "If cash turns out to be insufficient or changes later, repeat the working-capital review and have the client decide again. The later cash-change entry point and review performer are UNKNOWN."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Calculate repayment amount",
+    "actor": "Fund and capital-activity preparer",
+    "system": "Capital-activity Excel model; lender statement; facility tracker",
+    "description": "Compare principal with the lender statement and facility tracker and confirm whether interest is paid in cash or capitalized. Pull actual interest through the last approved date, commonly quarter-end, and project interest to the planned event date. Document rates, day-count assumptions, dates and calculation basis; add principal, accrued interest and projected interest. Keep actual and estimated amounts separate."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Include repayment in capital activity",
+    "actor": "Fund and capital-activity team",
+    "system": "Capital-event inputs and cash modeling",
+    "description": "When capital must be called, enter the repayment and interest in capital-event inputs. Include the amount in cash modeling before, during and after the event."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Align distribution proceeds timing",
+    "actor": "Fund and capital-activity team",
+    "system": "UNKNOWN",
+    "description": "If repayment depends on distribution proceeds, align the timing. Do not treat projected proceeds as cash already received."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Review repayment with client",
+    "actor": "Fund and capital-activity team and client",
+    "system": "Capital-activity model",
+    "description": "Present principal, interest basis, estimate period, funding path and timing to the client. Record comments and update the model. If the event date changes, refresh projected interest and have it reviewed again."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Refresh projected interest",
+    "actor": "Fund and capital-activity team",
+    "system": "Capital-activity model",
+    "description": "When the event date changes, refresh projected interest and have it reviewed again."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Finalize approved instruction",
+    "actor": "Client and fund and capital-activity team",
+    "system": "UNKNOWN",
+    "description": "Once the client approves, mark the instruction final. The client must approve the final amount and date before execution. Approval format and approving authority are UNKNOWN."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Initiate or post GL entry",
+    "actor": "Fund team or GL preparer",
+    "system": "General ledger",
+    "description": "After the instruction is finalized, initiate or post the GL entry. Cash cannot be released unless the GL posting is approved and complete. Exact accounts, journal and GL approval responsibility are UNKNOWN."
+   },
+   {
+    "id": "S21",
+    "type": "activity",
+    "title": "Complete Treasury payment checks",
+    "actor": "Treasury",
+    "system": "UNKNOWN",
+    "description": "Complete payment checks, including independent phone callback verification and approvals. Approval authorities, retained evidence and failure handling are UNKNOWN."
+   },
+   {
+    "id": "S22",
+    "type": "activity",
+    "title": "Execute repayment cash movement",
+    "actor": "Treasury",
+    "system": "Channel UNKNOWN; lender or bank is the counterparty",
+    "description": "Execute the cash movement with the lender or bank after payment checks and approvals. Do not release cash unless the GL posting is approved and complete."
+   },
+   {
+    "id": "S23",
+    "type": "activity",
+    "title": "Compare execution and records",
+    "actor": "Fund team and Treasury",
+    "system": "Lender or bank record, facility tracker, GL and cash view",
+    "description": "Compare the executed amount with the approved request or repayment instruction. The lender or bank record, facility tracker, GL and cash view must agree. Identify rejected, partly applied or misapplied items and execution differences."
+   },
+   {
+    "id": "S24",
+    "type": "activity",
+    "title": "Update facility and cash records",
+    "actor": "Fund team and Treasury",
+    "system": "Facility tracker and working-capital view",
+    "description": "Update principal, accrued interest, maturity and duration dates and the facility tracker; update categorized cash in the working-capital view."
+   },
+   {
+    "id": "S25",
+    "type": "activity",
+    "title": "Resolve application exceptions",
+    "actor": "Fund team and Treasury",
+    "system": "UNKNOWN",
+    "description": "Resolve any rejected, partly applied or misapplied item. Resolution method, evidence and return point are UNKNOWN."
+   },
+   {
+    "id": "S26",
+    "type": "activity",
+    "title": "Investigate execution differences",
+    "actor": "Treasury and fund team",
+    "system": "UNKNOWN",
+    "description": "If execution differs from what was approved, investigate, correct and escalate. The escalation recipient and subsequent handoff are UNKNOWN."
+   },
+   {
+    "id": "S27",
+    "type": "activity",
+    "title": "Close reconciled event",
+    "actor": "Fund team and Treasury; formal sign-off role UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Close the event after reconciliation. Closure is blocked until cash, the lender record, GL and approved amount agree. The allowed tolerance and formal reviewer or sign-off role are unspecified."
+   },
+   {
+    "id": "S28",
+    "type": "document",
+    "title": "File event records",
+    "actor": "Fund team and Treasury; individual filer UNKNOWN",
+    "system": "Digital binder",
+    "description": "File the facility documents, model, approval, GL record, bank record and reconciliation in the digital binder."
+   },
+   {
+    "id": "S29",
+    "type": "activity",
+    "title": "Check documented event requirements",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Document-only opening step: the procedure directs confirmation that no covenant, LPA, maturity, duration, concentration or certification issue blocks the event, and identification of required lender and client forms and approvals. It also directs confirmation of borrowing capacity for a draw. The participant describes a capacity and compliance check for draws, but current practice and responsibility for these documented actions on repayment events are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "Request received"
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": "Verbal or incomplete"
+   },
+   {
+    "from": "S2",
+    "to": "S4",
+    "label": "Neither verbal nor incomplete"
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "Written confirmation received"
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": "Draw"
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": "Capacity unavailable or breach"
+   },
+   {
+    "from": "S5",
+    "to": "S7",
+    "label": "Current supported capacity and no blocking term"
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": "Purpose and use confirmed"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "Form completed and matched"
+   },
+   {
+    "from": "S4",
+    "to": "S29",
+    "label": "Documented opening sequence"
+   },
+   {
+    "from": "S29",
+    "to": "S10",
+    "label": "Documented sequence: repayment"
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": "Cash insufficient"
+   },
+   {
+    "from": "S10",
+    "to": "S13",
+    "label": "Cash turns out to be insufficient"
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": "Client timing and amount decisions made"
+   },
+   {
+    "from": "S13",
+    "to": "S11",
+    "label": "Review repeated; client decides again"
+   },
+   {
+    "from": "S4",
+    "to": "S14",
+    "label": "Repayment; facility, entity and purpose confirmed before calculation"
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": "Repayment amount calculated"
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": "Repayment depends on distribution proceeds"
+   },
+   {
+    "from": "S15",
+    "to": "S17",
+    "label": "Repayment does not depend on distribution proceeds"
+   },
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": "Timing aligned"
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": "Event date changes"
+   },
+   {
+    "from": "S18",
+    "to": "S17",
+    "label": "Interest refreshed; review again"
+   },
+   {
+    "from": "S17",
+    "to": "S19",
+    "label": "Client approves final amount and date"
+   },
+   {
+    "from": "S19",
+    "to": "S20",
+    "label": "Instruction marked final"
+   },
+   {
+    "from": "S20",
+    "to": "S21",
+    "label": "GL entry initiated or posted"
+   },
+   {
+    "from": "S20",
+    "to": "S22",
+    "label": "Payment checks and approvals complete AND GL posting approved and complete"
+   },
+   {
+    "from": "S21",
+    "to": "S22",
+    "label": "Payment checks and approvals complete AND GL posting approved and complete"
+   },
+   {
+    "from": "S22",
+    "to": "S23",
+    "label": "Cash moved"
+   },
+   {
+    "from": "S23",
+    "to": "S24",
+    "label": "Comparison performed"
+   },
+   {
+    "from": "S23",
+    "to": "S25",
+    "label": "Rejected, partly applied or misapplied"
+   },
+   {
+    "from": "S23",
+    "to": "S26",
+    "label": "Execution differs from approval"
+   },
+   {
+    "from": "S24",
+    "to": "S27",
+    "label": "Cash, lender record, GL and approved amount agree"
+   },
+   {
+    "from": "S27",
+    "to": "S28",
+    "label": "Event closed"
+   }
+  ],
+  "open_questions": [
+   "Does any incoming route start S4 (Confirm event and facility), or must all prerequisites finish?",
+   "Are there other outcomes from decision S11 (Which funding path does the client choose?), and where do they lead?",
+   "Does any incoming route start S17 (Review repayment with client), or must all prerequisites finish?",
+   "Does any incoming route start S22 (Execute repayment cash movement), or must all prerequisites finish?",
+   "Who is accountable for the overall process and for the internal insufficient-cash decision?",
+   "How does the approved repayment funding path connect to calculation and later client review, including sufficient-cash, deferral and escalation outcomes?",
+   "What happens after draw submission through execution, reconciliation and closure?",
+   "Who approves and confirms GL posting completion, and what happens if a posting or Treasury check fails?",
+   "What reconciliation tolerance applies, who formally reviews and signs off closure, and where do resolved or corrected exceptions return?",
+   "When cash changes later, where does the repeat working-capital review start and who performs it?",
+   "Where does a draw resume after documented compliance resolution, and what happens if its purpose does not fit?",
+   "Who prepares and submits the draw form, who signs it, is there another capacity-check approver, and what is the cutoff?",
+   "Does the documented opening check of blocking issues, forms and approvals apply to repayments in current practice, and who performs it?",
+   "What are the repayment calculation input origins, projection and rounding methods, review and correction methods, prior-period treatment and overrides?",
+   "What form does client approval take, who has authority, and how are delay or rejection handled?",
+   "How are record updates and exception handling coordinated, and who receives execution-difference escalations?",
+   "Where are confirmations, calculation support, comments, approvals, payment-check evidence and submission records retained?",
+   "What entity and client scope, variations, charging and removal constraints, risks, friction and volumes apply?",
+   "Who interprets conflicting rules, where are interpretations recorded, and who uses the closed records next?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "LOC Draw & Repayment Execution is the intake name. The work covers opening LOC events, draw requests and repayment execution through reconciliation and filing. Other team or system names and exact boundaries are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The reported work prepares a lender draw request or carries out an approved repayment, then reconciles and closes an event. The draw's post-submission result is UNKNOWN."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "Client or lender communication reaches the fund and capital-activity team for a draw, expected investment or fee funding, repayment due or planned repayment from proceeds. It is event-driven with no fixed schedule. Upstream request production and event-specific deadlines are UNKNOWN."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "After cash moves, the fund team and Treasury reconcile; closure requires cash, lender record, GL and approved amount to agree. Facility documents, model, approval, GL and bank records and reconciliation are filed in a digital binder. Formal sign-off, downstream consumers and the route after draw submission are UNKNOWN."
+   },
+   {
+    "key": "accountable",
+    "status": "unknown",
+    "answer": "UNKNOWN: overall accountable role and internal owner of the insufficient-cash decision. The team performs work, but that does not establish overall accountability."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The team obtains written confirmation for verbal or incomplete requests and records a validated event. For draws, it takes current compliance results, confirms purpose, and has a signed lender form submitted. For repayments, it assesses cash with the client, calculates principal and interest, models the event, reviews and finalizes the instruction, and hands off for GL and Treasury execution. The fund team and Treasury reconcile, update records, close and file. Exception returns, some branch sequencing and draw execution after submission are UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "Reported checks cover facility, entity and purpose before calculation; reconciled cash and obligations; current draw capacity and permitted purpose; client approval of final repayment amount and date; independent Treasury callback and approvals; approved and complete GL posting before cash release; and reconciliation before closure. Additional capacity-check approval, GL and Treasury approvers, rejection handling, tolerance, sign-off, technical enforcement and retained check evidence are UNKNOWN."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "Draws and repayments have different reported actions. Repayments requiring capital calls have capital-event entries; those dependent on distribution proceeds require timing alignment, and projected proceeds are not received cash. Client-specific differences, reasons, effort, charging and removal constraints are UNKNOWN."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": "UNKNOWN: the participant did not describe manual friction, rework burden or time estimates."
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "The participant describes blocked draws, rejected or misapplied execution, and execution differing from approval; the concrete consequences of delay or error were not supplied."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The supplied LOC procedure describes the opening through funding-path decisions. All indexed text was supplied and reviewed by the AI; this does not independently validate current practice. The team also uses facility documents, a lender form, a model and records; their availability and full locations are UNKNOWN."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The account concerns a fund and capital-activity team and borrowing entities. Applicability across entity types, clients and GPFS teams, the basis for any general standard and the overall parent boundary are UNKNOWN. Facility compliance is a separate supplying process."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The participant cites executed facility agreements and amendments for draw purpose, facility terms for permitted deferral and current compliance results for capacity. The opening procedure directs trigger classification and lists blocking issues. The preparer calculates principal plus actual and projected interest in Excel, documenting rates, dates and day count and separating actual from estimated amounts. Interpretation authority, conflicts, input origins, rounding and overrides remain UNKNOWN."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "Facility compliance supplies current draw capacity and compliance status; its borrowing-base calculation and certification are separate. Capital activity uses repayment and interest inputs when capital is called. Treasury performs payment checks and cash movement; the fund team and Treasury reconcile. Other upstream readiness and downstream consumers are UNKNOWN."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The account names an event and facility record, working-capital report and bank records, facility tracker, capital-activity Excel model and file, GL, cash view and digital binder. The model calculates repayment; the team enters capital-event inputs when required. Authoritative records, full entry modes, workbook logic ownership and storage locations are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": "UNKNOWN: counts, peaks, exception frequency and effort by step were not reported."
+   }
+  ]
+ },
+ "draft_error": null
+}

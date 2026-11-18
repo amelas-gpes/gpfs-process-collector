@@ -1,0 +1,1110 @@
+{
+ "case": "R2-V01",
+ "process": "FA-07",
+ "mode": "recorded voice",
+ "style": "one step per spoken answer, 180 wpm, with spelling hints",
+ "build": "round2",
+ "participant": "script",
+ "context": {
+  "process_name": "Investor Onboarding",
+  "process_owner": "",
+  "objective": "Document how we carry out Investor Onboarding, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "To begin with, we open the onboarding record and assign responsibility. What we do: create the onboarding checklist log, record fund entity, investor legal name, contact, expected commitment, initial subsequent close status, target close date, and client contact. Assign the preparer and investor services team lead reviewer accountable role, identify fund team, treasury, legal, tax, and dependencies. The check on it: one active record exists for the investor fund and ownership is clear."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "What event or request prompts you to open the onboarding record?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "Next, we establish the required document checklist, what we do, list required subscription, side letter, tax, AML KYC, beneficial owner, wire, contact, preference, commitment, and close documents data. Identify any investor type or jurisdiction-specific requirements, mark provider, due date, and reviewer for each item. Send a consolidated gap request list to the authorized party, the check on it. Checklist scope is reviewed against Enclient legal requirements."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "Who reviews the checklist scope against Enclient legal requirements?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "After that, we receive, log, and preserve documents. What we do: save each document in the controlled onboarding workspace. Log received date, version, document type, investor fund, and completeness status. Protect sensitive tax, beneficial owner, and banking data using approved access controls. Identify missing pages, signatures, dates, schedules, or inconsistent legal names. The check on it: every document is associated with the correct investor fund and latest version is identifiable."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "What happens to a document item when you find missing pages or inconsistent information?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "Then, we review subscription, commitment, side letter, and tax form completeness. What we do: confirm investor legal name, fund entity, commitment, close effective date, and signatures; compare side letter terms to the operational checklist and flag requirements affecting fees, notices, reporting, transfers, or allocations; confirm the submitted W-9/W-8 type, identity, signature date, and completeness; reconcile commitment and close date to client instruction; issue a consolidated deficiency list and track resolution. The check-on-it: no investor is marked document complete with missing signatures, material fields, or unresolved identity, commitment conflicts."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "When you issue the consolidated deficiency list, how do you track each item through resolution?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "Once that is done, we complete AML KYC clearance. What we do: submit the complete screening package to track missing ownership or risk records, resolve false positives or enhanced due diligence items through client channels, obtain written or system-recorded AML approval, rejection, or conditions, record clearance status and date in the onboarding checklist, the check-on-it, no capital accepted and no onboarding closed before AML clearance."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "What happens to onboarding when AML clearance is rejected or comes with conditions?"
+  },
+  {
+   "id": "t012",
+   "role": "assistant",
+   "text": "Your account so far is saved. 1 of 16 topics is complete, 11 are partly covered and 4 have not come up; the Notes list shows what is missing. You can create a draft from what is here, or keep answering."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794993264.698,
+   "turn": 0,
+   "seconds": 0.016,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794993268.017,
+   "turn": 1,
+   "seconds": 1.619,
+   "status": 200,
+   "retries": 0,
+   "hints": 0,
+   "audio_seconds": 31.5,
+   "audio_bytes": 1009516,
+   "wer": 0.0,
+   "heard": "To begin with, we open the onboarding record and assign responsibility. What we do: create the onboarding checklist log, record fund entity, investor legal name, contact, expected commitment, initial subsequent close status, target close date, and client contact. Assign the preparer and investor services team lead reviewer accountable role, identify fund team, treasury, legal, tax, and dependencies. The check on it: one active record exists for the investor fund and ownership is clear."
+  },
+  {
+   "kind": "question",
+   "at": 1794993270.249,
+   "turn": 2,
+   "seconds": 2.23,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993282.408,
+   "turn": 3,
+   "seconds": 14.39
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794993290.538,
+   "turn": 3,
+   "seconds": 22.52,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 3,
+   "connections": 2
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794993294.812,
+   "turn": 3,
+   "seconds": 2.6,
+   "status": 200,
+   "retries": 0,
+   "hints": 0,
+   "audio_seconds": 31.4,
+   "audio_bytes": 1004914,
+   "wer": 0.029,
+   "heard": "Next, we establish the required document checklist, what we do, list required subscription, side letter, tax, AML KYC, beneficial owner, wire, contact, preference, commitment, and close documents data. Identify any investor type or jurisdiction-specific requirements, mark provider, due date, and reviewer for each item. Send a consolidated gap request list to the authorized party, the check on it. Checklist scope is reviewed against Enclient legal requirements."
+  },
+  {
+   "kind": "question",
+   "at": 1794993299.013,
+   "turn": 4,
+   "seconds": 4.199,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794993299.015,
+   "turn": 5,
+   "seconds": 4.2,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 3,
+   "connections": 2
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794993314.808,
+   "turn": 5,
+   "seconds": 19.99,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 6,
+   "connections": 4
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993323.445,
+   "turn": 5,
+   "seconds": 28.63
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794993327.816,
+   "turn": 5,
+   "seconds": 2.691,
+   "status": 200,
+   "retries": 0,
+   "hints": 2,
+   "audio_seconds": 32.7,
+   "audio_bytes": 1046936,
+   "wer": 0.0,
+   "heard": "After that, we receive, log, and preserve documents. What we do: save each document in the controlled onboarding workspace. Log received date, version, document type, investor fund, and completeness status. Protect sensitive tax, beneficial owner, and banking data using approved access controls. Identify missing pages, signatures, dates, schedules, or inconsistent legal names. The check on it: every document is associated with the correct investor fund and latest version is identifiable."
+  },
+  {
+   "kind": "question",
+   "at": 1794993330.822,
+   "turn": 6,
+   "seconds": 3.005,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794993330.825,
+   "turn": 7,
+   "seconds": 3.01,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t004",
+   "steps": 6,
+   "connections": 4
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993352.151,
+   "turn": 7,
+   "seconds": 24.33
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794993354.178,
+   "turn": 7,
+   "seconds": 26.36,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 10,
+   "connections": 8
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794993358.163,
+   "turn": 7,
+   "seconds": 2.104,
+   "status": 200,
+   "retries": 0,
+   "hints": 2,
+   "audio_seconds": 44.3,
+   "audio_bytes": 1416650,
+   "wer": 0.0,
+   "heard": "Then, we review subscription, commitment, side letter, and tax form completeness. What we do: confirm investor legal name, fund entity, commitment, close effective date, and signatures; compare side letter terms to the operational checklist and flag requirements affecting fees, notices, reporting, transfers, or allocations; confirm the submitted W-9/W-8 type, identity, signature date, and completeness; reconcile commitment and close date to client instruction; issue a consolidated deficiency list and track resolution. The check-on-it: no investor is marked document complete with missing signatures, material fields, or unresolved identity, commitment conflicts."
+  },
+  {
+   "kind": "question",
+   "at": 1794993359.838,
+   "turn": 8,
+   "seconds": 1.672,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794993359.841,
+   "turn": 9,
+   "seconds": 1.67,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t006",
+   "steps": 10,
+   "connections": 8
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993392.928,
+   "turn": 9,
+   "seconds": 34.76
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794993398.02,
+   "turn": 9,
+   "seconds": 39.85,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 16,
+   "connections": 14
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794993401.31,
+   "turn": 9,
+   "seconds": 1.607,
+   "status": 200,
+   "retries": 0,
+   "hints": 2,
+   "audio_seconds": 27.2,
+   "audio_bytes": 871752,
+   "wer": 0.0,
+   "heard": "Once that is done, we complete AML KYC clearance. What we do: submit the complete screening package to track missing ownership or risk records, resolve false positives or enhanced due diligence items through client channels, obtain written or system-recorded AML approval, rejection, or conditions, record clearance status and date in the onboarding checklist, the check-on-it, no capital accepted and no onboarding closed before AML clearance."
+  },
+  {
+   "kind": "question",
+   "at": 1794993404.145,
+   "turn": 10,
+   "seconds": 2.833,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794993404.149,
+   "turn": 11,
+   "seconds": 2.84,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t008",
+   "steps": 16,
+   "connections": 14
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993429.609,
+   "turn": 11,
+   "seconds": 28.3
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794993441.868,
+   "turn": 11,
+   "seconds": 40.56,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 20,
+   "connections": 18
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794993441.936,
+   "turn": 11,
+   "seconds": 0.016,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794993612.012,
+   "turn": 12,
+   "seconds": 170.022,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [],
+ "notes": {
+  "summary": "After document review, the team submits an AML screening package, addresses missing records and screening issues, obtains a recorded AML outcome, and logs clearance status and date. AML clearance is required before capital acceptance or onboarding closure; the recipient and decision-maker remain unclear.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "captured",
+    "answer": "Investor Onboarding"
+   },
+   {
+    "key": "purpose",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The actual event that initiates onboarding, who receives or detects it, and its cadence or deadlines have not been established; describing the first action does not establish the trigger."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "Document-complete status is withheld when signatures or material fields are missing or identity or commitment conflicts remain unresolved.\nThe remaining conditions for closing investor onboarding after AML clearance have not been established.\nOnboarding cannot be closed before AML clearance."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "Responsibility is assigned to a preparer; the investor services team lead is identified as the reviewer/accountable role. The record also identifies the fund team, treasury, legal, and tax dependencies."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "At the beginning of the work, the team opens an onboarding record and creates an onboarding checklist log. The record captures fund entity, investor legal name and contact, expected commitment, initial/subsequent close status, target close date, and client contact.\nNext, the team establishes the required document checklist, listing subscription, side letter, tax, AML KYC, beneficial owner, wire, contact, preference, commitment and close documents and data. It identifies investor-type or jurisdiction-specific requirements and marks a provider, due date and reviewer for each item.\nThe team sends a consolidated gap request list to the authorized party.\nAfter establishing the checklist, the team receives, logs and preserves documents. Each document is saved in the controlled onboarding workspace, with received date, version, document type, investor fund and completeness status logged.\nAfter receiving and logging documents, the team reviews subscription, commitment, side letter and tax form completeness. It confirms investor legal name, fund entity, commitment, close effective date and signatures, and reconciles commitment and close date to client instruction.\nThe team compares side letter terms with the operational checklist and flags requirements affecting fees, notices, reporting, transfers or allocations. It confirms the submitted W-9/W-8 type, identity, signature date and completeness.\nThe team issues a consolidated deficiency list and tracks resolution.\nThe recipient of the deficiency list and how deficiencies are resolved and cleared have not been described.\nAfter the document review, the team completes AML KYC clearance: it submits the complete screening package, tracks missing ownership or risk records, and resolves false positives or enhanced due diligence items through client channels.\nThe team obtains written or system-recorded AML approval, rejection or conditions, then records the clearance status and date in the onboarding checklist.\nThe screening package recipient, AML decision-maker, handling of rejection or conditions, and requirements for a complete package remain unspecified."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The check is that one active record exists for the investor and fund and that ownership is clear.\nChecklist scope is reviewed against what the participant called “Enclient legal requirements.”\nThe team identifies missing pages, signatures, dates or schedules and inconsistent legal names. The document check is that each document is associated with the correct investor fund and the latest version is identifiable.\nThe person who reviews checklist scope against the reported legal requirements has not been identified.\nThe document-completeness check requires that no investor be marked document complete with missing signatures, material fields, or unresolved identity or commitment conflicts.\nThe reported AML control is that no capital is accepted and no onboarding is closed before AML clearance. The team obtains the AML outcome in writing or in a system record."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "The team identifies requirements specific to investor type or jurisdiction when establishing the checklist.\nThe specific investor-type or jurisdiction differences and their effect on the checklist have not been described."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "An onboarding checklist log is created when opening the onboarding record.\nA required document checklist lists onboarding documents and data, with a provider, due date and reviewer for each item. A consolidated gap request list is sent to the authorized party.\nReceived onboarding documents are preserved in the controlled onboarding workspace; their received date, version, document type, investor fund and completeness status are logged.\nThe team uses side letters and an operational checklist to identify operational requirements, and client instruction to reconcile commitment and close date. Submitted W-9/W-8 forms are checked for type, identity, signature date and completeness.\nA consolidated deficiency list is issued and its resolution tracked.\nThe team submits a complete AML screening package and obtains a written or system-recorded approval, rejection or conditions. The onboarding checklist records the clearance status and date."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The onboarding record captures a fund entity and investor legal name.\nWhether the procedure applies to one or multiple funds or clients remains unestablished."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The sources for the other recorded investor and fund information, initial/subsequent close status and target close date remain unspecified.\nThe participant reports that checklist scope is reviewed against “Enclient legal requirements” and that investor-type or jurisdiction-specific requirements are identified.\nSensitive tax, beneficial owner and banking data are protected using approved access controls.\nSide letter terms are compared with the operational checklist for requirements affecting fees, notices, reporting, transfers or allocations; commitment and close date are reconciled to client instruction.\nAML clearance is required before accepting capital or closing onboarding."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The onboarding record identifies the fund team, treasury, legal and tax as dependencies.\nThe specific outputs, handoffs, and readiness conditions connecting onboarding with the named dependency teams have not been described."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The system or location used to open and maintain the onboarding record and checklist log has not been identified.\nReceived documents are saved in a controlled onboarding workspace, with approved access controls protecting sensitive tax, beneficial owner and banking data."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": ""
+   }
+  ]
+ },
+ "map": {
+  "title": "Investor Onboarding",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "data_store",
+    "title": "Create onboarding checklist log",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Open the onboarding record and create the checklist log. Record the fund entity, investor legal name, contact, expected commitment, initial subsequent close status, target close date and client contact."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Assign responsibility and identify dependencies",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Assign the preparer and the investor services team lead reviewer accountable role. Identify the fund team, treasury, legal, tax and dependencies."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Check record and ownership",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Check that one active record exists for the investor-fund and ownership is clear. The checker and handling of a failed check are UNKNOWN."
+   },
+   {
+    "id": "S4",
+    "type": "document",
+    "title": "Establish required document checklist",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "List required subscription, side letter, tax, AML KYC, beneficial owner, wire, contact, preference, commitment and close documents and data. Identify investor-type or jurisdiction-specific requirements and mark the provider, due date and reviewer for each item."
+   },
+   {
+    "id": "S5",
+    "type": "document",
+    "title": "Send consolidated gap request",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Send a consolidated gap request list to the authorized party."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Review checklist scope",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Review checklist scope against the reported Enclient legal requirements. The reviewer, timing and handling of discrepancies are UNKNOWN."
+   },
+   {
+    "id": "S7",
+    "type": "document",
+    "title": "Receive and save documents",
+    "actor": "UNKNOWN",
+    "system": "Controlled onboarding workspace; system UNKNOWN",
+    "description": "Receive documents and save each in the controlled onboarding workspace. Protect sensitive tax, beneficial owner and banking data using approved access controls."
+   },
+   {
+    "id": "S8",
+    "type": "data_store",
+    "title": "Log received documents",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Log each document's received date, version, type, investor fund and completeness status."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Identify document gaps",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Identify missing pages, signatures, dates or schedules and inconsistent legal names. Handling of identified issues is UNKNOWN."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Check document association and version",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Check that every document is associated with the correct investor fund and that the latest version is identifiable. The checker and handling of failed checks are UNKNOWN."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Confirm subscription details",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Confirm investor legal name, fund entity, commitment, close effective date and signatures."
+   },
+   {
+    "id": "S12",
+    "type": "activity",
+    "title": "Compare side letter terms",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Compare side letter terms to the operational checklist and flag requirements affecting fees, notices, reporting, transfers or allocations."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Check submitted tax form",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Confirm the submitted W-9/W-8 type, identity, signature date and completeness."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Reconcile commitment and close date",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Reconcile the commitment and close date to client instruction."
+   },
+   {
+    "id": "S15",
+    "type": "document",
+    "title": "Issue and track deficiencies",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Issue a consolidated deficiency list and track resolution. The recipient, tracking location and resolution process are UNKNOWN."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Check document-complete status",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Check that no investor is marked document complete with missing signatures, material fields, or unresolved identity or commitment conflicts. The checker and handling of a failed check are UNKNOWN."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Submit AML screening package",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Submit the complete screening package and track missing ownership or risk records. The recipient and tracking location are UNKNOWN."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Resolve AML screening items",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Resolve false positives or enhanced due diligence items through client channels. The responsible person and resolution criteria are UNKNOWN."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Obtain AML outcome",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Obtain written or system-recorded AML approval, rejection, or conditions. The decision-maker and handling of rejection or conditions are UNKNOWN."
+   },
+   {
+    "id": "S20",
+    "type": "data_store",
+    "title": "Record AML clearance status",
+    "actor": "UNKNOWN",
+    "system": "Onboarding checklist; system UNKNOWN",
+    "description": "Record clearance status and date in the onboarding checklist. No capital is accepted and no onboarding is closed before AML clearance; how this is enforced is UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": ""
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": ""
+   },
+   {
+    "from": "S5",
+    "to": "S7",
+    "label": ""
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": ""
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": ""
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": ""
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": ""
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": ""
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": ""
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": ""
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": ""
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": ""
+   },
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": "Document review done"
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": ""
+   },
+   {
+    "from": "S18",
+    "to": "S19",
+    "label": ""
+   },
+   {
+    "from": "S19",
+    "to": "S20",
+    "label": ""
+   }
+  ],
+  "open_questions": [
+   "What event initiates onboarding, who receives it, and what input is ready at that point?",
+   "Who performs each opening action and the record and ownership check? Does the assigned accountable role cover the overall onboarding result?",
+   "What happens if there are duplicate active records or unclear ownership?",
+   "Who establishes and reviews the checklist and sends the gap request? Who is the authorized party?",
+   "When does the checklist scope review occur relative to establishing the checklist, sending the request and receiving documents? What happens if the review identifies a discrepancy?",
+   "Who receives, saves, logs and checks documents? How are missing information, inconsistencies, incorrect associations and version issues handled?",
+   "Who performs the subscription, side letter, tax and client-instruction checks? Who receives the deficiency list, how is resolution tracked, and is corrected material rechecked?",
+   "Who checks document-complete status, where is it recorded, and what happens if the check fails?",
+   "Who submits the AML package, tracks missing records, resolves screening items, issues the AML outcome and records the status? Where are those actions and records kept?",
+   "What constitutes a complete screening package and AML clearance? How are missing ownership or risk records resolved?",
+   "What happens after an AML rejection or conditional outcome, and how are conditions cleared?",
+   "How are capital acceptance and onboarding closure held until AML clearance, and who checks or enforces the hold?",
+   "What are the remaining onboarding stages, handoffs, exceptions and conditions for completion?",
+   "Where are the checklist, document receipt log and deficiency tracking kept, where do their inputs come from, and how are checks and their evidence recorded?",
+   "What are the approved access controls, and how are they applied and verified?",
+   "What are the Enclient legal requirements, where are they documented, and who interprets them?",
+   "What changes for particular investor types or jurisdictions, and what is the source of those requirements?",
+   "What is the delivered result, who uses it next, and are there relevant deadlines or other variations?",
+   "Is this general GPFS practice or limited to particular clients or funds, and what is the basis for that scope?",
+   "What other rules, materials, review requirements, risks, pain points and volumes apply?",
+   "How does step S6 (Review checklist scope) connect to the rest of this process, if at all?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "DRAFT — Investor Onboarding",
+  "overview": "Current-practice account for review, from opening the onboarding record through recording the AML outcome. The initiating event, remaining onboarding stages and finished condition are UNKNOWN.",
+  "trigger": "UNKNOWN. Opening the onboarding record is the first reported action, not an established trigger.",
+  "inputs": [
+   "Fund and investor details, including expected commitment and target close date; origins UNKNOWN.",
+   "Required onboarding documents and data, including subscription, side letter, tax and AML KYC materials.",
+   "Client instruction for commitment and close date.",
+   "Complete AML screening package; contents and source UNKNOWN."
+  ],
+  "outputs": [
+   "Onboarding record and checklist log with assigned responsibility.",
+   "Required document checklist and consolidated gap request.",
+   "Saved documents and receipt, version and completeness entries.",
+   "Consolidated deficiency list and resolution tracking.",
+   "Written or system-recorded AML outcome and checklist clearance status and date."
+  ],
+  "exceptions": [
+   "Missing pages, signatures, dates, schedules or inconsistent legal names are identified; their individual handling and return path are UNKNOWN.",
+   "A consolidated deficiency list is issued and resolution tracked; recipient, resolution and recheck are UNKNOWN.",
+   "Missing ownership or risk records are tracked; resolution is UNKNOWN.",
+   "False positives or enhanced due diligence items are resolved through client channels; detailed criteria are UNKNOWN.",
+   "AML rejection or conditions may be recorded as an outcome; subsequent handling is UNKNOWN."
+  ],
+  "controls": [
+   "Check for one active investor-fund record and clear ownership.",
+   "Review checklist scope against the reported Enclient legal requirements.",
+   "Use approved access controls to protect sensitive tax, beneficial owner and banking data.",
+   "Identify missing pages, signatures, dates or schedules and inconsistent legal names.",
+   "Check correct investor-fund association and identify the latest document version.",
+   "Confirm investor name, fund, commitment, close effective date and signatures; compare side letter terms to the operational checklist and flag relevant requirements.",
+   "Confirm submitted W-9/W-8 type, identity, signature date and completeness; reconcile commitment and close date to client instruction.",
+   "Do not mark an investor document complete with missing signatures or material fields, or unresolved identity or commitment conflicts.",
+   "No capital is accepted and no onboarding is closed before AML clearance. Enforcement is UNKNOWN."
+  ],
+  "validation_notes": [
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified.",
+   "The initiating event and overall finished condition have not been established, so the account does not yet describe onboarding from start to finish.",
+   "The investor services team lead is described as reviewer/accountable, but the scope of that accountability and the performers of individual actions need confirmation.",
+   "The position of the checklist scope review relative to the request and document receipt is not established; its outcome and failure handling are also unknown.",
+   "The account reports checks and restrictions, but their enforcement, retained evidence and handling of failed checks are not established.",
+   "The route from screening to an AML outcome when no screening items need resolution is not described. Rejection and conditional outcomes also have no reported continuation.",
+   "The participant identified investor-type and jurisdiction-specific requirements without describing actual differences; their impact on the process boundary is untested.",
+   "The reported Enclient legal requirements and other materials have not been supplied or independently reviewed; their precise content and interpretation remain unverified.",
+   "Whether this is general GPFS practice or a client-specific route is unknown, and participant confirmation of the draft is pending."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "data_store",
+    "title": "Create onboarding checklist log",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Open the onboarding record and create the checklist log. Record fund entity, investor legal name, contact, expected commitment, initial/subsequent close status, target close date and client contact."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Assign responsibility and dependencies",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Assign a preparer and the investor services team lead reviewer/accountable role. Identify the fund team, treasury, legal, tax and dependencies."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Check record and ownership",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Check that one active record exists for the investor and fund and that ownership is clear. Handling of a failed check is UNKNOWN."
+   },
+   {
+    "id": "S4",
+    "type": "document",
+    "title": "Establish required document checklist",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "List required subscription, side letter, tax, AML KYC, beneficial owner, wire, contact, preference, commitment and close documents and data. Identify investor-type or jurisdiction-specific requirements and mark the provider, due date and reviewer for each item."
+   },
+   {
+    "id": "S5",
+    "type": "document",
+    "title": "Send consolidated gap request",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Send a consolidated gap request list to the authorized party. The party's identity and the channel are UNKNOWN."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Review checklist scope",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Review checklist scope against what the participant called Enclient legal requirements. The reviewer, precise position in the route and treatment of discrepancies are UNKNOWN."
+   },
+   {
+    "id": "S7",
+    "type": "document",
+    "title": "Receive and save documents",
+    "actor": "UNKNOWN",
+    "system": "Controlled onboarding workspace; underlying system UNKNOWN.",
+    "description": "Receive documents and save each in the controlled onboarding workspace. Protect sensitive tax, beneficial owner and banking data using approved access controls."
+   },
+   {
+    "id": "S8",
+    "type": "data_store",
+    "title": "Log received documents",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Log each document's received date, version, type, investor fund and completeness status."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Identify document gaps",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Identify missing pages, signatures, dates or schedules and inconsistent legal names. How these findings are handled is UNKNOWN."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Check association and version",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Check that every document is associated with the correct investor fund and the latest version is identifiable. The checker and failed-check handling are UNKNOWN."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Confirm subscription details",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Confirm investor legal name, fund entity, commitment, close effective date and signatures."
+   },
+   {
+    "id": "S12",
+    "type": "activity",
+    "title": "Compare side letter terms",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Compare side letter terms to the operational checklist and flag requirements affecting fees, notices, reporting, transfers or allocations."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Check submitted tax form",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Confirm the submitted W-9/W-8 type, identity, signature date and completeness."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Reconcile commitment and date",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Reconcile the commitment and close date to client instruction."
+   },
+   {
+    "id": "S15",
+    "type": "document",
+    "title": "Issue and track deficiencies",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Issue a consolidated deficiency list and track resolution. The recipient, tracking location and resolution process are UNKNOWN."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Check document-complete status",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Check that no investor is marked document complete with missing signatures or material fields, or unresolved identity or commitment conflicts. The checker and failed-check handling are UNKNOWN."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Submit AML screening package",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Submit the complete screening package and track missing ownership or risk records. The recipient, package completeness criteria and tracking location are UNKNOWN."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Resolve AML screening items",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Resolve false positives or enhanced due diligence items through client channels when present. The responsible person and resolution criteria are UNKNOWN."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Obtain AML outcome",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Obtain written or system-recorded AML approval, rejection or conditions. The decision-maker and handling of rejection or conditions are UNKNOWN."
+   },
+   {
+    "id": "S20",
+    "type": "data_store",
+    "title": "Record AML clearance status",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Record clearance status and date in the onboarding checklist. No capital is accepted and no onboarding is closed before AML clearance; how the restriction is enforced and what follows each outcome are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "Next reported stage"
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": ""
+   },
+   {
+    "from": "S5",
+    "to": "S7",
+    "label": "Next reported stage"
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": ""
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": ""
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": ""
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": "Next reported stage"
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": ""
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": ""
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": ""
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": ""
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": ""
+   },
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": "Document review done"
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": "False positives or enhanced due diligence items"
+   },
+   {
+    "from": "S18",
+    "to": "S19",
+    "label": "Applicable items resolved"
+   },
+   {
+    "from": "S19",
+    "to": "S20",
+    "label": "Approval, rejection or conditions obtained"
+   }
+  ],
+  "open_questions": [
+   "What event starts onboarding, who receives it, and what input is ready?",
+   "What are the remaining stages after the AML outcome, and what observable result completes onboarding?",
+   "Does the investor services team lead reviewer/accountable role cover the overall result, and who performs each material action?",
+   "How are deficiencies resolved and cleared, and is corrected material rechecked?",
+   "What happens after AML rejection or conditions, and how is the hold on capital acceptance and closure enforced?",
+   "Where does checklist scope review occur relative to the request and receipt of documents, and what happens if it identifies a discrepancy?",
+   "How does the AML route reach the outcome when there are no false positives or enhanced due diligence items?",
+   "What makes the screening package complete, who receives it, and how are missing ownership or risk records resolved?",
+   "What happens if the record, ownership, document association, version or document-complete checks fail?",
+   "Who is the authorized party receiving the gap request, and who receives the deficiency list?",
+   "Where are the checklist, receipt log, deficiency tracking and check evidence kept, and what are the input origins and entry methods?",
+   "What are the reported Enclient legal requirements, where are they documented, and who interprets them and resolves conflicts?",
+   "What specific checklist requirements differ by investor type or jurisdiction, and what are their source and effect?",
+   "Is the account general GPFS practice or limited to particular clients or funds, and what supports that scope?",
+   "What cadence, fixed deadlines, downstream consumers, other connected work, materials, risks, pain points and volumes apply?",
+   "What review levels, release conditions, segregation, escalation and retained evidence apply?",
+   "What are the approved access controls and how are they applied and verified?",
+   "How does step S6 (Review checklist scope) connect to the rest of this process, if at all?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "Investor Onboarding is the intake name. Other names and the full scope and boundaries are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "unknown",
+    "answer": "UNKNOWN: the delivered result or value has not been established."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The first reported action is opening the onboarding record. The initiating event, receiver, upstream ready input, cadence and fixed deadlines are UNKNOWN."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "An investor is not marked document complete while signatures or material fields are missing or identity or commitment conflicts remain unresolved. Onboarding is not closed before AML clearance. The remaining closure conditions, evidence and downstream consumer are UNKNOWN."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "A preparer and the investor services team lead reviewer/accountable role are assigned; fund team, treasury, legal and tax dependencies are identified. Whether the lead is accountable for the overall onboarding result and who performs individual actions remain UNKNOWN."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "Open a record and log investor, fund, commitment and close details; assign roles and identify dependencies. Establish a checklist with providers, due dates and reviewers and send an authorized party a consolidated gap request. Receive documents, save them in a controlled workspace and log receipt and completeness details; the log location is UNKNOWN. Identify missing or inconsistent items. Review subscription, side letter and tax information, reconcile commitment and close date to client instruction, and issue and track a deficiency list. After document review, submit a complete AML package, track missing ownership or risk records, resolve applicable false positives or enhanced due diligence through client channels, obtain an AML outcome and record status and date. Performers, many handoffs, deficiency resolution, the no-item AML route and subsequent stages are UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "Reported checks cover one active investor-fund record and clear ownership; checklist scope against Enclient legal requirements; correct document association and identifiable latest version; and document-complete status without missing material information or unresolved identity or commitment conflicts. Sensitive data is protected using approved access controls. No capital is accepted or onboarding closed before AML clearance, and the AML outcome is written or system-recorded. Reviewers, evidence locations, failed-check handling, enforcement and the detailed approval path are UNKNOWN."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "Investor-type and jurisdiction-specific requirements are identified when the checklist is established. The actual differences, reasons, effort, charging, removability and effect on the process boundary are UNKNOWN."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": "UNKNOWN: no pain points or effort estimates were reported."
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": "UNKNOWN: concrete consequences of failure were not reported."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "Reported materials include the onboarding checklist log, required document checklist, gap request, received documents, side letters, operational checklist, client instruction, W-9/W-8 forms, deficiency list and AML screening package and outcome. Documents are saved in a controlled workspace. Locations of other materials and whether underlying written requirements were reviewed are UNKNOWN; no supporting documents were supplied."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The record identifies a fund and investor. Applicability across funds or clients, whether the route is general GPFS practice or client-specific, and its parent process are UNKNOWN."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "Checklist scope is reportedly reviewed against Enclient legal requirements, with investor-type or jurisdiction-specific requirements identified. Side letter terms are compared with the operational checklist, and commitment and close date with client instruction. Approved access controls protect sensitive data; AML clearance precedes capital acceptance and onboarding closure. Source documents, interpretation authority, conflicts, implementation details and any material calculations are UNKNOWN."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The fund team, treasury, legal and tax are identified as dependencies. Client instruction is used for commitment and close-date reconciliation, and AML items are resolved through client channels. Specific upstream outputs, team handoffs, readiness conditions, downstream consumers and parallel work are UNKNOWN."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "Received documents are saved in a controlled onboarding workspace with approved access controls; receipt date, version, type, investor fund and completeness are logged. The AML status and date are recorded in the onboarding checklist. The underlying systems, authoritative records, entry modes, other input origins, workpaper logic and storage locations are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": "UNKNOWN: counts, peaks, exception frequency and effort by step were not reported."
+   }
+  ]
+ },
+ "draft_error": null
+}

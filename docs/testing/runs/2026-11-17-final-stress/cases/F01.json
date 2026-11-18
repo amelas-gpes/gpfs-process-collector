@@ -1,0 +1,1339 @@
+{
+ "case": "F01",
+ "process": "MC-07",
+ "mode": "file",
+ "style": "four-page procedure PDF, then follow-ups",
+ "build": "untouched",
+ "participant": "agent",
+ "context": {
+  "process_name": "Manco Treasury & Payment Release",
+  "process_owner": "",
+  "objective": "Document how we carry out Manco Treasury & Payment Release, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "assistant",
+   "text": "Thanks for sharing. Give me a moment to digest the file. Then I’ll follow up with a question.",
+   "document_event": true
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "The procedure lists approved invoices or an approved AP-platform list as inputs, but not what initiates receipt; what starts that handoff?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "It starts when the client approves the payment list for its treasury cycle. That is usually weekly or every two weeks, plus the occasional urgent run, which we treat as an exception. Once the client has approved, the accounts payable preparer gives us the approved invoices and the payment-log entries, either as an approved invoice batch or out of the AP platform. I don't know the exact cycle or the holiday calendar for each client, that isn't written down anywhere I have seen."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What does completing a treasury payment run achieve for the ManCo or its clients?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "The result is a funded group of client-approved management company payments that have gone out under dual control, meaning one authorized person set each payment up and a different authorized person reviewed and released it. We end up with the bank confirmations and status records on file, and the bank activity compared with the accounting entries, with any differences explained. It covers management company vendor payments, what people call payroll-adjacent payments, and intercompany settlements between related entities. It does not cover fund investor payments or payroll processing itself."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "What changes in the process when you handle an urgent run?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "An urgent run needs a documented exception authorization before we go ahead, and the controls that apply to the payments still have to be done, nothing gets skipped because it is urgent. We only proceed once that authorization and its record are complete, and the record we keep is the urgent approval. I don't know who is allowed to authorize an urgent run, that has not been confirmed. The Treasury or control owner and the GPFS process owner would have to tell you."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "Apart from obtaining documented authorization, what changes in the steps or timing for an urgent run?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "As far as I know, nothing else. The same steps and the same controls apply as for a regular run, like I said, nothing gets skipped. I don't know of any separate timing or cutoff for urgent runs. The bank cutoffs and the urgent-run exception itself are not confirmed in our current approved process, so the Treasury or control owner would be the one to ask."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "What can go wrong in a payment run, and what are the practical consequences?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "The main ones are insufficient funds, a payment that gets rejected, bounced, returned or duplicated, and bank details that are new or changed without the callback and screening done. If funds are short we hold the payment and get a funding decision, we don't keep retrying until it clears. If a payment is rejected, bounced, returned or duplicated we don't retry without review: we investigate, correct the issue, get new approval if anything changed, and reconcile the final outcome. The consequence of retrying without finding the root cause is that we can duplicate or misdirect funds. With new or changed bank details the payment stays blocked until the callback verification and screening records are complete, because contact details that came with the payment request, or calls nobody documented, are a fraud and compliance risk. And if the payment log gets unclear statuses or manual updates, it stops matching the bank and the accounting records."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "How do you determine that the run is sufficiently funded before release?"
+  },
+  {
+   "id": "t014",
+   "role": "user",
+   "text": "That is step 3 in the document I uploaded. We take the validated payment list and confirm the funding account and the available balance for each currency, using the bank balances and the approved treasury forecast. We check the amount, the currency, the value date, which is the bank's settlement date, and the available funds, and we identify any FX need along with its value dates and cutoffs. If the balance does not cover the run we hold it until there is an approved funding decision. I don't know of any set funding threshold, that has not been confirmed, and neither has who the funding and FX decision owner is. The Treasury or control owner and the GPFS process owner would need to confirm both."
+  },
+  {
+   "id": "t015",
+   "role": "assistant",
+   "text": "When a run is held for insufficient funds, what has to happen before it can resume?"
+  },
+  {
+   "id": "t016",
+   "role": "assistant",
+   "text": "This capture still has open sections. 13 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794966591.731,
+   "turn": 0,
+   "seconds": 0.026,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.session",
+   "at": 1794966594.785,
+   "turn": 1,
+   "seconds": 0.014,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.upload",
+   "at": 1794966594.789,
+   "turn": 1,
+   "seconds": 0.003,
+   "status": 202,
+   "retries": 0,
+   "file": "U4 MC-07 Manco Treasury & Payment Release.pdf",
+   "bytes": 235408
+  },
+  {
+   "kind": "doc.extracted",
+   "at": 1794966595.3,
+   "turn": 1,
+   "seconds": 0.53,
+   "file": "U4 MC-07 Manco Treasury & Payment Release.pdf",
+   "chunks": 4,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 4,
+    "total_units": 4,
+    "text_indexed_units": 4,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_started",
+   "at": 1794966595.3,
+   "turn": 1,
+   "seconds": 0.53,
+   "file": "U4 MC-07 Manco Treasury & Payment Release.pdf",
+   "chunks": 4,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 4,
+    "total_units": 4,
+    "text_indexed_units": 4,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_deep",
+   "at": 1794966601.369,
+   "turn": 1,
+   "seconds": 6.6,
+   "file": "U4 MC-07 Manco Treasury & Payment Release.pdf",
+   "chunks": 4,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 4,
+    "total_units": 4,
+    "text_indexed_units": 4,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_complete",
+   "at": 1794966601.369,
+   "turn": 1,
+   "seconds": 6.6,
+   "file": "U4 MC-07 Manco Treasury & Payment Release.pdf",
+   "chunks": 4,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 4,
+    "total_units": 4,
+    "text_indexed_units": 4,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.followup_question",
+   "at": 1794966604.467,
+   "turn": 2,
+   "seconds": 3.098,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.first_question",
+   "at": 1794966604.467,
+   "turn": 3,
+   "seconds": 9.7,
+   "reading": {
+    "omitted_documents": 0,
+    "documents": [
+     {
+      "id": "doc_6a8ec8f62439b7b40792845d",
+      "included_chunks": 4,
+      "total_chunks": 4
+     }
+    ]
+   }
+  },
+  {
+   "kind": "doc.left_pending",
+   "at": 1794966634.482,
+   "turn": 3,
+   "notes_state": "working",
+   "map_state": "working",
+   "seconds": 33.11
+  },
+  {
+   "kind": "question",
+   "at": 1794966652.167,
+   "turn": 4,
+   "seconds": 1.654,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966683.111,
+   "turn": 5,
+   "seconds": 32.6
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794966697.313,
+   "turn": 5,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 46.8
+  },
+  {
+   "kind": "question",
+   "at": 1794966709.471,
+   "turn": 6,
+   "seconds": 1.698,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966709.477,
+   "turn": 7,
+   "seconds": 1.7,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t004",
+   "steps": 17,
+   "connections": 18
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966734.352,
+   "turn": 7,
+   "seconds": 26.58
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966743.503,
+   "turn": 7,
+   "seconds": 35.73,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 17,
+   "connections": 18
+  },
+  {
+   "kind": "question",
+   "at": 1794966758.12,
+   "turn": 8,
+   "seconds": 1.678,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966758.128,
+   "turn": 9,
+   "seconds": 1.69,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t006",
+   "steps": 17,
+   "connections": 18
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966782.521,
+   "turn": 9,
+   "seconds": 26.08
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966797.348,
+   "turn": 9,
+   "seconds": 40.91,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 18,
+   "connections": 20
+  },
+  {
+   "kind": "question",
+   "at": 1794966815.537,
+   "turn": 10,
+   "seconds": 2.044,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966815.551,
+   "turn": 11,
+   "seconds": 2.06,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t008",
+   "steps": 18,
+   "connections": 20
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966835.409,
+   "turn": 11,
+   "seconds": 21.92
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966838.987,
+   "turn": 11,
+   "seconds": 25.49,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 18,
+   "connections": 20
+  },
+  {
+   "kind": "question",
+   "at": 1794966868.257,
+   "turn": 12,
+   "seconds": 5.012,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966868.264,
+   "turn": 13,
+   "seconds": 5.02,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t010",
+   "steps": 18,
+   "connections": 20
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966891.652,
+   "turn": 13,
+   "seconds": 28.41
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966903.883,
+   "turn": 13,
+   "seconds": 40.64,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 22,
+   "connections": 26
+  },
+  {
+   "kind": "question",
+   "at": 1794966918.596,
+   "turn": 14,
+   "seconds": 1.755,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966918.603,
+   "turn": 15,
+   "seconds": 1.76,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t012",
+   "steps": 22,
+   "connections": 26
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966942.02,
+   "turn": 15,
+   "seconds": 25.18
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966942.02,
+   "turn": 15,
+   "seconds": 25.18,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 22,
+   "connections": 26
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794966946.398,
+   "turn": 15,
+   "seconds": 0.034,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794967382.396,
+   "turn": 16,
+   "seconds": 433.5,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [
+  {
+   "name": "U4 MC-07 Manco Treasury & Payment Release.pdf",
+   "kind": "pdf",
+   "size": 235408,
+   "status": "ready",
+   "chunk_count": 4,
+   "coverage": {
+    "indexed_units": 4,
+    "total_units": 4,
+    "text_indexed_units": 4,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  }
+ ],
+ "notes": {
+  "summary": "The participant describes funding checks by currency using the validated payment list, bank balances and approved treasury forecast. A shortfall holds the run for an approved funding decision; the threshold and funding and FX decision owner remain unconfirmed.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "captured",
+    "answer": "The supplied process name is Manco Treasury & Payment Release; the procedure uses MC-07."
+   },
+   {
+    "key": "purpose",
+    "status": "captured",
+    "answer": "The procedure describes releasing management-company payments and comparing payment, bank and accounting records.\nThe participant describes the result as a funded group of client-approved management-company payments sent under dual control, with confirmations and status records on file and bank activity compared to accounting entries."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The participant says work starts when the client approves the payment list for its treasury cycle, usually weekly or every two weeks, with occasional urgent runs treated as exceptions.\nThe participant does not know each client's exact cycle or holiday calendar and has not seen them written down."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The procedure requires each released item to have a bank reference or confirmation, or a documented open exception. For reconciliation close, payment log, bank activity and accounting records must have no unexplained item or total differences, with reviewer approval retained.\nThe participant says payments have gone out under dual control, bank confirmations and status records are on file, and bank activity has been compared with accounting entries with differences explained."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The procedure identifies the production owner, roles and limits as unresolved; accountability for the result needs confirmation."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The procedure first describes checking whether vendor or bank details are new or changed, conducting the approved callback using an independent contact source, completing sanctions/OFAC screening, retaining the record and updating the vendor master. The vendor-control role is unspecified.\nThe documented AP or payment-run preparer uses approved invoices or an approved AP platform list, confirms client approval and matches each item to the source package, checks payment details, excludes rejected, pending-query, duplicate or unsupported items, and records the list in the payment log.\nFor run readiness, the procedure calls for checking funding accounts and balances by currency, FX needs and dates and cutoffs, resolving insufficient funds through an approved funding decision, and confirming distinct initiator and releaser users have current access. The output is a release-ready run or documented hold; the preparer and funding or FX owner are unspecified.\nThe payment initiator enters or imports payment data into the applicable bank platform and bank setup is matched to the payment log and invoice package. An independent releaser verifies the specified payment details and approvals, with a comparison record kept before release.\nThe documented releaser confirms authority under the current access and limit matrix, releases before the applicable cutoff, and records bank reference, time, initiator, releaser and initial status.\nTreasury or the payment-run preparer saves confirmation with the invoice package, updates the payment log and monitors pending, query, failed and insufficient-funds items. Insufficient funds are escalated for a funding decision; repeated retries without authority are prohibited. Resolution communications and final status are retained.\nThe procedure calls for matching the payment log to bank transactions and references, and bank transactions to accounting entries and settled invoices; identifying unsettled, unrecorded, duplicated or returned payments and amount or date differences; resolving differences; and retaining reviewer approval for each close. Reconciliation preparer and reviewer are unspecified.\nThe document leaves payment-log fields and status definitions, exception owners and response times, retry/cancel/recall authority, reconciliation deadline and acceptable differences, and the recall procedure unresolved. The participant describes a review and correction route for returned payments, but its detailed execution and authority remain unspecified.\nAfter client approval, the accounts payable preparer gives the team approved invoices and payment-log entries, either as an approved invoice batch or from the AP platform.\nFor an urgent run, the team proceeds only after the exception authorization and its record are complete; applicable payment controls are still performed.\nWhen funds are insufficient, the team holds the payment and obtains a funding decision rather than repeatedly retrying it.\nFor rejected, bounced, returned or duplicated payments, the team does not retry without review: it investigates, corrects the issue, obtains new approval if anything changed and reconciles the final outcome.\nFor new or changed bank details, the payment remains blocked until callback verification and screening records are complete.\nThe team takes the validated payment list and uses bank balances and the approved treasury forecast to confirm the funding account and available balance for each currency. It checks amount, currency, value date and available funds, and identifies FX needs with their value dates and cutoffs."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The documented first-payment gate requires callback-verification and screening records to be complete before the first payment.\nThe procedure requires the payment count and total to match approved source items, and checks vendor, entity, amount, currency, value or due date, and payment account.\nThe documented independent releaser checks vendor and account, amount, currency, value date, funding account and approvals. Initiator and releaser must be different individuals, and setup must agree to approved support.\nThe participant identifies client approval of the payment list as preceding the AP preparer's handoff.\nThe participant describes dual control as one authorized person setting up each payment and a different authorized person reviewing and releasing it.\nUrgent runs require documented exception authorization before proceeding, without skipping applicable payment controls.\nRejected, bounced, returned or duplicated payments require review before retry, and a change requires new approval. New or changed bank details require completed callback-verification and screening records before payment.\nFor funding readiness, the team checks the amount, currency, bank settlement date and available funds by currency against bank balances and the approved treasury forecast, and identifies FX needs and associated dates and cutoffs."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "The participant describes occasional urgent runs as exceptions to the usual weekly or fortnightly treasury cycle.\nFor an urgent run, documented exception authorization and its record must be complete before proceeding; the applicable payment controls still apply and are not skipped.\nThe participant does not know who is authorized to approve urgent runs; the Treasury or control owner and GPFS process owner could clarify.\nApart from the documented authorization, the participant knows of no other step or control change for urgent runs: the same steps and controls apply as for a regular run.\nThe participant knows of no separate urgent-run timing or cutoff; the urgent-run exception and bank cutoffs are not confirmed in the current approved process. The Treasury or control owner could clarify.\nNew or changed bank details trigger a payment block until callback verification and screening records are complete."
+   },
+   {
+    "key": "pain_points",
+    "status": "partial",
+    "answer": "Unclear payment-log statuses or manual updates can leave the log out of agreement with bank and accounting records."
+   },
+   {
+    "key": "risk",
+    "status": "captured",
+    "answer": "Retrying without finding the root cause can duplicate or misdirect funds. Contact details supplied with the payment request or undocumented calls present fraud and compliance risk.\nUnclear statuses or manual payment-log updates can cause the log to stop matching bank and accounting records."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The supplied MC-07 procedure identifies vendor-control records, approved invoices or an AP list, invoice packages, payment log, bank confirmations and statements, access matrix and reconciliation records as working inputs or retained evidence.\nThe AP preparer supplies approved invoices and payment-log entries after client approval, either as an approved batch or from the AP platform.\nThe participant reports retaining bank confirmations and status records and comparing bank activity with accounting entries.\nThe urgent approval is retained as the record of the exception authorization.\nCallback-verification and screening records are required before a payment with new or changed bank details can proceed.\nThe validated payment list, bank balances and approved treasury forecast are used to check funding accounts and available balances by currency."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The supplied procedure concerns management-company treasury and payment release. The participant describes aspects of the payment, control and reconciliation route.\nThe participant includes management-company vendor payments, payroll-adjacent payments and intercompany settlements between related entities; fund investor payments and payroll processing itself are outside scope."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The procedure prohibits release while funding, FX, a cutoff or user access is unresolved.\nThe procedure says callback method and contact source, screening tool and criteria, approver, funding and FX thresholds, cutoff sources, approval limits, bank instructions and retention rules require resolution or confirmation before production use.\nThe reported intake follows client approval of the payment list.\nThe participant reports that payment setup and review and release are performed by different authorized people under dual control.\nAn urgent run cannot proceed until its exception authorization and record are complete; urgency does not waive applicable payment controls.\nThe participant does not know who may authorize an urgent run; the Treasury or control owner and GPFS process owner would need to confirm the authority.\nThe participant says bank cutoffs and the urgent-run exception are not confirmed in the current approved process; the Treasury or control owner could clarify.\nThe participant says not to retry a rejected, bounced, returned or duplicated payment without review, and to obtain new approval if anything changed. New or changed bank details remain blocked until callback-verification and screening records are complete.\nIf the balance does not cover the run, the team holds it until there is an approved funding decision. The value date is the bank's settlement date.\nThe participant does not know of a confirmed funding threshold or funding and FX decision owner; the Treasury or control owner and GPFS process owner need to confirm them."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "After client approval, this work receives approved invoices and payment-log entries from the accounts payable preparer, as an approved invoice batch or from the AP platform.\nThis work follows client approval of the payment list for the treasury cycle."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The procedure identifies a vendor master, AP platform, payment log, applicable banking platform, invoice folder and accounting system; the initiator enters or imports bank payment data.\nThe participant reports an AP platform as one source of the approved invoice and payment-log handoff."
+   },
+   {
+    "key": "volume",
+    "status": "partial",
+    "answer": "The participant reports a usually weekly or fortnightly cycle and occasional urgent runs; payment counts and effort are not provided."
+   }
+  ]
+ },
+ "map": {
+  "title": "Manco Treasury & Payment Release",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Validate vendor and payment details",
+    "actor": "UNKNOWN — vendor-control role not specified",
+    "system": "Vendor master and vendor-control records",
+    "description": "The procedure calls for identifying new or changed details, independent callback, sanctions screening, record retention and vendor-master update. The participant says payments with new or changed bank details stay blocked until callback-verification and screening records are complete."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Validate approved payment list",
+    "actor": "Accounts-payable preparer or payment-run preparer",
+    "system": "Invoice package, AP platform and payment log",
+    "description": "The procedure calls for confirming client approval and source-package agreement, checking payment details, and excluding rejected, pending-query, duplicate or unsupported items. Payment count and total must match approved source items."
+   },
+   {
+    "id": "S3",
+    "type": "data_store",
+    "title": "Record list in payment log",
+    "actor": "Accounts-payable preparer or payment-run preparer",
+    "system": "Payment log",
+    "description": "The procedure calls for recording the payment list in the log; required fields and status definitions require confirmation."
+   },
+   {
+    "id": "S4",
+    "type": "decision",
+    "title": "Is the run release-ready?",
+    "actor": "UNKNOWN — preparer and funding or FX decision owner not specified",
+    "system": "Bank balances, approved treasury forecast, payment log and user-access matrix",
+    "description": "The participant checks the funding account and available balance for each currency against bank balances and the approved treasury forecast, including amount, currency, value date, available funds and FX needs, dates and cutoffs. The procedure also calls for confirming that different initiator and releaser users are available with current access, and prohibits release while funding, FX, cutoff or access is unresolved."
+   },
+   {
+    "id": "S5",
+    "type": "wait",
+    "title": "Hold unresolved payment run",
+    "actor": "UNKNOWN",
+    "system": "Payment log",
+    "description": "The procedure requires a documented hold rather than release while funding, FX, cutoff or user access remains unresolved. The recovery mechanics and subsequent handoff are not specified."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Hold and obtain funding decision",
+    "actor": "UNKNOWN — funding decision owner not confirmed",
+    "system": "UNKNOWN",
+    "description": "If funds are short, the participant says to hold the payment or run until there is an approved funding decision, rather than repeatedly retrying. The procedure also calls for resolving insufficient funds through an approved funding decision."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Enter or import bank payment",
+    "actor": "Payment initiator for entry/import; matching responsibility UNKNOWN",
+    "system": "Applicable bank platform",
+    "description": "The procedure calls for the initiator to enter or import payment data and for the bank setup to be matched to the payment log and invoice package. It does not assign the matching action. Bank-specific entry and import steps are not documented."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Independently verify payment setup",
+    "actor": "Independent checker/releaser",
+    "system": "Applicable banking platform and payment log",
+    "description": "The independent releaser verifies vendor and account, amount, currency, value date, funding account and approvals, and retains the comparison before release. The initiator and releaser must be different individuals."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Release payment under dual control",
+    "actor": "Payment releaser",
+    "system": "Banking platform and payment log",
+    "description": "The participant describes one authorized person setting up each payment and a different authorized person reviewing and releasing it. The procedure calls for confirming releaser authority, releasing before the cutoff, and recording the bank reference, time, initiator, releaser and initial status."
+   },
+   {
+    "id": "S10",
+    "type": "document",
+    "title": "Save confirmation and update status",
+    "actor": "Treasury or payment-run preparer",
+    "system": "Banking platform, payment log and invoice folder",
+    "description": "The participant says bank confirmations and status records are on file at completion. The procedure calls for saving the confirmation with the invoice package and updating the payment log; status definitions are unspecified."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Monitor payment exceptions",
+    "actor": "Treasury or payment-run preparer",
+    "system": "Banking platform, payment log and invoice folder",
+    "description": "The procedure calls for monitoring pending, query, failed and insufficient-funds items and retaining communications about resolution and final status. Exception owners, response times and retry, cancellation or recall authority are unspecified."
+   },
+   {
+    "id": "S12",
+    "type": "activity",
+    "title": "Escalate insufficient funds",
+    "actor": "Treasury or payment-run preparer for the documented escalation; hold and decision responsibilities UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The procedure calls for escalating insufficient funds for a funding decision. The participant says to hold the payment and get a funding decision rather than keep retrying."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Reconcile payment and accounting records",
+    "actor": "UNKNOWN — reconciliation preparer not specified",
+    "system": "Payment log, bank statements, accounting system and invoice package",
+    "description": "The participant describes bank activity compared with accounting entries, with differences explained, as part of the result. The procedure also calls for matching the payment log to bank transactions and references, matching bank transactions to accounting entries and settled invoices, and identifying specified differences."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Resolve reconciliation differences",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The procedure requires differences to be resolved. The acceptable difference, close deadline and procedure for returned or recalled payments are not specified."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Approve reconciliation close",
+    "actor": "UNKNOWN — reviewer not specified",
+    "system": "UNKNOWN",
+    "description": "The procedure requires retention of the reviewer's approval for each close. It does not identify the reviewer or describe the approval mechanism."
+   },
+   {
+    "id": "S16",
+    "type": "start",
+    "title": "Client approves payment list",
+    "actor": "Client",
+    "system": "UNKNOWN",
+    "description": "The client’s approval of the payment list starts the treasury-cycle work. Urgent runs are occasional exceptions."
+   },
+   {
+    "id": "S17",
+    "type": "document",
+    "title": "Supply approved payment materials",
+    "actor": "Accounts-payable preparer",
+    "system": "Approved invoice batch or AP platform",
+    "description": "After client approval, the accounts-payable preparer gives the participant's team approved invoices and payment-log entries, either as an approved invoice batch or from the AP platform."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Authorize and record urgent run",
+    "actor": "UNKNOWN — urgent-run authorizer not confirmed",
+    "system": "UNKNOWN",
+    "description": "The participant says an urgent run requires documented exception authorization before proceeding and that applicable controls are not skipped. The urgent-run exception is not confirmed in the current approved process; the participant knows of no other change to steps or timing."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Investigate and correct payment issue",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "For a rejected, bounced, returned or duplicated payment, investigate and correct the issue. The participant says not to retry without review."
+   },
+   {
+    "id": "S20",
+    "type": "decision",
+    "title": "Did anything change?",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "A change requires new approval as part of the payment-exception handling described by the participant."
+   },
+   {
+    "id": "S21",
+    "type": "activity",
+    "title": "Obtain new approval",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Obtain new approval if anything changed during handling of the payment exception."
+   },
+   {
+    "id": "S22",
+    "type": "activity",
+    "title": "Reconcile final exception outcome",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Reconcile the final outcome of a rejected, bounced, returned or duplicated payment. The participant does not specify whether or how a retry occurs."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": ""
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": "Funding, FX, cutoff or user access unresolved"
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": ""
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": ""
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": ""
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": "Insufficient funds"
+   },
+   {
+    "from": "S11",
+    "to": "S13",
+    "label": "Payment confirmations or statuses available"
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": "Differences identified"
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": "Differences resolved"
+   },
+   {
+    "from": "S13",
+    "to": "S15",
+    "label": "No unexplained differences"
+   },
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": ""
+   },
+   {
+    "from": "S4",
+    "to": "S6",
+    "label": "Insufficient funds"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "Independently verified payment"
+   },
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "Approved materials supplied AND (non-urgent OR urgent authorization and record complete)"
+   },
+   {
+    "from": "S17",
+    "to": "S2",
+    "label": "Approved materials supplied AND (non-urgent OR urgent authorization and record complete)"
+   },
+   {
+    "from": "S18",
+    "to": "S2",
+    "label": "Urgent run: authorization and record complete AND approved materials supplied"
+   },
+   {
+    "from": "S4",
+    "to": "S7",
+    "label": "Release-ready run AND approved vendor details AND (non-urgent OR urgent authorization and record complete)"
+   },
+   {
+    "from": "S1",
+    "to": "S7",
+    "label": "Approved vendor details AND release-ready run AND (non-urgent OR urgent authorization and record complete)"
+   },
+   {
+    "from": "S18",
+    "to": "S7",
+    "label": "Urgent run: authorization and record complete AND release-ready run AND approved vendor details"
+   },
+   {
+    "from": "S11",
+    "to": "S19",
+    "label": "Rejected, bounced, returned or duplicated payment"
+   },
+   {
+    "from": "S13",
+    "to": "S19",
+    "label": "Duplicated or returned payment identified"
+   },
+   {
+    "from": "S19",
+    "to": "S20",
+    "label": ""
+   },
+   {
+    "from": "S20",
+    "to": "S21",
+    "label": "Anything changed"
+   },
+   {
+    "from": "S20",
+    "to": "S22",
+    "label": "Nothing changed; final outcome available"
+   },
+   {
+    "from": "S21",
+    "to": "S22",
+    "label": "New approval obtained and final outcome available"
+   }
+  ],
+  "open_questions": [
+   "Does any incoming route start S2 (Validate approved payment list), or must all prerequisites finish?",
+   "Does any incoming route start S7 (Enter or import bank payment), or must all prerequisites finish?",
+   "Does any incoming route start S15 (Approve reconciliation close), or must all prerequisites finish?",
+   "Does any incoming route start S19 (Investigate and correct payment issue), or must all prerequisites finish?",
+   "Does any incoming route start S22 (Reconcile final exception outcome), or must all prerequisites finish?",
+   "UNKNOWN: Does the documented procedure reflect current practice? It says missing authorities and operational details must be resolved before production use.",
+   "UNKNOWN: How do vendor validation and receipt of approved materials relate before payment-list validation? Is vendor validation required before S2? The procedure requires approved vendor details and a release-ready run for bank payment setup.",
+   "UNKNOWN: Who may authorize an urgent run, who records the approval, where is it retained, and how is authorization requested? The participant identifies the Treasury or control owner and GPFS process owner as people who could confirm authority.",
+   "UNKNOWN: Is the reported urgent-run exception part of the current approved process? How is authorization coordinated with vendor validation and receipt of materials, and does it apply before those actions?",
+   "UNKNOWN: Who makes or approves funding and FX decisions, and is there a funding threshold? How are the documented hold and funding decision coordinated, and after either, how is readiness restored and where does work resume? What happens for unresolved FX, cutoff or access conditions?",
+   "UNKNOWN: Who matches the bank setup to the payment log and invoice package?",
+   "UNKNOWN: Who detects client approval, how is it communicated, and which individual receives the approved materials? Exact client cycles and holiday calendars are not known to the participant.",
+   "UNKNOWN: Who is accountable for the overall process, and is this general GPFS practice or specific to particular clients or ManCos?",
+   "UNKNOWN: What are the vendor-control role, callback method and independent contact source, screening tool and pass/fail criteria, and approver?",
+   "UNKNOWN: What happens to excluded payment items, and what correction and recheck route applies if payment validation or independent verification fails?",
+   "UNKNOWN: What are the payment-log required fields and status definitions, FX thresholds, official cutoff sources, and user-access and approval limits?",
+   "UNKNOWN: Who handles and reviews rejected, bounced, returned or duplicated payments, who grants new approval, and how does a final outcome become available for reconciliation? Where does that exception route resume or terminate?",
+   "UNKNOWN: Who owns other pending, query, failed or recalled payment exceptions; what are the response times and retry, cancellation or recall authorities; and where do those routes resume or terminate?",
+   "UNKNOWN: Who prepares and reviews reconciliation, what is the close deadline and acceptable difference, and where are the independent comparison and close approval retained?",
+   "UNKNOWN: Who uses the completed output next?",
+   "UNKNOWN: Are there client or entity variations, and where relevant what charging or removal constraints apply?",
+   "UNKNOWN: What systems are authoritative, how is payment data entered or imported in practice, and what are the retention rules?",
+   "UNKNOWN: What are normal volumes, effort, peaks and exception frequency? The participant reports that unclear statuses or manual payment-log updates can cause mismatches with bank and accounting records.",
+   "UNKNOWN: Who interprets conflicting rules and records interpretations, and what additional procedures or materials govern this work?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "DRAFT — ManCo Treasury & Payment Release",
+  "overview": "Current-practice review draft combining one participant’s account with the requirements in the uploaded procedure. The procedure is not confirmation that its steps operate today. The draft contains unresolved routes and requires participant and process-owner review.",
+  "trigger": "The client approves the payment list for its treasury cycle. Who detects the approval and how it is communicated are UNKNOWN.",
+  "inputs": [
+   "Client-approved invoices and payment-log entries supplied by the accounts-payable preparer as an approved invoice batch or from the AP platform.",
+   "Vendor master, bank details and new/change indicator, as specified by the procedure.",
+   "Validated payment list, bank balances and approved treasury forecast for the reported funding check.",
+   "Payment confirmations or statuses, bank statement and accounting entries for the procedure’s reconciliation."
+  ],
+  "outputs": [
+   "A funded group of client-approved management-company payments sent under reported dual control.",
+   "Bank confirmations and status records on file.",
+   "Bank activity compared with accounting entries, with differences explained.",
+   "The procedure additionally specifies retained reviewer approval for each reconciliation close."
+  ],
+  "exceptions": [
+   "Urgent runs: the participant reports documented authorization and its record before proceeding, with no controls skipped; authority and inclusion in the current approved process remain unconfirmed.",
+   "Insufficient funds: hold and obtain an approved funding decision; do not repeatedly retry. Recovery after the decision is UNKNOWN.",
+   "Rejected, bounced, returned or duplicated payments: investigate and correct, do not retry without review, obtain new approval if anything changed, and reconcile the final outcome.",
+   "New or changed bank details: payment stays blocked until callback-verification and screening records are complete.",
+   "The procedure excludes rejected, pending-query, duplicate and unsupported items from the validated list; their subsequent handling is UNKNOWN.",
+   "The procedure prohibits release while funding, FX, cutoff or user access is unresolved; recovery for these conditions is UNKNOWN."
+  ],
+  "controls": [
+   "Client approves the payment list before the accounts-payable handoff.",
+   "Participant-reported dual control uses different authorized people for setup and review/release.",
+   "The participant reports a block for new or changed bank details pending complete callback-verification and screening records.",
+   "The procedure specifies matching payment count and total to approved source items, independent verification before release, and retention of the comparison; actual operation remains unconfirmed.",
+   "The procedure requires each released item to have a bank reference or confirmation or a documented open exception, and requires no unexplained reconciliation differences and retained reviewer approval for each close."
+  ],
+  "validation_notes": [
+   "AI-generated current-practice draft pending participant confirmation and appropriate process-owner review; it is not an executable or approved procedure.",
+   "The written procedure is attributed to its excerpts, not treated as independent proof that its steps or controls operate in current practice.",
+   "The file has native indexed text for all four pages; all four indexed sections were supplied. AI review covered four of four chunks, was complete and not stopped, and reported no unread visual units.",
+   "Both the release-ready run and approved vendor details are required for documented bank setup. Both dependencies are shown without asserting their order, concurrency or a coordination mechanism.",
+   "Urgent authorization is a reported prerequisite to proceeding. Its incoming route and exact placement are UNKNOWN; its approved-process status is unconfirmed.",
+   "The proposed S3-to-S4 edge was removed: the validated list is required for funding, but the excerpts do not establish that recording it must finish first. S2-to-S4 preserves the stated list dependency.",
+   "The proposed S11-to-S13 edge was removed: shared confirmations or statuses do not establish a handoff from monitoring to reconciliation. Reconciliation remains a separately evidenced fragment.",
+   "The proposed S11-to-S19 edge was removed: the sources do not establish that all listed exception types enter handling from monitoring. Duplicated or returned payments identified during reconciliation retain their supported conditional route.",
+   "The insufficient-funds hold and documented general unresolved-readiness hold overlap; their coordination and exits are not established. No recovery arrow has been invented.",
+   "The participant reports explained differences as a result; retained close approval is a separate written requirement not confirmed in practice.",
+   "No approved GPFS standard, control effectiveness, independent verification of operations or downstream consumer is established.",
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified.",
+   "Document-derived statements describe supplied reference material; current practice and control effectiveness have not been confirmed.",
+   "The independent audit changed or removed 1 proposed exception(s)."
+  ],
+  "steps": [
+   {
+    "id": "S16",
+    "type": "start",
+    "title": "Client approves payment list",
+    "actor": "Client",
+    "system": "UNKNOWN",
+    "description": "Client approval starts the treasury-cycle work. Runs are usually weekly or every two weeks, with occasional urgent runs."
+   },
+   {
+    "id": "S17",
+    "type": "document",
+    "title": "Supply approved payment materials",
+    "actor": "Accounts-payable preparer",
+    "system": "AP platform or approved invoice batch",
+    "description": "After client approval, the preparer gives the team approved invoices and payment-log entries, either as an approved invoice batch or from the AP platform."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Authorize and record urgent run",
+    "actor": "UNKNOWN — authorizer not confirmed",
+    "system": "UNKNOWN",
+    "description": "An urgent run reportedly requires documented exception authorization and its completed record before proceeding. Applicable controls are not skipped. The participant says the urgent exception is not confirmed in the current approved process."
+   },
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Validate vendor and bank details",
+    "actor": "UNKNOWN — vendor-control role not specified",
+    "system": "Vendor master and vendor-control records, according to the procedure",
+    "description": "The procedure calls for determining whether details are new or changed, executing the approved callback procedure using an independent contact source, completing sanctions/OFAC screening, retaining the required record and updating the vendor master under the approved workflow. It prohibits a first payment until the required records are complete. The participant reports that payments with new or changed bank details stay blocked until callback-verification and screening records are complete."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Validate approved payment list",
+    "actor": "Accounts-payable preparer or payment-run preparer, according to the procedure",
+    "system": "Invoice package, AP platform and payment log, according to the procedure",
+    "description": "The procedure calls for confirming client approval and matching each invoice or payment to the source package; checking vendor, entity, amount, currency, value or due date and payment account; and excluding rejected, pending-query, duplicate or unsupported items. Count and total must match the approved source items. Subsequent handling of excluded items is UNKNOWN."
+   },
+   {
+    "id": "S3",
+    "type": "data_store",
+    "title": "Record list in payment log",
+    "actor": "Accounts-payable preparer or payment-run preparer, according to the procedure",
+    "system": "Payment log",
+    "description": "The procedure calls for recording the payment list in the payment log. Required fields and status definitions require confirmation."
+   },
+   {
+    "id": "S4",
+    "type": "decision",
+    "title": "Is the run release-ready?",
+    "actor": "UNKNOWN — payment-run preparer and funding or FX owner not specified in the procedure",
+    "system": "Bank balances, approved treasury forecast, payment log and user-access matrix",
+    "description": "The participant reports confirming the funding account and available balance for each currency using bank balances and the approved treasury forecast; checking amount, currency, value date and available funds; and identifying FX needs, value dates and cutoffs. Value date is the bank’s settlement date. The procedure also calls for confirming different initiator and releaser users have current access, and prohibits release while funding, FX, a cutoff or user access is unresolved."
+   },
+   {
+    "id": "S5",
+    "type": "wait",
+    "title": "Hold unresolved payment run",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The procedure specifies a documented hold and prohibits release while funding, FX, a cutoff or user access is unresolved. How FX, cutoff or access issues are resolved and where the route resumes are UNKNOWN."
+   },
+   {
+    "id": "S6",
+    "type": "wait",
+    "title": "Wait for funding decision",
+    "actor": "UNKNOWN — funding decision owner not confirmed",
+    "system": "UNKNOWN",
+    "description": "If funds are insufficient, the participant reports holding the payment or run until an approved funding decision, rather than repeatedly retrying. What happens after the decision is UNKNOWN."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Enter or import bank payment",
+    "actor": "Payment initiator for entry or import; matching responsibility UNKNOWN",
+    "system": "Applicable bank platform, payment log and invoice package",
+    "description": "Given a release-ready run and approved vendor details, the procedure calls for the initiator to enter or import payment data and for bank setup to be matched to the payment log and invoice package. The matching actor and bank-specific steps are not documented."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Independently verify payment setup",
+    "actor": "Independent releaser, according to the procedure",
+    "system": "Applicable banking platform and payment log",
+    "description": "The procedure says the independent releaser verifies vendor and account, amount, currency, value date, funding account and approvals, and keeps a record of the independent comparison before release. Initiator and releaser must be different individuals."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Release payment under dual control",
+    "actor": "Payment releaser",
+    "system": "Banking platform and payment log, according to the procedure",
+    "description": "The participant reports that one authorized person sets up each payment and a different authorized person reviews and releases it. The procedure calls for confirming releaser authority under the access and limit matrix, releasing before the applicable cutoff, and recording bank reference, time, initiator, releaser and initial status. Actual limits and cutoffs are unconfirmed."
+   },
+   {
+    "id": "S10",
+    "type": "document",
+    "title": "Save confirmation and update status",
+    "actor": "Treasury or payment-run preparer, according to the procedure",
+    "system": "Banking platform, payment log and invoice folder",
+    "description": "The participant says bank confirmations and status records are on file at completion. The procedure calls for saving the confirmation with the invoice package and updating the payment log using approved statuses. Each released item must have a bank reference or confirmation, or a documented open exception; status definitions are unspecified."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Monitor payment exceptions",
+    "actor": "Treasury or payment-run preparer, according to the procedure",
+    "system": "Banking platform, payment log and invoice folder",
+    "description": "The procedure calls for monitoring pending, query, failed and insufficient-funds items and retaining communications about resolution and final status. Exception owners, response times, status definitions and retry, cancellation or recall authority are unspecified."
+   },
+   {
+    "id": "S12",
+    "type": "activity",
+    "title": "Escalate insufficient funds",
+    "actor": "Treasury or payment-run preparer for documented escalation; decision owner UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The procedure calls for escalation for a funding decision without repeated unauthorized retry. The participant reports holding the payment and getting a funding decision, not repeatedly retrying. The subsequent decision and recovery route are UNKNOWN."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Reconcile payment and accounting records",
+    "actor": "UNKNOWN — reconciliation preparer not specified",
+    "system": "Payment log, bank statements, accounting system and invoice package",
+    "description": "The participant describes comparing bank activity with accounting entries and explaining differences. The procedure calls for matching the payment log to bank transactions and references, then bank transactions to accounting entries and settled invoices; identifying released but unsettled, settled but unrecorded, duplicated or returned payments and amount or date differences."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Resolve reconciliation differences",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The procedure calls for resolving reconciliation differences; the participant describes differences being explained. The acceptable difference, close deadline and procedure for returned or recalled payments are not specified."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Approve reconciliation close",
+    "actor": "UNKNOWN — reviewer not specified",
+    "system": "UNKNOWN",
+    "description": "The procedure requires the reviewer’s approval to be retained for each close. It does not identify the reviewer, describe the review or specify the approval mechanism or storage."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Investigate and correct payment issue",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "For a rejected, bounced, returned or duplicated payment, the participant says not to retry without review: investigate and correct the issue, obtain new approval if anything changed, and reconcile the final outcome. Reviewer, correction method and retry authority are UNKNOWN."
+   },
+   {
+    "id": "S20",
+    "type": "decision",
+    "title": "Did anything change?",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The participant says new approval is needed if anything changed while handling the payment exception."
+   },
+   {
+    "id": "S21",
+    "type": "activity",
+    "title": "Obtain new approval",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Obtain new approval if anything changed during handling of a rejected, bounced, returned or duplicated payment. The approver and approval record are UNKNOWN."
+   },
+   {
+    "id": "S22",
+    "type": "activity",
+    "title": "Reconcile final exception outcome",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Reconcile the final outcome of a rejected, bounced, returned or duplicated payment. Whether or how a retry occurs and how the final outcome becomes available are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": "Client approval given"
+   },
+   {
+    "from": "S17",
+    "to": "S2",
+    "label": "Approved materials supplied AND, for an urgent run, authorization and record complete"
+   },
+   {
+    "from": "S18",
+    "to": "S2",
+    "label": "Urgent run: authorization and record complete AND approved materials supplied"
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": "Record the payment list"
+   },
+   {
+    "from": "S2",
+    "to": "S4",
+    "label": "Validated payment list available"
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": "Funding, FX, cutoff or user access unresolved"
+   },
+   {
+    "from": "S4",
+    "to": "S6",
+    "label": "Balance does not cover run"
+   },
+   {
+    "from": "S4",
+    "to": "S7",
+    "label": "Release-ready run AND approved vendor details"
+   },
+   {
+    "from": "S1",
+    "to": "S7",
+    "label": "Approved vendor details AND release-ready run"
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": "Bank setup entered or imported"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "Independently verified payment"
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": "Released payment and bank status"
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": "Monitor payment statuses"
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": "Insufficient funds"
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": "Differences identified"
+   },
+   {
+    "from": "S13",
+    "to": "S19",
+    "label": "Duplicated or returned payment identified"
+   },
+   {
+    "from": "S13",
+    "to": "S15",
+    "label": "No unexplained differences"
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": "Differences resolved"
+   },
+   {
+    "from": "S19",
+    "to": "S20",
+    "label": "Issue investigated and corrected"
+   },
+   {
+    "from": "S20",
+    "to": "S21",
+    "label": "Anything changed"
+   },
+   {
+    "from": "S20",
+    "to": "S22",
+    "label": "Nothing changed; final outcome available"
+   },
+   {
+    "from": "S21",
+    "to": "S22",
+    "label": "New approval obtained and final outcome available"
+   }
+  ],
+  "open_questions": [
+   "Does any incoming route start S2 (Validate approved payment list), or must all prerequisites finish?",
+   "Does any incoming route start S7 (Enter or import bank payment), or must all prerequisites finish?",
+   "Does any incoming route start S15 (Approve reconciliation close), or must all prerequisites finish?",
+   "Does any incoming route start S22 (Reconcile final exception outcome), or must all prerequisites finish?",
+   "Are the routes containing S16 (Client approves payment list) and S13 (Reconcile payment and accounting records) separate, or is there a reported handoff between them?",
+   "Does the uploaded procedure reflect current practice, and which unresolved items have been approved or resolved since it was written?",
+   "Who is accountable for the overall result, and is the reported route general GPFS practice or specific to particular clients or ManCos?",
+   "After an approved funding decision, what happens to a held payment or run, and who owns funding and FX decisions?",
+   "Who may authorize an urgent run, where is the approval recorded, and where does authorization sit relative to receipt and vendor validation? Is the exception part of the current approved process?",
+   "How do vendor validation, receipt and list validation relate in practice, and what happens when vendor or payment checks fail?",
+   "Does payment-log recording have to finish before the funding check, and how does monitoring connect to reconciliation?",
+   "When rejected, bounced, returned or duplicated payments are found outside reconciliation, where does exception handling begin? How does the final outcome become available and connect to the overall close?",
+   "Who detects client approval and receives the materials, and what are the relevant client cycles, holiday calendars and cutoffs?",
+   "What are the callback method and independent contact source, screening tool, pass/fail criteria, vendor-control role and approver?",
+   "Who matches bank setup to the payment log and invoice package, and what happens when independent verification fails?",
+   "What are the payment-log fields and statuses, funding and FX thresholds, official cutoff sources, access and approval limits, and retention rules?",
+   "Who reviews payment exceptions and approves changes, and what are the retry, cancellation and recall authorities and recovery routes?",
+   "Who prepares and reviews reconciliation, what does the reviewer check, what are the close deadline and acceptable difference, and where are comparison and close approvals retained?",
+   "Who uses the completed output next, and what is the boundary with subsequent accounting or treasury work?",
+   "What client or entity differences apply, and, where relevant, what are their effort, charging and removal constraints?",
+   "Which systems are authoritative, how is data entered or imported in practice, and who interprets and records conflicting rules?",
+   "What are normal volumes, peaks, exception frequency and effort by step?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "Manco Treasury & Payment Release covers management-company payment runs. Other team, checklist or system names are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "captured",
+    "answer": "The participant describes a funded group of client-approved ManCo payments sent under dual control, with confirmations and status records on file and bank activity compared with accounting entries and differences explained."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "Client approval of the payment list starts the treasury cycle; the AP preparer then supplies approved invoices and payment-log entries. Runs are usually weekly or every two weeks, with occasional urgent runs. The detector, individual client cycles and holiday calendars are UNKNOWN; bank cutoffs are unconfirmed."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The participant’s result includes payments sent under dual control, bank confirmations and statuses on file, and bank activity compared with accounting entries with differences explained. The procedure also requires retained reviewer approval for each close; whether that operates in current practice and the next consumer are UNKNOWN."
+   },
+   {
+    "key": "accountable",
+    "status": "unknown",
+    "answer": "UNKNOWN — no overall accountable role is identified. The Treasury or control owner and GPFS process owner were named as people who could confirm urgent and funding authorities."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "After client approval, AP supplies approved invoices and log entries. The procedure calls for vendor callback and screening, list checks and logging, funding and access readiness, bank entry or import, independent verification, release, confirmation and status handling, and reconciliation. The participant reports funding checks, dual control, a bank-details block and exception handling. The order and handoffs between some fragments, performers, failed-check recovery and final consumer remain UNKNOWN; the written route is not confirmed as current practice."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The participant reports different authorized setup and review/release people, funding checks, a callback and screening record block for new or changed bank details, and review before retry. The procedure specifies source-item totals, independent comparison and its record, access and authority checks, release restrictions and close approval. Several performers, evidence locations, failed-check rework, thresholds, override authority and system enforcement are UNKNOWN; documented checks are unconfirmed in practice."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "Urgent runs reportedly require recorded exception authorization and otherwise the same steps and controls; authority, approved-process status and separate cutoff are unconfirmed. Approved materials may arrive as an invoice batch or from the AP platform. Other differences, effort, charging and removal constraints are UNKNOWN."
+   },
+   {
+    "key": "pain_points",
+    "status": "partial",
+    "answer": "The participant says unclear payment-log statuses or manual updates can cause the log to stop matching bank and accounting records. Frequency, effort and other friction are UNKNOWN."
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "Retrying without finding the root cause can duplicate or misdirect funds. New or changed details without documented callback and screening create fraud and compliance risk; unclear or manual log statuses can produce record mismatches. Other consequences and their frequency are UNKNOWN."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The uploaded U4 MC-07 procedure was reviewed through all four supplied indexed text sections. It refers to an approved callback procedure, access matrix, forecast and invoice package; those separate materials were not supplied or reviewed. The procedure states that listed unresolved items must be resolved before production use."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The participant includes management-company vendor payments, payroll-adjacent payments and intercompany settlements between related entities; fund investor payments and payroll processing itself are excluded. Applicability across clients or entities, general GPFS standard status and parent process are UNKNOWN."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The participant reports client approval, dual control, urgent authorization, funding holds and exception handling. U4 MC-07 specifies additional checks and release restrictions, but is not confirmed as current practice. Rule interpreters, conflict authority, thresholds, client modifications and any calculation method are UNKNOWN."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The AP preparer supplies approved invoices and log entries after client approval. Bank balances and an approved treasury forecast support funding checks. The procedure names payment confirmations or statuses, bank statements and accounting entries as reconciliation inputs. Subsequent consumer, parallel work and parent process are UNKNOWN."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The account and procedure refer to an AP platform, payment log, vendor master, bank platform, forecast, invoice package and accounting system. The procedure allows bank data entry or import and calls for confirmation and status records. Actual entry method, authoritative records, workbook logic, storage and retention are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "partial",
+    "answer": "Runs are usually weekly or every two weeks, with occasional urgent runs. Counts, peaks, exception rate and effort by step are UNKNOWN."
+   }
+  ]
+ },
+ "draft_error": null
+}

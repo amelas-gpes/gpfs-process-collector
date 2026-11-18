@@ -1,0 +1,676 @@
+{
+ "case": "T12",
+ "process": "MC-01",
+ "mode": "typed",
+ "style": "two answers, then Wrap up",
+ "build": "untouched",
+ "participant": "script",
+ "context": {
+  "process_name": "Accounts Payable",
+  "process_owner": "",
+  "objective": "Document how we carry out Accounts Payable, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "To begin with, we receive and review the invoice. That is done by: Preparer. What we do: confirm the attachment is an invoice and identify the client/entity; record receipt for processing so the email is not missed; if the request is urgent, identify the requested timing and who must approve the exception. The check on it: every received invoice is added to the processing list. Next, we save the invoice PDF to Box. That is done by: Preparer. What we do: save the PDF in the approved client/entity Box location; use the applicable naming convention; link or reference the stored PDF in the operational log where the template supports it. The check on it: use the stored PDF as the source for approval, the Entrilia entry, and the final record comparison."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "What happens to the invoice after you’ve saved the PDF in Box?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "After that, we log and duplicate-check the invoice. That is done by: Preparer. What we do: enter vendor, invoice number, date, amount, entity, and status in the Excel invoice log; search existing records for the same vendor + invoice number + amount; resolve any possible duplicate before recording the invoice in Entrilia or paying it. The check on it: do not record or pay an invoice until any possible duplicate is resolved. Then, we determine coding and allocation. That is done by: Preparer; manager reviews. What we do: determine the correct general-ledger account and accounting class, and how the amount should be split among legal entities; apply only a current, client-approved allocation matrix where one exists; for One Rock matrix items, obtain the stated invoice-level support for line items above $1,000 only after the process owner or appropriate process expert confirms that the threshold and matrix version are current; document the reason for the coding and the supporting records needed for review. The check on it: manager reviews judgment-based coding before final approval/payment."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "Once the manager has reviewed the coding and allocation, what happens next?"
+  },
+  {
+   "id": "t006",
+   "role": "assistant",
+   "text": "This capture still has open sections. 15 of 16 are open; the Notes list shows which. You can create a partial draft."
+  },
+  {
+   "id": "t007",
+   "role": "user",
+   "text": "One more thing: after the invoice is approved, the AP analyst schedules it in the weekly payment run and files the approval email with the invoice."
+  },
+  {
+   "id": "t008",
+   "role": "assistant",
+   "text": "Who approves the invoice before the AP analyst schedules it?"
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794968415.148,
+   "turn": 0,
+   "seconds": 0.032,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794968418.58,
+   "turn": 2,
+   "seconds": 3.37,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968433.943,
+   "turn": 3,
+   "seconds": 18.73
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794968447.286,
+   "turn": 3,
+   "seconds": 32.08,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 5,
+   "connections": 4
+  },
+  {
+   "kind": "question",
+   "at": 1794968449.791,
+   "turn": 4,
+   "seconds": 2.431,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794968449.796,
+   "turn": 5,
+   "seconds": 2.44,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 5,
+   "connections": 4
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968493.926,
+   "turn": 5,
+   "seconds": 46.57
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794968493.926,
+   "turn": 5,
+   "seconds": 46.57,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 10,
+   "connections": 10
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794968493.998,
+   "turn": 5,
+   "seconds": 0.014,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794968668.341,
+   "turn": 6,
+   "seconds": 174.291,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794969521.043,
+   "turn": 7,
+   "seconds": 3.437,
+   "status": 200,
+   "retries": 1
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969545.537,
+   "turn": 8,
+   "seconds": 27.93
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794969561.502,
+   "turn": 8,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 43.9
+  }
+ ],
+ "files": [],
+ "notes": {
+  "summary": "Captured the reported invoice intake, PDF storage, Excel log and duplicate check, coding/allocation review, and post-approval scheduling and filing. The approval, payment-run execution, and overall finish remain unclear.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "captured",
+    "answer": "The process is called Accounts Payable."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The result Accounts Payable is intended to produce for the firm or client is not established."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The described work begins when an invoice is received; the account does not specify who receives it or the cadence or fixed deadlines for the overall process.\nThe normal receipt cadence and any fixed processing or payment deadlines are not established."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The finished condition for Accounts Payable is not established; scheduling an approved invoice in the weekly payment run is a reported step, not evidence that payment or the overall process is complete."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The role accountable for the AP result is not established; Preparer, manager reviewer, and AP analyst are named for particular actions but not identified as accountable for the overall result."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "A Preparer confirms the attachment is an invoice, identifies the client/entity, records receipt for processing, and, for an urgent request, identifies its requested timing and who must approve the exception. Every received invoice is added to the processing list.\nA Preparer saves the invoice PDF in the approved client/entity Box location, uses the applicable naming convention, and links or references the stored PDF in the operational log where the template supports it. The stored PDF is used as the source for approval, the Entrilia entry, and the final record comparison.\nAfter saving the PDF, a Preparer enters vendor, invoice number, date, amount, entity, and status in the Excel invoice log and searches existing records for the same vendor + invoice number + amount. Any possible duplicate must be resolved before the invoice is recorded in Entrilia or paid.\nA Preparer determines the general-ledger account, accounting class, and how the amount should be split among legal entities. The Preparer applies only a current, client-approved allocation matrix where one exists, and documents the coding reason and supporting records needed for review; a manager reviews judgment-based coding before final approval/payment.\nAfter the invoice is approved, the AP analyst schedules it in the weekly payment run and files the approval email with the invoice. How the payment run is executed and what happens afterward are not described."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "Every received invoice is added to the processing list. For an urgent request, the Preparer identifies the requested timing and who must approve the exception; the account does not state the approval outcome or what is blocked pending approval.\nThe Preparer searches existing Excel invoice log records for the same vendor + invoice number + amount. The invoice must not be recorded or paid until any possible duplicate is resolved; how a possible duplicate is resolved is not described.\nA manager reviews judgment-based coding before final approval/payment. Where an allocation matrix is used, it must be current and client-approved. The account does not describe what the manager checks or who gives final approval."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "For One Rock matrix items, the stated invoice-level support for line items above $1,000 is obtained only after the process owner or appropriate process expert confirms that the threshold and matrix version are current. The account does not establish the GPFS standard, added effort, charging, or whether this difference could be removed."
+   },
+   {
+    "key": "pain_points",
+    "status": "partial",
+    "answer": "Painful, time-consuming, or error-prone work and workarounds have not been described."
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "Consequences of an AP error, delay, or failed control have not been described."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The invoice PDF is stored in the approved client/entity Box location and used as the source for approval, the Entrilia entry, and the final record comparison. The operational log template supports linking or referencing the stored PDF; its location and custodian are not stated.\nThe Excel invoice log records vendor, invoice number, date, amount, entity, and status and is searched for possible duplicates using vendor + invoice number + amount.\nThe approval email is filed with the invoice after approval. The account does not identify where it is filed or who performs the filing."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The work identifies a client/entity for each invoice and may split amounts among legal entities; an allocation matrix is used where one exists. The applicable entity types, process boundary, and whether the described route is general GPFS practice or client-specific are not established."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "Coding and allocation use the determined general-ledger account, accounting class, and legal-entity split. A current, client-approved allocation matrix is applied where one exists; the coding reason and supporting records needed for review are documented. The source of other coding rules and how conflicting sources are resolved are not stated.\nFor One Rock matrix items, invoice-level support for line items above $1,000 is obtained only after the process owner or appropriate process expert confirms that the threshold and matrix version are current. The account does not identify the underlying authority or how the confirmation is recorded."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "An approval is a prerequisite to the AP analyst scheduling an invoice in the weekly payment run; who approves it and the approval handoff mechanism are not established."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The described work uses Box for the invoice PDF, an Excel invoice log, and Entrilia for an invoice entry. The account does not identify a system of record or the source from which the invoice arrives."
+   },
+   {
+    "key": "volume",
+    "status": "partial",
+    "answer": "Invoice counts, peak volumes, exception frequency, and effort are not established; a weekly payment run is reported, but no invoice volume is given."
+   }
+  ]
+ },
+ "map": {
+  "title": "Accounts Payable",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Receive and review invoice",
+    "actor": "Preparer",
+    "system": "Processing list; other systems UNKNOWN",
+    "description": "Confirm the attachment is an invoice and identify the client or entity. Record receipt on the processing list; for an urgent request, identify the requested timing and who must approve the exception."
+   },
+   {
+    "id": "S2",
+    "type": "document",
+    "title": "Save invoice PDF to Box",
+    "actor": "Preparer",
+    "system": "Box; operational log",
+    "description": "Save the PDF in the approved client/entity Box location using the applicable naming convention. Link or reference it in the operational log where the template supports it."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Obtain invoice approval",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Approval uses the stored invoice PDF as its source. The approver and approval requirements are UNKNOWN."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Enter invoice in Entrilia",
+    "actor": "UNKNOWN",
+    "system": "Entrilia",
+    "description": "The Entrilia entry uses the stored invoice PDF as its source. Entry details and performer are UNKNOWN."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Compare final record",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The final record comparison uses the stored invoice PDF as its source. The record compared and comparison criteria are UNKNOWN."
+   },
+   {
+    "id": "S6",
+    "type": "data_store",
+    "title": "Log and check invoice",
+    "actor": "Preparer",
+    "system": "Excel invoice log",
+    "description": "Enter vendor, invoice number, date, amount, entity and status. Search existing records for the same vendor, invoice number and amount."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Resolve possible duplicate",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "Resolve any possible duplicate before recording the invoice in Entrilia or paying it. The resolution method is UNKNOWN."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Determine coding and allocation",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "Determine the general-ledger account, accounting class and split among legal entities; document the coding reason and records needed for review. Use a current client-approved allocation matrix where one exists. For One Rock matrix items, obtain stated invoice-level support for line items above $1,000 only after the process owner or appropriate process expert confirms the threshold and matrix version are current."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Review judgment-based coding",
+    "actor": "Manager",
+    "system": "UNKNOWN",
+    "description": "Review judgment-based coding before final approval or payment. Review criteria and failure handling are UNKNOWN."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Pay invoice",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Pay the invoice. Any possible duplicate must be resolved, and judgment-based coding must be reviewed by a manager before payment."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S6",
+    "label": ""
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Possible duplicate"
+   },
+   {
+    "from": "S6",
+    "to": "S8",
+    "label": ""
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "Judgment-based coding"
+   },
+   {
+    "from": "S6",
+    "to": "S4",
+    "label": "No possible duplicate"
+   },
+   {
+    "from": "S7",
+    "to": "S4",
+    "label": "Possible duplicate resolved"
+   },
+   {
+    "from": "S6",
+    "to": "S10",
+    "label": "No possible duplicate AND judgment-based coding reviewed if applicable"
+   },
+   {
+    "from": "S7",
+    "to": "S10",
+    "label": "Possible duplicate resolved AND judgment-based coding reviewed if applicable"
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": "Judgment-based coding reviewed AND no unresolved possible duplicate"
+   }
+  ],
+  "open_questions": [
+   "Does any incoming route start S4 (Enter invoice in Entrilia), or must all prerequisites finish?",
+   "Does any incoming route start S10 (Pay invoice), or must all prerequisites finish?",
+   "How does step S3 (Obtain invoice approval) connect to the rest of this process, if at all?",
+   "How does step S5 (Compare final record) connect to the rest of this process, if at all?",
+   "UNKNOWN: Who sends invoices, how are they received, and what are the normal cadence and deadlines?",
+   "UNKNOWN: How are possible duplicates resolved, who performs that work, and what evidence is retained?",
+   "UNKNOWN: How are coding and allocation determined, including calculation inputs, implementation and any corrections?",
+   "UNKNOWN: For One Rock, what is the stated invoice-level support and how are the current threshold and matrix version confirmed?",
+   "UNKNOWN: What does the manager check, what happens if coding needs correction, and how is the review recorded?",
+   "UNKNOWN: Is the previously reported invoice approval the final approval? What are the order and handoffs among approval, Entrilia entry, payment and final comparison?",
+   "UNKNOWN: Who performs and approves the later actions, what do they check, and what happens if a check or approval fails?",
+   "UNKNOWN: How are urgent exceptions approved and handled, and do they change the normal route?",
+   "UNKNOWN: What result and evidence mark the end of accounts payable work, and who uses the output next?",
+   "UNKNOWN: Who is accountable for the overall process, and which clients and entity types does this account cover?",
+   "UNKNOWN: Is this general GPFS practice or specific to particular clients, and what is the basis for that scope?",
+   "UNKNOWN: What other rules, procedures and templates govern the work, who interprets them, and have they been reviewed?",
+   "UNKNOWN: Which records are authoritative, how are data entered elsewhere, and what evidence is retained?",
+   "UNKNOWN: What other variations, charging or removal constraints, manual difficulties, risks, volumes and effort affect this work?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "DRAFT — Accounts Payable current-practice process",
+  "overview": "Partial participant account of invoice receipt, storage, duplicate checking, coding and manager review. Approval, Entrilia entry, payment and a final comparison are also mentioned, but their full sequence and completion conditions are UNKNOWN. This draft requires participant and process-owner review.",
+  "trigger": "UNKNOWN. The first reported action is receiving and reviewing an invoice attachment; the originating event and sender are not established.",
+  "inputs": [
+   "Received invoice attachment",
+   "Existing records used for duplicate checking",
+   "Current, client-approved allocation matrix where one exists"
+  ],
+  "outputs": [
+   "Invoice added to the processing list and logged in Excel",
+   "Invoice PDF saved in Box",
+   "Coding and allocation, with the coding reason and supporting records needed for review",
+   "Manager-reviewed judgment-based coding where applicable"
+  ],
+  "exceptions": [
+   "Urgent request: the preparer identifies requested timing and who must approve the exception. Approval handling and the subsequent route are UNKNOWN.",
+   "Possible duplicate: resolve it before Entrilia recording or payment. Resolution method, disposition and any return or closure route are UNKNOWN."
+  ],
+  "controls": [
+   "Every received invoice is added to the processing list.",
+   "The stored PDF is used as the source for approval, Entrilia entry and final record comparison.",
+   "Search existing records for the same vendor, invoice number and amount; do not record or pay until any possible duplicate is resolved.",
+   "Apply only a current, client-approved allocation matrix where one exists.",
+   "A manager reviews judgment-based coding before final approval or payment.",
+   "For One Rock matrix items, obtain the stated invoice-level support for line items above $1,000 only after the process owner or appropriate process expert confirms that the threshold and matrix version are current."
+  ],
+  "validation_notes": [
+   "Current-practice draft pending participant confirmation and appropriate process-owner review; it is not an executable or complete procedure.",
+   "The preparer performs the duplicate check, but the participant did not explicitly assign duplicate resolution to a performer.",
+   "The connections from duplicate resolution to entry and payment and from manager review to payment show stated prerequisites, not immediate handoffs or proof that those prerequisites alone authorize the later action. Their order and intervening mechanics are UNKNOWN.",
+   "The proposed direct connections from duplicate checking to entry and payment for a no-duplicate outcome were removed: the account does not establish those direct transitions. The route for a no-duplicate outcome remains open.",
+   "The identity of the reported approval and final approval is unresolved. Approval and final comparison remain disconnected because their placement was not supplied.",
+   "The One Rock threshold and matrix version require confirmation; they are not established as current. The support condition is retained within the reported coding action, without inventing a separate insertion or return point.",
+   "No supporting documents were supplied or independently reviewed. The participant's reported controls are not independently verified.",
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified.",
+   "The independent audit changed or removed 1 proposed exception(s)."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Receive and review invoice",
+    "actor": "Preparer",
+    "system": "Processing list; other systems UNKNOWN",
+    "description": "Confirm that the attachment is an invoice and identify the client or entity. Record receipt for processing so the email is not missed. For an urgent request, identify the requested timing and who must approve the exception."
+   },
+   {
+    "id": "S2",
+    "type": "document",
+    "title": "Save invoice PDF to Box",
+    "actor": "Preparer",
+    "system": "Box; operational log",
+    "description": "Save the PDF in the approved client/entity Box location using the applicable naming convention. Link or reference the stored PDF in the operational log where the template supports it. The stored PDF is the reported source for approval, the Entrilia entry and the final record comparison."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Obtain invoice approval",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Approval is mentioned, using the stored invoice PDF as its source. Whether this is the final approval mentioned in the coding review, and its position in the route, are UNKNOWN."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Enter invoice in Entrilia",
+    "actor": "UNKNOWN",
+    "system": "Entrilia",
+    "description": "The Entrilia entry uses the stored invoice PDF as its source. Any possible duplicate must be resolved before recording. Other entry requirements and the performer are UNKNOWN."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Compare final record",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The final record comparison uses the stored invoice PDF as its source. The record compared, criteria, timing and performer are UNKNOWN."
+   },
+   {
+    "id": "S6",
+    "type": "data_store",
+    "title": "Log and check invoice",
+    "actor": "Preparer",
+    "system": "Excel invoice log; existing records",
+    "description": "Enter vendor, invoice number, date, amount, entity and status in the Excel invoice log. Search existing records for the same vendor, invoice number and amount. Resolve any possible duplicate before recording in Entrilia or paying."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Resolve possible duplicate",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Resolve a possible duplicate before recording the invoice in Entrilia or paying it. The resolution method, performer, evidence and disposition of a confirmed duplicate are UNKNOWN."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Determine coding and allocation",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "Determine the general-ledger account, accounting class and split among legal entities. Document the coding reason and supporting records needed for review. Apply only a current, client-approved allocation matrix where one exists. For One Rock matrix items, obtain the stated invoice-level support for line items above $1,000 only after the process owner or appropriate process expert confirms that the threshold and matrix version are current. The support and confirmation method are UNKNOWN."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Review judgment-based coding",
+    "actor": "Manager",
+    "system": "UNKNOWN",
+    "description": "Review judgment-based coding before final approval or payment. Specific checks, review evidence and correction handling are UNKNOWN."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Pay invoice",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Payment is mentioned. Any possible duplicate must be resolved, and judgment-based coding must be reviewed by a manager before payment. Other prerequisites, payment method and performer are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "Next"
+   },
+   {
+    "from": "S2",
+    "to": "S6",
+    "label": "After saving"
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Possible duplicate"
+   },
+   {
+    "from": "S6",
+    "to": "S8",
+    "label": "Then determine coding"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "Judgment-based coding"
+   },
+   {
+    "from": "S7",
+    "to": "S4",
+    "label": "Possible duplicate resolved; disposition and other prerequisites UNKNOWN"
+   },
+   {
+    "from": "S7",
+    "to": "S10",
+    "label": "Possible duplicate resolved AND judgment-based coding reviewed if applicable; disposition and other prerequisites UNKNOWN"
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": "Judgment-based coding reviewed AND no unresolved possible duplicate; other prerequisites UNKNOWN"
+   }
+  ],
+  "open_questions": [
+   "Does any incoming route start S10 (Pay invoice), or must all prerequisites finish?",
+   "How does step S3 (Obtain invoice approval) connect to the rest of this process, if at all?",
+   "How does step S5 (Compare final record) connect to the rest of this process, if at all?",
+   "What happens after coding and manager review, including the order and handoffs for approval, Entrilia entry, payment and final comparison?",
+   "How are possible duplicates resolved and disposed of, and which outcomes permit recording or payment?",
+   "What does the manager check, how are corrections handled, and where is review evidence retained?",
+   "Who is accountable for the overall result, and what observable result and evidence mark completion?",
+   "For One Rock, what invoice-level support is required, and how are the threshold and matrix version confirmed as current?",
+   "What initiates invoice receipt, who sends it, and what cadence and fixed deadlines apply?",
+   "How are urgent exceptions approved and handled after the approver is identified?",
+   "How are coding and allocation determined and calculated, and who interprets and resolves conflicting rules?",
+   "Is the reported invoice approval the final approval? Who performs the later actions, what do they check, and what happens on failure?",
+   "Which clients and entity types are covered, and is this general GPFS practice or a particular route? What is the basis?",
+   "What procedures, matrices and templates exist, where are they available, and have they been reviewed?",
+   "Which records are authoritative, how are data entered elsewhere, and what evidence is retained?",
+   "What other variations, charging or removal constraints, difficulties, risks, volumes and effort apply?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "Accounts Payable is the intake name. The reported work includes invoice receipt, logging, duplicate checking, coding and later payment-related actions. Other names and boundaries are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The account concerns processing invoices for coding, approval, recording and payment. The precise delivered result and recipient are UNKNOWN."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The preparer first receives and reviews an invoice attachment and records receipt so the email is not missed. The originating event, sender, cadence and fixed deadlines are UNKNOWN. For urgent requests, requested timing and the exception approver are identified."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "Payment and a final record comparison are mentioned, with the stored PDF used for the comparison. Their sequence, completion evidence, downstream consumer and overall finish are UNKNOWN."
+   },
+   {
+    "key": "accountable",
+    "status": "unknown",
+    "answer": "UNKNOWN. A preparer and manager perform specified actions, but overall accountability is not stated."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The preparer receives and reviews the invoice, records it for processing, saves its PDF in Box, logs and duplicate-checks it in Excel, then determines coding and allocation. Possible duplicates must be resolved before recording or payment; a manager reviews judgment-based coding before final approval or payment. Approval, Entrilia entry, payment and final comparison are mentioned, but their full order, handoffs and exception exits are UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "Reported checks include adding every received invoice to the processing list, searching for the same vendor plus invoice number plus amount, resolving possible duplicates before recording or payment, using a current client-approved matrix where one exists, and manager review of judgment-based coding before final approval or payment. The PDF is the source for approval, entry and final comparison. Review details, failed-check handling, approval roles, retained proof and enforcement are UNKNOWN."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "For One Rock matrix items, stated invoice-level support for line items above $1,000 is obtained only after the process owner or an appropriate expert confirms that the threshold and matrix version are current. The support, reason, effort, charging, removal constraints and boundary are UNKNOWN. An urgent request also prompts identification of timing and the exception approver; later handling is UNKNOWN."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": "UNKNOWN. The account describes logging and checking but does not identify a practical difficulty or effort estimate."
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "Receipt is recorded so an email is not missed. The participant also reports resolving possible duplicates before recording or payment, but does not describe their consequences. Other failure consequences are UNKNOWN."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "A naming convention, an operational-log template and client-approved allocation matrices where available are mentioned. Their exact locations and availability are UNKNOWN. No documents were supplied or reviewed."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "Invoices are identified by client or entity, and allocation may split amounts among legal entities. One Rock matrix items have a reported conditional difference. Entity types, overall scope, parent process and the basis for general GPFS versus client-specific practice are UNKNOWN."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The participant reports the duplicate match, current client-approved matrix condition, manager review and conditional One Rock support threshold. The matrix is mentioned but not reviewed. Rule authority, interpretation, conflicts, allocation calculation and implementation are UNKNOWN."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "A received invoice is the input; its upstream producer is UNKNOWN. Approval, Entrilia entry, payment and final comparison are mentioned, with duplicate resolution and manager review as stated prerequisites. Immediate later handoffs, downstream consumers and any parallel work are UNKNOWN."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The preparer saves invoice PDFs in Box and enters invoice fields and status in an Excel log; a stored-PDF reference is made in the operational log where the template supports it. The stored PDF sources approval, Entrilia entry and final comparison. Authoritative records, other entry modes, calculation location and detailed storage are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": "UNKNOWN. Counts, peaks, exception frequency and effort by step were not reported."
+   }
+  ]
+ },
+ "draft_error": null
+}

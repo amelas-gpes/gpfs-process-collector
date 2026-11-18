@@ -401,8 +401,9 @@ class GraphRoutingContractTests(unittest.TestCase):
         original_edges = copy.deepcopy(workflow['connections'])
         result = server.validate_workflow(workflow, interview_payload()['turns'])
         self.assertEqual(result['connections'], original_edges)
-        self.assertIn('s3 (Reconcile the ledger)', result['open_questions'][0])
-        self.assertEqual(result['open_questions'][1], 'Who owns the handoff?')
+        # The reviewer's own question stays first; the generated routing question follows it.
+        self.assertEqual(result['open_questions'][0], 'Who owns the handoff?')
+        self.assertIn('s3 (Reconcile the ledger)', result['open_questions'][1])
         self.assertEqual(len(server.validate_workflow(result, interview_payload()['turns'])['open_questions']), 2)
         result['connections'].append({'from':'s3', 'to':'s3', 'label':'Retry', 'evidence_turns':['u1']})
         result['open_questions'] = []
@@ -1128,7 +1129,7 @@ class HTTPBoundaryTests(unittest.TestCase):
         self.assertEqual(result["closure"], {"asked": False, "confirmed": False})
         self.assertFalse(result["question"].startswith(server.FINAL_CHECK_PREFIX))
         self.assertTrue(result["question"].startswith(server.PARTIAL_CHECK_PREFIX))
-        self.assertIn("partial draft", result["question"].lower())
+        self.assertIn("create a draft from what is here", result["question"].lower())
         self.assertNotEqual(result["question"], repetitive_gap)
         self.assertFalse(result["completion"]["complete"])
         sent = json.loads(self.client.request.call_args.args[1]["input"][0]["content"])
@@ -1144,7 +1145,7 @@ class HTTPBoundaryTests(unittest.TestCase):
         result = json.loads(raw)
         self.assertFalse(result["question"].startswith(server.FINAL_CHECK_PREFIX))
         self.assertTrue(result["question"].startswith(server.PARTIAL_CHECK_PREFIX))
-        self.assertIn("partial draft", result["question"].lower())
+        self.assertIn("create a draft from what is here", result["question"].lower())
         self.assertEqual(result["closure"], {"asked": False, "confirmed": False})
 
     def test_prior_final_check_reply_cannot_close_an_incomplete_account(self):

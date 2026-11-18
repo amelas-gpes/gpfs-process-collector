@@ -100,6 +100,14 @@ class DocumentAuditTests(unittest.TestCase):
         comment=self.store.search(self.scope,'fictional amount',ids=[book['id']])
         self.assertTrue(any(c.get('origin')=='cell_comment' and c['cell']=='B2' for c in comment))
         self.assertEqual(book['inventory']['sheets'][1]['visibility'],'hidden')
+        # A hidden sheet is read like any other, and every excerpt from it says where it came from.
+        sections=self.store.chunks(self.scope,book['id'])
+        sections=sections.get('chunks',sections.get('items',sections)) if isinstance(sections,dict) else sections
+        hidden=[row['label'] for row in sections if (row.get('location') or row).get('visibility') in ('hidden','veryHidden')]
+        shown=[row['label'] for row in sections if (row.get('location') or row).get('visibility')=='visible']
+        self.assertTrue(hidden and shown)
+        self.assertTrue(all(label.endswith(documents.HIDDEN_SHEET_LABEL) for label in hidden))
+        self.assertFalse(any('hidden sheet' in label for label in shown))
         csv=self.read('sample.csv',(base/'settlement-log.csv').read_bytes())
         self.assertEqual(csv['status'],'error')
         self.assertIn('UTF',csv['error'])

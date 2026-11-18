@@ -83,10 +83,15 @@ class DraftRoutingTests(unittest.TestCase):
         assessment = incomplete_assessment(draft['memo_summary'])
         for topic in assessment['topics']:
             topic['capture_repair'] = {'needed': False}
-        client.structured = Mock(side_effect=[copy.deepcopy(draft), fixture_draft_audit(draft, interview_payload()['turns']), assessment])
+        replies = {'process_draft': copy.deepcopy(draft),
+                   'process_draft_audit': fixture_draft_audit(draft, interview_payload()['turns']),
+                   'process_coverage_assessment': assessment}
+        client.structured = Mock(side_effect=lambda instructions, payload, schema, name, *args, **kwargs: copy.deepcopy(replies[name]))
         result = client.draft(interview_payload())
         self.assertIn('draft', result)
-        self.assertEqual(client.structured.call_count, 3)
+        # One draft, one source check, and the topic review as its groups at the same time.
+        self.assertEqual([call.args[3] for call in client.structured.call_args_list[:2]], ['process_draft', 'process_draft_audit'])
+        self.assertEqual(client.structured.call_count, 2 + len(server.interview_coverage.COVERAGE_REVIEW_GROUPS))
         self.assertTrue(all(call.kwargs['model_override'] == 'chosen-draft-model'
                             for call in client.structured.call_args_list))
         self.assertEqual(client.structured.call_args_list[0].kwargs['request_timeout'], 120)

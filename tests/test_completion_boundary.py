@@ -73,7 +73,7 @@ class CompletionBoundaryTests(unittest.TestCase):
         server.enforce_closure(result, interview_payload()["turns"], "close")
         server.enforce_response_boundary(result, interview_payload()["turns"], "close")
         self.assertTrue(result["question"].startswith(server.PARTIAL_CHECK_PREFIX))
-        self.assertIn("the Notes list shows which", result["question"])
+        self.assertIn("the Notes list shows what is missing", result["question"])
         self.assertNotIn("Consequences of failure", result["question"])
         self.assertFalse(result["closure"]["confirmed"])
         self.assertFalse(result["closure"]["asked"])

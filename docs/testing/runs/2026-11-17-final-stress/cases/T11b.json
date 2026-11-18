@@ -1,0 +1,573 @@
+{
+ "case": "T11b",
+ "process": "GP-04",
+ "mode": "typed",
+ "style": "mostly unknown, two skips, no draft",
+ "build": "fixed",
+ "participant": "script",
+ "context": {
+  "process_name": "Carried Interest Waterfall & Clawback",
+  "process_owner": "",
+  "objective": "Document how we carry out Carried Interest Waterfall & Clawback, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "To begin with, we confirm the trigger, purpose, model, and terms. That is done by: Preparer; advisers resolve gaps. Before starting we need trigger, current governing documents, approved model. What we do: identify the structure and calculation layer; record every applicable term and definition; confirm the version-controlled model and as-of date Output and record to keep: Locked calculation instructions."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "What event leads the preparer to begin confirming the trigger, documents, and model?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "Next, we collect and reconcile cumulative inputs. That is done by: Preparer. Before starting we need accounting, transaction, valuation, prior-model data. What we do: collect cumulative inputs; match opening balances, prior carried interest, holdback, and clawback to the GL and prior approved model Output and record to keep: Reconciled input package."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "When a cumulative input does not match the GL or prior approved model, what happens?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "I don't know, I only joined three weeks ago and have not done that part yet."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "What happens after the reconciled input package is ready?"
+  },
+  {
+   "id": "t008",
+   "role": "assistant",
+   "text": "What result is the carried interest waterfall and clawback work meant to deliver?"
+  },
+  {
+   "id": "t009",
+   "role": "user",
+   "text": "I'm not sure. Preparer would be the person to ask."
+  },
+  {
+   "id": "t010",
+   "role": "assistant",
+   "text": "Which fund or GP/carry vehicle types does this work cover?"
+  },
+  {
+   "id": "t011",
+   "role": "user",
+   "text": "I don't know how that works."
+  },
+  {
+   "id": "t012",
+   "role": "assistant",
+   "text": "When a governing term and the approved model appear to conflict, how is that resolved?"
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "What event prompts the preparer to start this work?"
+  },
+  {
+   "id": "t014",
+   "role": "user",
+   "text": "I can't say, I have not seen that happen yet."
+  },
+  {
+   "id": "t015",
+   "role": "assistant",
+   "text": "What is the usual cadence for this work, if you know?"
+  },
+  {
+   "id": "t016",
+   "role": "assistant",
+   "text": "This capture still has open sections. 15 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794969259.109,
+   "turn": 0,
+   "seconds": 0.052,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794969261.257,
+   "turn": 2,
+   "seconds": 2.079,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969275.483,
+   "turn": 3,
+   "seconds": 16.31
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969299.851,
+   "turn": 3,
+   "seconds": 40.67,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 5,
+   "connections": 2
+  },
+  {
+   "kind": "question",
+   "at": 1794969302.291,
+   "turn": 4,
+   "seconds": 2.39,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969302.294,
+   "turn": 5,
+   "seconds": 2.39,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 5,
+   "connections": 2
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969316.518,
+   "turn": 5,
+   "seconds": 16.62,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 7,
+   "connections": 4
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969338.991,
+   "turn": 5,
+   "seconds": 39.09
+  },
+  {
+   "kind": "question",
+   "at": 1794969341.001,
+   "turn": 6,
+   "seconds": 1.954,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969341.005,
+   "turn": 7,
+   "seconds": 1.96,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t004",
+   "steps": 7,
+   "connections": 4
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969349.184,
+   "turn": 7,
+   "seconds": 10.14,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 7,
+   "connections": 4
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969352.799,
+   "turn": 7,
+   "seconds": 13.75
+  },
+  {
+   "kind": "question",
+   "at": 1794969354.156,
+   "turn": 7,
+   "seconds": 1.303,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969354.163,
+   "turn": 8,
+   "seconds": 1.31
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969354.163,
+   "turn": 8,
+   "seconds": 1.31,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 7,
+   "connections": 4
+  },
+  {
+   "kind": "question",
+   "at": 1794969356.834,
+   "turn": 9,
+   "seconds": 2.61,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969356.837,
+   "turn": 10,
+   "seconds": 2.61,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t006",
+   "steps": 7,
+   "connections": 4
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969362.963,
+   "turn": 10,
+   "seconds": 8.74,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 7,
+   "connections": 4
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969370.115,
+   "turn": 10,
+   "seconds": 15.89
+  },
+  {
+   "kind": "question",
+   "at": 1794969373.224,
+   "turn": 11,
+   "seconds": 3.046,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969373.228,
+   "turn": 12,
+   "seconds": 3.05,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t009",
+   "steps": 7,
+   "connections": 4
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969379.858,
+   "turn": 12,
+   "seconds": 9.68
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969380.893,
+   "turn": 12,
+   "seconds": 10.72,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 7,
+   "connections": 4
+  },
+  {
+   "kind": "question",
+   "at": 1794969383.246,
+   "turn": 12,
+   "seconds": 2.296,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969383.25,
+   "turn": 13,
+   "seconds": 2.3
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969383.25,
+   "turn": 13,
+   "seconds": 2.3,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 7,
+   "connections": 4
+  },
+  {
+   "kind": "question",
+   "at": 1794969384.743,
+   "turn": 14,
+   "seconds": 1.436,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969384.746,
+   "turn": 15,
+   "seconds": 1.44,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t011",
+   "steps": 7,
+   "connections": 4
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969390.859,
+   "turn": 15,
+   "seconds": 7.55,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 7,
+   "connections": 4
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969399.518,
+   "turn": 15,
+   "seconds": 16.21
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794969399.606,
+   "turn": 15,
+   "seconds": 0.014,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  }
+ ],
+ "files": [],
+ "notes": {
+  "summary": "The participant has not seen what prompts the work and cannot identify the initiating event. Cadence, deadlines and later stages remain open.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "captured",
+    "answer": "Carried Interest Waterfall & Clawback"
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The participant is unsure what result the work is intended to deliver and identifies the preparer as the person to ask."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "Before starting, the preparer needs the trigger, current governing documents and an approved model.\nThe participant cannot say what initiating event prompts the work and has not seen it happen. Cadence and fixed deadlines are also not established."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The observable conditions that establish the waterfall and clawback work is complete, including any downstream recording or delivery, are not established."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The preparer carries out confirmation and setup; advisers resolve gaps.\nThe role accountable for the overall result is not established."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The preparer confirms the trigger, purpose, model and terms; identifies the structure and calculation layer; records applicable terms and definitions; and confirms the version-controlled model and as-of date. The output is locked calculation instructions.\nNext, the preparer collects cumulative accounting, transaction, valuation and prior-model inputs, and matches opening balances, prior carried interest, holdback and clawback to the GL and prior approved model. The output and record to keep is a reconciled input package.\nThe stages after input reconciliation and the overall finished condition remain to be established."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The preparer confirms the trigger, purpose, model and terms, including the version-controlled model and as-of date.\nThe preparer matches opening balances, prior carried interest, holdback and clawback to the GL and prior approved model, producing a reconciled input package.\nSetup validation criteria, review or approval, and check evidence remain unspecified.\nThe participant does not know how mismatches against the GL or prior approved model are handled and has not done that part yet."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "Whether the work changes by client, structure, calculation layer, or circumstance is not established."
+   },
+   {
+    "key": "pain_points",
+    "status": "partial",
+    "answer": "Time-consuming or painful work, errors, repeated entry, and workarounds have not been discussed."
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "Consequences if the work is incorrect, delayed, or incomplete have not been discussed."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "Current governing documents and an approved, version-controlled model are required for setup, which produces locked calculation instructions to retain.\nAccounting, transaction, valuation and prior-model data, the GL and the prior approved model support input reconciliation. The reconciled input package is a record to keep.\nThe locations and custodians of the reported materials and retained records are not established."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The preparer identifies the structure and calculation layer during setup.\nThe entity types and applicability across entities or clients are not established.\nThe participant does not know which fund or GP/carry vehicle types the work covers."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "Current governing documents and an approved model are prerequisites. The preparer records every applicable term and definition and confirms the version-controlled model and as-of date; advisers resolve gaps.\nThe model's approver and the method for resolving conflicting terms or model interpretations are not established."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "Advisers resolve gaps during confirmation and setup."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The model is version-controlled and has an as-of date.\nInput reconciliation uses the GL and prior approved model to match opening balances, prior carried interest, holdback and clawback.\nThe model's system and storage location, and whether calculations are performed in it, are not established."
+   },
+   {
+    "key": "volume",
+    "status": "partial",
+    "answer": "Frequency, volume, peak workload, and effort have not been established."
+   }
+  ]
+ },
+ "map": {
+  "title": "Carried Interest Waterfall & Clawback",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Confirm trigger, purpose, model, and terms",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "Initial confirmation of the trigger, purpose, model, and terms."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Identify structure and calculation layer",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "Identify the structure and calculation layer."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Record terms and definitions",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "Record every applicable term and definition."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Confirm version-controlled model and as-of date",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "Confirm the version-controlled model and as-of date. Output and record to keep: Locked calculation instructions."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Resolve gaps",
+    "actor": "Advisers",
+    "system": "UNKNOWN",
+    "description": "Advisers resolve gaps in the initial confirmation work. The point of referral and subsequent handoff are UNKNOWN."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Collect cumulative inputs",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "Collect cumulative inputs for reconciliation. Accounting, transaction, valuation and prior-model data are needed before starting."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Reconcile cumulative inputs",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "Match opening balances, prior carried interest, holdback and clawback to the GL and prior approved model."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": ""
+   },
+   {
+    "from": "S4",
+    "to": "S6",
+    "label": ""
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": ""
+   },
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S1",
+    "to": "S5",
+    "label": "if gaps require resolution"
+   }
+  ],
+  "open_questions": [
+   "After advisers resolve gaps, where does the work resume?",
+   "How are calculation instructions locked and retained, and what happens next after they are produced?",
+   "What event initiates the work, who detects it, how often does it occur, and what deadlines apply?",
+   "What result or value does the overall work deliver? UNKNOWN; the participant suggested asking the preparer.",
+   "How does confirming the trigger and purpose connect to identifying the structure, recording terms and confirming the model?",
+   "At which initial actions are gaps referred to advisers, and where does the work resume after they resolve them?",
+   "How are the calculation instructions locked and retained?",
+   "What happens when inputs do not match the GL or prior approved model? UNKNOWN; the participant has not done that part.",
+   "What happens after the input package is reconciled, including its handoff and retention?",
+   "Who is accountable for the overall result, what completes the wider process, and who uses its output?",
+   "Which entities and clients are in scope, and is this general GPFS practice or a specific route?",
+   "What checks, approvals, exception handling and systems apply beyond those described?",
+   "What are the governing documents and approved model, where are they held, and who interprets conflicting terms?",
+   "What variations, charging or removal constraints, practical difficulties, risks and volumes apply?",
+   "Are there other names for this work, and what is its relationship to any parent process?",
+   "How does step S1 (Confirm trigger and purpose) connect to the rest of this process, if at all?",
+   "How does step S5 (Resolve gaps) connect to the rest of this process, if at all?"
+  ]
+ },
+ "map_checked": false,
+ "draft": null,
+ "draft_error": null
+}

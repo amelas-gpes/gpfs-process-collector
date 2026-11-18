@@ -1,0 +1,1305 @@
+{
+ "case": "E-T01",
+ "process": "FA-02",
+ "mode": "typed",
+ "style": "draft retry of T01 with the draft keeping the working map",
+ "build": "final",
+ "participant": "replay",
+ "context": {
+  "process_name": "Cash Application & Capital Call Receivables",
+  "process_owner": "",
+  "objective": "Document how we carry out Cash Application & Capital Call Receivables, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "It starts when the capital call team under FA-01 has released a final capital call notice and set the amount due and due date for each investor, and I'll just walk you through everything from there. First, the assigned tracker owner, who sits on either the CAP Activity Team or the Fund Team, accepts the event handoff, confirms the entity, notice date, due date, bank account and downstream uses, and records the tracker owner and the second reviewer in the cash receivable tracker. Second, the tracker owner loads every investor, expected amount and due date from the final Excel allocation file into the tracker and reconciles the count and total back to the allocation with zero unexplained difference. Third, a few days before the due date, the tracker owner or Investor Services runs the investor portal access report to see who has not accessed the notice, and gives that status to the client. Fourth, the tracker owner or Investor Services sends the reminder emails using the approved template and the CRM contact grid, BCC only, and records the send date in the tracker. Fifth, the tracker owner monitors the bank portal, with Treasury supporting, and captures the value date, amount and originator or reference for each candidate receipt, using the Allvue Audit by Package report where it adds receipt detail. Sixth, the tracker owner matches each receipt to an investor and event in the tracker, or leaves it as unidentified. Seventh, the tracker owner compares cumulative matched receipts to the expected amount and classifies each investor as fully funded, short, overfunded, duplicate, incorrect, missing or unidentified. Eighth, the tracker owner sends the client a funding status report and gets written direction on the exceptions. Ninth, the assigned Fund Team applies the downstream payment gate, comparing cleared cash to management fees, investment funding, line of credit repayment and expenses, and marks each one as cleared to proceed, partially funded or held, and Treasury executes the payments through the FA-17 payment process. Tenth, after the due date the tracker owner keeps following up, calculates days past due using the LPA's business day or calendar day rule, and escalates before any default milestone, with the client directing any legal or default action. Eleventh, the tracker owner and the Fund Team reconcile expected against received, confirm the general ledger and cash balances reflect the actual receipts, update the historical contribution balances, complete client reports such as Cobalt, and lock the final tracker, and the second reviewer verifies the closeout."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "What does the second reviewer check during closeout?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "They check that the closeout equation holds, meaning the expected receivable equals what was received plus any documented outstanding amount or difference, and that the bank support, the accounting records and the final tracker all agree. We don't mark the event complete while an unidentified or unexplained item is left out of the closeout record. The same reviewer also checks baseline completeness, material matching decisions and exception treatment earlier in the event."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "Which role is accountable for the overall result of this work?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "I don't know, honestly. The firmwide process owner and the internal approver haven't been confirmed. What I can tell you is that ownership sits with either the CAP Activity Team or the Fund Team and has to be assigned for each event, with one named tracker owner and one second reviewer. The service line governance owner would be the person to confirm who is accountable overall."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "How is the event handoff delivered to the assigned tracker owner?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "I can't point you to one fixed channel it arrives through, I don't know that there is a set one. What comes over from the FA-01 team is the final allocation schedule, the released notices and the due date, and it gets logged in the event handoff record. If any files, access or ownership are missing, I escalate to the teams responsible for FA-01 and the client account."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "What happens when the investor count or total does not reconcile to the final allocation?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "I stop and I don't use the tracker. Any mismatch between the notices and the allocation goes back to the FA-01 team to fix, and the baseline has to reconcile to the final allocation before any updates to the tracker begin."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "Once FA-01 fixes a mismatch, what tells you the allocation is ready to reconcile again?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "I don't know of a specific signal for that. What I can say is that I only work from the locked, final client-approved version of the allocation file from FA-01, so I reconcile again once I have that version, and I check that the investor, entity, event, amount and due date agree between the allocation and the notice."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "What happens to a receipt that remains unidentified after the client gives direction?"
+  },
+  {
+   "id": "t014",
+   "role": "user",
+   "text": "It stays unassigned and open, I never force a match. I escalate it to the client and Treasury, keep it in the unidentified cash log with the research, and keep refreshing the transaction detail or getting Treasury, bank or remittance support. Until it is supported, that cash can't satisfy an investor's receivable or fund a downstream payment, and at closeout it has to be shown explicitly as unidentified in the closeout record."
+  },
+  {
+   "id": "t015",
+   "role": "assistant",
+   "text": "What information do you compare to match a bank receipt to an investor and capital-call event?"
+  },
+  {
+   "id": "t016",
+   "role": "user",
+   "text": "I compare the receipt amount, the originator or reference, the value date and the custodian information against the expected investors in the tracker. Where several investors pay through a shared custodian, I use the amount and the remaining unmatched investor list as support, and process of elimination is only a documented last resort. I never match on the originator name alone, and if the evidence is insufficient I contact the approved party for more remittance detail."
+  },
+  {
+   "id": "t017",
+   "role": "assistant",
+   "text": "When a receipt is identified as short, overfunded, duplicate or incorrect, what happens to resolve it?"
+  },
+  {
+   "id": "t018",
+   "role": "assistant",
+   "text": "This capture still has open sections. 13 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794966551.012,
+   "turn": 0,
+   "seconds": 0.026,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794966586.296,
+   "turn": 2,
+   "seconds": 3.01,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966623.674,
+   "turn": 3,
+   "seconds": 40.39
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794966631.785,
+   "turn": 3,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 48.5
+  },
+  {
+   "kind": "question",
+   "at": 1794966644.887,
+   "turn": 4,
+   "seconds": 3.717,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966659.025,
+   "turn": 5,
+   "seconds": 17.85,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 19,
+   "connections": 18
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966675.719,
+   "turn": 5,
+   "seconds": 34.55,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 20,
+   "connections": 18
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966676.227,
+   "turn": 5,
+   "seconds": 35.06
+  },
+  {
+   "kind": "question",
+   "at": 1794966687.044,
+   "turn": 6,
+   "seconds": 2.903,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966687.048,
+   "turn": 7,
+   "seconds": 2.91,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t004",
+   "steps": 20,
+   "connections": 18
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966699.71,
+   "turn": 7,
+   "seconds": 15.57,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 20,
+   "connections": 18
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966703.751,
+   "turn": 7,
+   "seconds": 19.61
+  },
+  {
+   "kind": "question",
+   "at": 1794966721.712,
+   "turn": 8,
+   "seconds": 5.459,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966721.717,
+   "turn": 9,
+   "seconds": 5.46,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t006",
+   "steps": 20,
+   "connections": 18
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966736.385,
+   "turn": 9,
+   "seconds": 20.13,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 21,
+   "connections": 19
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966741.443,
+   "turn": 9,
+   "seconds": 25.19
+  },
+  {
+   "kind": "question",
+   "at": 1794966753.663,
+   "turn": 10,
+   "seconds": 3.916,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966753.668,
+   "turn": 11,
+   "seconds": 3.92,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t008",
+   "steps": 21,
+   "connections": 19
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966771.875,
+   "turn": 11,
+   "seconds": 22.13,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 22,
+   "connections": 20
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966772.378,
+   "turn": 11,
+   "seconds": 22.63
+  },
+  {
+   "kind": "question",
+   "at": 1794966787.585,
+   "turn": 12,
+   "seconds": 4.438,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966787.591,
+   "turn": 13,
+   "seconds": 4.44,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t010",
+   "steps": 22,
+   "connections": 20
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966806.844,
+   "turn": 13,
+   "seconds": 23.7,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 22,
+   "connections": 21
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966809.383,
+   "turn": 13,
+   "seconds": 26.24
+  },
+  {
+   "kind": "question",
+   "at": 1794966823.194,
+   "turn": 14,
+   "seconds": 3.15,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966823.201,
+   "turn": 15,
+   "seconds": 3.16,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t012",
+   "steps": 22,
+   "connections": 21
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966841.45,
+   "turn": 15,
+   "seconds": 21.41
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966848.567,
+   "turn": 15,
+   "seconds": 28.52,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 23,
+   "connections": 23
+  },
+  {
+   "kind": "question",
+   "at": 1794966860.843,
+   "turn": 16,
+   "seconds": 1.941,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966860.849,
+   "turn": 17,
+   "seconds": 1.95,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t014",
+   "steps": 23,
+   "connections": 23
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966878.586,
+   "turn": 17,
+   "seconds": 19.68
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966887.213,
+   "turn": 17,
+   "seconds": 28.31,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 24,
+   "connections": 24
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794966892.179,
+   "turn": 17,
+   "seconds": 0.029,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794970037.357,
+   "turn": 18,
+   "seconds": 337.982,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [],
+ "notes": {
+  "summary": "Receipt matching uses amount, reference, value date and custodian information. Shared-custodian payments may require a documented last-resort elimination; insufficient evidence prompts a request for remittance detail.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "captured",
+    "answer": "Cash Application & Capital Call Receivables"
+   },
+   {
+    "key": "purpose",
+    "status": "captured",
+    "answer": "The work tracks investor capital-call receipts against amounts due, reports funding status and exceptions to the client, and reconciles receipts and balances at closeout."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "Work starts when the capital call team under FA-01 releases a final capital call notice and sets each investor's amount due and due date. The assigned tracker owner accepts the event handoff.\nNormal cadence and fixed deadlines beyond the stated due-date-relative steps remain unestablished. The participant cannot identify a fixed channel for the FA-01 handoff and does not know whether one exists."
+   },
+   {
+    "key": "completion",
+    "status": "captured",
+    "answer": "Closeout includes reconciling expected against received, confirming general ledger and cash balances reflect actual receipts, updating historical contribution balances, completing client reports such as Cobalt, locking the final tracker, and having the second reviewer verify closeout.\nThe second reviewer checks that expected receivable equals receipts plus any documented outstanding amount or difference, and that bank support, accounting records and the final tracker agree. The event is not marked complete while an unidentified or unexplained item is left out of the closeout record.\nAt closeout, unidentified cash must be explicitly shown as unidentified in the closeout record, even if it remains open."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "Ownership sits with either the CAP Activity Team or the Fund Team and must be assigned for each event, with one named tracker owner and one second reviewer. The assigned Fund Team applies the downstream payment gate.\nThe participant does not know who is accountable overall; the firmwide process owner and internal approver have not been confirmed. The service line governance owner would confirm overall accountability."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "After accepting the event handoff, the tracker owner confirms entity, notice date, due date, bank account and downstream uses, and records the tracker owner and second reviewer in the cash receivable tracker. The owner loads each investor, expected amount and due date from the final Excel allocation file into the tracker and reconciles count and total to the allocation with zero unexplained difference.\nA few days before the due date, the tracker owner or Investor Services runs the investor portal access report to identify who has not accessed the notice and gives that status to the client. The tracker owner or Investor Services then sends reminder emails using the approved template and CRM contact grid, BCC only, and records the send date in the tracker.\nThe tracker owner monitors the bank portal, with Treasury supporting, and captures value date, amount and originator or reference for candidate receipts; the Allvue Audit by Package report is used where it adds receipt detail. The owner matches each receipt to an investor and event in the tracker, or leaves it unidentified, then compares cumulative matched receipts with expected amount and classifies each investor as fully funded, short, overfunded, duplicate, incorrect, missing or unidentified.\nThe tracker owner sends the client a funding status report and obtains written direction on exceptions. The assigned Fund Team compares cleared cash with management fees, investment funding, line of credit repayment and expenses, and marks each as cleared to proceed, partially funded or held; Treasury executes payments through FA-17.\nAfter the due date, the tracker owner continues follow-up, calculates days past due using the LPA's business-day or calendar-day rule, and escalates before any default milestone; the client directs any legal or default action.\nThe second reviewer checks baseline completeness, material matching decisions and exception treatment earlier in the event, then checks the closeout equation and agreement of bank support, accounting records and the final tracker.\nThe FA-01 team provides the final allocation schedule, released notices and due date, which are logged in the event handoff record. If files, access or ownership are missing, the participant escalates to the teams responsible for FA-01 and the client account.\nIf the baseline does not reconcile, the participant stops and does not use the tracker. A mismatch between notices and allocation goes back to the FA-01 team to fix; the baseline must reconcile to the final allocation before tracker updates begin.\nAfter a notice-to-allocation mismatch is returned to FA-01, the participant reconciles again once they have the locked, final client-approved allocation file. They compare investor, entity, event, amount and due date between the allocation and notice.\nThe participant knows of no separate signal that a corrected allocation is ready; they reconcile again upon receiving the locked, final client-approved allocation file.\nIf a receipt remains unidentified, the participant leaves it unassigned and open, escalates it to the client and Treasury, and keeps it in the unidentified cash log with the research. The participant continues refreshing transaction detail or obtaining Treasury, bank or remittance support.\nThe participant compares receipt amount, originator or reference, value date and custodian information with expected investors in the tracker. If evidence is insufficient, they contact the approved party for more remittance detail.\nFor a shared custodian, the participant uses the amount and remaining unmatched investor list as support, documenting process of elimination only as a last resort."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The tracker owner reconciles loaded investor count and total to the final allocation with zero unexplained difference. The tracker owner and Fund Team reconcile expected receipts against received and confirm general ledger and cash balances reflect actual receipts; the second reviewer verifies closeout.\nThe Fund Team applies a downstream payment gate by comparing cleared cash with management fees, investment funding, line of credit repayment and expenses, and classifies each as cleared to proceed, partially funded or held before Treasury executes payments through FA-17. The client provides written direction on exceptions and directs legal or default action.\nHow reviewer verification is evidenced and retained, and the rejection or rework path, remain unspecified.\nThe second reviewer checks the closeout equation and agreement among bank support, accounting records and the final tracker. Earlier in the event, the same reviewer checks baseline completeness, material matching decisions and exception treatment.\nA baseline mismatch stops use of the tracker. Notice-to-allocation mismatches are returned to FA-01 for correction, and the baseline must reconcile before tracker updates begin.\nThe participant checks that investor, entity, event, amount and due date agree between the allocation and the notice.\nUnsupported unidentified cash cannot satisfy an investor receivable or fund a downstream payment; it must be explicitly identified in the closeout record.\nFor matching, the participant compares amount, originator or reference, value date and custodian information against expected investors; insufficient evidence prompts a request to the approved party for more remittance detail."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "The Allvue Audit by Package report is used where it adds receipt detail; a receipt may be left unidentified rather than matched.\nOther client, fund and system differences, and the basis for any such differences, remain unestablished.\nWhen a receipt remains unidentified, the participant leaves it open rather than assigning it, escalates it and continues research using refreshed transaction detail or Treasury, bank or remittance support.\nWhen several investors pay through a shared custodian, the participant uses the amount and remaining unmatched investor list as support; process of elimination is a documented last resort."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "The tracker owner escalates before any default milestone; legal or default action is directed by the client. The process identifies short, overfunded, duplicate, incorrect, missing and unidentified funding states and obtains client direction on exceptions."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "Reported artifacts used include the final Excel allocation file, cash receivable tracker, investor portal access report, approved reminder template, CRM contact grid, bank portal, Allvue Audit by Package report, funding status report, client written exception directions, LPA, general ledger and cash balances, historical contribution balances, client reports such as Cobalt, and final tracker. Custodians and storage locations are not stated.\nBank support, accounting records and the final tracker are compared by the second reviewer at closeout; the closeout record documents outstanding amounts or differences.\nThe event handoff record logs the final allocation schedule, released notices and due date received from FA-01.\nThe locked, final client-approved allocation file from FA-01 is the version the participant uses for reconciliation against the notice.\nThe unidentified cash log retains unidentified receipts and associated research; the closeout record explicitly shows unidentified cash."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The work concerns investor capital-call receivables and downstream uses including management fees, investment funding, line of credit repayment and expenses.\nApplicable entity types and whether the described route is general GPFS practice or client-specific remain unestablished."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The tracker owner uses a zero-unexplained-difference rule when reconciling loaded investor count and total to the final allocation. Days past due are calculated using the applicable LPA business-day or calendar-day rule; the specific LPA interpretation and how it is selected are not stated.\nCloseout requires expected receivable to equal receipts plus documented outstanding amounts or differences. An event is not marked complete with an unidentified or unexplained item omitted from the closeout record.\nThe baseline must reconcile to the final allocation before any updates to the tracker begin.\nThe participant works only from the locked, final client-approved allocation file from FA-01.\nUnidentified cash is not forced into a match. Until supported, it cannot satisfy an investor receivable or fund a downstream payment; at closeout it must be explicitly shown as unidentified in the closeout record.\nThe participant never matches a receipt on originator name alone; process of elimination is only a documented last resort."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The work starts from a final capital call notice and investor amounts and due dates released by capital call team process FA-01. Treasury supports bank-portal monitoring; the client receives status and provides exception direction. Fund Team applies the downstream payment gate and Treasury executes payments through FA-17. The LPA supplies the business-day or calendar-day rule used to calculate days past due.\nThe participant works from the locked, final client-approved allocation file supplied by FA-01 and reconciles again once that version is received.\nUses the output of Capital call team / FA-01: Receives released final capital call notice and investor amounts and due dates as the initiating input.\nHands off to Treasury / FA-17 payment process: After Fund Team applies the payment gate, Treasury executes payments through FA-17.\nThe work consumes the FA-01 team's final allocation schedule, released notices and due date. The participant escalates missing files, access or ownership to the teams responsible for FA-01 and the client account.\nUses the output of Capital call team / FA-01: Receives the final allocation schedule, released notices and due date as the event handoff; missing files, access or ownership are escalated to the FA-01 and client-account teams.\nNotice-to-allocation mismatches are returned to the FA-01 team for correction before tracker updates begin.\nHands off to Capital call team / FA-01: Notice-to-allocation mismatches are returned to FA-01 for correction; the baseline must reconcile before tracker updates begin.\nUses the output of Capital call team / FA-01: Receives the final allocation schedule, released notices and due date as the event handoff. The participant uses the locked, final client-approved allocation and reconciles again when that version is received; missing files, access or ownership are escalated to the FA-01 and client-account teams.\nThe participant escalates unidentified receipts to the client and Treasury and continues research using refreshed transaction detail or Treasury, bank or remittance support."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The tracker owner loads investor, expected amount and due date data from the final Excel allocation file into the cash receivable tracker, monitors the bank portal and uses the Allvue Audit by Package report where it adds receipt detail.\nThe system of record, spreadsheet logic ownership and whether loading involves re-keying remain unspecified."
+   },
+   {
+    "key": "volume",
+    "status": "partial",
+    "answer": "Transaction volumes, peak counts, exception frequency and effort are not reported."
+   }
+  ]
+ },
+ "map": {
+  "title": "Cash Application & Capital Call Receivables",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "start",
+    "title": "Final capital call released",
+    "actor": "Capital call team",
+    "system": "UNKNOWN",
+    "description": "Under FA-01, the team releases the final notice and sets each investor's amount due and due date."
+   },
+   {
+    "id": "S2",
+    "type": "data_store",
+    "title": "Accept and record handoff",
+    "actor": "Assigned tracker owner, on the CAP Activity Team or Fund Team",
+    "system": "Cash receivable tracker; event handoff record",
+    "description": "Accept the FA-01 handoff and confirm the entity, notice date, due date, bank account and downstream uses. Record the tracker owner and second reviewer in the tracker. The handoff is logged in the event handoff record; who logs it is UNKNOWN."
+   },
+   {
+    "id": "S3",
+    "type": "data_store",
+    "title": "Load and reconcile allocation",
+    "actor": "Tracker owner",
+    "system": "Cash receivable tracker; final Excel allocation file",
+    "description": "Work from the locked, final client-approved allocation file from FA-01. Load investor amounts and due dates, reconcile the count and total to the allocation, and check that investor, entity, event, amount and due date agree between the allocation and notice. Stop using the tracker if the baseline does not reconcile; it must reconcile before tracker updates begin."
+   },
+   {
+    "id": "S4",
+    "type": "document",
+    "title": "Report notice access status",
+    "actor": "Tracker owner or Investor Services",
+    "system": "Investor portal",
+    "description": "Run the portal access report to identify investors who have not accessed the notice and give the status to the client."
+   },
+   {
+    "id": "S5",
+    "type": "document",
+    "title": "Send and record reminders",
+    "actor": "Tracker owner or Investor Services",
+    "system": "CRM contact grid; cash receivable tracker",
+    "description": "Send reminder emails using the approved template and CRM contact grid, BCC only, and record the send date in the tracker."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Monitor and capture receipts",
+    "actor": "Tracker owner, with Treasury supporting",
+    "system": "Bank portal; Allvue Audit by Package report where useful",
+    "description": "Monitor the bank portal and capture value date, amount and originator or reference for each candidate receipt. Use the Allvue report where it adds receipt detail."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Match or leave unidentified",
+    "actor": "Tracker owner",
+    "system": "Cash receivable tracker",
+    "description": "Compare receipt amount, originator or reference, value date and custodian information with expected investors. For shared custodians, use the amount and remaining unmatched investor list as support; documented process of elimination is a last resort. Never match on originator name alone."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Classify investor funding",
+    "actor": "Tracker owner",
+    "system": "Cash receivable tracker",
+    "description": "Compare cumulative matched receipts to expected amounts and classify each investor as fully funded, short, overfunded, duplicate, incorrect, missing or unidentified."
+   },
+   {
+    "id": "S9",
+    "type": "document",
+    "title": "Report funding and obtain direction",
+    "actor": "Tracker owner",
+    "system": "UNKNOWN",
+    "description": "Send the client a funding status report and obtain written direction on exceptions."
+   },
+   {
+    "id": "S10",
+    "type": "decision",
+    "title": "What is each payment's funding status?",
+    "actor": "Assigned Fund Team",
+    "system": "UNKNOWN",
+    "description": "Compare cleared cash to management fees, investment funding, line of credit repayment and expenses. Mark each payment cleared to proceed, partially funded or held. Unsupported unidentified cash cannot fund a downstream payment."
+   },
+   {
+    "id": "S11",
+    "type": "subprocess",
+    "title": "Execute cleared payments",
+    "actor": "Treasury",
+    "system": "UNKNOWN",
+    "description": "Execute payments through the FA-17 payment process."
+   },
+   {
+    "id": "S12",
+    "type": "wait",
+    "title": "Hold payment",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Payment is held under the funding gate. The release condition is UNKNOWN."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Follow up after due date",
+    "actor": "Tracker owner",
+    "system": "UNKNOWN",
+    "description": "Continue follow-up, calculate days past due using the LPA's business-day or calendar-day rule, and escalate before any default milestone. The client directs legal or default action."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Reconcile expected and received",
+    "actor": "Tracker owner and Fund Team",
+    "system": "UNKNOWN",
+    "description": "Reconcile expected amounts against amounts received."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Confirm ledger and cash",
+    "actor": "Tracker owner and Fund Team",
+    "system": "General ledger; cash balances",
+    "description": "Confirm the general ledger and cash balances reflect actual receipts."
+   },
+   {
+    "id": "S16",
+    "type": "data_store",
+    "title": "Update contribution balances",
+    "actor": "Tracker owner and Fund Team",
+    "system": "UNKNOWN",
+    "description": "Update historical contribution balances."
+   },
+   {
+    "id": "S17",
+    "type": "document",
+    "title": "Complete client reports",
+    "actor": "Tracker owner and Fund Team",
+    "system": "UNKNOWN",
+    "description": "Complete client reports, such as Cobalt."
+   },
+   {
+    "id": "S18",
+    "type": "data_store",
+    "title": "Lock final tracker",
+    "actor": "Tracker owner and Fund Team",
+    "system": "Cash receivable tracker",
+    "description": "Lock the final tracker."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Verify closeout",
+    "actor": "Second reviewer",
+    "system": "UNKNOWN",
+    "description": "Verify that expected receivables equal receipts plus documented outstanding amounts or differences, and that bank support, accounting records and the final tracker agree. Unidentified cash must be shown explicitly in the closeout record; the event is not marked complete if an unidentified or unexplained item is left out."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Review event decisions",
+    "actor": "Second reviewer",
+    "system": "UNKNOWN",
+    "description": "Earlier in the event, check baseline completeness, material matching decisions and exception treatment. The precise points and handoffs for these checks are UNKNOWN."
+   },
+   {
+    "id": "S21",
+    "type": "activity",
+    "title": "Escalate missing handoff needs",
+    "actor": "Participant; role UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Escalate missing files, access or ownership to the teams responsible for FA-01 and the client account. Resolution and the next handoff are UNKNOWN."
+   },
+   {
+    "id": "S22",
+    "type": "activity",
+    "title": "Return mismatch to FA-01",
+    "actor": "Sender UNKNOWN; FA-01 team fixes the mismatch",
+    "system": "UNKNOWN",
+    "description": "Return a notice-to-allocation mismatch to FA-01 for correction. Reconcile again once the locked, final client-approved allocation version is available; the return channel is UNKNOWN."
+   },
+   {
+    "id": "S23",
+    "type": "activity",
+    "title": "Escalate and research unidentified cash",
+    "actor": "Participant; role UNKNOWN",
+    "system": "Unidentified cash log",
+    "description": "Keep the receipt unassigned and open without forcing a match. Escalate it to the client and Treasury, retain the research in the unidentified cash log, and keep refreshing transaction detail or obtaining Treasury, bank or remittance support."
+   },
+   {
+    "id": "S24",
+    "type": "activity",
+    "title": "Request more remittance detail",
+    "actor": "Tracker owner",
+    "system": "UNKNOWN",
+    "description": "Contact the approved party for more remittance detail when evidence is insufficient to match a receipt. The response and subsequent handoff are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": ""
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": ""
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": ""
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": ""
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": ""
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": ""
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": "Cleared to proceed"
+   },
+   {
+    "from": "S10",
+    "to": "S12",
+    "label": "Held"
+   },
+   {
+    "from": "S10",
+    "to": "S13",
+    "label": "After the due date"
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": ""
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": ""
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": ""
+   },
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": ""
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": ""
+   },
+   {
+    "from": "S18",
+    "to": "S19",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S21",
+    "label": "Files, access or ownership missing"
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "Baseline reconciled to final allocation"
+   },
+   {
+    "from": "S3",
+    "to": "S22",
+    "label": "Notices and allocation mismatch"
+   },
+   {
+    "from": "S22",
+    "to": "S3",
+    "label": "Locked, final client-approved allocation version obtained"
+   },
+   {
+    "from": "S9",
+    "to": "S23",
+    "label": "Receipt remains unidentified after client direction"
+   },
+   {
+    "from": "S10",
+    "to": "S20",
+    "label": "Partially funded"
+   },
+   {
+    "from": "S7",
+    "to": "S24",
+    "label": "Matching evidence insufficient"
+   }
+  ],
+  "open_questions": [
+   "Does any incoming route start S3 (Load and reconcile allocation), or must all prerequisites finish?",
+   "Where do the second reviewer's baseline, matching and exception checks sit in the route, and what are their handoffs? The existing partially funded payment connection to those checks is not supported by the reported account; what is its correct route?",
+   "Who is accountable for the overall result and who is the internal approver? The service line governance owner was identified as the person to confirm overall accountability.",
+   "Is this general GPFS practice or a client-specific route, and what is the basis for that scope?",
+   "Which entity types and clients does the process cover, what is its parent process, and who uses its outputs downstream?",
+   "Are there other names for this work, what result does it deliver, and how often does it occur?",
+   "The handoff channel and a specific allocation-ready signal are UNKNOWN. Who logs the handoff, and how is the locked, final client-approved allocation delivered?",
+   "How are missing files, access or ownership resolved after escalation, and where does work resume?",
+   "How are corrected files returned by FA-01, and how are count or total discrepancies other than notice-to-allocation mismatches resolved?",
+   "Who performs the unidentified-cash escalation and research, and where does the receipt go once sufficient support is obtained?",
+   "How is requested remittance detail returned and used, and where does the receipt rejoin the matching process?",
+   "How are other receipt exceptions resolved?",
+   "How are client exception directions implemented, and are further checks or approvals required?",
+   "What happens to a partially funded payment, and what releases a held payment? How do payment execution and post-due-date follow-up relate when payments remain outstanding?",
+   "Who receives an escalation before a default milestone, and how are legal or default directions recorded and acted on?",
+   "Who interprets the LPA day-count rule, where is that interpretation recorded, and how are days past due calculated and corrected?",
+   "What happens when an earlier check or closeout verification fails, and where is review evidence retained?",
+   "Are there approval thresholds, segregation requirements, system-enforced restrictions, overrides or other review levels?",
+   "Are the closeout actions performed in the listed order for every event, what must be complete before the tracker is locked and verified, and how is event completion recorded?",
+   "Which records are authoritative, where are the tracker and supporting files stored, and which data are entered manually, imported or calculated?",
+   "What client or other variations change the work, why do they exist, and are there related charging or removal constraints?",
+   "What manual friction, material risks, volumes, peaks, exception frequency and effort estimates are known?",
+   "Which procedures, templates or examples exist, where are they available, and have they been reviewed?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "Current-practice draft: Cash Application & Capital Call Receivables",
+  "overview": "One participant described capital-call receivable tracking, receipt matching, payment funding status and closeout. This draft is incomplete and pending participant and process-owner review. Overall accountability, several exception exits and the scope of applicability remain UNKNOWN. No supporting documents were supplied or reviewed.",
+  "trigger": "The FA-01 capital call team releases a final notice and sets the amount due and due date for each investor.",
+  "inputs": [
+   "Released notices, due date and locked, final client-approved Excel allocation from FA-01.",
+   "Investor portal access report, approved reminder template and CRM contact grid.",
+   "Bank receipt details and, where useful, the Allvue Audit by Package report.",
+   "The LPA business-day or calendar-day rule reported by the participant."
+  ],
+  "outputs": [
+   "Cash receivable tracker and investor funding classifications.",
+   "Client access and funding status reports and written exception direction.",
+   "Payment funding statuses.",
+   "Closeout reconciliation, updated historical contribution balances, client reports and locked tracker."
+  ],
+  "exceptions": [
+   "Missing handoff files, access or ownership are escalated to the teams responsible for FA-01 and the client account; resolution is UNKNOWN.",
+   "Stop using an unreconciled tracker. Notice-to-allocation mismatches return to FA-01 and are reconciled again once the locked, final client-approved allocation is obtained. Handling other count or total discrepancies is UNKNOWN.",
+   "Insufficient matching evidence prompts a request to the approved party. The response route is UNKNOWN.",
+   "Unidentified cash remains open and unassigned, is escalated and researched, cannot fund a receivable or payment until supported, and must be explicitly shown at closeout.",
+   "Treatment of short, overfunded, duplicate, incorrect and missing items after client direction is UNKNOWN.",
+   "Handling of partially funded payments and release of held payments are UNKNOWN."
+  ],
+  "controls": [
+   "The tracker owner confirms handoff details and records the tracker owner and second reviewer.",
+   "Baseline count and total reconcile to the final allocation with zero unexplained difference; specified notice and allocation fields are compared, and the baseline must reconcile before tracker updates.",
+   "Reminder emails use the approved template and CRM contact grid and are BCC only.",
+   "Matching uses multiple receipt details; originator name alone is insufficient, and elimination for shared custodians is a documented last resort.",
+   "The second reviewer checks baseline completeness, material matching decisions and exception treatment earlier in the event, and verifies the closeout equation and agreement of supporting records.",
+   "The event is not marked complete while an unidentified or unexplained item is omitted from the closeout record.",
+   "The Fund Team classifies payment funding against cleared cash; unsupported unidentified cash cannot satisfy an investor receivable or fund a payment."
+  ],
+  "validation_notes": [
+   "This is a current-practice draft pending participant confirmation and appropriate process-owner review. It is not a verified or executable procedure.",
+   "The account is one participant's report. No supporting documents were supplied or independently reviewed, and no general GPFS standard is established.",
+   "The numbered walkthrough supports the recorded sequence, but the timing and coordination of payment execution, continuing follow-up and closeout remain UNKNOWN. The after-due-date follow-up edge is not a release of a held payment.",
+   "The earlier second-reviewer checks are retained as a disconnected known activity because their precise placement and handoffs were not reported. They are not a partial-payment handler.",
+   "The participant reported reconciling again once the locked, final client-approved allocation is obtained, but did not know a specific readiness signal.",
+   "Unidentified cash may remain open while explicitly recorded at closeout; the account does not require every unidentified item to be resolved before closeout.",
+   "The partially funded payment outcome, held-payment release, missing-handoff resolution, remittance-response route and unidentified-cash resolution are incomplete.",
+   "The reminder template and LPA were mentioned but not supplied or reviewed. No authorized document source is available for rule_source_ref.",
+   "Participant identity, interview date, authoritative records and review-evidence locations are UNKNOWN.",
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "start",
+    "title": "Final capital call released",
+    "actor": "Capital call team under FA-01",
+    "system": "UNKNOWN",
+    "description": "The capital call team releases the final notice and sets each investor's amount due and due date."
+   },
+   {
+    "id": "S2",
+    "type": "data_store",
+    "title": "Accept and record handoff",
+    "actor": "Assigned tracker owner on the CAP Activity Team or Fund Team",
+    "system": "Cash receivable tracker; event handoff record",
+    "description": "Accept the event handoff; confirm entity, notice date, due date, bank account and downstream uses; and record the tracker owner and second reviewer in the tracker. The handoff is logged in the event handoff record; who logs it and the channel are UNKNOWN."
+   },
+   {
+    "id": "S3",
+    "type": "data_store",
+    "title": "Load and reconcile allocation",
+    "actor": "Tracker owner",
+    "system": "Cash receivable tracker; Excel allocation file",
+    "description": "Use the locked, final client-approved FA-01 allocation. Load every investor, expected amount and due date into the tracker; reconcile count and total to the allocation with zero unexplained difference; and compare investor, entity, event, amount and due date between allocation and notice. Stop using the tracker if it does not reconcile. The baseline must reconcile before tracker updates begin."
+   },
+   {
+    "id": "S4",
+    "type": "document",
+    "title": "Report notice access status",
+    "actor": "Tracker owner or Investor Services",
+    "system": "Investor portal",
+    "description": "A few days before the due date, run the investor portal access report to identify investors who have not accessed the notice and give that status to the client."
+   },
+   {
+    "id": "S5",
+    "type": "document",
+    "title": "Send and record reminders",
+    "actor": "Tracker owner or Investor Services",
+    "system": "Email; CRM contact grid; cash receivable tracker",
+    "description": "Send reminder emails using the approved template and CRM contact grid, BCC only, and record the send date in the tracker."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Monitor and capture receipts",
+    "actor": "Tracker owner, with Treasury supporting",
+    "system": "Bank portal; Allvue Audit by Package report where useful",
+    "description": "Monitor the bank portal and capture value date, amount and originator or reference for each candidate receipt. Use the Allvue report where it adds receipt detail."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Match or leave unidentified",
+    "actor": "Tracker owner",
+    "system": "Cash receivable tracker",
+    "description": "Match each receipt to an investor and event or leave it unidentified. Compare amount, originator or reference, value date and custodian information with expected investors. For shared custodians, use amount and the remaining unmatched investor list as support; documented process of elimination is a last resort. Never match on originator name alone. If evidence is insufficient, request more remittance detail from the approved party."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Classify investor funding",
+    "actor": "Tracker owner",
+    "system": "Cash receivable tracker",
+    "description": "Compare cumulative matched receipts with expected amounts and classify each investor as fully funded, short, overfunded, duplicate, incorrect, missing or unidentified."
+   },
+   {
+    "id": "S9",
+    "type": "document",
+    "title": "Report funding and obtain direction",
+    "actor": "Tracker owner",
+    "system": "UNKNOWN",
+    "description": "Send the client a funding status report and obtain written direction on exceptions. Implementation of directions for other exception types is UNKNOWN."
+   },
+   {
+    "id": "S10",
+    "type": "decision",
+    "title": "What is each payment's funding status?",
+    "actor": "Assigned Fund Team",
+    "system": "UNKNOWN",
+    "description": "Compare cleared cash with management fees, investment funding, line of credit repayment and expenses; mark each cleared to proceed, partially funded or held. Unsupported unidentified cash cannot satisfy an investor receivable or fund a downstream payment."
+   },
+   {
+    "id": "S11",
+    "type": "subprocess",
+    "title": "Execute cleared payments",
+    "actor": "Treasury",
+    "system": "UNKNOWN",
+    "description": "Execute payments through the FA-17 payment process. Its internal steps are not described."
+   },
+   {
+    "id": "S12",
+    "type": "wait",
+    "title": "Hold payment",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "A payment marked held is held. Release condition and subsequent route are UNKNOWN."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Follow up after due date",
+    "actor": "Tracker owner",
+    "system": "UNKNOWN",
+    "description": "After the due date, continue follow-up, calculate days past due using the LPA's business-day or calendar-day rule, and escalate before any default milestone. The client directs any legal or default action."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Reconcile expected and received",
+    "actor": "Tracker owner and Fund Team",
+    "system": "UNKNOWN",
+    "description": "Reconcile expected amounts against amounts received as part of closeout."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Confirm ledger and cash",
+    "actor": "Tracker owner and Fund Team",
+    "system": "General ledger; cash balances",
+    "description": "Confirm that the general ledger and cash balances reflect actual receipts."
+   },
+   {
+    "id": "S16",
+    "type": "data_store",
+    "title": "Update contribution balances",
+    "actor": "Tracker owner and Fund Team",
+    "system": "UNKNOWN",
+    "description": "Update historical contribution balances."
+   },
+   {
+    "id": "S17",
+    "type": "document",
+    "title": "Complete client reports",
+    "actor": "Tracker owner and Fund Team",
+    "system": "UNKNOWN",
+    "description": "Complete client reports such as Cobalt. Delivery and recipient details are UNKNOWN."
+   },
+   {
+    "id": "S18",
+    "type": "data_store",
+    "title": "Lock final tracker",
+    "actor": "Tracker owner and Fund Team",
+    "system": "Cash receivable tracker",
+    "description": "Lock the final tracker as part of closeout."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Verify closeout",
+    "actor": "Second reviewer",
+    "system": "UNKNOWN",
+    "description": "Verify that expected receivables equal receipts plus documented outstanding amounts or differences and that bank support, accounting records and the final tracker agree. Unidentified cash must be shown explicitly in the closeout record; an event is not marked complete while an unidentified or unexplained item is omitted. Failure handling and retained review proof are UNKNOWN."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Review event decisions",
+    "actor": "Second reviewer",
+    "system": "UNKNOWN",
+    "description": "Earlier in the event, check baseline completeness, material matching decisions and exception treatment. Precise points, outcomes and handoffs are UNKNOWN."
+   },
+   {
+    "id": "S21",
+    "type": "activity",
+    "title": "Escalate missing handoff needs",
+    "actor": "Participant; role UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Escalate missing files, access or ownership to the teams responsible for FA-01 and the client account. Resolution and next handoff are UNKNOWN."
+   },
+   {
+    "id": "S22",
+    "type": "activity",
+    "title": "Return mismatch to FA-01",
+    "actor": "Sender UNKNOWN; FA-01 team fixes the mismatch",
+    "system": "UNKNOWN",
+    "description": "Return a notice-to-allocation mismatch to FA-01 for correction. Reconcile again once the locked, final client-approved allocation version is obtained. Return channel and specific readiness signal are UNKNOWN."
+   },
+   {
+    "id": "S23",
+    "type": "activity",
+    "title": "Escalate and research unidentified cash",
+    "actor": "Participant; role UNKNOWN",
+    "system": "Unidentified cash log",
+    "description": "For a receipt still unidentified after client direction, keep it unassigned and open without forcing a match. Escalate to the client and Treasury, keep the research in the unidentified cash log, and keep refreshing transaction detail or obtaining Treasury, bank or remittance support. Until supported, the cash cannot satisfy an investor receivable or fund a downstream payment. Show it explicitly as unidentified at closeout."
+   },
+   {
+    "id": "S24",
+    "type": "activity",
+    "title": "Request more remittance detail",
+    "actor": "Tracker owner",
+    "system": "UNKNOWN",
+    "description": "When matching evidence is insufficient, contact the approved party for more remittance detail. Response and subsequent handoff are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "Event handoff"
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": "Handoff accepted"
+   },
+   {
+    "from": "S2",
+    "to": "S21",
+    "label": "Files, access or ownership missing"
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "Baseline reconciled to final allocation"
+   },
+   {
+    "from": "S3",
+    "to": "S22",
+    "label": "Notices and allocation mismatch"
+   },
+   {
+    "from": "S22",
+    "to": "S3",
+    "label": "Locked, final client-approved allocation obtained"
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": ""
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": ""
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": ""
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": "Receipt matched or left unidentified"
+   },
+   {
+    "from": "S7",
+    "to": "S24",
+    "label": "Matching evidence insufficient"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": ""
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": ""
+   },
+   {
+    "from": "S9",
+    "to": "S23",
+    "label": "Receipt remains unidentified after client direction"
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": "Cleared to proceed"
+   },
+   {
+    "from": "S10",
+    "to": "S12",
+    "label": "Held"
+   },
+   {
+    "from": "S10",
+    "to": "S13",
+    "label": "After the due date"
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": ""
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": ""
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": ""
+   },
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": ""
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": ""
+   },
+   {
+    "from": "S18",
+    "to": "S19",
+    "label": ""
+   }
+  ],
+  "open_questions": [
+   "Who is accountable for the overall result and who is the internal approver? The participant identified the service line governance owner as the person to confirm overall accountability.",
+   "How are short, overfunded, duplicate, incorrect and missing items resolved after client direction, and how do those routes return or close?",
+   "Where do the second reviewer's earlier baseline, matching and exception checks sit, what happens when they fail, and where is review evidence retained?",
+   "What happens to partially funded payments, what releases held payments, and how do payment execution and post-due-date follow-up relate when payments remain outstanding?",
+   "Is this general GPFS practice or a client-specific route, and what is the basis for that scope?",
+   "How are missing handoff needs resolved after escalation, and where does work resume?",
+   "How are count or total discrepancies other than notice-to-allocation mismatches resolved?",
+   "Who performs unidentified-cash escalation and research, and what happens once sufficient support is obtained?",
+   "How is requested remittance detail returned and used, and does the receipt return to matching?",
+   "Who receives pre-default escalation, and how are client legal or default directions recorded and acted on?",
+   "Who interprets the LPA day-count rule, where is the interpretation recorded, and how are the calculation and corrections performed?",
+   "What happens when closeout verification fails, and how and by whom is event completion recorded?",
+   "Are there approval thresholds, segregation requirements, system restrictions, overrides or other review levels?",
+   "Which entity types and clients are covered, what is the parent process, and who uses the completed outputs?",
+   "What other names, cadence and fixed deadlines apply?",
+   "Who logs the handoff, and how is the locked final allocation delivered?",
+   "Which records are authoritative, where are files stored, and which entries are manual, imported or calculated?",
+   "What client or other differences change the work, and what are their reasons, effort, charging and removal constraints?",
+   "What manual friction, material risks, volumes, peaks, exception frequencies and effort estimates are known?",
+   "Which procedures, templates or examples exist, where are they available, and have they been reviewed?",
+   "Are the closeout actions always performed in the listed order, and what must be complete before tracker locking and verification?",
+   "Does any incoming route start S3 (Load and reconcile allocation), or must all prerequisites finish?",
+   "How does step S20 (Review event decisions) connect to the rest of this process, if at all?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "The intake calls the work Cash Application & Capital Call Receivables. It covers tracking expected capital-call receipts through funding status and closeout; other names and precise boundaries are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The work produces investor funding status, payment funding classifications and reconciled closeout records, including a locked tracker. The participant's own statement of the overall delivered result and downstream uses is UNKNOWN."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "FA-01 releases a final capital call notice and sets each investor's amount and due date; the assigned tracker owner accepts the handoff. The handoff includes notices, allocation and due date, but its channel is not fixed or known. Access reporting occurs a few days before the due date; follow-up continues after it and escalation occurs before any default milestone. Event frequency and other fixed deadlines are UNKNOWN."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "Closeout includes reconciliation, ledger and cash confirmation, historical balance updates, client reports, a locked tracker and second-reviewer verification. Expected receivables must equal receipts plus documented outstanding amounts or differences, and bank support, accounting records and tracker must agree. Unidentified or unexplained items cannot be omitted from the closeout record; unidentified cash must be shown explicitly. Who marks completion, how it is recorded and downstream consumers are UNKNOWN."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "Event ownership is assigned to either the CAP Activity Team or Fund Team, with a named tracker owner and second reviewer. Firmwide process ownership and internal approval are unconfirmed; the participant identified the service line governance owner as the person to confirm overall accountability."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The tracker owner accepts the handoff, records assignments, loads and reconciles the allocation, and, with Investor Services as an alternative performer, reports notice access and sends reminders. The owner monitors receipts with Treasury support, matches or leaves them unidentified, classifies funding and obtains client direction. The Fund Team applies a cash gate and Treasury executes payments through FA-17. After the due date the owner follows up and escalates before default milestones; the owner and Fund Team perform closeout and a second reviewer verifies it. Mismatches return to FA-01; insufficient or unidentified receipt evidence is pursued separately. Several exception exits, review placements and handoff mechanisms remain UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The owner reconciles baseline count and total, checks specified notice fields and uses multiple receipt details for matching. Reminders use the approved template and CRM grid, BCC only. The second reviewer checks baseline completeness, material matches and exception treatment earlier, then the closeout equation and agreement of bank support, accounting records and tracker. The client supplies written exception direction; the Fund Team applies a payment gate. Review timing, failure rework, retained proof, thresholds, segregation, overrides and system enforcement are UNKNOWN."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "Shared-custodian receipts use amount and the remaining unmatched investor list as support, with documented elimination only as a last resort. Unidentified receipts require research and remain open while unsupported. Whether these circumstances change the process boundary, and their effort or other constraints, is UNKNOWN. Client, fund and other differences and the basis for a standard route are UNKNOWN."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": "UNKNOWN. The participant described follow-up and research but did not identify their practical burden or quantify friction."
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "The account identifies safeguards against unsupported cash satisfying an investor receivable or funding a payment, and against omitting unidentified or unexplained items from closeout. The participant did not describe broader failure consequences or quantify risk."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The participant mentioned a final Excel allocation, released notices, approved reminder template, CRM contact grid, portal and Allvue reports, tracker, unidentified cash log and LPA day-count rule. No documents were supplied or reviewed for this draft; locations and other procedures or examples are UNKNOWN."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The work concerns investor capital-call receivables, with event ownership assigned to the CAP Activity Team or Fund Team. Specific entity types, clients, parent process and whether this is general GPFS practice or a client route are UNKNOWN."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The participant reports using the locked, final client-approved allocation, zero-unexplained-difference baseline reconciliation, specified matching criteria and the closeout equation. Days past due use the LPA's business-day or calendar-day rule. The LPA itself was not reviewed; interpreter, source conflicts, implementation detail, calculation mechanics and client modifications are UNKNOWN."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "FA-01 supplies released notices and the final allocation; notice-to-allocation mismatches return to FA-01. Investor Services may run access reports and send reminders. Treasury supports receipt monitoring and executes payments through FA-17; the client receives status and directs exceptions and any legal or default action. Other downstream consumers, readiness signals and coordination are UNKNOWN."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The work uses a cash receivable tracker, event handoff record, final Excel allocation, investor portal, CRM contact grid, bank portal, optional Allvue Audit by Package report and unidentified cash log. The general ledger and cash balances are checked, and client reports such as Cobalt are completed. Authoritative records, storage, entry methods, calculation location and workbook logic ownership are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": "UNKNOWN: normal event or investor counts, peaks, exception frequency and step-level effort were not reported."
+   }
+  ]
+ },
+ "draft_error": null
+}

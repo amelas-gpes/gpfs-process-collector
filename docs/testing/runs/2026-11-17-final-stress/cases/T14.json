@@ -1,0 +1,1414 @@
+{
+ "case": "T14",
+ "process": "MC-06",
+ "mode": "typed",
+ "style": "one step per answer",
+ "build": "untouched",
+ "participant": "script",
+ "context": {
+  "process_name": "Expense Processing: T&E Review & Scrubbing (AEA Variant)",
+  "process_owner": "",
+  "objective": "Document how we carry out Expense Processing: T&E Review & Scrubbing (AEA Variant), the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "To begin with, we add the report to the review tracker. What we do: record cardholder, statement total, submitted amount, report identifier, and status; add fields for PDF saved, receipts, two approvals, exceptions, and completion; compare statement and submitted totals and flag a difference."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "What prompts you to add an expense report to the review tracker?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "Next, we validate receipts and personal-expense classification. What we do: confirm the current receipt threshold and personal-expense exception before applying them; check each line against the validated rule; flag missing receipt or questionable personal classification to the submitter/client; record resolution in the tracker."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What tells you that a missing receipt or questionable personal-expense classification has been resolved?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "After that, we validate approvals and keep report records. What we do: confirm the current required number/types of approvals; verify approvers/statuses in Concur; capture and save approval screenshots because no record is available through the API; save the report PDF and update tracker flags."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "What happens when Concur shows an approval is missing or its status is not valid?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "Then, we close report-level exceptions. What we do: communicate each receipt, approval, amount, or classification exception; retain response/correction; update status only after the source report or approved exception support is complete."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "For an amount exception, what needs to be corrected or documented for the source report or approved exception support to count as complete?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "Once that is done, we receive and validate the macro batch. What we do: receive the AEA-generated raw export split into LP, SBF, Growth, and Debt; record macro version/export date where available; reconcile report count and total dollars in the batch to the cleared Concur/tracker population; resolve missing, duplicate, or entity-split differences."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "What happens to the batch after the report counts and total dollars reconcile?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "Following that, we review coding and descriptions under confirmed rules. What we do: review entity and general ledger coding against the client rulebook; apply the confirmed description format and required components; apply confirmed lunch and dinner maximums, and document any split between the billable amount and the individual or management company excess; do not apply the transportation timing rule until the 7:30pm/7:00am wording is corrected and approved. Flag affected lines; record every manual change and exception."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "What happens to flagged transportation lines while the wording awaits correction and approval?"
+  },
+  {
+   "id": "t014",
+   "role": "user",
+   "text": "Following that, we net eligible refund/charge pairs. What we do: match refund and charge by the approved identifiers and period; net only same-period pairs meeting the confirmed criteria; keep both source lines and the netting calculation; flag pairs from different periods or ambiguous pairs. Do not offset them based on an assumption."
+  },
+  {
+   "id": "t015",
+   "role": "assistant",
+   "text": "What happens to pairs flagged as being from different periods or ambiguous?"
+  },
+  {
+   "id": "t016",
+   "role": "user",
+   "text": "Following that, we review and route the clean batch. What we do: compare clean-batch totals with the raw batch and explain approved splits and netting; review entity, coding, descriptions, receipts, approvals, and exception closure; route the approved batch for posting; route billable fund/portfolio-company lines to and reconcile the handoff; retain the final package and approval."
+  },
+  {
+   "id": "t017",
+   "role": "assistant",
+   "text": "Who approves the clean batch before it is routed for posting?"
+  },
+  {
+   "id": "t018",
+   "role": "assistant",
+   "text": "This capture still has open sections. 16 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794968415.153,
+   "turn": 0,
+   "seconds": 0.035,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794968418.174,
+   "turn": 2,
+   "seconds": 2.966,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968427.352,
+   "turn": 3,
+   "seconds": 12.14
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794968435.569,
+   "turn": 3,
+   "seconds": 20.36,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 3,
+   "connections": 2
+  },
+  {
+   "kind": "question",
+   "at": 1794968438.243,
+   "turn": 4,
+   "seconds": 2.601,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794968438.249,
+   "turn": 5,
+   "seconds": 2.61,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 3,
+   "connections": 2
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968458.731,
+   "turn": 5,
+   "seconds": 23.09
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794968464.373,
+   "turn": 5,
+   "seconds": 28.73,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 7,
+   "connections": 6
+  },
+  {
+   "kind": "question",
+   "at": 1794968467.331,
+   "turn": 6,
+   "seconds": 2.883,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794968467.338,
+   "turn": 7,
+   "seconds": 2.89,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t004",
+   "steps": 7,
+   "connections": 6
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794968488.794,
+   "turn": 7,
+   "seconds": 24.35,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 12,
+   "connections": 11
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968491.362,
+   "turn": 7,
+   "seconds": 26.91
+  },
+  {
+   "kind": "question",
+   "at": 1794968495.829,
+   "turn": 8,
+   "seconds": 4.397,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794968495.836,
+   "turn": 9,
+   "seconds": 4.4,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t006",
+   "steps": 12,
+   "connections": 11
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794968512.249,
+   "turn": 9,
+   "seconds": 20.82,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 15,
+   "connections": 14
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968516.347,
+   "turn": 9,
+   "seconds": 24.91
+  },
+  {
+   "kind": "question",
+   "at": 1794968521.854,
+   "turn": 10,
+   "seconds": 5.45,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794968521.862,
+   "turn": 11,
+   "seconds": 5.46,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t008",
+   "steps": 15,
+   "connections": 14
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794968540.335,
+   "turn": 11,
+   "seconds": 23.93,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 19,
+   "connections": 18
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968543.41,
+   "turn": 11,
+   "seconds": 27.01
+  },
+  {
+   "kind": "question",
+   "at": 1794968547.189,
+   "turn": 12,
+   "seconds": 3.706,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794968547.198,
+   "turn": 13,
+   "seconds": 3.72,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t010",
+   "steps": 19,
+   "connections": 18
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968567.259,
+   "turn": 13,
+   "seconds": 23.78
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794968575.008,
+   "turn": 13,
+   "seconds": 31.53,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 23,
+   "connections": 23
+  },
+  {
+   "kind": "question",
+   "at": 1794968577.769,
+   "turn": 14,
+   "seconds": 2.691,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794968577.779,
+   "turn": 15,
+   "seconds": 2.7,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t012",
+   "steps": 23,
+   "connections": 23
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968597.853,
+   "turn": 15,
+   "seconds": 22.77
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794968604.048,
+   "turn": 15,
+   "seconds": 28.97,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 28,
+   "connections": 28
+  },
+  {
+   "kind": "question",
+   "at": 1794968606.356,
+   "turn": 16,
+   "seconds": 2.239,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794968606.361,
+   "turn": 17,
+   "seconds": 2.24,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t014",
+   "steps": 28,
+   "connections": 28
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794968632.138,
+   "turn": 17,
+   "seconds": 28.02
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794968635.238,
+   "turn": 17,
+   "seconds": 31.12,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 34,
+   "connections": 34
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794968635.32,
+   "turn": 17,
+   "seconds": 0.016,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794968898.418,
+   "turn": 18,
+   "seconds": 263.046,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [],
+ "notes": {
+  "summary": "The team reviews the clean batch against the raw batch, routes the approved batch for posting, and reconciles the billable-line handoff. Who receives the billable fund and portfolio-company lines?",
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "Expense Processing: T&E Review & Scrubbing (AEA Variant)"
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The work reviews and scrubs T&E reports and produces an approved batch routed for posting, with billable lines routed and reconciled."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The event, cadence, or deadline that causes the report to be added to the review tracker has not been established; the participant described the first action, not what initiates it."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "For report-level exceptions, the team retains responses or corrections and updates status only after the source report or approved exception support is complete.\nAfter final review, the team routes the approved batch for posting, routes billable fund/portfolio-company lines and reconciles that handoff, and retains the final package and approval.\nWhether completed posting or confirmation of acceptance is required for the work to be finished remains unspecified."
+   },
+   {
+    "key": "accountable",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "At the beginning of the work, the participant adds the report to the review tracker and records the cardholder, statement total, submitted amount, report identifier, and status. The tracker also has fields for PDF saved, receipts, two approvals, exceptions, and completion.\nNext, the team confirms the current receipt threshold and personal-expense exception, checks each line against the validated rule, flags missing receipts or questionable personal classifications to the submitter/client, and records resolution in the tracker.\nThe specific criteria for resolving a missing receipt or questionable personal classification remain unspecified.\nAfter the receipt and personal-expense checks, the team confirms the required number and types of approvals, verifies approvers and statuses in Concur, saves approval screenshots and the report PDF, and updates tracker flags.\nThe team closes report-level exceptions by communicating each receipt, approval, amount or classification exception and retaining the response or correction. It updates status only after the source report or approved exception support is complete.\nAfter report-level exceptions are closed, the team receives the AEA-generated raw macro export split into LP, SBF, Growth and Debt. It records the macro version and export date where available, reconciles batch report counts and dollars to the cleared Concur/tracker population, and resolves missing, duplicate or entity-split differences.\nHow the team resolves missing, duplicate and entity-split batch differences remains unspecified.\nFollowing batch validation, the team reviews entity and general ledger coding against the client rulebook and applies the confirmed description format and required components.\nThe team applies confirmed lunch and dinner maximums and documents any split between the billable amount and the individual or management company excess. It records every manual change and exception.\nThe team flags affected lines and does not apply the transportation timing rule until its 7:30pm/7:00am wording is corrected and approved.\nFollowing coding and description review, the team matches refunds and charges by approved identifiers and period and nets only same-period pairs meeting confirmed criteria. It retains both source lines and the netting calculation; different-period or ambiguous pairs are flagged rather than offset on an assumption.\nThe subsequent handling of flagged different-period or ambiguous pairs has not been established.\nAfter netting, the team compares clean-batch totals with the raw batch, explains approved splits and netting, and reviews entity, coding, descriptions, receipts, approvals and exception closure. It routes the approved batch for posting, routes billable fund/portfolio-company lines and reconciles the handoff, then retains the final package and approval."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "When adding the report to the review tracker, the participant compares the statement total with the submitted amount and flags a difference.\nThe team checks each line against the confirmed receipt threshold and personal-expense exception, flags missing receipts or questionable personal classifications to the submitter/client, and records resolution in the tracker.\nThe team confirms the current required number and types of approvals and verifies approvers and statuses in Concur. It saves approval screenshots because no record is available through the API.\nFor report-level exceptions, the team retains the response or correction and waits for a complete source report or complete approved exception support before updating status.\nThe team reconciles batch report count and total dollars to the cleared Concur/tracker population and resolves missing, duplicate or entity-split differences.\nThe team reviews entity and general ledger coding against the client rulebook, applies confirmed description and meal rules, and records manual changes and exceptions.\nThe team checks refund and charge pairs against approved identifiers, period and confirmed netting criteria; it flags different-period or ambiguous pairs and does not assume they can be offset.\nFor the final batch, the team compares clean and raw totals, explains approved splits and netting, and reviews entity, coding, descriptions, receipts, approvals and exception closure. It reconciles the billable-line handoff.\nThe final batch approver, approval evidence and handling of rejected or delayed approval have not been specified."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "The process is identified as an AEA variant, but the differences from other routes have not been described."
+   },
+   {
+    "key": "pain_points",
+    "status": "partial",
+    "answer": "The team captures and saves approval screenshots because an approval record is not available through the API."
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The review tracker records report details and status, including fields for PDF saved, receipts, two approvals, exceptions and completion.\nThe review tracker's location and format have not been established.\nThe team saves approval screenshots because no approval record is available through the API, and saves the report PDF.\nThe storage locations for approval screenshots and report PDFs have not been established.\nThe team retains responses or corrections for report-level exceptions; the status gate refers to the source report or approved exception support.\nThe AEA-generated raw export is the macro-batch input and is split into LP, SBF, Growth and Debt; the team records its macro version and export date where available.\nThe client rulebook is used to review entity and general ledger coding.\nFor netted refund and charge pairs, the team keeps both source lines and the netting calculation.\nThe client rulebook's location and availability have not been established.\nThe team retains the final package and approval following final batch review and routing."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The supplied process name identifies this work as the AEA variant of T&E review and scrubbing.\nThe differences between the AEA variant and other routes have not been established.\nThe AEA-generated raw export is split into LP, SBF, Growth and Debt.\nThe reviewed batch includes billable fund/portfolio-company lines; the team routes those lines and reconciles their handoff."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The criteria for accepting or correcting a difference between statement and submitted totals remain unspecified.\nThe current receipt threshold and personal-expense exception are confirmed before they are applied to report lines.\nThe threshold and exception, their source, and how the team confirms them have not been established.\nThe team confirms the current required number and types of approvals before verifying approvers and statuses.\nThe current required approval types and number, their source, and how they are confirmed remain unspecified.\nStatus is updated only after the source report or approved exception support is complete.\nThe client rulebook is the reported reference for entity and general ledger coding. The team applies a confirmed description format and required components and confirmed lunch and dinner maximums.\nThe transportation timing rule is not applied until its 7:30pm/7:00am wording is corrected and approved; affected lines are flagged.\nThe coding criteria, description components, meal maximum amounts and method for determining any billable/excess split have not been specified.\nThe corrected transportation timing wording and the person authorized to approve it remain unspecified.\nNetting is limited to same-period refund and charge pairs meeting confirmed criteria; different-period or ambiguous pairs must not be offset based on an assumption.\nThe approved matching identifiers, confirmed netting criteria and their source have not been specified.\nThe team routes an approved batch for posting and explains approved splits and netting when comparing clean and raw totals."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The approved batch is routed for posting. Billable fund/portfolio-company lines are also routed and the handoff reconciled; the recipient of those lines is not identified.\nThe team receives an AEA-generated raw macro export for batch validation."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The team records report details and review status in a tracker and records receipt and personal-classification resolutions there.\nApprovers and approval statuses are verified in Concur. The team saves screenshots because an approval record is not available through the API.\nThe team compares the macro batch with the cleared population in Concur and the tracker; macro version and export date are recorded where available."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": ""
+   }
+  ]
+ },
+ "map": {
+  "title": "T&E Review and Scrubbing",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "data_store",
+    "title": "Add report to tracker",
+    "actor": "UNKNOWN",
+    "system": "Review tracker",
+    "description": "Add the report and record the cardholder, statement total, submitted amount, report identifier and status. Add fields for PDF saved, receipts, two approvals, exceptions and completion."
+   },
+   {
+    "id": "S2",
+    "type": "decision",
+    "title": "Do the totals differ?",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Compare the statement total with the submitted amount."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Flag the difference",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Flag a difference between the statement and submitted totals."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Confirm current expense rules",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Confirm the current receipt threshold and personal-expense exception before applying them."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Check each expense line",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Check each line against the validated receipt and personal-expense rules."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Flag receipt or classification issues",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Flag a missing receipt or questionable personal classification to the submitter/client."
+   },
+   {
+    "id": "S7",
+    "type": "data_store",
+    "title": "Record issue resolution",
+    "actor": "UNKNOWN",
+    "system": "Review tracker",
+    "description": "Record the resolution in the tracker."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Confirm required approvals",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Confirm the current required number and types of approvals."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Verify approvers and statuses",
+    "actor": "UNKNOWN",
+    "system": "Concur",
+    "description": "Verify approvers and statuses in Concur."
+   },
+   {
+    "id": "S10",
+    "type": "document",
+    "title": "Save approval screenshots",
+    "actor": "UNKNOWN",
+    "system": "Concur; storage location UNKNOWN",
+    "description": "Capture and save approval screenshots because no approval record is available through the API."
+   },
+   {
+    "id": "S11",
+    "type": "document",
+    "title": "Save the report PDF",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Save the report PDF."
+   },
+   {
+    "id": "S12",
+    "type": "data_store",
+    "title": "Update tracker flags",
+    "actor": "UNKNOWN",
+    "system": "Review tracker",
+    "description": "Update tracker flags after keeping the report records. The exact flags updated are UNKNOWN."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Communicate report-level exceptions",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Communicate each receipt, approval, amount or classification exception."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Retain response or correction",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Retain the response or correction for the report-level exception. Storage location is UNKNOWN."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Update exception status",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Update status only after the source report or approved exception support is complete. Where the status is updated is UNKNOWN."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Receive macro batch",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Receive the AEA-generated raw export, split into LP, SBF, Growth and Debt."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Record batch details",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Record the macro version and export date where available. The recording location is UNKNOWN."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Reconcile the macro batch",
+    "actor": "UNKNOWN",
+    "system": "Concur; review tracker",
+    "description": "Reconcile batch report count and total dollars to the cleared Concur/tracker population."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Resolve batch differences",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Resolve missing, duplicate or entity-split differences. The resolution method and subsequent handoff are UNKNOWN."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Review entity and GL coding",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Review entity and general ledger coding against the client rulebook."
+   },
+   {
+    "id": "S21",
+    "type": "activity",
+    "title": "Apply description format",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Apply the confirmed description format and required components."
+   },
+   {
+    "id": "S22",
+    "type": "activity",
+    "title": "Apply meal maximums",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Apply confirmed lunch and dinner maximums. Document any split between the billable amount and the individual or management company excess."
+   },
+   {
+    "id": "S23",
+    "type": "activity",
+    "title": "Flag lines and record changes",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Flag lines affected by the transportation timing rule and record every manual change and exception. Do not apply that rule until the 7:30pm/7:00am wording is corrected and approved."
+   },
+   {
+    "id": "S24",
+    "type": "activity",
+    "title": "Match refunds and charges",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Match refund and charge lines using approved identifiers and period."
+   },
+   {
+    "id": "S25",
+    "type": "decision",
+    "title": "Is the pair eligible?",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Determine whether the pair is in the same period and meets the confirmed criteria. Different-period and ambiguous pairs are flagged rather than offset by assumption."
+   },
+   {
+    "id": "S26",
+    "type": "activity",
+    "title": "Net eligible pairs",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Net same-period refund and charge pairs that meet the confirmed criteria."
+   },
+   {
+    "id": "S27",
+    "type": "document",
+    "title": "Keep netting support",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Keep both source lines and the netting calculation. The retention location is UNKNOWN."
+   },
+   {
+    "id": "S28",
+    "type": "activity",
+    "title": "Flag uncertain refund pairs",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Flag different-period or ambiguous refund and charge pairs; do not offset them based on an assumption. Their subsequent handling is UNKNOWN."
+   },
+   {
+    "id": "S29",
+    "type": "activity",
+    "title": "Compare clean and raw totals",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Compare clean-batch totals with the raw batch and explain approved splits and netting."
+   },
+   {
+    "id": "S30",
+    "type": "activity",
+    "title": "Review the clean batch",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Review entity, coding, descriptions, receipts, approvals and exception closure."
+   },
+   {
+    "id": "S31",
+    "type": "activity",
+    "title": "Route approved batch for posting",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Route the approved batch for posting. The approver and posting recipient are UNKNOWN."
+   },
+   {
+    "id": "S32",
+    "type": "activity",
+    "title": "Route billable lines",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Route billable fund and portfolio-company lines. The recipient is UNKNOWN."
+   },
+   {
+    "id": "S33",
+    "type": "activity",
+    "title": "Reconcile billable-line handoff",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Reconcile the handoff of billable fund and portfolio-company lines. The reconciliation method is UNKNOWN."
+   },
+   {
+    "id": "S34",
+    "type": "document",
+    "title": "Retain final package and approval",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Retain the final package and approval. The retention location is UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": "Totals differ"
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": ""
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": ""
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": "Missing receipt or questionable personal classification"
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": ""
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": ""
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": ""
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": ""
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": ""
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": ""
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": "Report-level exception"
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": ""
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": "Source report or approved exception support complete"
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": "Report-level exceptions closed"
+   },
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": ""
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": ""
+   },
+   {
+    "from": "S18",
+    "to": "S19",
+    "label": "Missing, duplicate or entity-split differences"
+   },
+   {
+    "from": "S18",
+    "to": "S20",
+    "label": "Batch reconciled; no missing, duplicate or entity-split differences"
+   },
+   {
+    "from": "S19",
+    "to": "S20",
+    "label": "Batch reconciled and differences resolved"
+   },
+   {
+    "from": "S20",
+    "to": "S21",
+    "label": ""
+   },
+   {
+    "from": "S21",
+    "to": "S22",
+    "label": ""
+   },
+   {
+    "from": "S22",
+    "to": "S23",
+    "label": ""
+   },
+   {
+    "from": "S23",
+    "to": "S24",
+    "label": ""
+   },
+   {
+    "from": "S24",
+    "to": "S25",
+    "label": ""
+   },
+   {
+    "from": "S25",
+    "to": "S26",
+    "label": "Same period and confirmed criteria met"
+   },
+   {
+    "from": "S25",
+    "to": "S28",
+    "label": "Different periods or ambiguous pair"
+   },
+   {
+    "from": "S26",
+    "to": "S27",
+    "label": ""
+   },
+   {
+    "from": "S27",
+    "to": "S29",
+    "label": ""
+   },
+   {
+    "from": "S29",
+    "to": "S30",
+    "label": ""
+   },
+   {
+    "from": "S30",
+    "to": "S31",
+    "label": "Batch approved"
+   },
+   {
+    "from": "S31",
+    "to": "S32",
+    "label": ""
+   },
+   {
+    "from": "S32",
+    "to": "S33",
+    "label": ""
+   },
+   {
+    "from": "S33",
+    "to": "S34",
+    "label": ""
+   }
+  ],
+  "open_questions": [
+   "Are there other outcomes from decision S2 (Do the totals differ?), and where do they lead?",
+   "Does any incoming route start S20 (Review entity and GL coding), or must all prerequisites finish?",
+   "UNKNOWN: What event starts the work, who detects it, and where does the ready report come from?",
+   "UNKNOWN: Who performs and is accountable for each part of the work, and what result is it intended to deliver?",
+   "UNKNOWN: What happens when statement and submitted totals match, and how is a flagged difference resolved?",
+   "UNKNOWN: Who confirms and interprets the receipt threshold and personal-expense exception, and what are their sources?",
+   "UNKNOWN: How are receipt or classification issues resolved, who resolves them, and what tells the team they are resolved? Where does work go when no issue is found?",
+   "UNKNOWN: What is the source of the current approval requirements, who confirms them, and how do they relate to the two approval fields in the tracker?",
+   "UNKNOWN: How are missing, incorrect or pending approvals corrected or approved as exceptions, and who has that authority?",
+   "UNKNOWN: Where are the PDF, approval screenshots and exception responses or corrections retained? Which tracker flags and exception status are updated, where, and by whom?",
+   "UNKNOWN: What happens while the source report or approved exception support is incomplete, and how is completion established?",
+   "UNKNOWN: What route applies when there are no report-level exceptions?",
+   "UNKNOWN: Who sends and receives the macro batch, where are its version and export date recorded, and how is the cleared population established?",
+   "UNKNOWN: How are batch differences resolved, and is the batch rechecked after resolution?",
+   "UNKNOWN: Who confirms and interprets the coding, description and meal rules, and where are the format, maximums and split calculations recorded?",
+   "UNKNOWN: Who corrects and approves the transportation wording, how are affected lines handled meanwhile, and what happens once it is approved?",
+   "UNKNOWN: Where are manual changes and exceptions recorded?",
+   "UNKNOWN: Who confirms the netting criteria and approved identifiers, and what are their sources? How is the netting calculation made and where is its support kept?",
+   "UNKNOWN: How are different-period or ambiguous pairs handled after flagging, and what happens to same-period pairs that do not meet the confirmed criteria? How does the batch proceed when there are no eligible pairs?",
+   "UNKNOWN: Who reviews and approves the clean batch, what permits approval, and what happens if review or approval fails or is delayed?",
+   "UNKNOWN: Who receives the batch for posting and the billable lines, how is the handoff reconciled, and is posting or another downstream action required before this work is complete?",
+   "UNKNOWN: Where are the final package and approval retained, and what evidence establishes overall completion?",
+   "UNKNOWN: What is the cadence, deadline, volume and effort, and what other exceptions, risks or pain points occur?",
+   "UNKNOWN: What does the AEA variant change, which entities or clients does it cover, and what is its basis relative to general GPFS practice?",
+   "UNKNOWN: What procedures and other systems govern the work, and where are records retained?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "Current-practice draft — Expense Processing: T&E Review & Scrubbing (AEA Variant)",
+  "overview": "Participant-reported review of expense reports and an AEA macro batch, pending participant and process-owner review. The initiating event, accountable role, detailed exception exits and overall finished condition remain UNKNOWN. The AEA label comes from intake; a comparison with a normal GPFS route was not provided.",
+  "trigger": "UNKNOWN. The first reported action is adding an expense report to the review tracker; the event that prompts it was not established.",
+  "inputs": [
+   "Expense report and its cardholder, statement total, submitted amount, report identifier and status.",
+   "Current receipt threshold, personal-expense exception and required number and types of approvals.",
+   "AEA-generated raw export split into LP, SBF, Growth and Debt, and the cleared Concur/tracker population.",
+   "Client rulebook, confirmed description format, meal maximums and netting criteria."
+  ],
+  "outputs": [
+   "Updated review tracker, saved report PDF and approval screenshots, and retained exception responses or corrections.",
+   "Approved batch routed for posting; billable fund/portfolio-company lines routed with the handoff reconciled.",
+   "Retained final package and approval, and retained source lines and calculation for eligible netting."
+  ],
+  "exceptions": [
+   "Flag statement/submitted amount differences; their correction and resolution criteria are UNKNOWN.",
+   "Flag missing receipts and questionable personal classifications to the submitter/client and record resolution. Report-level receipt, approval, amount and classification exceptions are communicated and responses or corrections retained.",
+   "Resolve missing, duplicate or entity-split batch differences; resolution method and recheck are UNKNOWN.",
+   "Do not apply the transportation timing rule until its wording is corrected and approved; flag affected lines. Their interim disposition is UNKNOWN.",
+   "Flag different-period or ambiguous refund/charge pairs and do not offset them by assumption. Their subsequent handling is UNKNOWN."
+  ],
+  "controls": [
+   "Compare statement and submitted totals; flag differences.",
+   "Confirm receipt and personal-expense rules before line checks, and confirm approval requirements before verifying approvers and statuses.",
+   "Update exception status only after the source report or approved exception support is complete.",
+   "Reconcile batch count and dollars to the cleared Concur/tracker population; compare clean and raw totals and explain approved splits and netting.",
+   "Review coding against the client rulebook and review clean-batch entity, coding, descriptions, receipts, approvals and exception closure.",
+   "Net only same-period pairs meeting confirmed criteria, retaining both source lines and the calculation. Route the batch for posting only when approved."
+  ],
+  "validation_notes": [
+   "AI-generated current-practice draft. Participant confirmation and appropriate process-owner review are pending; interview date and participant identity or role are UNKNOWN.",
+   "The intake names an AEA variant, but no base-route comparison or independent corroboration was supplied. No approved or gold-standard route is established.",
+   "The client rulebook was mentioned but not supplied or reviewed. No supporting documents were supplied.",
+   "The participant described the final routing and retention actions in that order. Their precise dependencies and the route when no billable lines exist remain UNKNOWN; posting completion is not established.",
+   "The report-exception route is conditional. A route for a report with no exceptions is not supplied and has not been invented.",
+   "The flagged refund-pair branch has no reported exit. The route for a same-period pair failing other criteria and the batch route when there are no eligible pairs are also UNKNOWN.",
+   "The next batch stage does not establish that transportation-affected lines are released or that the unapproved timing rule is applied.",
+   "The proposed S15-to-S16 label 'Pair assessed' would imply the decision is already complete on entry. It is replaced with 'Matched pair'; the original proposal remains in the route register with no supporting passage.",
+   "Roles, storage locations, technical enforcement and many handoff mechanics remain UNKNOWN. The map is a partial account, not an executable procedure or owner-approved control design.",
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "data_store",
+    "title": "Add report to tracker",
+    "actor": "UNKNOWN",
+    "system": "Review tracker",
+    "description": "Add the report to the review tracker. Record cardholder, statement total, submitted amount, report identifier and status; add fields for PDF saved, receipts, two approvals, exceptions and completion."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Compare report totals",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Compare statement and submitted totals and flag a difference. How an amount difference is resolved is UNKNOWN."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Confirm expense rules",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Confirm the current receipt threshold and personal-expense exception before applying them. Their sources and the person confirming them are UNKNOWN."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Check receipts and classifications",
+    "actor": "UNKNOWN",
+    "system": "Review tracker for resolution; other location UNKNOWN",
+    "description": "Check each line against the validated rule. Flag a missing receipt or questionable personal classification to the submitter/client and record resolution in the tracker. How resolution is established is UNKNOWN."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Confirm approval requirements",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Confirm the current required number and types of approvals. The source and how these relate to the tracker's two approval fields are UNKNOWN."
+   },
+   {
+    "id": "S6",
+    "type": "document",
+    "title": "Verify and retain report records",
+    "actor": "UNKNOWN",
+    "system": "Concur; review tracker; retention location UNKNOWN",
+    "description": "Verify approvers and statuses in Concur. Capture and save approval screenshots because no record is available through the API; save the report PDF and update tracker flags. Handling of a missing or invalid approval is not specifically described beyond report-level exception handling."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Communicate report exceptions",
+    "actor": "UNKNOWN",
+    "system": "Retention location UNKNOWN",
+    "description": "Communicate each receipt, approval, amount or classification exception and retain the response or correction. Recipient is UNKNOWN except that receipt and classification issues are flagged to the submitter/client in S4."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Update exception status",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Update status only after the source report or approved exception support is complete. What establishes completeness and what happens while it remains incomplete are UNKNOWN."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Receive and identify macro batch",
+    "actor": "UNKNOWN",
+    "system": "Recording location UNKNOWN",
+    "description": "Receive the AEA-generated raw export split into LP, SBF, Growth and Debt. Record macro version and export date where available."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Reconcile macro batch",
+    "actor": "UNKNOWN",
+    "system": "Concur and review tracker for the cleared population",
+    "description": "Reconcile report count and total dollars in the batch to the cleared Concur/tracker population. Resolve missing, duplicate or entity-split differences; the method and any recheck are UNKNOWN."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Review entity and GL coding",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Review entity and general ledger coding against the client rulebook. The rulebook was mentioned but not supplied for review."
+   },
+   {
+    "id": "S12",
+    "type": "activity",
+    "title": "Apply description format",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Apply the confirmed description format and required components. The format and its source are UNKNOWN."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Apply meal maximums",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Apply confirmed lunch and dinner maximums and document any split between the billable amount and the individual or management company excess. The maximums and calculation method are UNKNOWN."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Flag affected lines and changes",
+    "actor": "UNKNOWN",
+    "system": "Recording location UNKNOWN",
+    "description": "Do not apply the transportation timing rule until its 7:30pm/7:00am wording is corrected and approved. Flag affected lines; record every manual change and exception. Handling of affected lines while awaiting correction and approval is UNKNOWN."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Match refunds and charges",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Match refund and charge by approved identifiers and period. Identifier values are not reproduced; the identifiers and criteria are otherwise UNKNOWN."
+   },
+   {
+    "id": "S16",
+    "type": "decision",
+    "title": "Does the pair qualify?",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Determine whether the pair is in the same period and meets confirmed netting criteria. Different-period or ambiguous pairs are flagged and must not be offset on an assumption. Treatment of a same-period pair failing other criteria is UNKNOWN."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Net eligible pairs",
+    "actor": "UNKNOWN",
+    "system": "Calculation and retention locations UNKNOWN",
+    "description": "Net same-period pairs meeting confirmed criteria. Keep both source lines and the netting calculation; the calculation method is UNKNOWN."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Flag uncertain refund pairs",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Flag different-period or ambiguous pairs and do not offset them based on an assumption. Their subsequent handling and exit are UNKNOWN."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Compare clean and raw batches",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Compare clean-batch totals with the raw batch and explain approved splits and netting."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Review the clean batch",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Review entity, coding, descriptions, receipts, approvals and exception closure. The reviewer, detailed acceptance tests, failure handling and batch approver are UNKNOWN."
+   },
+   {
+    "id": "S21",
+    "type": "activity",
+    "title": "Route approved batch",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Route the approved batch for posting. Who approves it and who receives it for posting are UNKNOWN."
+   },
+   {
+    "id": "S22",
+    "type": "activity",
+    "title": "Route and reconcile billable lines",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Route billable fund/portfolio-company lines and reconcile the handoff. The participant's wording does not identify the recipient or reconciliation method."
+   },
+   {
+    "id": "S23",
+    "type": "document",
+    "title": "Retain final package",
+    "actor": "UNKNOWN",
+    "system": "Retention location UNKNOWN",
+    "description": "Retain the final package and approval. Package contents, approval record location and overall completion evidence are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": "Next reported stage"
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "Rules confirmed"
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": "Next reported stage"
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": "Requirements confirmed"
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Report-level exceptions"
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": "Source report or approved exception support complete"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "Report-level exception closure done"
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": ""
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": "Following batch validation"
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": ""
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": ""
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": ""
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": "Next reported stage; flagged-line disposition UNKNOWN"
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": "Matched pair"
+   },
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": "Same period and confirmed criteria met"
+   },
+   {
+    "from": "S16",
+    "to": "S18",
+    "label": "Different periods or ambiguous"
+   },
+   {
+    "from": "S17",
+    "to": "S19",
+    "label": "Following netting work"
+   },
+   {
+    "from": "S19",
+    "to": "S20",
+    "label": ""
+   },
+   {
+    "from": "S20",
+    "to": "S21",
+    "label": "Batch approved"
+   },
+   {
+    "from": "S21",
+    "to": "S22",
+    "label": "Billable fund/portfolio-company lines"
+   },
+   {
+    "from": "S22",
+    "to": "S23",
+    "label": ""
+   }
+  ],
+  "open_questions": [
+   "What event initiates this work, who detects it, and who is accountable for the overall result?",
+   "Who reviews and approves the clean batch, what permits approval, and what happens if review or approval fails or is delayed?",
+   "Who receives the posting batch and billable lines, how is the latter handoff reconciled, and what establishes overall completion?",
+   "How does work proceed when there are no report-level exceptions, and how are report exceptions and batch differences resolved and checked?",
+   "How are transportation-affected lines and flagged refund pairs handled, and when may they proceed?",
+   "What happens to same-period pairs that fail other netting criteria, and how does the batch proceed when there are no eligible pairs?",
+   "What are the sources and interpreters of the receipt, personal-expense, approval, description, meal and netting rules, and who resolves conflicts?",
+   "How do the confirmed approval requirements relate to the tracker's two approval fields? What happens for missing or invalid approvals?",
+   "Where are screenshots, PDFs, responses, calculations, changes, the final package and approval stored, and who records them?",
+   "How are meal splits and netting calculated, and what establishes complete source reports or approved exception support?",
+   "How does the final package get retained when there are no billable lines, and what dependencies or handoff mechanics apply to the final routing actions?",
+   "What does the AEA variant change relative to any normal route, and what are its scope, basis, effort, charging and removal constraints?",
+   "What cadence, deadlines, volumes, effort, risks, pain points and other exceptions apply?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "The intake calls the work Expense Processing: T&E Review & Scrubbing (AEA Variant). It covers report review, batch scrubbing and routing. Other names and exact boundaries are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The reported work produces a reviewed batch routed for posting and routes billable lines with a reconciled handoff. The participant did not explicitly state the overall intended result or recipient."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The first reported action is adding a report to the review tracker. The initiating event, receiver, upstream readiness, cadence and deadlines are UNKNOWN."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The participant reports routing the approved batch for posting, routing and reconciling billable lines, and retaining the final package and approval. Recipients and whether posting or other downstream work is required for overall completion are UNKNOWN."
+   },
+   {
+    "key": "accountable",
+    "status": "unknown",
+    "answer": "UNKNOWN: the overall accountable role and individual performers, reviewers and batch approver were not identified."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "Reports are added to a tracker and totals compared. Receipt and personal-expense rules are confirmed and lines checked; Concur approvals are verified and screenshots and the PDF saved. Report exceptions are communicated and status updated only after the source report or approved exception support is complete. An AEA export is reconciled to the cleared population, then coding, descriptions, meals and eligible netting are handled before clean-batch review and routing. Roles, many locations, the no-exception route and several exception exits remain UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "Checks include total comparisons, line checks against confirmed rules, Concur approval verification, batch reconciliation and final review of coding, receipts, approvals and exception closure. Status requires a complete source report or approved exception support; posting routing requires an approved batch. Screenshots, the PDF, responses or corrections and the final approval are retained, but most locations, reviewers, approvers, rejection handling, segregation and enforcement are UNKNOWN."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "The intake labels this an AEA variant, and the participant reports an AEA-generated export split into LP, SBF, Growth and Debt. No base route or exact difference, reason, effort, charging or removal constraint was established."
+   },
+   {
+    "key": "pain_points",
+    "status": "partial",
+    "answer": "Approval screenshots are saved because no record is available through the API; manual changes and exceptions are recorded. Time, frequency and other practical effects are UNKNOWN."
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": "UNKNOWN: the participant did not describe consequences of failures."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "A client rulebook is used for coding review. It was mentioned but not supplied or reviewed; its location and other procedures or templates are UNKNOWN."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The intake identifies an AEA variant of expense processing. The participant mentions fund and portfolio-company billable lines and possible individual or management-company excess. Entity applicability, client coverage, parent boundary and basis for any general GPFS standard are UNKNOWN."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The participant confirms receipt and personal-expense rules, approval requirements, description format, meal maximums and netting criteria; coding is reviewed against the client rulebook. Only qualifying same-period pairs are netted, and the transportation timing rule is not applied until its wording is corrected and approved. Rule values, interpretation authority, conflict handling, detailed calculations and source documents are UNKNOWN."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "An AEA-generated raw export and a cleared Concur/tracker population support batch validation. The approved batch is routed for posting and billable lines are routed with a reconciled handoff. Senders, recipients, readiness signals and downstream completion are UNKNOWN."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "A review tracker holds report fields and receipt/classification resolutions; Concur supplies approver and status information, with screenshots saved because the API lacks the record. The raw export is reconciled against the cleared population. Systems of record, storage locations, entry modes, calculation locations and workbook ownership are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": "UNKNOWN: normal counts, peaks, exception frequency and effort by step were not reported."
+   }
+  ]
+ },
+ "draft_error": null
+}

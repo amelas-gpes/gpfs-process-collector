@@ -1,0 +1,946 @@
+{
+ "case": "R-F08",
+ "process": "MC-02",
+ "mode": "file",
+ "style": "F08 answers replayed, no draft",
+ "build": "fixed",
+ "participant": "replay",
+ "context": {
+  "process_name": "Due to Manager: Expense Transfer",
+  "process_owner": "",
+  "objective": "Document how we carry out Due to Manager: Expense Transfer, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "assistant",
+   "text": "Thanks for sharing. Give me a moment to digest the file. Then I’ll follow up with a question.",
+   "document_event": true
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "The procedure describes receiving and logging the management-company expense set, then checking its source totals and completeness. Is that how this work happens today?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "Yes, that's how it begins. It starts when the management company has bills or expenses to allocate and gives our fund team an organized expense file. Their accounting preparer records the expenses, assigns the source categories and produces the export out of Sage or QuickBooks, and it reaches us as an Excel export. I'm the GPFS fund-team preparer, so I receive it and log it. How often it happens depends on the client. In the US reimbursement model the management company pays the expenses and bills the funds quarterly."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "For the US quarterly cycle, what deadlines, if any, govern when the expense file must reach your fund team?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "It's what the procedure pages I uploaded say for step 1. I record the source system, the period, the entities and the file version. I confirm the export includes all the expected expenses and the management-company categories. Then I compare the source totals with the control total the management company supplies. If the control total is missing or the set of records is unclear, I ask the management company to clarify. I don't start preparing the data until the period, entities and source totals are documented in the intake record. The one thing I can't tell you is which report I'm required to use for that total comparison. I don't know that, it isn't specified. The GPFS process owner would have to confirm it."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "Does this expense-transfer work follow the same route across clients, or does the work change for particular clients?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "The reviewer and I do that part together, using the export, the source categories, the vendor master and the client mapping. The categories are meant to arrive already categorized by the management company, so we don't categorize them again. We confirm they're complete and match the approved fund categories. We identify vendors that are missing from the target system or use inconsistent codes, and we resolve unmatched or duplicate vendors through the approved vendor-record process. We also confirm the mapping file's version and the period it applies to. Every exception goes in the vendor and mapping exception log. If a vendor or category doesn't match an approved mapping, that item stops until it's resolved and the resolution is documented. I never apply an unapproved mapping. What I don't know is the approval process for a new vendor or a change to a vendor record. That hasn't been confirmed, and the process owner would need to confirm it."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "Once the management company clarifies an unclear or missing intake item, what do you do before preparing the data?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "The affected step stays open until the issue is resolved. Once the item has an approved mapping or vendor-record resolution and that's documented, it passes the checks and I prepare it using the current client-approved mapping, the same as the other rows. There's one catch. If any row, the mapping, the set of records or a total changes during preparation or review, we repeat the full check from the source data through preparation and the fund-system entry, and the final version gets approved again. An earlier review record no longer applies once the package has changed."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "When does a change during preparation or review require you to repeat the full check?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "First I confirm which method the client uses, manual entry, a validated upload template or another approved method, and I confirm the target system's name and that I have access. The client or the process owner confirms the method, and I only use one that's been validated for that client. If no method is approved, I stop and get a decision from the process owner or the client. Then I apply the client-approved field and expense-category mapping, keeping vendor-level detail when the approved target structure and the vendor master support it. Under the manual method I enter each required line in Allvue or Entrilia and keep a traceable link between the source and the fund-system entry. Under an approved upload method I complete the validated template, run the required checks and import it. Either way I record the results and all rejected items, and every rejected line goes in the exception log. The recorded rows and totals have to match the approved prepared data. If the target system can't preserve the required detail, we document the approved way to combine records, and the client or the reviewer decides that. I don't know the exact upload steps for each client. Those aren't confirmed, and the client-authorized process owner and the GPFS process owner would have to confirm them."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "Before the final version is approved, what does the reviewer compare in the fund-system entries?"
+  },
+  {
+   "id": "t014",
+   "role": "user",
+   "text": "For a delay I can't give you a defined consequence. The standard schedule isn't confirmed, so I don't know what counts as late. The GPFS process owner would have to say. For an error, the point is that nothing goes to billing until it's clean. After the data is recorded, the reviewer and I reconcile. The source totals, the prepared totals and the totals recorded in the fund system have to match, the vendor and category records have to match, and we investigate any combined or rejected lines. If the totals or the set of records don't reconcile, we resolve the difference before anything is sent to billing, and the GPFS reviewer or the client decides, as needed. The affected entry or handoff stays open until then. I don't know what size of difference is allowed, that isn't specified. Last, the totals sent to billing have to match the reviewed DTM data set, and the GPFS reviewer does that check at completion."
+  },
+  {
+   "id": "t015",
+   "role": "assistant",
+   "text": "How do you hand the clean, reviewed DTM data set over to billing?"
+  },
+  {
+   "id": "t016",
+   "role": "assistant",
+   "text": "This capture still has open sections. 16 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794969259.109,
+   "turn": 0,
+   "seconds": 0.044,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.session",
+   "at": 1794969259.209,
+   "turn": 1,
+   "seconds": 0.032,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.upload",
+   "at": 1794969259.216,
+   "turn": 1,
+   "seconds": 0.007,
+   "status": 202,
+   "retries": 0,
+   "file": "F07 MC-02 roles.csv",
+   "bytes": 901
+  },
+  {
+   "kind": "doc.upload",
+   "at": 1794969259.224,
+   "turn": 1,
+   "seconds": 0.008,
+   "status": 202,
+   "retries": 0,
+   "file": "N02 MC-02 procedure pages.pdf",
+   "bytes": 229358
+  },
+  {
+   "kind": "doc.extracted",
+   "at": 1794969259.737,
+   "turn": 1,
+   "seconds": 0.56,
+   "file": "F07 MC-02 roles.csv",
+   "chunks": 1,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 7,
+    "total_units": 7,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_started",
+   "at": 1794969259.737,
+   "turn": 1,
+   "seconds": 0.56,
+   "file": "F07 MC-02 roles.csv",
+   "chunks": 1,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 7,
+    "total_units": 7,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.extracted",
+   "at": 1794969259.737,
+   "turn": 1,
+   "seconds": 0.56,
+   "file": "N02 MC-02 procedure pages.pdf",
+   "chunks": 5,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 5,
+    "total_units": 5,
+    "text_indexed_units": 5,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_started",
+   "at": 1794969259.737,
+   "turn": 1,
+   "seconds": 0.56,
+   "file": "N02 MC-02 procedure pages.pdf",
+   "chunks": 5,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 5,
+    "total_units": 5,
+    "text_indexed_units": 5,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_deep",
+   "at": 1794969264.839,
+   "turn": 1,
+   "seconds": 5.66,
+   "file": "F07 MC-02 roles.csv",
+   "chunks": 1,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 7,
+    "total_units": 7,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_complete",
+   "at": 1794969264.839,
+   "turn": 1,
+   "seconds": 5.66,
+   "file": "F07 MC-02 roles.csv",
+   "chunks": 1,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 7,
+    "total_units": 7,
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_deep",
+   "at": 1794969264.839,
+   "turn": 1,
+   "seconds": 5.66,
+   "file": "N02 MC-02 procedure pages.pdf",
+   "chunks": 5,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 5,
+    "total_units": 5,
+    "text_indexed_units": 5,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_complete",
+   "at": 1794969264.839,
+   "turn": 1,
+   "seconds": 5.66,
+   "file": "N02 MC-02 procedure pages.pdf",
+   "chunks": 5,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 5,
+    "total_units": 5,
+    "text_indexed_units": 5,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.followup_question",
+   "at": 1794969266.42,
+   "turn": 2,
+   "seconds": 1.581,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.first_question",
+   "at": 1794969266.42,
+   "turn": 3,
+   "seconds": 7.24,
+   "reading": {
+    "omitted_documents": 0,
+    "documents": [
+     {
+      "id": "doc_e467f56ffb7c6b6bb4be836f",
+      "included_chunks": 5,
+      "total_chunks": 5
+     },
+     {
+      "id": "doc_aff9fe3f159577d74eb49868",
+      "included_chunks": 1,
+      "total_chunks": 1
+     }
+    ]
+   }
+  },
+  {
+   "kind": "doc.left_pending",
+   "at": 1794969296.513,
+   "turn": 3,
+   "notes_state": "working",
+   "map_state": "working",
+   "seconds": 31.67
+  },
+  {
+   "kind": "question",
+   "at": 1794969301.429,
+   "turn": 4,
+   "seconds": 4.867,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794969346.866,
+   "turn": 5,
+   "notes_state": "working",
+   "map_state": "queued",
+   "seconds": 50.3
+  },
+  {
+   "kind": "question",
+   "at": 1794969348.431,
+   "turn": 6,
+   "seconds": 1.508,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969379.76,
+   "turn": 7,
+   "seconds": 32.84,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 16,
+   "connections": 17
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794969393.641,
+   "turn": 7,
+   "notes_state": "working",
+   "map_state": "ready",
+   "seconds": 46.72
+  },
+  {
+   "kind": "question",
+   "at": 1794969395.07,
+   "turn": 8,
+   "seconds": 1.377,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969395.077,
+   "turn": 9,
+   "seconds": 1.38,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t006",
+   "steps": 16,
+   "connections": 17
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969422.974,
+   "turn": 9,
+   "seconds": 29.28,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 16,
+   "connections": 17
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794969440.482,
+   "turn": 9,
+   "notes_state": "working",
+   "map_state": "ready",
+   "seconds": 46.79
+  },
+  {
+   "kind": "question",
+   "at": 1794969442.887,
+   "turn": 10,
+   "seconds": 2.351,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969442.894,
+   "turn": 11,
+   "seconds": 2.36,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t008",
+   "steps": 17,
+   "connections": 18
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969485.059,
+   "turn": 11,
+   "seconds": 44.52
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969485.574,
+   "turn": 11,
+   "seconds": 45.04,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 19,
+   "connections": 22
+  },
+  {
+   "kind": "question",
+   "at": 1794969489.186,
+   "turn": 12,
+   "seconds": 3.556,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969489.201,
+   "turn": 13,
+   "seconds": 3.57,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t010",
+   "steps": 19,
+   "connections": 22
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969525.108,
+   "turn": 13,
+   "seconds": 39.48
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969528.744,
+   "turn": 13,
+   "seconds": 43.11,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 20,
+   "connections": 23
+  },
+  {
+   "kind": "question",
+   "at": 1794969533.158,
+   "turn": 14,
+   "seconds": 4.345,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969533.166,
+   "turn": 15,
+   "seconds": 4.35,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t012",
+   "steps": 20,
+   "connections": 23
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969566.037,
+   "turn": 15,
+   "seconds": 37.22,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 21,
+   "connections": 24
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969570.739,
+   "turn": 15,
+   "seconds": 41.93
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794969570.843,
+   "turn": 15,
+   "seconds": 0.035,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  }
+ ],
+ "files": [
+  {
+   "name": "F07 MC-02 roles.csv",
+   "kind": "csv",
+   "size": 901,
+   "status": "ready",
+   "chunk_count": 1,
+   "coverage": {
+    "indexed_units": 7,
+    "total_units": 7,
+    "limitations": []
+   }
+  },
+  {
+   "name": "N02 MC-02 procedure pages.pdf",
+   "kind": "pdf",
+   "size": 229358,
+   "status": "ready",
+   "chunk_count": 5,
+   "coverage": {
+    "indexed_units": 5,
+    "total_units": 5,
+    "text_indexed_units": 5,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  }
+ ],
+ "notes": {
+  "summary": "The participant and reviewer reconcile source, prepared and fund-system data before billing. Differences hold the affected entry or handoff open; the reviewer checks billing totals at completion. Allowed differences and the standard schedule remain unconfirmed.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "Due to Manager: Expense Transfer, also described in the procedure as the DTM process."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The procedure describes producing reviewed fund-system DTM entries and an approved expense package for billing."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The participant says work starts when the management company has bills or expenses to allocate and gives the fund team an organized Excel expense file. Frequency depends on the client; under the US reimbursement model the management company pays expenses and bills funds quarterly.\nThe US quarterly file deadline remains unconfirmed. The participant says the standard schedule is not confirmed and the GPFS process owner would have to establish what counts as late."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The unconfirmed procedure calls for a complete DTM package, matching billing totals to the reviewed data, and confirmation that the next process accepted it; completion communication and package location are recorded.\nThe participant says the GPFS reviewer checks at completion that billing totals match the reviewed DTM data set; unresolved differences hold the affected entry or handoff open."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The accountable process owner and internal approver remain unconfirmed in the roles table."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The management-company accounting preparer records expenses, assigns source categories and produces an export from Sage or QuickBooks. The participant, a GPFS fund-team preparer, receives and logs the Excel export.\nThe participant records the source system, period, entities and file version, confirms expected expenses and management-company categories are included, and compares source totals with the management company's control total. If the total is missing or the records unclear, the participant asks the management company to clarify.\nThe procedure assigns the preparer and reviewer to check source categories against approved fund categories, identify missing or inconsistent vendors, resolve unmatched or duplicate vendors through the approved vendor-record process, and confirm mapping version and period.\nThe procedure says the preparer confirms the client-validated entry method and target access, applies approved mapping, and either enters required lines manually or completes and imports a validated upload template. Entry or import results and rejected items are recorded; vendor detail is retained where supported.\nThe procedure has the preparer and reviewer reconcile source, prepared and fund-system totals and vendor/category records, investigate combined or rejected lines, resolve exceptions and retain review evidence. They assemble the approved data, mapping, reconciliation and support for billing.\nThe participant and reviewer together use the export, source categories, vendor master and client mapping to check category completeness and matches, identify missing or inconsistently coded vendors, resolve unmatched or duplicate vendors through the approved vendor-record process, and confirm the mapping version and applicable period. Management-company categories arrive already categorized and are not categorized again.\nEvery exception goes in the vendor and mapping exception log. An item with a vendor or category that does not match an approved mapping stops until the issue is resolved and the resolution documented.\nThe affected step stays open until the issue is resolved. Once an item has an approved mapping or vendor-record resolution and that resolution is documented, it passes the checks and the participant prepares it using the current client-approved mapping like the other rows.\nIf a row, mapping, record set or total changes during preparation or review, the team repeats the full check from source data through preparation and fund-system entry, and the final version is approved again.\nThe participant confirms the client's manual, validated upload or other approved method and the target system and access. The client or process owner confirms the method; if none is approved, the participant stops and seeks their decision.\nThe participant applies client-approved field and expense-category mappings, preserving vendor detail when the approved target structure and vendor master support it. For manual entry, the participant enters required lines in Allvue or Entrilia and retains source-to-entry traceability; for upload, the participant completes the validated template, runs required checks and imports it.\nThe participant records entry or import results and rejected items, with every rejected line in the exception log. If the target cannot preserve required detail, the approved way to combine records is documented and the client or reviewer decides it.\nThe participant does not know the exact upload steps for each client; the client-authorized process owner and GPFS process owner would need to confirm them.\nAfter recording, the participant and reviewer reconcile source, prepared and fund-system totals and match vendor and category records, investigating combined or rejected lines. Differences in totals or records are resolved before billing; the GPFS reviewer or client decides as needed, and the affected entry or handoff remains open until resolution."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The participant checks that the export includes expected expenses and management-company categories, compares source totals with the supplied control total, and does not start data preparation until period, entities and source totals are documented in the intake record.\nThe procedure requires recorded rows and totals to match approved prepared data, rejected lines to appear in the exception log, and no unexplained difference in totals or records at reconciliation.\nThe roles table does not establish the source-data approver, reviewer approval authority or exact client sign-off record; the procedure does not specify the standard package approval sequence.\nThe participant does not know which report is required for the total comparison; the GPFS process owner would have to confirm it.\nThe participant and reviewer confirm source categories are complete and match approved fund categories, check vendor codes and mapping version and period, and log every exception. Unmatched items stop pending documented resolution.\nA change to a row, mapping, record set or total during preparation or review invalidates the earlier review record. The full check is repeated through fund-system entry and the final version approved again.\nThe participant says recorded rows and totals must match approved prepared data, and every rejected line is logged. The client or process owner confirms the client-validated entry method.\nWho approves the final version after a change remains unidentified.\nThe participant does not know the allowed size of a reconciliation difference; the procedure also leaves the exact reviewer role unspecified.\nAt completion the GPFS reviewer checks that totals sent to billing match the reviewed DTM data set."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "The participant reports client-dependent frequency and a quarterly US reimbursement model. The procedure separately describes client-validated manual entry or upload methods, with upload checks depending on the client.\nEntry differs by client-approved method: manual entry retains a source-to-system link, while an approved upload uses a validated template, checks and import. Where the target cannot preserve required detail, records are combined in a documented approved way decided by the client or reviewer."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "The participant cannot define the consequence of delay because the standard schedule and what counts as late are unconfirmed; the GPFS process owner would have to clarify."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The procedure names an Excel export, intake checklist, vendor and mapping exception log, mapping working file, upload template, DTM reconciliation, fund-system report and client package as working or retained artifacts.\nCurrent locations of the documented working and retained artifacts remain to be established.\nThe participant documents the period, entities and source totals in an intake record before data preparation.\nThe participant and reviewer use the vendor master and client mapping alongside the export and source categories; every exception is recorded in the vendor and mapping exception log.\nThe participant reports a review record for the package; an earlier record no longer applies once the package changes.\nFor an approved upload, the participant completes a validated template. Entry or import results and rejected items are recorded, including rejected lines in the exception log."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The reported work involves management-company expenses allocated to funds. The procedure warns that the One Rock method cannot be assumed for another client and describes current documented GPFS practice separately from client-approved methods."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The procedure says the client-approved method sets category and vendor mapping, allocations, included records, supporting documents, entry method and target fields. Example design files do not establish general or current requirements unless approved.\nThe procedure prohibits applying unapproved vendor or category mappings. For a mismatch, it says stop the affected item until the vendor record or mapping is resolved and the resolution documented.\nThe participant does not know the approval process for a new vendor or vendor-record change; the process owner needs to confirm it. The documented mismatch decision-maker is also unspecified.\nThe participant does not begin preparing data until the period, entities and source totals are documented in the intake record.\nThe participant says management-company source categories are not recategorized, and an unapproved mapping is never applied.\nAn affected item proceeds after an approved mapping or vendor-record resolution is documented; the participant then uses the current client-approved mapping. Changes during preparation or review require a full recheck and renewed approval.\nOnly a method validated for the client is used. If no method is approved, the participant stops and obtains a decision from the process owner or client; a client or reviewer decides the documented approved combination method when required detail cannot be preserved.\nDifferences in totals or the set of records must be resolved before anything is sent to billing; the GPFS reviewer or client decides as needed."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The management company's accounting preparation supplies the expense export to the GPFS fund team. The procedure describes a downstream handoff of approved items to billing or the client's invoicing or distribution process.\nUses the output of Management-company accounting preparation: Expense export supplied to the fund team.\nThe exact destination binding for the documented billing handoff is unclear in the extracted procedure.\nThe procedure describes handing approved items to billing or the client's invoicing or distribution process. The participant says discrepancies are resolved before anything is sent to billing.\nThe participant and reviewer resolve unmatched or duplicate vendors through the approved vendor-record process.\nHands off to Billing or client invoicing/distribution process: Documented handoff of approved items; exact destination binding is unclear in the extracted procedure.\nHands off to Billing or client invoicing/distribution process: The procedure describes an approved-items handoff; the participant says differences must be resolved before billing. The exact destination binding remains unclear."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The management-company export comes from Sage or QuickBooks and reaches the participant in Excel. The participant confirms the target system and access for each client; under manual entry, required lines are entered in Allvue or Entrilia."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": ""
+   }
+  ]
+ },
+ "map": {
+  "title": "Due to Manager: Expense Transfer",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Produce management-company export",
+    "actor": "Management-company accounting preparer",
+    "system": "Sage or QuickBooks",
+    "description": "The management-company preparer records expenses, assigns source categories and produces an Excel export for the fund team. In the US reimbursement model, the management company pays the expenses and bills the funds quarterly."
+   },
+   {
+    "id": "S2",
+    "type": "data_store",
+    "title": "Receive and log expense set",
+    "actor": "GPFS fund-team preparer",
+    "system": "Excel export and intake checklist",
+    "description": "When the management company has expenses to allocate, the preparer receives and logs its organized file. The preparer records the source system, period, entities and file version, checks expected expenses and categories, and compares source totals with the management-company control total. The required comparison report is unspecified."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Clarify missing source information",
+    "actor": "GPFS fund-team preparer",
+    "system": "UNKNOWN",
+    "description": "The preparer asks the management company to clarify a missing control total or an unclear set of records."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Check categories, vendors and mapping",
+    "actor": "GPFS preparer and reviewer",
+    "system": "Vendor and mapping exception log",
+    "description": "The preparer and reviewer check the already-categorized export against approved fund categories, identify missing or inconsistently coded vendors, and confirm the mapping version and period. They resolve unmatched or duplicate vendors through the approved vendor-record process and log every exception; they do not apply unapproved mappings."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Resolve vendor or mapping mismatch",
+    "actor": "GPFS preparer and reviewer for unmatched or duplicate vendors; other resolution and approval authority UNKNOWN",
+    "system": "Vendor and mapping exception log; approval record location UNKNOWN",
+    "description": "A mismatched item stays open until an approved mapping or vendor-record resolution is documented. Unmatched or duplicate vendors are resolved through the approved vendor-record process. The procedure also calls for an approval record."
+   },
+   {
+    "id": "S6",
+    "type": "decision",
+    "title": "Which approved entry method applies?",
+    "actor": "GPFS preparer; client or process owner confirms",
+    "system": "Client-specific written procedure and mapping file; target system varies",
+    "description": "The preparer confirms the client’s method, target system name and access. Only a method validated for that client may be used."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Prepare mapped DTM data",
+    "actor": "GPFS fund-team preparer",
+    "system": "Mapping working file",
+    "description": "Apply the current client-approved field and expense-category mapping, retaining vendor-level detail when the approved target structure and vendor master support it. If the target cannot preserve required detail, document the approved way to combine records; the client or reviewer decides that."
+   },
+   {
+    "id": "S8",
+    "type": "data_store",
+    "title": "Enter required lines manually",
+    "actor": "GPFS fund-team preparer",
+    "system": "Allvue or Entrilia; actual target UNKNOWN",
+    "description": "Under the manual method, enter each required line and keep a traceable link between the source and fund-system entry."
+   },
+   {
+    "id": "S9",
+    "type": "data_store",
+    "title": "Validate and import upload",
+    "actor": "GPFS fund-team preparer",
+    "system": "Validated upload template and fund system; actual target UNKNOWN",
+    "description": "For an approved upload, complete the validated template, run the required checks and import it. Exact upload steps for each client remain unconfirmed."
+   },
+   {
+    "id": "S10",
+    "type": "data_store",
+    "title": "Record entry results and rejects",
+    "actor": "GPFS fund-team preparer",
+    "system": "Exception log and fund system; locations UNKNOWN",
+    "description": "Record manual-entry or import results and all rejected items; every rejected line goes in the exception log. Recorded rows and totals must match the approved prepared data."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Reconcile and review entries",
+    "actor": "GPFS preparer and reviewer",
+    "system": "DTM reconciliation and fund-system report",
+    "description": "The preparer and reviewer compare source, prepared and fund-system totals and vendor and category records, and investigate combined or rejected lines. The procedure also calls for checking whether amounts are owed to the manager or an affiliate where the approved design supports it, and retaining the review record."
+   },
+   {
+    "id": "S12",
+    "type": "decision",
+    "title": "Does a client procedure apply?",
+    "actor": "Client or process owner",
+    "system": "UNKNOWN",
+    "description": "The procedure identifies a decision where a detailed client-specific procedure exists and says to follow MC-02A or MC-02B as applicable."
+   },
+   {
+    "id": "S13",
+    "type": "subprocess",
+    "title": "Follow applicable client procedure",
+    "actor": "UNKNOWN; client-specific roles apply",
+    "system": "UNKNOWN",
+    "description": "Follow MC-02A or MC-02B where applicable. The procedure requires the action to be complete and its completion record available before proceeding."
+   },
+   {
+    "id": "S14",
+    "type": "document",
+    "title": "Assemble DTM package",
+    "actor": "GPFS preparer and reviewer; client-specific roles also apply",
+    "system": "Client package; location UNKNOWN",
+    "description": "The procedure calls for assembling the approved data set, mapping, reconciliation, supporting documents and review record. The participant places the separate billing-total check at completion."
+   },
+   {
+    "id": "S15",
+    "type": "document",
+    "title": "Send approved items to billing",
+    "actor": "GPFS preparer and reviewer; exact sender UNKNOWN",
+    "system": "Billing or client invoicing or distribution process",
+    "description": "Send the approved items to the next billing, invoicing or distribution process. Confirmation that the next process accepted the package is a required documented output; its timing relative to retaining the completion communication is UNKNOWN."
+   },
+   {
+    "id": "S16",
+    "type": "data_store",
+    "title": "Retain completion communication",
+    "actor": "GPFS preparer and reviewer; exact recorder UNKNOWN",
+    "system": "Package location UNKNOWN",
+    "description": "The procedure says to keep the completion communication and record the package location."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Confirm billing matches reviewed data",
+    "actor": "GPFS reviewer",
+    "system": "UNKNOWN",
+    "description": "At completion, the GPFS reviewer checks that totals sent to billing match the reviewed DTM data set. The procedure also requires confirmation that billing matches the reviewed data."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Repeat full check after change",
+    "actor": "UNKNOWN; participant says the team repeats the check",
+    "system": "UNKNOWN",
+    "description": "If any row, mapping, record set or total changes during preparation or review, repeat the full check from source data through preparation and fund-system entry. The earlier review record no longer applies to the changed package."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Approve final version again",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The final version is approved again after a change requires the full check to be repeated."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Obtain entry-method decision",
+    "actor": "GPFS fund-team preparer; process owner or client decides",
+    "system": "UNKNOWN",
+    "description": "When no method is approved, the preparer stops and obtains a decision from the process owner or client."
+   },
+   {
+    "id": "S21",
+    "type": "activity",
+    "title": "Resolve reconciliation differences",
+    "actor": "Resolver UNKNOWN; GPFS reviewer or client decides as needed",
+    "system": "UNKNOWN",
+    "description": "When totals or the set of records do not reconcile, resolve the difference before sending anything to billing. The affected entry or handoff stays open until resolution."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "Export supplied for intake"
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": "Missing control total or unclear records"
+   },
+   {
+    "from": "S2",
+    "to": "S4",
+    "label": "Intake documented"
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": "Vendor or category does not match approved mapping"
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Client method validated"
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": "Manual method"
+   },
+   {
+    "from": "S7",
+    "to": "S9",
+    "label": "Approved upload method"
+   },
+   {
+    "from": "S8",
+    "to": "S10",
+    "label": ""
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": ""
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": ""
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": "Review complete and exceptions resolved"
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": "Detailed client-specific procedure applies"
+   },
+   {
+    "from": "S12",
+    "to": "S14",
+    "label": "No client-specific procedure applies"
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": "Required action complete and completion record available"
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": ""
+   },
+   {
+    "from": "S4",
+    "to": "S6",
+    "label": "Checked data ready; no vendor or category mapping mismatch"
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": "Approved package assembled"
+   },
+   {
+    "from": "S15",
+    "to": "S17",
+    "label": ""
+   },
+   {
+    "from": "S5",
+    "to": "S4",
+    "label": "Approved mapping or vendor-record resolution documented"
+   },
+   {
+    "from": "S7",
+    "to": "S18",
+    "label": "Row, mapping, record set or total changes during preparation"
+   },
+   {
+    "from": "S11",
+    "to": "S18",
+    "label": "Row, mapping, record set or total changes during review"
+   },
+   {
+    "from": "S18",
+    "to": "S19",
+    "label": "Full check repeated"
+   },
+   {
+    "from": "S6",
+    "to": "S20",
+    "label": "No method approved"
+   },
+   {
+    "from": "S11",
+    "to": "S21",
+    "label": "Totals or set of records do not reconcile"
+   }
+  ],
+  "open_questions": [
+   "Do the documented client-specific package and delivery steps reflect current practice?",
+   "What deadlines govern receipt of the expense file, including for the US quarterly cycle? The standard schedule is unconfirmed.",
+   "Which report should be used for the source-total comparison? The GPFS process owner must confirm it.",
+   "How does work resume after the management company clarifies missing intake information, and what happens if source and control totals differ?",
+   "Who approves vendor or mapping exceptions, and what is the approval process for a new vendor or vendor-record change?",
+   "After an entry-method decision is obtained, how does work resume? What happens under another approved method, and how does that route reach reconciliation?",
+   "Where does the decision and documentation of an approved way to combine records sit when the target cannot preserve required detail?",
+   "Who repeats each part of the full check after a change, who approves the final version again, and where does the changed package resume after approval?",
+   "What happens when entry or import checks fail, who corrects them, and where are corrections rechecked? After a reconciliation difference is resolved, how does the affected entry or handoff resume?",
+   "Which target fund system, access, client-specific upload steps and checks, thresholds, allowed differences and package locations currently apply?",
+   "What do MC-02A and MC-02B require, which clients use them, and what client review or approval is needed before billing?",
+   "How is the completion-time billing-total check coordinated with sending the package, confirming acceptance and retaining the completion communication? What happens if that check fails?",
+   "How and when is next-process acceptance confirmed relative to retaining the completion communication?",
+   "Who is accountable for the overall process, and what are the exact preparer, reviewer, approver and client responsibilities and approval authorities?",
+   "Which entity types and clients are covered, what is the parent-process boundary, and what variations, charging or removal constraints apply?",
+   "What is the basis for any general GPFS standard, rather than the participant's client-specific route?",
+   "Who interprets conflicting client rules or mappings, where are interpretations recorded, and how are client modifications approved?",
+   "What manual effort, volumes, peaks, exception frequency, pain points and material failure consequences are reported?",
+   "Which systems or files are authoritative for the source, recorded DTM data, reconciliation and completion evidence?",
+   "Does any incoming route start S4 (Check categories, vendors and mapping), or must all prerequisites finish?",
+   "Does any incoming route start S10 (Record entry results and rejects), or must all prerequisites finish?",
+   "Does any incoming route start S14 (Assemble DTM package), or must all prerequisites finish?",
+   "Are the outgoing paths from S15 (Send approved items to billing) alternatives, or must they all occur?",
+   "Does any incoming route start S18 (Repeat full check after change), or must all prerequisites finish?"
+  ]
+ },
+ "map_checked": false,
+ "draft": null,
+ "draft_error": null
+}

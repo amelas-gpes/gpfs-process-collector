@@ -1,0 +1,661 @@
+{
+ "case": "F10",
+ "process": "FA-06",
+ "mode": "file",
+ "style": "file only, one short answer",
+ "build": "untouched",
+ "participant": "script",
+ "context": {
+  "process_name": "Deemed Contributions, Fee Waivers & Special Profits",
+  "process_owner": "",
+  "objective": "Document how we carry out Deemed Contributions, Fee Waivers & Special Profits, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "assistant",
+   "text": "Thanks for sharing. Give me a moment to digest the file. Then I’ll follow up with a question.",
+   "document_event": true
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "The procedure describes setting up the arrangement after governing documents, client approval, and member/commitment data are available. Does that reflect how this work starts today?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "Yes, the file describes how we do this today. I have nothing to add to it."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What event or notification normally starts the recurring period or event work?"
+  },
+  {
+   "id": "t006",
+   "role": "assistant",
+   "text": "This capture still has open sections. 16 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794968415.153,
+   "turn": 0,
+   "seconds": 0.034,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.session",
+   "at": 1794968415.229,
+   "turn": 1,
+   "seconds": 0.015,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.upload",
+   "at": 1794968415.233,
+   "turn": 1,
+   "seconds": 0.004,
+   "status": 202,
+   "retries": 0,
+   "file": "N03 FA-06 procedure pages.pdf",
+   "bytes": 266275
+  },
+  {
+   "kind": "doc.extracted",
+   "at": 1794968415.748,
+   "turn": 1,
+   "seconds": 0.53,
+   "file": "N03 FA-06 procedure pages.pdf",
+   "chunks": 7,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 7,
+    "total_units": 7,
+    "text_indexed_units": 7,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_started",
+   "at": 1794968415.748,
+   "turn": 1,
+   "seconds": 0.53,
+   "file": "N03 FA-06 procedure pages.pdf",
+   "chunks": 7,
+   "status": "ready",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 7,
+    "total_units": 7,
+    "text_indexed_units": 7,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_deep",
+   "at": 1794968421.398,
+   "turn": 1,
+   "seconds": 6.18,
+   "file": "N03 FA-06 procedure pages.pdf",
+   "chunks": 7,
+   "status": "ready",
+   "phase": "deep",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 7,
+    "total_units": 7,
+    "text_indexed_units": 7,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.review_complete",
+   "at": 1794968432.223,
+   "turn": 1,
+   "seconds": 17.01,
+   "file": "N03 FA-06 procedure pages.pdf",
+   "chunks": 7,
+   "status": "ready",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 7,
+    "total_units": 7,
+    "text_indexed_units": 7,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  },
+  {
+   "kind": "doc.followup_question",
+   "at": 1794968434.022,
+   "turn": 2,
+   "seconds": 1.799,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.first_question",
+   "at": 1794968434.022,
+   "turn": 3,
+   "seconds": 18.81,
+   "reading": {
+    "omitted_documents": 0,
+    "documents": [
+     {
+      "id": "doc_dafc46894fa0925479d332ee",
+      "included_chunks": 7,
+      "total_chunks": 7
+     }
+    ]
+   }
+  },
+  {
+   "kind": "doc.left_pending",
+   "at": 1794968464.424,
+   "turn": 3,
+   "notes_state": "working",
+   "map_state": "working",
+   "seconds": 32.2
+  },
+  {
+   "kind": "question",
+   "at": 1794968468.056,
+   "turn": 4,
+   "seconds": 3.582,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794968513.513,
+   "turn": 5,
+   "notes_state": "working",
+   "map_state": "queued",
+   "seconds": 49.04
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794968563.804,
+   "turn": 5,
+   "seconds": 50.213,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "working",
+   "workflow_error": null
+  },
+  {
+   "kind": "wrap.map_ready",
+   "at": 1794968600.593,
+   "turn": 6,
+   "seconds": 87.0,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 23,
+   "connections": 23
+  },
+  {
+   "kind": "draft",
+   "at": 1794969004.257,
+   "turn": 6,
+   "seconds": 403.602,
+   "status": 504,
+   "retries": 0,
+   "error": "The request to the AI service timed out. Your session and previous capture are retained. Try again; your saved files do not need to be uploaded again."
+  }
+ ],
+ "files": [
+  {
+   "name": "N03 FA-06 procedure pages.pdf",
+   "kind": "pdf",
+   "size": 266275,
+   "status": "ready",
+   "chunk_count": 7,
+   "coverage": {
+    "indexed_units": 7,
+    "total_units": 7,
+    "text_indexed_units": 7,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": []
+   }
+  }
+ ],
+ "notes": {
+  "summary": "The participant says the supplied procedure describes current work. The procedure provides a detailed route but leaves the overall accountable owner and initiating event unclear. Who is accountable for the overall result?",
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "The intake names the work Deemed Contributions, Fee Waivers & Special Profits; the procedure uses FA-06."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The documented work maintains member-level deemed contributions and commitments, applies waiver funding and special-profits treatment, and produces reconciled period or event schedules."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The arrangement setup requires governing documents, client approval and member/commitment data before starting. The procedure also describes period/event and departure work.\nThe initiating notification or event, its recipient, cadence and deadlines are not specified in the supplied procedure."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The period/event package is reconciled and approved with zero unexplained differences and one designated current approved life-to-date version. Unresolved schedule or accounting divergence keeps the period/event open."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The accountable owner for the overall result is not identified; the procedure names preparers, reviewers and other participants in individual steps."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The assigned Fund Administration preparer, with client/advisor input, identifies the fund, GP vehicle, members, effective date and affected fees; records the method and member funding components; obtains written client and advisor confirmation; and designates the controlled life-to-date schedule.\nThe Fund Administration preparer rolls forward prior waived fees and deemed contributions by member, reconciles commitment components to GP records and cumulative contributions and special profits to capital accounts and GL/TB, and identifies duplicates, omissions or divergent balances. A second reviewer verifies; differences are resolved or documented before new activity.\nThe Fund Administration preparer, with client confirmation, checks member eligibility at the fee/event date against current status and the prior population, identifies departures and election changes, and suspends new waiver activity for an ineligible member pending approved restructuring.\nThe management-fee preparer provides the approved fee calculation; the FA-06 preparer validates gross fee, offsets, waiver, net fee and member allocation, checking period, entity, effective dates, version and agreement to the arrangement and cumulative tracking.\nUsing the approved waiver and eligible population, the preparer calculates member deemed contributions, updates the life-to-date ICC roll-forward and GP capital support, and reduces approved waiver-funded unfunded commitment while keeping cash and waiver components separate. Accounting/Fund Team posts as applicable.\nFor a capital event, the FA-06 preparer coordinates with the FA-01 event preparer, separates deemed/waiver funding from cash due, updates allocation and notice data, and reconciles the event to ICC and GP unfunded schedules.\nFor special profits, the preparer identifies the method, timing, population and available-income condition, and obtains written advisor and client approval before calculating or recording. The preparer allocates the approved calculation, updates capital-account outputs and prepares the entry; a second reviewer checks and accounting/Fund Team posts.\nOn departure or loss of eligibility, treatment is determined with the client and the FA-06 preparer updates schedules. New waiver funding stops at the effective ineligibility date unless written advisor/client direction says otherwise; cash conversion, forfeiture or partner reallocation is determined, schedules updated and the before/after commitment reconciled.\nFor period/event close, the preparer and second reviewer reconcile ICC, commitments, fees, event treatment, capital accounts and GP records; confirm special-profits support; lock the updated source schedule; distribute the approved version to dependent processes; and retain approvals and unresolved-item ownership."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The procedure requires supported members, amount sources, methods and effective dates; it holds calculation if governing terms or advisor approval are missing. Opening balances require second-reviewer verification and zero unexplained differences; version divergence is escalated rather than resolved by choosing a convenient file.\nThe fee input must trace to the approved calculation and not exceed the arrangement. The event check requires cash due plus deemed/waiver funding to equal the approved member allocation, preventing duplicate funding.\nSpecial-profits allocations must equal the approved total, satisfy available-income and capital-account limits and leave no unexplained residual; negative, excessive or unsupported results are escalated to client/advisors."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "The arrangement may use an LPA-dictated, fixed-schedule or waive-first-then-true-up method; the procedure requires recording and confirming the applicable method rather than prescribing one universal calculation."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "The procedure warns that an unclear employment-status source, responsible role or timing can let an ineligible waiver continue or cause incorrect commitment allocation."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The supplied FA-06 procedure describes the steps and controls. Its working records include an arrangement summary, ICC/waiver roll-forward, GP capital schedule, fee workpapers, member-status schedule, capital-call workbook, special-profits methodology and available-income schedules, capital accounts and GL support."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The participant says the file describes how the work is done today and has nothing to add. The detailed route below is documented in the procedure, not independently verified.\nThe documented arrangement identifies the fund, GP vehicle and eligible members, including cash-funded and waiver-funded commitment components."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The procedure requires the governing arrangement and approved method for deemed contributions; no deemed contribution is recorded for an ineligible period/member without written advisor/client direction. It says a workbook or prior deliverable is not independent authority unless an approved policy explicitly establishes it.\nThe procedure does not specify the special-profits formula or method and requires a hold for advisor direction. It also leaves the deemed-contribution accounting entry and exact offset accounts unspecified, requiring approved accounting direction."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "FA-06 consumes the approved management-fee calculation from the management-fee preparer and coordinates capital-event treatment with the FA-01 event preparer. Approved updated schedules are distributed to dependent processes, whose specific destinations are not established by the supplied text.\nUses the output of Management-fee calculation (MC-05): Approved period/event fee calculation supplies the waived-fee input.\nRuns in parallel with Capital-call event preparation (FA-01): FA-06 preparer coordinates event funding treatment with the event preparer."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The procedure designates a controlled life-to-date source schedule and uses ICC, GP, fee, capital-call and accounting working files for reconciliation; it does not identify a system of record or file locations."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": ""
+   }
+  ]
+ },
+ "map": {
+  "title": "Deemed Contributions, Fee Waivers & Special Profits",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "document",
+    "title": "Establish the arrangement",
+    "actor": "Assigned Fund Administration preparer, with client/advisor input",
+    "system": "Arrangement summary and ICC/waiver roll-forward",
+    "description": "The procedure calls for identifying the fund, GP vehicle, eligible members, dates and fees; recording the method and commitment components; obtaining written client and advisor confirmation; and designating the controlled life-to-date schedule."
+   },
+   {
+    "id": "S2",
+    "type": "wait",
+    "title": "Hold calculation for missing authority",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The procedure says to hold calculation where governing terms or advisor approval are missing."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Reconcile opening balances",
+    "actor": "Fund Administration preparer; second reviewer verifies",
+    "system": "ICC roll-forward, GP capital schedule, fee workpapers, GL/TB",
+    "description": "The procedure calls for rolling forward member balances, reconciling commitments, deemed contributions and special profits, and identifying duplicates, omissions and divergences. Differences are resolved or documented before new activity is added; the required check is zero unexplained difference."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Escalate version divergence",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The procedure says to escalate version divergence rather than select a convenient file without reconciliation."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Confirm member eligibility",
+    "actor": "Fund Administration preparer, with client confirmation",
+    "system": "Member-status schedule and client support",
+    "description": "The procedure calls for checking eligibility as of the fee/event date, comparing populations and identifying departures, leave, exceptions and election changes. It requires written advisor/client direction before recording a deemed contribution for an ineligible period or member."
+   },
+   {
+    "id": "S6",
+    "type": "wait",
+    "title": "Suspend new waiver activity",
+    "actor": "Fund Administration preparer",
+    "system": "UNKNOWN",
+    "description": "For a member whose employee status no longer qualifies, the procedure calls for suspension pending approved restructuring."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Validate waived fee input",
+    "actor": "Management-fee preparer provides; preparer validates handoff",
+    "system": "Fee workpapers and ICC roll-forward",
+    "description": "The procedure calls for obtaining the fee components and member allocation, checking dates, entity and version, comparing the waiver with the arrangement, and reconciling cumulative tracking."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Return unexplained fee differences",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The procedure directs unexplained fee or waiver differences back to the client and an unspecified recipient."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Update deemed contributions",
+    "actor": "Preparer; accounting/Fund Team posts as applicable",
+    "system": "ICC roll-forward, GP capital schedule, GL support",
+    "description": "The procedure calls for calculating member contributions under the arrangement, updating life-to-date ICC and approved waiver-funded unfunded commitment, and updating capital-account and accounting support. Cash- and waiver-funded components remain separately visible."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Obtain accounting direction",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The procedure says the accounting entry and exact offset accounts are unspecified and calls for approved accounting direction."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Apply capital-call treatment",
+    "actor": "Preparer coordinates with event preparer",
+    "system": "Capital call workbook and ICC schedule",
+    "description": "The procedure calls for separating deemed/waiver funding from cash due, preventing a cash call for the waiver portion, updating allocation and notice data, and reconciling the event to ICC and GP unfunded schedules."
+   },
+   {
+    "id": "S12",
+    "type": "activity",
+    "title": "Escalate unclear call treatment",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The procedure directs unclear notice disclosure or call treatment to the client/advisor."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Confirm special-profits gate",
+    "actor": "Preparer with client tax/legal advisor and client approval",
+    "system": "Special-profits methodology record and available-income schedule",
+    "description": "The procedure calls for identifying the method, timing, population and target adjustment, obtaining the available-income definition and result, and obtaining written advisor and client approval before calculating or recording the entry."
+   },
+   {
+    "id": "S14",
+    "type": "wait",
+    "title": "Hold for advisor direction",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Where the special-profits formula or method is unspecified, the procedure says to hold and obtain advisor direction."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Calculate and allocate special profits",
+    "actor": "Preparer",
+    "system": "Special-profits schedule, capital accounts and GL support",
+    "description": "The procedure calls for calculating and allocating the amount under the approved method, checking the available-income limit, updating schedules and preparing the approved accounting entry."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Check special-profits calculation",
+    "actor": "Second reviewer",
+    "system": "Special-profits schedule, capital accounts and GL support",
+    "description": "The procedure assigns a second reviewer to check the special-profits work; the exact review sequence and reviewer-specific checks are UNKNOWN."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Post special-profits entry",
+    "actor": "Accounting/Fund Team",
+    "system": "GL support",
+    "description": "The procedure assigns accounting/Fund Team to post the approved entry and requires allocated and recorded amounts to reconcile to the approved total."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Escalate unsupported profits results",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The procedure directs negative, excessive or unsupported special-profits results to the client/advisors."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Determine departure treatment",
+    "actor": "Client and other decision-maker UNKNOWN",
+    "system": "Decision record",
+    "description": "The procedure calls for stopping new waiver funding from the effective ineligibility date unless written advisor/client direction says otherwise, and determining cash conversion or forfeiture and any partner reallocation. It says not to assume either treatment and to obtain client/advisor direction."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Update departure schedules",
+    "actor": "Preparer",
+    "system": "ICC roll-forward, GP commitment and member schedules",
+    "description": "The procedure calls for processing any reallocation, updating affected commitment, ICC, population, call, fee and capital-account schedules, and reconciling the before/after structure."
+   },
+   {
+    "id": "S21",
+    "type": "activity",
+    "title": "Reconcile period or event",
+    "actor": "Preparer and second reviewer",
+    "system": "ICC roll-forward, fee workpaper, capital call file, quarterly workpapers, GP schedules, GL/TB",
+    "description": "The procedure calls for reconciling member ICC, commitment components, fee waivers, event treatment, accounting and GP records, and confirming special-profits and available-income support."
+   },
+   {
+    "id": "S22",
+    "type": "wait",
+    "title": "Keep divergent period open",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The procedure says to keep the period/event open while schedule or accounting divergence remains unresolved."
+   },
+   {
+    "id": "S23",
+    "type": "document",
+    "title": "Lock and distribute schedules",
+    "actor": "Preparer and second reviewer",
+    "system": "ICC roll-forward and related period/event workpapers",
+    "description": "The procedure calls for locking the updated source schedule, distributing the approved version to dependent processes, and retaining approvals and unresolved-item ownership."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "Governing terms or advisor approval missing"
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "Version divergence"
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": "Employee status no longer qualifies"
+   },
+   {
+    "from": "S5",
+    "to": "S19",
+    "label": "Departure or exception"
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": "Unexplained fee/waiver differences"
+   },
+   {
+    "from": "S3",
+    "to": "S9",
+    "label": "Opening differences resolved or documented, opening check met AND approved waived fee and eligible population available"
+   },
+   {
+    "from": "S5",
+    "to": "S9",
+    "label": "Opening differences resolved or documented, opening check met AND approved waived fee and eligible population available"
+   },
+   {
+    "from": "S7",
+    "to": "S9",
+    "label": "Opening differences resolved or documented, opening check met AND approved waived fee and eligible population available"
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": "Accounting entry and offset accounts unspecified"
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": "Notice disclosure or call treatment unclear"
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": "Formula or method unspecified"
+   },
+   {
+    "from": "S13",
+    "to": "S15",
+    "label": "Supported method, satisfied available-income condition and written advisor/client approval; member data and capital accounts available"
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": ""
+   },
+   {
+    "from": "S15",
+    "to": "S17",
+    "label": "Approved entry prepared"
+   },
+   {
+    "from": "S15",
+    "to": "S18",
+    "label": "Negative, excessive or unsupported result"
+   },
+   {
+    "from": "S19",
+    "to": "S20",
+    "label": "Departure treatment determined"
+   },
+   {
+    "from": "S7",
+    "to": "S21",
+    "label": "Current fee, deemed contribution, capital event, special profits, departure changes and accounting available"
+   },
+   {
+    "from": "S9",
+    "to": "S21",
+    "label": "Current fee, deemed contribution, capital event, special profits, departure changes and accounting available"
+   },
+   {
+    "from": "S11",
+    "to": "S21",
+    "label": "Current fee, deemed contribution, capital event, special profits, departure changes and accounting available"
+   },
+   {
+    "from": "S17",
+    "to": "S21",
+    "label": "Current fee, deemed contribution, capital event, special profits, departure changes and accounting available"
+   },
+   {
+    "from": "S20",
+    "to": "S21",
+    "label": "Current fee, deemed contribution, capital event, special profits, departure changes and accounting available"
+   },
+   {
+    "from": "S21",
+    "to": "S22",
+    "label": "Unresolved schedule or accounting divergence"
+   },
+   {
+    "from": "S21",
+    "to": "S23",
+    "label": "Zero unexplained differences and current approved life-to-date version designated"
+   }
+  ],
+  "open_questions": [
+   "Does any incoming route start S9 (Update deemed contributions), or must all prerequisites finish?",
+   "Does any incoming route start S21 (Reconcile period or event), or must all prerequisites finish?",
+   "Are the routes containing S1 (Establish the arrangement) and S3 (Reconcile opening balances) separate, or is there a reported handoff between them?",
+   "UNKNOWN: The participant confirms the file describes current practice; the initiating event for arrangement setup and recurring period/event work, its receiver, cadence and deadlines remain unspecified.",
+   "UNKNOWN: Are arrangement setup and opening-balance reconciliation separate routes, or is there a handoff between them?",
+   "UNKNOWN: Who is accountable for the overall result, and what are the process boundaries, applicable entities and clients, and downstream consumers?",
+   "UNKNOWN: The procedure lists current fee, deemed contribution, capital event, special profits, departure changes and accounting before period/event reconciliation. How are inputs handled when a capital event, special-profits activity or departure does not arise?",
+   "UNKNOWN: Who supplies employment-status changes, and how are the effective date and departure decision handed to the preparer?",
+   "UNKNOWN: What are the release and next handoff after missing arrangement authority, advisor direction, approved restructuring or resolved period divergence?",
+   "UNKNOWN: Where do escalated version divergences, returned fee differences, unclear call treatment and unsupported special-profits results resume? Who owns each escalation and correction?",
+   "UNKNOWN: What happens when the special-profits available-income condition is not met or required approval is missing?",
+   "UNKNOWN: Does the second review of special profits gate posting, what does that reviewer check, and where is review evidence retained?",
+   "UNKNOWN: Who obtains approved deemed-contribution accounting direction, and how does it reach the posting team? Where is departure reallocation processed?",
+   "UNKNOWN: Which sources govern conflicting terms, who interprets them, and where are interpretations and approvals recorded? The procedure says supporting tools and records are not independent authority unless an approved policy explicitly establishes them.",
+   "UNKNOWN: What systems are authoritative, where are records retained, and which inputs or calculations are entered manually, imported or calculated?",
+   "UNKNOWN: What client-specific or other variations, commercial charging or removal constraints, volumes, effort, pain points and practical risks apply?"
+  ]
+ },
+ "map_checked": false,
+ "draft": null,
+ "draft_error": {
+  "status": 504,
+  "error": "The request to the AI service timed out. Your session and previous capture are retained. Try again; your saved files do not need to be uploaded again.",
+  "code": "timeout"
+ }
+}

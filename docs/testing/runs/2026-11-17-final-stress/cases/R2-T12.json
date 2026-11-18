@@ -1,0 +1,575 @@
+{
+ "case": "R2-T12",
+ "process": "MC-01",
+ "mode": "typed",
+ "style": "two answers, then Wrap up",
+ "build": "round2",
+ "participant": "script",
+ "context": {
+  "process_name": "Accounts Payable",
+  "process_owner": "",
+  "objective": "Document how we carry out Accounts Payable, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "To begin with, we receive and review the invoice. That is done by: Preparer. What we do: confirm the attachment is an invoice and identify the client/entity; record receipt for processing so the email is not missed; if the request is urgent, identify the requested timing and who must approve the exception. The check on it: every received invoice is added to the processing list."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "What happens after an invoice is added to the processing list?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "Next, we save the invoice PDF to Box. That is done by: Preparer. What we do: save the PDF in the approved client/entity Box location; use the applicable naming convention; link or reference the stored PDF in the operational log where the template supports it. The check on it: use the stored PDF as the source for approval, the Entrilia entry, and the final record comparison."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What happens after the invoice PDF is saved to Box?"
+  },
+  {
+   "id": "t006",
+   "role": "assistant",
+   "text": "Your account so far is saved. 1 of 16 topics is complete, 9 are partly covered and 6 have not come up; the Notes list shows what is missing. You can create a draft from what is here, or keep answering."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794993264.696,
+   "turn": 0,
+   "seconds": 0.015,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794993267.235,
+   "turn": 2,
+   "seconds": 2.487,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993279.425,
+   "turn": 3,
+   "seconds": 14.68
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794993289.627,
+   "turn": 3,
+   "seconds": 24.88,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 4,
+   "connections": 3
+  },
+  {
+   "kind": "question",
+   "at": 1794993291.109,
+   "turn": 4,
+   "seconds": 1.433,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794993291.111,
+   "turn": 5,
+   "seconds": 1.44,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 4,
+   "connections": 3
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794993324.153,
+   "turn": 5,
+   "seconds": 34.48,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 9,
+   "connections": 5
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993330.245,
+   "turn": 5,
+   "seconds": 40.57
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794993330.309,
+   "turn": 5,
+   "seconds": 0.013,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794993478.581,
+   "turn": 6,
+   "seconds": 148.218,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [],
+ "notes": {
+  "summary": "The Preparer reviews and logs received invoices, then saves the PDF in the approved Box location and references it in the operational log where supported. The PDF is used for approval, Entrilia entry and final comparison; the subsequent workflow remains to be explained.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "captured",
+    "answer": "Accounts Payable"
+   },
+   {
+    "key": "purpose",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The first described action is receiving and reviewing the invoice.\nThe initiating event, cadence and deadlines are not established."
+   },
+   {
+    "key": "completion",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The Preparer receives and reviews the invoice.\nAccountability for the overall Accounts Payable result is not established."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The Preparer confirms the attachment is an invoice, identifies the client/entity, records receipt so the email is not missed, and adds every received invoice to the processing list. For urgent requests, the Preparer identifies the requested timing and who must approve the exception.\nNext, the Preparer saves the invoice PDF in the approved client/entity Box location using the applicable naming convention, and links or references it in the operational log where the template supports it."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "At intake, the Preparer confirms the attachment is an invoice and identifies the client/entity. The stated check is that every received invoice is added to the processing list.\nHow the intake check is performed and evidenced is not established.\nThe stored PDF is used as the source for approval, the Entrilia entry and the final record comparison."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "For an urgent request, the Preparer identifies the requested timing and who must approve the exception.\nWhether urgency changes subsequent steps, and the approval and rework route, remain unclear."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "Intake uses an invoice attachment and email; receipt is recorded for processing and every received invoice is added to a processing list.\nThe processing list's format and location are not established.\nThe stored invoice PDF is the source for approval, the Entrilia entry and final record comparison; the operational log can link or reference it where its template supports this."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "Invoice intake identifies the client/entity, and the PDF is stored in the approved location for that client/entity."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "For an urgent request, the Preparer identifies the requested timing and who must approve the exception.\nThe urgent-exception approval rule, approver identity and whether approval blocks processing are not established.\nThe PDF is saved in the approved client/entity Box location using the applicable naming convention; the stored PDF is used as the source for approval, entry and final comparison."
+   },
+   {
+    "key": "connections",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The Preparer stores the invoice PDF in Box and links or references it in the operational log where its template supports that. The stored PDF is used as a source for an Entrilia entry."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": ""
+   }
+  ]
+ },
+ "map": {
+  "title": "Accounts Payable",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "start",
+    "title": "Invoice received",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "Receipt of an invoice begins the reported work."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Review invoice attachment",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "Confirm the attachment is an invoice and identify the client or entity."
+   },
+   {
+    "id": "S3",
+    "type": "data_store",
+    "title": "Record invoice receipt",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "Record receipt for processing so the email is not missed. The reported check is that every received invoice is added to the processing list."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Identify urgent request details",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "For an urgent request, identify the requested timing and who must approve the exception. Actual approval and subsequent handling are UNKNOWN."
+   },
+   {
+    "id": "S5",
+    "type": "document",
+    "title": "Save invoice PDF",
+    "actor": "Preparer",
+    "system": "Box",
+    "description": "Save the PDF in the approved client/entity Box location using the applicable naming convention. The stored PDF is the source for approval, Entrilia entry and final record comparison."
+   },
+   {
+    "id": "S6",
+    "type": "data_store",
+    "title": "Reference PDF in log",
+    "actor": "Preparer",
+    "system": "Operational log",
+    "description": "Link or reference the stored PDF where the operational log template supports it."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Approve invoice",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Approval uses the stored invoice PDF as its source. The approval route and its position in the process are UNKNOWN."
+   },
+   {
+    "id": "S8",
+    "type": "data_store",
+    "title": "Enter invoice in Entrilia",
+    "actor": "UNKNOWN",
+    "system": "Entrilia",
+    "description": "The Entrilia entry uses the stored invoice PDF as its source. The entry's position in the process is UNKNOWN."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Compare final record",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The final record comparison uses the stored invoice PDF as its source. The comparison's position and outcome are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "Request is urgent"
+   },
+   {
+    "from": "S3",
+    "to": "S5",
+    "label": ""
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": "Operational log template supports a link or reference"
+   }
+  ],
+  "open_questions": [
+   "Where do approval, Entrilia entry and final record comparison sit in the sequence, and who performs each? What follows the log reference, or the PDF save when the template does not support a reference?",
+   "How does identifying urgent-request timing and the exception approver relate to saving the PDF and later processing? How are urgent exceptions approved, and what is held pending approval?",
+   "What happens if the attachment is not an invoice or the client/entity cannot be identified?",
+   "Who verifies that every received invoice is on the processing list, and what evidence is retained?",
+   "What are the processing list's and operational log's locations, entry methods and authoritative record status? What happens when the log template does not support a PDF reference?",
+   "What produces the incoming invoice, how often does it arrive, and what deadlines apply?",
+   "What are the remaining accounts payable stages, handoffs, completion conditions and downstream consumers?",
+   "Who is accountable for the overall result, and what entity types and client scope are covered?",
+   "Is this general GPFS practice or a participant- or client-specific route, and what is the basis?",
+   "What rules, materials, variations, pain points, risks and volumes apply?",
+   "How does step S7 (Approve invoice) connect to the rest of this process, if at all?",
+   "How does step S8 (Enter invoice in Entrilia) connect to the rest of this process, if at all?",
+   "How does step S9 (Compare final record) connect to the rest of this process, if at all?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "Accounts Payable — current-practice draft",
+  "overview": "The reported work begins with invoice receipt and review, followed by recording receipt and saving the invoice PDF. Later approval, an Entrilia entry and a final record comparison are mentioned, but their sequence and owners remain UNKNOWN.",
+  "trigger": "Receipt of an invoice; upstream source, cadence and deadlines are UNKNOWN.",
+  "inputs": [
+   "Invoice attachment received by email",
+   "Requested timing for an urgent request, when applicable"
+  ],
+  "outputs": [
+   "Receipt recorded on the processing list",
+   "Invoice PDF saved in Box",
+   "PDF link or reference in the operational log where the template supports it",
+   "Entrilia entry; details and completion are UNKNOWN"
+  ],
+  "exceptions": [
+   "For an urgent request, the Preparer identifies the requested timing and who must approve the exception; subsequent approval and handling are UNKNOWN."
+  ],
+  "controls": [
+   "The Preparer confirms that the attachment is an invoice and identifies the client/entity.",
+   "The reported intake check is that every received invoice is added to the processing list; verification and retained evidence are UNKNOWN.",
+   "The stored PDF is used as the source for approval, the Entrilia entry and the final record comparison."
+  ],
+  "validation_notes": [
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified.",
+   "This is a current-practice draft for review. The participant has described only part of the process; completion and downstream use remain unconfirmed.",
+   "Approval, the Entrilia entry and final comparison are reported uses of the stored PDF, but their sequence and performers are unconfirmed; they remain disconnected known actions.",
+   "The account lists urgent-request identification after recording receipt. Its subsequent handoff and whether it must precede PDF saving are UNKNOWN; the two edges from receipt recording do not establish parallel work.",
+   "The next action after a log reference, and the route when the log template does not support a reference, are UNKNOWN.",
+   "The account has not established whether the route is general GPFS practice or specific to a client or participant.",
+   "Participant confirmation of the draft and process-owner approval are pending."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "start",
+    "title": "Invoice received",
+    "actor": "Preparer",
+    "system": "Email",
+    "description": "Receipt of an invoice begins the reported work. The sender and upstream source are UNKNOWN."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Review invoice attachment",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "Confirm that the attachment is an invoice and identify the client or entity. Handling of an invalid attachment or unidentified entity is UNKNOWN."
+   },
+   {
+    "id": "S3",
+    "type": "data_store",
+    "title": "Record invoice receipt",
+    "actor": "Preparer",
+    "system": "Processing list; location UNKNOWN",
+    "description": "Record receipt for processing so the email is not missed. The reported check is that every received invoice is added to the processing list. How this is verified and evidenced is UNKNOWN."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Identify urgent request details",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "If the request is urgent, identify the requested timing and who must approve the exception. The approval itself, any hold and subsequent handling are UNKNOWN."
+   },
+   {
+    "id": "S5",
+    "type": "document",
+    "title": "Save invoice PDF",
+    "actor": "Preparer",
+    "system": "Box",
+    "description": "Save the invoice PDF in the approved client/entity Box location using the applicable naming convention. The stored PDF is the source for approval, the Entrilia entry and the final record comparison."
+   },
+   {
+    "id": "S6",
+    "type": "data_store",
+    "title": "Reference PDF in log",
+    "actor": "Preparer",
+    "system": "Operational log; location UNKNOWN",
+    "description": "Link or reference the stored PDF in the operational log where its template supports it. What happens when the template does not support a reference is UNKNOWN."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Approve invoice",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Approval uses the stored invoice PDF as its source. The approver, approval route, decision outcomes and position in the process are UNKNOWN."
+   },
+   {
+    "id": "S8",
+    "type": "data_store",
+    "title": "Enter invoice in Entrilia",
+    "actor": "UNKNOWN",
+    "system": "Entrilia",
+    "description": "The Entrilia entry uses the stored invoice PDF as its source. The entry's performer, content and position in the process are UNKNOWN."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Compare final record",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The final record comparison uses the stored invoice PDF as its source. The performer, comparison criteria, outcome and position in the process are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S5",
+    "label": ""
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": "Log template supports a link or reference"
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "Request is urgent"
+   }
+  ],
+  "open_questions": [
+   "What are the remaining accounts payable stages, their sequence, handoffs and observable finished condition?",
+   "Where do approval, the Entrilia entry and final record comparison sit in the sequence, and who performs each?",
+   "After urgent-request details are identified, what happens next, and must that identification precede saving the PDF? How are exceptions approved or held?",
+   "Who is accountable for the overall result, and what client and entity scope does this account cover?",
+   "Who verifies the processing-list check, what happens when a check fails, and what evidence is retained?",
+   "What happens if an attachment is not an invoice or the client/entity cannot be identified?",
+   "What follows the log reference, or the PDF save when the template does not support a reference?",
+   "What are the processing list's and operational log's locations, entry methods and authoritative record status?",
+   "What produces incoming invoices, how often do they arrive, and what deadlines apply?",
+   "Is this general GPFS practice or a participant- or client-specific route, and what is the basis?",
+   "Are there other names for this work, and what are its boundaries?",
+   "What rules, written materials, client differences, pain points, risks and volumes apply?",
+   "How does step S7 (Approve invoice) connect to the rest of this process, if at all?",
+   "How does step S8 (Enter invoice in Entrilia) connect to the rest of this process, if at all?",
+   "How does step S9 (Compare final record) connect to the rest of this process, if at all?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "The intake names the work Accounts Payable. Other names and the full boundaries of the work are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "unknown",
+    "answer": "UNKNOWN: the delivered result or value has not been established."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The Preparer receives and reviews an invoice attachment associated with an email. The upstream source, cadence and fixed deadlines are UNKNOWN."
+   },
+   {
+    "key": "completion",
+    "status": "unknown",
+    "answer": "UNKNOWN: the finished condition, downstream boundary and consumer have not been established."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The Preparer receives and reviews the invoice. The role accountable for the overall Accounts Payable result is UNKNOWN."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The Preparer confirms the attachment is an invoice, identifies the client/entity and records receipt so the email is not missed; every received invoice is added to the processing list. For an urgent request, the Preparer identifies requested timing and the exception approver. Next, the Preparer saves the PDF in the approved client/entity Box location using the applicable naming convention and links or references it in the operational log where supported. The stored PDF is also the source for approval, an Entrilia entry and final record comparison; their sequence, performers and outcomes are UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "At intake, the Preparer confirms the attachment is an invoice and identifies the client/entity. The stated check is that every received invoice is added to the processing list. The stored PDF is the source for approval, the Entrilia entry and final record comparison. Review responsibilities, check criteria, failure handling and retained evidence are UNKNOWN."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "For urgent requests, the Preparer identifies requested timing and the exception approver. Whether urgency changes later processing, and the approval and rework route, are UNKNOWN. The operational log is linked or referenced only where its template supports it; the alternative is UNKNOWN."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": "UNKNOWN: no pain points or effort estimates were reported."
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "Receipt is recorded for processing so the email is not missed. Other material failures and their consequences are UNKNOWN."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The account mentions invoice attachments, a processing list, stored invoice PDFs and an operational log template. The stored PDF is used as the source for approval, entry and final comparison. The list's format and location and other existing procedures or materials are UNKNOWN; no supporting document was supplied for review."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "Intake identifies a client/entity, and the PDF is saved in its approved Box location. Entity types, parent process, client coverage and whether this is general GPFS practice are UNKNOWN."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The Preparer identifies timing and an approver for urgent exceptions. PDFs are saved in the approved client/entity Box location using the applicable naming convention and used as the source for approval, entry and final comparison. The rule sources, interpreters, urgent approval requirements and whether approval blocks work are UNKNOWN."
+   },
+   {
+    "key": "connections",
+    "status": "unknown",
+    "answer": "UNKNOWN: named upstream and downstream processes, consumers and readiness dependencies have not been established."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The Preparer saves the invoice PDF in Box and links or references it in the operational log where its template supports this. The stored PDF is a source for an Entrilia entry. The processing-list and log locations, entry methods and authoritative records are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": "UNKNOWN: counts, peaks, exception frequency and effort by step were not reported."
+   }
+  ]
+ },
+ "draft_error": null
+}

@@ -1,0 +1,1600 @@
+{
+ "case": "E-T07",
+ "process": "FA-14",
+ "mode": "typed",
+ "style": "draft retry of T07 with the draft keeping the working map",
+ "build": "final",
+ "participant": "replay",
+ "context": {
+  "process_name": "Analytical Review & Allocation Recalculations",
+  "process_owner": "",
+  "objective": "Document how we carry out Analytical Review & Allocation Recalculations, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "Oh, good question, and sorry if I sound a bit frazzled, the coffee machine on our floor has been broken since Monday and I am running on vending machine tea. So, what starts it. It kicks off when the quarterly close reaches what we call the analytical-review stage. It is a quarterly thing, every quarter end, which is exactly why I am always grumpy in the first weeks of January, April, July and October. But I can't actually start just because the calendar says so. Four things have to be available first: the recorded balances, I mean the booked numbers, then the independently tested workpapers, then the population data, and then the governing allocation support, which is the material that comes out of the limited partnership agreement. If one of those is missing I am basically sitting on my hands. I am the fund accountant on this, the preparer, so I am the one who builds the analytics and the independent recalculations. Oh, and before you ask about the deadline, because everybody asks, it follows the close calendar, but I honestly could not tell you the exact date, nobody has ever given me one in writing. The process owner would have to confirm that, whoever that ends up being. Anyway, my colleague Dana is off in Portugal for two weeks right over quarter end, lucky her, so it is mostly me this time around."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "How do you know all four prerequisites are available and ready for you to start?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "Ha, well, that is the thing, nothing tells me. There is no workflow system for this and no standard template either, so no little green light comes on. I wish. It is all Excel workpapers, so I go and look myself, usually with my second cup of that awful vending machine tea. What I do is go through each input one by one and write down whether it is final, estimated, approved or still pending before I use it. That status note is really the readiness check. The current trial balance and the recorded allocations come out of the fund general ledger, or the fund workbook for the funds that keep it that way, and I only ever treat that as the amount being tested, never as proof of anything. The prior-period balances I take from the approved prior statements and workpapers, and I make sure I am looking at a comparable period and that I understand where the fund is in its lifecycle, because a fund that is winding down does not look like one that is still calling capital. The population changes, so joiners, leavers and vesting changes, come from client-approved support, and there I check the effective dates and that each one really should be included. And the allocation percentages have to come from the documentation that is derived from the limited partnership agreement, or the approved client interpretation of it. I never take the percentages from the file I am testing, that would be marking my own homework. Dana used to do the population part before she swanned off to the Algarve, so this quarter that is on me too. Honestly quarter end is the same every time, everything lands at once in the last few days."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "Which status needs to be recorded before you can use an input?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "Hmm, so it is not one particular status. What has to be written down is which of the four it is, final, estimated, approved or pending, for every single input, before I touch it. I don't actually know of a rule that says only a final or an approved one is good enough to use, and I don't know who owns that call either, you would have to ask the process owner, and as far as I know nobody has been confirmed as the owner yet. Sorry, I know that is not a very satisfying answer, a bit like the note on our coffee machine that just says engineer has been called. While I am on inputs, two more I forgot. Commitments and contributions I take from independently tested support, meaning support that did not produce the recorded allocation, and I check it is complete and that the population is right. And for the carry test, which we call the Income Test, I only use tested workpapers that have been independently validated, never untested system balances. Then the real first step is that I list the balances and allocations I am going to test, I find an independent source for every input, and I write down why each source is independent of the booked result. What comes out of that is a test plan, a source index and a validated population. The hard rule is that I don't carry on with a test if the source that produced the number is also the thing being used as proof. And if there simply is no independent source, I stop and escalate to the Controller and that test stays stopped. There is supposed to be some alternative test for that situation, a compensating test, but it has never been defined, so I can't tell you what it is. The process owner or a process expert would have to say. That happened to me once the same week Dana left for Portugal, of course, and it sat there for days."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "How do you recalculate an allocation once its independent sources are validated?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "Right, so, small detour first, because I don't actually jump straight to the recalculation. Before it I do the analytical review. In the analytical review workpaper I compare the balance sheet accounts and the accruals to prior periods and I investigate any movement that looks inconsistent, incomplete, unsupported or mistimed. There is no variance threshold for that, so the Controller decides how deep I have to dig, which in quarter end week usually means deeper than I would like. And every conclusion I write has to cite something real, either consistency with prior periods, completeness of the population, where the fund is in its lifecycle, or underlying support. Just writing reasonable is not enough, I got that sent back to me in my first year and I have never forgotten it. Then the recalculation itself, which lives in the allocation recalculation workpaper, in Excel. Before I calculate anything I pin down the governing rule, from the partnership agreement or the client-approved rule, for contributions, investments and opt-outs, management fee offsets and waivers, expenses and blockers. I only split a recorded balance when its components follow different rules, and I combine the ones that follow the same rule. Then I recompute contributions and distributions from the underlying support, then I recompute partners' capital and the profit and loss allocations, year to date and inception to date, and then I compare my numbers with the booked amounts. Every difference gets classified as one of four kinds, an input issue, a population issue, a method issue or a timing issue, and I write down the source. Every unexplained difference is either corrected or escalated. There is no approved materiality threshold that I know of, so I can't wave anything through as too small. Honestly that is the bit that eats my evenings, that and the coffee machine queue on the third floor now that ours is dead."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "What tells you the analytical review and recalculation work is complete?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "Before I answer that, I need to fix something I said a minute ago. I told you differences get classified into four kinds. It is five, not four. I left out ledger-recording issues. So it is input, population, method, timing and ledger-recording. Sorry, no coffee, as I keep saying. Now, complete. There is no system that flips to done. It is finished when no unexplained difference and no unsupported conclusion is left, meaning every difference has been corrected, supported or escalated through an approved decision. But I am nowhere near that after the recalculation, there are more tests first. Next comes the same-commitment and population check. Investors with identical commitments should have identical capital account balances and identical unfunded commitment balances, so the expected difference is zero, unless a documented governing term, a population difference or a timing difference explains it. In that same check I confirm that joiners, leavers, vesting changes and reallocations are all reflected. If the balances differ I either have to prove the governing difference or the allocation gets corrected, and that call sits with the Controller or the client. Until it is resolved it blocks the conclusion and nobody can rely on the capital account numbers. Population problems I route back upstream to FA-05, GP-02 or GP-03, whichever one it belongs to. After that there is still the carry test, and for some funds a special profit test, and only then the wrap up with the Controller. So complete is a long way off at this point, which is why I laugh when people ask on day two of quarter end whether I am nearly done. Dana at least sends postcards."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "What does the Controller review during the wrap-up?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "The Controller gets the whole final package from me, and what they do is challenge three things, independence, completeness and the conclusions. They can send it back and require a correction or more evidence, and they do, believe me. After the Controller, the Director does a final close review, and how much of one depends on how complex the fund is. The part the Controller always goes to first is the carry test, the Income Test, which I have not really explained yet, so let me do that. I build it from the tested workpapers, not from the carry balances sitting in the system. I recompute carry life to date, from fund inception, then I subtract the carry that was recorded in prior periods, and what is left is the current-period amount, which I compare with the recorded carry. We call that reconciliation the carry bridge. If it does not reconcile I recheck the life-to-date calculation, the prior-period carry, the population and the distribution waterfall. Questions about the waterfall method I route to GP-04 and I use the client-approved interpretation of the partnership agreement. Before the package goes up I also deal with the exceptions. Errors get corrected through whichever upstream process they came from. I don't overwrite my original test record and I don't post corrections in the general ledger myself. Then I rerun the affected tests. Everything goes in the exception log, and for each exception that means the reason, the source, the effective period, the approver and the resolution. And I keep the Controller's review record. What I can't tell you is who has the final say over a difference that stays unresolved, or one somebody wants to call immaterial. I escalate it to the Controller and the Director and the work stops, but the actual approval authority has never been confirmed, a process expert would need to settle that. I always imagine it being decided at the third floor coffee machine, since that is where everyone is these days."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "For the funds that require a special profit test, what does that test check?"
+  },
+  {
+   "id": "t014",
+   "role": "user",
+   "text": "Ah, special profits, everybody's favourite. So a special profit shift is a fund-specific reallocation under the limited partnership agreement, and the test only applies where the agreement actually has a provision for it. I do it in the special-profit recalculation workpaper and it checks four things. First I confirm that the partnership agreement authorises the shift. Second I recalculate available income independently. Third I recalculate the shift itself, which is meant to reduce the eligible capital account balances. And fourth I compare my result with the recorded treatment and with what we expect for the fund's wind-down. The gate is simple, the shift must not be made unless the agreement's available-income requirement is met. On top of that there is a hold. No shift gets carried out until the fund's exact formula, the treatment of realized and unrealized amounts, and the Client, Tax, Legal and Accounting approvals are all documented. And I never base a shift on a training example or on what another fund did, even though people love to say but we did it this way for the other fund. What I don't know is who owns the client and Tax interpretation, or who has the approval authority for special profits. That has not been confirmed. I think the service-line governance owner is the one who would have to settle it. Last thing, since you will probably ask. All the records and conclusions go in the digital binder, but I could not tell you the exact folder path or how long we are meant to keep them, nobody has confirmed that either, a records-management person would know. Sorry, that was long. It is quarter end, Dana is on a beach, and I have had no proper coffee since Monday."
+  },
+  {
+   "id": "t015",
+   "role": "assistant",
+   "text": "What does your completed review enable the fund or close team to do?"
+  },
+  {
+   "id": "t016",
+   "role": "assistant",
+   "text": "This capture still has open sections. 14 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794966539.257,
+   "turn": 0,
+   "seconds": 0.028,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794966553.877,
+   "turn": 2,
+   "seconds": 2.993,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966567.578,
+   "turn": 3,
+   "seconds": 16.69
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966584.826,
+   "turn": 3,
+   "seconds": 33.94,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 5,
+   "connections": 6
+  },
+  {
+   "kind": "question",
+   "at": 1794966611.316,
+   "turn": 4,
+   "seconds": 3.533,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966611.322,
+   "turn": 5,
+   "seconds": 3.54,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 5,
+   "connections": 6
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966639.658,
+   "turn": 5,
+   "seconds": 31.88,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 6,
+   "connections": 7
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966647.751,
+   "turn": 5,
+   "seconds": 39.97
+  },
+  {
+   "kind": "question",
+   "at": 1794966682.815,
+   "turn": 6,
+   "seconds": 3.096,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966682.819,
+   "turn": 7,
+   "seconds": 3.1,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t004",
+   "steps": 6,
+   "connections": 7
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966708.093,
+   "turn": 7,
+   "seconds": 28.37
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966720.765,
+   "turn": 7,
+   "seconds": 41.05,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 9,
+   "connections": 9
+  },
+  {
+   "kind": "question",
+   "at": 1794966755.119,
+   "turn": 8,
+   "seconds": 3.284,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966755.122,
+   "turn": 9,
+   "seconds": 3.29,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t006",
+   "steps": 9,
+   "connections": 9
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966776.866,
+   "turn": 9,
+   "seconds": 25.03
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966798.196,
+   "turn": 9,
+   "seconds": 46.36,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 16,
+   "connections": 16
+  },
+  {
+   "kind": "question",
+   "at": 1794966825.361,
+   "turn": 10,
+   "seconds": 3.554,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966825.366,
+   "turn": 11,
+   "seconds": 3.56,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t008",
+   "steps": 16,
+   "connections": 16
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966860.866,
+   "turn": 11,
+   "seconds": 39.06
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966869.508,
+   "turn": 11,
+   "seconds": 47.7,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 24,
+   "connections": 26
+  },
+  {
+   "kind": "question",
+   "at": 1794966892.093,
+   "turn": 12,
+   "seconds": 2.267,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966892.099,
+   "turn": 13,
+   "seconds": 2.27,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t010",
+   "steps": 24,
+   "connections": 26
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966922.979,
+   "turn": 13,
+   "seconds": 33.15
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794966937.189,
+   "turn": 13,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 47.36
+  },
+  {
+   "kind": "question",
+   "at": 1794966957.712,
+   "turn": 14,
+   "seconds": 3.085,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966967.851,
+   "turn": 15,
+   "seconds": 13.22,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t012",
+   "steps": 33,
+   "connections": 46
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966989.204,
+   "turn": 15,
+   "seconds": 34.58
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966998.972,
+   "turn": 15,
+   "seconds": 44.34,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 34,
+   "connections": 46
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794967002.827,
+   "turn": 15,
+   "seconds": 0.03,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794970108.909,
+   "turn": 16,
+   "seconds": 409.535,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [],
+ "notes": {
+  "summary": "The participant explained the conditional special-profit test, its documentation and approval hold, and digital-binder storage. Interpretation ownership, special-profit approval authority, binder path and retention remain unconfirmed.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "captured",
+    "answer": "Analytical Review & Allocation Recalculations\nThe carry test is called the Income Test."
+   },
+   {
+    "key": "purpose",
+    "status": "captured",
+    "answer": "The work independently reviews fund balances and recalculates allocations to identify and resolve differences and support conclusions on the booked amounts."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "Work begins when the quarterly close reaches the analytical-review stage, but the participant cannot start based on the calendar alone: recorded (booked) balances, independently tested workpapers, population data, and governing allocation support must all be available first.\nThe work recurs quarterly, at every quarter end.\nThe exact deadline within the close calendar is not known to the participant; the process owner would have to confirm it. The participant says nobody has given them an exact date in writing."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The work is finished when no unexplained difference or unsupported conclusion remains: every difference has been corrected, supported or escalated through an approved decision. There is no system status that flips to done."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The participant is the fund accountant and performs the preparation, building the analytics and independent recalculations.\nThe role accountable for the overall result is not established; the participant identifies themself as preparer, and says the process owner would need to confirm the deadline.\nAs far as the participant knows, no process owner has yet been confirmed."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The participant builds analytics and independent recalculations after the quarterly-close analytical-review stage is reached and all four prerequisites are available: booked balances, independently tested workpapers, population data, and governing allocation support. If any prerequisite is missing, the participant waits to start.\nThe fund accountant looks for each input and records whether it is final, estimated, approved or pending before use; this status note is the readiness check.\nDana used to perform the population part; this quarter the participant performs it as well.\nThe fund accountant first lists the balances and allocations to test, finds an independent source for every input and records why each source is independent of the booked result. The outputs are a test plan, source index and validated population.\nIf no independent source exists, the fund accountant stops the test and escalates to the Controller; that test remains stopped.\nBefore recalculation, the fund accountant compares balance sheet accounts and accruals to prior periods in the analytical review workpaper and investigates inconsistent, incomplete, unsupported or mistimed movements.\nIn the Excel allocation recalculation workpaper, the fund accountant identifies the governing rules, splits recorded balances only where components follow different rules and combines components following the same rule. The accountant recomputes contributions and distributions from underlying support, then partners' capital and profit and loss allocations year to date and inception to date, and compares the results with booked amounts.\nThe fund accountant classifies every difference as an input, population, method, timing or ledger-recording issue and records its source. Unexplained differences are corrected or escalated.\nAfter recalculation, the fund accountant performs the same-commitment and population check: identical commitments should have identical capital account and unfunded commitment balances unless a documented governing term, population difference or timing difference explains the difference. The accountant also confirms joiners, leavers, vesting changes and reallocations are reflected.\nIf same-commitment balances differ, the governing difference must be proved or the allocation corrected; the Controller or client makes that call. The unresolved difference blocks the conclusion. The accountant routes population problems back to FA-05, GP-02 or GP-03, as appropriate.\nAfter the same-commitment and population check come the carry test, a special profit test for some funds, and then wrap-up with the Controller.\nWhere the fund's agreement provides for a special-profit shift, the fund accountant confirms agreement authorization, independently recalculates available income and the shift intended to reduce eligible capital account balances, then compares the result with recorded treatment and expected fund wind-down.\nFor the Income Test, the fund accountant recomputes carry life to date from tested workpapers, subtracts prior-period recorded carry and compares the resulting current-period amount with recorded carry. This reconciliation is called the carry bridge.\nIf the carry bridge does not reconcile, the fund accountant rechecks the life-to-date calculation, prior-period carry, population and distribution waterfall, routing waterfall-method questions to GP-04.\nBefore sending the package, the fund accountant routes errors for correction through their originating upstream process and reruns affected tests. The accountant does not overwrite the original test record or post the corrections to the general ledger.\nThe fund accountant sends the final package to the Controller, who may return it for correction or more evidence. After the Controller, the Director performs a final close review whose depth depends on fund complexity."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The fund accountant prepares analytics and independent recalculations using independently tested workpapers and governing allocation support.\nFinal approval authority for a difference that remains unresolved or is proposed as immaterial has not been confirmed; a process expert would need to settle it.\nFor prior-period balances, the fund accountant checks comparability of the period and considers the fund's lifecycle. For client-approved population changes, the accountant checks effective dates and whether each change should be included.\nFor commitments and contributions, the fund accountant uses independently tested support that did not produce the recorded allocation and checks completeness and population.\nFor the carry test, called the Income Test, the fund accountant uses independently validated tested workpapers, not untested system balances.\nThere is no variance threshold for analytical review; the Controller decides the investigation depth. Each written conclusion must cite prior-period consistency, population completeness, the fund lifecycle or underlying support; 'reasonable' alone is insufficient.\nThe same-commitment check expects zero differences in capital account and unfunded commitment balances unless a documented governing term, population or timing difference explains them. The Controller or client decides whether to prove a governing difference or correct the allocation.\nThe Controller challenges independence, completeness and conclusions in the final package and can send it back for correction or further evidence. The Controller looks first at the Income Test; the Director then performs a final close review, varying its depth with fund complexity.\nFor an unresolved difference or one proposed as immaterial, the fund accountant escalates to the Controller and Director and the work stops.\nFor the special-profit test, the fund accountant checks agreement authorization and independently recalculates available income and the shift, comparing the result to recorded treatment and expected wind-down. The shift is held pending documented formula, treatment and required approvals.\nApproval authority for special profits has not been confirmed; the participant thinks the service-line governance owner would need to settle it."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "The source of the current trial balance and recorded allocations differs by fund: the fund general ledger or, for funds that use it, the fund workbook.\nSome funds require a special profit test after the carry test and before Controller wrap-up.\nThe additional effort and any applicable charging or removal constraints for the special-profit test remain unexplained.\nThe Director's final close review varies in depth according to fund complexity.\nThe special-profit test applies only where a fund's partnership agreement provides for a fund-specific profit shift; it adds an independent available-income and shift recalculation and comparison with recorded treatment and expected wind-down."
+   },
+   {
+    "key": "pain_points",
+    "status": "partial",
+    "answer": "The participant cannot begin while any of the four prerequisites is missing and describes having to wait for them.\nThe participant reports having to check readiness personally without a workflow signal, and that quarter-end inputs all arrive in the last few days.\nThe participant recalls one test without an independent source sitting stopped for days after escalation.\nThe participant reports that dealing with recalculation differences eats into their evenings."
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "An unresolved difference in the same-commitment check blocks the conclusion and means the capital account numbers cannot be relied upon."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "Inputs required before the participant starts include booked balances, independently tested workpapers, population data, and governing allocation support. The participant describes the allocation support as material coming out of the limited partnership agreement; the materials are not said to have been reviewed in this interview.\nThe accountant uses approved prior statements and workpapers for prior-period balances and client-approved support for joiners, leavers and vesting changes.\nExcel workpapers contain the participant's input status notes; the participant reports no standard template.\nThe initial source work produces a test plan, source index and validated population. Independently tested commitment and contribution support and independently validated workpapers for the Income Test are also used.\nThe analytical review workpaper records the prior-period review and supported conclusions; the Excel allocation recalculation workpaper contains the recalculation.\nThe fund accountant records each exception's reason, source, effective period, approver and resolution in the exception log, and keeps the Controller's review record.\nThe final package is sent by the fund accountant to the Controller for review. The original test record is retained without being overwritten when errors are corrected.\nThe fund accountant performs the special-profit test in a special-profit recalculation workpaper.\nThe participant reports that all records and conclusions go in the digital binder.\nThe exact digital-binder folder path and retention period are unconfirmed; the participant says a records-management person would know."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The work concerns funds and allocation support derived from the limited partnership agreement.\nThe specific fund population and applicability across entities remain to be established."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "Allocation percentages must come from documentation derived from the limited partnership agreement or an approved client interpretation, not from the file being tested.\nThe specific economic allocation provisions and their calculation mechanics remain to be explained for the identified rule categories.\nThe participant does not know whether a rule restricts use to final or approved inputs, or who owns that decision; the process owner would need to clarify.\nA test must not proceed if the source that produced the number is also used as proof; absent an independent source, the accountant stops and escalates.\nThe participant says a compensating test is supposed to exist when no independent source is available, but it has never been defined; the process owner or a process expert would need to explain it.\nBefore calculating, the fund accountant identifies partnership-agreement or client-approved rules for contributions, investments and opt-outs, management fee offsets and waivers, expenses and blockers. Components are split or combined according to whether their rules differ.\nThe participant knows of no approved materiality threshold for recalculation differences and cannot disregard a difference as too small.\nFor investors with identical commitments, capital account and unfunded commitment balances are expected to match unless a documented governing term, population difference or timing difference explains a difference.\nFor waterfall-method questions, the fund accountant uses the client-approved interpretation of the partnership agreement and routes questions to GP-04.\nA special-profit shift must not be made unless the agreement's available-income requirement is met. The shift is held until the fund's exact formula, treatment of realized and unrealized amounts, and Client, Tax, Legal and Accounting approvals are documented.\nThe fund accountant does not base a special-profit shift on a training example or another fund's practice.\nOwnership of the client and Tax interpretation for special profits is unconfirmed. The participant thinks the service-line governance owner would need to settle it."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The upstream people or processes supplying the required balances, tested workpapers, population support and allocation documentation remain unidentified.\nThe fund accountant routes population problems upstream to FA-05, GP-02 or GP-03, according to where the issue belongs.\nThe fund accountant routes distribution-waterfall method questions to GP-04.\nErrors are corrected through the upstream process from which they originated; the particular receiving process depends on the error."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The current trial balance and recorded allocations come from the fund general ledger, or from a fund workbook for funds that use one. They are treated as amounts being tested, not proof.\nThe participant reports no workflow system and uses Excel workpapers, manually checking input readiness.\nRecords and conclusions are stored in a digital binder; the participant cannot identify its exact folder path or confirmed retention period."
+   },
+   {
+    "key": "volume",
+    "status": "partial",
+    "answer": "The work occurs every quarter end; the participant describes this as a quarterly activity. No item counts or effort estimates are given."
+   }
+  ]
+ },
+ "map": {
+  "title": "Analytical Review & Allocation Recalculations",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "start",
+    "title": "Reach analytical-review stage",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The work starts when the quarterly close reaches the analytical-review stage."
+   },
+   {
+    "id": "S2",
+    "type": "decision",
+    "title": "Are all inputs available?",
+    "actor": "Fund accountant, preparer",
+    "system": "UNKNOWN",
+    "description": "Starting requires recorded balances, independently tested workpapers, population data and governing allocation support."
+   },
+   {
+    "id": "S3",
+    "type": "wait",
+    "title": "Wait for required inputs",
+    "actor": "Fund accountant, preparer",
+    "system": "UNKNOWN",
+    "description": "The preparer cannot start if any of the four required inputs is missing."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Perform analytical review",
+    "actor": "Fund accountant, preparer",
+    "system": "Excel analytical review workpaper",
+    "description": "Compare balance sheet accounts and accruals with prior periods and investigate inconsistent, incomplete, unsupported or mistimed movements. Conclusions must cite prior-period consistency, population completeness, fund lifecycle or underlying support; the Controller decides the depth of investigation."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Identify governing allocation rules",
+    "actor": "Fund accountant, preparer",
+    "system": "Excel allocation recalculation workpaper",
+    "description": "Before calculating, identify the governing agreement or client-approved rules for contributions, investments and opt-outs, fee offsets and waivers, expenses and blockers."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Check and note input readiness",
+    "actor": "Fund accountant, preparer",
+    "system": "Excel workpapers",
+    "description": "The preparer records whether each input is final, estimated, approved or pending before use. They check prior-period comparability, population dates and inclusion, the independence and completeness of commitments and contributions support, and use independently validated tested workpapers for the carry test."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Plan tests and identify sources",
+    "actor": "Fund accountant, preparer",
+    "system": "Excel workpapers",
+    "description": "The first substantive step is to list balances and allocations for testing, find an independent source for every input and record why each source is independent of the booked result. The reported outputs are a test plan, source index and validated population."
+   },
+   {
+    "id": "S8",
+    "type": "decision",
+    "title": "Is an independent source available?",
+    "actor": "Fund accountant, preparer",
+    "system": "UNKNOWN",
+    "description": "For each test, the preparer does not continue if the source that produced the number is also used as proof. If no independent source exists, that test stops and is escalated."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Stop and escalate test",
+    "actor": "Fund accountant, preparer",
+    "system": "UNKNOWN",
+    "description": "If no independent source exists, the preparer escalates to the Controller and the affected test remains stopped. A compensating test is said to be expected but has not been defined."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Group recorded balance components",
+    "actor": "Fund accountant, preparer",
+    "system": "Excel allocation recalculation workpaper",
+    "description": "Split a recorded balance only where its components follow different rules; combine components following the same rule."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Recompute contributions and distributions",
+    "actor": "Fund accountant, preparer",
+    "system": "Excel allocation recalculation workpaper",
+    "description": "Recompute contributions and distributions from underlying support."
+   },
+   {
+    "id": "S12",
+    "type": "activity",
+    "title": "Recompute capital and allocations",
+    "actor": "Fund accountant, preparer",
+    "system": "Excel allocation recalculation workpaper",
+    "description": "Recompute partners' capital and profit and loss allocations year to date and inception to date."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Compare recalculations with bookings",
+    "actor": "Fund accountant, preparer",
+    "system": "Excel allocation recalculation workpaper",
+    "description": "Compare recalculated numbers with booked amounts."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Classify and document differences",
+    "actor": "Fund accountant, preparer",
+    "system": "Excel allocation recalculation workpaper",
+    "description": "Classify every difference as an input, population, method, timing or ledger-recording issue and record its source. The participant knows of no approved materiality threshold for waiving differences."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Correct unexplained difference",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Errors are corrected through their originating upstream process. The preparer does not overwrite the original test record or post the correction to the general ledger."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Escalate unexplained difference",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "An unexplained difference may be escalated. For a difference that remains unresolved or is proposed to be called immaterial, the preparer escalates to the Controller and Director and work stops."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Check commitments and population",
+    "actor": "Fund accountant, preparer",
+    "system": "UNKNOWN",
+    "description": "Compare capital account and unfunded commitment balances for investors with identical commitments. Expected differences are zero unless a documented governing term, population difference or timing difference explains them; confirm joiners, leavers, vesting changes and reallocations are reflected."
+   },
+   {
+    "id": "S18",
+    "type": "decision",
+    "title": "How will differences be resolved?",
+    "actor": "Controller or client",
+    "system": "UNKNOWN",
+    "description": "When balances differ, the Controller or client makes the call between proving the governing difference and correcting the allocation. An unresolved difference blocks the conclusion."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Prove governing difference",
+    "actor": "Fund accountant, preparer",
+    "system": "UNKNOWN",
+    "description": "Prove the governing difference where that is the selected resolution. The evidence and subsequent handoff are UNKNOWN."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Correct the allocation",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Correct the allocation when that is the selected resolution. Errors are corrected through their originating upstream process; the correction owner and method are UNKNOWN."
+   },
+   {
+    "id": "S21",
+    "type": "activity",
+    "title": "Route population problems upstream",
+    "actor": "Fund accountant, preparer",
+    "system": "UNKNOWN",
+    "description": "Route population problems to FA-05, GP-02 or GP-03, whichever is relevant. The subsequent handling and return are UNKNOWN."
+   },
+   {
+    "id": "S22",
+    "type": "activity",
+    "title": "Recompute carry",
+    "actor": "Fund accountant, preparer",
+    "system": "Excel workpapers",
+    "description": "Build the Income Test from independently validated tested workpapers, not system carry balances. Recompute carry life to date from inception and subtract carry recorded in prior periods to obtain the current-period amount."
+   },
+   {
+    "id": "S23",
+    "type": "activity",
+    "title": "Perform special profit test",
+    "actor": "Fund accountant, preparer",
+    "system": "Special-profit recalculation workpaper",
+    "description": "Where the agreement provides for a special profit shift, confirm it is authorized, independently recalculate available income, recalculate the shift and compare it with recorded treatment and the expected fund wind-down. The shift is meant to reduce eligible capital account balances. It must not be made unless the agreement’s available-income requirement is met; carrying it out is also held until the exact fund formula, realized and unrealized treatment, and Client, Tax, Legal and Accounting approvals are documented."
+   },
+   {
+    "id": "S24",
+    "type": "activity",
+    "title": "Review final package",
+    "actor": "Controller",
+    "system": "UNKNOWN",
+    "description": "The preparer gives the Controller the whole final package. The Controller challenges independence, completeness and conclusions, and may send it back for correction or more evidence. The preparer keeps the Controller's review record."
+   },
+   {
+    "id": "S25",
+    "type": "activity",
+    "title": "Perform final close review",
+    "actor": "Director",
+    "system": "UNKNOWN",
+    "description": "The Director performs the final close review after the Controller. Its depth depends on fund complexity; the specific checks and subsequent delivery are UNKNOWN."
+   },
+   {
+    "id": "S26",
+    "type": "activity",
+    "title": "Compare the carry bridge",
+    "actor": "Fund accountant, preparer",
+    "system": "Excel workpapers",
+    "description": "Compare recomputed current-period carry with recorded carry. The participant calls this reconciliation the carry bridge."
+   },
+   {
+    "id": "S27",
+    "type": "activity",
+    "title": "Recheck unreconciled carry bridge",
+    "actor": "Fund accountant, preparer",
+    "system": "UNKNOWN",
+    "description": "If the carry bridge does not reconcile, recheck the life-to-date calculation, prior-period carry, population and distribution waterfall. The subsequent resolution route is UNKNOWN."
+   },
+   {
+    "id": "S28",
+    "type": "activity",
+    "title": "Route waterfall method questions",
+    "actor": "Fund accountant, preparer",
+    "system": "UNKNOWN",
+    "description": "Route waterfall method questions to GP-04 and use the client-approved interpretation of the partnership agreement. The response and return route are UNKNOWN."
+   },
+   {
+    "id": "S29",
+    "type": "activity",
+    "title": "Correct errors upstream",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Errors are corrected through the upstream process they came from. The preparer does not overwrite the original test record or post general-ledger corrections."
+   },
+   {
+    "id": "S30",
+    "type": "activity",
+    "title": "Rerun affected tests",
+    "actor": "Fund accountant, preparer",
+    "system": "UNKNOWN",
+    "description": "Rerun the tests affected by corrected errors. Retain the original test record."
+   },
+   {
+    "id": "S31",
+    "type": "data_store",
+    "title": "Record exceptions in log",
+    "actor": "Fund accountant, preparer",
+    "system": "Exception log; location UNKNOWN",
+    "description": "Record each exception's reason, source, effective period, approver and resolution. The log's location and timing relative to correction are UNKNOWN."
+   },
+   {
+    "id": "S32",
+    "type": "activity",
+    "title": "Escalate and stop unresolved work",
+    "actor": "Fund accountant, preparer",
+    "system": "UNKNOWN",
+    "description": "Escalate a difference that remains unresolved or is proposed to be called immaterial to the Controller and Director; work stops. Final approval authority and the release route are unconfirmed."
+   },
+   {
+    "id": "S33",
+    "type": "activity",
+    "title": "Address Controller review return",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Address the Controller's request for a correction or more evidence. The person making the correction or providing evidence and the detailed handling are UNKNOWN."
+   },
+   {
+    "id": "S34",
+    "type": "data_store",
+    "title": "Retain records in digital binder",
+    "actor": "UNKNOWN",
+    "system": "Digital binder",
+    "description": "All records and conclusions go in the digital binder. The exact folder, retention period, person recording them and timing are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": "Any required input missing"
+   },
+   {
+    "from": "S1",
+    "to": "S6",
+    "label": ""
+   },
+   {
+    "from": "S6",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S7",
+    "label": "All four inputs available"
+   },
+   {
+    "from": "S3",
+    "to": "S7",
+    "label": "All four inputs available"
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": ""
+   },
+   {
+    "from": "S8",
+    "to": "S4",
+    "label": "Independent source available for the test"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "No independent source exists"
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": ""
+   },
+   {
+    "from": "S5",
+    "to": "S10",
+    "label": ""
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": ""
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": ""
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": ""
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": "Difference identified"
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": "Unexplained difference corrected"
+   },
+   {
+    "from": "S14",
+    "to": "S16",
+    "label": "Unexplained difference escalated"
+   },
+   {
+    "from": "S13",
+    "to": "S17",
+    "label": "No difference identified"
+   },
+   {
+    "from": "S14",
+    "to": "S17",
+    "label": "After differences are classified"
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": "Balances differ"
+   },
+   {
+    "from": "S18",
+    "to": "S19",
+    "label": "Prove governing difference"
+   },
+   {
+    "from": "S18",
+    "to": "S20",
+    "label": "Correct allocation"
+   },
+   {
+    "from": "S17",
+    "to": "S21",
+    "label": "Population problem"
+   },
+   {
+    "from": "S17",
+    "to": "S22",
+    "label": "After the check; resolution may remain open"
+   },
+   {
+    "from": "S22",
+    "to": "S26",
+    "label": ""
+   },
+   {
+    "from": "S26",
+    "to": "S27",
+    "label": "Carry bridge does not reconcile"
+   },
+   {
+    "from": "S27",
+    "to": "S28",
+    "label": "Waterfall method question"
+   },
+   {
+    "from": "S26",
+    "to": "S23",
+    "label": "Carry bridge reconciles AND fund requires special profit test"
+   },
+   {
+    "from": "S26",
+    "to": "S24",
+    "label": "Carry bridge reconciles AND no special profit test is required AND no exceptions remain to be dealt with"
+   },
+   {
+    "from": "S23",
+    "to": "S24",
+    "label": "No exceptions remain to be dealt with"
+   },
+   {
+    "from": "S15",
+    "to": "S30",
+    "label": "Error corrected upstream"
+   },
+   {
+    "from": "S20",
+    "to": "S30",
+    "label": "Allocation error corrected upstream"
+   },
+   {
+    "from": "S29",
+    "to": "S30",
+    "label": "Error corrected upstream"
+   },
+   {
+    "from": "S17",
+    "to": "S29",
+    "label": "Error requires upstream correction"
+   },
+   {
+    "from": "S26",
+    "to": "S29",
+    "label": "Error requires upstream correction"
+   },
+   {
+    "from": "S23",
+    "to": "S29",
+    "label": "Error requires upstream correction"
+   },
+   {
+    "from": "S14",
+    "to": "S31",
+    "label": "Exception identified"
+   },
+   {
+    "from": "S17",
+    "to": "S31",
+    "label": "Exception identified"
+   },
+   {
+    "from": "S26",
+    "to": "S31",
+    "label": "Exception identified"
+   },
+   {
+    "from": "S23",
+    "to": "S31",
+    "label": "Exception identified"
+   },
+   {
+    "from": "S31",
+    "to": "S24",
+    "label": "All exceptions dealt with and logged AND required tests complete AND no unexplained differences or unsupported conclusions remain"
+   },
+   {
+    "from": "S30",
+    "to": "S24",
+    "label": "All exceptions dealt with and logged AND required tests complete AND no unexplained differences or unsupported conclusions remain"
+   },
+   {
+    "from": "S17",
+    "to": "S32",
+    "label": "Difference remains unresolved or is proposed to be called immaterial"
+   },
+   {
+    "from": "S26",
+    "to": "S32",
+    "label": "Difference remains unresolved or is proposed to be called immaterial"
+   },
+   {
+    "from": "S24",
+    "to": "S33",
+    "label": "Controller requests correction or more evidence"
+   },
+   {
+    "from": "S33",
+    "to": "S24",
+    "label": "Requested correction or evidence provided"
+   },
+   {
+    "from": "S24",
+    "to": "S25",
+    "label": "Controller review completed"
+   }
+  ],
+  "open_questions": [
+   "UNKNOWN: After a missing input becomes available, does the work return to status noting/readiness checking before test planning resumes?",
+   "UNKNOWN: How are the test plan, source index and validated population retained, especially when a source is missing?",
+   "Does any incoming route start S7 (Plan tests and identify sources), or must all prerequisites finish?",
+   "Does any incoming route start S17 (Check commitments and population), or must all prerequisites finish?",
+   "Does any incoming route start S24 (Review final package), or must all prerequisites finish?",
+   "Does any incoming route start S29 (Correct errors upstream), or must all prerequisites finish?",
+   "Does any incoming route start S30 (Rerun affected tests), or must all prerequisites finish?",
+   "Does any incoming route start S31 (Record exceptions in log), or must all prerequisites finish?",
+   "Does any incoming route start S32 (Escalate and stop unresolved work), or must all prerequisites finish?",
+   "How does step S34 (Retain records in digital binder) connect to the rest of this process, if at all?",
+   "UNKNOWN: Who detects the analytical-review stage, and who is accountable for the overall result? No process owner has been confirmed.",
+   "UNKNOWN: What is the exact close-calendar deadline, and who confirms it?",
+   "UNKNOWN: Who supplies the required inputs, how are missing inputs obtained, and how is an input’s status noted when it arrives after the initial check?",
+   "UNKNOWN: Which input statuses permit use, how are estimated or pending inputs handled, and who owns that decision?",
+   "UNKNOWN: Where in the digital binder are the test plan, source index and validated population retained, and how are they completed when a source is missing?",
+   "UNKNOWN: What happens after a test is stopped for lack of an independent source, and what compensating test, if any, permits it to resume?",
+   "UNKNOWN: Who corrects differences in each upstream process, and how are governing differences proved or population problems resolved and returned?",
+   "UNKNOWN: After an unreconciled carry bridge is rechecked or a waterfall question is routed to GP-04, how is the result resolved and where does work resume?",
+   "UNKNOWN: Who owns client and Tax interpretation and approval authority for special profits? How are the required formula, treatment and approvals documented and the hold on carrying out a shift released?",
+   "UNKNOWN: Where is the exception log retained, who records its entries, and how are logging and correction coordinated before package submission?",
+   "UNKNOWN: How are completion of required tests, exception handling and the absence of unsupported conclusions coordinated before the final package goes to the Controller?",
+   "UNKNOWN: Who has final authority over an unresolved or proposed-immaterial difference, how is an approved decision recorded, and what releases stopped work?",
+   "UNKNOWN: Who addresses a Controller review return, and what does the Director check or do if the final close review identifies an issue?",
+   "UNKNOWN: What delivery or closure follows the Director’s review, and who uses the results next?",
+   "UNKNOWN: Who places records and conclusions in the digital binder, at what point, in which exact folders and for how long are they retained? What is the authoritative record for each result?",
+   "UNKNOWN: Which funds and clients are in scope, what other variations apply, and is this general GPFS practice or the participant’s route?",
+   "UNKNOWN: Who interprets allocation support, how are conflicting sources handled, and where are interpretations recorded?",
+   "UNKNOWN: What detailed calculation inputs, dates, proration, rounding, tie-outs and correction rules apply?",
+   "UNKNOWN: What other concrete risks and consequences affect the work?",
+   "UNKNOWN: What counts, effort estimates and exception frequency apply?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "DRAFT — Analytical Review & Allocation Recalculations",
+  "overview": "Current-practice draft for review. One fund accountant describes quarterly analytical review, independent allocation and carry tests, exception handling, and Controller and Director reviews. This account is not independently verified or approved. Overall ownership, several handoffs and the downstream result remain UNKNOWN.",
+  "trigger": "Quarterly close reaches the analytical-review stage. Testing cannot start until recorded balances, independently tested workpapers, population data and governing allocation support are available.",
+  "inputs": [
+   "Recorded balances and allocations from the fund general ledger or, for some funds, a fund workbook.",
+   "Independently tested workpapers, including independently validated workpapers for the carry test.",
+   "Approved prior-period statements and workpapers.",
+   "Client-approved population support, including joiners, leavers and vesting changes.",
+   "Agreement-derived allocation support or an approved client interpretation.",
+   "Independently tested commitments and contributions support."
+  ],
+  "outputs": [
+   "Test plan, source index and validated population.",
+   "Analytical conclusions and allocation, population and carry test results.",
+   "Special-profit test result where the fund agreement contains a provision.",
+   "Exception log, Controller review record and final package.",
+   "Records and conclusions in the digital binder."
+  ],
+  "exceptions": [
+   "A missing required input prevents the preparer starting; how it is obtained and rechecked is UNKNOWN.",
+   "A test without an independent source is stopped and escalated to the Controller. A compensating test has not been defined.",
+   "Unexplained differences are corrected or escalated. Errors are corrected upstream and affected tests rerun without overwriting the original test record.",
+   "A same-commitment difference blocks the conclusion until resolved; population problems go to FA-05, GP-02 or GP-03.",
+   "An unreconciled carry bridge prompts rechecks; waterfall method questions go to GP-04. Resolution and return are UNKNOWN.",
+   "Unresolved or proposed-immaterial differences are escalated to the Controller and Director and work stops; final authority and release are UNKNOWN.",
+   "The Controller may return the package for correction or more evidence; the subsequent return route is UNKNOWN."
+  ],
+  "controls": [
+   "The preparer records each input's status before use and checks relevant source, period and population details. Which statuses permit use and the decision owner are UNKNOWN.",
+   "The booked result is not used as its own proof; a test without an independent source stops.",
+   "Analytical conclusions cite supporting reasons; the Controller determines investigation depth without a variance threshold.",
+   "Each allocation difference is classified and its source recorded; the participant knows of no approved materiality threshold.",
+   "The same-commitment check expects zero differences unless a documented governing term, population or timing difference explains them.",
+   "The carry test uses independently validated tested workpapers and compares recalculated current-period carry with recorded carry.",
+   "The participant reports an available-income gate and documented formula, treatment and approval hold for carrying out special-profit shifts.",
+   "Exceptions are logged; the Controller challenges package independence, completeness and conclusions, and the Director performs a subsequent close review."
+  ],
+  "validation_notes": [
+   "This is an AI-generated current-practice draft requiring appropriate review. Participant confirmation and owner approval are pending.",
+   "The evidence is one participant's account. No supporting documents were supplied or independently reviewed; agreement and client-rule references are reported sources, not verified written rules.",
+   "The participant corrected the difference classification from four to five categories; ledger-recording is retained without changing unrelated steps.",
+   "Dana's population responsibility is former practice; the participant reports doing it this quarter. Future staffing is UNKNOWN.",
+   "The exception-log operation, general upstream-correction fragment, unresolved-difference escalation fragment and digital-binder operation have incomplete placement. A Controller return has no evidenced recheck edge. No unsupported resolution or return has been invented.",
+   "S15, S20 and S29 represent context-specific and general descriptions of upstream correction; S16 and S32 overlap in escalation scope. Their detailed coordination remains UNKNOWN.",
+   "Edges into the Controller package represent jointly required tests and exception handling, not an order between prerequisites, concurrent execution or an identified gatekeeper. Logging alone is not equated with resolving every exception.",
+   "The special-profit hold governs carrying out a shift; the account does not establish that the test itself carries it out. No shift-execution or hold-release route has been invented.",
+   "No approved GPFS-wide standard, system of record, control effectiveness or legal interpretation has been established.",
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified.",
+   "The independent audit changed or removed 2 proposed exception(s)."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "start",
+    "title": "Reach analytical-review stage",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Quarterly close reaches analytical review. The work follows the close calendar; the exact deadline and who detects the stage are UNKNOWN."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Check and note input readiness",
+    "actor": "Fund accountant, preparer",
+    "system": "Excel workpapers",
+    "description": "Look for each input and write down whether it is final, estimated, approved or pending before using it. The participant does not know which statuses permit use or who owns that decision. Treat current trial balance and recorded allocations from the fund ledger or workbook as amounts tested, not proof. Check prior-period comparability and fund lifecycle; check effective dates and inclusion of client-approved population changes. Take allocation percentages from agreement-derived documentation or an approved client interpretation, not the file tested. Check independently tested commitments and contributions support for completeness and the correct population. Carry inputs must be independently validated tested workpapers. Dana formerly handled population; the participant does it this quarter."
+   },
+   {
+    "id": "S2",
+    "type": "decision",
+    "title": "Are all inputs available?",
+    "actor": "Fund accountant, preparer",
+    "system": "UNKNOWN",
+    "description": "Determine whether recorded balances, independently tested workpapers, population data and governing allocation support are available. All four are required before testing starts."
+   },
+   {
+    "id": "S3",
+    "type": "wait",
+    "title": "Wait for required inputs",
+    "actor": "Fund accountant, preparer",
+    "system": "UNKNOWN",
+    "description": "If an input is missing, the preparer cannot start. How missing inputs are obtained and readiness is rechecked is UNKNOWN."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Plan tests and identify sources",
+    "actor": "Fund accountant, preparer",
+    "system": "Excel workpapers",
+    "description": "As the first testing step, list balances and allocations to test, find an independent source for every input, and record why each source is independent of the booked result. Reported outputs are a test plan, source index and validated population."
+   },
+   {
+    "id": "S8",
+    "type": "decision",
+    "title": "Is an independent source available?",
+    "actor": "Fund accountant, preparer",
+    "system": "UNKNOWN",
+    "description": "Do not continue a test if the source that produced the booked number is also used as proof. If no independent source exists, stop and escalate that test."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Stop and escalate test",
+    "actor": "Fund accountant, preparer",
+    "system": "UNKNOWN",
+    "description": "If no independent source exists, escalate to the Controller and keep that test stopped. A compensating test is reportedly expected but has not been defined. One reported instance lasted days."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Perform analytical review",
+    "actor": "Fund accountant, preparer",
+    "system": "Excel analytical review workpaper",
+    "description": "Compare balance sheet accounts and accruals with prior periods and investigate movements that appear inconsistent, incomplete, unsupported or mistimed. There is no variance threshold; the Controller determines investigation depth. Each conclusion must cite prior-period consistency, population completeness, fund lifecycle or underlying support; 'reasonable' alone is insufficient."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Identify governing allocation rules",
+    "actor": "Fund accountant, preparer",
+    "system": "Excel allocation recalculation workpaper",
+    "description": "Before calculating, identify the partnership agreement or client-approved rule for contributions, investments and opt-outs, management fee offsets and waivers, expenses and blockers."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Group recorded balance components",
+    "actor": "Fund accountant, preparer",
+    "system": "Excel allocation recalculation workpaper",
+    "description": "Split a recorded balance only where its components follow different rules; combine components that follow the same rule."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Recompute contributions and distributions",
+    "actor": "Fund accountant, preparer",
+    "system": "Excel allocation recalculation workpaper",
+    "description": "Recompute contributions and distributions from underlying support."
+   },
+   {
+    "id": "S12",
+    "type": "activity",
+    "title": "Recompute capital and allocations",
+    "actor": "Fund accountant, preparer",
+    "system": "Excel allocation recalculation workpaper",
+    "description": "Recompute partners' capital and profit and loss allocations year to date and inception to date."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Compare recalculations with bookings",
+    "actor": "Fund accountant, preparer",
+    "system": "Excel allocation recalculation workpaper",
+    "description": "Compare recomputed figures with booked amounts and identify differences."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Classify and document differences",
+    "actor": "Fund accountant, preparer",
+    "system": "Excel allocation recalculation workpaper",
+    "description": "Classify every difference as an input, population, method, timing or ledger-recording issue and record its source. Every unexplained difference is corrected or escalated. The participant knows of no approved materiality threshold."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Correct unexplained difference",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Correct an error through its originating upstream process. The preparer does not overwrite the original test record or personally post corrections in the general ledger."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Escalate unexplained difference",
+    "actor": "Fund accountant, preparer",
+    "system": "UNKNOWN",
+    "description": "An unexplained difference is corrected or escalated. A difference that remains unresolved or is proposed to be called immaterial is escalated to the Controller and Director and work stops. Other escalation recipients and final authority are UNKNOWN."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Check commitments and population",
+    "actor": "Fund accountant, preparer",
+    "system": "UNKNOWN",
+    "description": "Compare capital account and unfunded commitment balances for investors with identical commitments. Expected differences are zero unless a documented governing term, population difference or timing difference explains them. Confirm joiners, leavers, vesting changes and reallocations are reflected. An unresolved difference blocks the conclusion and the capital account numbers cannot be relied on."
+   },
+   {
+    "id": "S18",
+    "type": "decision",
+    "title": "How will differences be resolved?",
+    "actor": "Controller or client",
+    "system": "UNKNOWN",
+    "description": "When balances differ, the Controller or client makes the call between proving the governing difference and correcting the allocation. An unresolved difference blocks the conclusion."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Prove governing difference",
+    "actor": "Fund accountant, preparer",
+    "system": "UNKNOWN",
+    "description": "Prove the governing difference when that resolution is selected. The evidence needed and subsequent handoff are UNKNOWN."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Correct the allocation",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Correct the allocation when selected. Errors are corrected through their originating upstream process; the correction owner and method are UNKNOWN."
+   },
+   {
+    "id": "S21",
+    "type": "activity",
+    "title": "Route population problems upstream",
+    "actor": "Fund accountant, preparer",
+    "system": "UNKNOWN",
+    "description": "Route population problems to FA-05, GP-02 or GP-03, whichever is relevant. Subsequent handling and return are UNKNOWN."
+   },
+   {
+    "id": "S22",
+    "type": "activity",
+    "title": "Recompute carry",
+    "actor": "Fund accountant, preparer",
+    "system": "Excel workpapers",
+    "description": "Build the Income Test from independently validated tested workpapers, not system carry balances. Recompute carry life to date from fund inception, then subtract carry recorded in prior periods to obtain current-period carry."
+   },
+   {
+    "id": "S26",
+    "type": "activity",
+    "title": "Compare the carry bridge",
+    "actor": "Fund accountant, preparer",
+    "system": "Excel workpapers",
+    "description": "Compare recomputed current-period carry with recorded carry. The participant calls this reconciliation the carry bridge."
+   },
+   {
+    "id": "S27",
+    "type": "activity",
+    "title": "Recheck unreconciled carry bridge",
+    "actor": "Fund accountant, preparer",
+    "system": "UNKNOWN",
+    "description": "If the carry bridge does not reconcile, recheck the life-to-date calculation, prior-period carry, population and distribution waterfall. Subsequent resolution and rejoin are UNKNOWN."
+   },
+   {
+    "id": "S28",
+    "type": "activity",
+    "title": "Route waterfall method questions",
+    "actor": "Fund accountant, preparer",
+    "system": "UNKNOWN",
+    "description": "Route waterfall method questions to GP-04 and use the client-approved interpretation of the partnership agreement. The response and return route are UNKNOWN."
+   },
+   {
+    "id": "S23",
+    "type": "activity",
+    "title": "Perform special-profit test",
+    "actor": "Fund accountant, preparer",
+    "system": "Special-profit recalculation workpaper",
+    "description": "Only where the fund agreement provides for a special-profit shift, confirm the agreement authorizes it, independently recalculate available income, recalculate the shift intended to reduce eligible capital balances, and compare the result with recorded treatment and the expected wind-down. A shift must not be made unless the agreement's available-income requirement is met. Carrying out a shift is also held until the exact fund formula, realized and unrealized treatment, and Client, Tax, Legal and Accounting approvals are all documented. Do not base a shift on a training example or another fund's practice. The test is not established as the action that carries out the shift."
+   },
+   {
+    "id": "S29",
+    "type": "activity",
+    "title": "Correct errors upstream",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Correct errors through their originating upstream process. The preparer does not overwrite the original test record or post general-ledger corrections. The precise entry point for this general exception action is UNKNOWN."
+   },
+   {
+    "id": "S30",
+    "type": "activity",
+    "title": "Rerun affected tests",
+    "actor": "Fund accountant, preparer",
+    "system": "UNKNOWN",
+    "description": "After upstream errors are corrected, rerun affected tests without overwriting the original test record. Coordination with other tests and exceptions is UNKNOWN."
+   },
+   {
+    "id": "S31",
+    "type": "data_store",
+    "title": "Record exceptions in log",
+    "actor": "UNKNOWN",
+    "system": "Exception log; location UNKNOWN",
+    "description": "Each exception goes in the log with its reason, source, effective period, approver and resolution. Recorder, location and timing relative to correction are UNKNOWN."
+   },
+   {
+    "id": "S32",
+    "type": "activity",
+    "title": "Escalate and stop unresolved work",
+    "actor": "Fund accountant, preparer",
+    "system": "UNKNOWN",
+    "description": "Escalate a difference that remains unresolved or is proposed to be called immaterial to the Controller and Director; work stops. Final approval authority and the release route are unconfirmed."
+   },
+   {
+    "id": "S24",
+    "type": "activity",
+    "title": "Review final package",
+    "actor": "Controller",
+    "system": "UNKNOWN",
+    "description": "The preparer gives the Controller the whole final package after required tests and dealing with exceptions. The Controller challenges independence, completeness and conclusions, going first to the carry test, and may send the package back for correction or more evidence. The preparer keeps the Controller's review record."
+   },
+   {
+    "id": "S33",
+    "type": "activity",
+    "title": "Address Controller review return",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Address the Controller's request for correction or more evidence. The person doing so, detailed handling and subsequent return are UNKNOWN."
+   },
+   {
+    "id": "S25",
+    "type": "activity",
+    "title": "Perform final close review",
+    "actor": "Director",
+    "system": "UNKNOWN",
+    "description": "After the Controller, the Director performs a final close review whose depth depends on fund complexity. Specific checks, issue handling and subsequent delivery are UNKNOWN."
+   },
+   {
+    "id": "S34",
+    "type": "data_store",
+    "title": "Retain records in digital binder",
+    "actor": "UNKNOWN",
+    "system": "Digital binder",
+    "description": "All records and conclusions go in the digital binder. Exact folder, retention period, person recording them and timing are UNKNOWN; its precise connection to the route is unreported."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S6",
+    "label": "Analytical-review stage reached"
+   },
+   {
+    "from": "S6",
+    "to": "S2",
+    "label": "Input readiness checked"
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": "Any required input missing"
+   },
+   {
+    "from": "S2",
+    "to": "S7",
+    "label": "All four inputs available"
+   },
+   {
+    "from": "S3",
+    "to": "S7",
+    "label": "All four inputs available"
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": "Assess test sources"
+   },
+   {
+    "from": "S8",
+    "to": "S4",
+    "label": "Independent source available for the test"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "No independent source exists"
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": "Analytical review precedes recalculation"
+   },
+   {
+    "from": "S5",
+    "to": "S10",
+    "label": "Rules identified"
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": "Components grouped"
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": "Contributions and distributions recomputed"
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": "Capital and allocations recomputed"
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": "Difference identified"
+   },
+   {
+    "from": "S13",
+    "to": "S17",
+    "label": "No difference identified"
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": "Unexplained difference requires correction"
+   },
+   {
+    "from": "S14",
+    "to": "S16",
+    "label": "Unexplained difference escalated"
+   },
+   {
+    "from": "S14",
+    "to": "S17",
+    "label": "After recalculation and classification"
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": "Balances differ"
+   },
+   {
+    "from": "S18",
+    "to": "S19",
+    "label": "Prove governing difference"
+   },
+   {
+    "from": "S18",
+    "to": "S20",
+    "label": "Correct allocation"
+   },
+   {
+    "from": "S17",
+    "to": "S21",
+    "label": "Population problem"
+   },
+   {
+    "from": "S17",
+    "to": "S22",
+    "label": "After the check; unresolved differences still block the conclusion"
+   },
+   {
+    "from": "S22",
+    "to": "S26",
+    "label": "Current-period carry recomputed"
+   },
+   {
+    "from": "S26",
+    "to": "S27",
+    "label": "Carry bridge does not reconcile"
+   },
+   {
+    "from": "S27",
+    "to": "S28",
+    "label": "Waterfall method question"
+   },
+   {
+    "from": "S26",
+    "to": "S23",
+    "label": "Carry test followed by special-profit test where agreement provides for it"
+   },
+   {
+    "from": "S26",
+    "to": "S24",
+    "label": "Required tests complete AND no special-profit test required AND exceptions dealt with"
+   },
+   {
+    "from": "S23",
+    "to": "S24",
+    "label": "Required tests complete AND exceptions dealt with"
+   },
+   {
+    "from": "S15",
+    "to": "S30",
+    "label": "Error corrected upstream"
+   },
+   {
+    "from": "S20",
+    "to": "S30",
+    "label": "Allocation error corrected upstream"
+   },
+   {
+    "from": "S29",
+    "to": "S30",
+    "label": "Error corrected upstream"
+   },
+   {
+    "from": "S30",
+    "to": "S24",
+    "label": "All exceptions dealt with AND required tests complete"
+   },
+   {
+    "from": "S24",
+    "to": "S33",
+    "label": "Controller requests correction or more evidence"
+   },
+   {
+    "from": "S24",
+    "to": "S25",
+    "label": "Controller review completed"
+   }
+  ],
+  "open_questions": [
+   "UNKNOWN: Who is accountable for the overall result, who detects the analytical-review stage, and what exact close-calendar deadline applies?",
+   "UNKNOWN: What delivery or closure follows the Director's review, who uses the result next, and how does that relate to the stated finished condition?",
+   "UNKNOWN: Who has authority over unresolved or proposed-immaterial differences, how is an approved decision recorded, and what releases stopped work?",
+   "UNKNOWN: How are required tests, correction and reruns, exception logging and the final package coordinated? In particular, what is the logging handoff and when is it complete?",
+   "UNKNOWN: Who owns client and Tax interpretation and special-profit approval authority, and how are the reported formula, treatment and approvals documented and the shift hold released?",
+   "UNKNOWN: How are missing inputs obtained and rechecked, which statuses permit use, and who owns that decision?",
+   "UNKNOWN: What happens after a test is stopped for lack of an independent source, and is there a defined compensating test?",
+   "UNKNOWN: How are governing differences proved, population problems returned from FA-05, GP-02 or GP-03, and carry bridge or GP-04 questions resolved and rejoined?",
+   "UNKNOWN: How are Controller returns addressed and handed back, and what does the Director check or do when issues arise?",
+   "UNKNOWN: Who corrects upstream errors, records the exception log and places records in the binder? When and where are they recorded, how long are they retained, and what is authoritative for each result?",
+   "UNKNOWN: Which funds and clients are in scope, is the participant's route general GPFS practice, and what other variations apply?",
+   "UNKNOWN: Who interprets allocation rules, handles conflicts and records interpretations? What calculation dates, proration, rounding, tie-outs and correction rules apply?",
+   "UNKNOWN: What other risks, volumes, exception rates and step-level effort estimates apply?",
+   "UNKNOWN: Where does digital-binder recording connect to the route, and what is the entry point for the general upstream-correction and unresolved-difference fragments?",
+   "Does any incoming route start S7 (Plan tests and identify sources), or must all prerequisites finish?",
+   "Does any incoming route start S17 (Check commitments and population), or must all prerequisites finish?",
+   "Does any incoming route start S30 (Rerun affected tests), or must all prerequisites finish?",
+   "Does any incoming route start S24 (Review final package), or must all prerequisites finish?",
+   "How does step S31 (Record exceptions in log) connect to the rest of this process, if at all?",
+   "How does step S32 (Escalate and stop unresolved work) connect to the rest of this process, if at all?",
+   "How does step S34 (Retain records in digital binder) connect to the rest of this process, if at all?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "The intake names the work Analytical Review & Allocation Recalculations. The carry test is also called the Income Test, and its reconciliation the carry bridge. Other process names and boundaries are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The preparer produces analytical conclusions and independent allocation and carry tests for quarterly close, with a package reviewed by the Controller and Director. The downstream value or use of the completed review is UNKNOWN."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "Work starts when quarterly close reaches analytical review, each quarter end. Four input groups must be available before testing; the preparer looks for them without a workflow signal. It follows the close calendar, but the exact deadline, trigger detector and input suppliers are UNKNOWN."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The participant says work is finished when no unexplained difference or unsupported conclusion remains: differences are corrected, supported or escalated through an approved decision. Required tests precede Controller wrap-up and Director review. Authority for unresolved decisions, subsequent delivery and the downstream consumer are UNKNOWN."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The fund accountant prepares the work; the Controller and Director review it. The participant says no process owner has been confirmed, so overall accountability is UNKNOWN."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The preparer notes input statuses, plans tests and identifies independent sources, then performs analytical review, allocation recalculation, the same-commitment and population check, carry bridge and, where applicable, special-profit test. Errors go upstream and affected tests are rerun; exceptions are logged before the Controller challenges the package and the Director reviews it. Records go in a digital binder. Several exception returns, coordination points and the final handoff remain UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The preparer checks input status and independence, supports analytical conclusions, classifies differences, tests population and carry, and reports that exceptions are logged. The Controller challenges independence, completeness and conclusions and can return the package; the Director's review depth depends on complexity. Special-profit execution has reported available-income and documentation conditions. Approval authority, Director checks, technical enforcement, further segregation and detailed evidence locations remain UNKNOWN."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "Some funds use a fund workbook rather than the fund general ledger for recorded amounts. A special-profit test applies only where the fund agreement provides for a shift; the exact formula and treatment and the specified approvals must be documented before a shift is carried out. Director review depth varies with complexity. Effort, charging, removal constraints and full boundary comparisons are UNKNOWN."
+   },
+   {
+    "key": "pain_points",
+    "status": "partial",
+    "answer": "There is no workflow signal or standard template: the preparer looks for inputs and records status in Excel. Quarter-end inputs arrive together, and difference investigation consumes evenings according to the participant. One missing-source test sat for days. Quantified effort and wider friction are UNKNOWN."
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "An unresolved same-commitment difference blocks the conclusion and makes capital account numbers unreliable. Missing independent sources and unresolved or proposed-immaterial differences stop work. Other concrete consequences are UNKNOWN."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The participant mentions partnership agreements, client-approved interpretations, approved prior statements and workpapers, tested support, Excel workpapers, an exception log and a digital binder. No standard template is reported. No documents were supplied for review; exact locations and retention are UNKNOWN."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The account concerns fund quarterly-close work, including fund-specific special-profit provisions. Which funds or clients are covered, whether this is general GPFS practice, and the full process boundary are UNKNOWN. Quarterly close is the reported parent."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The preparer reports using partnership-agreement-derived support or approved client interpretations for percentages and governing rules. Components with different rules are split; those with the same rule are combined. Carry is calculated life to date less prior-period carry. Special-profit tests use fund-specific terms and reported holds. Interpretation ownership, conflict authority, detailed calculation mechanics and written-source verification are UNKNOWN."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "Quarterly close supplies the initiating stage; ledger or workbook balances, tested support and client-approved population support are inputs. Population problems are routed to FA-05, GP-02 or GP-03 and waterfall questions to GP-04. The Controller and Director review the package. Upstream readiness signals, returns and downstream use are UNKNOWN."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The participant uses Excel workpapers, a fund general ledger or fund workbook, an exception log and a digital binder; there is no workflow system or standard template. Input statuses are written down and recalculations are performed in workpapers. Authoritative records, detailed entry and storage arrangements, and workbook logic ownership are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "partial",
+    "answer": "The work occurs every quarter end, with inputs reportedly arriving together in the last few days. The participant describes difference investigation as consuming evenings and one stopped test lasting days. Counts, typical step effort and exception frequency are UNKNOWN."
+   }
+  ]
+ },
+ "draft_error": null
+}

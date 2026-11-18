@@ -1,0 +1,481 @@
+{
+ "case": "C04",
+ "process": "GP-02",
+ "mode": "typed, five at once on one server",
+ "style": "one step per answer",
+ "build": "fixed",
+ "participant": "script",
+ "context": {
+  "process_name": "GP Member Changes: Joiners, Leavers & Commitment True-Ups",
+  "process_owner": "",
+  "objective": "Document how we carry out GP Member Changes: Joiners, Leavers & Commitment True-Ups, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "To begin with, we open the member-change record. That is done by: Preparer. What we do: record the member's identity, event, discovery date, proposed dates and statuses, sources, and outputs that later processes may need to change. What comes out is open decision record."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "What event prompts the preparer to open a member-change record?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "Next, we reconcile pre-change position. That is done by: Preparer. What we do: record the commitment, cash and fee-waiver split, contributions since inception, unfunded balance, member list, and carry schedules; match the opening balances and reconcile GP totals to the fund's records. What comes out is reconciled starting position."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "When the opening balances or GP totals don’t reconcile, what happens to the starting position?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "After that, we confirm source authority and the client's treatment choice. That is done by: Client decides; Preparer records the decision. What we do: confirm each status and date, affected accounting records, chosen treatment, meaning of the commitment amount, fee-waiver treatment, previously earned amounts, and named recipients. What comes out is locked, approved decision record."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "What establishes that a source is authoritative for the member change?"
+  },
+  {
+   "id": "t008",
+   "role": "assistant",
+   "text": "This capture still has open sections. 15 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794969723.079,
+   "turn": 0,
+   "seconds": 0.017,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794969725.185,
+   "turn": 2,
+   "seconds": 2.054,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969732.305,
+   "turn": 3,
+   "seconds": 9.17
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969736.881,
+   "turn": 3,
+   "seconds": 13.75,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 1,
+   "connections": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794969739.702,
+   "turn": 4,
+   "seconds": 2.761,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969739.707,
+   "turn": 5,
+   "seconds": 2.77,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 1,
+   "connections": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969751.485,
+   "turn": 5,
+   "seconds": 14.54,
+   "audited": true,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 1,
+   "connections": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794969785.186,
+   "turn": 5,
+   "notes_state": "working",
+   "map_state": "working",
+   "seconds": 48.24
+  },
+  {
+   "kind": "question",
+   "at": 1794969787.495,
+   "turn": 6,
+   "seconds": 2.229,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969798.72,
+   "turn": 7,
+   "seconds": 13.46,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t004",
+   "steps": 2,
+   "connections": 1
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794969832.54,
+   "turn": 7,
+   "notes_state": "queued",
+   "map_state": "queued",
+   "seconds": 47.27
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794969883.51,
+   "turn": 7,
+   "seconds": 50.903,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794969969.629,
+   "turn": 8,
+   "seconds": 86.067,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [],
+ "notes": {
+  "summary": "After reconciling the starting position, the client decides the treatment and the preparer records it. Confirmation produces a locked, approved decision record; the approval mechanism and initiating event remain open.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "captured",
+    "answer": "GP Member Changes: Joiners, Leavers & Commitment True-Ups"
+   },
+   {
+    "key": "purpose",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The event or condition that initiates opening the member-change record is not established; the described opening step and the recorded event/discovery date do not identify what prompts the work."
+   },
+   {
+    "key": "completion",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The preparer opens the member-change record.\nThe role accountable for the overall result is not established.\nThe client makes the treatment decision; the preparer records it. This does not establish overall accountability for the process."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The preparer opens a member-change record, recording the member's identity, event, discovery date, proposed dates and statuses, sources, and outputs that later processes may need to change. The resulting artifact is an open decision record.\nNext, the preparer reconciles the pre-change position: recording the commitment, cash and fee-waiver split, contributions since inception, unfunded balance, member list and carry schedules; matching opening balances; and reconciling GP totals to the fund's records. The output is a reconciled starting position.\nAfter reconciling the starting position, source authority and the client's treatment choice are confirmed. The client decides and the preparer records the decision; the output is a locked, approved decision record."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The preparer matches opening balances and reconciles GP totals to the fund's records as part of establishing the pre-change position.\nThe confirmation covers each status and date, affected accounting records, chosen treatment, meaning of the commitment amount, fee-waiver treatment, previously earned amounts and named recipients.\nThe response when opening balances or GP totals do not reconcile remains unspecified."
+   },
+   {
+    "key": "variations",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The open decision record contains the member's identity, event, discovery date, proposed dates and statuses, sources, and outputs that later processes may need to change.\nThe storage location of the open decision record is not established.\nThe preparer records the member list and carry schedules as part of the pre-change position and uses the fund's records to reconcile GP totals.\nThe decision record becomes a locked, approved record after the client decision is recorded and the specified details are confirmed."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The reported work concerns GP member changes and includes reconciliation of GP totals to fund records."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The client decides the treatment choice, and the preparer records it as part of confirming source authority and the decision details."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The later processes that may need to change outputs recorded in the member-change record are not identified."
+   },
+   {
+    "key": "data_systems",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": ""
+   }
+  ]
+ },
+ "map": {
+  "title": "GP Member Changes: Joiners, Leavers & Commitment True-Ups",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Open member-change record",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "Record the member's identity, event, discovery date, proposed dates and statuses, sources, and outputs that later processes may need to change."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Reconcile pre-change position",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "Record the commitment, cash and fee-waiver split, contributions since inception, unfunded balance, member list and carry schedules. Match opening balances and reconcile GP totals to the fund's records."
+   },
+   {
+    "id": "S3",
+    "type": "document",
+    "title": "Confirm authority and treatment",
+    "actor": "Client decides; Preparer records the decision",
+    "system": "UNKNOWN",
+    "description": "Confirm source authority, statuses and dates, affected accounting records, treatment choice, the meaning of the commitment amount, fee-waiver treatment, previously earned amounts and named recipients. The client decides and the preparer records the decision."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   }
+  ],
+  "open_questions": [
+   "What event initiates the work, who detects it, and what input is ready at that point?",
+   "What happens if opening balances or GP totals do not reconcile?",
+   "Who confirms source authority and each decision detail, and how is the decision approved and locked?",
+   "What happens after the decision record is locked and approved, including handoffs, exceptions and returns?",
+   "What result completes the process, and who or what uses it next?",
+   "Who is accountable overall, and which entities and clients are in scope?",
+   "Where are the records and reconciliation kept, where do their inputs originate, and how are they entered?",
+   "What further checks, approvals, release conditions and retained evidence apply?",
+   "What rules or materials guide the work, who interprets them, and are there client-specific variations?",
+   "What cadence, deadlines, volumes, effort, pain points and risks apply?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "Current-practice draft — GP Member Changes: Joiners, Leavers & Commitment True-Ups",
+  "overview": "Partial draft from one participant’s account, pending participant and process-owner review. The reported sequence opens a member-change record, reconciles the pre-change position and produces a locked, approved decision record. The initiating event, later work and overall finish remain UNKNOWN.",
+  "trigger": "UNKNOWN. Opening the member-change record is the first reported action, not an established initiating event.",
+  "inputs": [
+   "Member identity, event, discovery date, proposed dates and statuses, sources, and outputs that later processes may need to change.",
+   "Pre-change commitment, cash and fee-waiver split, contributions since inception, unfunded balance, member list, carry schedules and fund records."
+  ],
+  "outputs": [
+   "Open decision record.",
+   "Reconciled starting position.",
+   "Locked, approved decision record."
+  ],
+  "exceptions": [],
+  "controls": [
+   "The preparer matches opening balances and reconciles GP totals to the fund's records. Failure handling and retained evidence are UNKNOWN.",
+   "Source authority and the client's treatment choice are confirmed; the client decides and the preparer records the decision. Confirmation and approval mechanics are UNKNOWN."
+  ],
+  "validation_notes": [
+   "AI-generated current-practice draft requiring participant confirmation and appropriate process-owner review; confirmation and approval are UNKNOWN.",
+   "The participant did not answer the questions about the initiating event, reconciliation failure or authority criteria. The questions do not establish an exception or rule.",
+   "The reported sequence ends at a locked, approved decision record; this is not established as the overall process finish.",
+   "No supporting documents were supplied or reviewed for this draft. The account is not independently corroborated and does not establish an approved GPFS standard.",
+   "Both proposed routes are retained with the source that states their sequence. Handoff mechanics remain UNKNOWN.",
+   "Fund records are a reported reconciliation source; their use does not by itself establish the full entity scope.",
+   "Rule-source references are empty because no authorized rule document was supplied. Approval and locking mechanics remain unestablished.",
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Open member-change record",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "Open the member-change record and record the member's identity, event, discovery date, proposed dates and statuses, sources, and outputs that later processes may need to change."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Reconcile pre-change position",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "Record the commitment, cash and fee-waiver split, contributions since inception, unfunded balance, member list and carry schedules. Match the opening balances and reconcile GP totals to the fund's records. Handling of unreconciled balances is UNKNOWN."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Confirm authority and treatment",
+    "actor": "Client decides; Preparer records the decision",
+    "system": "UNKNOWN",
+    "description": "Confirm source authority and the client's treatment choice, including each status and date, affected accounting records, chosen treatment, meaning of the commitment amount, fee-waiver treatment, previously earned amounts and named recipients. The client decides and the preparer records the decision. Who confirms each detail, what makes a source authoritative, and how the record is approved and locked are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "Next"
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": "After reconciliation"
+   }
+  ],
+  "open_questions": [
+   "What event initiates the work, who detects it, and what input is ready then?",
+   "What happens if opening balances or GP totals do not reconcile?",
+   "What happens after the decision record is locked and approved, and what observable result completes the overall process?",
+   "Who is accountable overall, and which entities and clients are in scope?",
+   "Who confirms source authority and the decision details, and how is the decision approved and locked?",
+   "Where are the records and reconciliations kept, and where do their inputs originate?",
+   "What checks, release conditions, rework paths and retained evidence apply beyond those reported?",
+   "What rules and materials guide the work, who interprets them, and how are conflicts resolved?",
+   "Are there client or other variations, and what are their reasons, effort, charging and removal constraints where relevant?",
+   "What cadence and fixed deadlines apply?",
+   "What are the main volumes, peaks, exception frequency and effort by step?",
+   "What manual friction, workarounds, errors and consequences of failure occur?",
+   "Which upstream and downstream processes supply or use the information, and how are handoffs made?",
+   "Is this general GPFS practice or a client-specific route, and what is the basis for that description?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "The intake names the work “GP Member Changes: Joiners, Leavers & Commitment True-Ups.” The participant describes opening a member-change record, reconciling the position and recording a treatment decision. Other names and full boundaries are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The reported actions produce a reconciled starting position and a locked, approved decision record for a member change. The overall delivered result and its recipient remain UNKNOWN."
+   },
+   {
+    "key": "trigger",
+    "status": "unknown",
+    "answer": "UNKNOWN: initiating event, detector, upstream ready input, cadence and deadlines. Opening the record is the first reported action."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "A locked, approved decision record is the last reported output. Whether it completes the overall work, what happens afterward and who consumes the result are UNKNOWN."
+   },
+   {
+    "key": "accountable",
+    "status": "unknown",
+    "answer": "UNKNOWN: overall accountable role. The preparer performs the first two actions and records the decision; the client decides. Neither statement assigns overall accountability."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The preparer opens a decision record containing member identity, event, discovery date, proposed dates and statuses, sources and outputs later processes may need to change. Next, the preparer records commitment, cash and fee-waiver split, contributions since inception, unfunded balance, member list and carry schedules; matches opening balances; and reconciles GP totals to fund records. After that, source authority and treatment details are confirmed; the client decides and the preparer records the decision, producing a locked, approved record. Locations, handoff mechanics, exception handling and subsequent stages are UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The preparer matches opening balances and reconciles GP totals to fund records. Source authority and the client's treatment choice are confirmed, including statuses and dates, affected accounting records, commitment meaning, fee-waiver treatment, previously earned amounts and named recipients. The resulting record is described as approved and locked. Who performs each confirmation, approval mechanics, failed-check handling, release conditions, segregation, enforcement and retained proof are UNKNOWN."
+   },
+   {
+    "key": "variations",
+    "status": "unknown",
+    "answer": "UNKNOWN: client, entity or other differences, their reasons and any effort, charging or removal constraints."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": "UNKNOWN: manual friction, workarounds, errors or practical effects."
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": "UNKNOWN: reported failures and their consequences."
+   },
+   {
+    "key": "materials",
+    "status": "unknown",
+    "answer": "UNKNOWN: existing procedures, templates or other materials. No supporting documents were supplied for this draft."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The intake identifies GP member joiners, leavers and commitment true-ups. The participant refers to GP totals and fund records, but entity and client coverage, parent process and whether the route is general GPFS practice are UNKNOWN."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The participant says source authority, statuses, dates and treatment details are confirmed, and the client chooses treatment. The source of authority, interpreter, conflict resolution, implementation and any calculation rules are UNKNOWN."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The open record includes outputs that later processes may need to change, but those processes and their handoffs are not named. Fund records are used in reconciliation. Upstream readiness and downstream consumers are UNKNOWN."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The preparer records member-change details and pre-change position information; GP totals are reconciled to fund records. Systems, authoritative records, entry modes, storage and other input origins are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": "UNKNOWN: counts, peaks, exception frequency and effort by step."
+   }
+  ]
+ },
+ "draft_error": null
+}

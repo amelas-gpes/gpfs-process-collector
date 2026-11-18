@@ -1,0 +1,181 @@
+{
+ "case": "J-REP",
+ "process": "fictional",
+ "mode": "typed",
+ "style": "five answers that ignore the question asked",
+ "build": "round2",
+ "participant": "script",
+ "context": {
+  "process_name": "Supplier refund requests",
+  "process_owner": "",
+  "objective": "Document how we carry out Supplier refund requests, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "A supplier emails a refund request to the shared mailbox AP-Refunds. The AP clerk logs it in the Refund Tracker and checks the original payment in Ledgerline. If the payment is confirmed, the clerk prepares a refund note and the AP supervisor approves it. Treasury then collects the refund and the clerk marks the request Closed in the Refund Tracker."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "What does the AP clerk check in Ledgerline to confirm the original payment?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "We handle about 12 requests a month and each takes about 20 minutes."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What outcome is the refund process meant to deliver?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "Signatory A at Treasury confirms receipt by email."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "What does Signatory A’s email confirm about the refund?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "Refunds above 5,000 pounds also need the finance manager to approve after the AP supervisor."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "What outcome is a supplier refund request meant to deliver?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "The Refund Tracker is an Excel workbook on the shared drive."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "What happens to a request when the original payment cannot be confirmed?"
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794994161.732,
+   "turn": 0,
+   "seconds": 0.013,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794994163.836,
+   "turn": 2,
+   "seconds": 2.053,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794994168.98,
+   "turn": 3,
+   "notes_state": "working",
+   "map_state": "working",
+   "seconds": 7.2
+  },
+  {
+   "kind": "question",
+   "at": 1794994171.648,
+   "turn": 4,
+   "seconds": 2.601,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794994176.768,
+   "turn": 5,
+   "notes_state": "working",
+   "map_state": "queued",
+   "seconds": 7.72
+  },
+  {
+   "kind": "question",
+   "at": 1794994180.064,
+   "turn": 6,
+   "seconds": 3.212,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794994185.184,
+   "turn": 7,
+   "notes_state": "queued",
+   "map_state": "queued",
+   "seconds": 8.33
+  },
+  {
+   "kind": "question",
+   "at": 1794994186.777,
+   "turn": 8,
+   "seconds": 1.522,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794994191.903,
+   "turn": 9,
+   "notes_state": "queued",
+   "map_state": "queued",
+   "seconds": 6.65
+  },
+  {
+   "kind": "question",
+   "at": 1794994194.758,
+   "turn": 10,
+   "seconds": 2.772,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794994196.299,
+   "turn": 11,
+   "seconds": 4.31,
+   "audited": false,
+   "answers_behind": 4,
+   "through": "t002",
+   "steps": 8,
+   "connections": 7
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794994199.886,
+   "turn": 11,
+   "notes_state": "queued",
+   "map_state": "working",
+   "seconds": 7.9
+  }
+ ],
+ "files": [],
+ "notes": {
+  "summary": null,
+  "topics": []
+ },
+ "map": null,
+ "map_checked": null,
+ "draft": null,
+ "draft_error": null
+}

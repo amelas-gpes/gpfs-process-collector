@@ -94,7 +94,41 @@
   let documentController=null, pendingDocumentReason=null, restoringDocuments=false;
   let knowledgeUI=null;
   // A Create draft / Update draft request that has not returned, and how many drafts such requests delivered.
-  let draftInFlight=null,draftArrivals=0;
+  let draftInFlight=null,draftArrivals=0,draftClock=null;
+  // Create draft writes the draft and then checks it against the sources. When the participant
+  // wraps up, the page asks the server to start the first part, so that Create draft waits only
+  // for what is left. It is a head start and nothing else: nothing is shown, a failure changes
+  // nothing, and a draft asked for after the account has changed is written from the start.
+  const draftAhead={generation:null,turns:-1,body:"",flight:false,ready:"",readyAt:0};
+  // The server keeps a candidate for nineteen minutes and gives it up once its draft is delivered.
+  const DRAFT_AHEAD_KEPT_MS=15*60*1000;
+  // Called when the participant has wrapped up. While the final check waits for its answer the
+  // account is about to grow by that answer, so the head start waits for the confirmation.
+  function armDraftAhead(){
+    if(state.closure?.asked&&!state.closure?.confirmed)return;
+    draftAhead.generation=state.generation;draftAhead.turns=state.turns.length;prepareDraftAhead();
+  }
+  function prepareDraftAhead(){
+    try{
+      if(state.config?.draft_prepare!==true||draftAhead.flight||draftInFlight||state.example||intakeActive()||conversationUI.live?.active)return;
+      if(draftAhead.generation!==state.generation||draftAhead.turns!==state.turns.length||!state.turns.some(turn=>turn.role==="user"))return;
+      if(conversationUI.applied!==conversationUI.revision)return;
+      const body=JSON.stringify({...snapshot(),previous_capture:captureForFollowup(),prepare_only:true});
+      if(body===draftAhead.body)return;
+      draftAhead.body=body;draftAhead.flight=true;
+      const generation=state.generation;
+      fetch("/api/draft",{method:"POST",credentials:"same-origin",headers:{...usageHeaders(),"X-CSRF-Token":state.config?.csrf_token||"","Content-Type":"application/json"},body})
+        .then(response=>response.ok?response.json():null).then(result=>{if(result?.prepared===true){draftAhead.ready=body;draftAhead.readyAt=Date.now();}}).catch(()=>{})
+        .finally(()=>{draftAhead.flight=false;if(generation===state.generation)prepareDraftAhead();});
+    }catch{/* A head start only. */}
+  }
+  // True only for the account as it stands now and a first half the server still holds.
+  function draftAheadReady(){
+    try{
+      return Boolean(draftAhead.ready)&&draftAhead.generation===state.generation&&Date.now()-draftAhead.readyAt<DRAFT_AHEAD_KEPT_MS&&
+        draftAhead.ready===JSON.stringify({...snapshot(),previous_capture:captureForFollowup(),prepare_only:true});
+    }catch{return false;}
+  }
   const INTERVIEW_ID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   let gpfsPresence=null, auxiliaryVoiceState="idle", voiceEnded=false;
   let agentTeamUI=null, activeTeamRun=null, reviewedPlaybackLevel=0, reviewedPlaybackActive=false;
@@ -1004,6 +1038,8 @@
   }
   function updateControls() {
     notifyIntakeWaiters();
+    // Add files follows state.example, state.importing and a draft in flight, none of which redraws the file list.
+    documentController?.syncAttach?.();
     const ready = Boolean(state.config?.api_configured);
     const working = state.busy || state.transcribing || state.requestingMic;
     if($('retry-transcription'))$('retry-transcription').disabled=working||Boolean(state.recording)||Boolean(conversationUI.live?.operation?.processing);
@@ -3217,6 +3253,28 @@
     }
     return tokenRenewal;
   }
+  // Spelling hints for a recording: the process name and the names, acronyms and codes the
+  // participant has already used, most frequent first. A term the transcriber has not met is
+  // otherwise spelt by ear, differently each time.
+  const HINT_LEAD=new Set("the a an we i it they he she you then when if after before once in on at for our my this that these those each every any all no yes and but or so to from with as by not there here what who how why where which".split(" "));
+  function transcriptionHints(){
+    try{
+      const counts=new Map(),add=(term,weight=1)=>{term=term.trim();if(term.length>=2&&term.length<=60&&!/[<>,\r\n]/.test(term))counts.set(term,(counts.get(term)||0)+weight);};
+      const name=typeof state.context?.process_name==="string"?state.context.process_name:"";if(name)add(name,5);
+      const term=/[A-Z][A-Za-z0-9]*(?:[-&/.][A-Za-z0-9]+)*(?: (?:[A-Z][A-Za-z0-9]*|\d+)(?:[-&/.][A-Za-z0-9]+)*){0,3}/g;
+      for(const turn of state.turns.filter(item=>item.role==="user"&&!item.document_event).slice(-12)){
+        for(const match of String(turn.text||"").matchAll(term)){
+          const words=match[0].split(" ");
+          while(words.length&&HINT_LEAD.has(words[0].toLowerCase()))words.shift();
+          if(!words.length)continue;
+          const found=words.join(" ");
+          // One capitalised word is usually the start of a sentence; an acronym or a code is not.
+          if(words.length===1&&!/[A-Z].*[A-Z]|\d/.test(found))add(found,0.4);else add(found);
+        }
+      }
+      return [...counts].filter(([,weight])=>weight>=0.8).sort((a,b)=>b[1]-a[1]).slice(0,20).map(([found])=>found);
+    }catch{return [];}
+  }
   function requestTimeout(key,fallback) {
     const value=state.config?.request_timeouts_ms?.[key];
     return Number.isSafeInteger(value)&&value>0?value:fallback;
@@ -3283,6 +3341,8 @@
       if (data instanceof Blob) {
         headers["Content-Type"] = data.type || "audio/webm";
         body = data;
+        const hints=path==="/api/transcribe"?transcriptionHints():[];
+        if(hints.length)headers["X-Transcription-Hints"]=encodeURIComponent(hints.join(","));
       } else {
         headers["Content-Type"] = "application/json";
         body = JSON.stringify(data);
@@ -3819,6 +3879,7 @@
     applyProcessTitle(workflow.title);renderWorkingMap();
     showMapStatus(current,check);
     state.dirty=true;updateControls();updateSaveHint();knowledgeUI?.captureChanged?.();
+    if(current)prepareDraftAhead();
   }
   function applyBackgroundCapture(result,captured,check=""){
     if(intakeActive()||!workflowEvidenceStillValid(captured))return;
@@ -4113,7 +4174,9 @@
     try {
       if(pendingDocumentReason)await resolveDocumentPurpose(answer);
       const result = await request("/api/interview", {...snapshot(), action: "answer"});
-      if (generation === state.generation) {settleCompletionHold(result);await acceptInterviewResponse(result);$("retry-question").hidden=!pendingCompletionReview?.retryRequired;}
+      if (generation === state.generation) {settleCompletionHold(result);await acceptInterviewResponse(result);$("retry-question").hidden=!pendingCompletionReview?.retryRequired;
+        // The final check has been answered and the account is complete: its draft can be started.
+        if(state.closure?.confirmed)armDraftAhead();}
     } catch (error) {
       // The message was not judged: a completion is no longer shown as standing.
       if (generation === state.generation) accountChangedAfterCompletion();
@@ -4234,6 +4297,7 @@
       if (generation === state.generation) {await acceptInterviewResponse(result);replied=true;$("retry-question").hidden=!pendingCompletionReview?.retryRequired;}
     } catch(error) {if (generation === state.generation&&!intakeActive()&&error.name!=="AbortError"&&!interviewFullNotice(error)&&!offerReviewRetry(error)) notice(error.message,true);}
     finally {if (generation === state.generation&&pauseSequence===reviewPauseSequence) {setBusy(false);if(replied&&!intakeActive())showInterviewerReply(origin);}}
+    if(replied&&generation===state.generation)armDraftAhead();
   }
 
   // Dictate. The level monitor reads DICTATION_WINDOW samples (about a third of a
@@ -4756,12 +4820,14 @@
     const version = state.version;
     const evidence = draftEvidenceMark();
     const flight = draftInFlight = {};state.draftStartedAt=Date.now();
-    setBusy(true, "Building a process map and procedure from the conversation…");
+    setBusy(true, draftAheadReady()?"Checking your draft against your answers · usually 1 to 2 minutes":"Building your draft · usually 2 to 5 minutes");renderDraftElapsed();
+    // The server gives the first half up with the draft it delivers: a later draft starts afresh.
+    draftAhead.ready="";draftAhead.body="";
     scrollConversation();
     try {
-      // The server may take up to 300 s for the draft of a long interview, 240 s for its
+      // The server may take up to 300 s for the draft of a long interview, up to 540 s for its
       // source audit and 120 s for the coverage review; the rest is transport overhead.
-      const result = await request("/api/draft", {...snapshot(),previous_capture:captureForFollowup()}, {timeout:requestTimeout("draft",690000)});
+      const result = await request("/api/draft", {...snapshot(),previous_capture:captureForFollowup()}, {timeout:requestTimeout("draft",1170000)});
       if(generation!==state.generation)return;
       if(version!==state.version){notice("The interview changed while the draft was being prepared. Create the draft again to include the latest details.",false,"draft",true);return;}
       const documentEvidence=mergeDocumentEvidence(result.document_evidence);
@@ -4798,7 +4864,20 @@
       if(dialog?.open)dialog.addEventListener("close",()=>{if(generation===state.generation&&state.draft){tab("review", true);notice(ready);}},{once:true});
       else{tab("review", true);notice(ready);}
     } catch (error) { if (generation === state.generation&&!intakeActive()&&error.name!=="AbortError") notice(error.message, true); }
-    finally { if(draftInFlight===flight)draftInFlight=null; if (generation === state.generation) setBusy(false); }
+    finally { if(draftInFlight===flight)draftInFlight=null; if (generation === state.generation) setBusy(false); renderDraftElapsed(); }
+  }
+  // A draft takes minutes. The time spent so far sits beside the one status line, so the wait
+  // is seen to be moving; it is not announced, since the status line already is.
+  function renderDraftElapsed() {
+    clearTimeout(draftClock);draftClock=null;
+    const running=Boolean(draftInFlight&&state.draftStartedAt);
+    const seconds=running?Math.max(0,Math.floor((Date.now()-state.draftStartedAt)/1000)):0;
+    for(const id of ["thinking-elapsed","review-elapsed"]){
+      const node=$(id);if(!node)continue;
+      node.hidden=!running;
+      if(running)node.textContent=Math.floor(seconds/60)+":"+String(seconds%60).padStart(2,"0");
+    }
+    if(running)draftClock=setTimeout(renderDraftElapsed,1000);
   }
   // What the Submit dialog needs to know about draft requests: arrivals counts the drafts that Create
   // draft or Update draft have delivered on this page, so a revision filed before one can say so.
@@ -4953,6 +5032,15 @@
     .join(" ").replace(/^./,first=>first.toUpperCase());
 
   function stepRef(draft,id){const title=draft.steps.find(step=>step.id===id)?.title;return title?id+" ("+title+")":id;}
+  // A detail nobody reported is named once, on one quiet line under the details that were: a step
+  // with nine such rows used to show "UNKNOWN / TBD" nine times. The exports keep a line for each.
+  function reportFieldRows(pairs) {
+    const shown=[],missing=[];
+    for(const [label,value] of pairs){
+      if(!value||/^(?:unknown|tbd|unknown\s*\/\s*tbd)\.?$/i.test(String(value).trim()))missing.push(label);else shown.push([label,value]);
+    }
+    return {shown,missing};
+  }
   function renderReport() {
     const root=$("report-content"),d=state.draft;
     if(!root)return;
@@ -4976,7 +5064,7 @@
       parent.append(items);
     };
     const list=(parent,values,empty="Not established in this interview.")=>{const ul=el("ul");(values?.length?values:[empty]).forEach(value=>ul.append(el("li","",value)));parent.append(ul);};
-    const fields=(parent,pairs)=>{const dl=el("dl","report-fields");pairs.forEach(([label,value])=>{dl.append(el("dt","",label),el("dd","",value||"UNKNOWN / TBD"));});parent.append(dl);};
+    const fields=(parent,pairs)=>{const rows=reportFieldRows(pairs);if(rows.shown.length){const dl=el("dl","report-fields");rows.shown.forEach(([label,value])=>dl.append(el("dt","",label),el("dd","",value)));parent.append(dl);}if(rows.missing.length)parent.append(el("p","report-unstated","Not captured: "+rows.missing.join(", ")));};
     const contents=$("report-contents"),sectionLinks=$("report-section-links");
     const placeholder=el("option","","Contents");
     placeholder.value="";
@@ -5012,7 +5100,7 @@
     const reportFindings=part.querySelectorAll(".report-finding");
     (d.memo_summary||[]).forEach((f,index)=>{const rewrite=repairNote("draft",f);if(rewrite)reportFindings[index]?.append(rewrite);});
     part=section("4. Detailed business process");
-    (d.steps||[]).forEach((step,i)=>{const item=el("section","report-step");item.append(el("h3","",`${i+1}. ${step.title||"Untitled step"} · ${step.id}`),el("p","",step.description));fields(item,[["Owner / role",step.actor],["System / tool",step.system],["Type",workflowTypeLabel(step.type)],["Input",step.input],["Output",step.output],["Completion criteria",step.completion_criteria],["Next handoff (the map's routes)",routedHandoff(routes,step)],["Handoff note",step.handoff],...(handoffNoteMismatch(routes,step)?[["Handoff check",handoffNoteMismatch(routes,step)]]:[]),["Control type",(step.control_type||[]).map(readableTerm).join(", ")],["Data origin",step.data_origin],["Entry mode",readableTerm(step.entry_mode)],["Rule source",step.rule_source_ref],["Entity scope",(step.entity_scope||[]).join(", ")],["Parent process",step.parent_process]]);item.append(evidenceRow(step.evidence_turns));if(editedLabel(step))item.append(el("p","report-evidence-note",editedLabel(step)));
+    (d.steps||[]).forEach((step,i)=>{const item=el("section","report-step");item.append(el("h3","",`${i+1}. ${step.title||"Untitled step"} · ${step.id}`),el("p","",step.description));fields(item,[["Owner / role",step.actor],["System / tool",step.system],["Type",workflowTypeLabel(step.type)],["Input",step.input],["Output",step.output],["Completion criteria",step.completion_criteria],["Next handoff (the map's routes)",routedHandoff(routes,step)],["Handoff note",step.handoff],...(handoffNoteMismatch(routes,step)?[["Handoff check",handoffNoteMismatch(routes,step)]]:[]),["Control type",(step.control_type||[]).map(readableTerm).join(", ")],["Data origin",step.data_origin],["Entry mode",readableTerm(step.entry_mode)],["Rule source",step.rule_source_ref?sourceCaption(step.rule_source_ref):""],["Entity scope",(step.entity_scope||[]).join(", ")],["Parent process",step.parent_process]]);item.append(evidenceRow(step.evidence_turns));if(editedLabel(step))item.append(el("p","report-evidence-note",editedLabel(step)));
       for(const detail of step.operating_details||[]){fields(item,[[detail.field[0].toUpperCase()+detail.field.slice(1),detail.text]]);item.append(evidenceRow(detail.evidence_turns));}
       part.append(item);});
     part=section("5. Decisions, branches and connections");
@@ -5687,6 +5775,7 @@
           view.player.update(cinematicGraph(id,workflowGraph(id)),{live:false});
           return true;
         }}:{}),
+        sourceCaption,
         renderEvidence(refs){
           return evidenceRow(refs,()=>{if(sourceOrigin){sourceOrigin.cinematicId=id;sourceOrigin.mode="walkthrough";sourceOrigin.selection=view.player.currentSelection?.();sourceOrigin.theater=view.player.isExpanded?.();}});
         },
@@ -6215,7 +6304,7 @@
     }
     d.memo_summary.forEach(finding => parts.push(`### ${md(MEMO_HEADINGS[finding.key]||finding.key)}`,`Status: ${md(draftStatusText(finding))}`,md(finding.answer),...(editedLabel(finding)?[md(editedLabel(finding))]:[]),`Sources: ${sources(finding.evidence_turns)}`));
     parts.push("## Trigger",sourcedList("trigger"),"## Inputs",sourcedList("inputs"),"## Outputs",sourcedList("outputs"),"## Procedure");
-    d.steps.forEach((s,i) => parts.push(`### ${i+1}. ${md(s.title||"UNKNOWN / TBD")} (${md(s.id)})`,`- Owner / role: ${md(s.actor||"UNKNOWN / TBD")}`,`- System / tool: ${md(s.system||"UNKNOWN / TBD")}`,`- Type: ${md(workflowTypeLabel(s.type))}`,`- Input: ${md(s.input||"UNKNOWN / TBD")}`,`- Output: ${md(s.output||"UNKNOWN / TBD")}`,`- Completion criteria: ${md(s.completion_criteria||"UNKNOWN / TBD")}`,`- Next handoff: ${md(routedHandoff(routes,s))}`,`- Handoff note: ${md(s.handoff||"UNKNOWN / TBD")}`,...(handoffNoteMismatch(routes,s)?[`- Handoff check: ${md(handoffNoteMismatch(routes,s))}`]:[]),`- Control type: ${md((s.control_type||[]).map(readableTerm).join(", ")||"UNKNOWN / TBD")}`,`- Data origin: ${md(s.data_origin||"UNKNOWN / TBD")}`,`- Entry mode: ${md(readableTerm(s.entry_mode||"unknown"))}`,`- Rule source: ${md(s.rule_source_ref||"UNKNOWN / TBD")}`,`- Entity scope: ${md((s.entity_scope||[]).join(", ")||"UNKNOWN / TBD")}`,`- Parent process: ${md(s.parent_process||"UNKNOWN / TBD")}`,...(s.operating_details||[]).map(row=>"- "+md(row.field[0].toUpperCase()+row.field.slice(1))+": "+md(row.text)+" (Sources: "+sources(row.evidence_turns)+")"),"",md(s.description),...(editedLabel(s)?[md(editedLabel(s))]:[]),"",`Sources: ${sources(s.evidence_turns)}`));
+    d.steps.forEach((s,i) => parts.push(`### ${i+1}. ${md(s.title||"UNKNOWN / TBD")} (${md(s.id)})`,`- Owner / role: ${md(s.actor||"UNKNOWN / TBD")}`,`- System / tool: ${md(s.system||"UNKNOWN / TBD")}`,`- Type: ${md(workflowTypeLabel(s.type))}`,`- Input: ${md(s.input||"UNKNOWN / TBD")}`,`- Output: ${md(s.output||"UNKNOWN / TBD")}`,`- Completion criteria: ${md(s.completion_criteria||"UNKNOWN / TBD")}`,`- Next handoff: ${md(routedHandoff(routes,s))}`,`- Handoff note: ${md(s.handoff||"UNKNOWN / TBD")}`,...(handoffNoteMismatch(routes,s)?[`- Handoff check: ${md(handoffNoteMismatch(routes,s))}`]:[]),`- Control type: ${md((s.control_type||[]).map(readableTerm).join(", ")||"UNKNOWN / TBD")}`,`- Data origin: ${md(s.data_origin||"UNKNOWN / TBD")}`,`- Entry mode: ${md(readableTerm(s.entry_mode||"unknown"))}`,`- Rule source: ${md(s.rule_source_ref?sourceCaption(s.rule_source_ref)+" ("+s.rule_source_ref+")":"UNKNOWN / TBD")}`,`- Entity scope: ${md((s.entity_scope||[]).join(", ")||"UNKNOWN / TBD")}`,`- Parent process: ${md(s.parent_process||"UNKNOWN / TBD")}`,...(s.operating_details||[]).map(row=>"- "+md(row.field[0].toUpperCase()+row.field.slice(1))+": "+md(row.text)+" (Sources: "+sources(row.evidence_turns)+")"),"",md(s.description),...(editedLabel(s)?[md(editedLabel(s))]:[]),"",`Sources: ${sources(s.evidence_turns)}`));
     const raciFields=["responsible","accountable","consulted","informed"];
     const assigned=d.steps.filter(step=>step.operating_details?.some(row=>raciFields.includes(row.field)));
     if(assigned.length){

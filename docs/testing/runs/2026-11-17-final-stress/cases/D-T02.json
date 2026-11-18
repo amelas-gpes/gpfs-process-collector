@@ -1,0 +1,2413 @@
+{
+ "case": "D-T02",
+ "process": "FA-03",
+ "mode": "typed",
+ "style": "draft retry of T02",
+ "build": "fixed",
+ "participant": "replay",
+ "context": {
+  "process_name": "Distribution Economics: Waterfall, Tax Withholding & Notices",
+  "process_owner": "",
+  "objective": "Document how we carry out Distribution Economics: Waterfall, Tax Withholding & Notices, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "It starts when cash proceeds are received or expected, when a deal closes or a realization happens, or when the client asks us to calculate or carry out a distribution. It is event-driven, there is no fixed calendar for it.\n\nThe first step is mine as the event preparer on the capital activity team or the Fund Team. I take the client instructions and the bank records and confirm the entity, the deal, the amount, whether the cash is only expected or has actually been received, and the requested payment date. I work out whether it is a distribution-only event or a combined call-and-distribution event, which we call a net event. Then I assign a second reviewer, list what we will need from the client's tax team, and link the work to the controlling FA-01 event calendar. All of that goes into the event brief and the capital activity workbook.\n\nThere is one branch at this point. If the cash has come in and I know which deal it belongs to, I carry on to classifying the proceeds. If cash has come in without deal context, or the client's instructions conflict with each other, I escalate and the client has to identify and classify it in writing before I model anything, and I keep that written confirmation with the bank support."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "Once the deal is identified, what do you use to determine how the proceeds are classified?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "I use the client's deal information, the bank activity and the closing support. That is the second step, identifying and classifying the proceeds, and I do it as the event preparer.\n\nFirst I confirm whether the amount is expected cash or cash that has actually cleared the bank. I match the cash to the right portfolio company, deal, fund and bank account. Then I classify each component as return of capital, realized gain, dividend or income, or another supported category, and I flag any asset conversion, escrow, holdback or other piece that changes the distribution economics. It all goes into the proceeds-input tab of the workbook, with the bank support and the client correspondence kept alongside. My check before moving on is that the total classified proceeds equal the amount being modeled and that every component has support behind it.\n\nThe branch here is about whether the support is enough. If it is, I move on to updating the cumulative proceeds. If the bank activity on its own does not tell me the deal or the character of the money, I stop the calculations and get a written classification from the client. I never decide the deal, tax or GAAP classification from the bank description alone."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "How do you update the cumulative proceeds after the classified proceeds pass your check?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "I start with the prior approved cumulative proceeds working file and add the current proceeds to it by their supported classification. Then I confirm the prior distributions, the remaining invested capital and the cumulative contributions.\n\nAfter that I reconcile the starting balance and the current balance to the prior event, the general ledger, the trial balance, the bank records and the partner-capital records. For the historical balances I pull the system power report, the trial balance and the partner-capital files. I do the work as the preparer and the second reviewer verifies it.\n\nThe branch is on the reconciliation. If every difference is resolved or documented, I have a reconciled waterfall starting point and I go on to confirming the waterfall rules for the fund. If the starting point has a difference I cannot explain, the waterfall calculation is paused and does not start until that difference is cleared."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "How do you confirm the waterfall rules for the fund before calculating the distribution?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "I work from the LPA, the side letters, the approved waterfall model, how it was treated before and the facts of the current event. I do this step together with the second reviewer and with input from the client.\n\nI write down the exact order and definitions for return of capital, preferred return, catch-up, carried interest, the residual split and any holdback or clawback provision. I confirm whether the calculation applies to the whole fund, to each deal, to each tranche or to some other defined segment, and I confirm any escrow or holdback treatment. That is all recorded in the waterfall methodology record and the model.\n\nThe branch is whether the rules are clear. If the rule set is traceable to the governing documents and has been independently reviewed, I lock the rule set for this event and move on to running the cash waterfall. If a treatment has changed or a rule in the LPA is ambiguous, I record it, pause, and get written direction from the client or the legal adviser. We do not make up a missing rule ourselves. Once the written interpretation comes back, the rule set is locked and the work carries on."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "How do you apply the locked rule set in the cash waterfall calculation?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "I enter the current proceeds into the controlled model, which is the capital activity waterfall model, and apply the fund's return of capital, preferred return, catch-up, carried interest and residual calculations in the approved order. From that I calculate the limited partner and general partner allocations, including any holdback.\n\nThen I check it. Allocated cash plus retained or held cash has to equal the total modeled proceeds, and the result has to agree with the locked rules. What comes out is the draft cash waterfall result.\n\nThe branch in this step is the carry position. If the model shows the fund is in a carry position, the cash carry the waterfall allows is included in the result. If the fund is not in a carry position, no cash carry is paid. I document what the model shows and the reviewer confirms it. Either way I then move on to the tax side.\n\nOne more thing that can happen here: if the waterfall gives a negative, residual or otherwise unexpected result, I investigate it, and where the economics are unclear I get confirmation from the client or legal before going further."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "What do you do first on the tax side after the cash waterfall result is ready?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "The first thing is getting the taxable-income allocation for the event from the client's tax team or their tax adviser. They provide or approve the tax conclusions, and I only add them into the calculation. I confirm that the taxable income may differ from the cash, and I look at whether the GP or another investor is receiving taxable income without the corresponding cash.\n\nThat is where the branch is. If there is taxable income without cash carry, the client's tax adviser or the client decides whether a tax distribution is permitted or required. If the governing documents permit it, I calculate or add the tax distribution needed to cover the tax liability, in a dedicated section of the workbook, and I keep its support separate from the cash waterfall support. If it is not permitted, there is no tax distribution and I just carry the approved taxable-income allocation forward. Either way I get the tax team's or client's approval of the tax inputs and the output before I go on to withholding.\n\nThe other thing that can happen is that the required tax input is missing or conflicting. In that case the final economics are held until it is sorted out. We never replace the approved tax conclusion with one we worked out ourselves."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "How do you determine and apply withholding once the tax inputs and output are approved?"
+  },
+  {
+   "id": "t014",
+   "role": "user",
+   "text": "I work from the client's or tax team's withholding schedule and their direction, in the capital activity workbook. I identify every investor who is subject to withholding and the jurisdiction and rate that applies to them. Then I either apply the approved rate to the approved taxable-income base, or I bring in the approved client schedule as it stands. Any approved prior-period true-ups or supplemental adjustments go in separately. For each investor I calculate the gross distribution, the withholding and the net cash.\n\nThe check is that gross minus withholding equals net cash for every investor, and that the schedule totals reconcile to the model and to the approved tax input. The second reviewer checks the result.\n\nThere are two branches in this step. The first is the type of event. If it is distribution-only, there is no netting and the net cash is simply gross less withholding. If it is a net event, I include the approved withholding in the call-and-distribution net calculation, but I keep separate support for each component before netting, and the reviewer or the client confirms the netting.\n\nThe second is the schedule itself. If the withholding input is in and approved, I carry on to the investor allocations. If it is late or gets revised, or a rate, a jurisdiction or an investor classification is missing, I escalate to the client or the tax adviser, and the affected calculations, notices and payments are held or recalculated until we have the new version of the schedule and a renewed approval."
+  },
+  {
+   "id": "t015",
+   "role": "assistant",
+   "text": "How do you turn the approved investor-level amounts into distribution notices?"
+  },
+  {
+   "id": "t016",
+   "role": "user",
+   "text": "Not straight away, there are a few steps before the notices. The amounts are not approved yet at this point. Notices are only produced after the internal review and after the client has approved the economics and we have locked the version. The step that comes right after withholding is applying the investor allocation rules, and that one is mine as the preparer.\n\nI confirm the allocation basis the governing terms require, which can be the commitment percentage, the limited partner percentage, a deal-specific basis or another basis. I use the approved investor list and any approved special allocations. Then, in the allocation engine of the capital activity workbook, I calculate each investor's proceeds components, the carry and tax effects, the withholding and the net cash, and I reconcile the investor-level totals back to the fund-level waterfall and the tax schedules. Last, I populate the final summary tab, which is what the notices and the payment support are later built from. The result is the draft investor-level distribution schedule.\n\nThe branch is the reconciliation. If the investor totals equal the approved fund-level components, subject only to documented rounding, the package goes to the second reviewer for the internal review. If there is an allocation difference I cannot explain, or a percentage that is not supported by the governing method, I pause there until it is resolved. Percentages sitting in Excel are not treated as authoritative on their own."
+  },
+  {
+   "id": "t017",
+   "role": "assistant",
+   "text": "What does the second reviewer check in the draft investor-level distribution schedule?"
+  },
+  {
+   "id": "t018",
+   "role": "user",
+   "text": "The second reviewer looks at more than the schedule. They get the whole package: the proceeds, waterfall, tax, withholding, allocation and notice-support working files, plus the draft notices.\n\nThey check the proceeds amount and classification and that the roll-forward is continuous from the prior event. They check the waterfall rules and formulas, the carried interest, the preferred return, the tax distribution and any holdback. They check the taxable-income and withholding inputs against the approved schedules. They check the investor totals, the gross, withholding and net calculations and the reconciliations. And on the draft notices they check the component labels, the GAAP and tax breakdowns and the footnotes. Their review comments are recorded and each one has to be resolved.\n\nThe branch is the outcome of that review. If everything is cleared, the second reviewer signs off, and that sign-off has to be in place before anything goes to the client. That gives us the internally cleared distribution package, and the next step is sending it to the client for approval. If there are unresolved errors or gaps in the source information, they come back to me as preparer, or go to the client or the tax adviser if it is their input, and the process stops there until they are fixed and the reviewer has cleared them."
+  },
+  {
+   "id": "t019",
+   "role": "assistant",
+   "text": "After the internally cleared package is sent to the client, what happens before the economics are approved and the version is locked?"
+  },
+  {
+   "id": "t020",
+   "role": "user",
+   "text": "When I send the package I point out to the client every tax input that is still estimated, pending or late, so they know what might move. I coordinate this step and the client is the one who approves.\n\nThe branch is what the client comes back with. If they are happy with it as it stands, I get their final written approval, and then I lock and retain that version. The locked version is the one used for the notices, the posting and the payment. If they come back with changes, for example to timing, the character of the proceeds, tax amounts, withholding or the notice language, I incorporate the approved changes, recalculate the affected amounts, and repeat the reconciliations and the review checks. Then it goes back for the final written approval and I lock it. Nothing is released or paid from an unapproved version. The client's written approval has to be on file before any entry is recorded or any payment is made.\n\nThere are two exceptions around this step. If a change arrives after an entry has already been recorded or a payment made, we follow the controlled correction process and get renewed approval. And if a bank holiday or a cut-off time threatens the wires, the client and Treasury decide between changing the timing or agreeing an approved alternative execution plan, and we keep the revised calendar and the approval."
+  },
+  {
+   "id": "t021",
+   "role": "assistant",
+   "text": "Once the version is locked, how are distribution notices produced?"
+  },
+  {
+   "id": "t022",
+   "role": "user",
+   "text": "They are produced from the locked approved investor schedule. I merge the investor data into the controlled Word notice template with a mail merge, and the notices come out as PDFs. Each notice discloses the gross proceeds, the components, the transaction type, taxable income, withholding, the net payment and any footnotes that apply. Then the second reviewer and I reconcile every notice back to the locked investor schedule and complete the QA.\n\nIn the same step I hand the approved posting and payment support over to the Fund Team and Treasury. From there it is executed through FA-01 and FA-17. Bank holidays and cut-off times are checked, the Fund Team records the general ledger entry, Treasury sends the wires, and Investor Services publishes the notices on the investor portal.\n\nThe branch is whether everything ties. If the notice and payment totals agree to the locked schedule and all the FA-01 and FA-17 gates are complete, the payment and the release go ahead. If there is a notice mismatch, a bank closure, invalid instructions or an incomplete approval, the payment or the release is held. Investor Services hold the release when a notice does not match the approved investor list, and Treasury holds payments when approvals, instructions or funding are incomplete or a holiday or cut-off gets in the way."
+  },
+  {
+   "id": "t023",
+   "role": "assistant",
+   "text": "What confirms that the distribution is fully completed after the posting, wires and notice release?"
+  },
+  {
+   "id": "t024",
+   "role": "user",
+   "text": "There is one last step after the money goes out, and it is done by the assigned Fund Team or by me as the event preparer. I track the amounts withheld for tax separately from the investor net payments, and I give the supporting records to whoever is responsible for paying the tax authority. I update the investor capital accounts and the historical contribution and distribution records, and I update the cumulative proceeds history and the carried-interest tracking. Then I reconcile the actual wires, the withholding held or remitted, the general ledger balances and the locked schedule. I also complete any client-specific uploads or open-template reporting. For One Rock, for example, the Cobalt upload has to be completed within two days of the event.\n\nWhat confirms it is finished is that final reconciliation. Gross distribution has to equal net investor cash plus withholding, and the actual cash and the accounting have to agree to the locked event with no unexplained difference.\n\nThe branch is on that check. If it all reconciles, the event is closed out and we keep the reconciled post-distribution record and the remittance support. If there is unremitted withholding, a rejected wire or an accounting difference, I escalate it immediately and the closeout stays open. An unexplained difference prevents closeout and may need a correction or a reposting.\n\nOne thing I cannot tell you is who actually owns remitting the withholding to the tax authority. I do not know that, and I do not know the payment steps, the due dates or what counts as proof of remittance either. The tax process expert would be the person to confirm it. What I do know is that if the remittance owner is unclear on an event, the responsible role has to be assigned before closeout."
+  },
+  {
+   "id": "t025",
+   "role": "assistant",
+   "text": "What are the practical consequences if a distribution is delayed or processed incorrectly?"
+  },
+  {
+   "id": "t026",
+   "role": "assistant",
+   "text": "This capture still has open sections. 15 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794966594.247,
+   "turn": 0,
+   "seconds": 0.028,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794966611.77,
+   "turn": 2,
+   "seconds": 2.622,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966627.457,
+   "turn": 3,
+   "seconds": 18.31
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966652.259,
+   "turn": 3,
+   "seconds": 43.11,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 10,
+   "connections": 9
+  },
+  {
+   "kind": "question",
+   "at": 1794966669.41,
+   "turn": 4,
+   "seconds": 3.92,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966669.414,
+   "turn": 5,
+   "seconds": 3.92,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 10,
+   "connections": 9
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966693.68,
+   "turn": 5,
+   "seconds": 28.19,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 13,
+   "connections": 12
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966707.328,
+   "turn": 5,
+   "seconds": 41.84
+  },
+  {
+   "kind": "question",
+   "at": 1794966721.021,
+   "turn": 6,
+   "seconds": 2.474,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966721.025,
+   "turn": 7,
+   "seconds": 2.48,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t004",
+   "steps": 13,
+   "connections": 12
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966742.258,
+   "turn": 7,
+   "seconds": 23.71
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966755.94,
+   "turn": 7,
+   "seconds": 37.39,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 19,
+   "connections": 18
+  },
+  {
+   "kind": "question",
+   "at": 1794966770.763,
+   "turn": 8,
+   "seconds": 2.666,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966770.768,
+   "turn": 9,
+   "seconds": 2.67,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t006",
+   "steps": 19,
+   "connections": 18
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966802.174,
+   "turn": 9,
+   "seconds": 34.08
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966802.692,
+   "turn": 9,
+   "seconds": 34.59,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 24,
+   "connections": 24
+  },
+  {
+   "kind": "question",
+   "at": 1794966818.14,
+   "turn": 10,
+   "seconds": 3.014,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966818.146,
+   "turn": 11,
+   "seconds": 3.02,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t008",
+   "steps": 24,
+   "connections": 24
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966845.008,
+   "turn": 11,
+   "seconds": 29.88
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966858.235,
+   "turn": 11,
+   "seconds": 43.11,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 31,
+   "connections": 32
+  },
+  {
+   "kind": "question",
+   "at": 1794966874.415,
+   "turn": 12,
+   "seconds": 3.095,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966874.421,
+   "turn": 13,
+   "seconds": 3.1,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t010",
+   "steps": 31,
+   "connections": 32
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966901.269,
+   "turn": 13,
+   "seconds": 29.95
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966918.052,
+   "turn": 13,
+   "seconds": 46.73,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 39,
+   "connections": 41
+  },
+  {
+   "kind": "question",
+   "at": 1794966937.121,
+   "turn": 14,
+   "seconds": 2.939,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966937.131,
+   "turn": 15,
+   "seconds": 2.95,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t012",
+   "steps": 39,
+   "connections": 41
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966970.067,
+   "turn": 15,
+   "seconds": 35.89
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794966982.306,
+   "turn": 15,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 48.12
+  },
+  {
+   "kind": "question",
+   "at": 1794967009.436,
+   "turn": 16,
+   "seconds": 3.472,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794967009.444,
+   "turn": 17,
+   "seconds": 3.48,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t014",
+   "steps": 52,
+   "connections": 57
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794967038.945,
+   "turn": 17,
+   "seconds": 32.98
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794967054.765,
+   "turn": 17,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 48.8
+  },
+  {
+   "kind": "question",
+   "at": 1794967078.195,
+   "turn": 18,
+   "seconds": 1.938,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794967078.203,
+   "turn": 19,
+   "seconds": 1.95,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t016",
+   "steps": 60,
+   "connections": 65
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794967104.192,
+   "turn": 19,
+   "seconds": 27.93
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794967111.347,
+   "turn": 19,
+   "seconds": 35.09,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 60,
+   "connections": 67
+  },
+  {
+   "kind": "question",
+   "at": 1794967131.377,
+   "turn": 20,
+   "seconds": 5.053,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794967131.392,
+   "turn": 21,
+   "seconds": 5.07,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t018",
+   "steps": 60,
+   "connections": 67
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794967158.447,
+   "turn": 21,
+   "seconds": 32.12,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 60,
+   "connections": 69
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794967167.648,
+   "turn": 21,
+   "seconds": 41.32
+  },
+  {
+   "kind": "question",
+   "at": 1794967190.008,
+   "turn": 22,
+   "seconds": 3.791,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794967190.026,
+   "turn": 23,
+   "seconds": 3.81,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t020",
+   "steps": 60,
+   "connections": 69
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794967224.29,
+   "turn": 23,
+   "seconds": 38.07
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794967235.171,
+   "turn": 23,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 48.95
+  },
+  {
+   "kind": "question",
+   "at": 1794967258.504,
+   "turn": 24,
+   "seconds": 3.047,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794967258.517,
+   "turn": 25,
+   "seconds": 3.06,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t022",
+   "steps": 60,
+   "connections": 69
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794967299.966,
+   "turn": 25,
+   "seconds": 44.51
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794967302.031,
+   "turn": 25,
+   "seconds": 46.57,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 60,
+   "connections": 69
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794967306.024,
+   "turn": 25,
+   "seconds": 0.031,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794969771.902,
+   "turn": 26,
+   "seconds": 512.856,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [],
+ "notes": {
+  "summary": "After payment, the Fund Team or preparer performs closeout updates and reconciliation. Unremitted withholding, rejected wires or accounting differences keep closeout open. The participant does not know who remits withholding or the remittance procedure; One Rock requires a Cobalt upload within two days.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "Distribution Economics: Waterfall, Tax Withholding & Notices"
+   },
+   {
+    "key": "purpose",
+    "status": "captured",
+    "answer": "The work calculates and carries out distribution economics, producing approved investor amounts and notices and supporting posting and payment."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "Work starts when cash proceeds are received or expected, a deal closes or a realization happens, or the client asks for a distribution calculation or execution. The work is event-driven, with no fixed calendar."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The withholding-remittance owner, payment steps, due dates and proof of remittance remain unknown to the participant; the tax process expert could confirm them.\nThe reported downstream outcomes are a general ledger entry recorded by the Fund Team, wires sent by Treasury and notices published by Investor Services; release and payment are subject to schedule tie-outs and FA-01 and FA-17 gates.\nFinal reconciliation confirms completion: gross distribution equals net investor cash plus withholding, and actual cash and accounting agree to the locked event without unexplained differences. Reconciled events are closed out; unremitted withholding, rejected wires or accounting differences keep closeout open."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The participant is the event preparer on the capital activity team or Fund Team and performs the first intake and proceeds-classification steps.\nThe role accountable for the overall result has not been established.\nThe participant does not know who owns withholding remittance; the tax process expert could confirm it. An unclear event-level remittance owner must be assigned before closeout."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "At the first step, the event preparer takes client instructions and bank records and confirms the entity, deal, amount, whether cash is expected or received, and requested payment date; determines whether the event is distribution-only or a combined call-and-distribution net event; assigns a second reviewer; lists needs from the client's tax team; links the work to the controlling FA-01 event calendar; and puts the information in the event brief and capital activity workbook.\nIf cash has been received and the preparer knows which deal it belongs to, the preparer proceeds to classify the proceeds. If cash has been received without deal context, or client instructions conflict, the preparer escalates; modeling waits until the client identifies and classifies the proceeds in writing, and that confirmation is kept with bank support.\nFor the second step, the event preparer uses client deal information, bank activity and closing support, confirms expected versus cleared cash, and matches it to the portfolio company, deal, fund and bank account.\nThe preparer classifies each proceeds component as return of capital, realized gain, dividend or income, or another supported category, and flags asset conversions, escrows, holdbacks or other pieces that change distribution economics. The preparer records this in the workbook's proceeds-input tab and keeps bank support and client correspondence alongside.\nIf support is sufficient, the preparer moves on to updating cumulative proceeds. If bank activity alone does not establish the deal or character of the money, the preparer stops calculations and obtains written client classification.\nThe preparer starts with the prior approved cumulative proceeds working file, adds current proceeds by supported classification, and confirms prior distributions, remaining invested capital and cumulative contributions.\nThe preparer reconciles starting and current balances to the prior event, general ledger, trial balance, bank records and partner-capital records; the second reviewer verifies the work. If all differences are resolved or documented, the preparer proceeds to confirm fund waterfall rules. An unexplained starting-point difference pauses the waterfall calculation until cleared.\nThe preparer and second reviewer, with client input, confirm waterfall rules using the LPA, side letters, approved waterfall model, prior treatment and current event facts. The preparer records tier order and definitions, calculation scope, and escrow or holdback treatment in the waterfall methodology record and model.\nWhen the rules are traceable to governing documents and independently reviewed, the preparer locks the event rule set and runs the cash waterfall. For changed treatment or an ambiguous LPA rule, the preparer records the issue and pauses for written client or legal-adviser direction; once received, the rule set is locked and work continues.\nThe preparer enters current proceeds into the controlled capital activity waterfall model and applies return of capital, preferred return, catch-up, carried interest and residual calculations in the approved order. The resulting draft cash waterfall includes limited partner and general partner allocations and any holdback.\nIf the model shows a carry position, the draft includes the cash carry allowed by the waterfall; otherwise no cash carry is paid. The preparer documents the model's result, the reviewer confirms it, and the work moves to tax.\nThe preparer investigates negative, residual or otherwise unexpected waterfall results. Where the economics are unclear, the preparer obtains client or legal confirmation before proceeding.\nAfter the draft cash waterfall, the preparer obtains the event's taxable-income allocation from the client's tax team or tax adviser, adds their provided or approved tax conclusions to the calculation, and checks whether taxable income differs from cash and whether the GP or another investor receives taxable income without corresponding cash.\nIf taxable income arises without cash carry, the client's tax adviser or client decides whether a tax distribution is permitted or required. If governing documents permit it, the preparer calculates or adds the tax distribution needed to cover the tax liability in a dedicated workbook section, keeping its support separate from cash waterfall support; otherwise the preparer carries the approved taxable-income allocation forward without a tax distribution.\nThe preparer uses the client's or tax team's withholding schedule and direction in the capital activity workbook to identify each affected investor, jurisdiction and rate. The preparer applies the approved rate to the approved taxable-income base or imports the approved client schedule as provided, records approved prior-period true-ups or supplemental adjustments separately, and calculates gross distribution, withholding and net cash for each investor.\nFor a distribution-only event, the preparer does not net: net cash is gross less withholding. For a net event, the preparer includes approved withholding in the call-and-distribution net calculation, keeps separate support for each component before netting, and obtains reviewer or client confirmation of the netting.\nOnce the withholding input is received and approved, the preparer proceeds to investor allocations. If the schedule is late or revised, or a rate, jurisdiction or investor classification is missing, the preparer escalates to the client or tax adviser; affected calculations, notices and payments are held or recalculated until a new schedule and renewed approval are obtained.\nAfter withholding, the preparer confirms the governing allocation basis, uses the approved investor list and special allocations, and calculates investor proceeds components, carry and tax effects, withholding and net cash in the workbook allocation engine. The preparer reconciles investor totals to the fund waterfall and tax schedules and populates the final summary tab, producing a draft investor-level distribution schedule.\nIf investor totals equal approved fund-level components subject only to documented rounding, the package goes to the second reviewer for internal review. An unexplained allocation difference or percentage unsupported by the governing method pauses the work until resolved.\nDraft notices are included in the internal review package. Notice production follows internal review, client economics approval and version locking; the final summary tab later supports notices and payments.\nThe second reviewer receives the full working package and draft notices. Review comments are recorded and must be resolved; unresolved errors or source gaps return to the preparer or to the client or tax adviser for their inputs, and work stops until fixed and cleared. Once everything is cleared, the reviewer signs off before the internally cleared package goes to the client for approval.\nThe distinction between draft notices reviewed internally and notice production after approval and version locking remains unclear.\nThe preparer coordinates client approval and flags estimated, pending or late tax inputs when sending the package. If the client accepts it, the preparer obtains final written approval, then locks and retains the version used for notices, posting and payment.\nIf the client requests changes, the preparer incorporates approved changes, recalculates affected amounts and repeats reconciliations and review checks. The package returns for final written approval before the preparer locks it.\nFor a change after an entry has been recorded or payment made, the team follows the controlled correction process and obtains renewed approval.\nIf a bank holiday or cut-off threatens wires, the client and Treasury decide whether to change timing or agree an approved alternative execution plan; the revised calendar and approval are kept.\nFrom the locked approved investor schedule, the preparer mail-merges investor data into the controlled Word notice template to produce PDFs. The notices disclose gross proceeds, components, transaction type, taxable income, withholding, net payment and applicable footnotes; the preparer and second reviewer reconcile each notice to the locked schedule and complete QA.\nThe preparer hands approved posting and payment support to the Fund Team and Treasury for execution through FA-01 and FA-17. Bank holidays and cut-offs are checked; the Fund Team records the general ledger entry, Treasury sends wires and Investor Services publishes notices on the investor portal.\nPayment and release proceed when notice and payment totals agree to the locked schedule and all FA-01 and FA-17 gates are complete. Investor Services holds release for a notice mismatch with the approved investor list; Treasury holds payments for incomplete approvals, instructions or funding, or a holiday or cut-off obstruction.\nAfter money goes out, the assigned Fund Team or event preparer performs the last step. The participant tracks tax withholding separately from investor net payments, gives supporting records to the person responsible for paying the tax authority, and updates investor capital accounts, contribution and distribution history, cumulative proceeds history and carry tracking.\nThe participant reconciles actual wires, withholding held or remitted, general ledger balances and the locked schedule, and completes client-specific uploads or open-template reporting. If reconciled, the event closes; unremitted withholding, a rejected wire or an accounting difference is escalated and closeout stays open. An unexplained difference may require correction or reposting."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The event preparer confirms entity, deal, amount, cash status and requested payment date using client instructions and bank records, determines the event type and assigns a second reviewer.\nThe second reviewer's comments on the full package are recorded and must be resolved; the reviewer signs off after everything is cleared, before the package goes to the client.\nBefore moving on, the preparer checks that classified proceeds total the amount modeled and that every component has supporting evidence.\nThe preparer reconciles starting and current cumulative proceeds balances against the prior event, general ledger, trial balance, bank records and partner-capital records; the second reviewer verifies the work. Differences must be resolved or documented, and an unexplained starting-point difference blocks the waterfall calculation until cleared.\nThe waterfall rule set must be traceable to governing documents and independently reviewed before it is locked for the event. Changed treatment or LPA ambiguity pauses the work pending written direction.\nThe preparer checks that allocated cash plus retained or held cash equals modeled proceeds and that the result agrees with the locked rules. The reviewer confirms the documented carry position.\nBefore proceeding to withholding, the preparer obtains the tax team's or client's approval of the tax inputs and output. Missing or conflicting required tax input holds final economics until resolved; the team does not substitute its own conclusion for the approved tax conclusion.\nThe preparer checks that gross less withholding equals net cash for each investor and that schedule totals reconcile to the model and approved tax input; the second reviewer checks the result. The reviewer or client confirms netting for a net event.\nThe preparer reconciles investor totals to fund-level waterfall components and tax schedules; only documented rounding differences are allowed before the package goes to the second reviewer. Unsupported percentages or unexplained differences halt progress until resolved.\nHow a delayed client economics approval is pursued or escalated remains unspecified; Treasury holds payment when approvals are incomplete.\nThe second reviewer checks proceeds amount and classification, roll-forward continuity, waterfall rules and formulas, carry, preferred return, tax distribution and holdbacks. They compare taxable-income and withholding inputs with approved schedules, check investor calculations and reconciliations, and review draft notice labels, GAAP and tax breakdowns and footnotes.\nThe client gives final written economics approval. No release or payment may use an unapproved version, and written approval must be on file before any entry is recorded or payment made.\nThe preparer and second reviewer reconcile every notice to the locked investor schedule and complete QA. Payment and release require notice and payment totals to agree to that schedule and all FA-01 and FA-17 gates to be complete.\nAt closeout the participant reconciles actual wires, withholding held or remitted and general ledger balances against the locked schedule. Unremitted withholding, rejected wires and accounting differences are escalated immediately."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "The intake route changes with the available context: known deal context permits classification, while received cash without deal context or conflicting client instructions prompts escalation and written client identification and classification before modeling.\nOther client-, fund- or system-specific differences, and the effort, charging and removal constraints for the One Rock reporting requirement, remain unestablished.\nWhen bank activity alone does not establish the deal or the money's character, the preparer stops calculations and obtains written client classification; sufficiently supported proceeds move on to cumulative-proceeds updating.\nWaterfall calculation scope depends on the confirmed rule: it can apply to the whole fund, each deal, each tranche or another defined segment. Changed treatment or LPA ambiguity adds a pause for written interpretation before the rule set is locked.\nThe cash waterfall output differs by carry position: an allowed cash carry is included when the fund is in carry; otherwise no cash carry is paid.\nFor taxable income without cash carry, the tax-distribution route depends on governing-document permission: a permitted distribution is calculated or added, while an unpermitted one is omitted and the approved allocation carried forward.\nEvent type changes withholding treatment: distribution-only events have no netting, while combined call-and-distribution events include approved withholding in the net calculation, retain component support separately and require reviewer or client confirmation.\nDepending on the approved input, the preparer either applies an approved withholding rate to the approved taxable-income base or brings in the approved client schedule as provided.\nInvestor allocations use the basis required by the governing terms: commitment percentage, LP percentage, a deal-specific basis or another basis; approved special allocations are also used.\nClient-requested changes to timing, proceeds character, tax, withholding or notice language require incorporation of approved changes, recalculation and repeated reconciliation and review before renewed submission for approval.\nA notice mismatch with the approved investor list causes Investor Services to hold release; incomplete approvals, instructions or funding, or holiday and cut-off constraints, cause Treasury to hold payment.\nCloseout includes client-specific uploads or open-template reporting. For One Rock, the Cobalt upload must be completed within two days of the event."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The event brief and capital activity workbook contain first-step event information. Required written client identification and classification is kept with bank support.\nThe storage locations and custodians of the event materials have not been established.\nClient deal information, bank activity and closing support are used to identify and classify proceeds; bank support and client correspondence are kept alongside the workbook's proceeds-input tab.\nThe prior approved cumulative proceeds working file is the starting point for the update. The preparer pulls a system power report, trial balance and partner-capital files for historical balances.\nThe waterfall methodology record and model contain the confirmed rule order, definitions, calculation scope and escrow or holdback treatment. The LPA, side letters and approved waterfall model are reported inputs; written direction is obtained when treatment changes or an LPA rule is ambiguous.\nThe controlled capital activity waterfall model is used to calculate the draft cash waterfall result; the preparer documents the carry position shown by the model.\nThe workbook has a dedicated section for tax distributions, with tax-distribution support kept separate from cash waterfall support.\nThe client's or tax team's withholding schedule and direction are inputs to the capital activity workbook. For net events, separate support is kept for each component before netting.\nThe approved investor list and approved special allocations feed the allocation calculation. The final summary tab supports later notices and payment support; the calculation produces a draft investor-level distribution schedule.\nThe internal review package includes proceeds, waterfall, tax, withholding, allocation and notice-support working files, plus draft notices. Review comments are recorded.\nThe preparer retains the locked, client-approved version used for notices, posting and payment. Written client approval is kept on file; a revised calendar and approval are kept when wire timing requires an agreed change or alternative.\nThe controlled Word notice template is mail-merged with investor data from the locked approved schedule to produce PDF notices containing the reported distribution, tax, withholding and payment details.\nThe participant gives withholding support to the person responsible for paying the tax authority. The reconciled post-distribution record and remittance support are retained at closeout."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The described work covers distribution-only events and combined call-and-distribution net events; intake uses client instructions and bank records.\nWhether the route is general GPFS practice or client-specific, and the full applicable entity population, remain unestablished."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The preparer uses client instructions and bank records for intake. When received cash lacks deal context or instructions conflict, the client must identify and classify it in writing before modeling, and the confirmation is kept with bank support.\nThe governing source for proceeds classification and interpretation authority beyond the reported written client classification route remain unestablished.\nThe preparer does not decide deal, tax or GAAP classification from a bank description alone; if bank activity does not establish the deal or character, calculations stop pending written client classification.\nThe waterfall calculation does not start while an unexplained starting-point difference remains; the preparer proceeds to confirm the fund's waterfall rules once differences are resolved or documented.\nThe waterfall rule review records the exact order and definitions for return of capital, preferred return, catch-up, carried interest, residual split, and any holdback or clawback. It confirms whether the calculation applies to the whole fund, each deal, each tranche or another defined segment, and confirms escrow or holdback treatment.\nThe preparer uses the LPA, side letters, approved waterfall model, prior treatment and current event facts. Changed treatment or ambiguous LPA rules require written client or legal-adviser direction; the team does not invent missing rules.\nThe model applies the fund's waterfall calculations in the approved order. Cash carry is included only when the model shows the fund is in a carry position, and only to the extent allowed by the waterfall.\nThe client's tax team or tax adviser provides or approves tax conclusions. For taxable income without cash carry, the client's tax adviser or client decides whether a tax distribution is permitted or required; governing-document permission conditions the reported calculation route.\nWithholding uses client or tax-team direction and either an approved investor rate applied to the approved taxable-income base or the approved client schedule as provided. Approved prior-period true-ups and supplemental adjustments are recorded separately.\nThe governing terms determine the investor allocation basis, which may be commitment percentage, LP percentage, deal-specific or another basis. Percentages in Excel alone are not authoritative.\nThe participant says notice production requires internal review, client approval of economics and a locked version; draft notices are nevertheless included in the internal review package.\nAll internal review comments must be resolved and the second reviewer must sign off before the package goes to the client.\nThe client-approved, locked version is used for notices, posting and payment; written client approval must be on file before recording an entry or making a payment.\nNotice and payment totals must agree to the locked schedule and FA-01 and FA-17 gates must be complete before payment and release proceed.\nIf the withholding-remittance owner is unclear for an event, a responsible role must be assigned before closeout."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The preparer links the work to the controlling FA-01 event calendar and lists what will be needed from the client's tax team.\nThe method of transferring or receiving the taxable-income allocation from the client's tax team or tax adviser remains unspecified.\nThe process consumes the event taxable-income allocation from the client's tax team or tax adviser, and requires tax-team or client approval of the tax inputs and output before withholding.\nRequires approval from Client's tax team or client: Tax inputs and output before withholding.\nThe process consumes the client's or tax team's withholding schedule and direction. The preparer escalates late or revised schedules and missing investor withholding details to the client or tax adviser; affected work waits for a new schedule and renewed approval.\nUses the output of Client or tax team: Withholding schedule and direction used for investor withholding.\nThe process requires client approval of the economics before notices are produced, after internal review and with the version locked.\nThe process requires the client's final written economics approval before the preparer locks the version; that approval must be on file before entries or payments.\nWhen a bank holiday or cut-off threatens wires, the client and Treasury decide on changed timing or an approved alternative execution plan.\nThe preparer hands approved posting and payment support to the Fund Team and Treasury, with execution through FA-01 and FA-17. The Fund Team records the entry, Treasury sends wires and Investor Services publishes notices.\nThe participant hands withholding supporting records to whoever is responsible for paying the tax authority; the remittance owner and payment procedure are unknown to the participant.\nHands off to Withholding remittance responsible party: The participant provides supporting records to whoever is responsible for paying the tax authority; the owner is unknown."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The event brief and capital activity workbook record the first-step information; the workbook's proceeds-input tab records the proceeds classification.\nOwnership and implementation of workbook logic, the system of record, and any re-entry elsewhere remain unidentified.\nThe preparer uses a prior approved cumulative proceeds working file and pulls a system power report, trial balance and partner-capital files for historical balances.\nThe approved waterfall model is an input to rule confirmation; the confirmed methodology is recorded in the model and the waterfall methodology record.\nThe preparer enters current proceeds into the controlled capital activity waterfall model to calculate the draft allocation result.\nThe preparer calculates or adds a permitted tax distribution in a dedicated workbook section.\nThe preparer works in the capital activity workbook on withholding, either applying approved rates to approved taxable-income bases or bringing in the approved client schedule.\nThe preparer calculates investor-level distribution components in the capital activity workbook's allocation engine and populates its final summary tab.\nThe preparer uses Word mail merge to create PDF notices from the locked investor schedule; Investor Services publishes them on the investor portal.\nOne Rock requires a Cobalt upload within two days of the event as part of client-specific reporting."
+   },
+   {
+    "key": "volume",
+    "status": "partial",
+    "answer": "Normal event counts, peaks, exception frequency and effort per event have not been described."
+   }
+  ]
+ },
+ "map": {
+  "title": "Distribution Economics",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "start",
+    "title": "Distribution event arises",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Cash proceeds are received or expected, a deal closes or realization occurs, or the client requests a distribution calculation or execution."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Confirm event details",
+    "actor": "Event preparer, capital activity team or Fund Team",
+    "system": "UNKNOWN",
+    "description": "Use client instructions and bank records to confirm the entity, deal, amount, cash receipt status and requested payment date."
+   },
+   {
+    "id": "S3",
+    "type": "decision",
+    "title": "Determine event type",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Determine whether the event is distribution-only or a combined call-and-distribution, called a net event."
+   },
+   {
+    "id": "S4",
+    "type": "document",
+    "title": "Set up event brief",
+    "actor": "Event preparer",
+    "system": "Event brief, capital activity workbook and FA-01 event calendar",
+    "description": "Assign a second reviewer, list what is needed from the client's tax team and link the work to the controlling FA-01 event calendar. Record the event information in the event brief and capital activity workbook."
+   },
+   {
+    "id": "S5",
+    "type": "decision",
+    "title": "Is context sufficient?",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Consider whether received cash has known deal context and whether client instructions conflict. The route for expected cash without conflicting instructions is UNKNOWN."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Identify and classify proceeds",
+    "actor": "Event preparer",
+    "system": "Capital activity workbook",
+    "description": "Confirm whether cash is expected or has cleared, and match it to the portfolio company, deal, fund and bank account. Classify components and flag asset conversions, escrows, holdbacks or other items affecting distribution economics. Record the information in the proceeds-input tab and keep bank support and client correspondence alongside."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Escalate unclear event",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Escalate received cash without deal context or conflicting client instructions. The escalation recipient is UNKNOWN."
+   },
+   {
+    "id": "S8",
+    "type": "document",
+    "title": "Provide written client classification",
+    "actor": "Client",
+    "system": "UNKNOWN",
+    "description": "The client identifies and classifies the item in writing. This written confirmation is required before modeling in the escalated case."
+   },
+   {
+    "id": "S9",
+    "type": "document",
+    "title": "Retain written confirmation",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Keep the client's written confirmation with the bank support."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Model the event",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Modeling is reported as later work. In the escalated case, written client identification and classification are required first; modeling details and its other prerequisites are UNKNOWN."
+   },
+   {
+    "id": "S11",
+    "type": "decision",
+    "title": "Do proceeds and support reconcile?",
+    "actor": "Event preparer",
+    "system": "Capital activity workbook",
+    "description": "Check that total classified proceeds equal the amount being modeled and that every component has support. Bank activity alone may not establish the deal or character of the money."
+   },
+   {
+    "id": "S12",
+    "type": "document",
+    "title": "Obtain written client classification",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Stop calculations and obtain a written classification from the client when bank activity alone does not establish the deal or character of the money."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Update cumulative proceeds",
+    "actor": "Event preparer",
+    "system": "Cumulative proceeds working file",
+    "description": "Start with the prior approved cumulative proceeds working file and add current proceeds by supported classification."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Confirm historical balances",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Confirm prior distributions, remaining invested capital and cumulative contributions."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Reconcile cumulative balances",
+    "actor": "Event preparer",
+    "system": "System power report, trial balance and partner-capital files",
+    "description": "Reconcile starting and current balances to the prior event, general ledger, trial balance, bank records and partner-capital records. Pull the system power report, trial balance and partner-capital files for historical balances."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Verify cumulative proceeds work",
+    "actor": "Second reviewer",
+    "system": "UNKNOWN",
+    "description": "Verify the preparer's cumulative proceeds and reconciliation work. The detailed review checks and timing relative to advancement are UNKNOWN."
+   },
+   {
+    "id": "S17",
+    "type": "decision",
+    "title": "Are reconciliation differences addressed?",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Determine whether every difference is resolved or documented, or whether the starting point has an unexplained difference."
+   },
+   {
+    "id": "S18",
+    "type": "wait",
+    "title": "Wait for difference clearance",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Pause the waterfall calculation when a starting-point difference cannot be explained. The calculation cannot start until the difference is cleared."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Confirm fund waterfall rules",
+    "actor": "Event preparer and second reviewer, with client input",
+    "system": "Waterfall methodology record and model",
+    "description": "Use the LPA, side letters, approved model, prior treatment and current event facts to document the waterfall order and definitions. Confirm the calculation segment and escrow or holdback treatment."
+   },
+   {
+    "id": "S20",
+    "type": "decision",
+    "title": "Are waterfall rules clear?",
+    "actor": "Event preparer and second reviewer",
+    "system": "UNKNOWN",
+    "description": "Determine whether the rule set is traceable to governing documents and independently reviewed, or whether a changed treatment or ambiguous LPA rule requires written direction."
+   },
+   {
+    "id": "S21",
+    "type": "document",
+    "title": "Record issue and seek direction",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Record the changed treatment or ambiguous rule and seek written direction from the client or legal adviser. The work is paused; the team does not invent a missing rule."
+   },
+   {
+    "id": "S22",
+    "type": "wait",
+    "title": "Wait for written interpretation",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Pause pending written interpretation from the client or legal adviser."
+   },
+   {
+    "id": "S23",
+    "type": "activity",
+    "title": "Lock event rule set",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Lock the rule set for the event after the reported clear-rule checks or after written interpretation is received."
+   },
+   {
+    "id": "S24",
+    "type": "activity",
+    "title": "Run cash waterfall",
+    "actor": "Event preparer",
+    "system": "Capital activity waterfall model",
+    "description": "Enter current proceeds into the controlled model and apply the fund's return of capital, preferred return, catch-up, carried interest and residual calculations in the approved order. Calculate limited partner and general partner allocations, including any holdback."
+   },
+   {
+    "id": "S25",
+    "type": "decision",
+    "title": "Check waterfall result",
+    "actor": "Event preparer",
+    "system": "Capital activity waterfall model",
+    "description": "Check that allocated cash plus retained or held cash equals total modeled proceeds and that the result agrees with the locked rules."
+   },
+   {
+    "id": "S26",
+    "type": "decision",
+    "title": "Is the fund in carry?",
+    "actor": "Event preparer",
+    "system": "Capital activity waterfall model",
+    "description": "Determine the carry position shown by the model. Include the cash carry allowed by the waterfall if the fund is in carry; otherwise no cash carry is paid."
+   },
+   {
+    "id": "S27",
+    "type": "document",
+    "title": "Document carry position",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Document what the model shows about the carry position."
+   },
+   {
+    "id": "S28",
+    "type": "activity",
+    "title": "Confirm carry position",
+    "actor": "Reviewer",
+    "system": "UNKNOWN",
+    "description": "Confirm what the model shows about the carry position. Detailed checks and retained review evidence are UNKNOWN."
+   },
+   {
+    "id": "S29",
+    "type": "activity",
+    "title": "Investigate unexpected waterfall result",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Investigate a negative, residual or otherwise unexpected waterfall result. If the economics are unclear, obtain client or legal confirmation before going further."
+   },
+   {
+    "id": "S30",
+    "type": "activity",
+    "title": "Obtain economics confirmation",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Obtain confirmation from the client or legal when the economics of an unexpected result are unclear, before going further."
+   },
+   {
+    "id": "S31",
+    "type": "activity",
+    "title": "Obtain taxable-income allocation",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Obtain the event’s taxable-income allocation from the client’s tax team or tax adviser. They provide or approve the tax conclusions; the preparer does not substitute an independently determined conclusion."
+   },
+   {
+    "id": "S32",
+    "type": "activity",
+    "title": "Add and assess tax allocation",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Add the tax conclusions into the calculation, confirm that taxable income may differ from cash, and look for taxable income allocated to the GP or another investor without corresponding cash."
+   },
+   {
+    "id": "S33",
+    "type": "decision",
+    "title": "Is income without cash carry?",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Determine whether the reported taxable-income-without-cash-carry condition applies. The route when it does not apply is UNKNOWN."
+   },
+   {
+    "id": "S34",
+    "type": "decision",
+    "title": "Decide tax distribution treatment",
+    "actor": "Client’s tax adviser or client",
+    "system": "UNKNOWN",
+    "description": "Decide whether a tax distribution is permitted or required when taxable income arises without cash carry. The participant refers to permission under the governing documents; who interprets them and how the decision is recorded are UNKNOWN."
+   },
+   {
+    "id": "S35",
+    "type": "activity",
+    "title": "Calculate or add tax distribution",
+    "actor": "Event preparer",
+    "system": "Capital activity workbook",
+    "description": "Calculate or add the tax distribution needed to cover the tax liability in a dedicated workbook section. Keep its support separate from the cash waterfall support."
+   },
+   {
+    "id": "S36",
+    "type": "activity",
+    "title": "Carry tax allocation forward",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "If a tax distribution is not permitted, carry the approved taxable-income allocation forward without a tax distribution."
+   },
+   {
+    "id": "S37",
+    "type": "activity",
+    "title": "Approve tax inputs and output",
+    "actor": "Client’s tax team or client",
+    "system": "UNKNOWN",
+    "description": "Approve the tax inputs and output before withholding. The approval mechanism, retained evidence and rejection handling are UNKNOWN."
+   },
+   {
+    "id": "S38",
+    "type": "activity",
+    "title": "Identify withholding requirements",
+    "actor": "Event preparer",
+    "system": "Capital activity workbook",
+    "description": "Use the client’s or tax team’s withholding schedule and direction to identify each investor subject to withholding and the applicable jurisdiction and rate."
+   },
+   {
+    "id": "S39",
+    "type": "wait",
+    "title": "Hold for tax input resolution",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Hold final economics when required tax input is missing or conflicting, until it is sorted out. The resolution process and resumption point are UNKNOWN."
+   },
+   {
+    "id": "S40",
+    "type": "decision",
+    "title": "How is withholding applied?",
+    "actor": "Event preparer",
+    "system": "Capital activity workbook",
+    "description": "Use either the approved rate and taxable-income base or the approved client schedule as supplied."
+   },
+   {
+    "id": "S41",
+    "type": "activity",
+    "title": "Apply approved withholding rate",
+    "actor": "Event preparer",
+    "system": "Capital activity workbook",
+    "description": "Apply the approved rate to the approved taxable-income base."
+   },
+   {
+    "id": "S42",
+    "type": "activity",
+    "title": "Bring in approved schedule",
+    "actor": "Event preparer",
+    "system": "Capital activity workbook",
+    "description": "Bring in the approved client withholding schedule as it stands. The transfer method is UNKNOWN."
+   },
+   {
+    "id": "S43",
+    "type": "activity",
+    "title": "Calculate investor withholding amounts",
+    "actor": "Event preparer",
+    "system": "Capital activity workbook",
+    "description": "Include approved prior-period true-ups or supplemental adjustments separately. Calculate gross distribution, withholding and net cash for each investor."
+   },
+   {
+    "id": "S44",
+    "type": "decision",
+    "title": "Do withholding amounts reconcile?",
+    "actor": "Event preparer",
+    "system": "Capital activity workbook",
+    "description": "Check that gross less withholding equals net cash for each investor and that schedule totals reconcile to the model and approved tax input."
+   },
+   {
+    "id": "S45",
+    "type": "activity",
+    "title": "Review withholding result",
+    "actor": "Second reviewer",
+    "system": "Capital activity workbook",
+    "description": "Check the withholding result. The reviewer’s specific checks, evidence and failure handling are UNKNOWN."
+   },
+   {
+    "id": "S46",
+    "type": "decision",
+    "title": "Is this a net event?",
+    "actor": "Event preparer",
+    "system": "Capital activity workbook",
+    "description": "Apply the event-type branch. Distribution-only events have no netting; net events include approved withholding in the call-and-distribution net calculation."
+   },
+   {
+    "id": "S47",
+    "type": "activity",
+    "title": "Calculate net event",
+    "actor": "Event preparer",
+    "system": "Capital activity workbook",
+    "description": "Include approved withholding in the call-and-distribution net calculation and keep separate support for each component before netting."
+   },
+   {
+    "id": "S48",
+    "type": "activity",
+    "title": "Confirm event netting",
+    "actor": "Reviewer or client",
+    "system": "UNKNOWN",
+    "description": "Confirm the netting for a net event. The confirmation method and retained evidence are UNKNOWN."
+   },
+   {
+    "id": "S49",
+    "type": "decision",
+    "title": "Is withholding input approved?",
+    "actor": "Event preparer",
+    "system": "Capital activity workbook",
+    "description": "Proceed to investor allocations when the withholding input is in and approved. Late or revised schedules and missing rates, jurisdictions or investor classifications require escalation and a hold or recalculation."
+   },
+   {
+    "id": "S50",
+    "type": "activity",
+    "title": "Confirm investor allocation basis",
+    "actor": "Event preparer",
+    "system": "Capital activity workbook",
+    "description": "Confirm the basis required by the governing terms and use the approved investor list and any approved special allocations. The investor-level amounts are not yet approved."
+   },
+   {
+    "id": "S51",
+    "type": "activity",
+    "title": "Escalate withholding input issues",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Escalate to the client or tax adviser when the schedule is late or revised, or a rate, jurisdiction or investor classification is missing. Hold or recalculate affected calculations, notices and payments until the new schedule version and renewed approval are available."
+   },
+   {
+    "id": "S52",
+    "type": "wait",
+    "title": "Wait for schedule and approval",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Affected calculations, notices and payments remain held or subject to recalculation until both the new schedule version and renewed approval are available. Their order and the exact resumption point are UNKNOWN."
+   },
+   {
+    "id": "S53",
+    "type": "activity",
+    "title": "Calculate and reconcile allocations",
+    "actor": "Event preparer",
+    "system": "Capital activity workbook allocation engine",
+    "description": "Calculate each investor's proceeds components, carry and tax effects, withholding and net cash. Reconcile investor totals to the fund-level waterfall and tax schedules."
+   },
+   {
+    "id": "S54",
+    "type": "data_store",
+    "title": "Populate final summary tab",
+    "actor": "Event preparer",
+    "system": "Capital activity workbook",
+    "description": "Populate the final summary tab from the investor allocation work. Notices and payment support are later built from it."
+   },
+   {
+    "id": "S55",
+    "type": "decision",
+    "title": "Do investor allocations reconcile?",
+    "actor": "Event preparer",
+    "system": "Capital activity workbook",
+    "description": "Determine whether investor totals equal the approved fund-level components subject only to documented rounding. An unexplained difference or a percentage unsupported by the governing method pauses the work."
+   },
+   {
+    "id": "S56",
+    "type": "activity",
+    "title": "Review and clear package",
+    "actor": "Second reviewer",
+    "system": "Working files and draft notices; review-comment location UNKNOWN",
+    "description": "The second reviewer checks the proceeds, roll-forward, waterfall, tax, withholding, allocations and draft notices. Comments are recorded and must be resolved; errors return to the preparer, or client or tax adviser for their input, before reviewer clearance and sign-off."
+   },
+   {
+    "id": "S57",
+    "type": "wait",
+    "title": "Wait for allocation resolution",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Pause when an allocation difference cannot be explained or a percentage is unsupported by the governing method. The resolution method and resumption point are UNKNOWN."
+   },
+   {
+    "id": "S58",
+    "type": "activity",
+    "title": "Coordinate client approval",
+    "actor": "Event preparer and client",
+    "system": "UNKNOWN",
+    "description": "The preparer sends the internally cleared package to the client, identifies estimated, pending or late tax inputs, and coordinates approval. If the client requests changes, the preparer incorporates approved changes, recalculates affected amounts and repeats reconciliations and review checks before seeking final written approval."
+   },
+   {
+    "id": "S59",
+    "type": "activity",
+    "title": "Lock economics version",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "After final written client approval, lock and retain the approved version for notices, posting and payment. A change after an entry or payment follows the controlled correction process and requires renewed approval; if a bank holiday or cut-off threatens wires, the client and Treasury decide timing or an approved alternative execution plan, and the revised calendar and approval are kept."
+   },
+   {
+    "id": "S60",
+    "type": "activity",
+    "title": "Produce notices and close event",
+    "actor": "Event preparer, second reviewer, Fund Team, Treasury and Investor Services",
+    "system": "Capital activity workbook, controlled Word template, FA-01, FA-17, investor portal and Cobalt for One Rock",
+    "description": "The preparer produces PDF notices from the locked schedule; the preparer and second reviewer reconcile them and complete QA, and the preparer hands approved support to the Fund Team and Treasury. The Fund Team records the entry, Treasury sends wires and Investor Services publishes notices, subject to the reported release gates and holds. After payment, the assigned Fund Team or preparer updates records, supplies tax-payment support, completes applicable reporting and reconciles the event for closeout; exceptions are escalated and closeout remains open."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "Distribution-only or net event"
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": ""
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": "Cash received, deal known and instructions do not conflict"
+   },
+   {
+    "from": "S5",
+    "to": "S7",
+    "label": "Cash received without deal context or client instructions conflict"
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": ""
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "Written confirmation provided"
+   },
+   {
+    "from": "S8",
+    "to": "S10",
+    "label": "Written identification and classification required before modeling"
+   },
+   {
+    "from": "S6",
+    "to": "S11",
+    "label": ""
+   },
+   {
+    "from": "S11",
+    "to": "S13",
+    "label": "Classified total equals modeled amount and every component has support"
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": "Bank activity alone does not establish the deal or character of the money"
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": ""
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": ""
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": ""
+   },
+   {
+    "from": "S15",
+    "to": "S17",
+    "label": ""
+   },
+   {
+    "from": "S17",
+    "to": "S19",
+    "label": "Every difference resolved or documented"
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": "Starting-point difference cannot be explained"
+   },
+   {
+    "from": "S19",
+    "to": "S20",
+    "label": ""
+   },
+   {
+    "from": "S20",
+    "to": "S23",
+    "label": "Rule set traceable to governing documents and independently reviewed"
+   },
+   {
+    "from": "S20",
+    "to": "S21",
+    "label": "Treatment changed or LPA rule ambiguous"
+   },
+   {
+    "from": "S21",
+    "to": "S22",
+    "label": ""
+   },
+   {
+    "from": "S22",
+    "to": "S23",
+    "label": "Written interpretation received"
+   },
+   {
+    "from": "S23",
+    "to": "S24",
+    "label": ""
+   },
+   {
+    "from": "S24",
+    "to": "S29",
+    "label": "Negative, residual or otherwise unexpected result"
+   },
+   {
+    "from": "S25",
+    "to": "S26",
+    "label": "Cash ties to modeled proceeds and result agrees with locked rules"
+   },
+   {
+    "from": "S26",
+    "to": "S27",
+    "label": "Fund in carry; allowed cash carry included"
+   },
+   {
+    "from": "S26",
+    "to": "S27",
+    "label": "Fund not in carry; no cash carry paid"
+   },
+   {
+    "from": "S27",
+    "to": "S28",
+    "label": ""
+   },
+   {
+    "from": "S28",
+    "to": "S31",
+    "label": "Reviewer confirms model outcome"
+   },
+   {
+    "from": "S29",
+    "to": "S30",
+    "label": "Economics unclear"
+   },
+   {
+    "from": "S31",
+    "to": "S32",
+    "label": "Allocation obtained and required tax input is not missing or conflicting"
+   },
+   {
+    "from": "S31",
+    "to": "S39",
+    "label": "Required tax input missing or conflicting"
+   },
+   {
+    "from": "S32",
+    "to": "S33",
+    "label": ""
+   },
+   {
+    "from": "S33",
+    "to": "S34",
+    "label": "Taxable income without cash carry"
+   },
+   {
+    "from": "S34",
+    "to": "S35",
+    "label": "Governing documents permit a tax distribution"
+   },
+   {
+    "from": "S34",
+    "to": "S36",
+    "label": "Tax distribution not permitted"
+   },
+   {
+    "from": "S35",
+    "to": "S37",
+    "label": ""
+   },
+   {
+    "from": "S36",
+    "to": "S37",
+    "label": ""
+   },
+   {
+    "from": "S37",
+    "to": "S38",
+    "label": "Tax inputs and output approved"
+   },
+   {
+    "from": "S38",
+    "to": "S40",
+    "label": "Required withholding information available"
+   },
+   {
+    "from": "S38",
+    "to": "S51",
+    "label": "Schedule late or revised, or rate, jurisdiction or investor classification missing"
+   },
+   {
+    "from": "S40",
+    "to": "S41",
+    "label": "Apply approved rate to approved taxable-income base"
+   },
+   {
+    "from": "S40",
+    "to": "S42",
+    "label": "Bring in approved client schedule"
+   },
+   {
+    "from": "S41",
+    "to": "S43",
+    "label": ""
+   },
+   {
+    "from": "S42",
+    "to": "S43",
+    "label": ""
+   },
+   {
+    "from": "S43",
+    "to": "S44",
+    "label": ""
+   },
+   {
+    "from": "S44",
+    "to": "S45",
+    "label": "Investor amounts and schedule totals reconcile"
+   },
+   {
+    "from": "S45",
+    "to": "S46",
+    "label": "Result checked"
+   },
+   {
+    "from": "S46",
+    "to": "S49",
+    "label": "Distribution-only; no netting"
+   },
+   {
+    "from": "S46",
+    "to": "S47",
+    "label": "Net event"
+   },
+   {
+    "from": "S47",
+    "to": "S48",
+    "label": ""
+   },
+   {
+    "from": "S48",
+    "to": "S49",
+    "label": "Netting confirmed"
+   },
+   {
+    "from": "S49",
+    "to": "S50",
+    "label": "Withholding input in and approved"
+   },
+   {
+    "from": "S49",
+    "to": "S51",
+    "label": "Schedule late or revised, or rate, jurisdiction or investor classification missing"
+   },
+   {
+    "from": "S51",
+    "to": "S52",
+    "label": ""
+   },
+   {
+    "from": "S50",
+    "to": "S53",
+    "label": ""
+   },
+   {
+    "from": "S53",
+    "to": "S54",
+    "label": ""
+   },
+   {
+    "from": "S54",
+    "to": "S55",
+    "label": ""
+   },
+   {
+    "from": "S55",
+    "to": "S56",
+    "label": "Totals equal approved fund-level components subject only to documented rounding; allocation percentage supported"
+   },
+   {
+    "from": "S55",
+    "to": "S57",
+    "label": "Unexplained allocation difference or percentage unsupported by governing method"
+   },
+   {
+    "from": "S56",
+    "to": "S60",
+    "label": "Internal review completed AND client approved economics AND version locked"
+   },
+   {
+    "from": "S58",
+    "to": "S60",
+    "label": "Internal review completed AND client approved economics AND version locked"
+   },
+   {
+    "from": "S59",
+    "to": "S60",
+    "label": "Internal review completed AND client approved economics AND version locked"
+   },
+   {
+    "from": "S56",
+    "to": "S56",
+    "label": "Errors or source gaps returned and fixed; reviewer clears them"
+   },
+   {
+    "from": "S56",
+    "to": "S58",
+    "label": "Everything cleared and reviewer signed off"
+   },
+   {
+    "from": "S24",
+    "to": "S25",
+    "label": ""
+   },
+   {
+    "from": "S58",
+    "to": "S59",
+    "label": "Final written client approval obtained"
+   },
+   {
+    "from": "S58",
+    "to": "S56",
+    "label": "Client changes incorporated; affected amounts recalculated and reconciliations repeated"
+   }
+  ],
+  "open_questions": [
+   "Are there other outcomes from decision S3 (Determine event type), and where do they lead?",
+   "Are the outgoing paths from S15 (Reconcile cumulative balances) alternatives, or must they all occur?",
+   "Does any incoming route start S23 (Lock event rule set), or must all prerequisites finish?",
+   "Are there other outcomes from decision S25 (Check waterfall result), and where do they lead?",
+   "Are there other outcomes from decision S33 (Is income without cash carry?), and where do they lead?",
+   "Does any incoming route start S37 (Approve tax inputs and output), or must all prerequisites finish?",
+   "Does any incoming route start S43 (Calculate investor withholding amounts), or must all prerequisites finish?",
+   "Are there other outcomes from decision S44 (Do withholding amounts reconcile?), and where do they lead?",
+   "Does any incoming route start S51 (Escalate withholding input issues), or must all prerequisites finish?",
+   "Does any incoming route start S56 (Review and clear package), or must all prerequisites finish?",
+   "Does any incoming route start S60 (Produce notices and close event), or must all prerequisites finish?",
+   "Who detects each initiating event and how is the preparer notified? Are there fixed deadlines for an individual event?",
+   "What happens when cash is expected rather than received and instructions do not conflict?",
+   "Who receives an event escalation, and what happens if client confirmation is delayed or disputed?",
+   "After written client confirmation in an escalated event, where does work resume before modeling? How does the general modeling step relate to the cash waterfall?",
+   "After obtaining written classification because bank activity is insufficient, where does work resume? What happens if the classified total differs from the modeled amount or other support is missing?",
+   "What does the second reviewer verify in the cumulative proceeds work, when does that review occur relative to confirming waterfall rules, and what happens if it fails?",
+   "Who clears an unexplained starting-point difference, and where does work resume once it is cleared?",
+   "Who performs the independent waterfall-rule review, what do they check, and where is its evidence retained? How are conflicting sources or delayed interpretations handled?",
+   "What happens if the waterfall cash tie-out or agreement with locked rules fails?",
+   "Where does work resume after investigation of an unexpected result, including after client or legal confirmation?",
+   "What does the reviewer check when confirming carry, where is confirmation retained, and what happens if the reviewer disagrees?",
+   "What route applies when there is no taxable income without cash carry?",
+   "Who interprets the governing documents for the tax-distribution decision, and where is the decision recorded? What inputs and calculation method determine the tax liability?",
+   "Who resolves missing or conflicting tax inputs, and where does work resume? What happens if tax approval is delayed or declined, and where is approval retained?",
+   "What determines whether the approved rate is applied or the client schedule is brought in, and how is the schedule transferred?",
+   "What happens if the withholding reconciliation or second-review check fails, and what specifically does the reviewer check?",
+   "Who provides renewed withholding approval, and where does work resume after the new schedule and approval are available?",
+   "Who resolves an allocation difference or unsupported percentage, and where does work resume once resolved?",
+   "Where are internal-review comments and sign-off retained, and how are delayed or disputed corrections handled?",
+   "Draft notices are included in internal review, while final notice production is described after approval and lock. When and by whom are draft notices prepared, and how do they differ from final notices?",
+   "How are client approval delays or rejection handled, and where are final written approval and the locked version retained?",
+   "What are the actions and handoffs in the controlled correction process after an entry or payment, and where does work resume after renewed approval?",
+   "How is a threatened wire cut-off identified and handed to the client and Treasury, and where does work resume after their decision?",
+   "What are the FA-01 and FA-17 gates, who checks them, and how are their completion and the final tie-out evidenced?",
+   "How are notice mismatches, invalid instructions, incomplete funding or approvals, and bank-closure holds resolved, and where does each route resume?",
+   "How is payment support prepared, and what evidence confirms posting, payment and publication?",
+   "Who owns withholding remittance, what are the payment steps and due dates, and what constitutes proof? How is the responsible role assigned when ownership is unclear?",
+   "Who receives closeout escalations, how are rejected wires, unremitted withholding and accounting differences resolved, and where does closeout resume?",
+   "Where are the reconciled post-distribution record and remittance support retained, and who records the closeout?",
+   "What other client-specific uploads or reports apply? For the One Rock Cobalt upload, what is its source, additional effort, charging and any constraint on removal?",
+   "Who is accountable for the overall result, and who consumes the outputs?",
+   "Where are the event brief, workbook, working files, support and methodology record stored, and what is the authoritative record?",
+   "Which entities and clients does this account cover, and is it general GPFS practice or a client-specific route?",
+   "What other rules, procedures, variations, risks, volumes and practical difficulties apply to this work?",
+   "The map is at the 60-step limit. S60 consolidates notice production, QA, execution, holds and post-distribution closeout; their distinct actions and exception routes cannot be separately represented without restructuring the existing map."
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "Current-practice draft — Distribution Economics: Waterfall, Tax Withholding & Notices",
+  "overview": "The participant describes event-driven distribution work from event setup through proceeds classification, waterfall and tax calculations, review, client approval, execution and post-distribution reconciliation. This draft is for review, not an approved or executable procedure. No supporting documents were supplied or reviewed, and material gaps remain.",
+  "trigger": "Cash proceeds are received or expected, a deal closes or a realization occurs, or a client requests a distribution calculation or execution. How the event is detected is UNKNOWN. The work is event-driven, with no fixed calendar.",
+  "inputs": [
+   "Client instructions, bank records, deal information and closing support.",
+   "Prior approved cumulative proceeds working file and historical accounting records.",
+   "Reported LPA, side letters, approved waterfall model, prior treatment and current event facts.",
+   "Client tax team or tax adviser conclusions, taxable-income allocation and withholding schedule.",
+   "Approved investor list and approved special allocations."
+  ],
+  "outputs": [
+   "Locked client-approved economics and investor schedule.",
+   "Distribution notices and approved posting and payment support.",
+   "Reconciled post-distribution record and remittance support when the event is closed."
+  ],
+  "exceptions": [
+   "Received cash without deal context or conflicting client instructions is escalated; written client identification and classification is required before modeling.",
+   "Missing or conflicting tax input holds final economics. Late or revised withholding schedules or missing details cause escalation and affected work is held or recalculated until a new schedule and renewed approval.",
+   "Unexplained starting balances, allocation differences, unsupported percentages and internal review issues pause or return work as described in the map.",
+   "Notice, payment, timing and closeout exceptions have reported holds or escalation; several recovery points remain UNKNOWN."
+  ],
+  "controls": [
+   "Classified proceeds must equal the modeled amount and each component must have support.",
+   "Rules are locked after reported traceability and independent review, or after written interpretation for a changed or ambiguous treatment.",
+   "Tax inputs and output require tax-team or client approval before withholding; withholding input must be in and approved before allocations.",
+   "Internal reviewer sign-off precedes client submission; final written client approval precedes locking and must be on file before entry or payment.",
+   "Payment and release require notice and payment totals to agree to the locked schedule and all FA-01 and FA-17 gates to be complete.",
+   "Closeout requires the reported final reconciliation and assignment of an unclear remittance responsibility."
+  ],
+  "validation_notes": [
+   "Current-practice draft for process-owner review. Participant confirmation and owner approval are pending; coverage is incomplete.",
+   "No supporting documents were supplied or reviewed. Governing-document and model descriptions are participant reports, not independently verified written rules.",
+   "The reported handoff occurs in the same notice-production step, but its order relative to completed notice QA is not established. The proposed S39-to-S40 and S40-to-S41 transitions are therefore not published; S40 remains a known fragment linked to posting.",
+   "The release decision retains the joint requirement for both matching totals and all FA-01 and FA-17 gates. The order of posting, wires and publication is not asserted.",
+   "The unrestricted waterfall-to-carry proposal was narrowed so an unexpected result cannot bypass its reported investigation. The investigation's exact return point remains UNKNOWN.",
+   "Client-specific reporting is kept as a separate post-payment activity because its exact position relative to reconciliation and closeout was not stated. The One Rock deadline is preserved; an unsupported mandatory insertion or bypass has not been invented.",
+   "Written classification, several holds and escalations have no evidenced exact rejoin. Independent rule-review performer and evidence, and timing of cumulative verification, remain UNKNOWN.",
+   "Draft notices are reviewed before approval, whereas final PDF production is reported after locking; their preparation relationship remains unresolved.",
+   "The participant did not answer the question about consequences of delay or error. No risk consequences are inferred.",
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified.",
+   "The independent audit changed or removed 3 proposed exception(s)."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "start",
+    "title": "Distribution event arises",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Received or expected proceeds, a deal close or realization, or a client request initiates event-driven work."
+   },
+   {
+    "id": "S2",
+    "type": "document",
+    "title": "Set up the event",
+    "actor": "Event preparer on the capital activity team or Fund Team",
+    "system": "Event brief, capital activity workbook and FA-01 event calendar",
+    "description": "Use client instructions and bank records to confirm entity, deal, amount, whether cash is expected or received, and requested payment date. Determine whether the event is distribution-only or a net event. Assign a second reviewer, list tax-team needs and link the event to the controlling FA-01 calendar. Record the setup in the event brief and workbook."
+   },
+   {
+    "id": "S3",
+    "type": "decision",
+    "title": "Is the event context clear?",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Determine whether received cash has deal context and whether client instructions conflict. The route for expected cash with clear instructions is UNKNOWN."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Escalate unclear event",
+    "actor": "Event preparer; client identifies and classifies",
+    "system": "UNKNOWN",
+    "description": "Escalate received cash without deal context or conflicting instructions. The client identifies and classifies it in writing before modeling; the confirmation is kept with bank support."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Identify and classify proceeds",
+    "actor": "Event preparer",
+    "system": "Capital activity workbook, proceeds-input tab",
+    "description": "Confirm expected versus cleared cash and match it to the portfolio company, deal, fund and bank account. Classify components as return of capital, realized gain, dividend or income, or another supported category. Flag asset conversions, escrows, holdbacks and other pieces affecting economics. Record the inputs and keep bank support and client correspondence alongside."
+   },
+   {
+    "id": "S6",
+    "type": "decision",
+    "title": "Are proceeds supported and reconciled?",
+    "actor": "Event preparer",
+    "system": "Capital activity workbook",
+    "description": "Check that classified proceeds equal the amount modeled and every component has support. The preparer does not decide deal, tax or GAAP classification from the bank description alone."
+   },
+   {
+    "id": "S7",
+    "type": "document",
+    "title": "Obtain written classification",
+    "actor": "Event preparer; client supplies classification",
+    "system": "UNKNOWN",
+    "description": "Stop calculations and obtain written client classification if bank activity alone does not establish the deal or character."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Roll forward cumulative proceeds",
+    "actor": "Event preparer; second reviewer verifies",
+    "system": "Prior approved cumulative proceeds working file",
+    "description": "Add current proceeds by supported classification, confirm prior distributions, remaining invested capital and cumulative contributions, and reconcile starting and current balances to the prior event, general ledger, trial balance, bank and partner-capital records. Pull the system power report, trial balance and partner-capital files for historical balances."
+   },
+   {
+    "id": "S9",
+    "type": "decision",
+    "title": "Are balance differences addressed?",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Every difference must be resolved or documented for the reconciled waterfall starting point. An unexplained starting-point difference pauses the calculation until cleared."
+   },
+   {
+    "id": "S10",
+    "type": "wait",
+    "title": "Wait for balance clearance",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The waterfall calculation does not start until an unexplained starting-point difference is cleared."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Confirm waterfall rules",
+    "actor": "Event preparer and second reviewer, with client input",
+    "system": "Waterfall methodology record and model",
+    "description": "Use the reported LPA, side letters, approved model, prior treatment and event facts. Record the order and definitions for return of capital, preferred return, catch-up, carried interest, residual split and holdback or clawback. Confirm the applicable fund, deal, tranche or other segment and escrow or holdback treatment."
+   },
+   {
+    "id": "S12",
+    "type": "decision",
+    "title": "Are waterfall rules clear?",
+    "actor": "Event preparer and second reviewer",
+    "system": "UNKNOWN",
+    "description": "Assess whether the rule set is traceable to governing documents and independently reviewed, or whether changed treatment or an ambiguous LPA rule needs written direction."
+   },
+   {
+    "id": "S13",
+    "type": "document",
+    "title": "Obtain written rule direction",
+    "actor": "Event preparer; client or legal adviser provides direction",
+    "system": "UNKNOWN",
+    "description": "Record a changed treatment or ambiguous rule, pause and obtain written direction. The team does not invent a missing rule."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Lock event rules",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Lock the rule set after the reported traceability and independent-review checks, or after written interpretation returns."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Run and check cash waterfall",
+    "actor": "Event preparer",
+    "system": "Capital activity waterfall model",
+    "description": "Enter current proceeds and apply return of capital, preferred return, catch-up, carried interest and residual calculations in the approved order. Calculate LP and GP allocations including holdback. Check allocated plus retained or held cash against modeled proceeds and agreement with locked rules."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Investigate unexpected result",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Investigate a negative, residual or otherwise unexpected result. Where economics are unclear, obtain client or legal confirmation before going further."
+   },
+   {
+    "id": "S17",
+    "type": "decision",
+    "title": "Is the fund in carry?",
+    "actor": "Event preparer",
+    "system": "Capital activity waterfall model",
+    "description": "If the model shows a carry position, include the cash carry allowed by the waterfall; otherwise no cash carry is paid."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Document and confirm carry",
+    "actor": "Event preparer and reviewer",
+    "system": "UNKNOWN",
+    "description": "The preparer documents what the model shows and the reviewer confirms it, whether or not the fund is in carry."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Obtain and assess tax allocation",
+    "actor": "Event preparer; client tax team or tax adviser provides or approves conclusions",
+    "system": "UNKNOWN",
+    "description": "Obtain the event taxable-income allocation, add the client tax team's or adviser's conclusions to the calculation and consider whether the GP or another investor receives taxable income without corresponding cash. Do not replace approved tax conclusions with preparer conclusions."
+   },
+   {
+    "id": "S20",
+    "type": "wait",
+    "title": "Hold for tax input",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Hold final economics if required tax input is missing or conflicting until it is sorted out."
+   },
+   {
+    "id": "S21",
+    "type": "decision",
+    "title": "Is tax distribution permitted?",
+    "actor": "Client's tax adviser or client",
+    "system": "UNKNOWN",
+    "description": "When taxable income arises without cash carry, the client's tax adviser or client decides whether a tax distribution is permitted or required. Governing-document permission is a participant report; the documents were not reviewed."
+   },
+   {
+    "id": "S22",
+    "type": "activity",
+    "title": "Calculate tax distribution",
+    "actor": "Event preparer",
+    "system": "Dedicated section of the workbook",
+    "description": "If permitted, calculate or add the tax distribution needed to cover the tax liability and keep its support separate from cash-waterfall support."
+   },
+   {
+    "id": "S23",
+    "type": "activity",
+    "title": "Carry tax allocation forward",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "If a tax distribution is not permitted, carry the approved taxable-income allocation forward without a tax distribution."
+   },
+   {
+    "id": "S24",
+    "type": "activity",
+    "title": "Approve tax inputs and output",
+    "actor": "Client's tax team or client; event preparer obtains approval",
+    "system": "UNKNOWN",
+    "description": "Obtain tax-team or client approval of the tax inputs and output before withholding."
+   },
+   {
+    "id": "S25",
+    "type": "activity",
+    "title": "Calculate and check withholding",
+    "actor": "Event preparer; second reviewer checks",
+    "system": "Capital activity workbook",
+    "description": "Identify investors subject to withholding and applicable jurisdictions and rates. Apply an approved rate to the approved taxable-income base or bring in the approved client schedule. Add approved prior-period true-ups or supplemental adjustments separately. Calculate each investor's gross, withholding and net cash; check gross less withholding equals net and reconcile schedule totals to the model and approved tax input."
+   },
+   {
+    "id": "S26",
+    "type": "activity",
+    "title": "Escalate withholding input issues",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Escalate a late or revised schedule or missing rate, jurisdiction or investor classification to the client or tax adviser. Hold or recalculate affected calculations, notices and payments until a new schedule version and renewed approval are available."
+   },
+   {
+    "id": "S27",
+    "type": "wait",
+    "title": "Wait for schedule and approval",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Affected work remains held or subject to recalculation until both a new schedule version and renewed approval are available."
+   },
+   {
+    "id": "S28",
+    "type": "decision",
+    "title": "Is this a net event?",
+    "actor": "Event preparer",
+    "system": "Capital activity workbook",
+    "description": "Distribution-only events do not net; net events include approved withholding in the call-and-distribution net calculation."
+   },
+   {
+    "id": "S29",
+    "type": "activity",
+    "title": "Calculate and confirm netting",
+    "actor": "Event preparer; reviewer or client confirms",
+    "system": "Capital activity workbook",
+    "description": "Include approved withholding in the call-and-distribution net calculation and keep separate support for each component before netting. The reviewer or client confirms the netting."
+   },
+   {
+    "id": "S30",
+    "type": "decision",
+    "title": "Is withholding input approved?",
+    "actor": "Event preparer",
+    "system": "Capital activity workbook",
+    "description": "Proceed to investor allocations when the withholding input is in and approved. Late or revised schedules and missing rates, jurisdictions or investor classifications require escalation."
+   },
+   {
+    "id": "S31",
+    "type": "activity",
+    "title": "Calculate investor allocations",
+    "actor": "Event preparer",
+    "system": "Capital activity workbook allocation engine and final summary tab",
+    "description": "Confirm the governing allocation basis, such as commitment percentage, LP percentage, deal-specific or another basis, using the approved investor list and special allocations. Calculate investor proceeds components, carry and tax effects, withholding and net cash. Reconcile totals to the fund-level waterfall and tax schedules, then populate the final summary tab. The schedule remains draft."
+   },
+   {
+    "id": "S32",
+    "type": "decision",
+    "title": "Do investor allocations reconcile?",
+    "actor": "Event preparer",
+    "system": "Capital activity workbook",
+    "description": "Check investor totals against approved fund-level components, allowing only documented rounding. Pause for an unexplained difference or percentage unsupported by the governing method; percentages in Excel alone are not authoritative."
+   },
+   {
+    "id": "S33",
+    "type": "wait",
+    "title": "Wait for allocation resolution",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Pause for an unexplained allocation difference or percentage unsupported by the governing method until resolved."
+   },
+   {
+    "id": "S34",
+    "type": "activity",
+    "title": "Review distribution package",
+    "actor": "Second reviewer",
+    "system": "Working files and draft notices; review-comment location UNKNOWN",
+    "description": "Review proceeds, waterfall, tax, withholding, allocation and notice-support files plus draft notices. Check proceeds amount and classification; continuity from the prior event; waterfall rules and formulas, carry, preferred return, tax distribution and holdbacks; tax and withholding inputs against approved schedules; investor totals, gross, withholding, net and reconciliations; and notice labels, GAAP and tax breakdowns and footnotes. Comments are recorded and each must be resolved. Sign-off is required before anything goes to the client."
+   },
+   {
+    "id": "S35",
+    "type": "activity",
+    "title": "Correct review issues",
+    "actor": "Event preparer, or client or tax adviser for their input",
+    "system": "UNKNOWN",
+    "description": "Unresolved errors or source gaps return to the preparer, or to the client or tax adviser for their input. Work stops until fixed and cleared by the reviewer."
+   },
+   {
+    "id": "S36",
+    "type": "activity",
+    "title": "Seek client economics approval",
+    "actor": "Event preparer; client approves",
+    "system": "UNKNOWN",
+    "description": "Send the internally cleared package to the client and point out tax inputs still estimated, pending or late. Coordinate final written approval. Changes lead to recalculation and repeated reconciliations and review checks."
+   },
+   {
+    "id": "S37",
+    "type": "activity",
+    "title": "Rework client changes",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Incorporate approved client changes and recalculate affected amounts. Repeat reconciliations and review checks before returning for final written approval."
+   },
+   {
+    "id": "S38",
+    "type": "activity",
+    "title": "Lock approved version",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "After final written client approval, lock and retain the version used for notices, posting and payment. Nothing is released or paid from an unapproved version; written approval must be on file before an entry or payment."
+   },
+   {
+    "id": "S39",
+    "type": "document",
+    "title": "Produce and reconcile notices",
+    "actor": "Event preparer and second reviewer",
+    "system": "Controlled Word notice template and PDF",
+    "description": "Merge investor data from the locked approved investor schedule into the controlled Word template to produce PDFs. Notices disclose gross proceeds, components, transaction type, taxable income, withholding, net payment and applicable footnotes. The preparer and second reviewer reconcile every notice to the locked schedule and complete QA."
+   },
+   {
+    "id": "S40",
+    "type": "activity",
+    "title": "Hand off approved support",
+    "actor": "Event preparer",
+    "system": "FA-01 and FA-17 are reported execution processes; handoff mechanism UNKNOWN",
+    "description": "In the notice-production step, hand approved posting and payment support to the Fund Team and Treasury for execution through FA-01 and FA-17. Its order relative to completion of notice QA is UNKNOWN."
+   },
+   {
+    "id": "S41",
+    "type": "decision",
+    "title": "Are release gates complete?",
+    "actor": "UNKNOWN",
+    "system": "FA-01 and FA-17",
+    "description": "Payment and notice release go ahead if notice and payment totals agree to the locked schedule and all FA-01 and FA-17 gates are complete. A notice mismatch, bank closure, invalid instructions or incomplete approval causes a hold; Treasury also holds for incomplete funding or a holiday or cut-off."
+   },
+   {
+    "id": "S42",
+    "type": "activity",
+    "title": "Hold payment or release",
+    "actor": "Investor Services and Treasury, as applicable",
+    "system": "UNKNOWN",
+    "description": "Investor Services holds release when a notice does not match the approved investor list. Treasury holds payment for incomplete approvals, instructions or funding, or a holiday or cut-off. Other notice mismatch, bank closure, invalid instructions or incomplete approval hold affected payment or release."
+   },
+   {
+    "id": "S43",
+    "type": "activity",
+    "title": "Decide threatened wire timing",
+    "actor": "Client and Treasury",
+    "system": "Revised calendar; storage UNKNOWN",
+    "description": "When a bank holiday or cut-off threatens wires, the client and Treasury decide whether to change timing or agree an approved alternative execution plan. The revised calendar and approval are kept."
+   },
+   {
+    "id": "S44",
+    "type": "activity",
+    "title": "Record general ledger entry",
+    "actor": "Fund Team",
+    "system": "General ledger; FA-01 and FA-17",
+    "description": "Record the general ledger entry using approved support. Client written approval must be on file before any entry is recorded."
+   },
+   {
+    "id": "S45",
+    "type": "activity",
+    "title": "Send investor wires",
+    "actor": "Treasury",
+    "system": "FA-01 and FA-17; bank platform UNKNOWN",
+    "description": "Send wires after notice and payment totals agree to the locked schedule and all FA-01 and FA-17 gates are complete. Written client approval must be on file before payment."
+   },
+   {
+    "id": "S46",
+    "type": "activity",
+    "title": "Publish investor notices",
+    "actor": "Investor Services",
+    "system": "Investor portal",
+    "description": "Publish notices on the investor portal after notice and payment totals agree to the locked schedule and all FA-01 and FA-17 gates are complete. Hold release when a notice does not match the approved investor list."
+   },
+   {
+    "id": "S47",
+    "type": "subprocess",
+    "title": "Correct post-execution changes",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "If a change arrives after an entry has been recorded or payment made, follow the controlled correction process and obtain renewed approval. Its internal steps and return point are UNKNOWN."
+   },
+   {
+    "id": "S48",
+    "type": "activity",
+    "title": "Update post-distribution records",
+    "actor": "Assigned Fund Team or event preparer",
+    "system": "Investor capital accounts, historical records and cumulative proceeds history; storage UNKNOWN",
+    "description": "After money goes out, track tax withholding separately from investor net payments and give supporting records to whoever pays the tax authority. Update investor capital accounts, historical contribution and distribution records, cumulative proceeds history and carried-interest tracking. If the remittance owner is unclear, the responsible role must be assigned before closeout."
+   },
+   {
+    "id": "S49",
+    "type": "activity",
+    "title": "Reconcile post-distribution event",
+    "actor": "Assigned Fund Team or event preparer",
+    "system": "General ledger and locked event records",
+    "description": "Reconcile actual wires, withholding held or remitted, general ledger balances and locked schedule. Gross distribution must equal net investor cash plus withholding, and actual cash and accounting must agree to the locked event without unexplained differences."
+   },
+   {
+    "id": "S50",
+    "type": "activity",
+    "title": "Close reconciled event",
+    "actor": "Assigned Fund Team or event preparer",
+    "system": "UNKNOWN",
+    "description": "Close out when the final reconciliation succeeds and any unclear remittance responsibility has been assigned. Keep the reconciled post-distribution record and remittance support; storage is UNKNOWN."
+   },
+   {
+    "id": "S51",
+    "type": "activity",
+    "title": "Escalate closeout exceptions",
+    "actor": "Assigned Fund Team or event preparer",
+    "system": "UNKNOWN",
+    "description": "Immediately escalate unremitted withholding, a rejected wire or accounting difference; closeout stays open. An unexplained difference prevents closeout and may need correction or reposting."
+   },
+   {
+    "id": "S52",
+    "type": "activity",
+    "title": "Complete client-specific reporting",
+    "actor": "Assigned Fund Team or event preparer",
+    "system": "Cobalt for One Rock; other locations UNKNOWN",
+    "description": "Complete applicable client-specific uploads or open-template reporting. For One Rock, complete the Cobalt upload within two days of the event. Its order relative to reconciliation and closeout is UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "Event arises"
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": "Event setup"
+   },
+   {
+    "from": "S3",
+    "to": "S5",
+    "label": "Cash received and deal known"
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "Received cash lacks deal context or instructions conflict"
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": "Proceeds classified"
+   },
+   {
+    "from": "S6",
+    "to": "S8",
+    "label": "Total ties and components supported"
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Bank activity alone does not establish deal or character"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "Reconciliation performed"
+   },
+   {
+    "from": "S9",
+    "to": "S11",
+    "label": "Every difference resolved or documented"
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": "Unexplained starting-point difference"
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": "Rules documented"
+   },
+   {
+    "from": "S12",
+    "to": "S14",
+    "label": "Traceable and independently reviewed"
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": "Treatment changed or LPA rule ambiguous"
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": "Written interpretation received"
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": "Rules locked"
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": "Negative, residual or otherwise unexpected result"
+   },
+   {
+    "from": "S15",
+    "to": "S17",
+    "label": "Waterfall checked; no unexpected result requiring investigation"
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": "In carry; allowed cash carry included"
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": "Not in carry; no cash carry paid"
+   },
+   {
+    "from": "S18",
+    "to": "S19",
+    "label": "Carry outcome confirmed"
+   },
+   {
+    "from": "S19",
+    "to": "S20",
+    "label": "Required tax input missing or conflicting"
+   },
+   {
+    "from": "S19",
+    "to": "S21",
+    "label": "Taxable income without cash carry"
+   },
+   {
+    "from": "S21",
+    "to": "S22",
+    "label": "Tax distribution permitted"
+   },
+   {
+    "from": "S21",
+    "to": "S23",
+    "label": "Tax distribution not permitted"
+   },
+   {
+    "from": "S22",
+    "to": "S24",
+    "label": "Tax distribution calculated or added"
+   },
+   {
+    "from": "S23",
+    "to": "S24",
+    "label": "Allocation carried forward"
+   },
+   {
+    "from": "S24",
+    "to": "S25",
+    "label": "Tax inputs and output approved"
+   },
+   {
+    "from": "S25",
+    "to": "S26",
+    "label": "Schedule late or revised, or rate, jurisdiction or classification missing"
+   },
+   {
+    "from": "S26",
+    "to": "S27",
+    "label": "Affected work held or recalculated"
+   },
+   {
+    "from": "S25",
+    "to": "S28",
+    "label": "Withholding result checked"
+   },
+   {
+    "from": "S28",
+    "to": "S29",
+    "label": "Net event"
+   },
+   {
+    "from": "S28",
+    "to": "S30",
+    "label": "Distribution-only; no netting"
+   },
+   {
+    "from": "S29",
+    "to": "S30",
+    "label": "Netting confirmed"
+   },
+   {
+    "from": "S30",
+    "to": "S31",
+    "label": "Withholding input in and approved"
+   },
+   {
+    "from": "S30",
+    "to": "S26",
+    "label": "Schedule late or revised, or required detail missing"
+   },
+   {
+    "from": "S31",
+    "to": "S32",
+    "label": "Summary populated"
+   },
+   {
+    "from": "S32",
+    "to": "S34",
+    "label": "Totals equal approved components subject to documented rounding"
+   },
+   {
+    "from": "S32",
+    "to": "S33",
+    "label": "Unexplained difference or unsupported percentage"
+   },
+   {
+    "from": "S34",
+    "to": "S35",
+    "label": "Errors or source gaps unresolved"
+   },
+   {
+    "from": "S35",
+    "to": "S34",
+    "label": "Issues fixed for reviewer clearance"
+   },
+   {
+    "from": "S34",
+    "to": "S36",
+    "label": "All cleared and reviewer signed off"
+   },
+   {
+    "from": "S36",
+    "to": "S37",
+    "label": "Client requests changes"
+   },
+   {
+    "from": "S37",
+    "to": "S34",
+    "label": "Changes incorporated and reconciliations repeated"
+   },
+   {
+    "from": "S36",
+    "to": "S38",
+    "label": "Final written client approval"
+   },
+   {
+    "from": "S38",
+    "to": "S39",
+    "label": "Approved version locked"
+   },
+   {
+    "from": "S39",
+    "to": "S41",
+    "label": "Notice and payment totals tie to locked schedule AND all FA-01 and FA-17 gates complete"
+   },
+   {
+    "from": "S41",
+    "to": "S45",
+    "label": "Totals agree AND all FA-01 and FA-17 gates complete"
+   },
+   {
+    "from": "S41",
+    "to": "S46",
+    "label": "Totals agree AND all FA-01 and FA-17 gates complete"
+   },
+   {
+    "from": "S41",
+    "to": "S42",
+    "label": "Notice mismatch, bank closure, invalid instructions or incomplete approval"
+   },
+   {
+    "from": "S40",
+    "to": "S44",
+    "label": "Approved posting support handed to Fund Team; written approval on file"
+   },
+   {
+    "from": "S42",
+    "to": "S43",
+    "label": "Holiday or cut-off threatens wires"
+   },
+   {
+    "from": "S44",
+    "to": "S47",
+    "label": "Change arrives after entry recorded"
+   },
+   {
+    "from": "S45",
+    "to": "S47",
+    "label": "Change arrives after payment made"
+   },
+   {
+    "from": "S45",
+    "to": "S48",
+    "label": "Money goes out"
+   },
+   {
+    "from": "S48",
+    "to": "S49",
+    "label": "Post-distribution records updated"
+   },
+   {
+    "from": "S49",
+    "to": "S50",
+    "label": "Reconciled with no unexplained difference; remittance role assigned if previously unclear"
+   },
+   {
+    "from": "S49",
+    "to": "S51",
+    "label": "Unremitted withholding, rejected wire or accounting difference"
+   },
+   {
+    "from": "S45",
+    "to": "S52",
+    "label": "Money goes out; client-specific reporting applies"
+   }
+  ],
+  "open_questions": [
+   "Who is accountable for the overall event, and how are initiating events detected and assigned?",
+   "Who owns withholding remittance, what are the payment steps and deadlines, and what counts as proof? The participant identified the tax process expert as the person to confirm.",
+   "What are the FA-01 and FA-17 gates, who checks them, and how are held notices or payments recovered and released?",
+   "When and by whom are draft notices prepared for internal review, and how do they relate to final notices produced after locking?",
+   "Where do written-classification, balance-clearance, unexpected-waterfall, tax-input, withholding and allocation exceptions resume after resolution?",
+   "What route applies to expected cash with clear instructions, and when there is no taxable income without cash carry?",
+   "What happens when the waterfall or withholding reconciliation fails, and what exactly does the second reviewer check in the cumulative and withholding work?",
+   "Where does the support handoff sit relative to final notice QA, and how does it connect to the release-gate assessment? What specific prerequisites govern ledger posting?",
+   "How is a threatened holiday or cut-off identified, and how does the timing decision return to execution?",
+   "What are the controlled correction subprocess steps and handoffs after an entry or payment?",
+   "Who receives closeout escalations, resolves rejected wires, unremitted withholding or accounting differences, and rechecks closeout?",
+   "Where are approvals, review comments, the locked version, supporting files and closeout evidence retained? Which records are authoritative?",
+   "What entity and client scope does this account cover, and what is the participant's basis for any general GPFS practice?",
+   "What are the applicable deadlines, calculation details, rule interpretation and conflict authority, other variations, pain points, consequences, volumes and effort?",
+   "Where does client-specific reporting sit relative to reconciliation and closeout? What are the source, effort, charging and removal constraints for the One Rock upload and other reporting?",
+   "Does any incoming route start S14 (Lock event rules), or must all prerequisites finish?",
+   "Does any incoming route start S24 (Approve tax inputs and output), or must all prerequisites finish?",
+   "Does any incoming route start S26 (Escalate withholding input issues), or must all prerequisites finish?",
+   "Does any incoming route start S34 (Review distribution package), or must all prerequisites finish?",
+   "Does any incoming route start S47 (Correct post-execution changes), or must all prerequisites finish?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "The intake names the work Distribution Economics: Waterfall, Tax Withholding & Notices. The participant calls a combined call-and-distribution a net event. Other process names and exact boundaries are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The work produces approved distribution economics, investor notices, posting and payment support, and a reconciled event record. The participant's own statement of overall recipient value is UNKNOWN."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "Received or expected proceeds, deal close or realization, or a client request starts event-driven work; there is no fixed calendar. The event receiver, detection method and event-specific deadlines are UNKNOWN. One Rock reporting has a separate two-day deadline."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "After money goes out, the assigned Fund Team or preparer reconciles actual wires, withholding, ledger and locked schedule. Gross must equal net investor cash plus withholding, with no unexplained cash or accounting difference. Closeout remains open for stated exceptions, and an unclear remittance role must be assigned before closeout. Downstream consumer and retention location are UNKNOWN."
+   },
+   {
+    "key": "accountable",
+    "status": "unknown",
+    "answer": "UNKNOWN: overall accountability was not identified. The preparer coordinates preparation, the second reviewer reviews, the client approves, and the assigned Fund Team or preparer performs post-distribution work; these do not establish overall accountability."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The preparer sets up the event, classifies and reconciles proceeds, confirms and locks waterfall rules, calculates cash and tax economics, applies withholding and investor allocations, and sends the package for second review and client approval. The locked version drives final notices and execution support. Fund Team, Treasury and Investor Services perform posting, wires and publication; after payment, the Fund Team or preparer updates records and reconciles closeout. Exceptions pause, return or hold work. Several recovery points, draft-notice preparation and evidence locations are UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The preparer checks proceeds support and reconciles historical balances, waterfall totals, withholding and investor allocations. A second reviewer verifies cumulative work and reviews the package; comments are recorded, resolved and cleared before sign-off and client submission. Client written approval precedes lock, entry and payment; notice and payment tie-outs and all FA-01/FA-17 gates precede payment and release. Evidence locations, gate details, thresholds, technical enforcement, override authority and several failure recoveries are UNKNOWN."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "Distribution-only events do not net; net events include approved withholding in call-and-distribution netting with separate component support and reviewer or client confirmation. A permitted tax distribution is calculated or added when the stated tax condition applies; a prohibited one is not. One Rock has a Cobalt upload within two days, and other client-specific uploads or open-template reports may apply. Sources, effort, charging, removal constraints and boundary comparisons are largely UNKNOWN."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": "UNKNOWN: the participant described calculations, reconciliations, mail merge and exception holds, but did not characterize their effort, friction or practical burden."
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": "UNKNOWN: the participant identified holds and exceptions including rejected wires and accounting differences, but did not describe their consequences for clients, money or deadlines."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "Reported materials include the LPA, side letters, approved waterfall model, prior cumulative file, methodology record, working files, client schedules and controlled Word notice template. No document was supplied or reviewed; exact locations and availability are UNKNOWN."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The account covers fund waterfall and investor distributions, including a possible net event and client-specific reporting. Other entity types, number of clients, parent boundary and whether this is general GPFS practice or a client-only route are UNKNOWN; no approved standard is established."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The participant reports using governing documents, side letters, the approved model, prior treatment, current facts and client or legal direction to confirm waterfall rules. The client or tax adviser decides tax-distribution treatment; the client or tax team supplies tax conclusions and withholding direction. The preparer implements waterfall, withholding and allocations in models and the workbook. Conflict authority, detailed formulas, dates, rounding methods and overrides are UNKNOWN; no governing document was reviewed."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "Prior event and accounting records, client deal information and client tax outputs feed this work. Approved support goes to the Fund Team and Treasury for FA-01/FA-17 execution; Investor Services publishes notices, and tax-payment support goes to the person responsible for remittance. Remittance ownership, detailed gates and other dependencies are UNKNOWN."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The event brief and capital activity workbook hold event inputs and calculation work; a controlled Word template produces PDF notices, and Investor Services uses an investor portal. FA-01/FA-17 are reported execution processes and Cobalt is used for One Rock reporting. Storage locations, authoritative records, workbook logic ownership and most transfer methods are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": "UNKNOWN: no counts, peaks, exception rates or step-level effort estimates were reported."
+   }
+  ]
+ },
+ "draft_error": null
+}

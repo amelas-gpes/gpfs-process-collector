@@ -1,0 +1,1249 @@
+{
+ "case": "F07",
+ "process": "FA-18C",
+ "mode": "file",
+ "style": "scanned PDF without a text layer",
+ "build": "untouched",
+ "participant": "agent",
+ "context": {
+  "process_name": "European Distribution Execution",
+  "process_owner": "",
+  "objective": "Document how we carry out European Distribution Execution, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "assistant",
+   "text": "Thanks for sharing. Give me a moment to digest the file. Then I’ll follow up with a question.",
+   "document_event": true
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "The scanned decisions table uses T+7, T+8, and T+15 timelines. What event defines T in the distribution process?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "T is the date the client notifies us at GP Fund Solutions of a distribution, and that notification is what starts the work. As the preparer I open the event that same day: I record T, the entity, the amount, the purpose and the expected payment date, set up the schedule from T+3 through T+15, and open the checklist. T has to match the date on the client's notification. One thing I can't tell you is whether the T+n days are business days or calendar days. That has never been confirmed to me, and the process owner would have to say."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "Once you’ve opened the event and checklist, what happens next in the normal distribution process?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "Next I draft the investor calculations, working with Fund Accounting. For each investor I prepare the gross distribution amount, any withholding and the net payment amount in the distribution calculation file, check that the investor totals agree with the approved fund-level distribution, and share the draft with the client by T+3. The client sends comments by T+4. The reviewer and I work through those comments, update the calculations and allocations, and prepare the distribution notices by T+5. We rerun the affected comparison checks and keep each version. I can't review my own work, so every checklist section needs the reviewer's initials as well as mine."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "What determines the withholding amount for each investor?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "That isn't worked out in this process. The waterfall, tax and withholding calculations are done in a separate process, and I take the gross amount, any withholding, the net amount paid and the investor list from the approved calculation file that comes out of it. The fund's governing terms, meaning the current limited partnership agreement and any side letters, control the distribution amounts and the allocation rules. If the terms or amounts I've been given don't agree, I refer it back to that calculation process and to the client rather than fix it myself."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "What do you compare the investor totals against to decide they agree with the approved fund-level distribution?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "Against the approved distribution terms and amounts for the fund. The investor amounts added together have to equal the approved fund-level amount. I do that check on the draft at T+3 and again on the final calculation at T+5, the reviewer reviews it, and the calculation record is what we keep. If it doesn't agree I record the exception, and the item doesn't move forward until the issue is resolved or an authorised decision is documented."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "What marks the distribution work as finished, including any required handoff or downstream use?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "The event is finished when the checklist and all the required records are complete and filed in the digital binder: the calculation, the client's approval, the notices, the screening and CDD records, the payment and payment-completion records and the follow-up records, with the reviewer's initials and mine on the checklist. Before that the client has to have approved the notices in writing at T+7, the notices go out at T+8, and the cleared payments are released at T+15. Anything still open, like a CDD-blocked investor or a returned payment, is not marked closed. It is recorded and tracked separately, and we keep reporting payment status and returned payments to the client from one day after the due date until each item is resolved. The records in the binder are then used for quarterly and entity reporting. I don't know who gives the final sign-off or how long the records have to be kept. Neither is specified, and the system owner or a process expert would have to confirm the retention period."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "What can go wrong in distribution execution, and what happens as a result?"
+  },
+  {
+   "id": "t014",
+   "role": "assistant",
+   "text": "This capture still has open sections. 16 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794966604.474,
+   "turn": 0,
+   "seconds": 0.026,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.session",
+   "at": 1794966607.388,
+   "turn": 1,
+   "seconds": 0.014,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.upload",
+   "at": 1794966607.391,
+   "turn": 1,
+   "seconds": 0.003,
+   "status": 202,
+   "retries": 0,
+   "file": "F09 FA-18C scanned pages.pdf",
+   "bytes": 213504
+  },
+  {
+   "kind": "doc.extracted",
+   "at": 1794966607.901,
+   "turn": 1,
+   "seconds": 0.53,
+   "file": "F09 FA-18C scanned pages.pdf",
+   "chunks": 2,
+   "status": "partial",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 0,
+    "total_units": 2,
+    "text_indexed_units": 0,
+    "visual_pending_units": 2,
+    "unit": "pages",
+    "limitations": [
+     "2 pages contain no extractable text and require native visual review; they were not treated as read."
+    ]
+   }
+  },
+  {
+   "kind": "doc.review_started",
+   "at": 1794966607.901,
+   "turn": 1,
+   "seconds": 0.53,
+   "file": "F09 FA-18C scanned pages.pdf",
+   "chunks": 2,
+   "status": "partial",
+   "phase": "quick",
+   "coverage": {
+    "indexed_units": 0,
+    "total_units": 2,
+    "text_indexed_units": 0,
+    "visual_pending_units": 2,
+    "unit": "pages",
+    "limitations": [
+     "2 pages contain no extractable text and require native visual review; they were not treated as read."
+    ]
+   }
+  },
+  {
+   "kind": "doc.review_deep",
+   "at": 1794966616.038,
+   "turn": 1,
+   "seconds": 8.66,
+   "file": "F09 FA-18C scanned pages.pdf",
+   "chunks": 2,
+   "status": "partial",
+   "phase": "deep",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 1,
+    "total_units": 2,
+    "text_indexed_units": 0,
+    "visual_pending_units": 1,
+    "unit": "pages",
+    "limitations": [
+     "1 pages still require native visual review.",
+     "AI visual transcriptions are searchable but have not been independently verified."
+    ]
+   }
+  },
+  {
+   "kind": "doc.review_complete",
+   "at": 1794966626.709,
+   "turn": 1,
+   "seconds": 19.34,
+   "file": "F09 FA-18C scanned pages.pdf",
+   "chunks": 2,
+   "status": "partial",
+   "phase": "complete",
+   "disposition": "relevant",
+   "coverage": {
+    "indexed_units": 2,
+    "total_units": 2,
+    "text_indexed_units": 0,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": [
+     "AI visual transcriptions are searchable but have not been independently verified."
+    ]
+   }
+  },
+  {
+   "kind": "doc.followup_question",
+   "at": 1794966628.179,
+   "turn": 2,
+   "seconds": 1.47,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "doc.first_question",
+   "at": 1794966628.179,
+   "turn": 3,
+   "seconds": 20.81,
+   "reading": {
+    "omitted_documents": 0,
+    "documents": [
+     {
+      "id": "doc_ce946ee7f50da1579896f468",
+      "included_chunks": 2,
+      "total_chunks": 2
+     }
+    ]
+   }
+  },
+  {
+   "kind": "doc.left_pending",
+   "at": 1794966658.648,
+   "turn": 3,
+   "notes_state": "working",
+   "map_state": "working",
+   "seconds": 31.94
+  },
+  {
+   "kind": "question",
+   "at": 1794966676.965,
+   "turn": 4,
+   "seconds": 1.668,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966691.667,
+   "turn": 5,
+   "seconds": 16.37,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 7,
+   "connections": 2
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966703.846,
+   "turn": 5,
+   "seconds": 28.55
+  },
+  {
+   "kind": "question",
+   "at": 1794966717.586,
+   "turn": 6,
+   "seconds": 3.829,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966717.591,
+   "turn": 7,
+   "seconds": 3.83,
+   "audited": true,
+   "answers_behind": 1,
+   "through": "t004",
+   "steps": 7,
+   "connections": 2
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966751.6,
+   "turn": 7,
+   "seconds": 37.84
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794966762.783,
+   "turn": 7,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 49.03
+  },
+  {
+   "kind": "question",
+   "at": 1794966780.244,
+   "turn": 8,
+   "seconds": 2.115,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966780.25,
+   "turn": 9,
+   "seconds": 2.12,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t006",
+   "steps": 12,
+   "connections": 7
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966813.389,
+   "turn": 9,
+   "seconds": 35.26
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966813.898,
+   "turn": 9,
+   "seconds": 35.77,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 14,
+   "connections": 9
+  },
+  {
+   "kind": "question",
+   "at": 1794966844.501,
+   "turn": 10,
+   "seconds": 1.74,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966844.509,
+   "turn": 11,
+   "seconds": 1.75,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t008",
+   "steps": 14,
+   "connections": 9
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966865.38,
+   "turn": 11,
+   "seconds": 22.62
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966881.172,
+   "turn": 11,
+   "seconds": 38.41,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 16,
+   "connections": 13
+  },
+  {
+   "kind": "question",
+   "at": 1794966909.599,
+   "turn": 12,
+   "seconds": 2.443,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966909.605,
+   "turn": 13,
+   "seconds": 2.45,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t010",
+   "steps": 16,
+   "connections": 13
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966942.631,
+   "turn": 13,
+   "seconds": 35.48
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794966954.869,
+   "turn": 13,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 47.71
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794966964.67,
+   "turn": 13,
+   "seconds": 0.032,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794967246.087,
+   "turn": 14,
+   "seconds": 278.332,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [
+  {
+   "name": "F09 FA-18C scanned pages.pdf",
+   "kind": "pdf",
+   "size": 213504,
+   "status": "partial",
+   "chunk_count": 2,
+   "coverage": {
+    "indexed_units": 2,
+    "total_units": 2,
+    "text_indexed_units": 0,
+    "visual_pending_units": 0,
+    "unit": "pages",
+    "limitations": [
+     "AI visual transcriptions are searchable but have not been independently verified."
+    ]
+   }
+  }
+ ],
+ "notes": {
+  "summary": "The participant describes completion, the notice approval and payment milestones, separate tracking of open items, and subsequent reporting use of binder records. Final sign-off and retention remain unknown.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "The intake names the work European Distribution Execution."
+   },
+   {
+    "key": "purpose",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "Cadence remains unclear. The preparer says the T+n day-count convention has never been confirmed to them; the process owner would have to say whether days are business or calendar days.\nA client's notification of a distribution to GP Fund Solutions starts the work. T is the date of that notification."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "For the documented exceptions, affected work remains open until the issue is resolved; this is not an overall process completion condition.\nThe event is finished when the checklist and required records are complete and filed in the digital binder, with both preparer and reviewer initials on the checklist.\nA CDD-blocked investor or returned payment still open is not marked closed; it is recorded and tracked separately until resolved."
+   },
+   {
+    "key": "accountable",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The unverified document says that when client comments change distribution terms or amounts, the calculation and notices are updated and affected checks repeated. It names the client / GPFS reviewer as decision-maker and requires completion and documentation before proceeding.\nThe unverified document says to withhold a payment blocked by an Exiger or CDD check and start follow-ups for 30, 60 and 90 days. Work stops until the issue is resolved and documented.\nThe document says that if client notice approval is missing at T+7, notices must not be sent at T+8 and work stops until the issue is resolved and documented.\nFor a proposed timeline shorter than T+15, the document requires approval from the Head of the applicable jurisdiction before proceeding.\nOn T, the preparer opens the event, records T, entity, amount, purpose and expected payment date, sets up the schedule from T+3 through T+15, and opens the checklist.\nAfter opening the event, the preparer works with Fund Accounting to draft investor calculations. For each investor, the preparer records the gross distribution, withholding and net payment in the distribution calculation file and shares the draft with the client by T+3.\nThe client sends comments by T+4. The preparer and reviewer work through them, update calculations and allocations, prepare notices by T+5, rerun affected comparison checks and keep each version.\nThe preparer takes the investor list and gross, withholding and net amounts from the approved file produced by the separate waterfall, tax and withholding calculation process. If the terms or amounts provided disagree, the preparer refers the issue back to that process and the client rather than fixing it independently.\nThe preparer compares investor totals with the approved fund-level amount at the T+3 draft and T+5 final stages. A mismatch is recorded and stops the item until resolution or a documented authorised decision.\nThe client approves notices in writing at T+7; notices go out at T+8 and cleared payments are released at T+15.\nOpen items such as CDD-blocked investors and returned payments are recorded and tracked separately. Payment status and returned payments are reported to the client from one day after the due date until each item is resolved."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The document identifies client notice approval as a gate and requires written approval from the Head of the applicable jurisdiction for a proposed timeline shorter than T+15.\nThe document does not specify the Compliance or regional owner for a blocked payment; who follows up on missing notice approval and records its resolution also needs clarification.\nThe preparer checks that the sum of investor amounts equals the approved fund-level amount against the approved distribution terms and amounts. The check is performed on the T+3 draft and T+5 final calculation, and the reviewer reviews it.\nThe preparer cannot review their own work; every checklist section needs both the preparer's and the reviewer's initials.\nWhen supplied terms or amounts do not agree, the preparer refers the disagreement to the separate calculation process and the client rather than correcting it independently.\nIf the amounts do not agree, the preparer records the exception. The item cannot move forward until the issue is resolved or an authorised decision is documented.\nThe participant does not know who gives final sign-off."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "When an investor is CDD-blocked or a payment is returned, the open item is tracked separately and reported to the client until resolved, rather than marked closed."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The supplied FA-18C decisions and exceptions table requires a calculation with version history for changed terms, a block and follow-up record for blocked payments, an approval record for missing notice approval, and written approval for a shorter timeline. Its visual transcription has not been independently verified.\nThe preparer uses the client's distribution notification to establish T, sets up a T+3 through T+15 schedule, and opens a checklist.\nThe distribution calculation file contains investor gross distributions, withholding and net payments. The preparer and reviewer keep each version after updating calculations and allocations.\nThe preparer and reviewer prepare distribution notices by T+5; checklist sections carry both their initials.\nAn approved calculation file from the separate calculation process supplies the investor list and gross, withholding and net amounts. The current LPA and any side letters are reported governing sources.\nThe calculation record is retained as evidence of the investor-total comparison; exceptions are recorded.\nThe digital binder contains the completed checklist, calculation, client approval, notices, screening and CDD records, payment and payment-completion records, and follow-up records. Binder records are used for quarterly and entity reporting.\nThe participant does not know the record-retention period; a system owner or process expert would have to confirm it."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The intake identifies the work as European Distribution Execution; the supplied table describes distribution-related decisions and exceptions.\nThe full process boundary and whether the documented blocked-payment, missing-approval and shorter-timeline routes reflect current practice remain to be confirmed.\nWaterfall, tax and withholding calculations are performed in a separate process, not in distribution execution."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The document requires changed terms or amounts to be reflected in calculations and notices with affected checks repeated; blocked payments and missing notice approvals must not proceed until resolved and documented.\nT must match the date on the client's notification.\nInvestor totals must agree with the approved fund-level distribution, and every checklist section requires preparer and reviewer initials because the preparer cannot review their own work.\nThe participant says the current limited partnership agreement and any side letters control distribution amounts and allocation rules. Disagreements in supplied terms or amounts are referred to the calculation process and client, not fixed by the preparer.\nInvestor amounts must sum to the approved fund-level amount; a mismatch blocks the item until resolution or a documented authorised decision.\nWritten client approval of notices at T+7 precedes sending at T+8; cleared payments are released at T+15. Open items are not marked closed."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The preparer works with Fund Accounting when drafting investor calculations.\nThe participant says the client must approve notices in writing at T+7 before notices go out at T+8. The unverified document says missing approval stops notice sending until resolution is documented.\nThe supplied document requires approval from the Head of the applicable jurisdiction before proceeding with a proposed timeline shorter than T+15. Current practice remains unconfirmed.\nThe division of work between the preparer and Fund Accounting remains unclear.\nDistribution execution consumes the approved output of the separate waterfall, tax and withholding calculation process. The preparer refers disagreements in supplied terms or amounts to that process and the client.\nCompleted binder records are used for quarterly and entity reporting."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The unverified document refers to an Exiger or CDD check that can block a payment.\nThe system workflow for the documented Exiger or CDD check remains unclear.\nThe distribution calculation file contains investor gross distribution, withholding and net payment amounts.\nThe calculation file's platform and its working storage location remain unidentified; the completed calculation is filed in the digital binder.\nThe approved calculation file from the separate process supplies the investor list and gross, withholding and net amounts used by the preparer."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": ""
+   }
+  ]
+ },
+ "map": {
+  "title": "European Distribution Execution",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Update calculations and notices",
+    "actor": "Preparer and reviewer",
+    "system": "Distribution calculation file; notice location UNKNOWN",
+    "description": "The preparer and reviewer work through client comments, update calculations and allocations, and prepare distribution notices by T+5. The document separately says that comments changing terms or amounts require updated calculations and notices; it names the client and GPFS reviewer as decision-makers."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Repeat affected checks",
+    "actor": "Preparer and reviewer",
+    "system": "UNKNOWN",
+    "description": "Repeat affected comparison checks and retain each version. The preparer checks final investor totals against approved fund terms and amounts at T+5; the reviewer reviews the comparison and the calculation record is kept. For client comments changing terms or amounts, the document requires the calculation and notices to be updated, affected checks repeated, and the required action completed and documented before proceeding."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Withhold blocked payment and follow up",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "When an Exiger or CDD check blocks a payment, the document calls for withholding it and starting follow-ups. The compliance or regional owner is unspecified; proceeding is stopped until the issue is resolved and documented."
+   },
+   {
+    "id": "S4",
+    "type": "wait",
+    "title": "Hold notices for resolution",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "If client approval of the notice is missing at T+7, the document says not to send notices at T+8. The client decides; an approval record is required."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Obtain shorter-timeline approval",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "For a proposed timeline shorter than T+15, the document calls for approval from the head of the applicable jurisdiction. Written approval is required before proceeding."
+   },
+   {
+    "id": "S6",
+    "type": "start",
+    "title": "Client notifies GPFS",
+    "actor": "Client",
+    "system": "UNKNOWN",
+    "description": "The client notifies GPFS of a distribution. The notification date defines T and starts the work."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Open distribution event",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "On T, the preparer opens the event, records T, entity, amount, purpose and expected payment date, sets up the T+3 through T+15 schedule, and opens the checklist. T must match the client notification date."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Draft investor calculations",
+    "actor": "Preparer, working with Fund Accounting",
+    "system": "Distribution calculation file",
+    "description": "The preparer drafts the investor calculations using the investor list, gross amounts, withholding and net amounts from the approved upstream calculation file. Waterfall, tax and withholding calculations are performed separately, not in this process."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Compare draft investor totals",
+    "actor": "Preparer",
+    "system": "Distribution calculation file",
+    "description": "At T+3, compare the sum of investor amounts with the approved fund-level amount and terms. The reviewer reviews the comparison, and the calculation record is retained."
+   },
+   {
+    "id": "S10",
+    "type": "document",
+    "title": "Share draft with client",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "Share the draft investor calculations with the client by T+3."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Send client comments",
+    "actor": "Client",
+    "system": "UNKNOWN",
+    "description": "The client sends comments by T+4."
+   },
+   {
+    "id": "S12",
+    "type": "document",
+    "title": "Initial checklist sections",
+    "actor": "Preparer and reviewer",
+    "system": "Checklist location UNKNOWN",
+    "description": "Every checklist section needs both the preparer's and reviewer's initials. The preparer cannot review their own work; the timing and individual review checks are UNKNOWN."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Refer disagreements back",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "If the terms or amounts provided do not agree, the preparer refers the issue to the separate calculation process and the client rather than fixing it personally. The point at which the disagreement is identified and the subsequent handoff are UNKNOWN."
+   },
+   {
+    "id": "S14",
+    "type": "subprocess",
+    "title": "Calculate waterfall, tax and withholding",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "A separate upstream process performs waterfall, tax and withholding calculations and produces the approved calculation file used here. Its internal steps are outside this account."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Review investor-total comparisons",
+    "actor": "Reviewer",
+    "system": "UNKNOWN",
+    "description": "The reviewer reviews the preparer's draft and final comparisons of investor totals with the approved fund-level amount. The timing of review relative to sharing and subsequent work is UNKNOWN."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Record and hold comparison exception",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "If investor totals do not agree, the preparer records the exception. The item does not move forward until the issue is resolved or an authorised decision is documented."
+   },
+   {
+    "id": "S17",
+    "type": "decision",
+    "title": "Notice approval by T+7?",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The client must approve the notices in writing at T+7. The document says to stop if approval is missing."
+   },
+   {
+    "id": "S18",
+    "type": "document",
+    "title": "Send distribution notices",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Notices go out at T+8 after the client's written approval."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Release cleared payments",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Cleared payments are released at T+15. The participant does not describe the clearance steps."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Track open distribution items",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Open items, including CDD-blocked investors and returned payments, are recorded and tracked separately rather than marked closed."
+   },
+   {
+    "id": "S21",
+    "type": "activity",
+    "title": "Report payment status",
+    "actor": "GPFS; individual role UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Report payment status and returned payments to the client from one day after the due date until each item is resolved."
+   },
+   {
+    "id": "S22",
+    "type": "document",
+    "title": "Complete and file event records",
+    "actor": "UNKNOWN",
+    "system": "Digital binder",
+    "description": "Complete and file the checklist and required calculation, client approval, notice, screening, CDD, payment, payment-completion and follow-up records in the digital binder. Both preparer and reviewer initials are required on the checklist."
+   },
+   {
+    "id": "S23",
+    "type": "activity",
+    "title": "Use records for reporting",
+    "actor": "UNKNOWN",
+    "system": "Digital binder",
+    "description": "The completed binder records are used for quarterly and entity reporting."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": ""
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": ""
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": ""
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": ""
+   },
+   {
+    "from": "S11",
+    "to": "S1",
+    "label": ""
+   },
+   {
+    "from": "S14",
+    "to": "S8",
+    "label": "Approved calculation file available"
+   },
+   {
+    "from": "S7",
+    "to": "S12",
+    "label": ""
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": "Investor totals agree"
+   },
+   {
+    "from": "S9",
+    "to": "S15",
+    "label": "Draft comparison"
+   },
+   {
+    "from": "S2",
+    "to": "S15",
+    "label": "Final comparison"
+   },
+   {
+    "from": "S9",
+    "to": "S16",
+    "label": "Investor totals do not agree"
+   },
+   {
+    "from": "S2",
+    "to": "S16",
+    "label": "Investor totals do not agree"
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": "Client approval in writing"
+   },
+   {
+    "from": "S17",
+    "to": "S4",
+    "label": "Approval missing at T+7"
+   },
+   {
+    "from": "S12",
+    "to": "S22",
+    "label": "Checklist initialled AND all required records complete and filed"
+   },
+   {
+    "from": "S2",
+    "to": "S22",
+    "label": "Checklist initialled AND all required records complete and filed"
+   },
+   {
+    "from": "S17",
+    "to": "S22",
+    "label": "Written approval received AND checklist initialled AND all required records complete and filed"
+   },
+   {
+    "from": "S18",
+    "to": "S22",
+    "label": "Notices sent AND checklist initialled AND all required records complete and filed"
+   },
+   {
+    "from": "S19",
+    "to": "S22",
+    "label": "Cleared payments released AND checklist initialled AND all required records complete and filed"
+   },
+   {
+    "from": "S22",
+    "to": "S23",
+    "label": ""
+   }
+  ],
+  "open_questions": [
+   "How do the documented blocked-payment, missing-notice-approval and shorter-timeline actions connect to the rest of the process, and where does work resume after each issue is resolved?",
+   "Are the outgoing paths from S7 (Open distribution event) alternatives, or must they all occur?",
+   "Does any incoming route start S8 (Draft investor calculations), or must all prerequisites finish?",
+   "Does any incoming route start S15 (Review investor-total comparisons), or must all prerequisites finish?",
+   "Does any incoming route start S16 (Record and hold comparison exception), or must all prerequisites finish?",
+   "Does any incoming route start S22 (Complete and file event records), or must all prerequisites finish?",
+   "How does step S3 (Withhold blocked payment and follow up) connect to the rest of this process, if at all?",
+   "How does step S5 (Obtain shorter-timeline approval) connect to the rest of this process, if at all?",
+   "How does step S13 (Refer disagreements back) connect to the rest of this process, if at all?",
+   "How does step S20 (Track open distribution items) connect to the rest of this process, if at all?",
+   "How does step S21 (Report payment status) connect to the rest of this process, if at all?",
+   "Who receives the client notification, and what produces it?",
+   "Are T+n intervals business days or calendar days? The participant says the process owner must confirm.",
+   "How is the approved upstream calculation file made available, and how is readiness coordinated with event opening?",
+   "When are checklist sections initialled, what does the reviewer check in each section, and where is the checklist retained?",
+   "When does the reviewer review the draft and final investor-total comparisons relative to sharing or advancing work? Where is the calculation record retained?",
+   "Who resolves a recorded comparison exception or makes an authorised decision, where is the decision documented, and where does the item resume?",
+   "Where are disagreements in provided terms or amounts identified, and how does work resume after referral to the calculation process and client?",
+   "What happens if client comments are delayed or another repeated check fails?",
+   "Which other comparison checks are affected by comments, where are versions kept, and how are completion and release verified?",
+   "How do the final checks and prepared notices lead to the notice-approval gate? Who checks the approval outcome?",
+   "Who sends notices and releases payments, and what screening, CDD and payment-clearance actions precede release?",
+   "Where does a blocked-payment check occur, who owns and performs follow-ups, and how does work resume after resolution?",
+   "Who follows up and escalates missing notice approval, how is resolution recorded, and where does the notice route resume?",
+   "When is a shorter timeline proposed, who requests jurisdiction-head approval, and where does work resume after approval?",
+   "Who records and tracks open items, how are they resolved and closed, and how does that work connect to payment-status reporting?",
+   "Can the event finish while an investor or returned payment remains open and tracked separately?",
+   "Who completes and files the binder, who gives final sign-off, and how long are records retained? The participant says retention needs confirmation.",
+   "Does the exceptions table reflect current practice and this process's scope? The file has native text for 0 of 2 pages; both indexed sections were supplied; AI review is complete for 2 of 2 chunks, with no unread visual units. The visual transcriptions have not been independently verified.",
+   "Who is accountable for the overall result, and what systems and authoritative records are used?",
+   "Who interprets the governing terms, where is that interpretation recorded, and how do comment-driven updates relate to the separate calculation process?",
+   "What entity and client scope, variations, practical difficulties, risks and volumes apply?",
+   "How do the existing event-opening, checklist-initialling, comparison-review and exception routes relate in timing and readiness?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "DRAFT for review: European Distribution Execution",
+  "overview": "The participant describes distribution execution from a client notification through notice approval, payment release, follow-up and filing. The supplied decisions table adds documented exception rules, but its use in current practice is unconfirmed. This draft is not an approved or executable procedure; accountability, several handoffs and the T+n day-count convention remain UNKNOWN.",
+  "trigger": "The client notifies GPFS of a distribution; the notification date is T.",
+  "inputs": [
+   "Client distribution notification.",
+   "Approved upstream calculation file containing the investor list and gross, withholding and net amounts.",
+   "Approved fund-level distribution terms and amounts.",
+   "Client comments on the draft calculations."
+  ],
+  "outputs": [
+   "Distribution notices and released cleared payments.",
+   "Completed checklist and required records filed in a digital binder.",
+   "Payment-status and returned-payment reporting to the client.",
+   "Binder records used for quarterly and entity reporting."
+  ],
+  "exceptions": [
+   "If investor totals do not agree, the preparer records the exception and holds the item until resolution or a documented authorised decision. The return route is UNKNOWN.",
+   "If provided terms or amounts do not agree, the preparer refers the issue to the separate calculation process and the client rather than fixing it personally.",
+   "The decisions table says an Exiger or CDD block requires payment withholding and follow-ups at 30, 60 and 90 days; the owner and route back are UNKNOWN.",
+   "The decisions table says missing notice approval at T+7 stops notices at T+8 until resolution is documented.",
+   "Open items, including CDD-blocked investors and returned payments, are tracked separately and not marked closed. Client reporting continues until each item is resolved.",
+   "The decisions table requires jurisdiction-head approval and a written record for a proposed timeline shorter than T+15; placement and current application are UNKNOWN."
+  ],
+  "controls": [
+   "T must match the date on the client's notification.",
+   "Investor amounts must sum to the approved fund-level amount; the preparer checks draft and final calculations and the reviewer reviews the comparison.",
+   "The preparer cannot review their own work; every checklist section needs both preparer and reviewer initials.",
+   "The client must approve notices in writing at T+7; cleared payments are released at T+15.",
+   "The decisions table specifies documentary stop and proceed rules; their operation in current practice has not been confirmed."
+  ],
+  "validation_notes": [
+   "Current-practice draft pending participant confirmation and appropriate process-owner review; approval has not been established. All sixteen topics remain partial or UNKNOWN.",
+   "The decisions table is documentary evidence, not confirmation that its rules are followed. Its AI visual transcriptions have not been independently verified.",
+   "The PDF has native text for 0 of 2 pages. Both indexed sections were supplied; AI review was complete for 2 of 2 chunks, review was not stopped, and there were no unread visual units.",
+   "The map retains disconnected fragments where placement or handoff is UNKNOWN: checklist initialling, payment release, documented blocked-payment and shorter-timeline handlers, disagreement referral, open-item tracking and status reporting. The fragments are not evidence that the work is independent.",
+   "Prepared notices are a prerequisite for their approval, not an established immediate handoff. The account does not establish the immediate transition from final checks to approval or from notice sending to payment release.",
+   "Edges into event completion express jointly required prerequisites, not alternative bypasses or an order among prerequisites. They do not identify who coordinates completion.",
+   "No exception return or retry has been invented. The documented blocked-payment entry point, its exit, and the shorter-timeline approval's placement remain UNKNOWN.",
+   "No approved GPFS standard, authoritative system of record, retention period or final sign-off has been established.",
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified.",
+   "Document-derived statements describe supplied reference material; current practice and control effectiveness have not been confirmed."
+  ],
+  "steps": [
+   {
+    "id": "S6",
+    "type": "start",
+    "title": "Client notifies GPFS",
+    "actor": "Client",
+    "system": "UNKNOWN",
+    "description": "The client's distribution notification starts the work. Its date defines T."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Open distribution event",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "On T, open the event; record T, entity, amount, purpose and expected payment date; set up the schedule from T+3 through T+15; and open the checklist. T must match the notification date. Whether T+n means business or calendar days is UNKNOWN."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Draft investor calculations",
+    "actor": "Preparer, working with Fund Accounting",
+    "system": "Distribution calculation file",
+    "description": "Prepare each investor's gross distribution, withholding and net payment in the distribution calculation file. The investor list and amounts are taken from the approved file produced by the separate waterfall, tax and withholding calculation process; those calculations are not worked out in this process."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Compare draft investor totals",
+    "actor": "Preparer; reviewer reviews the comparison",
+    "system": "Distribution calculation file",
+    "description": "At T+3, compare the investor total with the approved fund-level amount and terms. Investor amounts must add to the approved fund-level amount. The reviewer reviews the comparison and the calculation record is kept; the timing of review relative to sharing is UNKNOWN."
+   },
+   {
+    "id": "S10",
+    "type": "document",
+    "title": "Share draft with client",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "Share the draft investor calculations with the client by T+3."
+   },
+   {
+    "id": "S11",
+    "type": "document",
+    "title": "Send client comments",
+    "actor": "Client",
+    "system": "UNKNOWN",
+    "description": "The client sends comments by T+4."
+   },
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Update calculations and notices",
+    "actor": "Preparer and reviewer",
+    "system": "Distribution calculation file; notice location UNKNOWN",
+    "description": "Work through client comments, update calculations and allocations, and prepare distribution notices by T+5. Separately, the decisions table says comments changing distribution terms or amounts require updated calculations and notices and repeated affected checks; it names the client and GPFS reviewer as decision-makers and requires the action to be complete and documented before proceeding. Current application of that table is unconfirmed."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Repeat affected checks",
+    "actor": "Preparer and reviewer; reviewer reviews the final comparison",
+    "system": "UNKNOWN",
+    "description": "Rerun affected comparison checks and keep each version. At T+5 the preparer again compares final investor totals with approved fund-level terms and amount; the reviewer reviews the comparison. The decisions table separately requires affected checks to be repeated when comments change terms or amounts and requires completion and documentation before proceeding."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Record and hold comparison exception",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "If investor totals do not agree, record the exception. The item does not move forward until the issue is resolved or an authorised decision is documented."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Refer disagreements back",
+    "actor": "Preparer",
+    "system": "UNKNOWN",
+    "description": "If provided terms or amounts do not agree, refer the issue to the separate calculation process and the client rather than fixing it personally. The point of identification and return route are UNKNOWN."
+   },
+   {
+    "id": "S12",
+    "type": "document",
+    "title": "Initial checklist sections",
+    "actor": "Preparer and reviewer",
+    "system": "Checklist location before filing UNKNOWN",
+    "description": "Every checklist section needs both the preparer's and reviewer's initials. The preparer cannot review their own work. Timing and checks for individual sections are UNKNOWN."
+   },
+   {
+    "id": "S17",
+    "type": "decision",
+    "title": "Is written notice approval received?",
+    "actor": "Client; person checking outcome UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The client must have approved the notices in writing at T+7. The decisions table says that if approval is missing, notices must not be sent at T+8 and work stops until the issue is resolved and documented. Current application of the table is unconfirmed."
+   },
+   {
+    "id": "S4",
+    "type": "wait",
+    "title": "Hold notices for resolution",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The decisions table says not to send notices at T+8 when client approval is missing at T+7. It names the client as decision-maker, requires an approval record and says not to proceed until the issue is resolved and documented. Follow-up and the subsequent route are UNKNOWN."
+   },
+   {
+    "id": "S18",
+    "type": "document",
+    "title": "Send distribution notices",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Notices go out at T+8 after the client's written approval. Sender and delivery method are UNKNOWN."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Release cleared payments",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Cleared payments are released at T+15. Screening, CDD and clearance actions, their order and the releaser are not described."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Withhold blocked payment and follow up",
+    "actor": "UNKNOWN; the table says the Compliance or regional owner is not specified",
+    "system": "UNKNOWN",
+    "description": "The decisions table says that when an Exiger or CDD check blocks a payment, withhold it and start follow-ups for 30, 60 and 90 days. It requires a block and follow-up record and says not to proceed until resolution is documented. The check's location and the subsequent route are UNKNOWN; current application is unconfirmed."
+   },
+   {
+    "id": "S23",
+    "type": "activity",
+    "title": "Obtain shorter-timeline approval",
+    "actor": "Requester UNKNOWN; Head of the applicable jurisdiction approves",
+    "system": "UNKNOWN",
+    "description": "For a proposed timeline shorter than T+15, the decisions table calls for approval from the Head of the applicable jurisdiction. It requires written approval and says to proceed only after the required action is complete and documented. The insertion point, requester and subsequent route are UNKNOWN; current application is unconfirmed."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Track open distribution items",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Record and track open items separately rather than marking them closed. Examples include a CDD-blocked investor and a returned payment. How they are resolved and closed is UNKNOWN."
+   },
+   {
+    "id": "S21",
+    "type": "activity",
+    "title": "Report payment status",
+    "actor": "GPFS; individual role UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Report payment status and returned payments to the client from one day after the due date until each item is resolved. Reporting frequency and resolution mechanics are otherwise UNKNOWN."
+   },
+   {
+    "id": "S22",
+    "type": "document",
+    "title": "Complete and file event records",
+    "actor": "UNKNOWN",
+    "system": "Digital binder",
+    "description": "The event is finished when the checklist and required records are complete and filed in the digital binder, with the preparer's and reviewer's initials on the checklist. Records comprise the calculation, client approval, notices, screening and CDD records, payment and payment-completion records, and follow-up records. Unresolved items are tracked separately and not marked closed; whether the event itself can finish while an item remains open is UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Notification on T"
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": "Next"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "Draft prepared"
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": "Investor totals agree"
+   },
+   {
+    "from": "S9",
+    "to": "S16",
+    "label": "Investor totals do not agree"
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": "Draft shared"
+   },
+   {
+    "from": "S11",
+    "to": "S1",
+    "label": "Client comments"
+   },
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "Updates and notices prepared"
+   },
+   {
+    "from": "S1",
+    "to": "S17",
+    "label": "Prepared notices required for approval"
+   },
+   {
+    "from": "S2",
+    "to": "S16",
+    "label": "Investor totals do not agree"
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": "Client approval in writing"
+   },
+   {
+    "from": "S17",
+    "to": "S4",
+    "label": "Approval missing at T+7"
+   },
+   {
+    "from": "S12",
+    "to": "S22",
+    "label": "Checklist initialled AND all required records complete and filed"
+   },
+   {
+    "from": "S2",
+    "to": "S22",
+    "label": "Checklist initialled AND all required records complete and filed"
+   },
+   {
+    "from": "S17",
+    "to": "S22",
+    "label": "Written approval received AND checklist initialled AND all required records complete and filed"
+   },
+   {
+    "from": "S18",
+    "to": "S22",
+    "label": "Notices sent AND checklist initialled AND all required records complete and filed"
+   },
+   {
+    "from": "S19",
+    "to": "S22",
+    "label": "Cleared payments released AND checklist initialled AND all required records complete and filed"
+   }
+  ],
+  "open_questions": [
+   "Does any incoming route start S16 (Record and hold comparison exception), or must all prerequisites finish?",
+   "Does any incoming route start S22 (Complete and file event records), or must all prerequisites finish?",
+   "How does step S13 (Refer disagreements back) connect to the rest of this process, if at all?",
+   "How does step S3 (Withhold blocked payment and follow up) connect to the rest of this process, if at all?",
+   "How does step S23 (Obtain shorter-timeline approval) connect to the rest of this process, if at all?",
+   "How does step S20 (Track open distribution items) connect to the rest of this process, if at all?",
+   "How does step S21 (Report payment status) connect to the rest of this process, if at all?",
+   "Who is accountable for the overall result, and can the event finish while an investor or returned payment remains open and separately tracked?",
+   "How do final checks and prepared notices reach the client-approval gate, and what screening, CDD and clearance work leads to payment release?",
+   "Are T+n intervals business days or calendar days? The participant identified the process owner as the person who must confirm.",
+   "Does the decisions table reflect current practice and this process's scope, including its blocked-payment, missing-approval and shorter-timeline rules?",
+   "Who resolves comparison exceptions or authorises decisions, and how do held or referred items resume?",
+   "Who receives the notification, what produces it, and how is the approved upstream calculation file made available and coordinated with event opening?",
+   "When are checklist sections initialled, what does the reviewer check, and when are draft and final comparisons reviewed relative to advancement?",
+   "Where are disagreements in provided terms or amounts identified, and how does work resume after referral to the calculation process and client?",
+   "What happens when client comments are delayed or another repeated check fails? Which checks are affected, and where are versions retained?",
+   "Who sends notices and releases payments? Where does an Exiger or CDD block arise, who follows up, and how does the payment route resume?",
+   "Who follows up and escalates missing notice approval, how is resolution recorded, and where does the route resume?",
+   "When is a shorter timeline proposed, who requests jurisdiction-head approval, and where does work resume after approval?",
+   "Who tracks and resolves open items, and how does that work connect to payment-status reporting?",
+   "Who completes and files the binder, who gives final sign-off, and how long are records retained? The participant identified the system owner or a process expert as a retention source.",
+   "Who interprets the governing terms, where is the interpretation recorded, and how do comment-driven updates relate to the separate calculation process?",
+   "What entity and client scope, variations, practical difficulties, consequences of failure and volumes apply?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "The intake names the work European Distribution Execution. Other team, checklist or system names and the precise boundary are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The reported work produces notices, releases cleared distribution payments and files supporting event records for later reporting. The broader intended result and full boundary remain UNKNOWN."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "A client distribution notification to GPFS starts the work; its date is T. The preparer opens the event that day. The recipient, upstream source, normal frequency and whether T+n means business or calendar days are UNKNOWN. Reported milestones run from T+3 to T+15."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The event finishes when the checklist and required calculation, approval, notice, screening, CDD, payment, payment-completion and follow-up records are complete and filed in the digital binder, with both sets of initials. The participant also identifies written approval, notice sending and release of cleared payments before finish. Binder records feed quarterly and entity reporting. Open items are tracked separately and not marked closed; whether the event can finish while they remain open, and who signs off, are UNKNOWN."
+   },
+   {
+    "key": "accountable",
+    "status": "unknown",
+    "answer": "UNKNOWN: the overall accountable role and final sign-off authority were not identified. The preparer and reviewer have described operational duties, not established overall accountability."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The preparer opens the event and checklist on T, then drafts investor calculations with Fund Accounting using an approved upstream file. Investor totals are checked and the draft is shared by T+3; the client comments by T+4. The preparer and reviewer update calculations and allocations, prepare notices by T+5, rerun affected checks and retain versions. Written client approval is required at T+7, notices go out at T+8 and cleared payments are released at T+15. Open items are tracked and payment status reported until resolution; records are filed in the binder. Several intervening handoffs, clearance actions, actors and exception returns are UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "T must match the notification date. The preparer compares investor totals with approved fund terms and amount at draft and final stages; the reviewer reviews the comparison and the calculation record is kept. Disagreements are recorded and held until resolved or an authorised decision is documented. The preparer cannot self-review, and both parties initial every checklist section. The client approves notices in writing. The table documents additional stops, but actual operation, review timing, detailed checks, enforcement, authority and evidence locations remain partly UNKNOWN."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "The decisions table addresses a proposed timeline shorter than T+15: it calls for written approval by the head of the applicable jurisdiction before proceeding. Whether this is current practice, its insertion point, boundary, effort, charging and removability are UNKNOWN. Other client or structural differences are UNKNOWN."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": "UNKNOWN: manual friction, rework effort and practical pain points were not described."
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "Reported conditions include calculation disagreements, blocked investors, missing notice approval and returned payments; these can hold work open or require tracking. Concrete consequences for clients, money or deadlines were not described."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The participant uses a checklist, calculation file and digital binder, and identifies the current limited partnership agreement and side letters as sources of distribution and allocation terms. The supplied two-page scanned decisions table was reviewed by AI through unverified visual transcription; it has not been confirmed as current practice. Locations and review status of the governing documents are UNKNOWN."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The account concerns European distribution execution and refers to a fund, investors and a client. Other entity types, client coverage, parent process and whether this is general GPFS practice or a client-specific route are UNKNOWN. A single account and the unconfirmed table do not establish an approved standard."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The participant says the current limited partnership agreement and side letters control distribution amounts and allocation rules. Gross, withholding and net amounts and the investor list come from an approved separate calculation process; this work checks investor totals against approved fund-level terms and amount. Disagreements in supplied terms or amounts are referred back and to the client. Rule interpretation, authority, calculation implementation and conflict resolution are UNKNOWN. The supplied table states exception rules, without proving they are followed."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "A separate waterfall, tax and withholding calculation process supplies the approved investor file; the preparer works with Fund Accounting. Disagreements are referred to that calculation process and the client. The client receives the draft, gives comments and approves notices; binder records support quarterly and entity reporting. Readiness coordination, other dependencies and downstream owners are UNKNOWN."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The preparer uses a distribution calculation file and an approved upstream calculation file; versions and a calculation record are retained. A checklist and required records are filed in a digital binder. The authoritative record, entry or import method, workbook logic ownership, calculation location and detailed storage locations are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": "UNKNOWN: normal counts, peaks, exception frequency and effort by step were not provided."
+   }
+  ]
+ },
+ "draft_error": null
+}

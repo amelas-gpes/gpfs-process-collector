@@ -1128,10 +1128,11 @@ class Coordinator:
         files = [doc.get("name", "reference file") for doc in
                  [*supporting.get("pending_documents", []), *supporting.get("documents", [])]
                  if doc.get("review", {}).get("phase") != "complete"]
-        detail = self.api.open_sections_detail(labels)
+        partly = sum(1 for row in capture["memo_findings"] if row["status"] == "partial")
+        detail = self.api.open_sections_detail(labels, partly=partly)
         if files:
             detail += " Files awaiting review: " + ", ".join(files[:6]) + ". Retry review, save for later, or remove the file."
-        self._authorize(capture, run, self.api.PARTIAL_CHECK_PREFIX + detail + " You can create a partial draft.", "pause")
+        self._authorize(capture, run, self.api.PARTIAL_CHECK_PREFIX + detail + self.api.PARTIAL_CHECK_CLOSE, "pause")
 
     def _authorize(self, capture, run, question, kind):
         question = question.strip()

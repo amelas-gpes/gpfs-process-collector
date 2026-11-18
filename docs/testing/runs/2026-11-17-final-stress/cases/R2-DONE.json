@@ -1,0 +1,3400 @@
+{
+ "case": "R2-DONE",
+ "process": "fictional",
+ "mode": "typed",
+ "style": "a participant who answers 45 questions in full, to reach a complete capture",
+ "build": "round2",
+ "participant": "agent",
+ "context": {
+  "process_name": "Supplier statement reconciliation",
+  "process_owner": "",
+  "objective": "Document how we carry out Supplier statement reconciliation, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "Every Monday at 9:00 the AP clerk downloads the supplier statements that arrived in the shared mailbox ap-statements during the previous week."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "What does the AP clerk do with the statements after downloading them?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "The clerk saves each statement PDF into the folder Statements/YYYY-WW on the shared drive."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What records does the clerk compare each statement against?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "The clerk exports the open-items report for that supplier from our ledger system, Ledgerline, and compares the statement lines with those open items in the workbook Statement Rec Template, one tab per supplier."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "How are differences between a statement line and an open item handled?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "If the total difference for a supplier is under 50 pounds it is noted and ignored. For larger differences the clerk classifies each one as missing invoice, payment in transit, duplicate, or disputed."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "What does the clerk do after classifying a larger difference?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "It depends on the class. For a missing invoice the clerk emails the supplier the same day asking for a copy and logs it in the Rec Log sheet. For a duplicate the clerk emails me the same day. A payment in transit needs no action and is just noted. A disputed item goes to the buyer who placed the order."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "What does the buyer do with a disputed item after it is referred to them?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "The buyer has 5 business days to reply to the dispute. If they do not, I chase them once, and after that the item goes to the finance manager."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "What does the finance manager do when the disputed item is escalated to them?"
+  },
+  {
+   "id": "t014",
+   "role": "user",
+   "text": "The finance manager, Dana Whitlock, decides the outcome of the dispute with the buyer and the supplier, and tells me and the clerk so the item can be resolved in Ledgerline and the Rec Log."
+  },
+  {
+   "id": "t015",
+   "role": "assistant",
+   "text": "What does the clerk change in Ledgerline to resolve a disputed item?"
+  },
+  {
+   "id": "t016",
+   "role": "user",
+   "text": "The clerk does not change anything in Ledgerline for a dispute itself. If the finance manager decides the supplier is right, nothing changes. If we are right, the clerk asks the supplier for a credit note and posts it in Ledgerline when it arrives."
+  },
+  {
+   "id": "t017",
+   "role": "assistant",
+   "text": "What does the clerk record in the Rec Log when resolving a disputed item?"
+  },
+  {
+   "id": "t018",
+   "role": "user",
+   "text": "The clerk records the outcome of the dispute, either supplier correct or credit note requested, and the date it was resolved, against that supplier line in the Rec Log."
+  },
+  {
+   "id": "t019",
+   "role": "assistant",
+   "text": "What observable result tells you a supplier’s reconciliation is complete?"
+  },
+  {
+   "id": "t020",
+   "role": "user",
+   "text": "The clerk marks the supplier Done in the Rec Log. For any reconciliation with a difference over 500 pounds, I must also have reviewed it and put my initials in cell B2 of the supplier tab."
+  },
+  {
+   "id": "t021",
+   "role": "assistant",
+   "text": "What does your review of reconciliations over £500 check?"
+  },
+  {
+   "id": "t022",
+   "role": "user",
+   "text": "I check that each difference has been classified correctly, that the follow-up action has been taken and logged in the Rec Log, and that the totals on the tab agree to the statement and the open-items report. Then I initial B2."
+  },
+  {
+   "id": "t023",
+   "role": "assistant",
+   "text": "Where are differences under £50 noted?"
+  },
+  {
+   "id": "t024",
+   "role": "user",
+   "text": "They are noted in a comment line on that supplier's tab in the Statement Rec Template workbook, with the total difference amount. They are not logged anywhere else."
+  },
+  {
+   "id": "t025",
+   "role": "assistant",
+   "text": "What does this reconciliation help the finance team accomplish?"
+  },
+  {
+   "id": "t026",
+   "role": "user",
+   "text": "It confirms that what each supplier says we owe matches our payables ledger, so missing invoices and duplicate payments are found before month-end."
+  },
+  {
+   "id": "t027",
+   "role": "assistant",
+   "text": "How is a supplier’s total difference of exactly £50 handled?"
+  },
+  {
+   "id": "t028",
+   "role": "user",
+   "text": "A total of exactly 50 pounds is treated as a larger difference, so it is classified and followed up. Only totals strictly under 50 pounds are ignored."
+  },
+  {
+   "id": "t029",
+   "role": "assistant",
+   "text": "What happens after the supplier sends the requested invoice copy?"
+  },
+  {
+   "id": "t030",
+   "role": "user",
+   "text": "The clerk passes the invoice copy to the accounts payable team to be entered into Ledgerline, then updates the Rec Log line for that supplier. Until it is entered, it stays on the missing-invoice list used for month-end accruals."
+  },
+  {
+   "id": "t031",
+   "role": "assistant",
+   "text": "What does the clerk record in the Rec Log once the invoice has been entered in Ledgerline?"
+  },
+  {
+   "id": "t032",
+   "role": "user",
+   "text": "The clerk marks that missing-invoice line as resolved in the Rec Log and records the date the invoice was entered."
+  },
+  {
+   "id": "t033",
+   "role": "assistant",
+   "text": "What do you do after the clerk emails you about a duplicate?"
+  },
+  {
+   "id": "t034",
+   "role": "user",
+   "text": "I block the duplicate in Ledgerline within one business day so it cannot be paid."
+  },
+  {
+   "id": "t035",
+   "role": "assistant",
+   "text": "What do you record in the Rec Log after blocking a duplicate?"
+  },
+  {
+   "id": "t036",
+   "role": "user",
+   "text": "I record nothing myself. I reply to the clerk by email that the block is in place, and the clerk marks the duplicate line as blocked in the Rec Log with the date."
+  },
+  {
+   "id": "t037",
+   "role": "assistant",
+   "text": "After you block a duplicate and the clerk records it as blocked, what happens to that item in the reconciliation?"
+  },
+  {
+   "id": "t038",
+   "role": "user",
+   "text": "The item is treated as resolved and nothing further happens to it. The clerk can then mark the supplier Done once all its other differences are closed."
+  },
+  {
+   "id": "t039",
+   "role": "assistant",
+   "text": "Who is accountable for the overall reconciliation result?"
+  },
+  {
+   "id": "t040",
+   "role": "user",
+   "text": "The finance manager, Dana Whitlock, is accountable for the process. I own the day-to-day running of it."
+  },
+  {
+   "id": "t041",
+   "role": "assistant",
+   "text": "Who uses the completed reconciliation result next?"
+  },
+  {
+   "id": "t042",
+   "role": "user",
+   "text": "The accountant in the month-end accruals process uses the missing-invoice list. Internal audit also samples 10 reconciliations each quarter."
+  },
+  {
+   "id": "t043",
+   "role": "assistant",
+   "text": "About how many supplier statements does the clerk usually reconcile in a week?"
+  },
+  {
+   "id": "t044",
+   "role": "user",
+   "text": "About 60 suppliers a week, and about 80 in the first week of the month. Around 6 a week have a difference over 50 pounds."
+  },
+  {
+   "id": "t045",
+   "role": "assistant",
+   "text": "What most often prevents a supplier reconciliation from being completed on time?"
+  },
+  {
+   "id": "t046",
+   "role": "user",
+   "text": "Buyers replying slowly to disputes is the most common cause. The manual copying of statement lines into the workbook, about 10 minutes per supplier, also eats time."
+  },
+  {
+   "id": "t047",
+   "role": "assistant",
+   "text": "Does this reconciliation cover all suppliers, or only a particular group?"
+  },
+  {
+   "id": "t048",
+   "role": "user",
+   "text": "It covers all trade suppliers of Northfield Tools Ltd, one UK legal entity, that send a statement that week. Employee expenses and intercompany are out of scope."
+  },
+  {
+   "id": "t049",
+   "role": "assistant",
+   "text": "What happens to the disputed item when the buyer replies within five business days?"
+  },
+  {
+   "id": "t050",
+   "role": "user",
+   "text": "The buyer tells the clerk whether the supplier is right or we are, and the item then follows the same outcome as before: nothing changes if the supplier is right, or a credit note is requested if we are right. The clerk records it in the Rec Log."
+  },
+  {
+   "id": "t051",
+   "role": "assistant",
+   "text": "What starts the buyer’s five-business-day reply period?"
+  },
+  {
+   "id": "t052",
+   "role": "user",
+   "text": "It starts on the day the clerk emails the dispute to the buyer."
+  },
+  {
+   "id": "t053",
+   "role": "assistant",
+   "text": "When does your review of reconciliations over £500 happen relative to the clerk marking the supplier Done?"
+  },
+  {
+   "id": "t054",
+   "role": "user",
+   "text": "I review and initial before the clerk marks the supplier Done, normally within the Tuesday or Wednesday of that week, so it is all finished by Wednesday 17:00."
+  },
+  {
+   "id": "t055",
+   "role": "assistant",
+   "text": "What happens if your review finds an error?"
+  },
+  {
+   "id": "t056",
+   "role": "user",
+   "text": "I send the reconciliation back to the clerk by email with what is wrong, the clerk corrects the tab, and I review it again before initialling."
+  },
+  {
+   "id": "t057",
+   "role": "assistant",
+   "text": "What happens if a reconciliation error or delay is not caught before month-end?"
+  },
+  {
+   "id": "t058",
+   "role": "user",
+   "text": "We risk duplicate payments, such as the 4,200 pound one caught last year, and unrecorded liabilities at month-end because missing invoices are not accrued."
+  },
+  {
+   "id": "t059",
+   "role": "assistant",
+   "text": "Where does the clerk note a payment in transit?"
+  },
+  {
+   "id": "t060",
+   "role": "user",
+   "text": "The clerk notes it on that supplier's tab in the workbook, using the weekly payment run report from Treasury to spot it. It is not logged elsewhere."
+  },
+  {
+   "id": "t061",
+   "role": "assistant",
+   "text": "How does the set of statements you reconcile relate to those received in the mailbox during the previous week?"
+  },
+  {
+   "id": "t062",
+   "role": "user",
+   "text": "They are the same set: every statement that arrived in the mailbox in the previous week is reconciled. Statements arriving after Friday 17:00 go into the next week."
+  },
+  {
+   "id": "t063",
+   "role": "assistant",
+   "text": "What happens if the supplier does not send the requested invoice copy?"
+  },
+  {
+   "id": "t064",
+   "role": "user",
+   "text": "The clerk chases the supplier by email once more the following week. The line stays open on the missing-invoice list, which the month-end accountant accrues, until the invoice arrives."
+  },
+  {
+   "id": "t065",
+   "role": "assistant",
+   "text": "What is the basis for the £50 threshold?"
+  },
+  {
+   "id": "t066",
+   "role": "user",
+   "text": "The 50 pound and 500 pound limits both come from the procedure AP-07 Statement Reconciliation. The Wednesday deadline was set by the finance manager."
+  },
+  {
+   "id": "t067",
+   "role": "assistant",
+   "text": "Is AP-07 the procedure you follow for this reconciliation today?"
+  },
+  {
+   "id": "t068",
+   "role": "user",
+   "text": "Yes, it is the procedure we follow. It is a two-page document on the finance shared drive, last updated in March, and it has not been reviewed in this interview."
+  },
+  {
+   "id": "t069",
+   "role": "assistant",
+   "text": "What is your role in this reconciliation?"
+  },
+  {
+   "id": "t070",
+   "role": "user",
+   "text": "I am the AP supervisor. I own the day-to-day, block duplicates in Ledgerline, chase buyers on disputes, and review and initial reconciliations over 500 pounds. That takes about 1 hour a week."
+  },
+  {
+   "id": "t071",
+   "role": "assistant",
+   "text": "How does the clerk decide whether a statement line matches an open item?"
+  },
+  {
+   "id": "t072",
+   "role": "user",
+   "text": "The clerk matches on supplier invoice number and amount. A line with no matching invoice number, or a different amount, counts as a difference."
+  },
+  {
+   "id": "t073",
+   "role": "assistant",
+   "text": "How does the clerk calculate the supplier’s total difference from the individual unmatched or amount-different lines?"
+  },
+  {
+   "id": "t074",
+   "role": "user",
+   "text": "The clerk adds up the absolute value of each difference, ignoring whether it is over or under, so that differences do not cancel out. The sum is shown at the foot of the supplier tab."
+  },
+  {
+   "id": "t075",
+   "role": "assistant",
+   "text": "Does the Statement Rec Template workbook calculate anything beyond the total difference?"
+  },
+  {
+   "id": "t076",
+   "role": "user",
+   "text": "No. The workbook only totals the differences per supplier and lists the line classifications. There are no other calculations in it."
+  },
+  {
+   "id": "t077",
+   "role": "assistant",
+   "text": "After the credit note is posted in Ledgerline, what does the clerk record in the Rec Log?"
+  },
+  {
+   "id": "t078",
+   "role": "user",
+   "text": "The clerk marks the disputed line as resolved in the Rec Log, with the credit note number and the date it was posted."
+  },
+  {
+   "id": "t079",
+   "role": "assistant",
+   "text": "How does the clerk coordinate having the statement and open-items report ready for comparison?"
+  },
+  {
+   "id": "t080",
+   "role": "user",
+   "text": "There is no coordination needed. The clerk does both themselves: saves the statement PDF to the weekly folder, then exports the open-items report for that supplier, and compares them in the workbook."
+  },
+  {
+   "id": "t081",
+   "role": "assistant",
+   "text": "After your one chase, how does the disputed item get to Dana?"
+  },
+  {
+   "id": "t082",
+   "role": "user",
+   "text": "If the buyer still has not replied after my one chase, I forward the dispute email thread to Dana Whitlock by email and copy the clerk."
+  },
+  {
+   "id": "t083",
+   "role": "assistant",
+   "text": "What information does Dana use to decide the outcome of a disputed item?"
+  },
+  {
+   "id": "t084",
+   "role": "user",
+   "text": "She uses the statement line, the invoice or purchase order, the Ledgerline record, and the buyer and supplier correspondence in the email thread."
+  },
+  {
+   "id": "t085",
+   "role": "assistant",
+   "text": "What happens if a requested credit note does not arrive?"
+  },
+  {
+   "id": "t086",
+   "role": "user",
+   "text": "The clerk chases the supplier by email weekly, and the line stays open in the Rec Log. If it is still outstanding after a month I raise it with Dana."
+  },
+  {
+   "id": "t087",
+   "role": "assistant",
+   "text": "What does Dana do when you raise a credit note that is still outstanding after a month?"
+  },
+  {
+   "id": "t088",
+   "role": "user",
+   "text": "Dana contacts the supplier's account manager directly to get the credit note issued, and tells me when it is done."
+  },
+  {
+   "id": "t089",
+   "role": "assistant",
+   "text": "What happens if the buyer replies after you have escalated the dispute to Dana?"
+  },
+  {
+   "id": "t090",
+   "role": "user",
+   "text": "I forward the buyer's reply to Dana, who takes it into account when she decides the outcome."
+  },
+  {
+   "id": "t091",
+   "role": "assistant",
+   "text": "How does the clerk let you know a corrected tab is ready for re-review?"
+  },
+  {
+   "id": "t092",
+   "role": "assistant",
+   "text": "Your account so far is saved. Still open: Variations and conditions, Data & systems, Volume & effort. You can create a draft from what is here, or keep answering."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794993478.941,
+   "turn": 0,
+   "seconds": 0.024,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794993483.985,
+   "turn": 2,
+   "seconds": 2.258,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993491.083,
+   "turn": 3,
+   "seconds": 9.36
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794993494.661,
+   "turn": 3,
+   "seconds": 12.93,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 2,
+   "connections": 1
+  },
+  {
+   "kind": "question",
+   "at": 1794993499.843,
+   "turn": 4,
+   "seconds": 2.49,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794993499.848,
+   "turn": 5,
+   "seconds": 2.49,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 2,
+   "connections": 1
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794993509.068,
+   "turn": 5,
+   "seconds": 11.71,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 3,
+   "connections": 2
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993514.715,
+   "turn": 5,
+   "seconds": 17.36
+  },
+  {
+   "kind": "question",
+   "at": 1794993519.353,
+   "turn": 6,
+   "seconds": 2.396,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794993519.358,
+   "turn": 7,
+   "seconds": 2.4,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t004",
+   "steps": 3,
+   "connections": 2
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794993535.228,
+   "turn": 7,
+   "seconds": 18.27,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 5,
+   "connections": 3
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993539.872,
+   "turn": 7,
+   "seconds": 22.92
+  },
+  {
+   "kind": "question",
+   "at": 1794993544.717,
+   "turn": 8,
+   "seconds": 2.518,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794993544.724,
+   "turn": 9,
+   "seconds": 2.52,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t006",
+   "steps": 5,
+   "connections": 3
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993565.287,
+   "turn": 9,
+   "seconds": 23.09
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794993569.889,
+   "turn": 9,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 27.69
+  },
+  {
+   "kind": "question",
+   "at": 1794993574.626,
+   "turn": 10,
+   "seconds": 2.313,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794993574.629,
+   "turn": 11,
+   "seconds": 2.32,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t008",
+   "steps": 8,
+   "connections": 6
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993588.478,
+   "turn": 11,
+   "seconds": 16.17
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794993599.772,
+   "turn": 11,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 27.46
+  },
+  {
+   "kind": "question",
+   "at": 1794993604.766,
+   "turn": 12,
+   "seconds": 2.561,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794993604.769,
+   "turn": 13,
+   "seconds": 2.56,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t010",
+   "steps": 13,
+   "connections": 11
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993614.96,
+   "turn": 13,
+   "seconds": 12.76
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794993628.232,
+   "turn": 13,
+   "seconds": 26.03,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 16,
+   "connections": 14
+  },
+  {
+   "kind": "question",
+   "at": 1794993633.981,
+   "turn": 14,
+   "seconds": 3.286,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794993633.985,
+   "turn": 15,
+   "seconds": 3.29,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t012",
+   "steps": 16,
+   "connections": 14
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993653.291,
+   "turn": 15,
+   "seconds": 22.6
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794993654.819,
+   "turn": 15,
+   "seconds": 24.12,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 19,
+   "connections": 18
+  },
+  {
+   "kind": "question",
+   "at": 1794993662.238,
+   "turn": 16,
+   "seconds": 3.472,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794993662.246,
+   "turn": 17,
+   "seconds": 3.48,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t014",
+   "steps": 19,
+   "connections": 18
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993669.874,
+   "turn": 17,
+   "seconds": 11.11
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794993687.728,
+   "turn": 17,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 28.96
+  },
+  {
+   "kind": "question",
+   "at": 1794993691.731,
+   "turn": 18,
+   "seconds": 1.638,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993704.441,
+   "turn": 19,
+   "seconds": 14.35
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794993710.049,
+   "turn": 19,
+   "seconds": 19.96,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t016",
+   "steps": 21,
+   "connections": 20
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794993717.195,
+   "turn": 19,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 27.1
+  },
+  {
+   "kind": "question",
+   "at": 1794993721.784,
+   "turn": 20,
+   "seconds": 2.337,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794993734.012,
+   "turn": 21,
+   "seconds": 14.57,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t018",
+   "steps": 21,
+   "connections": 22
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993741.657,
+   "turn": 21,
+   "seconds": 22.21
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794993747.287,
+   "turn": 21,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 27.84
+  },
+  {
+   "kind": "question",
+   "at": 1794993753.349,
+   "turn": 22,
+   "seconds": 3.678,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993769.673,
+   "turn": 23,
+   "seconds": 20.0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794993778.849,
+   "turn": 23,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 29.18
+  },
+  {
+   "kind": "question",
+   "at": 1794993783.976,
+   "turn": 24,
+   "seconds": 2.767,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794993789.609,
+   "turn": 25,
+   "seconds": 8.4,
+   "audited": false,
+   "answers_behind": 2,
+   "through": "t020",
+   "steps": 24,
+   "connections": 25
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993796.228,
+   "turn": 25,
+   "seconds": 15.02
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794993808.987,
+   "turn": 25,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 27.78
+  },
+  {
+   "kind": "question",
+   "at": 1794993815.646,
+   "turn": 26,
+   "seconds": 2.7,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794993819.702,
+   "turn": 27,
+   "seconds": 6.76,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t024",
+   "steps": 24,
+   "connections": 25
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993823.264,
+   "turn": 27,
+   "seconds": 10.32
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794993840.779,
+   "turn": 27,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 27.83
+  },
+  {
+   "kind": "question",
+   "at": 1794993846.789,
+   "turn": 28,
+   "seconds": 3.034,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794993853.98,
+   "turn": 29,
+   "seconds": 10.22,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t026",
+   "steps": 24,
+   "connections": 25
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993860.191,
+   "turn": 29,
+   "seconds": 16.44
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794993872.069,
+   "turn": 29,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 28.31
+  },
+  {
+   "kind": "question",
+   "at": 1794993877.897,
+   "turn": 30,
+   "seconds": 3.167,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794993877.902,
+   "turn": 31,
+   "seconds": 3.17,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t028",
+   "steps": 24,
+   "connections": 25
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993892.338,
+   "turn": 31,
+   "seconds": 17.61
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794993903.173,
+   "turn": 31,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 28.44
+  },
+  {
+   "kind": "question",
+   "at": 1794993908.525,
+   "turn": 32,
+   "seconds": 2.762,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993913.66,
+   "turn": 33,
+   "seconds": 7.9
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794993919.339,
+   "turn": 33,
+   "seconds": 13.58,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t030",
+   "steps": 27,
+   "connections": 28
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794993933.784,
+   "turn": 33,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 28.02
+  },
+  {
+   "kind": "question",
+   "at": 1794993939.667,
+   "turn": 34,
+   "seconds": 3.675,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794993951.963,
+   "turn": 35,
+   "seconds": 15.97,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t032",
+   "steps": 27,
+   "connections": 28
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993956.072,
+   "turn": 35,
+   "seconds": 20.08
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794993964.89,
+   "turn": 35,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 28.9
+  },
+  {
+   "kind": "question",
+   "at": 1794993969.282,
+   "turn": 36,
+   "seconds": 1.911,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794993969.292,
+   "turn": 37,
+   "seconds": 1.92,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t034",
+   "steps": 28,
+   "connections": 29
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794993976.011,
+   "turn": 37,
+   "seconds": 8.64
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794993989.528,
+   "turn": 37,
+   "seconds": 22.16,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 30,
+   "connections": 31
+  },
+  {
+   "kind": "question",
+   "at": 1794993995.434,
+   "turn": 38,
+   "seconds": 3.415,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794993995.449,
+   "turn": 39,
+   "seconds": 3.43,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t036",
+   "steps": 30,
+   "connections": 31
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794994006.269,
+   "turn": 39,
+   "seconds": 14.25
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794994011.958,
+   "turn": 39,
+   "seconds": 19.94,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 30,
+   "connections": 32
+  },
+  {
+   "kind": "question",
+   "at": 1794994016.795,
+   "turn": 40,
+   "seconds": 2.311,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794994016.801,
+   "turn": 41,
+   "seconds": 2.32,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t038",
+   "steps": 30,
+   "connections": 32
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794994028.587,
+   "turn": 41,
+   "seconds": 14.1
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794994033.245,
+   "turn": 41,
+   "seconds": 18.76,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 30,
+   "connections": 32
+  },
+  {
+   "kind": "question",
+   "at": 1794994037.365,
+   "turn": 42,
+   "seconds": 1.895,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794994037.379,
+   "turn": 43,
+   "seconds": 1.91,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t040",
+   "steps": 30,
+   "connections": 32
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794994051.312,
+   "turn": 43,
+   "seconds": 15.84
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794994062.708,
+   "turn": 43,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 27.24
+  },
+  {
+   "kind": "question",
+   "at": 1794994068.046,
+   "turn": 44,
+   "seconds": 2.979,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794994072.169,
+   "turn": 45,
+   "seconds": 7.1,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t042",
+   "steps": 30,
+   "connections": 32
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794994080.402,
+   "turn": 45,
+   "seconds": 15.33
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794994088.632,
+   "turn": 45,
+   "seconds": 23.57,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 30,
+   "connections": 32
+  },
+  {
+   "kind": "question",
+   "at": 1794994094.776,
+   "turn": 46,
+   "seconds": 3.608,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794994094.79,
+   "turn": 47,
+   "seconds": 3.62,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t044",
+   "steps": 30,
+   "connections": 32
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794994107.652,
+   "turn": 47,
+   "seconds": 16.48
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794994120.1,
+   "turn": 47,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 28.93
+  },
+  {
+   "kind": "question",
+   "at": 1794994124.562,
+   "turn": 48,
+   "seconds": 2.298,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794994136.363,
+   "turn": 49,
+   "seconds": 14.1
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794994149.879,
+   "turn": 49,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 27.61
+  },
+  {
+   "kind": "question",
+   "at": 1794994154.85,
+   "turn": 50,
+   "seconds": 2.351,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794994154.865,
+   "turn": 51,
+   "seconds": 2.37,
+   "audited": false,
+   "answers_behind": 2,
+   "through": "t046",
+   "steps": 31,
+   "connections": 32
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794994162.589,
+   "turn": 51,
+   "seconds": 10.09
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794994180.176,
+   "turn": 51,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 27.68
+  },
+  {
+   "kind": "question",
+   "at": 1794994185.243,
+   "turn": 52,
+   "seconds": 2.689,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794994185.25,
+   "turn": 53,
+   "seconds": 2.7,
+   "audited": false,
+   "answers_behind": 2,
+   "through": "t048",
+   "steps": 31,
+   "connections": 32
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794994190.938,
+   "turn": 53,
+   "seconds": 8.38
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794994210.551,
+   "turn": 53,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 28.0
+  },
+  {
+   "kind": "question",
+   "at": 1794994215.818,
+   "turn": 54,
+   "seconds": 2.474,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794994227.548,
+   "turn": 55,
+   "seconds": 14.2,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t052",
+   "steps": 32,
+   "connections": 36
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794994228.063,
+   "turn": 55,
+   "seconds": 14.72
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794994240.834,
+   "turn": 55,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 27.49
+  },
+  {
+   "kind": "question",
+   "at": 1794994246.284,
+   "turn": 56,
+   "seconds": 3.091,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794994256.995,
+   "turn": 57,
+   "seconds": 13.8
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794994271.795,
+   "turn": 57,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 28.6
+  },
+  {
+   "kind": "question",
+   "at": 1794994276.968,
+   "turn": 58,
+   "seconds": 2.723,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794994281.048,
+   "turn": 59,
+   "seconds": 6.8,
+   "audited": false,
+   "answers_behind": 2,
+   "through": "t054",
+   "steps": 32,
+   "connections": 37
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794994281.558,
+   "turn": 59,
+   "seconds": 7.31
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794994302.03,
+   "turn": 59,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 27.79
+  },
+  {
+   "kind": "question",
+   "at": 1794994307.599,
+   "turn": 60,
+   "seconds": 2.885,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794994307.606,
+   "turn": 61,
+   "seconds": 2.89,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t058",
+   "steps": 34,
+   "connections": 40
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794994314.299,
+   "turn": 61,
+   "seconds": 9.58
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794994322.5,
+   "turn": 61,
+   "seconds": 17.79,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 34,
+   "connections": 40
+  },
+  {
+   "kind": "question",
+   "at": 1794994326.804,
+   "turn": 62,
+   "seconds": 2.039,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794994326.811,
+   "turn": 63,
+   "seconds": 2.05,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t060",
+   "steps": 34,
+   "connections": 40
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794994333.424,
+   "turn": 63,
+   "seconds": 8.66
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794994351.858,
+   "turn": 63,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 27.09
+  },
+  {
+   "kind": "question",
+   "at": 1794994358.651,
+   "turn": 64,
+   "seconds": 4.264,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794994358.659,
+   "turn": 65,
+   "seconds": 4.27,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t062",
+   "steps": 34,
+   "connections": 41
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794994372.982,
+   "turn": 65,
+   "seconds": 18.59
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794994375.542,
+   "turn": 65,
+   "seconds": 21.15,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 35,
+   "connections": 43
+  },
+  {
+   "kind": "question",
+   "at": 1794994382.719,
+   "turn": 66,
+   "seconds": 4.88,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794994382.727,
+   "turn": 67,
+   "seconds": 4.89,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t064",
+   "steps": 35,
+   "connections": 43
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794994385.79,
+   "turn": 67,
+   "seconds": 7.95
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794994407.83,
+   "turn": 67,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 29.99
+  },
+  {
+   "kind": "question",
+   "at": 1794994411.86,
+   "turn": 68,
+   "seconds": 1.646,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794994414.922,
+   "turn": 69,
+   "seconds": 4.71,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t066",
+   "steps": 35,
+   "connections": 43
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794994416.988,
+   "turn": 69,
+   "seconds": 6.77
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794994436.95,
+   "turn": 69,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 26.74
+  },
+  {
+   "kind": "question",
+   "at": 1794994443.893,
+   "turn": 70,
+   "seconds": 4.566,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794994448.537,
+   "turn": 71,
+   "seconds": 9.21,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t068",
+   "steps": 35,
+   "connections": 43
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794994449.565,
+   "turn": 71,
+   "seconds": 10.24
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794994469.358,
+   "turn": 71,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 30.03
+  },
+  {
+   "kind": "question",
+   "at": 1794994476.662,
+   "turn": 72,
+   "seconds": 4.755,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794994479.258,
+   "turn": 73,
+   "seconds": 7.35
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794994502.137,
+   "turn": 73,
+   "notes_state": "ready",
+   "map_state": "queued",
+   "seconds": 30.23
+  },
+  {
+   "kind": "question",
+   "at": 1794994506.399,
+   "turn": 74,
+   "seconds": 1.762,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794994516.696,
+   "turn": 75,
+   "seconds": 12.06,
+   "audited": false,
+   "answers_behind": 2,
+   "through": "t070",
+   "steps": 35,
+   "connections": 42
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794994517.215,
+   "turn": 75,
+   "seconds": 12.58
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794994531.812,
+   "turn": 75,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 27.18
+  },
+  {
+   "kind": "question",
+   "at": 1794994539.245,
+   "turn": 76,
+   "seconds": 3.529,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794994539.8,
+   "turn": 77,
+   "seconds": 4.08,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t074",
+   "steps": 35,
+   "connections": 42
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794994546.531,
+   "turn": 77,
+   "seconds": 10.81
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794994564.76,
+   "turn": 77,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 29.04
+  },
+  {
+   "kind": "question",
+   "at": 1794994569.969,
+   "turn": 78,
+   "seconds": 2.853,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794994580.8,
+   "turn": 79,
+   "seconds": 13.68
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794994586.009,
+   "turn": 79,
+   "seconds": 18.89,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t076",
+   "steps": 35,
+   "connections": 42
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794994595.344,
+   "turn": 79,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 28.23
+  },
+  {
+   "kind": "question",
+   "at": 1794994602.114,
+   "turn": 80,
+   "seconds": 3.9,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794994605.746,
+   "turn": 81,
+   "seconds": 7.53,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t078",
+   "steps": 36,
+   "connections": 43
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794994608.331,
+   "turn": 81,
+   "seconds": 10.12
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794994622.421,
+   "turn": 81,
+   "seconds": 24.21,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 36,
+   "connections": 43
+  },
+  {
+   "kind": "question",
+   "at": 1794994628.953,
+   "turn": 82,
+   "seconds": 3.365,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794994628.971,
+   "turn": 83,
+   "seconds": 3.38,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t080",
+   "steps": 36,
+   "connections": 43
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794994637.194,
+   "turn": 83,
+   "seconds": 11.61
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794994647.059,
+   "turn": 83,
+   "seconds": 21.47,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 36,
+   "connections": 43
+  },
+  {
+   "kind": "question",
+   "at": 1794994651.393,
+   "turn": 84,
+   "seconds": 1.561,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794994651.412,
+   "turn": 85,
+   "seconds": 1.58,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t082",
+   "steps": 36,
+   "connections": 43
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794994663.249,
+   "turn": 85,
+   "seconds": 13.42
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794994664.303,
+   "turn": 85,
+   "seconds": 14.47,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 36,
+   "connections": 43
+  },
+  {
+   "kind": "question",
+   "at": 1794994669.972,
+   "turn": 86,
+   "seconds": 2.932,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794994669.989,
+   "turn": 87,
+   "seconds": 2.95,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t084",
+   "steps": 36,
+   "connections": 43
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794994675.183,
+   "turn": 87,
+   "seconds": 8.14
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794994689.754,
+   "turn": 87,
+   "seconds": 22.71,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 38,
+   "connections": 47
+  },
+  {
+   "kind": "question",
+   "at": 1794994698.6,
+   "turn": 88,
+   "seconds": 5.306,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794994698.619,
+   "turn": 89,
+   "seconds": 5.32,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t086",
+   "steps": 38,
+   "connections": 47
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794994701.709,
+   "turn": 89,
+   "seconds": 8.42
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794994713.171,
+   "turn": 89,
+   "seconds": 19.88,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 39,
+   "connections": 48
+  },
+  {
+   "kind": "question",
+   "at": 1794994719.967,
+   "turn": 90,
+   "seconds": 4.669,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794994719.986,
+   "turn": 91,
+   "seconds": 4.69,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t088",
+   "steps": 39,
+   "connections": 48
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794994723.072,
+   "turn": 91,
+   "seconds": 7.77
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794994745.002,
+   "turn": 91,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 29.7
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794994748.764,
+   "turn": 91,
+   "seconds": 0.036,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794995120.985,
+   "turn": 92,
+   "seconds": 365.858,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [],
+ "notes": {
+  "summary": "If the buyer replies after escalation, the AP supervisor forwards the reply to Dana, who considers it when deciding the dispute outcome.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "captured",
+    "answer": "Supplier statement reconciliation"
+   },
+   {
+    "key": "purpose",
+    "status": "captured",
+    "answer": "The reconciliation confirms that each supplier's stated amount owed matches the payables ledger, so missing invoices and duplicate payments are found before month-end."
+   },
+   {
+    "key": "trigger",
+    "status": "captured",
+    "answer": "Every Monday at 9:00, the AP clerk downloads supplier statements that arrived in the shared mailbox ap-statements during the previous week.\nThe participant reports that the work is to be finished by Wednesday at 17:00.\nThe statements reconciled are the same set that arrived in the shared mailbox during the previous week; statements arriving after Friday 17:00 go into the next week’s set."
+   },
+   {
+    "key": "completion",
+    "status": "captured",
+    "answer": "The clerk marks the supplier Done in the Rec Log. For a reconciliation with a difference over £500, the participant must also have reviewed it and initialled cell B2 of the supplier tab.\nA blocked and recorded duplicate is treated as resolved; the clerk can mark the supplier Done once all its other differences are closed.\nFor the over-£500 review route, the participant reviews and initials before the clerk marks the supplier Done; the work is intended to be finished by Wednesday at 17:00."
+   },
+   {
+    "key": "accountable",
+    "status": "captured",
+    "answer": "Finance manager Dana Whitlock is accountable for the process; the participant owns its day-to-day running.\nThe participant is the AP supervisor and owns the day-to-day running of the reconciliation."
+   },
+   {
+    "key": "lifecycle",
+    "status": "captured",
+    "answer": "Every Monday at 9:00, the AP clerk downloads supplier statements received during the previous week from the shared mailbox ap-statements.\nAfter downloading the statements, the clerk saves each statement PDF in Statements/YYYY-WW on the shared drive.\nThe clerk exports the supplier's open-items report from Ledgerline and compares statement lines with those open items in the Statement Rec Template workbook, using one tab per supplier.\nIf a supplier's total difference is under £50, it is noted and ignored. For larger differences, the clerk classifies each as missing invoice, payment in transit, duplicate or disputed.\nFor a missing invoice, the clerk emails the supplier the same day requesting a copy and logs it in the Rec Log sheet. For a duplicate, the clerk emails the participant the same day. A payment in transit is noted and needs no action; a disputed item goes to the buyer who placed the order.\nAfter the clerk emails about a duplicate, the participant blocks it in Ledgerline within one business day so it cannot be paid.\nFor a disputed item, the buyer has five business days to reply. If the buyer does not reply, the participant chases them once; after that, the item goes to the finance manager.\nAfter escalation, finance manager Dana Whitlock decides the dispute outcome with the buyer and supplier and tells the participant and clerk, so the item can be resolved in Ledgerline and the Rec Log.\nFor a dispute, the clerk makes no Ledgerline change for the dispute itself. If the finance manager decides the supplier is right, nothing changes; if the decision is that the company is right, the clerk asks the supplier for a credit note and posts it in Ledgerline when it arrives.\nThe clerk records the dispute outcome—supplier correct or credit note requested—and the resolution date against the supplier line in the Rec Log.\nThe clerk marks the supplier Done in the Rec Log. For a difference over £500, the participant also reviews the reconciliation and initials cell B2 of the supplier tab.\nIn the over-£500 review, the participant checks classification, logged follow-up and agreement of tab totals to the statement and open-items report, then initials B2.\nFor a supplier total difference under £50, the amount is noted in a comment line on that supplier's Statement Rec Template tab and is not logged elsewhere.\nWhen a supplier's total difference is exactly £50, it follows the larger-difference route: classification and follow-up.\nWhen the requested invoice copy arrives, the clerk passes it to the accounts payable team for entry into Ledgerline, then updates the supplier's Rec Log line. Until the invoice is entered, it remains on the missing-invoice list used for month-end accruals.\nWhen the invoice has been entered in Ledgerline, the clerk marks the missing-invoice line resolved in the Rec Log and records the date it was entered.\nAfter blocking a duplicate in Ledgerline, the participant replies to the clerk by email that the block is in place. The clerk then marks the duplicate line as blocked in the Rec Log and records the date.\nAfter a duplicate is blocked and recorded, it is treated as resolved and nothing further happens to it. The clerk can mark the supplier Done once all its other differences are closed.\nStatement lines are manually copied into the workbook for the reconciliation.\nWhen the buyer replies within five business days on a disputed item, the buyer tells the clerk whether the supplier or the company is right. The item then follows the corresponding existing outcome: no change if the supplier is right, or a credit note is requested if the company is right; the clerk records it in the Rec Log.\nThe buyer's five-business-day reply period for a disputed item starts on the day the clerk emails the dispute to the buyer.\nFor differences over £500, the participant normally reviews and initials on Tuesday or Wednesday before the clerk marks the supplier Done.\nIf the over-£500 review finds an error, the participant emails the reconciliation back to the clerk with the problem; the clerk corrects the tab and the participant reviews it again before initialling.\nFor a payment in transit, the clerk uses the weekly payment run report from Treasury to identify it and notes it on that supplier's workbook tab; it is not logged elsewhere.\nThe clerk reconciles every statement that arrived in the mailbox during the previous week; a statement arriving after Friday 17:00 is included in the next week’s set.\nIf a supplier does not send a requested invoice copy, the clerk chases once more by email the following week. The line stays open on the missing-invoice list until the invoice arrives; the month-end accountant accrues it.\nAfter identifying unmatched or amount-different lines, the clerk adds the absolute value of each difference; over- and under-differences do not cancel. The resulting total is shown at the foot of the supplier tab.\nAfter the credit note is posted in Ledgerline, the clerk marks the disputed line resolved in the Rec Log, recording the credit note number and posting date.\nThe clerk saves the statement PDF to the weekly folder, then exports that supplier's open-items report and compares the two in the workbook; no coordination between people is needed for these steps.\nIf the buyer still has not replied after the AP supervisor's one chase, the AP supervisor forwards the dispute email thread to finance manager Dana Whitlock by email and copies the clerk.\nIf a requested credit note does not arrive, the clerk chases the supplier by email weekly, and the line remains open in the Rec Log. If it is still outstanding after a month, the AP supervisor raises it with Dana.\nIf a requested credit note is still outstanding after a month, finance manager Dana Whitlock contacts the supplier's account manager directly to get it issued and tells the AP supervisor when it is done.\nIf the buyer replies after the AP supervisor has escalated the dispute to Dana, the AP supervisor forwards the buyer's reply to Dana, who takes it into account when deciding the outcome."
+   },
+   {
+    "key": "checks",
+    "status": "captured",
+    "answer": "The clerk compares supplier statement lines with the supplier's ledger open items in the workbook.\nFollowing the comparison, under-£50 supplier totals are noted and ignored; the clerk classifies larger differences into four reported categories.\nFor a disputed item, the buyer has five business days to reply. If there is no reply, the participant chases the buyer once; after that, the item goes to the finance manager.\nFinance manager Dana Whitlock decides an escalated dispute's outcome with the buyer and supplier and communicates it to the participant and clerk.\nFor a disputed item, the finance manager's decision determines whether the supplier's position is accepted with no Ledgerline change or the clerk requests a credit note and posts it when received.\nFor a reconciliation with a difference over £500, the participant must review it and record initials in cell B2 of the supplier tab.\nIf the over-£500 review finds an error, the participant emails the reconciliation back to the clerk explaining what is wrong. The clerk corrects the tab, and the participant reviews it again before initialling.\nFor reconciliations with a difference over £500, the participant checks that each difference is classified correctly, follow-up action has been taken and logged in the Rec Log, and the supplier-tab totals agree to the statement and open-items report. The participant then initials B2.\nThe participant blocks a reported duplicate in Ledgerline within one business day to prevent its payment.\nInternal audit samples 10 reconciliations each quarter.\nFor reconciliations with a difference over £500, the participant reviews and initials before the clerk marks the supplier Done, normally on Tuesday or Wednesday.\nThe AP supervisor blocks duplicates in Ledgerline, chases buyers on disputes, and reviews and initials reconciliations with differences over £500.\nThe clerk matches statement lines to open items using the supplier invoice number and amount. A line with no matching invoice number or a different amount counts as a difference.\nFor line matching, the clerk compares supplier invoice number and amount; a line with no matching invoice number or a different amount counts as a difference. The clerk totals the absolute values of those differences, so over- and under-differences do not cancel.\nFor an escalated dispute, finance manager Dana Whitlock uses the statement line, invoice or purchase order, Ledgerline record, and buyer and supplier correspondence in the email thread to decide the outcome."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "The handling differs by the supplier's total difference: under £50 is noted and ignored, while larger differences are classified.\nFor larger differences, the follow-up varies by classification: missing invoices are requested from suppliers and logged; duplicates are emailed to the participant; payments in transit are noted without action; disputed items go to the buyer who placed the order.\nA reconciliation with a difference over £500 has an additional participant review and initials in the supplier tab.\nFor differences under £50, the total is recorded in a comment line on the supplier tab and not logged elsewhere.\nExactly £50 follows the classified and followed-up route rather than the under-£50 ignored route.\nFor a duplicate, unlike a payment in transit that is simply noted, the participant blocks the duplicate in Ledgerline within one business day after the clerk's email.\nWhen a requested invoice copy does not arrive, the missing-invoice route includes a further supplier email chase the following week, while the line remains open for month-end accrual.\nWhen a requested credit note remains outstanding, the clerk chases the supplier weekly and keeps the line open in the Rec Log; after a month, the AP supervisor raises it with Dana."
+   },
+   {
+    "key": "pain_points",
+    "status": "captured",
+    "answer": "The participant says slow buyer replies to disputes are the most common cause of reconciliations not being completed on time.\nManually copying statement lines into the workbook takes about 10 minutes per supplier, according to the participant."
+   },
+   {
+    "key": "risk",
+    "status": "captured",
+    "answer": "The duplicate block is intended to prevent a duplicate from being paid.\nThe participant reports risks of duplicate payments and unrecorded month-end liabilities if reconciliation errors or delays are not caught; missing invoices may not be accrued. The participant cites a £4,200 duplicate payment caught last year as an example."
+   },
+   {
+    "key": "materials",
+    "status": "captured",
+    "answer": "Supplier statements arriving in the shared mailbox ap-statements during the previous week are downloaded by the AP clerk every Monday at 9:00.\nThe clerk saves each supplier statement PDF in the shared-drive folder Statements/YYYY-WW.\nThe supplier-specific open-items report is exported from Ledgerline for comparison with the statement.\nThe Statement Rec Template workbook is used to compare statement lines with open items, with one tab per supplier.\nThe Rec Log sheet is used to log missing invoices for which the clerk requests copies from suppliers.\nThe Rec Log is also used in resolving an escalated disputed item after the finance manager communicates the outcome.\nA supplier credit note is requested for a disputed item when the finance manager decides the company is right; the clerk posts it in Ledgerline when it arrives.\nThe Rec Log holds the dispute outcome and resolution date against the supplier line.\nThe clerk marks supplier completion in the Rec Log; the participant records review initials in cell B2 of the supplier tab for differences over £500.\nThe supplier tab in the Statement Rec Template workbook contains a comment line recording the total difference for amounts under £50; those differences are not logged elsewhere.\nThe missing-invoice list is used for month-end accruals and retains the invoice until it is entered into Ledgerline.\nFor a missing-invoice line, the Rec Log records resolution and the date the invoice was entered in Ledgerline.\nFor a duplicate, the participant's email to the clerk confirms that the Ledgerline block is in place; the clerk records the blocked status and date in the Rec Log.\nThe weekly payment run report from Treasury is used by the clerk to spot a payment in transit during reconciliation; the payment is noted on the supplier's workbook tab and not elsewhere.\nAP-07 Statement Reconciliation is the procedure the participant reports following. It is a two-page document on the finance shared drive, last updated in March; it was not reviewed during this interview.\nThe supplier tab in the Statement Rec Template workbook shows the sum of the absolute values of the line differences at its foot; the calculation prevents over- and under-differences from cancelling.\nThe Statement Rec Template workbook lists line classifications and totals differences per supplier.\nFor a posted credit note, the Rec Log records the disputed line as resolved, the credit note number and the posting date.\nThe statement line, invoice or purchase order, Ledgerline record, and buyer and supplier email correspondence are inputs to Dana Whitlock's decision on an escalated dispute."
+   },
+   {
+    "key": "scope",
+    "status": "captured",
+    "answer": "The reconciliation covers trade suppliers of Northfield Tools Ltd, one UK legal entity, that send a statement that week. Employee expenses and intercompany are out of scope."
+   },
+   {
+    "key": "rules",
+    "status": "captured",
+    "answer": "The reported threshold is the total difference for a supplier: under £50 is noted and ignored; larger differences are classified.\nThe participant reports that both the £50 and £500 limits come from procedure AP-07 Statement Reconciliation; the procedure itself has not been reviewed here.\nThe participant reports same-day supplier requests for missing invoice copies and same-day emails to the participant for duplicates; payments in transit require no action beyond noting them, and disputed items go to the ordering buyer.\nFor a disputed item, if the finance manager decides the company is right, the clerk requests a credit note from the supplier and posts it in Ledgerline when it arrives; if the supplier is right, nothing changes.\nReconciliations with a difference over £500 require the participant's review and initials in cell B2 of the supplier tab.\nA supplier total difference of exactly £50 is treated as a larger difference and classified and followed up; only totals strictly under £50 are ignored.\nThe participant reports blocking a duplicate in Ledgerline within one business day.\nA duplicate is treated as resolved after it has been blocked and recorded; the clerk can mark the supplier Done once its other differences are closed.\nFor a disputed item where the buyer replies within five business days, the buyer's view determines which reported outcome route is followed: no change if the supplier is right, or a credit note request if the company is right.\nFor a disputed item, the buyer's five-business-day reply period begins on the day the clerk emails the dispute to the buyer.\nThe participant's review and initials for a difference over £500 precede the clerk marking the supplier Done.\nThe weekly statement-set cutoff is Friday 17:00: statements arriving after that time go into the following week’s reconciliation set.\nThe Wednesday 17:00 completion deadline was set by the finance manager, according to the participant.\nA statement line is treated as a difference if it has no matching invoice number or its amount differs from the open item.\nFor each statement line that is unmatched or has a different amount, the clerk uses the absolute value of its difference when calculating the supplier total, regardless of whether the difference is over or under. The clerk sums these absolute values so differences do not cancel; the sum is shown at the foot of the supplier tab."
+   },
+   {
+    "key": "connections",
+    "status": "captured",
+    "answer": "Disputed items go to the buyer who placed the order. If the buyer does not reply within five business days, the participant chases once; after that the item goes to the finance manager, who decides the outcome with the buyer and supplier and tells the participant and clerk.\nThe clerk passes a received invoice copy to the accounts payable team for entry into Ledgerline. Until entry, it remains on the missing-invoice list used for month-end accruals.\nAfter the participant blocks a duplicate in Ledgerline, the participant emails the clerk that the block is in place; the clerk then marks the line blocked and dates it in the Rec Log.\nHands off to AP clerk: After the participant blocks a duplicate in Ledgerline, the participant emails the clerk that the block is in place; the clerk records the blocked status and date in the Rec Log.\nThe accountant in the month-end accruals process uses the missing-invoice list; invoices remain on the list until entered in Ledgerline.\nInternal audit samples 10 reconciliations each quarter.\nFor a disputed item, the buyer who placed the order tells the clerk whether the supplier or the company is right when replying within five business days; the item follows the corresponding outcome route.\nThis reconciliation consumes Treasury's weekly payment run report to identify payments in transit; the clerk records those on the supplier's workbook tab.\nUses the output of Treasury weekly payment run report: The clerk uses the report to spot a payment in transit during reconciliation.\nIf a requested invoice has not arrived, the line remains on the missing-invoice list and the month-end accountant accrues it.\nAfter the AP supervisor's one chase, if the buyer still has not replied, the AP supervisor forwards the dispute email thread by email to finance manager Dana Whitlock and copies the clerk.\nFor a requested credit note still outstanding after a month, finance manager Dana Whitlock contacts the supplier's account manager directly to get it issued and tells the AP supervisor when it is done.\nFor a buyer reply received after escalation, the AP supervisor forwards the reply to finance manager Dana Whitlock, who considers it in deciding the dispute outcome."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The AP clerk downloads supplier statements from the shared mailbox ap-statements; the statements are those that arrived there during the previous week.\nStatement PDFs are saved on the shared drive in Statements/YYYY-WW.\nLedgerline is the reported ledger system and source of the supplier open-items report; the comparison is performed in the Statement Rec Template workbook.\nAn escalated disputed item can be resolved in Ledgerline and the Rec Log after the finance manager communicates the outcome.\nFor a dispute itself, the clerk makes no change in Ledgerline; if the company is found to be right, the clerk posts the supplier's credit note in Ledgerline when it arrives.\nThe clerk records the dispute outcome and resolution date against the supplier line in the Rec Log.\nDifferences under £50 are recorded as a total in a comment line on the supplier's workbook tab, not in another log.\nThe participant uses Ledgerline to block duplicates so they cannot be paid.\nStatement lines are manually copied into the reconciliation workbook.\nThe clerk uses Treasury's weekly payment run report to spot payments in transit and notes them on the supplier's workbook tab, not elsewhere.\nThe system or storage location of Treasury's weekly payment run report has not been identified.\nThe Statement Rec Template workbook totals differences per supplier and lists line classifications; the participant reports no other calculations in it.\nThe clerk records the disputed line's resolved status, credit note number and posting date in the Rec Log after posting."
+   },
+   {
+    "key": "volume",
+    "status": "partial",
+    "answer": "The participant estimates about 60 suppliers a week, rising to about 80 in the first week of the month.\nInternal audit samples 10 reconciliations each quarter.\nThe participant estimates around six suppliers a week have a difference over £50.\nThe participant estimates that manually copying statement lines into the workbook takes about 10 minutes per supplier.\nThe AP supervisor estimates that their reconciliation duties take about 1 hour a week."
+   }
+  ]
+ },
+ "map": {
+  "title": "Supplier statement reconciliation",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "start",
+    "title": "Monday scheduled start",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The work starts every Monday at 9:00."
+   },
+   {
+    "id": "S2",
+    "type": "document",
+    "title": "Download supplier statements",
+    "actor": "AP clerk",
+    "system": "Shared mailbox ap-statements",
+    "description": "The clerk downloads every statement received in the mailbox during the previous week. Statements arriving after Friday 17:00 go into the next week. Scope covers Northfield Tools Ltd trade suppliers that send a statement; employee expenses and intercompany are excluded."
+   },
+   {
+    "id": "S3",
+    "type": "document",
+    "title": "Save statement PDFs",
+    "actor": "AP clerk",
+    "system": "Shared drive",
+    "description": "The clerk saves each statement PDF in Statements/YYYY-WW on the shared drive."
+   },
+   {
+    "id": "S4",
+    "type": "document",
+    "title": "Export supplier open-items report",
+    "actor": "AP clerk",
+    "system": "Ledgerline",
+    "description": "The clerk exports the open-items report for the supplier from Ledgerline."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Compare statement and open items",
+    "actor": "AP clerk",
+    "system": "Statement Rec Template workbook",
+    "description": "The clerk compares statement lines with open items on one tab per supplier, matching invoice number and amount. A missing matching number or different amount is a difference. The total is the sum of absolute differences; the workbook totals the differences and lists classifications, with no other calculations."
+   },
+   {
+    "id": "S6",
+    "type": "decision",
+    "title": "Is the total difference under £50?",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Totals strictly under £50 are noted and ignored. Exactly £50 is classified for follow-up. The participant attributes the limit to AP-07; the procedure has not been reviewed."
+   },
+   {
+    "id": "S7",
+    "type": "document",
+    "title": "Note and ignore difference",
+    "actor": "UNKNOWN",
+    "system": "Statement Rec Template workbook",
+    "description": "A supplier’s total difference under £50 is noted in a comment line on the supplier’s tab and ignored. It is not logged elsewhere."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Classify larger differences",
+    "actor": "AP clerk",
+    "system": "Statement Rec Template workbook",
+    "description": "For a supplier total of £50 or more, the clerk classifies each difference as missing invoice, payment in transit, duplicate or disputed. The workbook lists the classifications. The participant attributes the £50 limit to AP-07, which has not been reviewed."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Request missing invoice copy",
+    "actor": "AP clerk",
+    "system": "UNKNOWN",
+    "description": "The clerk emails the supplier asking for a copy of the missing invoice."
+   },
+   {
+    "id": "S10",
+    "type": "data_store",
+    "title": "Log missing invoice request",
+    "actor": "AP clerk",
+    "system": "Rec Log sheet",
+    "description": "The clerk logs the missing invoice request in the Rec Log sheet."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Email duplicate to supervisor",
+    "actor": "AP clerk",
+    "system": "Email",
+    "description": "For a duplicate, the clerk emails the AP supervisor the same day."
+   },
+   {
+    "id": "S12",
+    "type": "document",
+    "title": "Note payment in transit",
+    "actor": "AP clerk",
+    "system": "Statement Rec Template workbook",
+    "description": "The clerk uses Treasury’s weekly payment run report to spot a payment in transit and notes it on the supplier’s tab. It needs no further action and is not logged elsewhere."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Email dispute to buyer",
+    "actor": "AP clerk",
+    "system": "Email",
+    "description": "The clerk emails the dispute to the buyer who placed the order."
+   },
+   {
+    "id": "S14",
+    "type": "wait",
+    "title": "Wait for buyer reply",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The buyer has five business days to reply, starting on the day the clerk emails the dispute."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Chase buyer once",
+    "actor": "AP supervisor",
+    "system": "UNKNOWN",
+    "description": "If the buyer does not reply within five business days, the AP supervisor chases them once. If there is still no reply after the chase, the supervisor forwards the dispute to the finance manager."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Forward dispute to finance manager",
+    "actor": "AP supervisor",
+    "system": "Email",
+    "description": "If the buyer still has not replied after the one chase, the AP supervisor forwards the dispute email thread to finance manager Dana Whitlock and copies the clerk. The timing after the chase is UNKNOWN."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Decide dispute outcome",
+    "actor": "Finance manager, Dana Whitlock",
+    "system": "Ledgerline and email",
+    "description": "The finance manager decides the outcome with the buyer and supplier, using the statement line, invoice or purchase order, Ledgerline record and email correspondence. She takes a forwarded late buyer reply into account."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Communicate dispute outcome",
+    "actor": "Finance manager, Dana Whitlock",
+    "system": "UNKNOWN",
+    "description": "The finance manager tells the AP supervisor and clerk the dispute outcome."
+   },
+   {
+    "id": "S19",
+    "type": "data_store",
+    "title": "Record dispute outcome",
+    "actor": "AP clerk",
+    "system": "Rec Log",
+    "description": "The clerk records the outcome of the dispute, either supplier correct or credit note requested, and the date it was resolved, against that supplier line in the Rec Log."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Communicate buyer dispute outcome",
+    "actor": "Buyer who placed the order",
+    "system": "UNKNOWN",
+    "description": "The buyer tells the clerk whether the supplier or the organization is right. The clerk records the outcome or requests a credit note, as applicable."
+   },
+   {
+    "id": "S21",
+    "type": "data_store",
+    "title": "Post received credit note",
+    "actor": "AP clerk",
+    "system": "Ledgerline",
+    "description": "The clerk posts the credit note in Ledgerline when it arrives."
+   },
+   {
+    "id": "S22",
+    "type": "activity",
+    "title": "Request supplier credit note",
+    "actor": "AP clerk",
+    "system": "UNKNOWN",
+    "description": "If the organization is right, the clerk asks the supplier for a credit note. This applies to both the finance manager's outcome and a timely buyer outcome."
+   },
+   {
+    "id": "S23",
+    "type": "data_store",
+    "title": "Mark supplier Done",
+    "actor": "AP clerk",
+    "system": "Rec Log",
+    "description": "The clerk marks the supplier Done. After a duplicate is blocked and recorded, all other differences must also be closed; for a difference over £500, the AP supervisor's review and initials must precede Done. Conditions on other routes are UNKNOWN."
+   },
+   {
+    "id": "S24",
+    "type": "end",
+    "title": "Supplier reconciliation complete",
+    "actor": "UNKNOWN",
+    "system": "Rec Log and Statement Rec Template workbook",
+    "description": "The supplier is marked Done in the Rec Log. For a difference over £500, the AP supervisor must also have reviewed the reconciliation and initialled the supplier tab. Internal audit samples 10 reconciliations each quarter; whether the sample is limited to completed reconciliations is UNKNOWN."
+   },
+   {
+    "id": "S25",
+    "type": "document",
+    "title": "Pass invoice copy to AP",
+    "actor": "AP clerk",
+    "system": "UNKNOWN",
+    "description": "The clerk passes the supplier’s invoice copy to accounts payable for entry into Ledgerline. Until entry, it remains on the missing-invoice list used by the accountant for month-end accruals."
+   },
+   {
+    "id": "S26",
+    "type": "data_store",
+    "title": "Enter invoice in Ledgerline",
+    "actor": "Accounts payable team",
+    "system": "Ledgerline",
+    "description": "The invoice copy is passed to accounts payable for entry into Ledgerline. The item remains on the missing-invoice list until entry."
+   },
+   {
+    "id": "S27",
+    "type": "data_store",
+    "title": "Update missing-invoice log",
+    "actor": "AP clerk",
+    "system": "Rec Log",
+    "description": "After passing the invoice copy to accounts payable, the clerk updates the supplier's Rec Log line. The content of the update is UNKNOWN."
+   },
+   {
+    "id": "S28",
+    "type": "activity",
+    "title": "Review reconciliation",
+    "actor": "AP supervisor",
+    "system": "Statement Rec Template workbook and Rec Log",
+    "description": "For a difference over £500, the AP supervisor checks classifications, follow-up and logging, and agreement of tab totals to the statement and the open-items report. If satisfactory, the supervisor initials B2; errors are returned for correction and re-review. AP-07 is the reported source of the limit but has not been reviewed."
+   },
+   {
+    "id": "S29",
+    "type": "activity",
+    "title": "Confirm duplicate block",
+    "actor": "AP supervisor",
+    "system": "Email",
+    "description": "The AP supervisor replies to the clerk by email that the block is in place. The supervisor does not record it in the Rec Log."
+   },
+   {
+    "id": "S30",
+    "type": "data_store",
+    "title": "Record duplicate block",
+    "actor": "AP clerk",
+    "system": "Rec Log",
+    "description": "The clerk marks the duplicate line blocked and records the date. The item is then treated as resolved, with no further action on it."
+   },
+   {
+    "id": "S31",
+    "type": "data_store",
+    "title": "Block duplicate in Ledgerline",
+    "actor": "AP supervisor",
+    "system": "Ledgerline",
+    "description": "The AP supervisor blocks the duplicate within one business day so it cannot be paid, then confirms the block to the clerk."
+   },
+   {
+    "id": "S32",
+    "type": "data_store",
+    "title": "Resolve missing-invoice line",
+    "actor": "AP clerk",
+    "system": "Rec Log",
+    "description": "Once the invoice has been entered, the clerk marks the missing-invoice line as resolved in the Rec Log and records the date the invoice was entered."
+   },
+   {
+    "id": "S33",
+    "type": "activity",
+    "title": "Return reconciliation for correction",
+    "actor": "AP supervisor",
+    "system": "Email",
+    "description": "The AP supervisor emails the reconciliation back to the clerk, explaining what is wrong."
+   },
+   {
+    "id": "S34",
+    "type": "activity",
+    "title": "Correct supplier tab",
+    "actor": "AP clerk",
+    "system": "Statement Rec Template workbook",
+    "description": "The clerk corrects the tab following the review error; the AP supervisor reviews it again before initialling."
+   },
+   {
+    "id": "S35",
+    "type": "activity",
+    "title": "Chase missing invoice",
+    "actor": "AP clerk",
+    "system": "Email",
+    "description": "If the requested invoice copy has not arrived, the clerk emails the supplier once more the following week. The line stays open on the missing-invoice list until the invoice arrives; the month-end accountant accrues it."
+   },
+   {
+    "id": "S36",
+    "type": "data_store",
+    "title": "Record posted credit resolution",
+    "actor": "AP clerk",
+    "system": "Rec Log",
+    "description": "After posting the credit note, the clerk marks the disputed line resolved and records the credit note identifier and posting date."
+   },
+   {
+    "id": "S37",
+    "type": "activity",
+    "title": "Chase outstanding credit note",
+    "actor": "AP clerk",
+    "system": "Email and Rec Log",
+    "description": "If the requested credit note has not arrived, the clerk chases the supplier by email weekly. The disputed line stays open in the Rec Log."
+   },
+   {
+    "id": "S38",
+    "type": "activity",
+    "title": "Raise outstanding credit note",
+    "actor": "AP supervisor",
+    "system": "UNKNOWN",
+    "description": "If the credit note is still outstanding after a month, the AP supervisor raises it with finance manager Dana Whitlock."
+   },
+   {
+    "id": "S39",
+    "type": "activity",
+    "title": "Contact supplier account manager",
+    "actor": "Finance manager, Dana Whitlock",
+    "system": "UNKNOWN",
+    "description": "Dana contacts the supplier's account manager directly to get the outstanding credit note issued and tells the AP supervisor when it is done."
+   },
+   {
+    "id": "S40",
+    "type": "activity",
+    "title": "Forward late buyer reply",
+    "actor": "AP supervisor",
+    "system": "UNKNOWN",
+    "description": "If the buyer replies after escalation, the supervisor forwards the reply to Dana for consideration in her decision."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": ""
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Total difference under £50"
+   },
+   {
+    "from": "S6",
+    "to": "S8",
+    "label": "Larger differences"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "Missing invoice"
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": ""
+   },
+   {
+    "from": "S8",
+    "to": "S11",
+    "label": "Duplicate"
+   },
+   {
+    "from": "S8",
+    "to": "S12",
+    "label": "Payment in transit"
+   },
+   {
+    "from": "S8",
+    "to": "S13",
+    "label": "Disputed item"
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": ""
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": "No buyer reply within five business days"
+   },
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": ""
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": ""
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": "When the statement lines and the open items are compared"
+   },
+   {
+    "from": "S18",
+    "to": "S19",
+    "label": "Supplier correct"
+   },
+   {
+    "from": "S23",
+    "to": "S24",
+    "label": "Difference over £500 AND supplier marked Done AND review and initials completed"
+   },
+   {
+    "from": "S23",
+    "to": "S24",
+    "label": "Difference not over £500 AND supplier marked Done"
+   },
+   {
+    "from": "S9",
+    "to": "S25",
+    "label": "Invoice copy arrives"
+   },
+   {
+    "from": "S25",
+    "to": "S26",
+    "label": ""
+   },
+   {
+    "from": "S29",
+    "to": "S30",
+    "label": ""
+   },
+   {
+    "from": "S14",
+    "to": "S20",
+    "label": "Buyer replies within five business days"
+   },
+   {
+    "from": "S18",
+    "to": "S22",
+    "label": "If we are right"
+   },
+   {
+    "from": "S22",
+    "to": "S21",
+    "label": "Credit note arrives"
+   },
+   {
+    "from": "S22",
+    "to": "S19",
+    "label": "Credit note requested AND resolved date known"
+   },
+   {
+    "from": "S20",
+    "to": "S19",
+    "label": "Supplier correct"
+   },
+   {
+    "from": "S20",
+    "to": "S22",
+    "label": "If we are right"
+   },
+   {
+    "from": "S25",
+    "to": "S27",
+    "label": ""
+   },
+   {
+    "from": "S22",
+    "to": "S19",
+    "label": "Credit note requested"
+   },
+   {
+    "from": "S11",
+    "to": "S31",
+    "label": ""
+   },
+   {
+    "from": "S31",
+    "to": "S29",
+    "label": ""
+   },
+   {
+    "from": "S26",
+    "to": "S32",
+    "label": "Invoice entered"
+   },
+   {
+    "from": "S28",
+    "to": "S23",
+    "label": "Difference over £500 AND review and initials completed AND, if a duplicate was found, it is blocked and recorded and all other differences are closed"
+   },
+   {
+    "from": "S30",
+    "to": "S23",
+    "label": "Duplicate blocked and recorded AND all other differences closed AND difference not over £500"
+   },
+   {
+    "from": "S30",
+    "to": "S23",
+    "label": "Duplicate blocked and recorded AND all other differences closed AND difference over £500 AND review and initials completed"
+   },
+   {
+    "from": "S28",
+    "to": "S33",
+    "label": "Review finds an error"
+   },
+   {
+    "from": "S33",
+    "to": "S34",
+    "label": ""
+   },
+   {
+    "from": "S34",
+    "to": "S28",
+    "label": "Tab corrected; re-review"
+   },
+   {
+    "from": "S10",
+    "to": "S35",
+    "label": "Invoice copy not received; following week"
+   },
+   {
+    "from": "S35",
+    "to": "S25",
+    "label": "Invoice copy arrives"
+   },
+   {
+    "from": "S21",
+    "to": "S36",
+    "label": "Credit note posted"
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": ""
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": "Buyer still has not replied after the chase"
+   },
+   {
+    "from": "S22",
+    "to": "S37",
+    "label": "Credit note has not arrived"
+   },
+   {
+    "from": "S37",
+    "to": "S37",
+    "label": "Credit note remains outstanding; weekly chase"
+   },
+   {
+    "from": "S37",
+    "to": "S21",
+    "label": "Credit note arrives"
+   },
+   {
+    "from": "S37",
+    "to": "S38",
+    "label": "Still outstanding after a month"
+   },
+   {
+    "from": "S38",
+    "to": "S39",
+    "label": ""
+   },
+   {
+    "from": "S16",
+    "to": "S40",
+    "label": "Buyer replies after escalation"
+   },
+   {
+    "from": "S40",
+    "to": "S17",
+    "label": "Forwarded reply considered in decision"
+   },
+   {
+    "from": "S38",
+    "to": "S37",
+    "label": "Credit note still outstanding; weekly chase continues"
+   }
+  ],
+  "open_questions": [
+   "How long after the buyer chase is the dispute forwarded if there is still no reply, and what happens if the buyer replies after the chase but before escalation?",
+   "What does the clerk record after passing an invoice copy to accounts payable, and how are that update, invoice entry and the resolved-date update coordinated?",
+   "How does the missing-invoice request log relate to the handoff of an arriving copy to accounts payable?",
+   "How is the missing-invoice list maintained and cleared after entry? Are there further follow-ups if the invoice remains outstanding after the following-week chase?",
+   "On the 'we are right' dispute route, what is recorded when the credit note is requested, and when is the outcome and resolved date recorded relative to requesting and posting it?",
+   "After Dana contacts the supplier's account manager, what does 'when it is done' refer to, and how are issuance, receipt and continued weekly chases coordinated?",
+   "How does the posted-credit route reach supplier-level completion?",
+   "What conditions let the clerk mark a supplier Done on the under-£50, payment-in-transit, supplier-correct dispute, missing-invoice and credit-note routes?",
+   "Where does the over-£500 review sit relative to each difference-handling route, and how are applicable difference closure and review coordinated before Done?",
+   "How does the supervisor know a corrected tab is ready for re-review?",
+   "Who notes differences under £50, and what happens after those differences and payments in transit are noted?",
+   "Does internal audit sample only completed reconciliations?",
+   "Is this the participant's route or general practice, and what is the basis for that scope?",
+   "Are there other names for the work, and what are its parent-process and downstream boundaries?",
+   "What other checks, approvals, retained evidence, exceptions and rework apply?",
+   "Can AP-07 be reviewed? What other rule sources, materials and authoritative records apply, and who interprets conflicting rules?",
+   "What variations apply, and are they substantive or presentational? What are their sources, effort, charging and removal constraints where relevant?",
+   "What other exception volumes, pain points and material risks are relevant?",
+   "What prerequisites, if any, beyond the communicated dispute outcome apply to requesting a credit note or recording the outcome?",
+   "How are the routes into recording a dispute outcome coordinated?",
+   "How are credit-note arrival and any escalation coordinated before posting?",
+   "Does any incoming route start S17 (Decide dispute outcome), or must all prerequisites finish?",
+   "Does any incoming route start S19 (Record dispute outcome), or must all prerequisites finish?",
+   "Does any incoming route start S21 (Post received credit note), or must all prerequisites finish?",
+   "Does any incoming route start S22 (Request supplier credit note), or must all prerequisites finish?",
+   "Does any incoming route start S23 (Mark supplier Done), or must all prerequisites finish?",
+   "Are the outgoing paths from S25 (Pass invoice copy to AP) alternatives, or must they all occur?",
+   "Does any incoming route start S25 (Pass invoice copy to AP), or must all prerequisites finish?",
+   "Does any incoming route start S37 (Chase outstanding credit note), or must all prerequisites finish?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "DRAFT — Supplier statement reconciliation",
+  "overview": "Current-practice account for Northfield Tools Ltd, pending process-owner review. The AP clerk reconciles weekly supplier statements; the AP supervisor manages daily work and the finance manager is accountable. Some closure and exception handoffs remain UNKNOWN.",
+  "trigger": "Every Monday at 9:00 the AP clerk downloads the prior week's statements from the shared mailbox. Statements arriving after Friday 17:00 move to the following week.",
+  "inputs": [
+   "Supplier statements from the shared mailbox",
+   "Supplier open-items reports exported from Ledgerline",
+   "Treasury weekly payment run report",
+   "Invoice or purchase order and buyer and supplier correspondence for escalated disputes"
+  ],
+  "outputs": [
+   "Supplier reconciliation in the Statement Rec Template",
+   "Supplier Done status and difference records in the Rec Log",
+   "Missing-invoice list used for month-end accruals",
+   "Duplicate blocks and posted credit notes in Ledgerline, where applicable"
+  ],
+  "exceptions": [
+   "A missing invoice not received is chased once more the following week and remains on the missing-invoice list for accrual until it arrives.",
+   "An unanswered dispute is chased once after five business days and forwarded to the finance manager if still unanswered. A later buyer reply is forwarded to her.",
+   "An outstanding credit note is chased weekly and escalated after a month; the line remains open.",
+   "Review errors are emailed back for correction and re-review."
+  ],
+  "controls": [
+   "The clerk matches supplier invoice number and amount and totals absolute differences.",
+   "Totals under £50 are noted and ignored; exactly £50 is classified and followed up.",
+   "The AP supervisor blocks duplicates in Ledgerline within one business day to prevent payment.",
+   "For a difference over £500, the supervisor checks classification, logged follow-up and agreement of totals, and initials B2 before Done.",
+   "Internal audit samples 10 reconciliations quarterly; the sample's exact scope is UNKNOWN."
+  ],
+  "validation_notes": [
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified.",
+   "AP-07 is reported as the procedure followed and the source of both thresholds, but it was not reviewed; its written requirements are unverified.",
+   "The account establishes Done and the duplicate-specific closure condition, but does not explain how several other difference routes reach supplier-level completion. Those known fragments remain disconnected from Done.",
+   "Review and initialling over £500 and, where a duplicate is present, closure of the other differences are both required before Done. Their order and coordination are UNKNOWN; neither prerequisite is sufficient alone.",
+   "The timing of the dispute outcome and resolved-date recording on the credit-note route is unclear relative to posting; premature closure cannot be assumed.",
+   "The over-£500 review is required before Done, but its readiness and placement relative to handling each difference are not fully described. Its incoming route is therefore unresolved.",
+   "The missing-invoice request is logged and the supplier is chased if the copy does not arrive, but the account does not make completion of the log entry the handoff that starts the chase.",
+   "The finance manager contacts the supplier's account manager and tells the supervisor when it is done. What 'done' means and the handoff on issuance or receipt remain unclear; weekly chasing remains a reported duty while the credit note is outstanding.",
+   "The participant's account has not been confirmed as general practice or independently corroborated; process-owner approval is pending.",
+   "The coverage review rewrote this memo section to match the interview evidence: Start, cadence & deadlines. The new wording was not checked by a process review, so it is marked partial; compare it with the interview before approval."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "start",
+    "title": "Monday scheduled start",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The weekly work starts on Monday at 9:00."
+   },
+   {
+    "id": "S2",
+    "type": "document",
+    "title": "Download supplier statements",
+    "actor": "AP clerk",
+    "system": "Shared mailbox ap-statements",
+    "description": "Download all trade-supplier statements received in the previous week's set. Statements arriving after Friday 17:00 go into the next week. Scope is Northfield Tools Ltd; employee expenses and intercompany are excluded."
+   },
+   {
+    "id": "S3",
+    "type": "document",
+    "title": "Save statement PDFs",
+    "actor": "AP clerk",
+    "system": "Shared drive",
+    "description": "Save each statement PDF in Statements/YYYY-WW on the shared drive."
+   },
+   {
+    "id": "S4",
+    "type": "document",
+    "title": "Export supplier open-items report",
+    "actor": "AP clerk",
+    "system": "Ledgerline",
+    "description": "Export the open-items report for the supplier from Ledgerline after saving the statement."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Compare statement and open items",
+    "actor": "AP clerk",
+    "system": "Statement Rec Template workbook",
+    "description": "Manually copy statement lines into the workbook, using one tab per supplier, and compare them with the open-items report. Match on supplier invoice number and amount; a missing matching number or different amount is a difference. Add the absolute values of differences so over- and under-differences do not cancel. The workbook shows the total at the foot of the tab and lists classifications; it performs no other calculations. Copying takes about 10 minutes per supplier, according to the participant."
+   },
+   {
+    "id": "S6",
+    "type": "decision",
+    "title": "Is the total under £50?",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "A total strictly under £50 is noted and ignored. Exactly £50 follows the classification route. The participant attributes the limit to AP-07, which was not reviewed."
+   },
+   {
+    "id": "S7",
+    "type": "document",
+    "title": "Note and ignore difference",
+    "actor": "UNKNOWN",
+    "system": "Statement Rec Template workbook",
+    "description": "Note a total under £50 in a comment line on the supplier tab and ignore it. It is not logged elsewhere."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Classify larger differences",
+    "actor": "AP clerk",
+    "system": "Statement Rec Template workbook",
+    "description": "For a supplier total of £50 or more, classify each difference as missing invoice, payment in transit, duplicate or disputed. The workbook lists classifications."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Request missing invoice copy",
+    "actor": "AP clerk",
+    "system": "Email",
+    "description": "Email the supplier the same day to request a copy of a missing invoice."
+   },
+   {
+    "id": "S10",
+    "type": "data_store",
+    "title": "Log missing invoice request",
+    "actor": "AP clerk",
+    "system": "Rec Log sheet",
+    "description": "Log the missing-invoice request in the Rec Log."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Email duplicate to supervisor",
+    "actor": "AP clerk",
+    "system": "Email",
+    "description": "Email the AP supervisor about a duplicate the same day."
+   },
+   {
+    "id": "S12",
+    "type": "document",
+    "title": "Note payment in transit",
+    "actor": "AP clerk",
+    "system": "Statement Rec Template workbook",
+    "description": "Use Treasury's weekly payment run report to spot a payment in transit and note it on the supplier tab. No further action is needed and it is not logged elsewhere."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Email dispute to buyer",
+    "actor": "AP clerk",
+    "system": "Email",
+    "description": "Email the disputed item to the buyer who placed the order. The five-business-day reply period starts on the email day."
+   },
+   {
+    "id": "S14",
+    "type": "wait",
+    "title": "Wait for buyer reply",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The buyer has five business days to reply, starting on the day the clerk emails the dispute."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Chase buyer once",
+    "actor": "AP supervisor",
+    "system": "UNKNOWN",
+    "description": "If the buyer has not replied within five business days, chase once. If there is still no reply, forward the thread to the finance manager."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Forward dispute to finance manager",
+    "actor": "AP supervisor",
+    "system": "Email",
+    "description": "If the buyer still has not replied after the chase, forward the dispute email thread to Dana Whitlock and copy the clerk. Timing after the chase is UNKNOWN."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Decide dispute outcome",
+    "actor": "Finance manager, Dana Whitlock",
+    "system": "Ledgerline and email",
+    "description": "Decide the escalated dispute with the buyer and supplier, using the statement line, invoice or purchase order, Ledgerline record and correspondence. Take a forwarded late buyer reply into account when deciding."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Communicate dispute outcome",
+    "actor": "Finance manager, Dana Whitlock",
+    "system": "UNKNOWN",
+    "description": "Tell the AP supervisor and clerk the dispute outcome."
+   },
+   {
+    "id": "S19",
+    "type": "data_store",
+    "title": "Record dispute outcome",
+    "actor": "AP clerk",
+    "system": "Rec Log",
+    "description": "Record the dispute outcome as supplier correct or credit note requested, and record the date resolved against the supplier line. The timing of the resolved-date entry on the credit-note route is UNKNOWN."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Communicate buyer dispute outcome",
+    "actor": "Buyer who placed the order",
+    "system": "UNKNOWN",
+    "description": "For a timely reply, tell the clerk whether the supplier or the company is right. Supplier correct means no change; company correct leads to a credit-note request."
+   },
+   {
+    "id": "S21",
+    "type": "data_store",
+    "title": "Post received credit note",
+    "actor": "AP clerk",
+    "system": "Ledgerline",
+    "description": "Post the supplier's credit note in Ledgerline when it arrives."
+   },
+   {
+    "id": "S22",
+    "type": "activity",
+    "title": "Request supplier credit note",
+    "actor": "AP clerk",
+    "system": "UNKNOWN",
+    "description": "If the company is right, ask the supplier for a credit note. This outcome applies to both a timely buyer reply and the finance manager's decision."
+   },
+   {
+    "id": "S23",
+    "type": "data_store",
+    "title": "Mark supplier Done",
+    "actor": "AP clerk",
+    "system": "Rec Log",
+    "description": "Mark the supplier Done. For a duplicate, the blocked item is resolved and all other differences must be closed. For a difference over £500, the supervisor must review and initial before Done. Conditions for other routes remain UNKNOWN."
+   },
+   {
+    "id": "S24",
+    "type": "end",
+    "title": "Supplier reconciliation complete",
+    "actor": "UNKNOWN",
+    "system": "Rec Log and supplier workbook tab",
+    "description": "The supplier is marked Done; for a difference over £500 the supervisor has also reviewed and initialled the tab. Internal audit samples 10 reconciliations quarterly; whether only completed reconciliations are sampled is UNKNOWN."
+   },
+   {
+    "id": "S25",
+    "type": "document",
+    "title": "Pass invoice copy to AP",
+    "actor": "AP clerk",
+    "system": "UNKNOWN",
+    "description": "Pass the received invoice copy to accounts payable for entry into Ledgerline. It remains on the missing-invoice list until entry, for month-end accruals."
+   },
+   {
+    "id": "S26",
+    "type": "data_store",
+    "title": "Enter invoice in Ledgerline",
+    "actor": "Accounts payable team",
+    "system": "Ledgerline",
+    "description": "Enter the invoice copy in Ledgerline. The item remains on the missing-invoice list until entry."
+   },
+   {
+    "id": "S27",
+    "type": "data_store",
+    "title": "Update missing-invoice log",
+    "actor": "AP clerk",
+    "system": "Rec Log",
+    "description": "After passing the invoice copy to AP, update the supplier's Rec Log line. The content of this update is UNKNOWN."
+   },
+   {
+    "id": "S28",
+    "type": "activity",
+    "title": "Review reconciliation",
+    "actor": "AP supervisor",
+    "system": "Statement Rec Template workbook and Rec Log",
+    "description": "For a difference over £500, check that each difference is classified correctly, follow-up has been taken and logged, and tab totals agree to the statement and open-items report. Initial B2 after the check; if an error is found, return it for correction and review again. Review and initials precede Done and are normally Tuesday or Wednesday; the finance manager set the Wednesday 17:00 finish deadline. AP-07 is the reported threshold source, not reviewed."
+   },
+   {
+    "id": "S29",
+    "type": "activity",
+    "title": "Confirm duplicate block",
+    "actor": "AP supervisor",
+    "system": "Email",
+    "description": "Reply to the clerk by email that the block is in place. The supervisor records nothing in the Rec Log."
+   },
+   {
+    "id": "S30",
+    "type": "data_store",
+    "title": "Record duplicate block",
+    "actor": "AP clerk",
+    "system": "Rec Log",
+    "description": "Mark the duplicate line blocked and record the date. The item is treated as resolved and nothing further happens to it; the supplier can be marked Done once other differences are closed."
+   },
+   {
+    "id": "S31",
+    "type": "data_store",
+    "title": "Block duplicate in Ledgerline",
+    "actor": "AP supervisor",
+    "system": "Ledgerline",
+    "description": "Block the duplicate within one business day so it cannot be paid, then confirm the block to the clerk."
+   },
+   {
+    "id": "S32",
+    "type": "data_store",
+    "title": "Resolve missing-invoice line",
+    "actor": "AP clerk",
+    "system": "Rec Log",
+    "description": "Once the invoice is entered, mark the missing-invoice line resolved and record the invoice entry date."
+   },
+   {
+    "id": "S33",
+    "type": "activity",
+    "title": "Return reconciliation for correction",
+    "actor": "AP supervisor",
+    "system": "Email",
+    "description": "If review finds an error, email the reconciliation back to the clerk explaining what is wrong."
+   },
+   {
+    "id": "S34",
+    "type": "activity",
+    "title": "Correct supplier tab",
+    "actor": "AP clerk",
+    "system": "Statement Rec Template workbook",
+    "description": "Correct the tab following the review error. The supervisor reviews it again before initialling."
+   },
+   {
+    "id": "S35",
+    "type": "activity",
+    "title": "Chase missing invoice",
+    "actor": "AP clerk",
+    "system": "Email",
+    "description": "If the copy has not arrived, email the supplier once more the following week. The line stays open on the missing-invoice list until arrival; the month-end accountant accrues it."
+   },
+   {
+    "id": "S36",
+    "type": "data_store",
+    "title": "Record posted credit resolution",
+    "actor": "AP clerk",
+    "system": "Rec Log",
+    "description": "After posting the credit note, mark the disputed line resolved and record its credit-note identifier and posting date."
+   },
+   {
+    "id": "S37",
+    "type": "activity",
+    "title": "Chase outstanding credit note",
+    "actor": "AP clerk",
+    "system": "Email and Rec Log",
+    "description": "Chase the supplier by email weekly while the credit note is outstanding; the line stays open in the Rec Log. The supervisor raises it with Dana if still outstanding after a month."
+   },
+   {
+    "id": "S38",
+    "type": "activity",
+    "title": "Raise outstanding credit note",
+    "actor": "AP supervisor",
+    "system": "UNKNOWN",
+    "description": "If the credit note is still outstanding after a month, raise it with Dana Whitlock."
+   },
+   {
+    "id": "S39",
+    "type": "activity",
+    "title": "Contact supplier account manager",
+    "actor": "Finance manager, Dana Whitlock",
+    "system": "UNKNOWN",
+    "description": "Contact the supplier's account manager directly to get the credit note issued and tell the supervisor when it is done. Coordination of issuance and receipt is UNKNOWN. The clerk's reported weekly chasing continues while the credit note remains outstanding."
+   },
+   {
+    "id": "S40",
+    "type": "activity",
+    "title": "Forward late buyer reply",
+    "actor": "AP supervisor",
+    "system": "UNKNOWN",
+    "description": "If the buyer replies after escalation, forward the reply to Dana, who takes it into account when deciding the outcome."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "Monday 9:00"
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": ""
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": ""
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": "Total calculated"
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Total under £50"
+   },
+   {
+    "from": "S6",
+    "to": "S8",
+    "label": "Total £50 or more"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "Missing invoice"
+   },
+   {
+    "from": "S9",
+    "to": "S25",
+    "label": "Invoice copy arrives"
+   },
+   {
+    "from": "S35",
+    "to": "S25",
+    "label": "Invoice copy arrives"
+   },
+   {
+    "from": "S25",
+    "to": "S26",
+    "label": "Copy passed for entry"
+   },
+   {
+    "from": "S25",
+    "to": "S27",
+    "label": "After copy passed"
+   },
+   {
+    "from": "S26",
+    "to": "S32",
+    "label": "Invoice entered"
+   },
+   {
+    "from": "S8",
+    "to": "S11",
+    "label": "Duplicate"
+   },
+   {
+    "from": "S11",
+    "to": "S31",
+    "label": "Duplicate notified"
+   },
+   {
+    "from": "S31",
+    "to": "S29",
+    "label": "Block in place"
+   },
+   {
+    "from": "S29",
+    "to": "S30",
+    "label": "Confirmation received"
+   },
+   {
+    "from": "S8",
+    "to": "S12",
+    "label": "Payment in transit"
+   },
+   {
+    "from": "S8",
+    "to": "S13",
+    "label": "Disputed item"
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": "Dispute emailed"
+   },
+   {
+    "from": "S14",
+    "to": "S20",
+    "label": "Buyer replies within five business days"
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": "No reply within five business days"
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": "Still no reply after chase"
+   },
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": "Dispute escalated"
+   },
+   {
+    "from": "S16",
+    "to": "S40",
+    "label": "Buyer replies after escalation"
+   },
+   {
+    "from": "S40",
+    "to": "S17",
+    "label": "Late reply considered"
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": "Outcome decided"
+   },
+   {
+    "from": "S18",
+    "to": "S19",
+    "label": "Supplier correct"
+   },
+   {
+    "from": "S18",
+    "to": "S22",
+    "label": "Company correct"
+   },
+   {
+    "from": "S20",
+    "to": "S19",
+    "label": "Supplier correct"
+   },
+   {
+    "from": "S20",
+    "to": "S22",
+    "label": "Company correct"
+   },
+   {
+    "from": "S22",
+    "to": "S21",
+    "label": "Credit note arrives"
+   },
+   {
+    "from": "S22",
+    "to": "S37",
+    "label": "Credit note not received"
+   },
+   {
+    "from": "S37",
+    "to": "S37",
+    "label": "Still outstanding; weekly chase"
+   },
+   {
+    "from": "S37",
+    "to": "S21",
+    "label": "Credit note arrives"
+   },
+   {
+    "from": "S37",
+    "to": "S38",
+    "label": "Still outstanding after a month"
+   },
+   {
+    "from": "S38",
+    "to": "S39",
+    "label": "Issue raised"
+   },
+   {
+    "from": "S38",
+    "to": "S37",
+    "label": "Still outstanding; weekly chasing continues"
+   },
+   {
+    "from": "S21",
+    "to": "S36",
+    "label": "Credit note posted"
+   },
+   {
+    "from": "S28",
+    "to": "S33",
+    "label": "Review finds error"
+   },
+   {
+    "from": "S33",
+    "to": "S34",
+    "label": "Returned for correction"
+   },
+   {
+    "from": "S34",
+    "to": "S28",
+    "label": "Tab corrected; re-review"
+   },
+   {
+    "from": "S30",
+    "to": "S23",
+    "label": "Duplicate blocked and recorded AND all other differences closed AND difference not over £500"
+   },
+   {
+    "from": "S30",
+    "to": "S23",
+    "label": "Duplicate blocked and recorded AND all other differences closed AND difference over £500 AND review and initials completed"
+   },
+   {
+    "from": "S28",
+    "to": "S23",
+    "label": "Difference over £500 AND review and initials completed AND, if duplicate found, duplicate blocked and recorded and all other differences closed"
+   },
+   {
+    "from": "S23",
+    "to": "S24",
+    "label": "Supplier marked Done; applicable review completed"
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": "Missing invoice request"
+   },
+   {
+    "from": "S9",
+    "to": "S35",
+    "label": "Copy not received; following week"
+   },
+   {
+    "from": "S22",
+    "to": "S19",
+    "label": "Credit note requested; recording timing UNKNOWN"
+   }
+  ],
+  "open_questions": [
+   "What conditions and handoffs allow Done on the under-£50, payment-in-transit, supplier-correct, missing-invoice and credit-note routes?",
+   "Where does the over-£500 review begin relative to difference handling, and how are review and applicable closure coordinated before Done?",
+   "When are the dispute outcome and resolved date recorded on the credit-note route relative to the request and posting?",
+   "How long after the buyer chase is an unanswered dispute forwarded, and what happens if the buyer replies after the chase but before escalation?",
+   "After Dana contacts the supplier's account manager, what does 'when it is done' mean, and how are issuance, receipt and continued weekly chases coordinated?",
+   "What does the clerk record after passing an invoice copy to AP, and how are that update and invoice entry coordinated?",
+   "How is the missing-invoice list maintained and cleared after entry, and are further chases made after the following-week follow-up?",
+   "Who notes totals under £50, and what happens next after those totals or payments in transit are noted?",
+   "Is the internal audit sample limited to completed reconciliations?",
+   "Is this a local route or general practice, and what is the basis? What is its parent-process boundary?",
+   "Are there other names, material variations, additional checks, approvals or exceptions?",
+   "Can AP-07 be reviewed, and who interprets conflicting rules? What records are authoritative?",
+   "How does the supervisor know a corrected tab is ready for re-review?",
+   "What are the exception rates, remaining effort estimates, workbook logic ownership and location of Treasury's report?",
+   "Does any incoming route start S17 (Decide dispute outcome), or must all prerequisites finish?",
+   "Does any incoming route start S19 (Record dispute outcome), or must all prerequisites finish?",
+   "Does any incoming route start S21 (Post received credit note), or must all prerequisites finish?",
+   "Does any incoming route start S22 (Request supplier credit note), or must all prerequisites finish?",
+   "Does any incoming route start S23 (Mark supplier Done), or must all prerequisites finish?",
+   "Does any incoming route start S25 (Pass invoice copy to AP), or must all prerequisites finish?",
+   "Does any incoming route start S37 (Chase outstanding credit note), or must all prerequisites finish?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "Supplier statement reconciliation is the intake name. Other team, checklist or system names are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "captured",
+    "answer": "Confirm that each supplier's stated amount owed matches the payables ledger, finding missing invoices and duplicate payments before month-end."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "Every Monday at 9:00 the AP clerk downloads the previous week's statements from the shared mailbox.\nStatements arriving after Friday 17:00 go into the next week's set.\nThe reported completion deadline is Wednesday 17:00.\nThe work is initiated by trade suppliers' statements arriving in the ap-statements shared mailbox; the statements received in the previous week form the set for reconciliation."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The clerk marks the supplier Done in the Rec Log. For a difference over £500, the supervisor reviews and initials B2 before Done. A blocked and recorded duplicate is resolved, and the supplier can be marked Done once its other differences are closed. The reported deadline is Wednesday 17:00. Conditions and handoffs to Done for several other routes remain UNKNOWN."
+   },
+   {
+    "key": "accountable",
+    "status": "captured",
+    "answer": "Finance manager Dana Whitlock is accountable; the AP supervisor owns day-to-day running."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The clerk downloads and saves each statement PDF, exports supplier open items from Ledgerline and compares invoice number and amount in a supplier workbook tab. Absolute differences are totalled: under £50 is noted and ignored; £50 or more is classified. Missing invoices are requested and logged, then passed to AP for entry and resolved in the log; absent copies are chased the following week and stay on the accrual list. Duplicates go to the supervisor for a Ledgerline block and email confirmation, after which the clerk records the block. Payments in transit are noted using Treasury's report. Disputes go to the buyer; unanswered disputes are chased and escalated to Dana, while timely answers or Dana's decision determine whether nothing changes or a credit note is requested and posted. Outstanding credits are chased weekly and escalated after a month. The clerk records outcomes and marks Done; over £500 the supervisor reviews and initials first, returning errors for correction and re-review. Several routes' handoffs to Done, the review's readiness point and the timing of the credit-note outcome entry remain UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The clerk matches invoice number and amount, totals absolute differences and classifies larger differences. The supervisor blocks duplicates to prevent payment and, over £500, checks classification, logged follow-up and agreement of totals to the statement and open-items report, then initials B2 before Done. Errors are returned by email for correction and re-review. Dana decides escalated disputes using the statement, invoice or purchase order, Ledgerline and correspondence. Internal audit samples 10 reconciliations quarterly. Review readiness, other approval or override arrangements, technical enforcement and the audit sample's exact scope are UNKNOWN."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "Handling varies by total and difference class: under £50 is noted, £50 or more is classified, and over £500 receives supervisor review. Missing invoices, duplicates, payments in transit and disputes have different follow-up; outstanding invoice copies and credits have chase routes. Client, supplier or other structural differences and their source or effort are UNKNOWN."
+   },
+   {
+    "key": "pain_points",
+    "status": "captured",
+    "answer": "The participant says slow buyer replies are the most common cause of late completion. Manually copying statement lines takes about 10 minutes per supplier."
+   },
+   {
+    "key": "risk",
+    "status": "captured",
+    "answer": "Errors or delays risk duplicate payments and unrecorded month-end liabilities if missing invoices are not accrued. The participant cited a £4,200 duplicate payment caught last year; duplicate blocking is intended to prevent payment."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The work uses supplier PDFs, Ledgerline open-items reports, the Statement Rec Template, Rec Log, missing-invoice list and Treasury payment run report. AP-07 Statement Reconciliation is reportedly followed; it is a two-page document on the finance shared drive, last updated in March, and was not reviewed in the interview. Escalated disputes also use the statement line, invoice or purchase order, ledger record and correspondence. Locations and availability of the remaining materials are not fully established."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The work covers trade suppliers of Northfield Tools Ltd, one UK legal entity, that send a statement that week. Employee expenses and intercompany are out of scope. Whether this is local or general practice and its parent-process boundary are UNKNOWN."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The participant attributes the £50 and £500 limits to AP-07, which was not reviewed, and says the finance manager set the Wednesday deadline. Exactly £50 is classified; only totals strictly below it are ignored. The clerk matches invoice number and amount and sums absolute differences so signs do not cancel. Over £500, review and initials precede Done. Buyer reply time starts on the dispute email day; the Friday 17:00 cutoff determines the weekly set. Rule interpretation, conflict authority and calculation-logic ownership are UNKNOWN."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "Treasury supplies the weekly payment run report. The clerk hands received invoice copies to AP for Ledgerline entry; the month-end accountant uses and accrues the missing-invoice list. Buyers and the finance manager resolve disputes, and internal audit samples reconciliations quarterly. The supervisor confirms duplicate blocks to the clerk and forwards escalated disputes and late replies to Dana. Readiness signals and the handoffs from several difference routes to supplier completion are UNKNOWN."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "Statements come from the shared mailbox and PDFs are saved on the shared drive. Ledgerline supplies open items and holds duplicate blocks, invoice entries and posted credits. Statement lines are manually copied into the supplier workbook tab, which totals differences and lists classifications; the Rec Log records outcomes and Done. Treasury report storage and authoritative records are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "partial",
+    "answer": "The participant estimates about 60 suppliers weekly, rising to 80 in the first week of the month, and around six weekly with a difference over £50. Copying takes about 10 minutes per supplier; the supervisor estimates one hour weekly for their duties. Internal audit samples 10 reconciliations quarterly. Other exception rates and step effort are UNKNOWN."
+   }
+  ]
+ },
+ "draft_error": null
+}

@@ -1,0 +1,692 @@
+{
+ "case": "C02",
+ "process": "FA-09",
+ "mode": "typed, five at once on one server",
+ "style": "two steps per answer",
+ "build": "fixed",
+ "participant": "script",
+ "context": {
+  "process_name": "Investment Purchases: Recording, Setup & Controls",
+  "process_owner": "",
+  "objective": "Document how we carry out Investment Purchases: Recording, Setup & Controls, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "To begin with, we open the investment purchase and assign people responsible for the checks. That is done by: Assigned investment/accounting preparer. What we do: open the New Investment Set Up and purchase-control checklists; record fund/entity, issuer/portfolio company, security type, purchase/closing date, cost/funding amount, counterparty, and payment date; assign preparer, second reviewer, callback/Treasury, compliance/screening, and approval roles; identify whether the investment is equity, debt, SAFE/note conversion, non-cash restructuring, fund-of-funds, or another supported category. Next, we collect and validate the deal document package. That is done by: Investment/accounting preparer; reviewer checks completeness. What we do: collect the complete deal “bible.” FA09-SC-06 System constraint A system, workbook, template, checklist, prior deliverable, or employee recollection is only a method, data source, or supporting record. It does not set a governing rule unless the source explicitly establishes an; confirm the approved investment, legal entities, security, shares/units, cost, closing date, payment terms, and restrictions; confirm the package includes capitalization table, structure chart, certificates/evidence of ownership, and required conversion/restructuring support; log missing/final-versus-draft documents and obtain them before the dependent step."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "What event or incoming information prompts you to open the investment purchase, and how do you receive it?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "After that, we complete and review the Investment Attribute Form. That is done by: Investment/accounting preparer; client provides/approves missing. What we do: record the investment name and portfolio-company name exactly as approved for the schedule of investments (SOI) and capital notices; record closing date, industry, security type, shares/units, and cost lines; record FAS 157 Level and client signer; compare every attribute to the supporting document or written client direction; resolve missing or conflicting attributes before system setup. Then, we document client or GP approval and clear counterparty checks. That is done by: Client/GP approves; Treasury/  and compliance roles clear. What we do: retain client/GP approval of purchase, amount, counterparty, and payment; validate new counterparty bank details using callback; apply Exiger screening when the jurisdiction meets the approved high-risk criteria; resolve any bank/screening discrepancy or escalation; confirm payment date and bank cut-off feasibility."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What happens to the purchase payment while a bank-detail or screening discrepancy remains unresolved?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "Once that is done, we create Allvue issuer and security master data. That is done by: Investment/accounting preparer; second reviewer checks. What we do: in Allvue NAV, create or validate the Issuer; create the Security with the approved type and attributes; create the Lot using approved closing, share/unit, and cost information; create/apply the approved Allocation rule; in Allvue CRM, update Firm Known As, Industry, and FAS 157 Level; compare system fields to the Attribute Form. Following that, we prepare and approve the cash entry. That is done by: Investment/accounting preparer; cash-entry approval routes to all AFCs,. What we do: prepare the Daily Posting cash entry: DR Investment Payable 20080 / CR the correct Bank account; use an entry description distinct from the later cost entry; attach client approval, callback/screening evidence, deal/payment support, and calculation; route the entry to all AFCs, FCs, and Directors as specified by the source; resolve review comments and obtain required approvals."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "Once the cash entry has the required approvals, what happens to it?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "Following that, we release payment and confirm bank execution. That is done by: Treasury/  role executes; preparer coordinates. What we do: submit the approved payment through the treasury workflow; confirm release occurs sufficiently before the applicable bank cut-off; record payment status, bank settlement date (value date), bank reference, and any rejection/return; compare actual cash disbursed to the approved cash entry. Following that, we prepare and approve the cost entry. That is done by: Investment/accounting preparer; cost-entry approval routes to FCs and. What we do: confirm final acquisition cost and any supported non-cash component; prepare the General Operations entry: DR Investment – Acquisition 11010 / CR Investment Payable 20080; use a description different from the cash entry; attach final documents, Attribute Form, setup evidence, and cost support; route the entry to FCs and Directors, resolve comments, and post after approval."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "After approval, how is the cash entry posted, and what tells the preparer it has posted successfully?"
+  },
+  {
+   "id": "t010",
+   "role": "assistant",
+   "text": "This capture still has open sections. 15 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794969723.105,
+   "turn": 0,
+   "seconds": 0.043,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794969726.681,
+   "turn": 2,
+   "seconds": 3.526,
+   "status": 200,
+   "retries": 1
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969762.434,
+   "turn": 3,
+   "seconds": 39.28
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794969772.143,
+   "turn": 3,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 48.99
+  },
+  {
+   "kind": "question",
+   "at": 1794969775.203,
+   "turn": 4,
+   "seconds": 3.003,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969795.64,
+   "turn": 5,
+   "seconds": 23.44,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 3,
+   "connections": 2
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794969820.708,
+   "turn": 5,
+   "notes_state": "queued",
+   "map_state": "queued",
+   "seconds": 48.51
+  },
+  {
+   "kind": "question",
+   "at": 1794969824.436,
+   "turn": 6,
+   "seconds": 3.645,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794969869.535,
+   "turn": 7,
+   "notes_state": "working",
+   "map_state": "working",
+   "seconds": 48.74
+  },
+  {
+   "kind": "question",
+   "at": 1794969871.334,
+   "turn": 8,
+   "seconds": 1.726,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969877.504,
+   "turn": 9,
+   "seconds": 7.9,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t006",
+   "steps": 7,
+   "connections": 6
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969910.436,
+   "turn": 9,
+   "seconds": 40.83,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 9,
+   "connections": 8
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794969916.595,
+   "turn": 9,
+   "notes_state": "queued",
+   "map_state": "ready",
+   "seconds": 46.99
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794969966.324,
+   "turn": 9,
+   "seconds": 49.654,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794970170.169,
+   "turn": 10,
+   "seconds": 203.791,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [],
+ "notes": {
+  "summary": "The participant described Treasury execution of the approved payment, recording and checking bank execution, and preparation and approval of the cost entry. The overall finish condition, initiating event, accountable role and payment status during unresolved discrepancies remain open.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "captured",
+    "answer": "Investment Purchases: Recording, Setup & Controls"
+   },
+   {
+    "key": "purpose",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The initiating event that causes the preparer to open the investment setup and purchase-control checklists is not established."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The observable condition that demonstrates the overall investment-purchase work is complete is not established."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The assigned investment/accounting preparer performs setup and package collection and validation; review, callback/Treasury, compliance/screening and approval roles are assigned.\nThe role accountable for the overall investment-purchase process/result is not established."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The assigned investment/accounting preparer opens the New Investment Set Up and purchase-control checklists. They record fund/entity, issuer/portfolio company, security type, purchase/closing date, cost/funding amount, counterparty and payment date, and assign preparer, second reviewer, callback/Treasury, compliance/screening and approval roles.\nDuring package collection, the preparer logs missing documents and whether documents are final or draft, then obtains missing/final documents before the dependent step.\nThe investment/accounting preparer completes the Investment Attribute Form; the client provides or approves missing information. Names are recorded exactly as approved for the SOI and capital notices, alongside closing date, industry, security type, shares/units, cost lines, FAS 157 Level and client signer. Attributes are compared to supporting documents or written client direction, and missing or conflicting attributes are resolved before system setup.\nClient or GP approval of the purchase, amount, counterparty and payment is retained. New counterparty bank details are validated by callback; Exiger screening applies when the jurisdiction meets approved high-risk criteria. Bank or screening discrepancies and escalations are resolved, and payment date and bank cut-off feasibility are confirmed.\nAfter the approval and counterparty-check stage, the investment/accounting preparer creates or validates the Issuer in Allvue NAV, creates the Security with approved type and attributes, creates the Lot using approved closing, share/unit and cost information, and creates/applies the approved Allocation rule. In Allvue CRM the preparer updates Firm Known As, Industry and FAS 157 Level; a second reviewer checks, and system fields are compared to the Attribute Form.\nFollowing master-data setup, the preparer prepares the Daily Posting cash entry: debit Investment Payable 20080 and credit the correct bank account, using a description distinct from the later cost entry. Client approval, callback/screening evidence, deal/payment support and calculation are attached; the entry is routed to all AFCs, FCs and Directors as specified by the source, review comments are resolved and required approvals obtained.\nFollowing cash-entry approval, the preparer coordinates submission of the approved payment through the treasury workflow; the Treasury role executes it. Release is confirmed sufficiently before the applicable bank cut-off.\nPayment status, bank settlement date (value date), bank reference and any rejection or return are recorded; actual cash disbursed is compared with the approved cash entry.\nFollowing payment release and bank execution confirmation, the investment/accounting preparer confirms final acquisition cost and any supported non-cash component and prepares the General Operations cost entry: debit Investment – Acquisition 11010 and credit Investment Payable 20080. The entry has a different description from the cash entry, is routed to FCs and Directors, and is posted after approval and resolution of comments."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The investment/accounting preparer collects and validates the deal document package; a reviewer checks completeness. The preparer confirms the approved investment, legal entities, security, shares/units, cost, closing date, payment terms and restrictions, and checks for the capitalization table, structure chart, certificates/evidence of ownership, and required conversion/restructuring support.\nEach investment attribute is compared to supporting documents or written client direction; missing or conflicting attributes must be resolved before system setup.\nClient/GP approves the purchase, amount, counterparty and payment; Treasury and compliance roles clear counterparty checks. New bank details are validated by callback, and qualifying high-risk jurisdictions receive Exiger screening; discrepancies or escalations are resolved.\nThe payment's status while a bank-detail or screening discrepancy remains unresolved was not established.\nA second reviewer checks master-data setup, with system fields compared against the Attribute Form. Cash-entry review comments are resolved and required approvals obtained after routing to all AFCs, FCs and Directors as specified by the source.\nActual cash disbursed is compared with the approved cash entry; payment status, settlement date, bank reference and any rejection or return are recorded.\nThe cost entry is routed to FCs and Directors, comments are resolved, and the entry is posted after approval."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "Category-specific changes to purchase steps or controls remain unspecified.\nExiger screening is applied when the jurisdiction meets approved high-risk criteria, making screening conditional on jurisdiction."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The preparer uses the New Investment Set Up and purchase-control checklists. The deal “bible” includes a capitalization table, structure chart, certificates or ownership evidence, and required conversion/restructuring support.\nThe storage location of the checklists and deal package remains unspecified.\nThe Investment Attribute Form records approved names and investment attributes and is used to check system fields. The cash-entry package includes client approval, callback/screening evidence, deal/payment support and a calculation.\nFinal documents, the Investment Attribute Form, setup evidence and cost support are attached to the cost entry."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "At setup, the preparer identifies whether the investment is equity, debt, SAFE/note conversion, non-cash restructuring, fund-of-funds, or another supported category."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "Package validation confirms the approved investment, legal entities, security, shares/units, cost, closing date, payment terms and restrictions.\nThe governing source and authority for investment approval and package-validation criteria are not established.\nInvestment and portfolio-company names must match approved names for the SOI and capital notices; missing or conflicting attributes are resolved before setup. Screening is applied when the jurisdiction meets approved high-risk criteria.\nThe cash entry debits Investment Payable 20080 and credits the correct bank account; its description is distinct from the later cost entry. An approved Allocation rule is created or applied to the security setup.\nThe source and substance of the approved Allocation rule and the approved high-risk jurisdiction criteria remain unspecified.\nThe General Operations cost entry debits Investment – Acquisition 11010 and credits Investment Payable 20080, with a description distinct from the cash entry; it is posted after approval."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The work requires client or GP approval of the purchase, amount, counterparty and payment. Client approval is retained and attached to the cash entry.\nThe approved payment is submitted through the treasury workflow; the preparer coordinates and the Treasury role executes it."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "Allvue NAV holds the issuer, security, lot and applied Allocation rule described in setup; Allvue CRM is updated with Firm Known As, Industry and FAS 157 Level. Exiger is used for screening qualifying high-risk jurisdictions."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": ""
+   }
+  ]
+ },
+ "map": {
+  "title": "Investment Purchase Setup and Controls",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Open and set up purchase",
+    "actor": "Assigned investment/accounting preparer",
+    "system": "New Investment Set Up and purchase-control checklists",
+    "description": "Open the checklists, record the investment and payment details, assign check and approval roles, and identify the investment category. Assigned roles include preparer, second reviewer, callback/Treasury, compliance/screening, and approval roles."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Collect and validate deal package",
+    "actor": "Investment/accounting preparer; reviewer checks completeness",
+    "system": "UNKNOWN",
+    "description": "Collect the deal package, confirm the approved investment and its key terms, and check for ownership, structure and applicable conversion or restructuring support. Log missing documents and whether documents are final or draft; the reviewer checks completeness."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Obtain outstanding deal documents",
+    "actor": "Investment/accounting preparer",
+    "system": "UNKNOWN",
+    "description": "Obtain outstanding documents before the dependent step. The dependent step and the handling if documents cannot be obtained are UNKNOWN."
+   },
+   {
+    "id": "S4",
+    "type": "document",
+    "title": "Complete Investment Attribute Form",
+    "actor": "Investment/accounting preparer; client provides or approves missing attributes",
+    "system": "Investment Attribute Form",
+    "description": "Record approved names and investment attributes, and compare each attribute with supporting documents or written client direction. Resolve missing or conflicting attributes before system setup."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Document approval and clear checks",
+    "actor": "Client/GP approves; Treasury and compliance roles clear checks; other responsibility UNKNOWN",
+    "system": "Exiger for applicable screening; other systems UNKNOWN",
+    "description": "Retain client/GP approval of the purchase, amount, counterparty and payment; validate new bank details by callback. Apply Exiger screening when the jurisdiction meets approved high-risk criteria, resolve bank or screening discrepancies and escalations, and confirm payment date and bank cut-off feasibility."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Create Allvue master data",
+    "actor": "Investment/accounting preparer; second reviewer checks",
+    "system": "Allvue NAV and Allvue CRM",
+    "description": "In NAV, create or validate the issuer, create the security and lot, and create or apply the approved allocation rule. In CRM, update Firm Known As, Industry and FAS 157 Level; compare system fields with the Attribute Form."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Prepare and approve cash entry",
+    "actor": "Investment/accounting preparer; cash-entry approval routes to AFCs, FCs and Directors as specified by the source",
+    "system": "Daily Posting; system or location UNKNOWN",
+    "description": "Prepare the cash entry debiting Investment Payable and crediting the correct bank account, with a description distinct from the later cost entry. Attach the reported approval, callback or screening evidence, deal and payment support, and calculation; route for approval and resolve review comments."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Release payment and confirm execution",
+    "actor": "Treasury role executes; preparer coordinates",
+    "system": "Treasury workflow; system UNKNOWN",
+    "description": "Submit the approved payment, confirm release before the applicable bank cut-off, and compare actual cash disbursed with the approved cash entry. Record payment status, settlement date, bank reference and any rejection or return; handling of rejection or return is UNKNOWN."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Prepare and approve cost entry",
+    "actor": "Investment/accounting preparer; approval routes to FCs and Directors",
+    "system": "General Operations; system or location UNKNOWN",
+    "description": "Confirm final acquisition cost and any supported non-cash component. Prepare an entry debiting Investment – Acquisition and crediting Investment Payable, using a description different from the cash entry; attach the reported support, route for approval, resolve comments and post after approval."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": "Documents outstanding"
+   },
+   {
+    "from": "S2",
+    "to": "S4",
+    "label": ""
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": ""
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": ""
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": ""
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": "Required approvals obtained"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "After payment release and execution confirmation"
+   }
+  ],
+  "open_questions": [
+   "What is the dependent step that follows package validation and document collection?",
+   "When does the reviewer completeness check occur relative to the preparer's validation work and document follow-up, and what happens if the completeness check fails?",
+   "What happens if missing or final versions of documents cannot be obtained?",
+   "Where are the checklists, document log, and final records kept, and which record is authoritative?",
+   "Which entity types and client-specific variations use this route?",
+   "What deadlines, approval conditions, evidence-retention requirements, exception handling, and escalation rules apply?",
+   "Is the \"FA09-SC-06 ...\" fragment a transcription artifact or an intended rule/source constraint?",
+   "What are the volumes, effort, risks, and practical difficulties for this process?",
+   "What event starts the work, who detects it, and what upstream input is ready at that point?",
+   "Which dependent step requires outstanding deal documents, how does work resume once they are obtained, and what happens if they cannot be obtained?",
+   "When does the reviewer check package completeness relative to validation and obtaining documents, and what happens if the check fails?",
+   "What happens to payment and setup while bank or screening discrepancies remain unresolved, and who handles escalation?",
+   "Who reviews the Attribute Form, what happens when its check fails, and how are corrections returned for checking?",
+   "What does the second reviewer check in Allvue, and how are mismatches corrected and rechecked?",
+   "What happens when a payment is rejected or returned, and where does that route resume?",
+   "What happens after the cost entry is posted, what marks the overall process complete, and who uses the outputs next?",
+   "Is the cash entry posted separately from payment release, and if so when and by whom?",
+   "Who is accountable for the overall result?",
+   "Where are checklists, the document log, approvals, payment records and final entries stored, and which records are authoritative?",
+   "Which entity types and clients use this route, what variations apply, and what is the basis for treating it as general GPFS practice?",
+   "What are the applicable deadlines, approval thresholds, segregation, retained evidence, escalation authority and system-enforced restrictions?",
+   "What is the source of the high-risk criteria, allocation rule and entry approval routing, and who interprets conflicting instructions?",
+   "What does the incomplete FA09-SC-06 statement mean, and is it intended to describe a governing rule or only a source constraint?",
+   "What calculations support the cash and cost entries, where are they performed, and what inputs and checks do they use?",
+   "What are the main volumes, effort, risks and practical difficulties, and are supporting procedures available for review?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "Current-practice draft — Investment Purchases: Recording, Setup & Controls",
+  "overview": "The participant describes purchase setup, document and attribute checks, approval and counterparty checks, Allvue setup, payment and accounting entries. The initiating event, overall accountable role and process finish remain UNKNOWN. This draft requires participant and process-owner review; it is not a verified procedure or an approved GPFS standard.",
+  "trigger": "UNKNOWN. Opening the purchase and checklists is the first reported action, not an established initiating event.",
+  "inputs": [
+   "Investment and payment details and the deal document package; origins UNKNOWN.",
+   "Supporting documents or written client direction for investment attributes.",
+   "Approved allocation rule, client approval and applicable callback, screening, deal, payment and cost support; detailed origins UNKNOWN."
+  ],
+  "outputs": [
+   "Investment Attribute Form and Allvue issuer, security, lot, allocation and CRM setup.",
+   "Approved cash entry and recorded payment and bank-execution details.",
+   "Approved and posted cost entry."
+  ],
+  "exceptions": [
+   "Missing deal documents are logged and obtained before an UNKNOWN dependent step; inability to obtain them and the return route are UNKNOWN.",
+   "Missing or conflicting attributes are resolved before system setup; the detailed correction and recheck route is UNKNOWN.",
+   "Bank or screening discrepancies or escalations are resolved; responsibility, unresolved status and recovery route are UNKNOWN.",
+   "Review comments on cash and cost entries are resolved; detailed rework and reapproval routes are UNKNOWN.",
+   "Payment rejection or return is recorded; subsequent handling and exit are UNKNOWN."
+  ],
+  "controls": [
+   "A reviewer checks deal-package completeness; every investment attribute is compared to support or written client direction.",
+   "Client/GP purchase approval is retained; new bank details are validated by callback, and Exiger screening applies when approved high-risk criteria are met.",
+   "Allvue fields are compared to the Attribute Form; a second reviewer checks the setup.",
+   "Cash and cost entries are routed for the reported approvals, with comments resolved; the cost entry is posted after approval.",
+   "Actual cash disbursed is compared with the approved cash entry."
+  ],
+  "validation_notes": [
+   "Draft for participant and process-owner review. Participant confirmation and owner approval are UNKNOWN; this capture is not complete or independently verified.",
+   "No supporting documents were supplied or reviewed. The incomplete FA09-SC-06 fragment and the mentioned cash-approval routing source are not treated as verified written rules.",
+   "S2 to S4 records the reported next activity, not permission to bypass a missing-document prerequisite. The dependent step and S3 exit remain UNKNOWN.",
+   "S4 to S6 records the explicitly stated attribute-resolution dependency, not a bypass of S5. Setup also follows completion of the reported approval and counterparty checks.",
+   "The account does not establish cash-entry posting, an overall process finish, a rejection recovery route or an approved GPFS standard. No return is drawn for unresolved exception routes.",
+   "Fund/entity information is recorded, but broader entity applicability and the parent process are UNKNOWN. Rule-source references are empty because no authorized document excerpt was supplied.",
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified.",
+   "The independent audit changed or removed 1 proposed exception(s).",
+   "The independent audit removed one or more proposed citations from the purpose section."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Open and set up purchase",
+    "actor": "Assigned investment/accounting preparer",
+    "system": "New Investment Set Up and purchase-control checklists; location UNKNOWN",
+    "description": "Open the checklists and record fund/entity, issuer or portfolio company, security type, purchase or closing date, cost or funding amount, counterparty and payment date. Assign preparer, second reviewer, callback/Treasury, compliance/screening and approval roles. Identify the investment as equity, debt, SAFE/note conversion, non-cash restructuring, fund-of-funds or another supported category."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Collect and validate deal package",
+    "actor": "Investment/accounting preparer; reviewer checks completeness",
+    "system": "UNKNOWN",
+    "description": "Collect the complete deal bible. Confirm the approved investment, legal entities, security, shares or units, cost, closing date, payment terms and restrictions. Confirm the package includes the capitalization table, structure chart, certificates or evidence of ownership, and required conversion or restructuring support. Log missing documents and final-versus-draft status; obtain missing documents before the dependent step."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Obtain missing deal documents",
+    "actor": "Investment/accounting preparer; specific responsibility for obtaining documents UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Obtain missing documents before the dependent step. The dependent step, handling when documents cannot be obtained and return route are UNKNOWN."
+   },
+   {
+    "id": "S4",
+    "type": "document",
+    "title": "Complete and review attributes",
+    "actor": "Investment/accounting preparer; client provides or approves missing attributes; reviewer identity UNKNOWN",
+    "system": "Investment Attribute Form; location UNKNOWN",
+    "description": "Record investment and portfolio-company names exactly as approved for the schedule of investments and capital notices. Record closing date, industry, security type, shares or units, cost lines, FAS 157 Level and client signer. Compare every attribute with supporting documents or written client direction. Resolve missing or conflicting attributes before system setup."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Document approval and clear checks",
+    "actor": "Client/GP approves; Treasury and compliance roles clear checks; other responsibility UNKNOWN",
+    "system": "Exiger for applicable screening; other systems UNKNOWN",
+    "description": "Retain client/GP approval of the purchase, amount, counterparty and payment. Validate new counterparty bank details by callback. Apply Exiger screening when the jurisdiction meets approved high-risk criteria. Resolve bank or screening discrepancies or escalations, and confirm payment date and bank cut-off feasibility. Criteria source and interpretation, handling of unresolved discrepancies and evidence location are UNKNOWN."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Create Allvue master data",
+    "actor": "Investment/accounting preparer; second reviewer checks",
+    "system": "Allvue NAV and Allvue CRM",
+    "description": "In Allvue NAV, create or validate the issuer, create the security with approved type and attributes, create the lot using approved closing, shares or units and cost, and create or apply the approved allocation rule. In Allvue CRM, update Firm Known As, Industry and FAS 157 Level. Compare system fields with the Attribute Form. The second reviewer's precise checks and mismatch handling are UNKNOWN."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Prepare and approve cash entry",
+    "actor": "Investment/accounting preparer; approval routes to AFCs, FCs and Directors as specified by the source",
+    "system": "Daily Posting; underlying system or location UNKNOWN",
+    "description": "Prepare the Daily Posting cash entry: debit Investment Payable 20080 and credit the correct bank account. Use a description distinct from the later cost entry. Attach client approval, callback/screening evidence, deal and payment support, and calculation. Route to all AFCs, FCs and Directors as specified by the mentioned source; resolve review comments and obtain required approvals. The source and approval order are UNKNOWN."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Release and confirm payment",
+    "actor": "Treasury role executes; preparer coordinates",
+    "system": "Treasury workflow; underlying system UNKNOWN",
+    "description": "Submit the approved payment through the treasury workflow and confirm release sufficiently before the applicable bank cut-off. Record payment status, bank settlement or value date, bank reference and any rejection or return. Compare actual cash disbursed with the approved cash entry. The reference value is omitted; rejection and return handling is UNKNOWN."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Prepare and post cost entry",
+    "actor": "Investment/accounting preparer; approval routes to FCs and Directors; posting actor UNKNOWN",
+    "system": "General Operations; underlying system or location UNKNOWN",
+    "description": "Confirm final acquisition cost and any supported non-cash component. Prepare the General Operations entry: debit Investment – Acquisition 11010 and credit Investment Payable 20080. Use a description different from the cash entry. Attach final documents, Attribute Form, setup evidence and cost support; route to FCs and Directors, resolve comments and post after approval. Posting evidence is UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "Next"
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": "Documents missing"
+   },
+   {
+    "from": "S2",
+    "to": "S4",
+    "label": "Next reported activity; missing-document dependency UNKNOWN"
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": "Then"
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": "Approval and checks completed; attributes resolved"
+   },
+   {
+    "from": "S4",
+    "to": "S6",
+    "label": "Setup dependency: attributes resolved AND approval and checks completed"
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Following setup"
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": "Required approvals obtained"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "Following payment release and execution confirmation"
+   }
+  ],
+  "open_questions": [
+   "What event initiates the work, and who detects or receives it?",
+   "Who is accountable for the overall result, and what demonstrates that the work is finished?",
+   "Which step depends on missing deal documents, and how does that route resume or proceed if documents cannot be obtained?",
+   "What happens to setup and payment while bank or screening discrepancies remain unresolved, and who resolves or escalates them?",
+   "How and when is the cash entry posted, and what happens after the cost entry is posted?",
+   "Which entities and clients use this route, what differences apply, and what is the basis for treating it as general GPFS or a particular route?",
+   "Who reviews the Attribute Form and Allvue setup, what exactly do they check, and how are corrections returned and rechecked?",
+   "What happens when payment is rejected or returned, or when the cash-disbursement comparison fails?",
+   "Where are checklists, document logs, approvals, entries and payment evidence retained, and which records are authoritative?",
+   "What are the approval thresholds and order, role segregation, escalation authority, system restrictions and retained review evidence?",
+   "What are the sources of the high-risk criteria, allocation rule and approval routing, and who interprets conflicting instructions?",
+   "What does the incomplete FA09-SC-06 fragment mean, and is an authorized source available for review?",
+   "What calculations support the entries, where are they performed, and what are their inputs and checks?",
+   "What are the cadence, fixed deadlines, volumes, effort, practical difficulties, failure consequences and available written procedures?",
+   "Does any incoming route start S6 (Create Allvue master data), or must all prerequisites finish?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "The intake calls the work Investment Purchases: Recording, Setup & Controls. The participant describes purchase setup, checks, payment and entries. Other team names and exact boundaries are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "Reported results include investment setup in Allvue, payment-execution information and a posted cost entry. The complete delivered result and its recipient are UNKNOWN."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The preparer first opens the purchase and checklists. The initiating event, receiver, upstream readiness and cadence are UNKNOWN. Payment date and bank cut-off feasibility are checked; fixed deadlines are otherwise UNKNOWN."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The last reported activity is posting the cost entry after approval. Whether further reconciliation, delivery or closure is required, how overall completion is evidenced and who consumes the result are UNKNOWN."
+   },
+   {
+    "key": "accountable",
+    "status": "unknown",
+    "answer": "UNKNOWN. The preparer, reviewers, client/GP, Treasury and compliance have reported actions, but overall accountability was not assigned."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The preparer opens checklists and assigns roles, collects the deal package and logs missing or draft documents, then completes and checks the Attribute Form. Client/GP approval and counterparty checks precede Allvue setup. The preparer prepares a cash entry for approval; Treasury executes payment with preparer coordination; the cost entry is approved and posted. Missing documents, attribute conflicts, discrepancies, review comments and payment returns are reported, but their complete routes, locations and handoffs are UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "A reviewer checks package completeness and attributes are compared to support. Client/GP approval is retained; callback and conditional Exiger screening are performed. A second reviewer checks setup, system fields are compared to the form, entries go to the reported approvers, and actual disbursement is compared to the approved cash entry. Detailed reviewer tests, evidence locations, approval order, thresholds, segregation, enforcement and failure routes are UNKNOWN."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "New counterparty bank details receive a callback, and Exiger screening is applied when a jurisdiction meets approved high-risk criteria. Investment categories include equity, debt, SAFE/note conversion, non-cash restructuring and fund-of-funds, but category-specific work and client differences are UNKNOWN. Effort, charging and removal constraints are UNKNOWN. The route is not independently corroborated as a GPFS standard."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": "UNKNOWN. Missing documents and discrepancies are handled, but the participant did not describe practical friction, frequency or effort."
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": "UNKNOWN. The account reports checks and exceptions but does not state their material failure consequences."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The participant mentions New Investment Set Up and purchase-control checklists, the deal bible, Attribute Form, supporting documents and an approval-routing source. Their locations and availability are UNKNOWN; none was supplied or reviewed."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "Fund/entity information and several investment categories are recorded. Exact entity and client applicability, parent-process boundary and the basis for general GPFS versus client-specific practice are UNKNOWN."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The participant describes approved high-risk criteria, an approved allocation rule, account-entry directions and routing to named approval roles. Sources, interpreters, conflict authority and calculation details are UNKNOWN. The incomplete FA09-SC-06 fragment does not establish a usable rule."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The client provides or approves missing attributes and the client/GP approves the purchase. Treasury executes the approved payment with preparer coordination. Names are recorded for the schedule of investments and capital notices. The initiating upstream process, downstream consumers, readiness signals and other dependencies are UNKNOWN."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "Supporting documents or written client direction feed the Attribute Form. The preparer creates or validates NAV master data and updates CRM in Allvue; Exiger is used for qualifying screening. Daily Posting, General Operations and a treasury workflow are named, but their underlying systems, entry modes, authoritative records, calculation locations and storage are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": "UNKNOWN. Counts, peaks, exception frequency and effort by step were not reported."
+   }
+  ]
+ },
+ "draft_error": null
+}

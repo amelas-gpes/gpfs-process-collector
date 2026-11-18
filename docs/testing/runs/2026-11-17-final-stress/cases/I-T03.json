@@ -1,0 +1,1547 @@
+{
+ "case": "I-T03",
+ "process": "FA-05",
+ "mode": "typed",
+ "style": "T03: head start, then Create draft, topic review in groups",
+ "build": "round2",
+ "participant": "replay",
+ "context": {
+  "process_name": "Subsequent Closes: Equalization Interest & Investor Rebalance",
+  "process_owner": "",
+  "objective": "Document how we carry out Subsequent Closes: Equalization Interest & Investor Rebalance, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "It kicks off when new money comes into a fund that has already been going for a while. So either a brand new investor gets let in, or somebody who is already in the fund decides to put in more. At that point we sort of true everyone up so the newcomer is on the same footing as the people who were there from the start."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "Talk me through how you handle the equalization and rebalance once a new or additional investment comes in?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "Sure, roughly speaking. We open up the close and make sure the investor is actually ready to come in. Then we pin down what the fund's partnership agreement says about how the catch-up is supposed to work, because it is different fund to fund. After that we go back through the earlier capital calls and work out what the new investor would have put in if they had been there all along, and we put interest on top of that. We figure out how that interest gets shared among the investors who were already in. Then a call goes out to the new investor for the catch-up amount. Once that is done we redo everybody's percentages going forward, and at the end we update the books and reconcile everything so the close can be shut."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What information from the earlier calls and the partnership agreement determines the catch-up and interest amounts?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "From the earlier calls we need every capital call that happened before the investor's admission or effective date, and for each one the call date, the total base, what it was for, and how much each existing investor funded. From the partnership agreement, the LPA, plus any side letters, we take which part of each earlier call counts, the interest rate, the start and end dates, the day-count and accrual basis, whether it compounds, and who the interest goes to and how it is treated. The catch-up capital itself is the investor's approved commitment percentage times the included amount of each prior call, after any exclusions the fund's documents require. Interest then runs on each of those, call by call, from the original funding date to the admission or effective date. We never assume the day count, simple versus compound, or who receives it. That all has to come from the LPA."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "How do you check that the catch-up and interest calculations are correct before the call goes out?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "Mostly a second person goes over it, and we make sure the numbers all tie out before anything goes out the door. If something does not tie, the call just does not get released until it is sorted."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "What do you compare the calculated amounts against when you tie them out?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "A few things. The list of earlier calls and what each investor funded gets reconciled to the prior notices, the historical contribution records, the general ledger and trial balance, and the capital accounts, and there has to be zero unexplained difference. For the catch-up capital, the call-by-call detail has to add up to the total, and the percentage and the call base have to trace back to the executed commitments and approved inputs. For interest, the second reviewer independently recalculates it and checks the dates, rate, basis, compounding, formula and total against the method in the LPA. The interest we allocate out to the existing investors has to equal the total interest, with no leftover. And the notice itself, meaning the backdated capital, interest, fee and total due on it, has to agree to the approved schedules before it is released."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "How do you determine each existing investor’s share of the interest?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "It depends on the fund. I identify which existing investors are entitled to be compensated and the allocation basis the LPA sets, and then allocate the interest investor by investor on that basis. Then I apply whatever treatment the LPA requires, which can be a cash payment to them, an addition to their capital accounts, or some other approved mechanism. If any investor is excluded or gets special treatment, I document why. If it is unclear who should receive the interest, or whether it is cash or capital, I escalate it and the client or their legal counsel decides. I do not pick one myself. I could not give you one formula that works for every fund. There is supposed to be a fund-by-fund register of those LPA rules, but I do not know where that stands. Someone on the legal or governing-documents side would have to confirm it."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "When you say “once that is done,” what has happened with the catch-up call?"
+  },
+  {
+   "id": "t014",
+   "role": "user",
+   "text": "By that point the call has been put together and sent. I assemble the new investor's backdated capital, the equalization interest, the management-fee catch-up if one applies, and any other approved component. I populate the allocation and notice data, and the notice shows each component separately plus the total due. It goes through internal review and the client approves it, and that part runs through our regular capital call process, which we call FA-01. The FA-01 team is the one that actually releases the notice. After that the funding is tracked through the cash application process, FA-02. The receipts themselves get reconciled at the very end, when we close out."
+  },
+  {
+   "id": "t015",
+   "role": "assistant",
+   "text": "How do you recalculate each investor’s going-forward percentage after the new or additional commitment is included?"
+  },
+  {
+   "id": "t016",
+   "role": "user",
+   "text": "I recalculate the fund's total commitments after the close, using the executed post-close commitments, and then work out each investor's percentage of that for future events. I do not just reuse the old percentages sitting in Excel. I recalculate both the pre-close and the post-close totals. Where earlier investments keep different economics, which happens in deal-by-deal funds, I leave those investment-specific historical percentages as they are and do not overwrite them. Every schedule gets its effective date recorded. All of that lives in the commitment and ownership schedule and the Excel allocation engine. Then I update the inputs for future capital calls, distributions, the waterfall and reporting. The percentages have to reconcile to the approved commitments and add up to the required total, apart from documented exclusions or rounding, and the second reviewer has to approve them before the next event."
+  },
+  {
+   "id": "t017",
+   "role": "assistant",
+   "text": "What tells you the investor is ready to be included in the close?"
+  },
+  {
+   "id": "t018",
+   "role": "user",
+   "text": "A few things have to be in place. I need the client's close notification and the executed subscription document, or the commitment-increase paperwork if it is an existing investor putting in more, and onboarding and the anti-money-laundering checks have to be finished. I confirm the client has approved the admission, that AML has cleared, and where the system and portal setup stands. I record it in the close checklist: the fund, the investor, the close or effective date, the commitment, and whether it is a new admission or an upsize. At the same time I assign a second reviewer, flag any legal, tax, management-fee or accounting dependencies, and set the completion date so it lands before the investor's next capital activity. If documents are incomplete, or the AML, commitment or effective-date records are missing, I escalate. No equalization call gets released for an investor who is not approved and cleared."
+  },
+  {
+   "id": "t019",
+   "role": "assistant",
+   "text": "How does the close team learn that a new admission or commitment increase is coming?"
+  },
+  {
+   "id": "t020",
+   "role": "user",
+   "text": "Like I mentioned, it comes from the client. They send us a close notification, and the client is the one who confirms the admission date and the commitment. There is no fixed schedule for it. It is event-driven, and it can happen more than once while the fund is still fundraising. Investor Services is involved as well, since they confirm the onboarding, and they will hold the investor's participation or the notice if onboarding or the portal setup is not complete."
+  },
+  {
+   "id": "t021",
+   "role": "assistant",
+   "text": "How does Investor Services let you know when onboarding and portal setup are complete so the hold can be lifted?"
+  },
+  {
+   "id": "t022",
+   "role": "assistant",
+   "text": "This capture still has open sections. 14 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794966551.445,
+   "turn": 0,
+   "seconds": 0.026,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794966565.857,
+   "turn": 2,
+   "seconds": 5.701,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966570.915,
+   "turn": 3,
+   "seconds": 10.76
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966575.482,
+   "turn": 3,
+   "seconds": 15.33,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 2,
+   "connections": 1
+  },
+  {
+   "kind": "question",
+   "at": 1794966589.931,
+   "turn": 4,
+   "seconds": 3.024,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966589.934,
+   "turn": 5,
+   "seconds": 3.03,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 2,
+   "connections": 1
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966613.199,
+   "turn": 5,
+   "seconds": 26.29
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966630.443,
+   "turn": 5,
+   "seconds": 43.54,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 12,
+   "connections": 12
+  },
+  {
+   "kind": "question",
+   "at": 1794966647.492,
+   "turn": 6,
+   "seconds": 2.831,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966647.495,
+   "turn": 7,
+   "seconds": 2.83,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t004",
+   "steps": 12,
+   "connections": 12
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966665.702,
+   "turn": 7,
+   "seconds": 21.04,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 12,
+   "connections": 12
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966670.761,
+   "turn": 7,
+   "seconds": 26.1
+  },
+  {
+   "kind": "question",
+   "at": 1794966684.508,
+   "turn": 8,
+   "seconds": 2.182,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966684.512,
+   "turn": 9,
+   "seconds": 2.19,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t006",
+   "steps": 12,
+   "connections": 12
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966698.66,
+   "turn": 9,
+   "seconds": 16.33
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966707.797,
+   "turn": 9,
+   "seconds": 25.47,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 14,
+   "connections": 14
+  },
+  {
+   "kind": "question",
+   "at": 1794966722.439,
+   "turn": 10,
+   "seconds": 2.511,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966722.443,
+   "turn": 11,
+   "seconds": 2.52,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t008",
+   "steps": 14,
+   "connections": 14
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966739.647,
+   "turn": 11,
+   "seconds": 19.72,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 14,
+   "connections": 14
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966744.202,
+   "turn": 11,
+   "seconds": 24.27
+  },
+  {
+   "kind": "question",
+   "at": 1794966760.404,
+   "turn": 12,
+   "seconds": 3.943,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966760.411,
+   "turn": 13,
+   "seconds": 3.95,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t010",
+   "steps": 14,
+   "connections": 14
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966782.176,
+   "turn": 13,
+   "seconds": 25.72
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966793.375,
+   "turn": 13,
+   "seconds": 36.91,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 17,
+   "connections": 17
+  },
+  {
+   "kind": "question",
+   "at": 1794966813.603,
+   "turn": 14,
+   "seconds": 3.349,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966813.607,
+   "turn": 15,
+   "seconds": 3.35,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t012",
+   "steps": 17,
+   "connections": 17
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966841.479,
+   "turn": 15,
+   "seconds": 31.22
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794966858.739,
+   "turn": 15,
+   "notes_state": "ready",
+   "map_state": "working",
+   "seconds": 48.48
+  },
+  {
+   "kind": "question",
+   "at": 1794966878.301,
+   "turn": 16,
+   "seconds": 5.875,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966878.305,
+   "turn": 17,
+   "seconds": 5.88,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t014",
+   "steps": 21,
+   "connections": 23
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966898.024,
+   "turn": 17,
+   "seconds": 25.6
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966901.582,
+   "turn": 17,
+   "seconds": 29.16,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 23,
+   "connections": 25
+  },
+  {
+   "kind": "question",
+   "at": 1794966921.121,
+   "turn": 18,
+   "seconds": 4.763,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966921.128,
+   "turn": 19,
+   "seconds": 4.77,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t016",
+   "steps": 23,
+   "connections": 25
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794966950.043,
+   "turn": 19,
+   "seconds": 33.68
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794966957.667,
+   "turn": 19,
+   "seconds": 41.31,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 26,
+   "connections": 29
+  },
+  {
+   "kind": "question",
+   "at": 1794966987.011,
+   "turn": 20,
+   "seconds": 5.386,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794966987.024,
+   "turn": 21,
+   "seconds": 5.4,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t018",
+   "steps": 26,
+   "connections": 30
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794967000.224,
+   "turn": 21,
+   "seconds": 18.6
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794967017.532,
+   "turn": 21,
+   "seconds": 35.91,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 28,
+   "connections": 31
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794967022.057,
+   "turn": 21,
+   "seconds": 0.028,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794967387.384,
+   "turn": 22,
+   "seconds": 362.087,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "draft.prepare",
+   "at": 1794993942.417,
+   "turn": 22,
+   "seconds": 146.423,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "draft",
+   "at": 1794994083.541,
+   "turn": 22,
+   "seconds": 141.065,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [],
+ "notes": {
+  "summary": "The client initiates the event-driven close with a notification and confirms the admission date and commitment. Investor Services confirms onboarding and can hold participation or the notice if onboarding or portal setup is incomplete.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "Subsequent Closes: Equalization Interest & Investor Rebalance"
+   },
+   {
+    "key": "purpose",
+    "status": "captured",
+    "answer": "The work aims to true up the investors so a newcomer is on the same footing as investors who were in the fund from the start."
+   },
+   {
+    "key": "trigger",
+    "status": "captured",
+    "answer": "The client sends a close notification for a new admission or an existing investor's commitment increase and confirms the admission date and commitment. The work is event-driven, with no fixed schedule, and can occur more than once while the fund is fundraising.\nThe participant sets a completion date before the investor's next capital activity."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The participant describes updating the books and reconciling everything so the close can be shut.\nReceipts are reconciled at the very end, during closeout."
+   },
+   {
+    "key": "accountable",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "After new money enters an already operating fund, the team performs a true-up across investors; the participant describes this as applying whether the new money is from a newly admitted investor or an existing investor contributing more.\nThe team opens the close and checks that the investor is ready to come in, then determines the catch-up provisions in the fund's partnership agreement.\nThe team reviews earlier capital calls, calculates what the new investor would have contributed from the start, adds interest and determines how that interest is shared among existing investors.\nA call goes to the new investor for the catch-up amount. Once that is done, the team redoes everyone's percentages going forward, updates the books and reconciles everything so the close can be shut.\nFor each capital call before admission or the effective date, the team uses the call date, total base, purpose and amounts funded by existing investors. It calculates catch-up capital using the approved commitment percentage and included amount, then calculates interest call by call.\nBefore the catch-up call is released, mostly a second person reviews the calculations and the numbers are tied out. A mismatch holds the call until it is sorted.\nThe participant identifies existing investors entitled to compensation and the LPA's allocation basis, allocates interest investor by investor, and applies the required treatment. Exclusions or special treatment are documented with the reason.\nIf the interest recipient or whether treatment is cash or capital is unclear, the participant escalates it; the client or its legal counsel decides rather than the participant choosing.\nThe participant assembles backdated capital, equalization interest, any applicable management-fee catch-up and other approved components, and populates allocation and notice data. The notice separately shows each component and the total due.\nThe notice goes through internal review and client approval in the regular capital call process, FA-01; the FA-01 team releases it. Funding is then tracked through cash application, FA-02, and receipts are reconciled at closeout.\nThe participant recalculates pre-close and post-close commitment totals using executed post-close commitments, then calculates each investor's percentage of the post-close total for future events rather than reusing old Excel percentages.\nIn deal-by-deal funds where earlier investments retain different economics, the participant leaves their investment-specific historical percentages unchanged. Each schedule's effective date is recorded, and inputs for future capital calls, distributions, the waterfall and reporting are updated.\nTo establish readiness, the participant needs the client's close notification and executed subscription document or commitment-increase paperwork, with onboarding and AML checks finished. The participant confirms client admission approval and AML clearance and checks the status of system and portal setup.\nThe participant records the fund, investor, close or effective date, commitment and admission or upsize status in the close checklist; assigns a second reviewer; flags legal, tax, management-fee and accounting dependencies; and sets completion before the investor's next capital activity.\nThe participant escalates incomplete documents or missing AML, commitment or effective-date records. An equalization call is not released for an investor who is not approved and cleared.\nInvestor Services confirms onboarding and holds the investor's participation or notice if onboarding or portal setup is incomplete."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The team checks that the investor is ready to come in and reconciles everything at the end of the close.\nMostly a second person reviews the calculations, and the team makes sure the numbers tie out before the call goes out. If they do not tie, the call is not released until the issue is sorted.\nThe second reviewer's role, how mismatches are resolved, and what review evidence is retained remain unspecified.\nThe earlier-call list and each investor's funding are reconciled to prior notices, historical contribution records, the general ledger and trial balance, and capital accounts; there must be zero unexplained difference.\nCatch-up capital detail must add to the total call by call, and the percentage and call base must trace to executed commitments and approved inputs.\nThe second reviewer independently recalculates interest and checks dates, rate, basis, compounding, formula and total against the LPA method.\nInterest allocated to existing investors must equal total interest with no leftover. Before release, the notice's backdated capital, interest, fee and total due must agree to approved schedules.\nThe participant documents why an investor is excluded or receives special treatment. Unclear recipients or cash-versus-capital treatment are escalated for a decision by the client or its legal counsel.\nThe notice undergoes internal review and client approval; the FA-01 team releases it.\nThe client's notice approval criteria, evidence and handling of rejection or delay remain unspecified.\nThe recalculated percentages must reconcile to approved commitments and add to the required total, apart from documented exclusions or rounding. A second reviewer must approve them before the next event.\nThe participant confirms client admission approval and AML clearance, checks system and portal setup status, and escalates incomplete documents or missing AML, commitment or effective-date records.\nInvestor Services confirms onboarding and holds participation or the notice when onboarding or portal setup is incomplete."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "The trigger can involve either a new investor or an existing investor putting in more money.\nFor a new admission the participant needs an executed subscription document; for an existing investor increasing a commitment, the participant needs commitment-increase paperwork.\nCatch-up provisions differ by fund. The LPA and any side letters determine included call amounts, interest terms and recipients and treatment.\nInterest allocation and treatment vary by fund according to the LPA: eligible investors and allocation basis differ, and treatment can be cash, capital-account additions or another approved mechanism.\nIn deal-by-deal funds, where earlier investments retain different economics, the participant preserves investment-specific historical percentages instead of overwriting them when recalculating future percentages."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The fund's partnership agreement is consulted for the catch-up provisions; earlier capital calls are used to calculate the hypothetical prior contributions.\nThe LPA and any side letters provide reported catch-up and interest terms. Earlier capital call information supplies dates, bases, purposes and existing investor funding amounts for the calculation.\nPrior notices, historical contribution records, the general ledger, trial balance and capital accounts are used to reconcile the earlier calls and investor funding.\nExecuted commitments and approved inputs support the percentage and call base; approved schedules are compared with the notice's capital, interest, fee and total due.\nA fund-by-fund register of LPA rules is supposed to exist, but the participant does not know its status; someone on the legal or governing-documents side would need to confirm it.\nThe participant populates allocation and notice data; the investor notice displays the catch-up components separately and the total due.\nThe commitment and ownership schedule and Excel allocation engine hold the recalculated commitment and percentage information; every schedule has its effective date recorded.\nThe client's close notification and executed subscription document or commitment-increase paperwork are readiness inputs. The participant records the fund, investor, effective date, commitment and admission or upsize status in a close checklist."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The described work concerns an already operating fund and investor inflows, including both a new investor and an additional contribution by an existing investor."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The team determines what the fund's partnership agreement says about the catch-up; the participant says it differs from fund to fund.\nWhere and how the interest allocation calculation is implemented remains unspecified.\nCatch-up capital for each prior call is the investor's approved commitment percentage multiplied by the included call amount, after exclusions required by the fund's documents.\nInterest runs separately on each prior call's catch-up capital from its original funding date to the admission or effective date. The LPA and any side letters supply the rate, dates, day-count and accrual basis, compounding, recipients and treatment; these are not assumed.\nThe call is not released while the numbers do not tie; the mismatch must be sorted first.\nThe reported pre-release requirements include zero unexplained differences in the historical reconciliation, fully allocated interest and agreement of notice amounts to approved schedules.\nThe LPA sets the entitled investors, allocation basis and treatment. Treatment can be a cash payment, an addition to capital accounts or another approved mechanism; the participant says no single formula works for every fund.\nThe notice includes a management-fee catch-up if applicable and any other approved component, with each component and the total due shown separately.\nEach investor's future percentage is calculated from their executed post-close commitment as a share of total post-close commitments. Investment-specific historical percentages are preserved where earlier investments retain different economics.\nThe second reviewer must approve the reconciled percentages before the next event; documented exclusions or rounding can explain departures from the required total.\nOnboarding and AML checks must be finished, and no equalization call is released for an investor who is not approved and cleared. The participant sets the completion date before the investor's next capital activity.\nInvestor Services holds the investor's participation or notice if onboarding or portal setup is incomplete."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The regular capital call process, FA-01, handles internal review and client approval of the notice; its team releases the notice.\nAfter notice release, cash application process FA-02 tracks funding; receipts are reconciled at closeout.\nThe client approves the notice in the FA-01 capital call process.\nWhen interest entitlement or cash-versus-capital treatment is unclear, the participant escalates it for a decision by the client or its legal counsel.\nHands off to Client or client legal counsel: Escalated decision when interest entitlement or cash-versus-capital treatment is unclear.\nThe participant updates inputs for future capital calls, distributions, the waterfall and reporting after recalculating ownership percentages.\nCompleted onboarding and AML checks are readiness dependencies for including the investor in the close.\nThe participant confirms the client's approval of investor admission before inclusion in the close.\nHappens after Investor onboarding and AML checks: Both must be finished for investor readiness.\nInvestor Services confirms onboarding for the close and holds participation or the notice if onboarding or portal setup is incomplete.\nThe client sends the close notification and confirms the admission date and commitment."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "Calculation inputs include the approved commitment percentage and, for every pre-admission or effective-date call, its date, total base, purpose and each existing investor's funding amount.\nThe participant recalculates commitment totals and percentages rather than reusing old Excel percentages; the commitment and ownership schedule and Excel allocation engine hold the resulting information.\nThe participant checks the status of system and portal setup as part of investor readiness; the systems are not named."
+   },
+   {
+    "key": "volume",
+    "status": "partial",
+    "answer": "There is no fixed schedule; subsequent closes can occur more than once during fundraising."
+   }
+  ]
+ },
+ "map": {
+  "title": "Subsequent Closes: Equalization Interest & Investor Rebalance",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "start",
+    "title": "Receive close notification",
+    "actor": "Client sends notification; receiver UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The client sends a close notification for a new admission or increased commitment in an established fund and confirms the admission date and commitment. The work is event-driven and may occur more than once during fundraising."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Open the close",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Open the close to begin the investor true-up."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Check investor readiness",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "Confirm client admission approval, AML clearance and the status of system and portal setup. Required inputs include the client notification, executed subscription or commitment-increase paperwork, and completed onboarding and AML checks; Investor Services confirms onboarding."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Identify catch-up rules",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Determine the catch-up rules from the fund’s LPA and any side letters. The participant says rules differ by fund and that day count, compounding and interest recipients must not be assumed."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Calculate earlier-call catch-up",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "For each call before admission or the effective date, apply the investor’s approved commitment percentage to the included amount after document-required exclusions. The participant needs each call’s date, total base, purpose and funding by each existing investor."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Calculate catch-up interest",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Calculate interest call by call from the original funding date to the admission or effective date. Use the documented rate, date, day-count, accrual and compounding rules rather than assuming them."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Allocate interest to investors",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "Identify entitled existing investors and the LPA allocation basis, then allocate interest investor by investor. Document why an investor is excluded or receives special treatment; escalate uncertainty about recipients or treatment."
+   },
+   {
+    "id": "S8",
+    "type": "document",
+    "title": "Release catch-up notice",
+    "actor": "FA-01 team",
+    "system": "UNKNOWN",
+    "description": "The FA-01 team releases the notice after the reported checks, internal review and client notice approval. The investor must also be approved and AML-cleared; Investor Services may hold participation or the notice if onboarding or portal setup is incomplete."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Recalculate investor percentages",
+    "actor": "Participant",
+    "system": "Commitment and ownership schedule; Excel allocation engine",
+    "description": "Recalculate pre-close and post-close commitment totals and each investor’s percentage for future events using executed post-close commitments, rather than reusing old Excel percentages. Preserve investment-specific historical percentages where earlier investments retain different economics, and record an effective date on every schedule."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Update the books",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Update the books at the end of the work."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Reconcile the close",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Reconcile everything at the end, including the receipts. Other items and reconciliation criteria are UNKNOWN."
+   },
+   {
+    "id": "S12",
+    "type": "end",
+    "title": "Close ready to shut",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The books are updated and everything is reconciled so the close can be shut. Whether and how closure is recorded is UNKNOWN."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Review and tie out calculations",
+    "actor": "Second reviewer for interest; mostly a second person reviews calculations; other check performers UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Reconcile prior calls and investor funding to the stated records with no unexplained difference. Check catch-up detail, commitments and inputs; independently recalculate interest against the LPA method; tie allocated interest to total interest; and compare notice amounts to approved schedules. Whether this is all or part of the reported internal review is UNKNOWN."
+   },
+   {
+    "id": "S14",
+    "type": "wait",
+    "title": "Hold call for tie-out issue",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The call is not released while a tie-out issue remains unresolved. How it is sorted and what happens immediately afterward are UNKNOWN."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Apply interest treatment",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "Apply the LPA-required treatment after allocating interest. The participant reports possible cash payment, addition to capital accounts, or another approved mechanism."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Escalate unclear interest rules",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "Escalate uncertainty about who receives interest or whether its treatment is cash or capital. The participant does not choose the answer."
+   },
+   {
+    "id": "S17",
+    "type": "decision",
+    "title": "Decide unclear interest treatment",
+    "actor": "Client or their legal counsel",
+    "system": "UNKNOWN",
+    "description": "Decide the escalated question about interest recipients or cash-versus-capital treatment. How the decision is recorded and where the work resumes are UNKNOWN."
+   },
+   {
+    "id": "S18",
+    "type": "document",
+    "title": "Assemble catch-up notice",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "Assemble backdated capital, equalization interest, any applicable management-fee catch-up and other approved components. Populate allocation and notice data; the notice shows components separately and the total due."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Complete internal notice review",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The notice goes through internal review under FA-01. Its relationship to the reported calculation and notice tie-outs is UNKNOWN."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Approve catch-up notice",
+    "actor": "Client",
+    "system": "UNKNOWN",
+    "description": "The client approves the notice as part of the regular capital call process. Approval criteria and handling of rejection or delay are UNKNOWN."
+   },
+   {
+    "id": "S21",
+    "type": "subprocess",
+    "title": "Track catch-up funding",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "After notice release, funding is tracked through the cash application process, FA-02. Receipts are reconciled at close-out."
+   },
+   {
+    "id": "S22",
+    "type": "activity",
+    "title": "Approve recalculated percentages",
+    "actor": "Second reviewer",
+    "system": "UNKNOWN",
+    "description": "The second reviewer must approve the recalculated percentages before the next event. The reviewer’s specific checks and handling of rejection are UNKNOWN."
+   },
+   {
+    "id": "S23",
+    "type": "activity",
+    "title": "Update future-event inputs",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "Update inputs for future capital calls, distributions, the waterfall and reporting. The timing relative to percentage approval is UNKNOWN."
+   },
+   {
+    "id": "S24",
+    "type": "document",
+    "title": "Record the close checklist",
+    "actor": "Participant",
+    "system": "Close checklist; location UNKNOWN",
+    "description": "Record the fund, investor, close or effective date, commitment, and whether the event is a new admission or an upsize."
+   },
+   {
+    "id": "S25",
+    "type": "activity",
+    "title": "Assign reviewer and flag dependencies",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "Assign a second reviewer, flag legal, tax, management-fee or accounting dependencies, and set a completion date before the investor's next capital activity. This is done at the same time as the checklist recording."
+   },
+   {
+    "id": "S26",
+    "type": "activity",
+    "title": "Escalate missing readiness items",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "Escalate incomplete documents or missing AML, commitment or effective-date records. The recipient and subsequent route are UNKNOWN."
+   },
+   {
+    "id": "S27",
+    "type": "activity",
+    "title": "Confirm investor onboarding",
+    "actor": "Investor Services",
+    "system": "UNKNOWN",
+    "description": "Investor Services confirms onboarding. Its exact handoff to the close team is UNKNOWN."
+   },
+   {
+    "id": "S28",
+    "type": "wait",
+    "title": "Hold participation or notice",
+    "actor": "Investor Services",
+    "system": "UNKNOWN",
+    "description": "Investor Services holds the investor's participation or the notice if onboarding or portal setup is incomplete. The release signal and subsequent handoff are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "Investor ready"
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": ""
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": ""
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": ""
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "Call done"
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": ""
+   },
+   {
+    "from": "S9",
+    "to": "S11",
+    "label": ""
+   },
+   {
+    "from": "S10",
+    "to": "S12",
+    "label": "Books updated AND everything reconciled"
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": "Books updated AND everything reconciled"
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": "Numbers do not tie"
+   },
+   {
+    "from": "S7",
+    "to": "S15",
+    "label": "Interest allocated"
+   },
+   {
+    "from": "S7",
+    "to": "S16",
+    "label": "Interest recipients or cash-versus-capital treatment unclear"
+   },
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": ""
+   },
+   {
+    "from": "S7",
+    "to": "S18",
+    "label": "Interest allocated"
+   },
+   {
+    "from": "S18",
+    "to": "S13",
+    "label": ""
+   },
+   {
+    "from": "S18",
+    "to": "S19",
+    "label": ""
+   },
+   {
+    "from": "S18",
+    "to": "S20",
+    "label": ""
+   },
+   {
+    "from": "S8",
+    "to": "S21",
+    "label": "Notice released"
+   },
+   {
+    "from": "S9",
+    "to": "S22",
+    "label": ""
+   },
+   {
+    "from": "S9",
+    "to": "S23",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S24",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S25",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S26",
+    "label": "Documents incomplete OR AML, commitment or effective-date records missing"
+   },
+   {
+    "from": "S3",
+    "to": "S8",
+    "label": "Investor approved and AML-cleared AND tie-outs pass AND internal review completed AND client notice approval obtained"
+   },
+   {
+    "from": "S13",
+    "to": "S8",
+    "label": "Investor approved and AML-cleared AND tie-outs pass AND internal review completed AND client notice approval obtained"
+   },
+   {
+    "from": "S19",
+    "to": "S8",
+    "label": "Investor approved and AML-cleared AND tie-outs pass AND internal review completed AND client notice approval obtained"
+   },
+   {
+    "from": "S20",
+    "to": "S8",
+    "label": "Investor approved and AML-cleared AND tie-outs pass AND internal review completed AND client notice approval obtained"
+   },
+   {
+    "from": "S7",
+    "to": "S13",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S28",
+    "label": "Onboarding or portal setup incomplete"
+   }
+  ],
+  "open_questions": [
+   "Are the outgoing paths from S3 (Check investor readiness) alternatives, or must they all occur?",
+   "Are the outgoing paths from S7 (Allocate interest to investors) alternatives, or must they all occur?",
+   "Does any incoming route start S8 (Release catch-up notice), or must all prerequisites finish?",
+   "Are the outgoing paths from S9 (Recalculate investor percentages) alternatives, or must they all occur?",
+   "Does any incoming route start S13 (Review and tie out calculations), or must all prerequisites finish?",
+   "Are there other outcomes from decision S17 (Decide unclear interest treatment), and where do they lead?",
+   "Are the outgoing paths from S18 (Assemble catch-up notice) alternatives, or must they all occur?",
+   "How does step S27 (Confirm investor onboarding) connect to the rest of this process, if at all?",
+   "Who receives the client close notification, and how is it communicated?",
+   "How does Investor Services communicate onboarding confirmation to the close team, and where does that confirmation sit relative to the readiness check?",
+   "How is an Investor Services hold released, and where does participation or notice work resume? When is participation held rather than the notice?",
+   "How do checklist recording and reviewer assignment hand off to the remaining work, and how are flagged dependencies resolved?",
+   "Who receives a readiness escalation, how are missing items resolved, and where does work resume? What happens when approval or AML clearance is delayed?",
+   "When is interest treatment applied relative to notice preparation, review, release and book updates, and what follows it?",
+   "How is a client or legal counsel decision on unclear interest treatment communicated and recorded, and where does work resume?",
+   "What is the relationship between internal review and the calculation and notice tie-outs? Who performs each review, what does each check, and in what order do review and client approval occur?",
+   "How is a tie-out issue sorted, and where does the held call resume once it is sorted? Is it rechecked?",
+   "What happens if internal review or client approval is delayed or the notice is rejected?",
+   "What does the second reviewer check before approving revised percentages? What happens if the percentages fail reconciliation or approval, and when are future-event inputs updated relative to approval?",
+   "What else is reconciled at close-out, are book updates and reconciliation performed in a particular order, and how is the close shut and evidenced?",
+   "How does FA-02 tracking hand off receipt information to close-out reconciliation?",
+   "Who is accountable overall, and who performs the actions and checks not yet assigned? What authoritative records and other systems are used?",
+   "Where do approved inputs and original funding dates come from? How are calculations rounded or corrected?",
+   "Who approves the schedules and inputs, and what review or approval evidence is retained and where?",
+   "Who interprets other LPA and side-letter questions, handles conflicting sources and records interpretations? Are relevant materials available for review?",
+   "What is the status and location of the reported fund-by-fund LPA rules register?",
+   "How do fund-specific rules change the work, effort or charging, and are there constraints on removing differences? Is this general GPFS practice or client-specific, and what is the basis for that scope?",
+   "What other exceptions occur, how are they handled, and where does the work resume?",
+   "Who uses the close output next, and what other upstream dependencies or connected processes apply?",
+   "What volumes, effort, pain points and material risks are reported?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "DRAFT — Subsequent Closes: Equalization Interest & Investor Rebalance",
+  "overview": "Current-practice account for review: an event-driven investor true-up, catch-up notice and ownership rebalance for an operating fund. Accountability, several handoffs and aspects of close-out remain UNKNOWN.",
+  "trigger": "The client sends a close notification for a new investor admission or an existing investor's commitment increase, confirming the admission date and commitment. There is no fixed schedule.",
+  "inputs": [
+   "Client close notification and confirmed admission date and commitment",
+   "Executed subscription document or commitment-increase paperwork",
+   "Onboarding and AML status",
+   "LPA and any side letters",
+   "Prior-call details, investor funding records, executed commitments and approved inputs",
+   "Approved schedules and executed post-close commitments"
+  ],
+  "outputs": [
+   "Catch-up notice showing individual components and total due",
+   "Investor-by-investor interest allocation and applicable treatment",
+   "Dated commitment and ownership percentages and updated future-event inputs",
+   "Updated books and close-out reconciliation, including receipts"
+  ],
+  "exceptions": [
+   "Incomplete documents or missing AML, commitment or effective-date records are escalated; recipient and resolution are UNKNOWN.",
+   "Investor Services holds participation or the notice when onboarding or portal setup is incomplete; release and resumption are UNKNOWN.",
+   "A tie-out mismatch prevents call release until sorted; correction and recheck route are UNKNOWN.",
+   "Unclear interest recipients or cash-versus-capital treatment are escalated to the client or legal counsel for decision; return route is UNKNOWN."
+  ],
+  "controls": [
+   "No equalization call is released for an investor who is not approved and AML-cleared.",
+   "Historical call and funding reconciliations require zero unexplained difference; catch-up detail, interest allocation and notice amounts must tie to the reported sources and approved schedules.",
+   "Mostly a second person reviews calculations; the second reviewer independently recalculates and checks interest against the LPA method.",
+   "Internal notice review and client approval are reported before FA-01 release.",
+   "Recalculated percentages reconcile to approved commitments and the required total, subject to documented exclusions or rounding, and require second-reviewer approval before the next event."
+  ],
+  "validation_notes": [
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified.",
+   "Overall accountability and several action performers are UNKNOWN, so responsibility for the end-to-end result needs confirmation.",
+   "The LPA, side letters and other materials were reported but not supplied for review; the account does not independently verify their terms or operation.",
+   "The order of internal review and client approval, and their relationship to the tie-outs, is UNKNOWN; neither is assumed to replace the other.",
+   "Investor Services confirms onboarding, but its confirmation handoff and hold-release route are not established.",
+   "The interest-rule decision and tie-out hold have known entry conditions but no reported return route.",
+   "Book update and reconciliation are both required before the close is ready to shut; their mutual order and closure evidence are UNKNOWN.",
+   "The scope as a general GPFS standard versus a particular client or fund practice is unconfirmed.",
+   "Participant confirmation of the complete account and process-owner approval are pending.",
+   "The coverage review rewrote this memo section to match the interview evidence: Start, cadence & deadlines. The new wording was not checked by a process review, so it is marked partial; compare it with the interview before approval."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "start",
+    "title": "Receive close notification",
+    "actor": "Client sends notification; receiver UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The client sends a notification for a new admission or commitment increase and confirms the admission date and commitment. The event may recur during fundraising."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Open the close",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Open the close for the investor true-up, then check investor readiness."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Check investor readiness",
+    "actor": "Participant",
+    "system": "System and portal names UNKNOWN",
+    "description": "Confirm client admission approval and AML clearance and check system and portal setup. Inputs include the notification, executed subscription or increase paperwork, and completed onboarding and AML checks. Investor Services confirms onboarding. Escalate incomplete documents or missing AML, commitment or effective-date records. No call is released for an investor who is not approved and cleared."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Identify catch-up rules",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Determine the fund's catch-up provisions from its LPA and any side letters, including included calls and interest terms. The participant says day count, compounding and recipients are not assumed."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Calculate earlier-call catch-up",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "For every call before admission or the effective date, use its date, total base, purpose and amounts funded by existing investors. Multiply the investor's approved commitment percentage by the included call amount after document-required exclusions."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Calculate catch-up interest",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Calculate interest separately for each call from its original funding date to the admission or effective date, using the applicable rate, dates, day-count, accrual and compounding rules."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Allocate interest to investors",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "Identify entitled existing investors and the LPA allocation basis, then allocate interest investor by investor. Document why an investor is excluded or receives special treatment. Escalate unclear recipients or cash-versus-capital treatment."
+   },
+   {
+    "id": "S8",
+    "type": "document",
+    "title": "Release catch-up notice",
+    "actor": "FA-01 team",
+    "system": "UNKNOWN",
+    "description": "Release the notice through FA-01. The reported prerequisites are passed tie-outs, internal review, client notice approval, and investor approval and AML clearance. Investor Services holds participation or the notice if onboarding or portal setup is incomplete; hold release mechanics are UNKNOWN."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Recalculate investor percentages",
+    "actor": "Participant",
+    "system": "Commitment and ownership schedule and Excel allocation engine",
+    "description": "Recalculate pre-close and post-close commitment totals and each investor's share of the post-close total using executed post-close commitments, rather than old Excel percentages. Record every schedule's effective date. Where earlier investments retain different economics, preserve their investment-specific historical percentages. Percentages must reconcile to approved commitments and the required total, allowing documented exclusions or rounding."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Update the books",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Update the books at the end of the work. The entries and performer are UNKNOWN."
+   },
+   {
+    "id": "S11",
+    "type": "activity",
+    "title": "Reconcile the close",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Reconcile everything at close-out, including receipts. Other items and reconciliation criteria are UNKNOWN."
+   },
+   {
+    "id": "S12",
+    "type": "end",
+    "title": "Close ready to shut",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Books have been updated and everything reconciled so the close can be shut. Whether and how closure is recorded is UNKNOWN."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Review and tie out calculations",
+    "actor": "Second reviewer for interest; mostly a second person reviews; other performers UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Reconcile prior calls and investor funding to prior notices, contribution records, general ledger, trial balance and capital accounts with zero unexplained difference. Check call-by-call capital detail adds to the total and percentage and call base trace to executed commitments and approved inputs. The second reviewer independently recalculates interest and checks dates, rate, basis, compounding, formula and total against the LPA. Allocated interest must equal total interest with no leftover. Compare notice capital, interest, fee and total to approved schedules before release. The relationship to the separate internal notice review is UNKNOWN."
+   },
+   {
+    "id": "S14",
+    "type": "wait",
+    "title": "Hold call for tie-out issue",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Do not release the call while a tie-out issue remains unresolved. How the issue is sorted and where work resumes are UNKNOWN."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Apply interest treatment",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "Apply the LPA-required treatment after allocation: cash payment, addition to capital accounts or another approved mechanism. Its timing relative to notice and close-out work is UNKNOWN."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Escalate unclear interest rules",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "Escalate uncertainty about interest recipients or whether treatment is cash or capital; the participant does not choose the answer."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Decide unclear interest treatment",
+    "actor": "Client or their legal counsel",
+    "system": "UNKNOWN",
+    "description": "Decide the escalated question about recipients or cash-versus-capital treatment. Recording and resumption are UNKNOWN."
+   },
+   {
+    "id": "S18",
+    "type": "document",
+    "title": "Assemble catch-up notice",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "Assemble backdated capital, equalization interest, any applicable management-fee catch-up and other approved components. Populate allocation and notice data; show each component separately and the total due."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Complete internal notice review",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The notice goes through internal review in FA-01. Its relationship to the calculation and notice tie-outs, review content and order relative to client approval are UNKNOWN."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Approve catch-up notice",
+    "actor": "Client",
+    "system": "UNKNOWN",
+    "description": "The client approves the notice in FA-01. Approval criteria and rejection or delay handling are UNKNOWN."
+   },
+   {
+    "id": "S21",
+    "type": "subprocess",
+    "title": "Track catch-up funding",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "After notice release, track funding through cash application process FA-02. Receipts are reconciled at close-out; the immediate handoff is UNKNOWN."
+   },
+   {
+    "id": "S22",
+    "type": "activity",
+    "title": "Approve recalculated percentages",
+    "actor": "Second reviewer",
+    "system": "UNKNOWN",
+    "description": "Approve the recalculated percentages before the next event. Specific checks and rejection handling are UNKNOWN."
+   },
+   {
+    "id": "S23",
+    "type": "activity",
+    "title": "Update future-event inputs",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "Update inputs for future capital calls, distributions, the waterfall and reporting after recalculating percentages. Timing relative to percentage approval is UNKNOWN."
+   },
+   {
+    "id": "S24",
+    "type": "document",
+    "title": "Record the close checklist",
+    "actor": "Participant",
+    "system": "UNKNOWN; close checklist location UNKNOWN",
+    "description": "Record fund, investor, close or effective date, commitment, and whether the event is a new admission or upsize."
+   },
+   {
+    "id": "S25",
+    "type": "activity",
+    "title": "Assign reviewer and flag dependencies",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "At the same time as checklist recording, assign a second reviewer, flag legal, tax, management-fee or accounting dependencies, and set a completion date before the investor's next capital activity."
+   },
+   {
+    "id": "S26",
+    "type": "activity",
+    "title": "Escalate missing readiness items",
+    "actor": "Participant",
+    "system": "UNKNOWN",
+    "description": "Escalate incomplete documents or missing AML, commitment or effective-date records. Recipient, resolution and return route are UNKNOWN."
+   },
+   {
+    "id": "S27",
+    "type": "activity",
+    "title": "Confirm investor onboarding",
+    "actor": "Investor Services",
+    "system": "UNKNOWN",
+    "description": "Investor Services confirms onboarding. The confirmation's handoff and exact placement relative to the readiness check are UNKNOWN."
+   },
+   {
+    "id": "S28",
+    "type": "wait",
+    "title": "Hold participation or notice",
+    "actor": "Investor Services",
+    "system": "UNKNOWN",
+    "description": "Hold investor participation or the notice if onboarding or portal setup is incomplete. The release signal and subsequent handoff are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "Close notification"
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "Investor ready"
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": ""
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": ""
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": ""
+   },
+   {
+    "from": "S7",
+    "to": "S16",
+    "label": "Recipients or cash-versus-capital treatment unclear"
+   },
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": "Question escalated"
+   },
+   {
+    "from": "S7",
+    "to": "S18",
+    "label": "Interest allocation determined"
+   },
+   {
+    "from": "S18",
+    "to": "S13",
+    "label": "Notice available for tie-out"
+   },
+   {
+    "from": "S18",
+    "to": "S19",
+    "label": "Notice assembled"
+   },
+   {
+    "from": "S18",
+    "to": "S20",
+    "label": "Notice assembled"
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": "Numbers do not tie"
+   },
+   {
+    "from": "S3",
+    "to": "S8",
+    "label": "Investor approved and cleared AND tie-outs pass AND internal review completed AND client approves notice AND no applicable Investor Services hold"
+   },
+   {
+    "from": "S13",
+    "to": "S8",
+    "label": "Investor approved and cleared AND tie-outs pass AND internal review completed AND client approves notice AND no applicable Investor Services hold"
+   },
+   {
+    "from": "S19",
+    "to": "S8",
+    "label": "Investor approved and cleared AND tie-outs pass AND internal review completed AND client approves notice AND no applicable Investor Services hold"
+   },
+   {
+    "from": "S20",
+    "to": "S8",
+    "label": "Investor approved and cleared AND tie-outs pass AND internal review completed AND client approves notice AND no applicable Investor Services hold"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "Notice sent"
+   },
+   {
+    "from": "S8",
+    "to": "S21",
+    "label": "Notice released"
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": "At end of work"
+   },
+   {
+    "from": "S9",
+    "to": "S11",
+    "label": "At end of work"
+   },
+   {
+    "from": "S10",
+    "to": "S12",
+    "label": "Books updated AND everything reconciled"
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": "Books updated AND everything reconciled"
+   },
+   {
+    "from": "S9",
+    "to": "S22",
+    "label": "Percentages recalculated"
+   },
+   {
+    "from": "S9",
+    "to": "S23",
+    "label": "Percentages recalculated"
+   },
+   {
+    "from": "S3",
+    "to": "S24",
+    "label": "Close details recorded"
+   },
+   {
+    "from": "S3",
+    "to": "S25",
+    "label": "Close setup"
+   },
+   {
+    "from": "S3",
+    "to": "S26",
+    "label": "Documents incomplete OR AML, commitment or effective-date records missing"
+   },
+   {
+    "from": "S3",
+    "to": "S28",
+    "label": "Onboarding or portal setup incomplete"
+   },
+   {
+    "from": "S7",
+    "to": "S15",
+    "label": "Interest allocated AND treatment determined"
+   }
+  ],
+  "open_questions": [
+   "Who is accountable for the overall close, and who performs the unassigned calculations, book updates and reconciliations?",
+   "How does Investor Services communicate onboarding completion and release a hold, and where does the held work resume?",
+   "How are tie-out issues corrected and rechecked, and what happens if internal review or client approval is rejected or delayed?",
+   "What is reconciled at close-out, how are books updated, and how is the close actually shut and evidenced?",
+   "What is the relationship and order, if any, among the tie-outs, internal notice review and client approval?",
+   "Who receives the notification and readiness escalations, and how are missing items resolved and returned to the work?",
+   "When is interest treatment applied relative to notice preparation and book updates, and where does work resume after a client or counsel decision?",
+   "How do checklist recording and reviewer assignment hand off to the remaining work, and how are flagged dependencies resolved?",
+   "How does FA-02 provide receipt information for close-out reconciliation?",
+   "What does the second reviewer check for percentage approval, how are failures handled, and when are future-event inputs updated relative to approval?",
+   "Where do original funding dates and approved inputs originate, and how are calculations rounded, overridden or corrected?",
+   "Who interprets other LPA and side-letter questions, resolves conflicts and records interpretations? What is the status and location of the reported rules register?",
+   "Is this general GPFS practice or client-specific, and what supports that scope? What effort, charging and removal constraints attach to fund differences?",
+   "What other exceptions, downstream consumers, authoritative records, volumes, pain points and material risks apply?",
+   "Does any incoming route start S8 (Release catch-up notice), or must all prerequisites finish?",
+   "Are the outgoing paths from S9 (Recalculate investor percentages) alternatives, or must they all occur?",
+   "Are the outgoing paths from S18 (Assemble catch-up notice) alternatives, or must they all occur?",
+   "How does step S27 (Confirm investor onboarding) connect to the rest of this process, if at all?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "The intake names the work Subsequent Closes: Equalization Interest & Investor Rebalance. It includes investor catch-up, interest allocation, notice, ownership rebalance and close-out."
+   },
+   {
+    "key": "purpose",
+    "status": "captured",
+    "answer": "True up investors so a newcomer is on the same footing as those in the fund from the start."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The client sends the participant's team a close notification for a new admission or commitment increase and confirms the admission date and commitment.\nThe work is event-driven, without a fixed schedule, and may recur during fundraising.\nThe participant sets a completion date before the investor's next capital activity.\nInvestor readiness requires the executed subscription or commitment-increase paperwork, completed onboarding and AML checks, and client approval of the admission; the participant also checks the system and portal setup status."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The books are updated and everything reconciled so the close can be shut; receipts are reconciled at the very end. Detailed close-out criteria, closure evidence and downstream consumer are UNKNOWN."
+   },
+   {
+    "key": "accountable",
+    "status": "unknown",
+    "answer": "UNKNOWN: the role accountable for the overall result has not been identified."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "Open the close and check investor readiness; determine fund rules; calculate prior-call catch-up and interest; and allocate interest. The participant applies the required treatment, but its timing relative to notice and close-out is UNKNOWN. The participant assembles the notice, which goes through FA-01 review and client approval before release; FA-02 tracks funding. After the notice is sent, the participant recalculates commitment totals and future ownership percentages, preserves applicable deal-specific historical percentages and updates future-event inputs. Books are updated and everything, including receipts, is reconciled at close-out. The participant records a checklist, assigns a reviewer and flags dependencies; Investor Services confirms onboarding and may hold participation or the notice. Missing readiness items, unclear interest rules and failed tie-outs have reported escalation or hold paths, but their returns and several handoffs are UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "Mostly a second person reviews calculations. Historical calls and funding reconcile to notices, contribution records, ledger, trial balance and capital accounts with zero unexplained difference. Catch-up detail and inputs must trace and add up; a second reviewer independently recalculates interest; allocations must equal total interest; and notice amounts must match approved schedules. Mismatches hold release. Internal review and client notice approval precede FA-01 release; investor approval and AML clearance are also required. Investor Services holds participation or the notice if onboarding or portal setup is incomplete. Revised percentages reconcile to commitments and need second-reviewer approval before the next event. Review order, detailed responsibilities, retained evidence and rejection or rework routes remain UNKNOWN."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "New admissions use subscription documents; commitment increases use increase paperwork. Fund documents vary the included calls, interest terms, recipients and treatment; cash, capital-account additions or another approved mechanism are possible. In deal-by-deal funds, investment-specific historical percentages remain unchanged where earlier economics differ. Effort, charging, removal constraints and whether these share the same process boundary are UNKNOWN."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": "UNKNOWN: no specific friction, manual-work burden or practical effect was reported."
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": "UNKNOWN: material failure consequences were not described."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "Reported materials include the LPA and any side letters, prior notices and contribution records, ledger and capital accounts, executed commitments, approved inputs and schedules, the investor notice, close checklist, commitment and ownership schedule and Excel allocation engine. A fund-by-fund LPA rules register is supposed to exist, but its status and location are UNKNOWN. No documents were supplied for review."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The work concerns an already operating fund and either a new investor or an existing investor increasing a commitment. Fund-specific rules and deal-by-deal economics change the work. General GPFS versus client-specific applicability and the overall parent-process boundary are UNKNOWN."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The participant reports that the LPA and side letters supply call inclusion and interest terms. Catch-up capital is approved commitment percentage times the included amount of each earlier call after exclusions; interest runs call by call from original funding to admission or effective date. The LPA determines entitled investors, allocation basis and treatment; the client or legal counsel decides unclear recipient or cash-versus-capital questions. Future percentages use executed post-close commitments, with specified historical percentages preserved. Source conflict authority, recorded interpretations, rounding and correction mechanics remain UNKNOWN; documents were not reviewed."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The client supplies the notification and approves admission and the notice. Onboarding and AML completion are readiness dependencies; Investor Services confirms onboarding. FA-01 handles notice review, approval and release, and FA-02 tracks subsequent funding. Future capital calls, distributions, waterfall and reporting receive updated inputs. Handoff mechanics, other dependencies and the final downstream consumer are UNKNOWN."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "Inputs include prior-call dates, bases, purposes and investor funding, approved commitment percentages and fund rules. The participant recalculates ownership rather than reusing old Excel percentages; the commitment and ownership schedule and Excel allocation engine hold the resulting information. System and portal setup are checked but not named. Authoritative records, calculation locations for catch-up and interest, entry modes and storage are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "partial",
+    "answer": "There is no fixed schedule, and subsequent closes can occur more than once during fundraising. Counts, peaks, exception frequency and effort by step are UNKNOWN."
+   }
+  ]
+ },
+ "draft_error": null
+}

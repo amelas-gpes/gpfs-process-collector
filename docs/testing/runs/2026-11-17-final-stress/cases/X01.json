@@ -1,0 +1,1610 @@
+{
+ "case": "X01",
+ "process": "example",
+ "mode": "typed",
+ "style": "the built-in example's thirteen answers",
+ "build": "fixed",
+ "participant": "replay",
+ "context": {
+  "process_name": "Invoice approval and payment handoff",
+  "process_owner": "",
+  "objective": "Document invoice intake, checks, decisions, exceptions and handoff to Treasury.",
+  "background": "Synthetic example only. All names, roles, systems, amounts and process details are fictional."
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "This is invoice approval and payment handoff, also called AP invoice sign-off. The accounts payable manager is accountable from supplier receipt through Treasury's acceptance of the approved payment package. Treasury's payment execution is a separate process. The purpose is to send accurate, authorized supplier invoices to Treasury without paying the same invoice twice."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "How does an incoming supplier invoice reach the accounts payable team and enter this process?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "A supplier email to the shared AP mailbox starts a case. Each business day by 10 a.m. the AP analyst saves the invoice in the invoice folder and enters supplier, invoice number, amount and receipt date in the invoice register with status Received. The analyst uses the register to route the case into the duplicate check."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What does the AP analyst compare to decide whether an invoice is a duplicate?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "The AP analyst searches the invoice register for the same supplier and invoice number. A matching earlier invoice is a duplicate: the analyst links the two entries, sends the supplier a duplicate notice, marks the new entry Duplicate closed, and ends that case. If there is no match, the analyst marks it New and starts the purchase-order and receipt match."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "What does the AP analyst compare to complete the purchase-order and receipt match?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "For a new invoice, the AP analyst compares supplier, amount and line items with the purchase order in the purchasing system and receipt in the receiving register. The analyst records the outcome in the invoice register. A complete match goes to the value decision. For a mismatch the analyst marks Hold and opens a case in the exception log, sends the buyer the difference, and follows up daily. The buyer obtains a corrected invoice or receiving record, records the resolution in the exception log, and returns it to AP. The analyst repeats the match before the hold is released."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "What determines whether a complete purchase-order and receipt match proceeds past the value decision?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "The AP analyst checks the invoice value in the register. Below $50,000 the matched invoice goes directly to the department manager. At $50,000 or above, the controller first checks the matched package in the invoice folder and records an approve or reject decision in the approval register. A controller approval goes to the department manager; a controller rejection goes to the correction route. The approval matrix requires this threshold. This extra controller review adds one business day of staff effort, is included in the existing AP service with no separate charge, and remains mandatory for high-value invoices. Both routes are variations of the same invoice process."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "What does the department manager decide or record for a matched invoice?"
+  },
+  {
+   "id": "t012",
+   "role": "user",
+   "text": "The department manager reviews the matched invoice and purchase order from the invoice folder through the approval portal and records Approve or Reject. For either controller or manager rejection, the AP analyst records the reason in the exception log, sends it to the buyer, and sets status Correction required. The buyer resolves the reason with the supplier or receiving department and returns corrected documents to AP. The analyst then repeats the purchase-order and receipt match; the invoice follows the value and approval decisions again."
+  },
+  {
+   "id": "t013",
+   "role": "assistant",
+   "text": "After the department manager approves an invoice, how does the approved payment package reach Treasury?"
+  },
+  {
+   "id": "t014",
+   "role": "user",
+   "text": "After manager approval, the AP analyst saves the manager decision and any controller decision with the invoice and purchase order in the invoice folder, marks the register Ready for Treasury, and sends the package link through the Treasury queue. A Treasury analyst checks that the package link opens and records Accepted in the queue. AP marks the case Handed off and closes it when that acceptance is recorded. The package and register remain available as the handoff evidence."
+  },
+  {
+   "id": "t015",
+   "role": "assistant",
+   "text": "What happens if a duplicate invoice is mistakenly passed through and paid?"
+  },
+  {
+   "id": "t016",
+   "role": "user",
+   "text": "The duplicate search, three-way match, value threshold and manager approval are required controls. The controller review is required at the high-value threshold. The AP analyst prepares the package, while the department manager approves it; the controller separately reviews high-value items. The register, exception log, approval register, portal decisions and Treasury acceptance provide the evidence for each check and handoff."
+  },
+  {
+   "id": "t017",
+   "role": "assistant",
+   "text": "What practical consequences can occur if an invoice error or approval failure gets through?"
+  },
+  {
+   "id": "t018",
+   "role": "user",
+   "text": "The AP analyst checks open holds and rejections each business day. If a buyer has not supplied corrected material by the end of the second business day, the analyst escalates the exception log entry to the AP manager. The manager assigns a backup buyer and records the assignment in the log; the backup returns the correction to AP for the same recheck. Standard matched invoices target handoff within two business days, and high-value invoices target three business days."
+  },
+  {
+   "id": "t019",
+   "role": "assistant",
+   "text": "Roughly how many supplier invoices does AP handle in a normal week?"
+  },
+  {
+   "id": "t020",
+   "role": "user",
+   "text": "The analyst copies invoice details from email into the register and follows up on exceptions manually. These activities consume about fifteen minutes of staff effort per invoice and are the main reported friction. Waiting for corrected documents is the main source of delay; the team tracks overdue cases in the exception log."
+  },
+  {
+   "id": "t021",
+   "role": "assistant",
+   "text": "What practical consequence could occur if a duplicate invoice is paid?"
+  },
+  {
+   "id": "t022",
+   "role": "user",
+   "text": "A duplicate payment can cause cash loss and recovery work. An incorrect or unapproved invoice can cause a supplier dispute or inaccurate payment. A late handoff can delay supplier payment. The AP manager reviews these risks with the team each month using the exception log."
+  },
+  {
+   "id": "t023",
+   "role": "assistant",
+   "text": "What happens if the Treasury package link does not open or Treasury’s acceptance is delayed?"
+  },
+  {
+   "id": "t024",
+   "role": "user",
+   "text": "The AP operating procedure describes the steps and escalation. The invoice register template, exception log template, approval matrix, purchase order, receiving register, portal decision record and Treasury queue receipt document the work. The AP manager maintains the procedure and templates."
+  },
+  {
+   "id": "t025",
+   "role": "assistant",
+   "text": "Who monitors the shared AP mailbox for incoming supplier invoices?"
+  },
+  {
+   "id": "t026",
+   "role": "user",
+   "text": "That covers the process from supplier email to Treasury acceptance, including duplicate closure, mismatch rework, the high-value approval route, manager rejection, escalation and the evidence retained. Treasury executes payment as a separate process."
+  },
+  {
+   "id": "t027",
+   "role": "assistant",
+   "text": "Is the procedure you mentioned the one AP follows today?"
+  },
+  {
+   "id": "t028",
+   "role": "assistant",
+   "text": "This capture still has open sections. 11 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794969259.214,
+   "turn": 0,
+   "seconds": 0.06,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794969261.397,
+   "turn": 2,
+   "seconds": 2.115,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969273.054,
+   "turn": 3,
+   "seconds": 13.77
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969280.166,
+   "turn": 3,
+   "seconds": 20.88,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 2,
+   "connections": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794969281.476,
+   "turn": 4,
+   "seconds": 1.261,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969281.479,
+   "turn": 5,
+   "seconds": 1.26,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 2,
+   "connections": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969299.229,
+   "turn": 5,
+   "seconds": 19.01
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969306.865,
+   "turn": 5,
+   "seconds": 26.65,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 7,
+   "connections": 4
+  },
+  {
+   "kind": "question",
+   "at": 1794969309.183,
+   "turn": 6,
+   "seconds": 2.262,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969309.186,
+   "turn": 7,
+   "seconds": 2.26,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t004",
+   "steps": 7,
+   "connections": 4
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969325.446,
+   "turn": 7,
+   "seconds": 18.52
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969334.145,
+   "turn": 7,
+   "seconds": 27.22,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 12,
+   "connections": 9
+  },
+  {
+   "kind": "question",
+   "at": 1794969335.533,
+   "turn": 8,
+   "seconds": 1.334,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969335.539,
+   "turn": 9,
+   "seconds": 1.34,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t006",
+   "steps": 12,
+   "connections": 9
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969345.782,
+   "turn": 9,
+   "seconds": 11.58
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969370.923,
+   "turn": 9,
+   "seconds": 36.72,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 18,
+   "connections": 16
+  },
+  {
+   "kind": "question",
+   "at": 1794969373.457,
+   "turn": 10,
+   "seconds": 2.481,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969373.464,
+   "turn": 11,
+   "seconds": 2.49,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t008",
+   "steps": 18,
+   "connections": 16
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969381.636,
+   "turn": 11,
+   "seconds": 10.66
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969397.53,
+   "turn": 11,
+   "seconds": 26.55,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 21,
+   "connections": 20
+  },
+  {
+   "kind": "question",
+   "at": 1794969400.006,
+   "turn": 12,
+   "seconds": 2.424,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969400.011,
+   "turn": 13,
+   "seconds": 2.43,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t010",
+   "steps": 21,
+   "connections": 20
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969408.702,
+   "turn": 13,
+   "seconds": 11.12
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969414.334,
+   "turn": 13,
+   "seconds": 16.75,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 22,
+   "connections": 23
+  },
+  {
+   "kind": "question",
+   "at": 1794969417.513,
+   "turn": 14,
+   "seconds": 3.126,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969417.518,
+   "turn": 15,
+   "seconds": 3.13,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t012",
+   "steps": 22,
+   "connections": 23
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969426.202,
+   "turn": 15,
+   "seconds": 11.81
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969446.254,
+   "turn": 15,
+   "seconds": 31.87,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 25,
+   "connections": 27
+  },
+  {
+   "kind": "question",
+   "at": 1794969449.182,
+   "turn": 16,
+   "seconds": 2.859,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969449.19,
+   "turn": 17,
+   "seconds": 2.87,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t014",
+   "steps": 25,
+   "connections": 27
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969457.902,
+   "turn": 17,
+   "seconds": 11.58
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969475.985,
+   "turn": 17,
+   "seconds": 29.66,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 25,
+   "connections": 27
+  },
+  {
+   "kind": "question",
+   "at": 1794969479.85,
+   "turn": 18,
+   "seconds": 3.792,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969479.858,
+   "turn": 19,
+   "seconds": 3.8,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t016",
+   "steps": 25,
+   "connections": 27
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969499.929,
+   "turn": 19,
+   "seconds": 23.87
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969510.276,
+   "turn": 19,
+   "seconds": 34.22,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 29,
+   "connections": 34
+  },
+  {
+   "kind": "question",
+   "at": 1794969512.823,
+   "turn": 20,
+   "seconds": 2.484,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969512.837,
+   "turn": 21,
+   "seconds": 2.5,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t018",
+   "steps": 29,
+   "connections": 34
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969527.19,
+   "turn": 21,
+   "seconds": 16.85
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969532.863,
+   "turn": 21,
+   "seconds": 22.52,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 29,
+   "connections": 34
+  },
+  {
+   "kind": "question",
+   "at": 1794969534.882,
+   "turn": 22,
+   "seconds": 1.953,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969534.895,
+   "turn": 23,
+   "seconds": 1.97,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t020",
+   "steps": 29,
+   "connections": 34
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969556.537,
+   "turn": 23,
+   "seconds": 23.61
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969559.145,
+   "turn": 23,
+   "seconds": 26.22,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 30,
+   "connections": 34
+  },
+  {
+   "kind": "question",
+   "at": 1794969563.069,
+   "turn": 24,
+   "seconds": 3.859,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969563.082,
+   "turn": 25,
+   "seconds": 3.87,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t022",
+   "steps": 30,
+   "connections": 34
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969572.857,
+   "turn": 25,
+   "seconds": 13.65,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 30,
+   "connections": 34
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969579.031,
+   "turn": 25,
+   "seconds": 19.82
+  },
+  {
+   "kind": "question",
+   "at": 1794969582.638,
+   "turn": 26,
+   "seconds": 3.544,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969582.648,
+   "turn": 27,
+   "seconds": 3.55,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t024",
+   "steps": 30,
+   "connections": 34
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969591.938,
+   "turn": 27,
+   "seconds": 12.84
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969593.486,
+   "turn": 27,
+   "seconds": 14.39,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 30,
+   "connections": 34
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794969593.571,
+   "turn": 27,
+   "seconds": 0.019,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794969932.434,
+   "turn": 28,
+   "seconds": 338.807,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [],
+ "notes": {
+  "summary": "The participant restated the boundary from supplier email through Treasury acceptance, with payment execution separate. Mailbox monitoring and the failed-link or delayed-acceptance route remain unclear.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "captured",
+    "answer": "The work is called “Invoice approval and payment handoff,” also called “AP invoice sign-off.”"
+   },
+   {
+    "key": "purpose",
+    "status": "captured",
+    "answer": "The purpose is to send accurate, authorized supplier invoices to Treasury without paying the same invoice twice."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "A supplier email to the shared AP mailbox starts a case.\nEach business day by 10 a.m., the AP analyst saves and registers incoming invoices.\nThe reported handoff targets are two business days for standard matched invoices and three business days for high-value invoices.\nWho monitors the shared AP mailbox for incoming invoices remains unreported."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "For the approved payment route, the AP boundary runs through Treasury's acceptance of the approved payment package; Treasury's payment execution is separate.\nA duplicate case ends after the analyst links the entries, sends the supplier a duplicate notice and marks the new entry Duplicate closed.\nAfter manager approval, the AP analyst saves the manager decision and any controller decision with the invoice and purchase order in the invoice folder, marks the register Ready for Treasury, and sends the package link through the Treasury queue. A Treasury analyst checks that the link opens and records Accepted in the queue; AP marks the case Handed off and closes it when acceptance is recorded."
+   },
+   {
+    "key": "accountable",
+    "status": "captured",
+    "answer": "The accounts payable manager is accountable for the work from supplier receipt through Treasury's acceptance of the approved payment package."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The stated work boundary runs from supplier receipt through Treasury's acceptance of the approved payment package. Treasury's payment execution is a separate process.\nEach business day by 10 a.m., the AP analyst saves the invoice in the invoice folder and enters the supplier, invoice number, amount and receipt date in the invoice register with status Received. The analyst uses the register to route the case into the duplicate check.\nThe AP analyst searches the register for the same supplier and invoice number. If an earlier invoice matches, the analyst links the entries, sends the supplier a duplicate notice, marks the new entry Duplicate closed and ends the case. Otherwise, the analyst marks it New and starts the purchase-order and receipt match.\nFor a new invoice, the AP analyst compares supplier, amount and line items with the purchase order in the purchasing system and the receipt in the receiving register, then records the outcome in the invoice register. A complete match proceeds to the value decision. For a mismatch, the analyst marks Hold, opens an exception-log case, sends the buyer the difference and follows up daily; the buyer obtains a corrected invoice or receiving record, records the resolution in the exception log and returns it to AP. The analyst repeats the match before releasing the hold.\nAfter a complete purchase-order and receipt match, the AP analyst checks the invoice value in the register. Below $50,000, the matched invoice goes directly to the department manager; at $50,000 or above, the controller first checks the matched package in the invoice folder and records an approve or reject decision in the approval register. Controller approval sends the package to the department manager; controller rejection goes to the correction route.\nFor either controller or department-manager rejection, the AP analyst records the reason in the exception log, sends it to the buyer and sets status Correction required. The buyer resolves the reason with the supplier or receiving department and returns corrected documents to AP; the analyst repeats the purchase-order and receipt match, then the invoice goes through the value and approval decisions again.\nAfter manager approval, the AP analyst saves the manager decision and any controller decision with the invoice and purchase order in the invoice folder, marks the register Ready for Treasury, and sends the package link through the Treasury queue. A Treasury analyst checks that the link opens and records Accepted in the queue; AP marks the case Handed off and closes it when acceptance is recorded.\nThe AP analyst checks open holds and rejections each business day. If the buyer has not supplied corrected material by the end of the second business day, the analyst escalates the exception-log entry to the AP manager, who assigns a backup buyer and records the assignment in the log. The backup returns the correction to AP for the same recheck.\nThe route when the Treasury package link does not open or acceptance is delayed remains unreported."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The AP analyst routes the registered case into a duplicate check.\nThe AP analyst searches the invoice register for the same supplier and invoice number. A matching earlier invoice is a duplicate; without a match, the analyst marks the entry New and starts the purchase-order and receipt match.\nFor a new invoice, the AP analyst checks supplier, amount and line items against the purchase order and receipt, and records the outcome in the invoice register. If they mismatch, the analyst repeats the comparison after the buyer returns a corrected invoice or receiving record; the hold is released only after that repeat match.\nThe AP analyst uses the invoice value in the register to apply the $50,000 threshold. For invoices at or above $50,000, the controller checks the matched package in the invoice folder and records approve or reject in the approval register; approval is required before it goes to the department manager.\nThe department manager reviews the matched invoice and purchase order through the approval portal and records Approve or Reject. On rejection, the analyst records the reason in the exception log and sets Correction required; corrected documents return to AP for a repeated match and renewed value and approval decisions.\nA Treasury analyst checks that the package link opens and records Accepted in the queue. AP closes the case only when that acceptance is recorded.\nThe participant identifies the duplicate search, three-way match, value threshold and manager approval as required controls; controller review is also required at the high-value threshold. The AP analyst prepares the package, the department manager approves it, and the controller separately reviews high-value items.\nThe AP analyst checks open holds and rejections each business day and escalates to the AP manager if corrected material has not arrived by the end of the second business day. The manager records a backup-buyer assignment in the exception log.\nThe AP manager reviews these risks with the team each month using the exception log."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "The participant describes two threshold-based routes within the same invoice process: below $50,000, the matched invoice goes directly to the department manager; at $50,000 or above, controller review comes first. The added controller review is reported to require one business day of staff effort, is included in the existing AP service with no separate charge, and remains mandatory for high-value invoices.\nStandard matched invoices target handoff within two business days; high-value invoices target three business days."
+   },
+   {
+    "key": "pain_points",
+    "status": "captured",
+    "answer": "The participant identifies copying invoice details from email into the register and manual exception follow-up as the main friction. Waiting for corrected documents is the main source of delay; overdue cases are tracked in the exception log."
+   },
+   {
+    "key": "risk",
+    "status": "captured",
+    "answer": "A duplicate payment can cause cash loss and recovery work.\nAn incorrect or unapproved invoice can cause a supplier dispute or inaccurate payment; a late handoff can delay supplier payment."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The supplier invoice is saved in the invoice folder. The invoice register records supplier, invoice number, amount, receipt date and status, and is used to route the case into the duplicate check.\nThe analyst links the register entries for duplicate invoices and sends the supplier a duplicate notice.\nThe purchasing system contains the purchase order and the receiving register contains the receipt used in the AP analyst's comparison. The invoice register records the match outcome. For mismatches, the exception log holds the case and buyer-recorded resolution; the buyer returns that resolution to AP.\nFor invoices valued at $50,000 or above, the controller checks the matched package in the invoice folder and records an approve or reject decision in the approval register.\nThe department manager uses the approval portal to review the matched invoice and purchase order and record an Approve or Reject decision. The analyst records the rejection reason in the exception log and sets status Correction required; the buyer returns corrected documents to AP.\nFor the handoff, the invoice folder contains the invoice, purchase order, manager decision and any controller decision; AP sends the package link through the Treasury queue. The package and register remain available as handoff evidence.\nThe participant identifies the register, exception log, approval register, portal decisions and Treasury acceptance as evidence for the checks and handoff.\nThe exception log records the AP manager's backup-buyer assignment when a correction is escalated.\nThe team uses the exception log to track overdue cases.\nThe AP manager uses the exception log for the monthly risk review with the team.\nThe AP operating procedure describes the steps and escalation. The AP manager maintains the procedure and the invoice register and exception log templates. These materials were reported but not supplied for review.\nThe participant identifies the invoice register and exception log templates, approval matrix, purchase order, receiving register, portal decision record and Treasury queue receipt as documentation of the work. They were not supplied for review."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The described work concerns supplier invoices and the approved payment package handed to Treasury; Treasury's payment execution is outside this process boundary."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The reported intake routine calls for the analyst to save and register invoices each business day by 10 a.m., using status Received.\nA matching earlier invoice with the same supplier and invoice number is treated as a duplicate.\nA complete purchase-order and receipt match proceeds to the value decision. A mismatch is held; release follows the buyer's logged resolution and the analyst's repeated match.\nThe approval matrix requires controller review for matched invoices valued at $50,000 or above; below $50,000 the matched invoice proceeds directly to the department manager. The participant reports this matrix requirement; its source was not further identified.\nA controller or department-manager rejection sends the invoice to correction: the buyer resolves the rejection reason with the supplier or receiving department, and after corrected documents return, AP repeats the match and the invoice follows the value and approval decisions again.\nIf corrected material has not been supplied by the end of the second business day, the AP analyst escalates the exception-log entry to the AP manager for a backup-buyer assignment."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "After manager approval, AP hands the approved payment package link to Treasury through the Treasury queue. Treasury's analyst records acceptance after checking that the link opens; Treasury payment execution is a separate process."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "Invoices arrive in a shared AP mailbox; the analyst saves them in an invoice folder and enters intake details in an invoice register.\nThe AP analyst compares the invoice with a purchase order in the purchasing system and a receipt in the receiving register, and records the match outcome in the invoice register. Mismatch cases and their resolution are recorded in the exception log.\nThe department manager uses the approval portal to review the matched invoice and purchase order and record the decision; the analyst records rejection reasons in the exception log and sets status Correction required.\nThe AP analyst sends the approved package link through the Treasury queue; the Treasury analyst records Accepted in that queue, and AP records Handed off in the case/register.\nThe analyst copies invoice details from email into the invoice register and follows up on exceptions manually."
+   },
+   {
+    "key": "volume",
+    "status": "partial",
+    "answer": "Normal invoice counts, peak volumes and exception frequency have not been reported.\nThe extra controller review for high-value invoices adds a reported one business day of staff effort.\nThe participant estimates that copying invoice details from email into the register and manually following up on exceptions consume about fifteen minutes of staff effort per invoice."
+   }
+  ]
+ },
+ "map": {
+  "title": "Invoice approval and payment handoff",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "document",
+    "title": "Send package link to Treasury",
+    "actor": "AP analyst",
+    "system": "Treasury queue",
+    "description": "The analyst sends the approved payment package link through the Treasury queue."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Check link and record acceptance",
+    "actor": "Treasury analyst",
+    "system": "Treasury queue",
+    "description": "The Treasury analyst checks that the package link opens and records Accepted in the queue. Treasury payment execution is a separate process."
+   },
+   {
+    "id": "S4",
+    "type": "document",
+    "title": "Save supplier invoice",
+    "actor": "AP analyst",
+    "system": "Invoice folder",
+    "description": "The analyst saves the invoice in the invoice folder each business day by 10 a.m."
+   },
+   {
+    "id": "S5",
+    "type": "data_store",
+    "title": "Register invoice receipt",
+    "actor": "AP analyst",
+    "system": "Invoice register",
+    "description": "The analyst enters supplier, invoice number, amount and receipt date with status Received. Invoice details are copied manually from email; copying and manual exception follow-up together take an estimated 15 minutes of staff effort per invoice."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Route case for duplicate check",
+    "actor": "AP analyst",
+    "system": "Invoice register",
+    "description": "The analyst uses the register to route the case into the duplicate check."
+   },
+   {
+    "id": "S7",
+    "type": "decision",
+    "title": "Does an earlier invoice match?",
+    "actor": "AP analyst",
+    "system": "Invoice register",
+    "description": "The analyst searches for the same supplier and invoice number. A matching earlier invoice is a duplicate; the duplicate search is a required control."
+   },
+   {
+    "id": "S8",
+    "type": "data_store",
+    "title": "Link duplicate entries",
+    "actor": "AP analyst",
+    "system": "Invoice register",
+    "description": "For a matching earlier invoice, the analyst links the two entries."
+   },
+   {
+    "id": "S9",
+    "type": "document",
+    "title": "Send duplicate notice",
+    "actor": "AP analyst",
+    "system": "UNKNOWN",
+    "description": "The analyst sends the supplier a duplicate notice."
+   },
+   {
+    "id": "S10",
+    "type": "data_store",
+    "title": "Close duplicate case",
+    "actor": "AP analyst",
+    "system": "Invoice register",
+    "description": "The analyst marks the new entry Duplicate closed and ends the case."
+   },
+   {
+    "id": "S11",
+    "type": "data_store",
+    "title": "Mark invoice New",
+    "actor": "AP analyst",
+    "system": "Invoice register",
+    "description": "If there is no match, the analyst marks the invoice New."
+   },
+   {
+    "id": "S12",
+    "type": "activity",
+    "title": "Match purchase order and receipt",
+    "actor": "AP analyst",
+    "system": "Purchasing system; receiving register; invoice register",
+    "description": "The analyst compares supplier, amount and line items with the purchase order and receipt, then records the outcome. The three-way match is required; for a held invoice, the analyst repeats it before release."
+   },
+   {
+    "id": "S13",
+    "type": "decision",
+    "title": "Is the match complete?",
+    "actor": "AP analyst",
+    "system": "Invoice register",
+    "description": "The recorded match outcome determines whether the case proceeds to the value decision or mismatch handling."
+   },
+   {
+    "id": "S14",
+    "type": "decision",
+    "title": "Is invoice value at least $50,000?",
+    "actor": "AP analyst",
+    "system": "Invoice register",
+    "description": "The analyst checks invoice value. Below $50,000, the matched invoice goes to the department manager; at $50,000 or above, it goes first to the controller. The value threshold is a required control."
+   },
+   {
+    "id": "S15",
+    "type": "data_store",
+    "title": "Hold and log mismatch",
+    "actor": "AP analyst",
+    "system": "Invoice register; exception log",
+    "description": "For a mismatch, the analyst marks Hold and opens a case in the exception log."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Send difference and follow up",
+    "actor": "AP analyst",
+    "system": "UNKNOWN",
+    "description": "The analyst sends the buyer the difference and follows up daily. Exception follow-up is manual; waiting for corrected documents is the main reported source of delay."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Resolve mismatch and return",
+    "actor": "Buyer",
+    "system": "Exception log",
+    "description": "The buyer obtains a corrected invoice or receiving record, records the resolution in the exception log and returns it to AP."
+   },
+   {
+    "id": "S0",
+    "type": "start",
+    "title": "Receive supplier email",
+    "actor": "Supplier",
+    "system": "Shared AP mailbox",
+    "description": "A supplier email to the shared AP mailbox starts a case."
+   },
+   {
+    "id": "S18",
+    "type": "decision",
+    "title": "Does the controller approve?",
+    "actor": "Controller",
+    "system": "Invoice folder; approval register",
+    "description": "For invoices of $50,000 or above, the controller checks the matched package and records an approve or reject decision. The additional review is mandatory, adds one business day of staff effort and has no separate charge within the existing AP service. Its classification is UNKNOWN."
+   },
+   {
+    "id": "S19",
+    "type": "decision",
+    "title": "Does the department manager approve?",
+    "actor": "Department manager",
+    "system": "Invoice folder; approval portal",
+    "description": "The department manager reviews the matched invoice and purchase order through the approval portal and records Approve or Reject. Manager approval is a required control."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Record and send rejection",
+    "actor": "AP analyst",
+    "system": "Exception log",
+    "description": "For a controller or manager rejection, the analyst records the reason in the exception log, sends it to the buyer and sets status Correction required."
+   },
+   {
+    "id": "S21",
+    "type": "activity",
+    "title": "Resolve rejection and return documents",
+    "actor": "Buyer",
+    "system": "UNKNOWN",
+    "description": "The buyer resolves the rejection reason with the supplier or receiving department and returns corrected documents to AP."
+   },
+   {
+    "id": "S22",
+    "type": "document",
+    "title": "Save approval decisions",
+    "actor": "AP analyst",
+    "system": "Invoice folder",
+    "description": "After manager approval, the analyst saves the manager decision and any controller decision with the invoice and purchase order."
+   },
+   {
+    "id": "S23",
+    "type": "data_store",
+    "title": "Mark ready for Treasury",
+    "actor": "AP analyst",
+    "system": "Invoice register",
+    "description": "The analyst marks the register Ready for Treasury."
+   },
+   {
+    "id": "S24",
+    "type": "activity",
+    "title": "Close handed-off case",
+    "actor": "AP; individual role UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "When Treasury acceptance is recorded, AP marks the case Handed off and closes it. The package and register remain available as handoff evidence. Handoff targets are two business days for standard matched invoices and three for high-value invoices."
+   },
+   {
+    "id": "S25",
+    "type": "activity",
+    "title": "Check open holds and rejections",
+    "actor": "AP analyst",
+    "system": "UNKNOWN",
+    "description": "The analyst checks open holds and rejections each business day while correction is pending. Escalation applies if the buyer has not supplied corrected material by the end of the second business day."
+   },
+   {
+    "id": "S26",
+    "type": "activity",
+    "title": "Escalate overdue correction",
+    "actor": "AP analyst",
+    "system": "Exception log",
+    "description": "The analyst escalates the exception log entry to the AP manager when the buyer has not supplied corrected material by the end of the second business day."
+   },
+   {
+    "id": "S27",
+    "type": "data_store",
+    "title": "Assign backup buyer",
+    "actor": "AP manager",
+    "system": "Exception log",
+    "description": "The manager assigns a backup buyer and records the assignment in the log."
+   },
+   {
+    "id": "S28",
+    "type": "activity",
+    "title": "Return backup correction to AP",
+    "actor": "Backup buyer",
+    "system": "UNKNOWN",
+    "description": "The backup buyer returns the correction to AP for the same recheck."
+   },
+   {
+    "id": "S29",
+    "type": "data_store",
+    "title": "Track overdue cases",
+    "actor": "Team; individual role UNKNOWN",
+    "system": "Exception log",
+    "description": "The team tracks overdue cases in the exception log. Its precise relationship to exception checking and escalation is UNKNOWN."
+   },
+   {
+    "id": "S30",
+    "type": "activity",
+    "title": "Review invoice risks monthly",
+    "actor": "AP manager, with the team",
+    "system": "Exception log",
+    "description": "The AP manager reviews invoice risks with the team each month using the exception log. Reported risks include cash loss and recovery work from duplicate payment, disputes or inaccurate payment from incorrect or unapproved invoices, and delayed supplier payment from late handoff."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": ""
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": ""
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": ""
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": "Matching earlier invoice"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": ""
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": ""
+   },
+   {
+    "from": "S7",
+    "to": "S11",
+    "label": "No match"
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": ""
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": ""
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": "Complete match"
+   },
+   {
+    "from": "S13",
+    "to": "S15",
+    "label": "Mismatch"
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": ""
+   },
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": ""
+   },
+   {
+    "from": "S17",
+    "to": "S12",
+    "label": "Resolution returned to AP"
+   },
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S14",
+    "to": "S19",
+    "label": "Below $50,000"
+   },
+   {
+    "from": "S14",
+    "to": "S18",
+    "label": "$50,000 or above"
+   },
+   {
+    "from": "S18",
+    "to": "S19",
+    "label": "Controller approval"
+   },
+   {
+    "from": "S18",
+    "to": "S20",
+    "label": "Controller rejection"
+   },
+   {
+    "from": "S19",
+    "to": "S20",
+    "label": "Manager rejection"
+   },
+   {
+    "from": "S20",
+    "to": "S21",
+    "label": ""
+   },
+   {
+    "from": "S21",
+    "to": "S12",
+    "label": "Corrected documents returned to AP"
+   },
+   {
+    "from": "S19",
+    "to": "S22",
+    "label": "Manager approval"
+   },
+   {
+    "from": "S22",
+    "to": "S23",
+    "label": ""
+   },
+   {
+    "from": "S23",
+    "to": "S1",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S24",
+    "label": "Acceptance recorded"
+   },
+   {
+    "from": "S16",
+    "to": "S25",
+    "label": "Hold remains open"
+   },
+   {
+    "from": "S20",
+    "to": "S25",
+    "label": "Rejection remains open"
+   },
+   {
+    "from": "S25",
+    "to": "S25",
+    "label": "Still open; next business day"
+   },
+   {
+    "from": "S25",
+    "to": "S26",
+    "label": "Buyer has not supplied corrected material by end of second business day"
+   },
+   {
+    "from": "S26",
+    "to": "S27",
+    "label": ""
+   },
+   {
+    "from": "S27",
+    "to": "S28",
+    "label": ""
+   },
+   {
+    "from": "S28",
+    "to": "S12",
+    "label": "Correction returned to AP"
+   },
+   {
+    "from": "S0",
+    "to": "S4",
+    "label": ""
+   }
+  ],
+  "open_questions": [
+   "Who detects supplier emails, and how is the shared AP mailbox monitored?",
+   "Who releases a hold after a repeated match, what permits release, and how does release relate to the value decision?",
+   "What happens if the Treasury package link does not open or acceptance is delayed?",
+   "Who in AP closes the case, and where is the Handed off status recorded?",
+   "From what event is the second business day for escalation counted, and how are handoff targets measured?",
+   "How does daily follow-up continue after a backup buyer is assigned, and how is the original buyer's outstanding correction handled?",
+   "What happens if the backup buyer cannot return a correction?",
+   "Where does tracking overdue cases sit relative to checking and escalating exceptions, and who performs it?",
+   "How does the monthly risk review relate to individual cases, and is an outcome recorded?",
+   "Are the AP procedure, templates and approval matrix available, and have they been reviewed? Who interprets the matrix or resolves conflicting rules?",
+   "Is this route general GPFS practice or client-specific, and what is the basis for that assessment?",
+   "What entity and client scopes, other variations, charging arrangements or removal constraints apply?",
+   "What client review or approval, segregation, system enforcement or override arrangements apply, if any?",
+   "What other systems, authoritative records, materials, deadlines or rules apply?",
+   "What are normal invoice volumes, peaks and exception frequency, if known?",
+   "How does step S29, Track overdue cases, connect to the rest of this process, if at all?",
+   "How does step S30, Review invoice risks monthly, connect to the rest of this process, if at all?",
+   "Does any incoming route start S12 (Match purchase order and receipt), or must all prerequisites finish?",
+   "Does any incoming route start S20 (Record and send rejection), or must all prerequisites finish?",
+   "Does any incoming route start S25 (Check open holds and rejections), or must all prerequisites finish?",
+   "How does step S29 (Track overdue cases) connect to the rest of this process, if at all?",
+   "How does step S30 (Review invoice risks monthly) connect to the rest of this process, if at all?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "DRAFT — Invoice approval and payment handoff",
+  "overview": "Synthetic current-practice account, from supplier email to duplicate closure or Treasury acceptance. Treasury payment execution is separate. This draft is pending participant confirmation and appropriate process-owner review; it is not an independently verified procedure.",
+  "trigger": "A supplier email to the shared AP mailbox starts a case. The mailbox monitor is UNKNOWN.",
+  "inputs": [
+   "Supplier invoice received by email",
+   "Purchase order in the purchasing system and receipt in the receiving register",
+   "Invoice register and, where applicable, corrected documents"
+  ],
+  "outputs": [
+   "Duplicate case marked Duplicate closed and ended",
+   "Approved payment package accepted by Treasury and AP case marked Handed off and closed"
+  ],
+  "exceptions": [
+   "Duplicate: link entries, notify the supplier and close the new case.",
+   "Mismatch: hold, log and notify the buyer; corrected material returns for a repeated match before hold release.",
+   "Controller or manager rejection: log and send the reason, set Correction required, obtain corrected documents and repeat the match and approval decisions.",
+   "Open hold or rejection without buyer correction by the end of the second business day: escalate, assign a backup buyer and return the correction for the same recheck.",
+   "Broken Treasury link, delayed acceptance and failure of backup correction: handling UNKNOWN."
+  ],
+  "controls": [
+   "The participant reports duplicate search, three-way match, value threshold and manager approval as required controls, with controller review required at the high-value threshold.",
+   "A Treasury analyst checks that the package link opens and records acceptance.",
+   "The register, exception log, approval register, portal decisions and Treasury acceptance provide reported evidence; the package and register remain available as handoff evidence.",
+   "The AP manager reviews risks monthly with the team using the exception log."
+  ],
+  "validation_notes": [
+   "Synthetic example: all names, roles, systems, amounts and process details are fictional.",
+   "Current-practice draft pending participant confirmation and appropriate process-owner review. The participant's recap is not confirmation of this generated draft.",
+   "The procedure, templates and approval matrix were mentioned but no document excerpt was supplied or reviewed. The threshold is attributed to the participant's report about the matrix, not independently verified.",
+   "Monitoring edges describe the reported business-day checks of open cases; they do not establish concurrent starts or the technical coordination of buyer work and monitoring. Daily mismatch follow-up remains applicable while the correction is pending.",
+   "The monthly risk review is a known disconnected activity because its placement in individual case flow is UNKNOWN.",
+   "The duplicate route ends with the reported closing action. Rework routes return only where correction and rechecking were explicitly reported. Handling of a failed Treasury link, delayed acceptance or failed backup correction remains open.",
+   "No former or planned route was reported. No approved GPFS standard, entity scope or authoritative system of record is established.",
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified.",
+   "The independent audit changed or removed 3 proposed exception(s)."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "start",
+    "title": "Receive supplier email",
+    "actor": "UNKNOWN",
+    "system": "Shared AP mailbox",
+    "description": "A supplier email to the shared AP mailbox starts an invoice case. Who monitors the mailbox is UNKNOWN."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Save and register invoice",
+    "actor": "AP analyst",
+    "system": "Invoice folder; invoice register",
+    "description": "Each business day by 10 a.m., the analyst saves the invoice and enters supplier, invoice number, amount and receipt date with status Received. Invoice details are copied manually from email."
+   },
+   {
+    "id": "S3",
+    "type": "decision",
+    "title": "Does an earlier invoice match?",
+    "actor": "AP analyst",
+    "system": "Invoice register",
+    "description": "Search the register for the same supplier and invoice number. A matching earlier invoice is a duplicate; otherwise the invoice is marked New. The participant identifies the search as a required control."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Close duplicate case",
+    "actor": "AP analyst",
+    "system": "Invoice register",
+    "description": "Link the two entries, send the supplier a duplicate notice, mark the new entry Duplicate closed and end that case."
+   },
+   {
+    "id": "S5",
+    "type": "data_store",
+    "title": "Mark invoice New",
+    "actor": "AP analyst",
+    "system": "Invoice register",
+    "description": "If no earlier invoice matches, mark the invoice New and start the purchase-order and receipt match."
+   },
+   {
+    "id": "S6",
+    "type": "decision",
+    "title": "Is the three-way match complete?",
+    "actor": "AP analyst",
+    "system": "Purchasing system; receiving register; invoice register",
+    "description": "Compare supplier, amount and line items with the purchase order and receipt; record the outcome in the invoice register. Repeat the match after correction and before a hold is released. A complete match goes to the value decision; a mismatch is held."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Hold and report mismatch",
+    "actor": "AP analyst",
+    "system": "Exception log",
+    "description": "Mark Hold, open an exception-log case, send the difference to the buyer and follow up daily. The team tracks overdue cases in the exception log. Follow-up continues while the mismatch is pending."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Resolve mismatch and return",
+    "actor": "Buyer",
+    "system": "Exception log",
+    "description": "Obtain a corrected invoice or receiving record, record the resolution in the exception log and return it to AP for the repeated match."
+   },
+   {
+    "id": "S9",
+    "type": "decision",
+    "title": "Is value at least $50,000?",
+    "actor": "AP analyst",
+    "system": "Invoice register",
+    "description": "Check invoice value in the register. Below $50,000, the matched invoice goes directly to the department manager. At $50,000 or above, the controller checks it first. The participant says the approval matrix requires the threshold; the matrix was not supplied for review."
+   },
+   {
+    "id": "S10",
+    "type": "decision",
+    "title": "Does the controller approve?",
+    "actor": "Controller",
+    "system": "Invoice folder; approval register",
+    "description": "For invoices of $50,000 or above, check the matched package and record approve or reject. Approval goes to the department manager; rejection goes to correction. The participant reports that the review is mandatory, adds one business day of staff effort and has no separate charge."
+   },
+   {
+    "id": "S11",
+    "type": "decision",
+    "title": "Does the department manager approve?",
+    "actor": "Department manager",
+    "system": "Invoice folder; approval portal",
+    "description": "Review the matched invoice and purchase order from the folder through the approval portal and record Approve or Reject. Manager approval is a reported required control."
+   },
+   {
+    "id": "S12",
+    "type": "activity",
+    "title": "Record and send rejection",
+    "actor": "AP analyst",
+    "system": "Exception log",
+    "description": "For either controller or manager rejection, record the reason in the exception log, send it to the buyer and set status Correction required."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Resolve rejection and return",
+    "actor": "Buyer",
+    "system": "UNKNOWN",
+    "description": "Resolve the rejection reason with the supplier or receiving department and return corrected documents to AP. AP repeats the match; the invoice then follows the value and approval decisions again."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Check open exceptions",
+    "actor": "AP analyst",
+    "system": "UNKNOWN",
+    "description": "Check open holds and rejections each business day. If a buyer has not supplied corrected material by the end of the second business day, escalate the exception-log entry to the AP manager. The starting point for counting is UNKNOWN. Daily mismatch follow-up remains reported while correction is pending."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Escalate overdue correction",
+    "actor": "AP analyst",
+    "system": "Exception log",
+    "description": "Escalate the exception-log entry to the AP manager if the buyer has not supplied corrected material by the end of the second business day."
+   },
+   {
+    "id": "S16",
+    "type": "data_store",
+    "title": "Assign backup buyer",
+    "actor": "AP manager",
+    "system": "Exception log",
+    "description": "Assign a backup buyer and record the assignment in the exception log."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Return backup correction",
+    "actor": "Backup buyer",
+    "system": "UNKNOWN",
+    "description": "Return the correction to AP for the same recheck. What happens if the backup cannot provide it is UNKNOWN."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Prepare and send package",
+    "actor": "AP analyst",
+    "system": "Invoice folder; invoice register; Treasury queue",
+    "description": "After manager approval, save the manager decision and any controller decision with the invoice and purchase order in the folder, mark the register Ready for Treasury and send the package link through the Treasury queue."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Check and accept package",
+    "actor": "Treasury analyst",
+    "system": "Treasury queue",
+    "description": "Check that the package link opens and record Accepted in the queue. The response to a broken link or delayed acceptance is UNKNOWN."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Close handed-off case",
+    "actor": "AP; individual role UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "When Treasury acceptance is recorded, mark the case Handed off and close it. The package and register remain available as handoff evidence. Standard matched invoices target handoff within two business days; high-value invoices target three business days. How the targets are measured is UNKNOWN."
+   },
+   {
+    "id": "S21",
+    "type": "activity",
+    "title": "Review invoice risks monthly",
+    "actor": "AP manager with the team",
+    "system": "Exception log",
+    "description": "Review the reported invoice risks with the team each month using the exception log. Its relationship to individual cases and any recorded outcome are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "Supplier invoice received"
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": "Registered case"
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": "Matching earlier invoice"
+   },
+   {
+    "from": "S3",
+    "to": "S5",
+    "label": "No match"
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": "New"
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Mismatch"
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": "Difference sent to buyer"
+   },
+   {
+    "from": "S8",
+    "to": "S6",
+    "label": "Resolution returned to AP"
+   },
+   {
+    "from": "S6",
+    "to": "S9",
+    "label": "Complete match"
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": "$50,000 or above"
+   },
+   {
+    "from": "S9",
+    "to": "S11",
+    "label": "Below $50,000"
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": "Controller approval"
+   },
+   {
+    "from": "S10",
+    "to": "S12",
+    "label": "Controller rejection"
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": "Manager rejection"
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": "Reason sent to buyer"
+   },
+   {
+    "from": "S13",
+    "to": "S6",
+    "label": "Corrected documents returned"
+   },
+   {
+    "from": "S7",
+    "to": "S14",
+    "label": "Hold remains open"
+   },
+   {
+    "from": "S12",
+    "to": "S14",
+    "label": "Rejection remains open"
+   },
+   {
+    "from": "S14",
+    "to": "S14",
+    "label": "Still open; next business day"
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": "Buyer has not supplied correction by end of second business day"
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": "Escalated to AP manager"
+   },
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": "Backup assigned"
+   },
+   {
+    "from": "S17",
+    "to": "S6",
+    "label": "Correction returned to AP"
+   },
+   {
+    "from": "S11",
+    "to": "S18",
+    "label": "Manager approval"
+   },
+   {
+    "from": "S18",
+    "to": "S19",
+    "label": "Package link sent"
+   },
+   {
+    "from": "S19",
+    "to": "S20",
+    "label": "Acceptance recorded"
+   }
+  ],
+  "open_questions": [
+   "What happens if the Treasury link does not open or acceptance is delayed?",
+   "Who releases a hold after rechecking, what permits release, and how is release recorded before the value decision?",
+   "From what event is the second business day counted, and how are the original buyer's work and continued follow-up coordinated after backup assignment?",
+   "Who monitors the mailbox, who closes the AP case, and where is Handed off recorded?",
+   "Is this general GPFS practice or a client-specific route, and what entity and client scope applies?",
+   "What happens if the backup buyer cannot return a correction?",
+   "What specifically do the controller and department manager check, and what review, segregation, override or system-enforcement arrangements apply?",
+   "Are the procedure, templates and matrix available, and who interprets rules and resolves conflicts?",
+   "How are handoff targets measured, and are there other deadlines or variations?",
+   "How does overdue-case tracking relate to monitoring and escalation, and how does the monthly risk review connect to case work?",
+   "What are normal volumes, peaks and exception rates, and which records are authoritative?",
+   "Has the participant confirmed this draft and has an appropriate process owner reviewed it?",
+   "Does any incoming route start S12 (Record and send rejection), or must all prerequisites finish?",
+   "Does any incoming route start S14 (Check open exceptions), or must all prerequisites finish?",
+   "How does step S21 (Review invoice risks monthly) connect to the rest of this process, if at all?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "The work is called invoice approval and payment handoff, also AP invoice sign-off. It covers supplier receipt through Treasury acceptance; Treasury payment execution is separate. Other team or system names are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "captured",
+    "answer": "Send accurate, authorized supplier invoices to Treasury without paying the same invoice twice."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "A supplier email to the shared AP mailbox starts a case. Each business day by 10 a.m. the analyst saves and registers invoices. Who detects emails, upstream readiness and any other fixed deadlines are UNKNOWN."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "A duplicate is marked Duplicate closed and the case ends. For an approved invoice, Treasury checks the link and records Accepted; AP then marks Handed off and closes the case. Treasury payment execution is separate. The individual AP closer and failure or delay handling are UNKNOWN."
+   },
+   {
+    "key": "accountable",
+    "status": "captured",
+    "answer": "The accounts payable manager is accountable from supplier receipt through Treasury acceptance. The AP analyst prepares the package, while the department manager approves and the controller separately reviews high-value items."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The analyst saves and registers an invoice as Received, searches for duplicates and either closes a duplicate or marks it New. A mismatch is held, logged and sent to the buyer for correction and recheck. A complete match goes through the value threshold, applicable controller decision and department-manager decision; rejections return for correction and rematch. After approval, AP saves decisions, marks Ready for Treasury and sends a link; Treasury records acceptance and AP closes. Open exceptions are checked and overdue corrections escalated to a backup buyer. Hold-release mechanics and some handoffs and failure exits are UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The analyst searches supplier and invoice number and compares supplier, amount and line items against the purchase order and receipt. The controller decides on high-value packages; the department manager reviews the matched invoice and purchase order and decides. Treasury checks that the link opens. Rejections and mismatches return for correction and recheck. Reported evidence includes registers, the exception log, portal decisions and queue acceptance. Detailed reviewer tests, client role, segregation, override, system enforcement and link-failure handling are UNKNOWN."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "Below $50,000 the matched invoice goes directly to the department manager; at or above it, controller review comes first. The participant attributes the threshold to the approval matrix, says the extra review adds one business day of staff effort, is included without separate charge and remains mandatory. Other applicability, objections and broader differences are UNKNOWN."
+   },
+   {
+    "key": "pain_points",
+    "status": "partial",
+    "answer": "Manual copying from email and manual exception follow-up are the main reported friction, together taking about 15 minutes of staff effort per invoice. Waiting for corrected documents is the main delay; overdue cases are tracked in the exception log. Further friction and step-level effort are UNKNOWN."
+   },
+   {
+    "key": "risk",
+    "status": "captured",
+    "answer": "Duplicate payment can cause cash loss and recovery work; an incorrect or unapproved invoice can cause a supplier dispute or inaccurate payment; a late handoff can delay supplier payment. The AP manager reviews these risks monthly with the team using the exception log."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The participant mentions an AP operating procedure, invoice-register and exception-log templates, approval matrix, purchase order, receiving register, portal decision record and Treasury queue receipt. The AP manager maintains the procedure and templates. Availability is UNKNOWN; none was supplied for this review."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The reported boundary is supplier receipt through Treasury acceptance, with Treasury payment execution separate. Entity types, client applicability, whether the route is general GPFS practice, its basis and any parent process are UNKNOWN. The example is synthetic."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The participant reports the same supplier and invoice number as the duplicate criterion, a comparison of supplier, amount and line items against the purchase order and receipt, and a $50,000 controller threshold attributed to the approval matrix. The matrix was not supplied or independently reviewed. Rule interpretation, conflicts, implementation details, client modifications and any material calculations are UNKNOWN."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "Supplier email initiates the case; purchasing and receiving records support matching. AP sends the approved package link to Treasury, which checks and accepts it; Treasury payment execution is separate. Readiness signals and other upstream, embedded or parallel dependencies are UNKNOWN."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The account names the shared mailbox, invoice folder and register, purchasing system, receiving register, exception log, approval register, approval portal and Treasury queue. Invoice details are copied manually from email; decisions and acceptance are recorded. Authoritative records, underlying technology, other entry modes, calculation location and file-only information are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "partial",
+    "answer": "Manual copying and exception follow-up together take about 15 minutes of staff effort per invoice; high-value controller review adds one business day of staff effort. Normal invoice counts, peaks and exception frequency are UNKNOWN."
+   }
+  ]
+ },
+ "draft_error": null
+}

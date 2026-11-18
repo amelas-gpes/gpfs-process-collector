@@ -1,0 +1,1296 @@
+{
+ "case": "D-V04",
+ "process": "FA-19B",
+ "mode": "recorded voice",
+ "style": "draft retry of V04",
+ "build": "final",
+ "participant": "replay",
+ "context": {
+  "process_name": "Facility Compliance & Borrowing Base Certification",
+  "process_owner": "",
+  "objective": "Document how we carry out Facility Compliance & Borrowing Base Certification, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "To begin with, we create or refresh the facility record. What we do: confirm the facility, borrower, lender, commitment amount, maturity date, certification schedule, and current amendments. Record the tiers, rates, caps, exclusions, step-downs, demand terms, corrective action terms, and certificate requirements defined in the agreement. Record the LPA limits on borrowing, allowable reasons for capital calls, and duration. Record the lender and LPA deadlines separately in the tracker. We use Facility Tracker and controlled legal documents output then record to key. Current record of facility rules for it. The check on it. Each rule can be traced to the current executed document."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "How is the check performed to confirm the facility record matches the current executed documents?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "Next, we update investor and outstanding balance information. What we do: obtain the current commitment amounts that investors can still be required to fund, confirm each investor's agreement-defined tier and whether the agreement excludes the investor or applies a hurdle condition, apply the current concentration limit inputs, match the outstanding principal balance to the lender's supporting record, record changes since the prior certification. We use investor tier schedule and facility tracker output then record to key, current set of inputs used for certification for it, the check on it, check the full investor list and tiers again. Do not copy them from the previous cycle without testing them."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "What do you compare the refreshed investor list and tiers against when you check them?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "After that, we calculate borrowing base components. What we do: apply the correct advance rate to each eligible commitment, apply concentration caps and zero-rate exclusion treatment, aggregate the investor-based amount, compute any aggregate commitment cap and LPA leverage cap required by the facility, select the agreement-defined limiting amount, apply effective step-down rates based on current date period. We use borrowing base calculation file output then record to key, current borrowing base and its component tests for it, the check on it. Each formula and limit matches the agreement. Use the prior certificate only for comparison."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "What does the check of the borrowing base calculation compare the calculated components against?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "Then, we check available borrowing, covenants, and deadlines. What we do: compare the outstanding balance and proposed draws with the current borrowing base and available capacity, check maturity, demand, repayment, duration, and restrictions that apply after the investment period, where the facility requires it, track the outstanding balance for each follow-on investment, a later investment in an existing portfolio company, identify any breach, shortfall, approaching deadline, or required corrective action. We use facility tracker and compliance checklist output and record to key: assessment of available borrowing and compliance for it, the check on it, both the lender requirements and LPA limits must be met."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "What happens when you identify a breach or borrowing shortfall?"
+  },
+  {
+   "id": "t010",
+   "role": "user",
+   "text": "Once that is done, we prepare the certificate package. What we do: complete the borrowing base certificate, certificate of status, or both, as required. Match each figure on the certificate to the calculation and supporting records. Include the legal statements and attachments required by the current form. Keep a comparison showing changes from the prior certification. We use Lender Certificate Package output and record to key, draft legal certificate and supporting records for it, the check on it, certificate values match the current calculation and source data."
+  },
+  {
+   "id": "t011",
+   "role": "assistant",
+   "text": "Who checks that the certificate values match the current calculation and source data?"
+  },
+  {
+   "id": "t012",
+   "role": "assistant",
+   "text": "This capture still has open sections. 15 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794969655.008,
+   "turn": 0,
+   "seconds": 0.027,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794969661.286,
+   "turn": 1,
+   "seconds": 2.852,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 33.7,
+   "audio_bytes": 1078920,
+   "wer": 0.019,
+   "heard": "To begin with, we create or refresh the facility record. What we do: confirm the facility, borrower, lender, commitment amount, maturity date, certification schedule, and current amendments. Record the tiers, rates, caps, exclusions, step-downs, demand terms, corrective action terms, and certificate requirements defined in the agreement. Record the LPA limits on borrowing, allowable reasons for capital calls, and duration. Record the lender and LPA deadlines separately in the tracker. We use Facility Tracker and controlled legal documents output then record to key. Current record of facility rules for it. The check on it. Each rule can be traced to the current executed document."
+  },
+  {
+   "kind": "question",
+   "at": 1794969663.339,
+   "turn": 2,
+   "seconds": 2.046,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969673.075,
+   "turn": 3,
+   "seconds": 11.78
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969687.966,
+   "turn": 3,
+   "seconds": 26.67,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 6,
+   "connections": 5
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794969691.488,
+   "turn": 3,
+   "seconds": 1.614,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 31.1,
+   "audio_bytes": 994964,
+   "wer": 0.054,
+   "heard": "Next, we update investor and outstanding balance information. What we do: obtain the current commitment amounts that investors can still be required to fund, confirm each investor's agreement-defined tier and whether the agreement excludes the investor or applies a hurdle condition, apply the current concentration limit inputs, match the outstanding principal balance to the lender's supporting record, record changes since the prior certification. We use investor tier schedule and facility tracker output then record to key, current set of inputs used for certification for it, the check on it, check the full investor list and tiers again. Do not copy them from the previous cycle without testing them."
+  },
+  {
+   "kind": "question",
+   "at": 1794969693.692,
+   "turn": 4,
+   "seconds": 2.201,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969693.695,
+   "turn": 5,
+   "seconds": 2.2,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 6,
+   "connections": 5
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969717.743,
+   "turn": 5,
+   "seconds": 26.25
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969720.813,
+   "turn": 5,
+   "seconds": 29.32,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 12,
+   "connections": 11
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794969724.534,
+   "turn": 5,
+   "seconds": 1.898,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 29.7,
+   "audio_bytes": 950836,
+   "wer": 0.02,
+   "heard": "After that, we calculate borrowing base components. What we do: apply the correct advance rate to each eligible commitment, apply concentration caps and zero-rate exclusion treatment, aggregate the investor-based amount, compute any aggregate commitment cap and LPA leverage cap required by the facility, select the agreement-defined limiting amount, apply effective step-down rates based on current date period. We use borrowing base calculation file output then record to key, current borrowing base and its component tests for it, the check on it. Each formula and limit matches the agreement. Use the prior certificate only for comparison."
+  },
+  {
+   "kind": "question",
+   "at": 1794969725.962,
+   "turn": 6,
+   "seconds": 1.424,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969725.97,
+   "turn": 7,
+   "seconds": 1.43,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t004",
+   "steps": 12,
+   "connections": 11
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969747.458,
+   "turn": 7,
+   "seconds": 22.92
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969754.153,
+   "turn": 7,
+   "seconds": 29.61,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 19,
+   "connections": 18
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794969757.922,
+   "turn": 7,
+   "seconds": 1.928,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 33.9,
+   "audio_bytes": 1084694,
+   "wer": 0.01,
+   "heard": "Then, we check available borrowing, covenants, and deadlines. What we do: compare the outstanding balance and proposed draws with the current borrowing base and available capacity, check maturity, demand, repayment, duration, and restrictions that apply after the investment period, where the facility requires it, track the outstanding balance for each follow-on investment, a later investment in an existing portfolio company, identify any breach, shortfall, approaching deadline, or required corrective action. We use facility tracker and compliance checklist output and record to key: assessment of available borrowing and compliance for it, the check on it, both the lender requirements and LPA limits must be met."
+  },
+  {
+   "kind": "question",
+   "at": 1794969759.913,
+   "turn": 8,
+   "seconds": 1.985,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969759.918,
+   "turn": 9,
+   "seconds": 1.99,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t006",
+   "steps": 19,
+   "connections": 18
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969784.935,
+   "turn": 9,
+   "seconds": 27.01
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969785.961,
+   "turn": 9,
+   "seconds": 28.03,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 23,
+   "connections": 23
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794969789.359,
+   "turn": 9,
+   "seconds": 1.695,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 26.4,
+   "audio_bytes": 843696,
+   "wer": 0.011,
+   "heard": "Once that is done, we prepare the certificate package. What we do: complete the borrowing base certificate, certificate of status, or both, as required. Match each figure on the certificate to the calculation and supporting records. Include the legal statements and attachments required by the current form. Keep a comparison showing changes from the prior certification. We use Lender Certificate Package output and record to key, draft legal certificate and supporting records for it, the check on it, certificate values match the current calculation and source data."
+  },
+  {
+   "kind": "question",
+   "at": 1794969792.024,
+   "turn": 10,
+   "seconds": 2.66,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969792.032,
+   "turn": 11,
+   "seconds": 2.67,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t008",
+   "steps": 23,
+   "connections": 23
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969808.426,
+   "turn": 11,
+   "seconds": 19.06
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969812.541,
+   "turn": 11,
+   "seconds": 23.18,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 27,
+   "connections": 27
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794969812.619,
+   "turn": 11,
+   "seconds": 0.015,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794970467.528,
+   "turn": 12,
+   "seconds": 263.564,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [],
+ "notes": {
+  "summary": "After the compliance assessment, the team prepares the required certificate or certificates, checks figures against current calculations and supporting records, and keeps a prior-certification comparison. What happens after the draft and how breaches are handled remain open.",
+  "topics": [
+   {
+    "key": "name",
+    "status": "captured",
+    "answer": "Facility Compliance & Borrowing Base Certification"
+   },
+   {
+    "key": "purpose",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The event or cadence that prompts creating or refreshing the facility record is not established; the participant describes this as the beginning step but not what initiates it."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The participant describes a draft certificate package, but the steps and conditions that finish certification are not yet established."
+   },
+   {
+    "key": "accountable",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "To begin, the participant creates or refreshes the facility record, confirming the facility, borrower, lender, commitment amount, maturity date, certification schedule, and current amendments.\nThe participant records lender deadlines and LPA deadlines separately in the tracker.\nAfter creating or refreshing the facility record, the team updates investor and outstanding balance information: it obtains commitments investors can still be required to fund, confirms each investor's agreement-defined tier and any exclusion or hurdle, and applies current concentration-limit inputs.\nThe team matches outstanding principal to the lender's supporting record and records changes since the prior certification, producing a current set of inputs for certification.\nAfter refreshing investor and balance inputs, the team calculates borrowing base components: it applies advance rates to eligible commitments, concentration caps and zero-rate exclusions, then aggregates the investor-based amount.\nThe team computes any facility-required aggregate commitment cap and LPA leverage cap, selects the agreement-defined limiting amount and applies step-down rates effective for the current date period. The output is the current borrowing base and its component tests.\nAfter calculating the borrowing base, the team compares outstanding balance and proposed draws with the current borrowing base and available capacity. It checks maturity, demand, repayment, duration and post-investment-period restrictions, and identifies breaches, shortfalls, approaching deadlines or required corrective actions.\nWhere the facility requires it, the team tracks the outstanding balance for each follow-on investment, meaning a later investment in an existing portfolio company.\nAfter assessing borrowing availability and compliance, the team prepares the certificate package, completing a borrowing base certificate, a certificate of status, or both as required. It includes the current form's required legal statements and attachments and keeps a comparison of changes since the prior certification.\nThe handling of identified breaches, shortfalls and required corrective actions remains unspecified."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "The performer, method and retained evidence for checking facility rules against current executed documents remain unspecified.\nThe team checks the full investor list and tiers again and does not copy them from the previous cycle without testing them. It also matches outstanding principal to the lender's supporting record.\nHow the full investor list and tiers are tested, who performs the check, and how discrepancies are handled remain unspecified.\nThe reported calculation check is that each formula and limit matches the agreement; the prior certificate is used only for comparison.\nThe performer, method and retained evidence for checking formulas and limits against the agreement, and handling of discrepancies, remain unspecified.\nThe participant says each facility rule can be traced to the current executed document.\nThe available-borrowing and compliance assessment requires both lender requirements and LPA limits to be met.\nThe team matches each certificate figure to the calculation and supporting records; certificate values must match the current calculation and source data."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "Facilities requiring follow-on investment tracking add a check of the outstanding balance for each such investment.\nThe certificate package contains a borrowing base certificate, a certificate of status, or both, depending on what is required."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "Facility Tracker is used to record facility information and lender and LPA deadlines. Controlled legal documents are used as the source for facility rules; the participant says each rule can be traced to the current executed document.\nThe team uses an investor tier schedule and Facility Tracker for the current certification inputs, and the lender's supporting record to match outstanding principal.\nThe team uses a borrowing base calculation file to produce the current borrowing base and component tests, and uses the prior certificate only for comparison.\nThe team uses Facility Tracker and a compliance checklist for the assessment of available borrowing and compliance.\nThe Lender Certificate Package is used in preparing a draft legal certificate and supporting records. The current form supplies required legal statements and attachments, and a comparison shows changes from the prior certification."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The reported work concerns facility and borrower information and investor commitments, including agreement-defined investor tiers and conditions."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The facility record captures agreement-defined tiers, rates, caps, exclusions, step-downs, demand terms, corrective action terms, and certificate requirements, plus LPA limits on borrowing, allowable reasons for capital calls, and duration. Each rule can be traced to the current executed document; the participant reports that the current record is of facility rules.\nInvestor inputs reflect agreement-defined tiers, exclusions and hurdle conditions, as well as current concentration-limit inputs. The full investor list and tiers must be tested rather than copied untested from the prior cycle.\nThe participant reports that the agreement defines the limiting amount and that applicable step-down rates depend on the current date period. The prior certificate is used only for comparison.\nThe participant states that both lender requirements and LPA limits must be met in the compliance assessment; follow-on investment balance tracking applies where the facility requires it.\nThe certificate package must include the legal statements and attachments required by the current form; a borrowing base certificate, certificate of status, or both are completed as required."
+   },
+   {
+    "key": "connections",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The participant mentions Facility Tracker and controlled legal documents, but the statement about recording the output to “key” is unclear; the destination and how information is entered are not established.\nThe participant reports using Facility Tracker and an investor tier schedule when updating certification inputs; the lender's supporting record is the comparison for outstanding principal.\nThe participant reports using a borrowing base calculation file for the current borrowing base and component tests.\nThe calculation file's technology and how its calculations are implemented remain unspecified."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": ""
+   }
+  ]
+ },
+ "map": {
+  "title": "Facility Compliance & Borrowing Base Certification",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "data_store",
+    "title": "Create or refresh facility record",
+    "actor": "UNKNOWN",
+    "system": "Facility Tracker",
+    "description": "Create or refresh the facility record as the first reported action."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Confirm facility details",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Confirm the facility, borrower, lender, commitment amount, maturity date, certification schedule and current amendments."
+   },
+   {
+    "id": "S3",
+    "type": "data_store",
+    "title": "Record agreement terms",
+    "actor": "UNKNOWN",
+    "system": "Facility Tracker",
+    "description": "Record the agreement's tiers, rates, caps, exclusions, step-downs, demand terms, corrective action terms and certificate requirements."
+   },
+   {
+    "id": "S4",
+    "type": "data_store",
+    "title": "Record LPA limits",
+    "actor": "UNKNOWN",
+    "system": "Facility Tracker",
+    "description": "Record the LPA limits on borrowing, allowable reasons for capital calls and duration."
+   },
+   {
+    "id": "S5",
+    "type": "data_store",
+    "title": "Record deadlines separately",
+    "actor": "UNKNOWN",
+    "system": "Facility Tracker",
+    "description": "Record lender and LPA deadlines separately in the tracker."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Check rule traceability",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The reported check is that each rule can be traced to the current executed document. The check performer and retained evidence are UNKNOWN."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Obtain current fundable commitments",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Obtain current commitment amounts that investors can still be required to fund."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Confirm investor tiers and conditions",
+    "actor": "UNKNOWN",
+    "system": "Investor tier schedule and Facility Tracker used for the update; exact use UNKNOWN",
+    "description": "Confirm each investor's agreement-defined tier and whether the agreement excludes the investor or applies a hurdle condition."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Apply concentration limit inputs",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Apply the current concentration limit inputs."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Match outstanding principal balance",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Match the outstanding principal balance to the lender's supporting record."
+   },
+   {
+    "id": "S11",
+    "type": "data_store",
+    "title": "Record changes since certification",
+    "actor": "UNKNOWN",
+    "system": "Facility Tracker used for the update; exact recording location UNKNOWN",
+    "description": "Record changes since the prior certification."
+   },
+   {
+    "id": "S12",
+    "type": "activity",
+    "title": "Recheck investor list and tiers",
+    "actor": "UNKNOWN",
+    "system": "Investor tier schedule and Facility Tracker used for the update; exact use UNKNOWN",
+    "description": "Check the full investor list and tiers again. Do not copy them from the previous cycle without testing them."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Apply eligible commitment rates",
+    "actor": "UNKNOWN",
+    "system": "Borrowing base calculation file",
+    "description": "Apply the correct advance rate to each eligible commitment."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Apply caps and exclusions",
+    "actor": "UNKNOWN",
+    "system": "Borrowing base calculation file",
+    "description": "Apply concentration caps and zero-rate exclusion treatment."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Aggregate investor-based amount",
+    "actor": "UNKNOWN",
+    "system": "Borrowing base calculation file",
+    "description": "Aggregate the investor-based amount."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Compute required aggregate caps",
+    "actor": "UNKNOWN",
+    "system": "Borrowing base calculation file",
+    "description": "Compute any aggregate commitment cap and LPA leverage cap required by the facility."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Select limiting amount",
+    "actor": "UNKNOWN",
+    "system": "Borrowing base calculation file",
+    "description": "Select the agreement-defined limiting amount."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Apply effective step-down rates",
+    "actor": "UNKNOWN",
+    "system": "Borrowing base calculation file",
+    "description": "Apply effective step-down rates based on the current date period."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Check formulas and limits",
+    "actor": "UNKNOWN",
+    "system": "Borrowing base calculation file",
+    "description": "Check that each formula and limit matches the agreement. The prior certificate is to be used only for comparison."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Compare borrowing and capacity",
+    "actor": "UNKNOWN",
+    "system": "Facility Tracker and compliance checklist used for the assessment; exact use UNKNOWN",
+    "description": "Compare the outstanding balance and proposed draws with the current borrowing base and available capacity."
+   },
+   {
+    "id": "S21",
+    "type": "activity",
+    "title": "Check facility terms and deadlines",
+    "actor": "UNKNOWN",
+    "system": "Facility Tracker and compliance checklist used for the assessment; exact use UNKNOWN",
+    "description": "Check maturity, demand, repayment, duration and restrictions that apply after the investment period."
+   },
+   {
+    "id": "S22",
+    "type": "data_store",
+    "title": "Track follow-on investment balances",
+    "actor": "UNKNOWN",
+    "system": "Facility Tracker and compliance checklist used for the assessment; exact tracking location UNKNOWN",
+    "description": "Where the facility requires it, track the outstanding balance for each follow-on investment, meaning a later investment in an existing portfolio company."
+   },
+   {
+    "id": "S23",
+    "type": "activity",
+    "title": "Identify compliance issues",
+    "actor": "UNKNOWN",
+    "system": "Facility Tracker and compliance checklist used for the assessment; exact use UNKNOWN",
+    "description": "Identify any breach, shortfall, approaching deadline or required corrective action. The reported compliance check requires both lender requirements and LPA limits to be met."
+   },
+   {
+    "id": "S24",
+    "type": "document",
+    "title": "Complete required certificates",
+    "actor": "UNKNOWN",
+    "system": "Lender Certificate Package",
+    "description": "Complete the borrowing base certificate, certificate of status, or both, as required."
+   },
+   {
+    "id": "S25",
+    "type": "activity",
+    "title": "Match certificate figures",
+    "actor": "UNKNOWN",
+    "system": "Lender Certificate Package",
+    "description": "Match each certificate figure to the current calculation and supporting records."
+   },
+   {
+    "id": "S26",
+    "type": "document",
+    "title": "Include statements and attachments",
+    "actor": "UNKNOWN",
+    "system": "Lender Certificate Package",
+    "description": "Include the legal statements and attachments required by the current form."
+   },
+   {
+    "id": "S27",
+    "type": "document",
+    "title": "Keep prior certification comparison",
+    "actor": "UNKNOWN",
+    "system": "Lender Certificate Package; comparison storage UNKNOWN",
+    "description": "Keep a comparison showing changes from the prior certification."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": ""
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": ""
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": ""
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": ""
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": ""
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": ""
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": ""
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": ""
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": ""
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": ""
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": ""
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": ""
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": ""
+   },
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": ""
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": ""
+   },
+   {
+    "from": "S18",
+    "to": "S19",
+    "label": ""
+   },
+   {
+    "from": "S19",
+    "to": "S20",
+    "label": ""
+   },
+   {
+    "from": "S20",
+    "to": "S21",
+    "label": ""
+   },
+   {
+    "from": "S21",
+    "to": "S22",
+    "label": "Facility requires follow-on balance tracking"
+   },
+   {
+    "from": "S21",
+    "to": "S23",
+    "label": "Follow-on balance tracking not required"
+   },
+   {
+    "from": "S22",
+    "to": "S23",
+    "label": ""
+   },
+   {
+    "from": "S23",
+    "to": "S24",
+    "label": ""
+   },
+   {
+    "from": "S24",
+    "to": "S25",
+    "label": ""
+   },
+   {
+    "from": "S25",
+    "to": "S26",
+    "label": ""
+   },
+   {
+    "from": "S26",
+    "to": "S27",
+    "label": ""
+   }
+  ],
+  "open_questions": [
+   "What event triggers creation or refresh of the facility record, who detects it, and how often does it occur?",
+   "Who performs each action, who is accountable for the overall certification, and how are handoffs made?",
+   "Are the listed recording actions and traceability check performed in the order shown?",
+   "What does “output then record to key” mean for each update, calculation, assessment and certificate package, and where are their results maintained?",
+   "Who performs the traceability check, what evidence is retained, and what happens if a rule cannot be traced?",
+   "Where do commitment amounts, concentration limit inputs and outstanding balances originate, and how are the inputs applied?",
+   "How are the full investor list and tiers tested, who performs the check, and what happens when a check or balance match fails?",
+   "How are calculation inputs sourced, caps and step-downs determined, and rounding, tie-outs and corrections handled?",
+   "Who checks the formulas and limits, what evidence is retained, and what happens if they do not match the agreement?",
+   "How are proposed draws and available capacity sourced, and how are follow-on investment balances tracked where required?",
+   "What happens when a breach, shortfall, approaching deadline or required corrective action is identified, and who handles it?",
+   "How is the required certificate type determined, who checks certificate figures, and what happens if they do not match?",
+   "What happens after the draft certificate package and comparison are prepared, including review, approval, delivery and evidence of completion?",
+   "Who interprets agreement and LPA terms, and how are conflicts or amendments handled?",
+   "Which entities and clients are in scope, and does this route represent general GPFS practice or a client-specific practice?",
+   "What specific deadlines, variations, exceptions, review or approval requirements apply?",
+   "What are the main manual effort, risks, volumes and relevant supporting materials?",
+   "How are the assessment checks coordinated before compliance issues are identified?",
+   "Does any incoming route start S23 (Identify compliance issues), or must all prerequisites finish?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "DRAFT — Facility Compliance & Borrowing Base Certification",
+  "overview": "The participant reports refreshing facility rules and certification inputs, calculating the borrowing base, assessing borrowing and compliance, and preparing a draft certificate package. The initiating event, accountable role, exception handling and final delivery remain UNKNOWN. This current-practice draft is pending participant and process-owner review; no supporting documents were supplied or independently reviewed.",
+  "trigger": "UNKNOWN. Creating or refreshing the facility record is the first reported action, not an established initiating event.",
+  "inputs": [
+   "Facility details, current amendments and controlled legal documents",
+   "Investor commitment amounts and investor tier schedule",
+   "Current concentration-limit inputs and the lender's supporting record",
+   "Current agreement, LPA and prior certificate",
+   "Proposed draws and current certificate form"
+  ],
+  "outputs": [
+   "Current facility rules and certification inputs",
+   "Current borrowing base and component tests",
+   "Assessment of available borrowing and compliance",
+   "Draft legal certificate package, supporting records and prior-certification comparison"
+  ],
+  "exceptions": [
+   "Breaches, shortfalls, approaching deadlines and required corrective actions are identified; handling, ownership and effect on later work are UNKNOWN.",
+   "Handling of untraceable rules, input or balance mismatches, calculation errors and certificate discrepancies is UNKNOWN."
+  ],
+  "controls": [
+   "Each facility rule can be traced to the current executed document.",
+   "The full investor list and tiers are checked again and not copied from the prior cycle without testing.",
+   "Outstanding principal is matched to the lender's supporting record.",
+   "Each borrowing base formula and limit is checked against the agreement; the prior certificate is used only for comparison.",
+   "Borrowing and compliance are checked against both lender requirements and LPA limits.",
+   "Each certificate figure is matched to the current calculation and supporting records."
+  ],
+  "validation_notes": [
+   "Current-practice draft for review; participant confirmation and process-owner approval are pending.",
+   "The participant supplied one account. No supporting documents were supplied or independently reviewed; agreement and LPA terms are participant-reported, not verified legal conclusions.",
+   "The map follows the participant's listed action order and reported phase transitions. Those transitions do not establish the performers, handoff mechanisms or independent approval of the route.",
+   "The assessment-to-package edge represents the next reported phase, not evidence that an identified issue is resolved or may be ignored. Exception handling and its effect on certificate preparation remain UNKNOWN.",
+   "No initiating event or terminal completion was established. Actions and handoffs after the draft package remain open.",
+   "Roles, check methods, retained proof, failure routes and the exact meaning of 'record to key' remain unresolved. Facility Tracker and the named files or package are not designated as authoritative records.",
+   "Follow-on balance tracking is shown conditionally in the reported assessment order. Its detailed coordination with other assessment checks remains to be confirmed.",
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "data_store",
+    "title": "Create or refresh facility record",
+    "actor": "UNKNOWN",
+    "system": "Facility Tracker",
+    "description": "Create or refresh the facility record as the first reported action. The initiating event is UNKNOWN."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Confirm facility details",
+    "actor": "UNKNOWN",
+    "system": "Facility Tracker used in this phase; exact use UNKNOWN",
+    "description": "Confirm the facility, borrower, lender, commitment amount, maturity date, certification schedule and current amendments."
+   },
+   {
+    "id": "S3",
+    "type": "data_store",
+    "title": "Record agreement terms",
+    "actor": "UNKNOWN",
+    "system": "Facility Tracker used in this phase; exact recording location UNKNOWN",
+    "description": "Record agreement-defined tiers, rates, caps, exclusions, step-downs, demand terms, corrective action terms and certificate requirements."
+   },
+   {
+    "id": "S4",
+    "type": "data_store",
+    "title": "Record LPA limits",
+    "actor": "UNKNOWN",
+    "system": "Facility Tracker used in this phase; exact recording location UNKNOWN",
+    "description": "Record LPA limits on borrowing, allowable reasons for capital calls and duration."
+   },
+   {
+    "id": "S5",
+    "type": "data_store",
+    "title": "Record deadlines separately",
+    "actor": "UNKNOWN",
+    "system": "Facility Tracker",
+    "description": "Record lender and LPA deadlines separately in the tracker. Actual dates and detailed sources are UNKNOWN."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Check rule traceability",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Check that each recorded rule can be traced to the current executed document. The method, retained evidence and failure handling are UNKNOWN."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Obtain current fundable commitments",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Obtain current commitment amounts that investors can still be required to fund. Their source is UNKNOWN."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Confirm investor tiers and conditions",
+    "actor": "UNKNOWN",
+    "system": "Investor tier schedule and Facility Tracker used in this phase; exact use UNKNOWN",
+    "description": "Confirm each investor's agreement-defined tier and whether the agreement excludes the investor or applies a hurdle condition."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Apply concentration limit inputs",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Apply current concentration-limit inputs. Their origin and application mechanics are UNKNOWN."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Match outstanding principal balance",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Match outstanding principal to the lender's supporting record. Handling of differences is UNKNOWN."
+   },
+   {
+    "id": "S11",
+    "type": "data_store",
+    "title": "Record changes since certification",
+    "actor": "UNKNOWN",
+    "system": "Facility Tracker used in this phase; exact recording location UNKNOWN",
+    "description": "Record changes since the prior certification."
+   },
+   {
+    "id": "S12",
+    "type": "activity",
+    "title": "Recheck investor list and tiers",
+    "actor": "UNKNOWN",
+    "system": "Investor tier schedule and Facility Tracker used in this phase; exact use UNKNOWN",
+    "description": "Check the full investor list and tiers again. Do not copy them from the previous cycle without testing. Comparison source, test method and failure handling are UNKNOWN."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Apply eligible commitment rates",
+    "actor": "UNKNOWN",
+    "system": "Borrowing base calculation file",
+    "description": "Apply the correct advance rate to each eligible commitment."
+   },
+   {
+    "id": "S14",
+    "type": "activity",
+    "title": "Apply caps and exclusions",
+    "actor": "UNKNOWN",
+    "system": "Borrowing base calculation file",
+    "description": "Apply concentration caps and zero-rate exclusion treatment."
+   },
+   {
+    "id": "S15",
+    "type": "activity",
+    "title": "Aggregate investor-based amount",
+    "actor": "UNKNOWN",
+    "system": "Borrowing base calculation file",
+    "description": "Aggregate the investor-based amount."
+   },
+   {
+    "id": "S16",
+    "type": "activity",
+    "title": "Compute required aggregate caps",
+    "actor": "UNKNOWN",
+    "system": "Borrowing base calculation file",
+    "description": "Compute any aggregate commitment cap and LPA leverage cap required by the facility. Inputs and detailed provisions are UNKNOWN."
+   },
+   {
+    "id": "S17",
+    "type": "activity",
+    "title": "Select limiting amount",
+    "actor": "UNKNOWN",
+    "system": "Borrowing base calculation file",
+    "description": "Select the agreement-defined limiting amount. The detailed selection provision is UNKNOWN."
+   },
+   {
+    "id": "S18",
+    "type": "activity",
+    "title": "Apply effective step-down rates",
+    "actor": "UNKNOWN",
+    "system": "Borrowing base calculation file",
+    "description": "Apply effective step-down rates based on the current date period. The phase produces the current borrowing base and component tests."
+   },
+   {
+    "id": "S19",
+    "type": "activity",
+    "title": "Check formulas and limits",
+    "actor": "UNKNOWN",
+    "system": "Borrowing base calculation file",
+    "description": "Check that each formula and limit matches the agreement. Use the prior certificate only for comparison. The performer, retained evidence and mismatch handling are UNKNOWN."
+   },
+   {
+    "id": "S20",
+    "type": "activity",
+    "title": "Compare borrowing and capacity",
+    "actor": "UNKNOWN",
+    "system": "Facility Tracker and compliance checklist used in this phase; exact use UNKNOWN",
+    "description": "Compare outstanding balance and proposed draws with the current borrowing base and available capacity."
+   },
+   {
+    "id": "S21",
+    "type": "activity",
+    "title": "Check facility terms and deadlines",
+    "actor": "UNKNOWN",
+    "system": "Facility Tracker and compliance checklist used in this phase; exact use UNKNOWN",
+    "description": "Check maturity, demand, repayment, duration and restrictions applying after the investment period."
+   },
+   {
+    "id": "S22",
+    "type": "data_store",
+    "title": "Track follow-on investment balances",
+    "actor": "UNKNOWN",
+    "system": "Facility Tracker and compliance checklist used in this phase; exact tracking location UNKNOWN",
+    "description": "Where the facility requires it, track the outstanding balance for each follow-on investment: a later investment in an existing portfolio company."
+   },
+   {
+    "id": "S23",
+    "type": "activity",
+    "title": "Identify compliance issues",
+    "actor": "UNKNOWN",
+    "system": "Facility Tracker and compliance checklist used in this phase; exact use UNKNOWN",
+    "description": "Identify any breach, shortfall, approaching deadline or required corrective action. The reported check says both lender requirements and LPA limits must be met. Handling and effect on the package are UNKNOWN."
+   },
+   {
+    "id": "S24",
+    "type": "document",
+    "title": "Complete required certificates",
+    "actor": "UNKNOWN",
+    "system": "Lender Certificate Package; technology UNKNOWN",
+    "description": "Complete the borrowing base certificate, certificate of status, or both, as required. The selection criteria are UNKNOWN."
+   },
+   {
+    "id": "S25",
+    "type": "activity",
+    "title": "Match certificate figures",
+    "actor": "UNKNOWN",
+    "system": "Lender Certificate Package; technology UNKNOWN",
+    "description": "Match each certificate figure to the current calculation and supporting records. The checker, retained proof and discrepancy handling are UNKNOWN."
+   },
+   {
+    "id": "S26",
+    "type": "document",
+    "title": "Include statements and attachments",
+    "actor": "UNKNOWN",
+    "system": "Lender Certificate Package; technology UNKNOWN",
+    "description": "Include legal statements and attachments required by the current form."
+   },
+   {
+    "id": "S27",
+    "type": "document",
+    "title": "Keep prior certification comparison",
+    "actor": "UNKNOWN",
+    "system": "Lender Certificate Package used in this phase; comparison storage UNKNOWN",
+    "description": "Keep a comparison showing changes from the prior certification. The next handoff and final completion condition are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S4",
+    "label": ""
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": ""
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": ""
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Next reported phase"
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": ""
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": ""
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": ""
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": ""
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": ""
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": "Next reported phase"
+   },
+   {
+    "from": "S13",
+    "to": "S14",
+    "label": ""
+   },
+   {
+    "from": "S14",
+    "to": "S15",
+    "label": ""
+   },
+   {
+    "from": "S15",
+    "to": "S16",
+    "label": ""
+   },
+   {
+    "from": "S16",
+    "to": "S17",
+    "label": ""
+   },
+   {
+    "from": "S17",
+    "to": "S18",
+    "label": ""
+   },
+   {
+    "from": "S18",
+    "to": "S19",
+    "label": ""
+   },
+   {
+    "from": "S19",
+    "to": "S20",
+    "label": "Next reported phase"
+   },
+   {
+    "from": "S20",
+    "to": "S21",
+    "label": ""
+   },
+   {
+    "from": "S21",
+    "to": "S22",
+    "label": "Facility requires follow-on balance tracking"
+   },
+   {
+    "from": "S21",
+    "to": "S23",
+    "label": "Follow-on balance tracking not required"
+   },
+   {
+    "from": "S22",
+    "to": "S23",
+    "label": ""
+   },
+   {
+    "from": "S23",
+    "to": "S24",
+    "label": "Assessment done; next reported phase"
+   },
+   {
+    "from": "S24",
+    "to": "S25",
+    "label": ""
+   },
+   {
+    "from": "S25",
+    "to": "S26",
+    "label": ""
+   },
+   {
+    "from": "S26",
+    "to": "S27",
+    "label": ""
+   }
+  ],
+  "open_questions": [
+   "What initiates the work, who detects it, and what cadence and fixed deadlines apply?",
+   "Who performs and checks each phase, and who is accountable for the overall result?",
+   "What happens after the draft package is prepared, and what proves certification is finished?",
+   "What happens when a breach, shortfall, approaching deadline or required corrective action is identified, including any effect on certificate preparation?",
+   "How are failed traceability, investor, balance, calculation and certificate checks handled, and what evidence is retained?",
+   "What does 'output then record to key' mean, and where are the outputs recorded?",
+   "Where do commitment amounts, concentration inputs, outstanding balances, proposed draws and capacity originate, and how is readiness established?",
+   "What is the comparison source and test method for the full investor list and tiers?",
+   "How are cap and step-down inputs determined, and how are rounding, tie-outs, overrides and corrections handled?",
+   "How is the required certificate type determined, and how are statements and attachments sourced?",
+   "Who interprets the agreement and LPA, resolves conflicts and records interpretations?",
+   "Which entities and clients are in scope, and is this general GPFS practice or a client-specific route? What is the basis?",
+   "How are the assessment checks coordinated, and what must be complete before issues are identified?",
+   "What reviews, approvals, release conditions, segregation, escalation and evidence retention apply?",
+   "What other variations, manual effort, risks, volumes and supporting materials apply? For the reported differences, what are the effort, charging and removal constraints?",
+   "Does any incoming route start S23 (Identify compliance issues), or must all prerequisites finish?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "The intake calls the work Facility Compliance & Borrowing Base Certification. It includes facility rules, inputs, calculation, compliance assessment and a draft certificate package. Other names and the full boundary are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The reported work produces a current borrowing base and compliance assessment and prepares a draft legal certificate with supporting records. The final delivered result and recipient are UNKNOWN."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The first reported action is to create or refresh a facility record. The initiating event, receiver, cadence and actual deadlines are UNKNOWN; lender and LPA deadlines are recorded separately."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The last reported work is a draft certificate package with required statements and attachments and a comparison to the prior certification. Review, approval, delivery, downstream use and evidence of final completion are UNKNOWN."
+   },
+   {
+    "key": "accountable",
+    "status": "unknown",
+    "answer": "UNKNOWN. The participant did not identify an overall accountable role or individual performers."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "Refresh facility terms and deadlines; obtain and test investor and balance inputs; calculate rates, caps and step-downs; assess borrowing, covenants and deadlines; then prepare the required draft certificate or certificates and comparison. The participant reports using the Facility Tracker, investor tier schedule, calculation file, checklist and lender package. Roles, handoff mechanics and exception resolution are UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "Reported checks trace rules to executed documents, retest the full investor list and tiers, match principal to the lender record, compare formulas and limits to the agreement, assess lender and LPA limits, and match certificate figures to calculations and sources. Checkers, review levels, approvals, retained proof, failed-check handling and release conditions are UNKNOWN."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "Follow-on investment balances are tracked where the facility requires it; certificate preparation may require a borrowing base certificate, a certificate of status, or both. Detailed criteria, process boundary, effort, charging and removal constraints are UNKNOWN."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": "UNKNOWN. No practical friction or effort estimate was reported."
+   },
+   {
+    "key": "risk",
+    "status": "partial",
+    "answer": "The assessment identifies breaches, shortfalls, approaching deadlines and required corrective actions. Their concrete consequences and handling are UNKNOWN."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The participant mentioned controlled legal documents, an agreement, LPA, investor tier schedule, prior certificate, compliance checklist, calculation file and current certificate form. No documents were supplied for this draft; locations and availability are UNKNOWN."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The intake names facility compliance and borrowing base certification; the account refers to a borrower, lender and investors. Entity types, client coverage, parent lifecycle and whether this is general GPFS practice or a client-specific route are UNKNOWN."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The participant attributes facility terms and limiting amounts to the agreement and borrowing, capital-call and duration limits to the LPA. The calculation applies advance rates, concentration caps, zero-rate exclusions, applicable aggregate caps and date-based step-downs; the prior certificate is comparison only. Interpretation authority, detailed provisions, input lineage, rounding and overrides are UNKNOWN; documents were not reviewed."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The work uses a lender supporting record, investor inputs, legal documents and a prior certificate, and produces a draft certificate package. Named supplying processes, readiness signals, downstream consumers and embedded or parallel processes are UNKNOWN."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The participant reports using Facility Tracker, an investor tier schedule, a borrowing base calculation file, a compliance checklist and Lender Certificate Package. Calculation work uses the calculation file; exact recording locations, entry and re-keying modes, file storage, logic ownership and authoritative records are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": "UNKNOWN. Counts, peaks, exception frequency and effort by step were not reported."
+   }
+  ]
+ },
+ "draft_error": null
+}

@@ -1,0 +1,674 @@
+{
+ "case": "C01",
+ "process": "FA-01",
+ "mode": "typed, five at once on one server",
+ "style": "two steps per answer",
+ "build": "fixed",
+ "participant": "script",
+ "context": {
+  "process_name": "Capital Call & Distribution Event Execution",
+  "process_owner": "",
+  "objective": "Document how we carry out Capital Call & Distribution Event Execution, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "To begin with, we open the event and assign responsibility. That is done by: Assigned CAP Activity Team or Fund Team preparer. What we do: classify the event as a call, distribution, or net event; record the business driver, affected entity, requested amount, urgency, and expected cash dates; assign the preparing team and second reviewer before calculations begin; identify related subprocesses required, including , , , , or . The check on it: responsible team and reviewer are explicit; no event proceeds with ambiguous ownership. Next, we establish the event calendar. That is done by: Event preparer. What we do: determine the contractual notice period and whether it uses business or calendar days; set internal preparation, review, client-approval, posting, notice-release, due/payment, and post-event dates; check bank holidays and payment cut-offs for any cash-out event; allow time for external tax coordination and Investor Services campaign preparation where applicable. The check on it: reviewer confirms the contractual due-date calculation and critical operational dates."
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "What typically prompts the preparer to open a capital call or distribution event?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "After that, we assemble the event data pack. That is done by: Event preparer. What we do: collect call inputs: investment funding, management fees, expense projections, and LOC principal/interest as applicable; collect distribution inputs: expected/received proceeds, deal character, waterfall support, tax income, and withholding as applicable; obtain the current investor/partner population and all known onboarding, transfer, joiner, leaver, waiver, offset, or special-allocation information; obtain the prior locked event file, notices, power report, TB, and partner-capital support; mark every input as final, estimated, or pending. The check on it: reviewer can trace each material input to a provider or source document. Then, we roll forward the allocation engine and establish continuity. That is done by: Event preparer. What we do: copy the final prior event model to create the new event file; update the event dates, narrative, and entity information; pull beginning balances from the correct system report and as-of date; tie beginning contributions, distributions, proceeds, partner capital, and unfunded balances to the prior deliverable; record and explain any difference before continuing. The check on it: zero unexplained difference to the prior deliverable."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "When the beginning balances do not tie to the prior deliverable, what happens before the event can continue?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "Once that is done, we freeze the rules of the run. That is done by: Event preparer with second reviewer and client input. What we do: document whether allocations use unfunded commitment, total commitment, LP-only percentage, deal-level, or another governing basis; document new-investment versus follow-on treatment; record offsets, credits, exclusions, special allocations, and carry treatment; for a distribution, link the approved waterfall/tax methodology; obtain written client confirmation for any changed or ambiguous treatment. The check on it: second reviewer confirms consistency with governing documents; client confirms changed or ambiguous rules. Following that, we complete the population gate. That is done by: Event preparer; second reviewer performs independent check. What we do: list every investor or partner expected in the event; confirm new investors are effective and portal-ready; confirm subsequent-close treatment where applicable; remove departing investors from future capital calls only when the governing documents or client direction require it; apply waiver funding only to eligible members and document any departure-related restructuring; apply approved transfers, reallocations, offsets, and exclusions; compare the population to the prior event and explain every change. The check on it: independent reviewer confirms every addition, removal, and special treatment."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "How does the preparer decide the event data pack is ready for calculations when inputs are marked estimated or pending?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "Following that, we run the allocation calculations. That is done by: Event preparer. What we do: enter the approved event amounts and apply the documented allocation basis; calculate investor/partner-level components; for distributions, incorporate the approved waterfall, tax distribution, and withholding outputs; for net events, retain separate call and distribution components before calculating the net amount; populate the summary allocation tab used by the notice merge; check that the results are reasonable compared with the total event amounts and prior patterns. The check on it: component totals and investor totals equal the approved fund- level event amount, subject only to documented rounding. Following that, we reconcile the event. That is done by: Event preparer; second reviewer verifies. What we do: reconcile allocation outputs to partner capital and prior balances; reconcile remaining GP unfunded to the fund; reconcile the workbook to the TB and other accounting support; document known client-specific differences and their governing treatment; confirm the allocation summary agrees to all detailed tabs. The check on it: zero unexplained difference across totals, beginning balances, unfunded, and matches to the trial balance (TB)."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "What usually prompts the team to open a capital call or distribution event?"
+  },
+  {
+   "id": "t010",
+   "role": "assistant",
+   "text": "This capture still has open sections. 15 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794969723.091,
+   "turn": 0,
+   "seconds": 0.026,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "question",
+   "at": 1794969726.66,
+   "turn": 2,
+   "seconds": 3.519,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969759.886,
+   "turn": 3,
+   "seconds": 36.74
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969770.609,
+   "turn": 3,
+   "seconds": 47.47,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 3,
+   "connections": 2
+  },
+  {
+   "kind": "question",
+   "at": 1794969772.901,
+   "turn": 4,
+   "seconds": 2.233,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969772.905,
+   "turn": 5,
+   "seconds": 2.24,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 3,
+   "connections": 2
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794969818.382,
+   "turn": 5,
+   "notes_state": "working",
+   "map_state": "working",
+   "seconds": 47.71
+  },
+  {
+   "kind": "question",
+   "at": 1794969822.439,
+   "turn": 6,
+   "seconds": 4.004,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969846.026,
+   "turn": 7,
+   "seconds": 27.59,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t004",
+   "steps": 5,
+   "connections": 4
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794969867.635,
+   "turn": 7,
+   "notes_state": "queued",
+   "map_state": "queued",
+   "seconds": 49.2
+  },
+  {
+   "kind": "question",
+   "at": 1794969869.003,
+   "turn": 8,
+   "seconds": 1.29,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969869.012,
+   "turn": 9,
+   "seconds": 1.3,
+   "audited": false,
+   "answers_behind": 2,
+   "through": "t004",
+   "steps": 5,
+   "connections": 4
+  },
+  {
+   "kind": "turn.left_pending",
+   "at": 1794969914.326,
+   "turn": 9,
+   "notes_state": "queued",
+   "map_state": "working",
+   "seconds": 46.61
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794969976.477,
+   "turn": 9,
+   "seconds": 62.075,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794970173.434,
+   "turn": 10,
+   "seconds": 196.905,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [],
+ "notes": {
+  "summary": "The account now covers rule freezing, the population gate, allocation calculations and reconciliation. What happens when the event reconciliation has an unexplained difference?",
+  "topics": [
+   {
+    "key": "name",
+    "status": "captured",
+    "answer": "Capital Call & Distribution Event Execution"
+   },
+   {
+    "key": "purpose",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The event is opened as the first described work, but the initiating event or condition that causes the team to open it is not established."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The observable finished condition for the event, including whether posting, notice release, payment, or post-event work must be complete, is not established; these are calendar dates only in the account."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "The role accountable for the overall result is not established; the account identifies preparers and a second reviewer but does not say who owns the result."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The assigned CAP Activity Team or Fund Team preparer opens and classifies the event as a call, distribution or net event; records the business driver, affected entity, requested amount, urgency and expected cash dates; assigns the preparing team and second reviewer before calculations; and identifies required related subprocesses.\nAfter event opening, the event preparer establishes an event calendar: determines the contractual notice period and whether it uses business or calendar days, then sets internal preparation, review, client-approval, posting, notice-release, due/payment, and post-event dates. For a cash-out event, the preparer checks bank holidays and payment cut-offs; where applicable, time is allowed for external tax coordination and Investor Services campaign preparation.\nAfter calendar setup, the event preparer assembles a data pack: call inputs include investment funding, management fees, expense projections and applicable LOC principal and interest; distribution inputs include expected or received proceeds, deal character, waterfall support, tax income and applicable withholding.\nThe event preparer obtains the current investor/partner population and known onboarding, transfer, joiner, leaver, waiver, offset and special-allocation information, as well as the prior locked event file, notices, power report, TB and partner-capital support. Each input is marked final, estimated or pending.\nThe event preparer copies the final prior event model to create the new file, updates dates, narrative and entity information, and pulls beginning balances from the correct system report and as-of date. The preparer ties beginning contributions, distributions, proceeds, partner capital and unfunded balances to the prior deliverable and records and explains differences before continuing.\nAfter continuity, the event preparer freezes the run rules with second-reviewer and client input: documents the allocation basis and new-investment versus follow-on treatment, records offsets, credits, exclusions, special allocations and carry treatment, and links approved waterfall and tax methodology for distributions. Written client confirmation is obtained for changed or ambiguous treatment.\nThe preparer then lists expected investors or partners, confirms new investors are effective and portal-ready and confirms applicable subsequent-close treatment. Departing investors are removed from future calls only when governing documents or client direction require it; waiver funding is applied only to eligible members and departure-related restructuring is documented.\nAt the population gate, the preparer applies approved transfers, reallocations, offsets and exclusions, compares the population with the prior event and explains every change. A second reviewer independently confirms every addition, removal and special treatment.\nFollowing the population gate, the preparer enters approved event amounts, applies the documented basis and calculates investor/partner-level components. For distributions the preparer incorporates approved waterfall, tax distribution and withholding outputs; for net events separate call and distribution components are retained before calculating the net.\nThe preparer populates the summary allocation tab used by the notice merge and checks results for reasonableness against event totals and prior patterns. The preparer then reconciles outputs to partner capital and prior balances, remaining GP unfunded to the fund, the workbook to TB and accounting support, and the summary to detailed tabs; client-specific differences and governing treatment are documented. The second reviewer verifies.\nThe readiness decision for calculation when data-pack inputs are estimated or pending has not been explained."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "At event opening, the check is that the responsible team and reviewer are explicit; no event proceeds with ambiguous ownership. The second reviewer confirms the contractual due-date calculation and critical operational dates on the event calendar.\nThe account names a client-approval date but does not establish who approves, what is reviewed, whether approval blocks release, or what happens if it is delayed or rejected.\nFor the data pack, the reviewer must be able to trace each material input to a provider or source document.\nContinuity requires zero unexplained difference to the prior deliverable; the event preparer records and explains differences before continuing.\nThe second reviewer confirms run rules against governing documents, and the client confirms changed or ambiguous treatment in writing. The second reviewer independently checks every population addition, removal and special treatment.\nAllocation component and investor totals must equal the approved fund-level event amount subject only to documented rounding. Reconciliation requires zero unexplained differences across totals, beginning balances, unfunded and TB matches.\nThe handling of unexplained reconciliation differences and the evidence retained for the review are not yet described."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "For cash-out events, the preparer checks bank holidays and payment cut-offs. The calendar also allows time for external tax coordination and Investor Services campaign preparation where applicable.\nThe circumstances requiring external tax coordination or Investor Services campaign preparation are unspecified.\nDistribution events incorporate approved waterfall, tax distribution and withholding outputs; net events retain separate call and distribution components before calculating the net. The account also calls for documenting known client-specific reconciliation differences and their governing treatment, but does not identify individual differences."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The event calendar sets internal preparation, review, client-approval, posting, notice-release, due/payment and post-event dates.\nThe event calendar's format, storage location and custodian are not identified.\nThe event data pack includes the current investor/partner population, relevant changes and special allocations, prior locked event file, notices, power report, TB and partner-capital support. Inputs are labeled final, estimated or pending.\nThe final prior event model is copied to create the new event file for allocation-engine continuity.\nThe allocation workbook contains a summary allocation tab used by the notice merge and detailed tabs reconciled to that summary. Written client confirmation records changed or ambiguous treatment."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The described event categories are calls, distributions and net events; the preparer records the affected entity.\nThe full range and number of entities in scope remain unspecified; the account identifies fund-level event amounts.\nThe reported calculation works at investor or partner level and ties to an approved fund-level event amount; reconciliation includes remaining GP unfunded."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The event preparer determines the contractual notice period and whether it uses business or calendar days; the reviewer confirms the contractual due-date calculation and critical operational dates.\nThe source establishing the contractual notice period and the method for resolving any conflicting terms are not identified.\nBefore continuing from the allocation-engine roll-forward, differences against the prior deliverable must be recorded and explained, with zero unexplained difference.\nThe documented allocation basis may be unfunded commitment, total commitment, LP-only percentage, deal-level or another governing basis. New versus follow-on investment treatment and applicable offsets, credits, exclusions, special allocations and carry treatment are recorded.\nChanged or ambiguous treatment requires written client confirmation; the second reviewer checks consistency with governing documents. Distribution calculations incorporate approved waterfall, tax distribution and withholding outputs, and rounding differences must be documented.\nA departing investor is removed from future calls only when governing documents or client direction require it, and waiver funding is restricted to eligible members."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The event calendar allows time for external tax coordination and Investor Services campaign preparation where applicable.\nThe listed related subprocess names are blank; specific handoffs and readiness evidence for tax coordination and Investor Services are not described."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The event preparer creates the new event file by copying the final prior event model and pulls beginning balances from the correct system report and as-of date.\nThe system and report supplying beginning balances, workbook location and detailed allocation-engine implementation remain unidentified.\nThe preparer enters approved amounts into the allocation calculation and populates a summary tab for the notice merge; the workbook is reconciled to the TB and other accounting support."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": ""
+   }
+  ]
+ },
+ "map": {
+  "title": "Capital Call and Distribution Execution",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Open event and assign responsibility",
+    "actor": "Assigned CAP Activity Team or Fund Team preparer",
+    "system": "UNKNOWN",
+    "description": "Classify the event as a call, distribution or net event; record its business driver, affected entity, requested amount, urgency and expected cash dates. Assign the preparing team and second reviewer before calculations and identify required related subprocesses. Ownership must be explicit before the event proceeds."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Establish the event calendar",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Determine the contractual notice period and whether it uses business or calendar days. Set preparation, review, client-approval, posting, notice-release, due/payment and post-event dates. Check bank holidays and payment cut-offs for cash-out events, and allow time for tax coordination and Investor Services campaign preparation where applicable."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Review event calendar dates",
+    "actor": "Reviewer",
+    "system": "UNKNOWN",
+    "description": "Confirm the contractual due-date calculation and critical operational dates."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Assemble the event data pack",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Collect applicable call and distribution inputs, the current investor and partner population, known population and allocation changes, and prior-event support. Mark each input final, estimated or pending; the reviewer must be able to trace each material input to a provider or source document."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Roll forward and tie balances",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Copy the final prior event model, update event details and pull beginning balances from the correct system report and as-of date. Tie contributions, distributions, proceeds, partner capital and unfunded balances to the prior deliverable; record and explain differences before continuing."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Freeze the run rules",
+    "actor": "Event preparer with second reviewer and client input",
+    "system": "UNKNOWN",
+    "description": "Document the allocation basis, investment treatment, offsets, exclusions, special allocations and carry treatment. For distributions, link the approved waterfall and tax methodology. Obtain written client confirmation for changed or ambiguous treatment; the second reviewer confirms consistency with governing documents."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Complete the population gate",
+    "actor": "Event preparer; second reviewer performs independent check",
+    "system": "UNKNOWN",
+    "description": "List expected investors or partners, confirm applicable new-investor and subsequent-close treatment, and apply approved population changes and special treatments. Remove departing investors from future calls only when governing documents or client direction require it; apply waiver funding only to eligible members. Compare the population with the prior event and explain every change; the second reviewer independently confirms additions, removals and special treatment."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Run allocation calculations",
+    "actor": "Event preparer",
+    "system": "Allocation workbook; system name UNKNOWN",
+    "description": "Enter approved event amounts and apply the documented basis to calculate investor or partner components. Incorporate approved waterfall, tax distribution and withholding outputs for distributions; retain separate call and distribution components before calculating net amounts for net events. Populate the notice-merge summary and check results against event totals and prior patterns."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Reconcile the event",
+    "actor": "Event preparer; second reviewer verifies",
+    "system": "Allocation workbook; other systems UNKNOWN",
+    "description": "Reconcile allocations to partner capital and prior balances, remaining GP unfunded to the fund, and the workbook to the trial balance and other accounting support. Document known client-specific differences and their governing treatment, and confirm the summary agrees with detailed tabs."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "Team and reviewer explicit"
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S4",
+    "label": ""
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": ""
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": "Zero unexplained difference to prior deliverable"
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": ""
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": ""
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": ""
+   }
+  ],
+  "open_questions": [
+   "UNKNOWN: What initiates the event, who detects it, and how often does it occur?",
+   "UNKNOWN: Which related subprocesses are identified at opening? The supplied list is blank.",
+   "UNKNOWN: Must the calendar review finish before data-pack assembly, and how is its result communicated? Is the calendar reviewer the assigned second reviewer?",
+   "UNKNOWN: What happens when ownership is ambiguous or a calendar check fails, and where does work resume?",
+   "UNKNOWN: How is the data pack deemed ready when inputs are estimated or pending? Who checks traceability and the balance tie, and what happens when those checks fail?",
+   "UNKNOWN: What happens when rule confirmation, population checks, allocation checks or reconciliation fail, and where does rework return?",
+   "UNKNOWN: What follows reconciliation, what evidence marks overall completion, and who uses the output next?",
+   "UNKNOWN: Who is accountable for the overall result?",
+   "UNKNOWN: Which systems are used, which records are authoritative, where are workpapers and evidence stored, and how are data entered?",
+   "UNKNOWN: Which entity types and clients are in scope, and what is the basis for treating this as general GPFS practice rather than a client-specific route?",
+   "UNKNOWN: Which documents supply the notice and allocation rules, who interprets them, and how are conflicts resolved?",
+   "UNKNOWN: What client-specific differences change the work, why, and what are their effort, charging and removal constraints?",
+   "UNKNOWN: What other controls, client approvals, exceptions, risks, friction, volumes and supporting materials apply?",
+   "Are the outgoing paths from S2 (Establish the event calendar) alternatives, or must they all occur?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "Current-practice draft: Capital Call & Distribution Event Execution",
+  "overview": "Draft for review based on one participant account. The reported work runs from opening an event through reconciliation. The initiating event, overall accountability, work after reconciliation and overall completion remain UNKNOWN. No supporting documents were supplied or independently reviewed.",
+  "trigger": "UNKNOWN: Opening and classifying the event is the first reported action; what prompts it was not stated.",
+  "inputs": [
+   "Applicable call and distribution inputs, the current investor or partner population, and known population or treatment changes.",
+   "Prior locked event file, notices, power report, trial balance and partner-capital support.",
+   "Approved event amounts and, where applicable, approved waterfall, tax distribution and withholding outputs."
+  ],
+  "outputs": [
+   "Event calendar and data pack with input statuses.",
+   "Event file, documented run rules and checked population.",
+   "Investor or partner allocations and the summary tab used by the notice merge.",
+   "Reconciled event and documented known client-specific differences."
+  ],
+  "exceptions": [
+   "Ambiguous ownership prevents the event proceeding; resolution is UNKNOWN.",
+   "Beginning-balance differences are recorded and explained before continuing; handling of unresolved differences is UNKNOWN.",
+   "Changed or ambiguous treatment requires written client confirmation; rejection or delay handling is UNKNOWN."
+  ],
+  "controls": [
+   "The reviewer confirms the contractual due-date calculation and critical operational dates.",
+   "The stated data-pack check is that the reviewer can trace each material input to a provider or source document.",
+   "The second reviewer confirms run rules against governing documents and independently checks population additions, removals and special treatment.",
+   "Allocation totals and reconciliation checks require the reported tie-outs, subject to documented rounding for allocation totals."
+  ],
+  "validation_notes": [
+   "This is a current-practice review draft based on one participant account. Participant confirmation and process-owner approval are UNKNOWN.",
+   "The first five open questions are the priority questions for the process owner.",
+   "The participant described calendar review and then named data-pack assembly, but did not establish whether review completion gates assembly. The S2-to-S4 connection records the reported next action, not an authorized review bypass. S3's onward relationship remains UNKNOWN.",
+   "The participant did not answer the questions about the initiating event, unresolved balance differences or estimated/pending input readiness. No resolution or retry routes have been invented.",
+   "No supporting documents were supplied or independently reviewed. Governing documents and methodologies are reported sources, not verified rules or proof of consistent operation.",
+   "The blank related-subprocess list remains unresolved. Reconciliation is the last known action, not an established end of the event.",
+   "Entry of approved amounts was reported, but whether entry is manual or imported was not stated.",
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified.",
+   "The independent audit changed or removed 1 proposed exception(s)."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "activity",
+    "title": "Open event and assign responsibility",
+    "actor": "Assigned CAP Activity Team or Fund Team preparer",
+    "system": "UNKNOWN",
+    "description": "Classify the event as a call, distribution or net event. Record the business driver, affected entity, requested amount, urgency and expected cash dates. Assign the preparing team and second reviewer before calculations and identify required related subprocesses. The supplied subprocess list was blank. No event proceeds with ambiguous ownership."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Establish the event calendar",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Determine the contractual notice period and whether it uses business or calendar days. Set internal preparation, review, client-approval, posting, notice-release, due/payment and post-event dates. Check bank holidays and payment cut-offs for cash-out events. Allow time for external tax coordination and Investor Services campaign preparation where applicable."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Review event calendar dates",
+    "actor": "Reviewer",
+    "system": "UNKNOWN",
+    "description": "Confirm the contractual due-date calculation and critical operational dates. Whether this is the assigned second reviewer, the review's position relative to data-pack assembly, and failure handling are UNKNOWN."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Assemble the event data pack",
+    "actor": "Event preparer",
+    "system": "UNKNOWN",
+    "description": "Collect applicable call inputs: investment funding, management fees, expense projections and LOC principal/interest. Collect applicable distribution inputs: expected or received proceeds, deal character, waterfall support, tax income and withholding. Obtain the current investor/partner population and known onboarding, transfer, joiner, leaver, waiver, offset and special-allocation information. Obtain the prior locked event file, notices, power report, trial balance and partner-capital support. Mark every input final, estimated or pending. The stated check is that the reviewer can trace each material input to a provider or source document; readiness with estimated or pending inputs is UNKNOWN."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Roll forward and tie balances",
+    "actor": "Event preparer",
+    "system": "System report and event model; system name UNKNOWN.",
+    "description": "Copy the final prior event model to create the new event file. Update event dates, narrative and entity information. Pull beginning balances from the correct system report and as-of date; tie beginning contributions, distributions, proceeds, partner capital and unfunded balances to the prior deliverable. Record and explain any difference before continuing."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Freeze the run rules",
+    "actor": "Event preparer with second reviewer and client input",
+    "system": "UNKNOWN",
+    "description": "Document whether allocations use unfunded commitment, total commitment, LP-only percentage, deal-level or another governing basis, and document new-investment versus follow-on treatment. Record offsets, credits, exclusions, special allocations and carry treatment. For a distribution, link the approved waterfall/tax methodology. Obtain written client confirmation for changed or ambiguous treatment; the second reviewer confirms consistency with governing documents."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Complete the population gate",
+    "actor": "Event preparer; second reviewer performs independent check",
+    "system": "UNKNOWN",
+    "description": "List every expected investor or partner. Confirm new investors are effective and portal-ready and confirm subsequent-close treatment where applicable. Remove departing investors from future calls only when governing documents or client direction require it. Apply waiver funding only to eligible members and document any departure-related restructuring. Apply approved transfers, reallocations, offsets and exclusions. Compare the population with the prior event and explain every change. The independent reviewer confirms every addition, removal and special treatment."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Run allocation calculations",
+    "actor": "Event preparer",
+    "system": "Event workbook; software UNKNOWN.",
+    "description": "Enter approved event amounts and apply the documented allocation basis to calculate investor/partner-level components. For distributions, incorporate approved waterfall, tax distribution and withholding outputs. For net events, retain separate call and distribution components before calculating the net amount. Populate the summary allocation tab used by the notice merge and check reasonableness against total event amounts and prior patterns. Component and investor totals must equal the approved fund-level event amount, subject only to documented rounding."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Reconcile the event",
+    "actor": "Event preparer; second reviewer verifies",
+    "system": "Event workbook; software and other systems UNKNOWN.",
+    "description": "Reconcile allocation outputs to partner capital and prior balances, remaining GP unfunded to the fund, and the workbook to the trial balance and other accounting support. Document known client-specific differences and their governing treatment. Confirm the allocation summary agrees with all detailed tabs. The reported check is zero unexplained difference across totals, beginning balances, unfunded and trial-balance matches."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "Team and reviewer explicit"
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": "Calendar review"
+   },
+   {
+    "from": "S2",
+    "to": "S4",
+    "label": "Data-pack assembly follows; review dependency UNKNOWN"
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": "Then"
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": "Zero unexplained prior-deliverable difference"
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Following rule freeze"
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": "Following population gate"
+   },
+   {
+    "from": "S8",
+    "to": "S9",
+    "label": "Following calculations"
+   }
+  ],
+  "open_questions": [
+   "What initiates an event, who detects it, and who is accountable for the overall result?",
+   "What happens after reconciliation, and what evidence establishes that the overall event is complete?",
+   "Does calendar review need to finish before data-pack assembly, and what happens if that review fails?",
+   "How are estimated or pending inputs cleared for calculations, and how are unresolved balance or reconciliation differences handled?",
+   "What entity and client scope does this account cover, and what is the basis for treating the route as general practice or client-specific?",
+   "Which related subprocesses are identified at opening? The supplied list was blank.",
+   "What happens when ownership is ambiguous or rule confirmation, population checks or allocation checks fail?",
+   "Which systems and authoritative records are used, and where are workpapers and review evidence retained?",
+   "Who interprets the governing rules and resolves conflicts, and what specific documents supply them?",
+   "What client-specific differences apply, and what are their reasons, effort, charging and removal constraints?",
+   "What are the cadence, fixed deadlines, volumes, peaks, exception rates, pain points, risks and existing materials?",
+   "What are the remaining approval, segregation, escalation and override arrangements, and how are downstream handoffs made?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "The intake names the work Capital Call & Distribution Event Execution. The participant describes calls, distributions and net events through reconciliation. Other names and the full boundary are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The described work produces investor or partner allocations, a notice-merge summary and a reconciled event. The full delivered result and recipient are UNKNOWN."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The first reported action is opening and classifying an event, not its initiating event. Trigger, detector, cadence and fixed deadlines are UNKNOWN. The preparer establishes event-specific notice and operational dates."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The last reported action reconciles allocations, balances, unfunded amounts and the trial balance, with zero unexplained differences. What follows, the overall finished condition and downstream consumer are UNKNOWN."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "A CAP Activity Team or Fund Team preparer opens the event and assigns a preparing team and second reviewer. Overall accountability for the result is UNKNOWN."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The preparer opens and classifies the event, establishes dates, assembles a data pack marked final, estimated or pending, copies and ties the prior model, documents run rules, checks the population, calculates allocations and reconciles the event. Reviewers confirm dates, rule consistency, population changes and reconciliation; the client confirms changed or ambiguous rules. The data-pack check is that material inputs can be traced to a provider or source document. Systems, handoff methods, exception recovery and work after reconciliation remain UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "Reported checks cover explicit ownership, date calculation, input traceability, zero unexplained beginning-balance differences, governing-document consistency, independent population review, allocation totals and reconciliation. Written client confirmation is obtained for changed or ambiguous rules. Review evidence location, failure handling, thresholds, segregation and system enforcement are UNKNOWN."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "Call, distribution and net events have different inputs or calculation treatment; cash-out events receive bank-holiday and cut-off checks. The participant also mentions client-specific reconciliation differences without identifying them. Reasons, boundaries, effort, charging and removal constraints are UNKNOWN."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": "UNKNOWN: No manual-work friction, workaround or effort estimate was reported."
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": "UNKNOWN: Concrete consequences of failure were not described."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The participant mentions governing documents, approved methodologies, prior models, notices, a power report, trial balance and partner-capital support. Exact references and availability are UNKNOWN. No documents were supplied or reviewed for this draft."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The account covers call, distribution and net events and refers to fund-level amounts and investor or partner populations. Other entity types, client coverage, parent process and the basis for a general GPFS standard are UNKNOWN."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The preparer documents the allocation basis and treatment; the second reviewer checks consistency with governing documents and the client confirms changed or ambiguous treatment. Distribution calculations use approved waterfall, tax distribution and withholding outputs; net events retain separate components before netting. Specific sources, interpreter, conflict authority, detailed calculation mechanics and override rules are UNKNOWN."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "The work uses prior-event deliverables and accounting support, and its allocation summary is used by a notice merge. Time is allowed for external tax coordination and Investor Services campaign preparation where applicable. Providers, readiness signals, downstream ownership and other dependencies are UNKNOWN."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The preparer copies a prior model, pulls balances from a system report, enters approved amounts and populates an allocation summary in the event workbook. Software names, authoritative records, storage, logic ownership and entry modes are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "unknown",
+    "answer": "UNKNOWN: Counts, peaks, exception frequency and effort by step were not reported."
+   }
+  ]
+ },
+ "draft_error": null
+}

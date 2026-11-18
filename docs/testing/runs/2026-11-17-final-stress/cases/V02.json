@@ -1,0 +1,849 @@
+{
+ "case": "V02",
+ "process": "FA-15A",
+ "mode": "recorded voice",
+ "style": "long spoken answers, 170 wpm",
+ "build": "fixed",
+ "participant": "script",
+ "context": {
+  "process_name": "Digital Binder Maintenance",
+  "process_owner": "",
+  "objective": "Document how we carry out Digital Binder Maintenance, the controls and what needs confirmation.",
+  "background": ""
+ },
+ "turns": [
+  {
+   "id": "t001",
+   "role": "assistant",
+   "text": "What starts this work?"
+  },
+  {
+   "id": "t002",
+   "role": "user",
+   "text": "To begin with, we set up the quarterly binder structure. That is done by fund accountant preparer. What we do: create the binder for the correct fund and quarter, or roll forward the prior binder by copying and updating it. Confirm the A, E, F, H, J, K, L, M, N, O, and Q categories are available. Allow access only to authorized users under the existing repository controls. The check on it: confirm the fund, entity, and period before filing if something is wrong. The exact creation process, file naming rules, permissions, and"
+  },
+  {
+   "id": "t003",
+   "role": "assistant",
+   "text": "Please finish what you were saying about the creation process, file naming rules, and permissions?"
+  },
+  {
+   "id": "t004",
+   "role": "user",
+   "text": "Next, we collect support before posting affected entries. That is done by process preparer fund accountant. What we do: identify the source documents and approvals that support the JE, confirm the documents match the entity, period, amount, and transaction, file the support before posting any JE affecting cost, income, expense, or capital. If the originating process provides a reference field, use it to link the posted entry to the filed support. The check on it: filing support before posting is the main required check if something is wrong. No documented emergency exception exists. Stop and escalate to."
+  },
+  {
+   "id": "t005",
+   "role": "assistant",
+   "text": "Who is the issue escalated to when support is missing before posting?"
+  },
+  {
+   "id": "t006",
+   "role": "user",
+   "text": "After that, we classify records using the standard binder categories, that is done by fund accountant preparer. What we do: select the binder category that matches the supported balance or activity, use F for investments, E for cash, L for LOC, M for partners capital, N for contributions, O for distributions, Q for management fees, and the other defined categories as applicable. If one item supports multiple categories, keep one controlled copy and use an approved cross-reference if the repository supports it. The cross-reference method still needs confirmation. The check on it: supporting records must be easy to find from the related account or activity."
+  },
+  {
+   "id": "t007",
+   "role": "assistant",
+   "text": "How do you check that a supporting record is easy to find from the related account or activity?"
+  },
+  {
+   "id": "t008",
+   "role": "user",
+   "text": "Then, we file close check and review records. That is done by fund accountant preparer. What we do: file the quarterly check of checks and the records showing how related exceptions were resolved. File marked tie-out PDFs, copies showing the comparison, under the applicable financial statement category: file cash, investment, accrual, capital, contribution, distribution, management fee, DTM, and LOC records under their categories. Keep review comments and approvals with the related support when the originating process requires them. The check on it. Keep internal review marks within GPFS if something is wrong, if an originating process has not produced a required record, log an."
+  },
+  {
+   "id": "t009",
+   "role": "assistant",
+   "text": "Please finish what you were saying about what to log when an originating process has not produced a required record?"
+  },
+  {
+   "id": "t010",
+   "role": "assistant",
+   "text": "This capture still has open sections. 15 of 16 are open; the Notes list shows which. You can create a partial draft."
+  }
+ ],
+ "events": [
+  {
+   "kind": "start",
+   "at": 1794969655.008,
+   "turn": 0,
+   "seconds": 0.026,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794969660.805,
+   "turn": 1,
+   "seconds": 2.412,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 36.4,
+   "audio_bytes": 1165926,
+   "wer": 0.0,
+   "heard": "To begin with, we set up the quarterly binder structure. That is done by fund accountant preparer. What we do: create the binder for the correct fund and quarter, or roll forward the prior binder by copying and updating it. Confirm the A, E, F, H, J, K, L, M, N, O, and Q categories are available. Allow access only to authorized users under the existing repository controls. The check on it: confirm the fund, entity, and period before filing if something is wrong. The exact creation process, file naming rules, permissions, and"
+  },
+  {
+   "kind": "question",
+   "at": 1794969663.902,
+   "turn": 2,
+   "seconds": 3.092,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969677.198,
+   "turn": 3,
+   "seconds": 16.39
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969686.949,
+   "turn": 3,
+   "seconds": 26.14,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 4,
+   "connections": 2
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794969690.939,
+   "turn": 3,
+   "seconds": 2.182,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 39.2,
+   "audio_bytes": 1254204,
+   "wer": 0.0,
+   "heard": "Next, we collect support before posting affected entries. That is done by process preparer fund accountant. What we do: identify the source documents and approvals that support the JE, confirm the documents match the entity, period, amount, and transaction, file the support before posting any JE affecting cost, income, expense, or capital. If the originating process provides a reference field, use it to link the posted entry to the filed support. The check on it: filing support before posting is the main required check if something is wrong. No documented emergency exception exists. Stop and escalate to."
+  },
+  {
+   "kind": "question",
+   "at": 1794969693.663,
+   "turn": 4,
+   "seconds": 2.722,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969693.667,
+   "turn": 5,
+   "seconds": 2.73,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t002",
+   "steps": 4,
+   "connections": 2
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969728.469,
+   "turn": 5,
+   "seconds": 37.53,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 9,
+   "connections": 8
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969732.566,
+   "turn": 5,
+   "seconds": 41.62
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794969736.615,
+   "turn": 5,
+   "seconds": 2.093,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 41.4,
+   "audio_bytes": 1325204,
+   "wer": 0.0,
+   "heard": "After that, we classify records using the standard binder categories, that is done by fund accountant preparer. What we do: select the binder category that matches the supported balance or activity, use F for investments, E for cash, L for LOC, M for partners capital, N for contributions, O for distributions, Q for management fees, and the other defined categories as applicable. If one item supports multiple categories, keep one controlled copy and use an approved cross-reference if the repository supports it. The cross-reference method still needs confirmation. The check on it: supporting records must be easy to find from the related account or activity."
+  },
+  {
+   "kind": "question",
+   "at": 1794969739.526,
+   "turn": 6,
+   "seconds": 2.904,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969739.533,
+   "turn": 7,
+   "seconds": 2.91,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t004",
+   "steps": 9,
+   "connections": 8
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969760.487,
+   "turn": 7,
+   "seconds": 23.87,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 11,
+   "connections": 10
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969764.068,
+   "turn": 7,
+   "seconds": 27.45
+  },
+  {
+   "kind": "transcribe",
+   "at": 1794969768.171,
+   "turn": 7,
+   "seconds": 2.222,
+   "status": 200,
+   "retries": 0,
+   "audio_seconds": 43.9,
+   "audio_bytes": 1405504,
+   "wer": 0.01,
+   "heard": "Then, we file close check and review records. That is done by fund accountant preparer. What we do: file the quarterly check of checks and the records showing how related exceptions were resolved. File marked tie-out PDFs, copies showing the comparison, under the applicable financial statement category: file cash, investment, accrual, capital, contribution, distribution, management fee, DTM, and LOC records under their categories. Keep review comments and approvals with the related support when the originating process requires them. The check on it. Keep internal review marks within GPFS if something is wrong, if an originating process has not produced a required record, log an."
+  },
+  {
+   "kind": "question",
+   "at": 1794969770.678,
+   "turn": 8,
+   "seconds": 2.502,
+   "status": 200,
+   "retries": 0
+  },
+  {
+   "kind": "turn.map_shown",
+   "at": 1794969770.681,
+   "turn": 9,
+   "seconds": 2.51,
+   "audited": false,
+   "answers_behind": 1,
+   "through": "t006",
+   "steps": 11,
+   "connections": 10
+  },
+  {
+   "kind": "turn.notes_ready",
+   "at": 1794969795.683,
+   "turn": 9,
+   "seconds": 27.51
+  },
+  {
+   "kind": "turn.map_ready",
+   "at": 1794969802.386,
+   "turn": 9,
+   "seconds": 34.21,
+   "audited": false,
+   "check_state": "working",
+   "answers_behind": 0,
+   "steps": 13,
+   "connections": 12
+  },
+  {
+   "kind": "wrap.sync",
+   "at": 1794969802.474,
+   "turn": 9,
+   "seconds": 0.015,
+   "status": 200,
+   "retries": 0,
+   "reply_kind": "pause",
+   "workflow_state": "ready",
+   "workflow_error": null
+  },
+  {
+   "kind": "draft",
+   "at": 1794969995.187,
+   "turn": 10,
+   "seconds": 192.663,
+   "status": 200,
+   "retries": 0
+  }
+ ],
+ "files": [],
+ "notes": {
+  "summary": "The fund accountant preparer files quarterly close checks, exception-resolution records and marked tie-out PDFs. Review comments and approvals stay with support when required; internal review marks stay within GPFS. What should be logged when an originating process has not produced a required record?",
+  "topics": [
+   {
+    "key": "name",
+    "status": "captured",
+    "answer": "Digital Binder Maintenance"
+   },
+   {
+    "key": "purpose",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "The specific event that initiates the quarterly binder setup, and who receives or detects that event, are not established."
+   },
+   {
+    "key": "completion",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "A fund accountant preparer performs binder setup.\nThe role accountable for the completed binder maintenance result is not established."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "At the beginning of the quarterly binder work, a fund accountant preparer creates a binder for the correct fund and quarter or rolls forward the prior binder by copying and updating it.\nThe binder structure is to have categories A, E, F, H, J, K, L, M, N, O, and Q available; access is limited to authorized users under existing repository controls.\nNext, the process preparer fund accountant identifies source documents and approvals supporting the JE, confirms they match the entity, period, amount and transaction, and files them before posting a JE affecting cost, income, expense or capital.\nIf the originating process provides a reference field, it is used to link the posted entry to the filed support.\nAfter collecting support, the fund accountant preparer classifies records by selecting the standard binder category matching the supported balance or activity.\nIf an item supports multiple categories, keep one controlled copy and use an approved cross-reference if the repository supports it.\nAfter classifying records, the fund accountant preparer files the quarterly check of checks and records showing how related exceptions were resolved.\nThe fund accountant preparer files marked tie-out PDFs showing the comparison under the applicable financial statement category, including cash, investment, accrual, capital, contribution, distribution, management fee, DTM and LOC records.\nWhen the originating process requires them, review comments and approvals are kept with the related support.\nThe participant's account of what to log when an originating process has not produced a required record was unfinished; subsequent handling is not established."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "Before filing, the fund, entity and period are confirmed.\nWhat happens when the pre-filing fund, entity, or period check finds an error is not established.\nThe process preparer fund accountant confirms supporting documents match the JE's entity, period, amount and transaction. Filing support before posting is the main required check.\nThe participant says to stop and escalate if something is wrong; the escalation recipient was not completed in the answer.\nThe escalation recipient and subsequent handling of a support issue are not established.\nThe reported classification check is that supporting records must be easy to find from the related account or activity.\nThe method for checking that support is easy to find from the related account or activity has not been established."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "Where the originating process provides a reference field, the posted entry is linked to filed support using that field.\nFor an item supporting multiple categories, the route calls for one controlled copy and an approved cross-reference when the repository supports it.\nThe records kept with support vary with the originating process: review comments and approvals are included when that process requires them."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": ""
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The prior binder may be copied and updated to create the current binder.\nSource documents and approvals support the JE and are filed before affected entries are posted.\nAn item supporting multiple categories is kept as one controlled copy, with an approved cross-reference if supported by the repository.\nThe quarterly check of checks and records of related exception resolution are filed in the binder.\nMarked tie-out PDFs show comparisons and are filed under applicable financial statement categories. Review comments and approvals are kept with related support when required by the originating process."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The described binder is created for a fund and quarter, with fund, entity and period confirmed before filing.\nWhether binder setup is a common GPFS route or varies by client, fund, or entity is not established.\nWhether the procedure applies to multiple entity types or branches by entity remains unestablished."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The binder must have categories A, E, F, H, J, K, L, M, N, O and Q available, with access limited to authorized users under existing repository controls.\nThe source of the binder category and access requirements, the remaining category definitions, and the detailed implementation of access controls are not established.\nSupport must be filed before posting any JE affecting cost, income, expense or capital; the participant reports no documented emergency exception.\nThe reported category mappings are F for investments, E for cash, L for LOC, M for partners capital, N for contributions, O for distributions and Q for management fees; other defined categories apply as relevant.\nInternal review marks are to be kept within GPFS.\nReview comments and approvals are kept with related support when required by the originating process."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "Filed support is provided before journal entry posting for entries affecting cost, income, expense or capital."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "The participant describes an existing repository with controls limiting access to authorized users.\nThe repository system, binder location, and how the binder is created, copied, named, and access permissions are set are not established.\nWhen an originating process provides a reference field, it is used to link the posted entry to filed support.\nThe cross-reference method still needs confirmation; the route when the repository does not support a cross-reference is not described."
+   },
+   {
+    "key": "volume",
+    "status": "partial",
+    "answer": "The binder structure is set up quarterly; no count of funds or binders, peak volume, or effort estimate is provided."
+   }
+  ]
+ },
+ "map": {
+  "title": "Digital Binder Maintenance",
+  "steps": [
+   {
+    "id": "S1",
+    "type": "document",
+    "title": "Set up quarterly binder",
+    "actor": "Fund accountant preparer",
+    "system": "UNKNOWN repository",
+    "description": "Create a binder for the correct fund and quarter, or copy and update the prior binder."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Confirm binder categories",
+    "actor": "Fund accountant preparer",
+    "system": "UNKNOWN repository",
+    "description": "Confirm that categories A, E, F, H, J, K, L, M, N, O and Q are available."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Restrict binder access",
+    "actor": "Fund accountant preparer",
+    "system": "UNKNOWN repository",
+    "description": "Allow access only to authorized users under existing repository controls. How permissions are applied is UNKNOWN."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Confirm filing details",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Confirm the fund, entity and period before filing. The participant's wording about something being wrong needs clarification."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Identify journal entry support",
+    "actor": "Process preparer fund accountant",
+    "system": "UNKNOWN",
+    "description": "Identify the source documents and approvals supporting the journal entry."
+   },
+   {
+    "id": "S6",
+    "type": "activity",
+    "title": "Check support against entry",
+    "actor": "Process preparer fund accountant",
+    "system": "UNKNOWN",
+    "description": "Confirm the documents match the entity, period, amount and transaction."
+   },
+   {
+    "id": "S7",
+    "type": "document",
+    "title": "File journal entry support",
+    "actor": "Process preparer fund accountant",
+    "system": "UNKNOWN repository",
+    "description": "File support before posting any journal entry affecting cost, income, expense or capital."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Post affected journal entry",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Post the affected entry after support is filed. If the originating process provides a reference field, use it to link the posted entry to the filed support; the precise timing and performer of the link are UNKNOWN."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Stop and escalate issue",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Stop and escalate if something is wrong. The escalation recipient and subsequent handling are UNKNOWN; no documented emergency exception exists."
+   },
+   {
+    "id": "S10",
+    "type": "activity",
+    "title": "Classify supporting records",
+    "actor": "Fund accountant preparer",
+    "system": "UNKNOWN repository",
+    "description": "Select the category matching the supported balance or activity: F for investments, E for cash, L for LOC, M for partners capital, N for contributions, O for distributions and Q for management fees. Use other defined categories as applicable and check that records are easy to find from the related account or activity."
+   },
+   {
+    "id": "S11",
+    "type": "document",
+    "title": "Handle multi-category support",
+    "actor": "Fund accountant preparer",
+    "system": "UNKNOWN repository",
+    "description": "For an item supporting multiple categories, keep one controlled copy. Use an approved cross-reference if the repository supports it; the cross-reference method needs confirmation."
+   },
+   {
+    "id": "S12",
+    "type": "document",
+    "title": "File close and review records",
+    "actor": "Fund accountant preparer",
+    "system": "UNKNOWN repository",
+    "description": "File the quarterly check of checks and records of related exception resolution. File marked tie-out PDFs and comparison copies under the applicable financial statement categories. Keep review comments and approvals with related support when the originating process requires them; keep internal review marks within GPFS."
+   },
+   {
+    "id": "S13",
+    "type": "activity",
+    "title": "Log when record is missing",
+    "actor": "Fund accountant preparer",
+    "system": "UNKNOWN",
+    "description": "If an originating process has not produced a required record, the participant says to log something but the statement ends before identifying what to log."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": ""
+   },
+   {
+    "from": "S2",
+    "to": "S3",
+    "label": ""
+   },
+   {
+    "from": "S3",
+    "to": "S5",
+    "label": ""
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": ""
+   },
+   {
+    "from": "S4",
+    "to": "S7",
+    "label": "Fund, entity and period confirmed AND documents match entity, period, amount and transaction"
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Fund, entity and period confirmed AND documents match entity, period, amount and transaction"
+   },
+   {
+    "from": "S6",
+    "to": "S9",
+    "label": "Something is wrong during the support check"
+   },
+   {
+    "from": "S7",
+    "to": "S8",
+    "label": "Support filed before posting"
+   },
+   {
+    "from": "S7",
+    "to": "S10",
+    "label": "After support collection"
+   },
+   {
+    "from": "S10",
+    "to": "S11",
+    "label": "Item supports multiple categories"
+   },
+   {
+    "from": "S10",
+    "to": "S12",
+    "label": "After classification"
+   },
+   {
+    "from": "S12",
+    "to": "S13",
+    "label": "Originating process has not produced a required record"
+   }
+  ],
+  "open_questions": [
+   "How are access restrictions applied or verified under the existing repository controls?",
+   "Which filing step does the fund, entity, and period check gate, who performs that check, and what happens if something is wrong?",
+   "What repository and other materials are used, and is this process general practice or specific to particular clients, funds, or entities?",
+   "What initiates the quarterly binder work, who receives the trigger, and are there deadlines?",
+   "The setup answer ended mid-sentence: what are the exact creation process, file naming rules and permissions?",
+   "Who applies or verifies access restrictions, and how do the repository controls work?",
+   "Who checks the fund, entity and period before filing? Does 'if something is wrong' qualify that check or describe its failure handling?",
+   "What happens if a required category is missing, and how is the correction checked?",
+   "What kinds of issue cause support work to stop, who receives the escalation, and how does work resume?",
+   "How are the two required pre-filing checks coordinated, and how is their completion known?",
+   "Who posts the affected journal entry, and who creates the support link and when?",
+   "Does classification occur before or after posting, or can either happen first?",
+   "What approved cross-reference method is used, and what happens when the repository does not support it?",
+   "What happens if a supporting record is not easy to find, and how does multi-category handling connect to subsequent work?",
+   "What should be logged when an originating process has not produced a required record, and what happens afterward?",
+   "What marks binder maintenance as complete, and who uses the binder next?",
+   "Who is accountable overall, and what reviews, approvals or retained evidence apply?",
+   "What repository and other materials are used, and is this general GPFS practice or specific to particular clients or entities?",
+   "What variations, manual difficulties, risks and workload are reported?",
+   "Does any incoming route start S7 (File journal entry support), or must all prerequisites finish?"
+  ]
+ },
+ "map_checked": false,
+ "draft": {
+  "title": "DRAFT — Digital Binder Maintenance",
+  "overview": "Partial current-practice draft based on one participant account. The initiating event, overall accountability, finished condition and several exception routes remain UNKNOWN. Some participant statements were unfinished. Participant confirmation and process-owner review are pending; no supporting documents were supplied for review.",
+  "trigger": "UNKNOWN. The first reported action is setting up the quarterly binder; the initiating event was not identified.",
+  "inputs": [
+   "Fund and quarter details and, for a roll-forward, the prior binder.",
+   "Journal-entry source documents and approvals.",
+   "Quarterly check of checks, exception-resolution records, marked tie-out PDFs and comparison copies.",
+   "Review comments and approvals when required by the originating process."
+  ],
+  "outputs": [
+   "Created or rolled-forward quarterly binder with supporting records filed.",
+   "A link from a posted entry to filed support when the originating process provides a reference field.",
+   "Filed close-check and review records."
+  ],
+  "exceptions": [
+   "If something is wrong in the support-filing work, stop and escalate; the recipient, precise issue scope and resolution are UNKNOWN. The participant reports no documented emergency exception.",
+   "If a required originating-process record has not been produced, the participant began to describe logging an item but did not finish; the item and subsequent route are UNKNOWN.",
+   "For support spanning multiple categories, keep one controlled copy and use an approved cross-reference if supported; the method, unsupported-repository handling and subsequent route remain UNKNOWN."
+  ],
+  "controls": [
+   "Confirm listed binder categories are available and allow access only to authorized users under existing repository controls.",
+   "Confirm fund, entity and period before filing; failure handling needs clarification.",
+   "Match supporting documents to entity, period, amount and transaction and file support before affected journal entries are posted.",
+   "Supporting records must be easy to find from the related account or activity; the checking method is UNKNOWN.",
+   "Keep required review comments and approvals with support and keep internal review marks within GPFS."
+  ],
+  "validation_notes": [
+   "AI-generated current-practice draft requiring process-owner review. Participant confirmation and owner approval are pending.",
+   "The participant's setup, escalation and missing-record statements are unfinished. The escalation recipient was asked about but not supplied.",
+   "S3 and S5 are both reported pre-filing checks. Their order, coordination and handoffs are UNKNOWN; the map does not imply an order between them.",
+   "The original S5-to-S8 proposal is not supported specifically as a mismatch route. The reported stop-and-escalate instruction is attached to support filing; its precise scope remains open.",
+   "The high-level account places close-record filing after classification. The direct route is restricted to cases not requiring multi-category handling; where S10 goes next is UNKNOWN.",
+   "Posting and classification are separately reported after support collection. Their order relative to each other is UNKNOWN.",
+   "S3 has no established incoming handoff, and the exits from S8, S10 and S12 are UNKNOWN. These gaps are not repaired with assumed routes.",
+   "No independent documents were supplied or reviewed. The account does not establish an approved GPFS standard or an authoritative system of record.",
+   "AI-generated draft. Process-owner review is required; interview statements have not been independently verified.",
+   "The independent audit changed or removed 2 proposed exception(s)."
+  ],
+  "steps": [
+   {
+    "id": "S1",
+    "type": "document",
+    "title": "Set up quarterly binder",
+    "actor": "Fund accountant preparer",
+    "system": "Repository; name UNKNOWN",
+    "description": "Create the binder for the correct fund and quarter, or copy and update the prior binder. The participant's statement about creation, naming and permissions was unfinished."
+   },
+   {
+    "id": "S2",
+    "type": "activity",
+    "title": "Confirm categories and access",
+    "actor": "Fund accountant preparer",
+    "system": "Repository; name UNKNOWN",
+    "description": "Confirm that categories A, E, F, H, J, K, L, M, N, O and Q are available. Allow access only to authorized users under existing repository controls. How permissions are applied or checked is UNKNOWN."
+   },
+   {
+    "id": "S3",
+    "type": "activity",
+    "title": "Confirm filing details",
+    "actor": "Fund accountant preparer",
+    "system": "UNKNOWN",
+    "description": "Confirm the fund, entity and period before filing. The participant's statement continues ambiguously with 'if something is wrong'; failure handling is UNKNOWN."
+   },
+   {
+    "id": "S4",
+    "type": "activity",
+    "title": "Identify journal entry support",
+    "actor": "Process preparer fund accountant",
+    "system": "UNKNOWN",
+    "description": "Identify the source documents and approvals supporting the journal entry."
+   },
+   {
+    "id": "S5",
+    "type": "activity",
+    "title": "Check support against entry",
+    "actor": "Process preparer fund accountant",
+    "system": "UNKNOWN",
+    "description": "Confirm that the documents match the entity, period, amount and transaction. The specific handling of a mismatch is UNKNOWN."
+   },
+   {
+    "id": "S6",
+    "type": "document",
+    "title": "File journal entry support",
+    "actor": "Process preparer fund accountant",
+    "system": "Repository; name UNKNOWN",
+    "description": "File support before posting any journal entry affecting cost, income, expense or capital. The participant identifies filing before posting as the main required check."
+   },
+   {
+    "id": "S7",
+    "type": "activity",
+    "title": "Post and reference entry",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "Posting an affected entry requires support to have been filed first. If the originating process provides a reference field, use it to link the posted entry to filed support. The performer and precise timing of the link are UNKNOWN."
+   },
+   {
+    "id": "S8",
+    "type": "activity",
+    "title": "Stop and escalate issue",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "The participant says to stop and escalate if something is wrong in the support-filing work. No documented emergency exception exists. The escalation recipient, exact issue scope, resolution and resumption are UNKNOWN."
+   },
+   {
+    "id": "S9",
+    "type": "activity",
+    "title": "Classify supporting records",
+    "actor": "Fund accountant preparer",
+    "system": "Repository; name UNKNOWN",
+    "description": "Select the standard binder category matching the supported balance or activity: F for investments, E for cash, L for LOC, M for partners capital, N for contributions, O for distributions and Q for management fees. Use other defined categories as applicable. Supporting records must be easy to find from the related account or activity; how this is checked is UNKNOWN."
+   },
+   {
+    "id": "S10",
+    "type": "document",
+    "title": "Handle multi-category support",
+    "actor": "Fund accountant preparer",
+    "system": "Repository; name UNKNOWN",
+    "description": "When one item supports multiple categories, keep one controlled copy and use an approved cross-reference if the repository supports it. The cross-reference method still needs confirmation; what happens without repository support is UNKNOWN."
+   },
+   {
+    "id": "S11",
+    "type": "document",
+    "title": "File close and review records",
+    "actor": "Fund accountant preparer",
+    "system": "Repository; name UNKNOWN",
+    "description": "File the quarterly check of checks and records showing resolution of related exceptions. File marked tie-out PDFs and comparison copies under the applicable financial-statement categories for cash, investment, accrual, capital, contribution, distribution, management fee, DTM and LOC records. Keep review comments and approvals with the related support when the originating process requires them, and keep internal review marks within GPFS."
+   },
+   {
+    "id": "S12",
+    "type": "activity",
+    "title": "Log missing-record item",
+    "actor": "UNKNOWN",
+    "system": "UNKNOWN",
+    "description": "If an originating process has not produced a required record, the participant begins to say to log an item but does not finish. What is logged, where and what happens next are UNKNOWN."
+   }
+  ],
+  "connections": [
+   {
+    "from": "S1",
+    "to": "S2",
+    "label": "Binder setup"
+   },
+   {
+    "from": "S2",
+    "to": "S4",
+    "label": "Next: collect support"
+   },
+   {
+    "from": "S4",
+    "to": "S5",
+    "label": "Support identified"
+   },
+   {
+    "from": "S3",
+    "to": "S6",
+    "label": "Fund, entity and period confirmed AND documents match"
+   },
+   {
+    "from": "S5",
+    "to": "S6",
+    "label": "Fund, entity and period confirmed AND documents match"
+   },
+   {
+    "from": "S6",
+    "to": "S8",
+    "label": "Something is wrong during support filing"
+   },
+   {
+    "from": "S6",
+    "to": "S7",
+    "label": "Support filed before posting"
+   },
+   {
+    "from": "S6",
+    "to": "S9",
+    "label": "After support collection"
+   },
+   {
+    "from": "S9",
+    "to": "S10",
+    "label": "Item supports multiple categories"
+   },
+   {
+    "from": "S9",
+    "to": "S11",
+    "label": "After classification; multi-category handling not required"
+   },
+   {
+    "from": "S11",
+    "to": "S12",
+    "label": "Originating process has not produced a required record"
+   }
+  ],
+  "open_questions": [
+   "What initiates the quarterly work, who detects it, and what deadline and observable completion condition apply?",
+   "Who is accountable overall, and who uses the completed binder next?",
+   "How is the fund, entity and period check coordinated with the support-matching check, and what happens if either check finds a problem?",
+   "Who receives a support-related escalation, which issues trigger it, and how is the issue resolved and work resumed?",
+   "What is logged when an originating process has not produced a required record, and what happens next?",
+   "How are binder creation, naming and permissions handled, and how are access restrictions verified?",
+   "What happens if a required category is missing or a supporting record cannot be found?",
+   "Who posts affected entries and creates the support reference, and how does posting relate in time to classification?",
+   "What is the approved cross-reference method, what happens if the repository does not support it, and where does multi-category handling go next?",
+   "What reviews and approvals apply to binder maintenance, what do reviewers check, and where is evidence retained?",
+   "Which repository and source materials are used, what are the applicable entity and client scope, and is this general GPFS practice or a particular route?",
+   "What are the relevant variations, practical difficulties, failure consequences, volumes and effort?",
+   "Does any incoming route start S6 (File journal entry support), or must all prerequisites finish?"
+  ],
+  "topics": [
+   {
+    "key": "name",
+    "status": "partial",
+    "answer": "Digital Binder Maintenance is the intake name. The reported work includes quarterly binder setup, support filing, classification and close-record filing. Other names and exact boundaries are UNKNOWN."
+   },
+   {
+    "key": "purpose",
+    "status": "partial",
+    "answer": "The work produces an organized quarterly binder containing support and close records, with records intended to be easy to find from the related account or activity. The intended recipient and wider business result are UNKNOWN."
+   },
+   {
+    "key": "trigger",
+    "status": "partial",
+    "answer": "Binder setup is described as quarterly, but the initiating event, its receiver, upstream readiness and any deadline are UNKNOWN."
+   },
+   {
+    "key": "completion",
+    "status": "partial",
+    "answer": "The preparer files close-check and review records, but the observable completion condition, final delivery or closure and downstream consumer are UNKNOWN."
+   },
+   {
+    "key": "accountable",
+    "status": "partial",
+    "answer": "Fund accountant preparers perform the reported binder work. Overall accountability is UNKNOWN and is not inferred from performance."
+   },
+   {
+    "key": "lifecycle",
+    "status": "partial",
+    "answer": "The preparer creates or rolls forward the binder and confirms categories and access. The process preparer fund accountant identifies and matches journal-entry support and files it before affected posting; a reference field is used when provided. Records are classified, including one controlled copy and a conditional cross-reference for multi-category items. The preparer then files close and review records. Escalation, missing-record handling, handoffs and completion remain UNKNOWN."
+   },
+   {
+    "key": "checks",
+    "status": "partial",
+    "answer": "Reported checks cover category availability, authorized access, fund/entity/period, document matching, filing before posting and findability. Required review comments and approvals stay with support, and internal review marks stay within GPFS. The participant says to stop and escalate if something is wrong in support work, but the recipient and recovery are UNKNOWN. Review roles, evidence locations, enforcement and thresholds are also UNKNOWN."
+   },
+   {
+    "key": "variations",
+    "status": "partial",
+    "answer": "A prior binder may be copied and updated instead of creating a new one. Multi-category support uses one controlled copy and an approved cross-reference if supported. A reference field is used when provided, and review records are kept when required by the originating process. Client differences, reasons, effort, charging and boundaries are UNKNOWN."
+   },
+   {
+    "key": "pain_points",
+    "status": "unknown",
+    "answer": "UNKNOWN. Manual effort, errors and practical friction were not described."
+   },
+   {
+    "key": "risk",
+    "status": "unknown",
+    "answer": "UNKNOWN. The participant described stopping for an issue but did not state consequences of failure."
+   },
+   {
+    "key": "materials",
+    "status": "partial",
+    "answer": "The account mentions prior binders, source documents, approvals, standard categories, the quarterly check of checks and tie-out records. No procedure or other source was supplied for review; locations and availability are UNKNOWN."
+   },
+   {
+    "key": "scope",
+    "status": "partial",
+    "answer": "The binder is created for a fund and quarter, and checks include entity and period. Other entity coverage, client applicability, parent process and whether this is general GPFS practice are UNKNOWN."
+   },
+   {
+    "key": "rules",
+    "status": "partial",
+    "answer": "The participant reports category mappings, pre-posting filing, conditional cross-referencing and originating-process requirements for review records. Written sources, interpreters, conflict authority and implementation details are UNKNOWN; no rule document was reviewed."
+   },
+   {
+    "key": "connections",
+    "status": "partial",
+    "answer": "Originating processes may provide a reference field or require review records; affected posting must follow filing. Specific sources of support, readiness signals and downstream binder consumers are otherwise UNKNOWN."
+   },
+   {
+    "key": "data_systems",
+    "status": "partial",
+    "answer": "A repository and existing access controls are mentioned; its name and authoritative status are UNKNOWN. Source documents, approvals and marked PDFs are filed, and an originating-process reference field may link a posted entry to support. Entry modes and detailed storage are UNKNOWN."
+   },
+   {
+    "key": "volume",
+    "status": "partial",
+    "answer": "Binder structure and the check of checks are quarterly. Counts, peaks, exception frequency and effort by step are UNKNOWN."
+   }
+  ]
+ },
+ "draft_error": null
+}

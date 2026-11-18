@@ -293,6 +293,25 @@ class CheckedBesideTheDraw(unittest.TestCase):
         self.assertEqual([(row["id"], row["source_quote"], row["evidence_turns"]) for row in removal],
                          [("S2", "we no longer log the invoice in the register", ["u3"])])
 
+    def test_an_older_draw_is_source_checked_without_rewriting_the_saved_steps(self):
+        payload = {**account("u1", "u2"), "_map_only": True}
+        drawn = baseline({"title": "Invoice handling", "open_questions": [],
+            "steps": [dict(step("S1", "Receive invoice", "Supplier", ["u1"]), rule_source_ref="UNKNOWN"),
+                      dict(step("S2", "Log invoice", "AP clerk", ["u2"]), rule_source_ref="Participant account")],
+            "connections": [{"from": "S1", "to": "S2", "label": "then", "evidence_turns": ["u2"]}]})
+        saved = copy.deepcopy(drawn)
+        checked = self.client.coordinator.workflow_check(payload, drawn)["workflow"]
+        self.assertEqual([s["id"] for s in checked["steps"]], ["S1", "S2"])
+        self.assertEqual([s["rule_source_ref"] for s in checked["steps"]], ["", ""])
+        self.assertEqual(checked["connections"], saved["workflow"]["connections"])
+        self.assertEqual(self.audits()[-1]["proposed_routes_to_verify"], checked["connections"])
+        self.assertEqual(drawn, saved)
+
+        drawn["workflow"]["steps"][0]["evidence_turns"] = ["uncited"]
+        with self.assertRaisesRegex(ValueError, "does not validate against its sources"):
+            self.client.coordinator.workflow_check(payload, drawn)
+        self.assertEqual(len(self.audits()), 1)
+
     def test_a_drawn_map_that_is_not_a_later_state_of_the_checked_one_is_checked_whole(self):
         coordinator = self.client.coordinator
         work = {**account("u1", "u2"), "_map_only": True}

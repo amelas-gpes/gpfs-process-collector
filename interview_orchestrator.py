@@ -1671,6 +1671,11 @@ class Coordinator:
         """
         api = self.api
         job = _MapJob(self, payload, draws=False)
+        # The saved draw can predate the optional rule source ID. Compare its steps in
+        # the same representation as the validated baseline and the applied update.
+        drawn = copy.deepcopy(drawn)
+        api.clear_legacy_rule_source_labels(drawn["workflow"]["steps"],
+            api.evidence_sources(job.turns, job.evidence, job.context) | set(job.carried))
 
         def difference(records):
             """The update that turns the job's baseline into the drawn map, or None when none does."""

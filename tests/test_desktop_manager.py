@@ -87,9 +87,28 @@ class FetchTimeout(unittest.TestCase):
 
     FETCH = ["fetch", "--quiet", "--no-tags", "--no-recurse-submodules", "--no-write-fetch-head"]
 
-    def test_stalled_fetch_ends_at_its_timeout_with_every_git_process_stopped(self):
+    def stalled_installation(self):
         site = Installation(self)
-        endpoint = StalledEndpoint(self)
+
+        def wait_for_checkout_release():
+            # The HTTP helper can close its socket before Windows releases the
+            # checkout as its working directory. Renaming it verifies that the
+            # directory handle really closes before TemporaryDirectory removes it.
+            deadline = time.monotonic() + 10
+            while True:
+                try:
+                    site.root.rename(site.folder / "released-checkout")
+                    return
+                except PermissionError as error:
+                    if error.winerror not in (5, 32) or time.monotonic() >= deadline:
+                        raise
+                    time.sleep(.05)
+
+        self.addCleanup(wait_for_checkout_release)
+        return site, StalledEndpoint(self)
+
+    def test_stalled_fetch_ends_at_its_timeout_with_every_git_process_stopped(self):
+        site, endpoint = self.stalled_installation()
         started = time.monotonic()
         with self.assertRaises(subprocess.TimeoutExpired):
             site.app.run_git([*self.FETCH, endpoint.address, "refs/heads/main:" + site.app.REF], 3)
@@ -100,8 +119,7 @@ class FetchTimeout(unittest.TestCase):
         self.assertTrue(endpoint.abandoned(10), "a git helper process was left running after the timeout")
 
     def test_download_gives_up_on_a_silent_remote_and_releases_the_update_lock(self):
-        site = Installation(self)
-        endpoint = StalledEndpoint(self)
+        site, endpoint = self.stalled_installation()
         site.app.REMOTE = endpoint.address
         started = time.monotonic()
         with self.assertRaises((site.app.DesktopError, subprocess.TimeoutExpired)):

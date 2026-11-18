@@ -1807,6 +1807,11 @@ inventing evidence, flow, role or order to support them. Keep all supported info
 Particularly check:
 1. Never draw a rejoin/return/retry edge if the supplied evidence does not explain how an exception resolves.
    A common-sense loop is still an assumption. Keep the branch incomplete and record the exact missing detail.
+   At a step shared by several incoming paths, trace each path through the proposed outgoing arrows.
+   An unlabeled arrow applies to every arrival. If the evidence gives a next action for only one path,
+   replace that arrow with a label naming the supported condition, or split the shared step when
+   the actions differ. Keep the other path open. A qualification in a handoff or validation note
+   must also be visible on the diagram. Preserve an unconditional arrow when all arrivals share it.
 2. A mismatch route belongs to the matching decision, not an unrelated manager-approval decision.
 3. A mentioned checklist, example, email or folder is material, not an operated control unless its use was stated.
 4. Client-only extra steps belong in variations and, when their insertion/return points were reported,

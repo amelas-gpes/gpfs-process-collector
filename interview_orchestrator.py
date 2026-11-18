@@ -1320,14 +1320,17 @@ class Coordinator:
                           (payload.get("_notes_only") is True or run.live_notes))
             request_schema = capture_facts.schema_for(fact_state, capture_facts.sources(context, turns, evidence), focus,
                                                       with_question=not notes_only)
-            transaction = self.client.structured(
-            capture_instructions(api, notes_only, action == "document_followup"),
-            {"context": context, "turns": turns, "action": action,
-             "supporting_documents": supporting, **extra}, request_schema,
-            "team_interview_capture", 12000 if baseline_seed or (not extra["fact_state"]["facts"]
+            large_capture = baseline_seed or (not extra["fact_state"]["facts"]
                 and (evidence or len(turns) > 12 or sum(len(turn["text"]) for turn in turns) >= 6000))
-                else 6500, reasoning_effort="low",
-            model_override=lead_model, on_text=None if notes_only else observe)
+            # At the observed 74 tokens per second a 12,000-token seed needs about 162 seconds.
+            # Allow time for setup as well as generation in both the seed and incremental cases.
+            output_tokens, timeout = (12000, 180) if large_capture else (6500, 120)
+            transaction = self.client.structured(
+                capture_instructions(api, notes_only, action == "document_followup"),
+                {"context": context, "turns": turns, "action": action,
+                 "supporting_documents": supporting, **extra}, request_schema,
+                "team_interview_capture", output_tokens, reasoning_effort="low", request_timeout=timeout,
+                model_override=lead_model, on_text=None if notes_only else observe)
             if notes_only:
                 transaction.pop("question", None)
             deferred = capture_facts.normalize_operations(transaction, fact_state, capture_facts.sources(context, turns, evidence))

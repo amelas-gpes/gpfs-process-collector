@@ -489,9 +489,9 @@ class FactCoordinatorTests(unittest.TestCase):
         typed_responder(client, response)
         first = client.coordinator.interview(payload)
         client.coordinator.interview(reply_payload(payload, first, "There is another detail."))
-        bodies = [call.args[1] for call in client.request.call_args_list]
-        self.assertEqual([body["max_output_tokens"] for body in bodies], [12000, 6500])
-        self.assertEqual(client.request.call_count, 2)
+        budgets = [(call.args[1]["max_output_tokens"], call.kwargs.get("timeout"))
+                   for call in client.request.call_args_list]
+        self.assertEqual(budgets, [(12000, 180), (6500, 120)])
 
     def test_model_routing_keeps_one_call_and_records_actual_selected_role_model(self):
         for with_document in (False, True):

@@ -5130,6 +5130,7 @@
       contents?.append(option);
       const item=el("li"),link=el("a","",title);
       link.setAttribute("href",`#${part.id}`);
+      link.setAttribute("aria-description","Jump to this section of the process report.");
       link.addEventListener("click",event=>{
         event.preventDefault();
         jumpToReview(part.id);

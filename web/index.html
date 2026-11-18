@@ -42,7 +42,7 @@
   <script src="/app.js" defer></script>
 </head>
 <body spellcheck="false" writingsuggestions="false">
-  <a class="skip-link" href="#main">Skip to main content</a>
+  <a class="skip-link" href="#main" aria-description="Skip the navigation and jump to the workspace.">Skip to main content</a>
   <header class="app-header">
     <a class="brand" href="/" aria-label="GP Fund Solutions Process Collector, home"><picture><source media="(max-width:760px)" srcset="/assets/gpfs-symbol.svg"><img class="brand-logo" src="/assets/gpfs-logo.svg" alt="GP Fund Solutions" width="102" height="36"></picture><span>Process Collector</span></a>
     <nav class="tab-nav" aria-label="Workspace">
@@ -112,8 +112,8 @@
                         <button type="button" id="export-transcript" aria-description="Choose a readable document or a structured transcript." class="text-button" aria-expanded="false" aria-controls="transcript-export-options" data-icon="download" disabled>Export</button>
                         <div id="transcript-export-options" class="transcript-export-options" role="group" aria-label="Export transcript" hidden>
                           <p>Download conversation &amp; notes</p>
-                          <button type="button" data-transcript-format="markdown" data-icon="file"><span>Markdown <small>Readable document · .md</small></span></button>
-                          <button type="button" data-transcript-format="json" data-icon="file"><span>JSON <small>Structured data · .json</small></span></button>
+                          <button type="button" data-transcript-format="markdown" aria-description="Download the conversation and notes as a Markdown document." data-icon="file"><span>Markdown <small>Readable document · .md</small></span></button>
+                          <button type="button" data-transcript-format="json" aria-description="Download the conversation and notes as structured JSON data." data-icon="file"><span>JSON <small>Structured data · .json</small></span></button>
                         </div>
                       </div>
                     </div>

@@ -30,6 +30,9 @@ async function run() {
       assert(box.x >= 0 && box.y >= 0 && box.x + box.width <= view.width && box.y + box.height <= view.height);
     }
 
+    await page.keyboard.press("Tab");
+    await expectTip("jump to the workspace");
+    await page.keyboard.press("Escape");
     await page.locator("#conversation-tab-workflow").hover();
     await expectTip("handoffs captured");
     await tip.hover();
@@ -68,7 +71,17 @@ async function run() {
     await page.locator("#close-interview-settings").click();
 
     await page.locator("#welcome-example").click();
+    await page.locator('[data-tab="interview"]').click();
+    await page.locator("#conversation-tab-transcript").click();
+    await page.locator("#export-transcript").click();
+    for (const [format, fragment] of [["markdown", "as a Markdown document"], ["json", "as structured JSON data"]]) {
+      await page.locator(`[data-transcript-format="${format}"]`).hover();
+      await expectTip(fragment);
+    }
     await page.locator('[data-tab="review"]').click();
+    await page.locator("#review-tab-report").click();
+    await page.locator("#report-section-links a").first().hover();
+    await expectTip("this section of the process report");
     await page.locator("#review-tab-memo").click();
     const finding = page.locator(".memo-finding-summary").first();
     await finding.hover();

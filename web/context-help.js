@@ -54,11 +54,27 @@
     control.setAttribute("aria-describedby", ids.join(" "));
     const box = control.getBoundingClientRect();
     const width = document.documentElement.clientWidth, height = document.documentElement.clientHeight;
-    const left = Math.max(6, Math.min(box.left + (box.width - tip.offsetWidth) / 2, width - tip.offsetWidth - 6));
-    const below = box.bottom + 4;
-    const top = below + tip.offsetHeight <= height - 6 ? below : Math.max(6, box.top - tip.offsetHeight - 4);
-    tip.style.left = left + "px";
-    tip.style.top = top + "px";
+    const tipWidth = tip.offsetWidth, tipHeight = tip.offsetHeight;
+    let left = box.left + (box.width - tipWidth) / 2;
+    let top = box.bottom + 4;
+    if (top + tipHeight > height - 6) top = box.top - tipHeight - 4;
+    // A hoverable hint over the next menu item would intercept the pointer as it moves there.
+    const menu = control.closest(".session-menu, .transcript-export-options, .map-tool-panel, .report-index");
+    if (menu) {
+      const bounds = menu.getBoundingClientRect();
+      const fitsRight = bounds.right + 4 + tipWidth <= width - 6;
+      const fitsLeft = bounds.left - 4 - tipWidth >= 6;
+      if (fitsRight || fitsLeft) {
+        left = fitsRight ? bounds.right + 4 : bounds.left - tipWidth - 4;
+        top = box.top + (box.height - tipHeight) / 2;
+      } else if (bounds.bottom + 4 + tipHeight <= height - 6) {
+        top = bounds.bottom + 4;
+      } else if (bounds.top - 4 - tipHeight >= 6) {
+        top = bounds.top - tipHeight - 4;
+      }
+    }
+    tip.style.left = Math.max(6, Math.min(left, width - tipWidth - 6)) + "px";
+    tip.style.top = Math.max(6, Math.min(top, height - tipHeight - 6)) + "px";
     observer.observe(document.body, {childList:true, subtree:true, attributes:true,
       attributeFilter:["hidden", "open", "title", "aria-description", "aria-label"]});
   }

@@ -48,6 +48,9 @@ def validate_attribution(findings):
             actors = [passive.group(1)] if passive else []
             if not passive:
                 for verb in re.finditer(r"\b" + archive + r"\s+(?:(?:a|the|each|their) )?(?:signed |completed )?(?:waivers?|forms?|it|them)\b", clause):
+                    # In "uses the filed waiver", "filed" describes the document.
+                    if re.search(r"\b(?:a|an|the|each|this|that|their|my|our)\s+$", clause[:verb.start()]):
+                        continue
                     subjects = list(re.finditer(r"\b(" + roles + r")\b", clause[:verb.start()]))
                     if subjects:
                         actors.append(subjects[-1].group(1))

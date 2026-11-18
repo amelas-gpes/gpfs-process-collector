@@ -92,7 +92,9 @@ class AuditRegressions(unittest.TestCase):
 
     def test_attribution_fixture_detects_wrong_subject_in_every_section(self):
         account = {"materials":"The waiver is kept in the green binder.",
-                   "lifecycle":"The registrar then carefully files the signed waiver."}
+                   "lifecycle":"The registrar then carefully files the signed waiver.",
+                   "connections":"The instructor signs the waiver and keeps the room schedule, "
+                                 "but what uses the filed waiver next is not described."}
         validate_attribution(account)
         for wrong in ("The instructor files it.", "The instructors are responsible for filing signed waivers.",
                       "The waiver is stored by the instructor."):

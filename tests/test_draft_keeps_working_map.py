@@ -195,6 +195,37 @@ class DraftFromCheckedMapTests(unittest.TestCase):
         self.assertEqual(candidate["connections"], [new_route])
         self.assertEqual(graph["steps"][0]["id"], "s1")
 
+    def test_source_checked_map_accepts_legacy_rule_labels_without_promoting_them_to_evidence(self):
+        self.update["upsert_steps"][0]["rule_source_ref"] = "UNKNOWN"
+        self.update["upsert_steps"][1]["rule_source_ref"] = "LPA, as reported by participant"
+        payload = self.draft_payload()
+        graph = payload["previous_capture"]["workflow"]
+        self.assertEqual([s["rule_source_ref"] for s in graph["steps"]], ["", ""])
+        draft = self.client.draft(payload)["draft"]
+        self.assertEqual(self.schemas(), [server.DRAFT_FROM_MAP_SCHEMA])
+        self.assertEqual(draft["steps"], graph["steps"])
+        self.assertEqual([s["evidence_turns"] for s in draft["steps"]], [["u1"], ["u2"]])
+
+    def test_imported_rule_labels_are_safe_on_the_full_draft_path_and_the_saved_map_is_preserved(self):
+        self.draft["steps"][0]["rule_source_ref"] = "UNKNOWN"
+        self.draft["steps"][1]["rule_source_ref"] = "Current limited partnership agreement and amendments"
+        previous = server.workflow_previous_capture(None, [], context={})
+        previous["workflow"] = {key: copy.deepcopy(self.draft[key]) for key in server.WORKFLOW_SCHEMA["properties"]}
+        archive = copy.deepcopy(previous)
+        draft = self.client.draft({**self.account, "previous_capture": previous})["draft"]
+        self.assertEqual(self.schemas(), [server.DRAFT_SCHEMA])
+        self.assertEqual([s["rule_source_ref"] for s in draft["steps"]], ["", ""])
+        self.assertEqual(previous, archive)
+
+    def test_source_named_unknown_is_still_a_real_id_and_must_be_cited_by_its_step(self):
+        self.account["turns"].append({"role": "user", "id": "UNKNOWN", "text": "I confirm the rule."})
+        first = self.draft["steps"][0]
+        first["rule_source_ref"] = "UNKNOWN"
+        with self.assertRaisesRegex(server.APIError, "source cited by that step"):
+            self.client.draft(self.account)
+        first["evidence_turns"].append("UNKNOWN")
+        self.assertEqual(self.client.draft(self.account)["draft"]["steps"][0]["rule_source_ref"], "UNKNOWN")
+
     def test_checked_route_edits_match_the_working_map_condition_across_case_and_spacing(self):
         payload = self.draft_payload()
         edge = payload["previous_capture"]["workflow"]["connections"][0]

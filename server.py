@@ -4279,6 +4279,16 @@ _DRAFT_DISCLAIMER = re.compile(
     r"(?:\s*(?:it is not|this is not|participant confirmation)\b[^.:]{0,160}\.)?\s*$", re.IGNORECASE)
 
 
+def clear_legacy_rule_source_labels(steps, authorized):
+    """Older maps stored UNKNOWN or a description where current maps store an optional source ID."""
+    for step in steps:
+        reference = step.get("rule_source_ref")
+        if reference and reference not in authorized and (
+                reference.casefold() in {"unknown", "tbd"} or not re.fullmatch(r"[A-Za-z0-9_-]+", reference)):
+            # Free text cannot identify a source. Never invent an ID for it or clear a real source.
+            step["rule_source_ref"] = ""
+
+
 def validate_step_rule_sources(steps, authorized):
     for step in steps:
         reference = step.get("rule_source_ref")
@@ -4330,6 +4340,7 @@ def validate_draft(draft, turns, documents=None, context=None):
     if any(v.get("standard_route_ref") and v["standard_route_ref"] not in ids for v in draft["variations"]):
         raise ValueError("A variation references a missing standard-route step.")
     gpfs_interview.validate_operating_details(draft["steps"], turns, documents, context)
+    clear_legacy_rule_source_labels(draft["steps"], valid_sources)
     validate_step_rule_sources(draft["steps"], valid_sources)
     if len(set(ids)) != len(ids) or any(not re.fullmatch(r"[A-Za-z0-9_-]{1,40}", i) for i in ids):
         raise ValueError("The process map contains invalid or duplicate step IDs.")
@@ -4394,6 +4405,7 @@ def validate_workflow(workflow, turns, documents=None, carried=(), context=None)
     if len(set(ids)) != len(ids) or any(not re.fullmatch(r"[A-Za-z0-9_-]{1,40}", item) for item in ids):
         raise ValueError("The working map contains invalid or duplicate step IDs.")
     sources = evidence_sources(turns, documents, context) | set(carried)
+    clear_legacy_rule_source_labels(steps, sources)
     gpfs_interview.validate_operating_details(steps, turns, documents, context, carried)
     for item in steps + connections:
         if not item["evidence_turns"] or not set(item["evidence_turns"]) <= sources:

@@ -13,7 +13,7 @@ import time
 import unittest
 from unittest.mock import Mock
 
-from test_server import server
+from test_server import server, interview_payload, process_draft
 
 CORPUS = Path(__file__).resolve().parents[1] / 'docs' / 'testing' / 'runs' / '2026-11-16-process-capture' / 'interviews'
 
@@ -156,6 +156,31 @@ class RouteGapTests(unittest.TestCase):
         self.assertEqual(paths(repaired, 'S1', 'S4'), [['S1', 'S2', 'S3', 'S4']])
         self.assertNotIn(question, repaired['open_questions'])
         self.assertEqual(server.route_gaps(steps, repaired['connections']), [])
+
+    def test_full_saved_map_and_draft_registers_prioritize_existing_and_required_questions(self):
+        turns = interview_payload()['turns']
+        draft = process_draft()
+        draft['steps'][0]['type'] = 'start'
+        draft['steps'].append(step('s3', 'Match an external receipt'))
+        draft['connections'].append(edge('s3', 's2'))
+        workflow = {key: draft[key] for key in ('title', 'steps', 'connections', 'open_questions')}
+        questions = server.workflow_structure_questions(draft['steps'], draft['connections'])
+        required = [q for q in questions if 'its own trigger' not in q]
+        self.assertTrue(required, 'This map also needs an ordinary convergence clarification')
+        self.assertTrue(any('its own trigger' in q for q in questions))
+
+        for validate, artifact, limit in [(server.validate_workflow, workflow, 500), (server.validate_draft, draft, 100)]:
+            with self.subTest(limit=limit):
+                register = required + [f'Who approves exception {i}?' for i in range(limit - len(required))]
+                def checked(items):
+                    return validate({**copy.deepcopy(artifact), 'open_questions': list(items)}, turns)['open_questions']
+                self.assertEqual(checked(register), register)
+                self.assertEqual(checked(register[1:]), register)
+                self.assertTrue(any('its own trigger' in q for q in checked(register[:-1])))
+                with self.assertRaises(ValueError):
+                    checked(['A separate saved question?', *register])
+                with self.assertRaises(ValueError):
+                    checked(['A separate saved question?', *register[1:]])
 
     def test_direction_check_requires_one_reported_start_and_stays_in_its_component(self):
         steps = [step('A', 'Start A', 'start'), step('B', 'Submit'),

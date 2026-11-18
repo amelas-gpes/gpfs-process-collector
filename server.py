@@ -3248,7 +3248,7 @@ def workflow_route_groups(steps, connections):
     return groups, branches, outgoing
 
 
-def workflow_structure_questions(steps, connections):
+def workflow_structure_questions(steps, connections, *, branch_questions=None):
     """Expose incomplete symbol semantics without inventing routes or rejecting partial capture."""
     incoming = {step["id"]: [] for step in steps}
     outgoing = {step["id"]: [] for step in steps}
@@ -3342,9 +3342,11 @@ def workflow_structure_questions(steps, connections):
                 chains.append(name)
         for other in chains[1:]:
             questions.append(f"Are the routes containing {chains[0]} and {other} separate, or is there a reported handoff between them?")
+    if branch_questions is None:
+        branch_questions = questions
     for branch in branches:
         name, start = names[branch["steps"][0]], names[branch["start"]]
-        questions.append(f"Does the branch containing {name} have its own trigger, or what handoff reaches it from the route starting at {start}?")
+        branch_questions.append(f"Does the branch containing {name} have its own trigger, or what handoff reaches it from the route starting at {start}?")
     return questions
 
 
@@ -3360,6 +3362,15 @@ def add_workflow_questions(existing, questions, maximum=100):
     if room and len(combined) <= 6000:
         return [combined, *existing]
     raise ValueError("The map's open-question register is full. Resolve some open questions before expanding this map.")
+
+
+def add_workflow_structure_questions(existing, steps, connections, extra=(), maximum=100):
+    """Keep saved questions and required clarifications before using spare slots for branches."""
+    branches = []
+    required = workflow_structure_questions(steps, connections, branch_questions=branches)
+    register = add_workflow_questions(existing, [*required, *extra], maximum)
+    available = maximum - len(register)
+    return register + [question for question in branches if question not in register][:available]
 
 
 def route_key(edge):
@@ -3846,7 +3857,7 @@ def connect_detached_routes(capture, repair, *, context, turns, documents=None, 
                  f"from {gap['requires']} to {gap['step']}. What connects them?"
                  for gap in route_gaps(steps, connections) if gap["kind"] == "unreached_input"]
     try:
-        questions = add_workflow_questions(questions, workflow_structure_questions(steps, connections) + remaining, maximum=500)
+        questions = add_workflow_structure_questions(questions, steps, connections, extra=remaining, maximum=500)
     except ValueError:
         pass  # A full register keeps what it has; the map itself is unaffected.
     return {**capture, "workflow": {**workflow, "connections": connections, "open_questions": questions}}
@@ -3931,8 +3942,7 @@ def validate_draft(draft, turns, documents=None, context=None):
         for item in group:
             if not item["evidence_turns"] or not set(item["evidence_turns"]) <= valid_sources:
                 raise ValueError("A variation or lifecycle item cites missing or non-participant evidence.")
-    draft["open_questions"] = add_workflow_questions(
-        draft["open_questions"], workflow_structure_questions(draft["steps"], draft["connections"]))
+    draft["open_questions"] = add_workflow_structure_questions(draft["open_questions"], draft["steps"], draft["connections"])
     note = "AI-generated draft. Process-owner review is required; interview statements have not been independently verified."
     if note not in draft["validation_notes"]:
         draft["validation_notes"].append(note)
@@ -3987,8 +3997,7 @@ def validate_workflow(workflow, turns, documents=None, carried=(), context=None)
     for edge in connections:
         if edge["from"] not in ids or edge["to"] not in ids:
             raise ValueError("A working map connection references a missing step.")
-    workflow["open_questions"] = add_workflow_questions(
-        workflow["open_questions"], workflow_structure_questions(steps, connections), maximum=500)
+    workflow["open_questions"] = add_workflow_structure_questions(workflow["open_questions"], steps, connections, maximum=500)
     return workflow
 
 

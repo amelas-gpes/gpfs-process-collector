@@ -120,7 +120,17 @@ async function exercise(browser, url, width) {
       return document.querySelector("[data-foundation-topic].selected")?.dataset.foundationTopic;
     });
     assert.equal(nextTopic, "purpose", "The previous close event must leave the reopened topic selected");
-    await checkDialog(page, "Purpose", purposeAnswer);
+    // Escape follows the same path as the Close button. Move focus again before the queued
+    // close event even when the browser had returned it to this control between two topics.
+    const focusAfterReopen = await page.evaluate(async () => {
+      const dialog = document.querySelector("#foundation-dialog");
+      const closed = new Promise(resolve => dialog.addEventListener("close", resolve, {once:true}));
+      dialog.requestClose();
+      document.querySelector('[data-foundation-topic="name"]').focus();
+      await closed;
+      return document.activeElement.dataset.foundationTopic;
+    });
+    assert.equal(focusAfterReopen, "name", "A later keyboard move can select the original opener again");
     await topic(page, "name").focus();
     await page.keyboard.press("Enter");
     await checkDialog(page, "Name and other names", nameAnswer);

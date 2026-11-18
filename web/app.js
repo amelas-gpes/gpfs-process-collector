@@ -46,7 +46,7 @@
     data_systems:"Recorded result, input origins, entry mode, workpapers and repeated calculations.",
     volume:"Normal counts, peaks, exceptions and attributed effort by step."
   };
-  let foundationTopic = null, foundationReturnFocus = null, foundationFocusBeforeOpen = null, foundationRestoreFocus = true;
+  let foundationTopic = null, foundationReturnFocus = null;
   const readingUI = {transcript:{query:"",matches:[],index:-1,matchEnds:[]},report:{query:"",matches:[],index:-1}};
   const transcriptRows = [];
   let sourceOrigin=null;
@@ -1608,7 +1608,7 @@
     const dialog = $("foundation-dialog");
     if (!dialog || typeof dialog.showModal !== "function") {notice("This browser can’t show topic details. Try a current version of Chrome or Edge.",true);return;}
     const finding = state.memo_findings.find(item => item.key === key);
-    foundationTopic = key; foundationReturnFocus = trigger?.closest?.("dialog")&&!trigger.closest("dialog").open ? $("open-memo") : trigger; foundationRestoreFocus = true;
+    foundationTopic = key; foundationReturnFocus = trigger?.closest?.("dialog")&&!trigger.closest("dialog").open ? $("open-memo") : trigger;
     $("foundation-topic-title").textContent = MEMO_HEADINGS[key];
     const advisory=provisionalFinding(finding)?advisoryFor(finding):null;
     const statusBadge=$("foundation-topic-status");
@@ -1647,7 +1647,6 @@
       if(rewrite&&reading)rewrite.querySelector("details").open=true;
     }
     if (!dialog.open) {
-      foundationFocusBeforeOpen = document.activeElement;
       dialog.showModal();
       const body=dialog.querySelector(".detail-body");
       if(body)body.scrollTop=0;
@@ -1655,29 +1654,23 @@
     document.querySelectorAll("[data-foundation-topic]").forEach(button => button.classList.toggle("selected",button.dataset.foundationTopic === key));
   }
   function closeFoundationTopic(restoreFocus = true) {
-    foundationRestoreFocus = restoreFocus;
-    $("foundation-dialog")?.close();
+    const dialog = $("foundation-dialog");
+    if (!dialog?.open) return;
+    // Close and return focus in one interaction. The queued native close event can arrive
+    // after the next Tab or even after another topic has opened.
+    dialog.close();
+    document.querySelectorAll("[data-foundation-topic]").forEach(button => button.classList.remove("selected"));
+    let trigger = foundationReturnFocus?.isConnected ? foundationReturnFocus : document.querySelector(`[data-foundation-topic="${foundationTopic}"]`);
+    // Resizing can move a desktop topic into the closed mobile memo sheet.
+    if(trigger?.closest?.("dialog")&&!trigger.closest("dialog").open)trigger=$("open-memo");
+    if (restoreFocus && trigger) {revealAncestors(trigger);trigger.focus({preventScroll:true});}
+    foundationReturnFocus = null; foundationTopic = null;
   }
   function initFoundationDialog() {
     $("close-foundation-topic").addEventListener("click",() => closeFoundationTopic());
-    const dialog = $("foundation-dialog");
-    dialog.addEventListener("close",() => {
-      // A native close event can arrive after the participant opens another topic.
-      if (dialog.open) return;
-      document.querySelectorAll("[data-foundation-topic]").forEach(button => button.classList.remove("selected"));
-      let trigger = foundationReturnFocus?.isConnected ? foundationReturnFocus : document.querySelector(`[data-foundation-topic="${foundationTopic}"]`);
-      // Resizing can move a desktop topic into the closed mobile memo sheet
-      // while its details remain open. Return to the visible memo control.
-      if(trigger?.closest?.("dialog")&&!trigger.closest("dialog").open)trigger=$("open-memo");
-      // The browser may already have restored focus and handled the participant's next Tab.
-      // Recover ordinary return focus without taking it away from a new control.
-      const active = document.activeElement;
-      if (foundationRestoreFocus && trigger && (!active || active === document.body || dialog.contains(active) ||
-          active === foundationFocusBeforeOpen || active === foundationReturnFocus)) {
-        revealAncestors(trigger);
-        trigger.focus({preventScroll:true});
-      }
-      foundationReturnFocus = null; foundationFocusBeforeOpen = null; foundationTopic = null; foundationRestoreFocus = true;
+    $("foundation-dialog").addEventListener("cancel",event => {
+      event.preventDefault();
+      closeFoundationTopic();
     });
   }
   // A question being read aloud by Listen, by "Read questions aloud when typing" or by Preview voice

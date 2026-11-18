@@ -7,6 +7,7 @@ import tempfile
 import threading
 import time
 import unittest
+from unittest.mock import patch
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
@@ -123,6 +124,26 @@ class ConcurrentHTTPTests(unittest.TestCase):
         self.assertEqual((status, transcribed["text"]), (200, "A synthetic spoken answer."))
         release.set()
 
+    def test_wrap_up_preserves_the_local_budget_status_and_retains_an_opaque_fallback(self):
+        payload = self.client.payload()
+        payload["action"] = "close"
+        # Exercise the actual token reservation; a one-token limit rejects every structured
+        # request before transport. Keep the provider unreachable if that guard regresses.
+        real_request = server.OpenAIClient.request.__get__(self.client)
+        self.client.usage.daily_cap = 1
+        self.client.request.side_effect = real_request
+        with patch.object(server, "build_opener", side_effect=AssertionError("Unexpected provider transport")):
+            status, result = self.post("/api/conversation/sync", payload)
+        self.assertEqual((status, result.get("code")), (429, "budget_reached"))
+        self.assertIn("local", result["error"].lower())
+        self.assertIn("retained", result["error"])
+        # An ordinary worker failure has no meaningful HTTP status to preserve.
+        self.client.request.side_effect = self.client.reply
+        self.client.faults["team_interview_capture"] = RuntimeError("private provider detail")
+        status, result = self.post("/api/conversation/sync", payload)
+        self.assertEqual(status, 502)
+        self.assertNotIn("private provider detail", result["error"])
+
     def test_missing_document_scope_is_rejected_before_fast_provider_access(self):
         payload = self.client.payload()
         payload["document_scope"] = "not-a-valid-document-scope"
@@ -141,7 +162,6 @@ class ConcurrentHTTPTests(unittest.TestCase):
             self.assertIn(b"Concurrent", response.read())
 
     def test_changed_document_during_fast_question_withholds_speech(self):
-        from unittest.mock import patch
         original = {"documents": [], "source_revision": "one"}
         current = copy.deepcopy(original)
         def changed(_body):
@@ -155,7 +175,6 @@ class ConcurrentHTTPTests(unittest.TestCase):
         self.assertNotIn("speech_authorization", result)
 
     def test_source_refresh_callback_checks_latest_scoped_material(self):
-        from unittest.mock import patch
         context = self.client.payload()["context"]
         original = {"documents": [], "source_revision": "one"}
         binding = server.interview_orchestrator.Coordinator._source_binding(context, original)
@@ -200,7 +219,6 @@ class ConcurrentHTTPTests(unittest.TestCase):
 
 
     def test_status_after_fast_question_keeps_same_document_retrieval_basis(self):
-        from unittest.mock import patch
         payload = self.client.payload()
         payload["document_scope"] = "controlled-scope-capability"
         def selected(_scope, query, **kwargs):

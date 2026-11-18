@@ -38,6 +38,24 @@ class LogViewerTests(unittest.TestCase):
         self.assertEqual(disabled.recent_events(current_run=True)["events"], [])
         self.assertFalse(disabled.recent_events()["status"]["enabled"])
 
+    def test_equal_receipt_times_across_runs_use_run_start_before_sequence(self):
+        earlier = self.store()
+        earlier._stamp = "20261118T100000000000Z"
+        later = self.store()
+        later._stamp = "20261118T100001000000Z"
+        with patch.object(server.raw_trace, "_utc", return_value="2026-11-18T10:00:02.000Z"):
+            earlier.emit("test.old_first")
+            earlier.emit("test.old_second")
+            later.emit("test.new_first")
+        # The two runs overlap. An event received later still comes first.
+        with patch.object(server.raw_trace, "_utc", return_value="2026-11-18T10:00:03.000Z"):
+            earlier.emit("test.old_last")
+        earlier.close()
+        later.close()
+        history = self.store("off").recent_events()["events"]
+        self.assertEqual([row["type"] for row in history],
+                         ["test.old_last", "test.new_first", "test.old_second", "test.old_first"])
+
     def test_partial_malformed_oversized_rows_and_unrelated_files(self):
         store = self.store()
         store.emit("test.valid", {"text": "<script>window.injected=true</script>"})

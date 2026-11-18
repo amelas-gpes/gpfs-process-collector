@@ -385,18 +385,22 @@ class TraceStore:
                     if found >= limit:
                         result["limited"] = True
                         break
-                    collected.append((row, len(encoded)))
+                    collected.append((row, len(encoded), name.split("-", 1)[0]))
                     found += 1
             except FileNotFoundError:
                 continue  # Another local process may remove an old, finished run.
             if budget <= 0:
                 result["limited"] = True
                 break
-        # Runs may overlap. Merge their tails by receipt time, rather than the
-        # start timestamp in each filename, retaining duplicates as observations.
-        collected.sort(key=lambda item: (str(item[0].get("recorded_at", "")), item[0].get("sequence", 0)), reverse=True)
+        # Runs can overlap. When receipts share a millisecond, use run start
+        # before sequence because each run starts its own sequence at one.
+        def receipt_order(item):
+            row, _, run_start = item
+            return (str(row.get("recorded_at", "")), run_start,
+                    row.get("app_run_id") == self.run_id, row.get("sequence", 0))
+        collected.sort(key=receipt_order, reverse=True)
         response_bytes = 0
-        for row, size in collected:
+        for row, size, _ in collected:
             if len(result["events"]) >= limit or response_bytes + size > 1024 * 1024:
                 result["limited"] = True
                 break

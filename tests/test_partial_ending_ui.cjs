@@ -72,6 +72,17 @@ async function check(name,fn){
   assert.equal(page.text("analysis-status"),"Notes are up to date.");
   assert.doesNotMatch(page.text("analysis-status"),/Wrap up/);assert.doesNotMatch(closureLine(page),/Wrap up/);
  });
+ await check("a partial ending lists participant gaps and preserves a reviewer's objection to a proposed handoff",async()=>{
+  for(const veto of [false,true]){
+   const page=await open({config,expose:EXPOSE});interview(page);
+   const row={dimension:"counts",kind:"context_detail",gap:"Exact monthly volume",scope:"Weekly supply orders",
+    interim_action:"We use the weekly count to reorder.",resolver:"Purchasing's order log",evidence_turns:["t002"]};
+   const result=verifiedPause({coverage_assessment:{topics:[{key:"volume",complete:false,ready_for_owner_review:true,gaps:[],owner_followups:[row]}]},
+    coverage_adjudication:{unconfirmed_topics:veto?["volume"]:[]}});
+   page.t.applyInterview(result);
+   assert.match(closureLine(page),veto?/2 sections need information you do not have here: Risks; Volume and effort\./:/1 section needs information you do not have here: Risks\./);
+  }
+ });
  await check("the ending lasts until the participant adds something; then Wrap up is back",async()=>{
   const page=await open({config,expose:EXPOSE});interview(page);await wrapUp(page,verifiedPause());
   assert.equal(page.$("final-check").hidden,true);

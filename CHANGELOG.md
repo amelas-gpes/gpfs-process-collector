@@ -9,6 +9,11 @@ working tree). See [docs/DESKTOP.md](docs/DESKTOP.md#which-build-is-running).
 
 ## Unreleased
 
+## 0.33.0 · November 18, 2026
+
+- Interviews keep asking when a missing answer changes how the work proceeds, who accepts it, or what permits release or closure. A documented hold, accepted exception, external handoff or supporting detail can go to the process owner with the affected work, current action, resolving role or source, and participant evidence.
+- Open a topic in Notes to see interview gaps and owner follow-ups. Saved interviews and drafts retain those follow-ups. Settings → Help & about now explains the definition of done. The changes use the existing background review and add no AI calls before the next typed or spoken question.
+
 - Notes requests now allow 120 seconds for incremental updates and 180 seconds for a large initial capture. A question, notes update or map can finish when a file review completes while it is running and the underlying evidence still matches.
 - Wrap up recognizes a participant leaving for a meeting and preserves the error details when a usage limit pauses capture. Document review directs the participant to the interview and daily token limits. A stalled provider read can be cancelled on Windows. [Regression replay](docs/testing/runs/2026-11-17-regression-replay/README.md)
 - Workflow review asks how a branch is reached from the reported start and keeps previously saved clarification questions. Document review keeps each role with its record in a short register.

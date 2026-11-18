@@ -432,7 +432,13 @@
       </section>
       <section id="help-guide" class="settings-panel" data-settings-panel role="tabpanel" aria-labelledby="settings-tab-help" tabindex="0" hidden>
         <header class="settings-section-heading"><span class="settings-eyebrow">FROM CONVERSATION TO CLARITY</span><h3>How this works</h3><p>A useful process document starts with your account of how the work gets done.</p></header>
-        <ol class="settings-guide"><li><span>01</span><div><h4>Tell the story</h4><p>Talk or type about a process. Describe what starts the work, who does it and how you know it is complete. Add files when they help.</p></div></li><li><span>02</span><div><h4>Connect the details</h4><p>Check Notes and Workflow as they update. Select a source to review the original answer or file excerpt. Captured topics stay provisional until Wrap up.</p></div></li><li><span>03</span><div><h4>Review it together</h4><p>Choose Wrap up, answer the final question, then create and review the draft. A process owner checks the procedure before approval.</p></div></li></ol>
+        <ol class="settings-guide"><li><span>01</span><div><h4>Tell the story</h4><p>Talk or type about a process. Describe what starts the work, who does it and how you know it is complete. Add files when they help.</p></div></li><li><span>02</span><div><h4>Connect the details</h4><p>Open a topic in Notes to see what is known, what still needs an answer and which sources support it.</p></div></li><li><span>03</span><div><h4>Review it together</h4><p>Choose Wrap up to check the account. You can add details, confirm the final omissions question when it appears, or save a partial draft for follow-up.</p></div></li></ol>
+        <section class="settings-help-note" aria-labelledby="definition-of-done"><h4 id="definition-of-done" tabindex="-1">Definition of done</h4>
+          <p>The interview is done when someone can follow the work from its trigger to its finish, the app has reviewed all 16 topics and the participant confirms the account. The process owner then reviews it for approval.</p>
+          <p><strong>Keep asking</strong> when an answer could change how someone performs, checks, releases or closes the work. For a client variation, establish what changes. For an overview, identify which detailed process owns the finish.</p>
+          <p><strong>Hand a question to the owner</strong> when the participant explains the affected work, what can proceed or must wait, and who or what can resolve it. One method may stay on hold. Another route may allow closure with an exception if someone records it and takes responsibility.</p>
+          <p><strong>Keep a partial interview</strong> if a material gap leaves the route or its hold unclear. Open a topic in Notes to see its gaps and follow-ups. You can save the interview and return with someone who knows the missing detail.</p>
+        </section>
         <div class="settings-help-note"><h4>Keep a copy of your work</h4><p>Save copy downloads a restorable interview. Team activity shows what is running; a completed task does not approve the account.</p><button type="button" class="text-button" aria-description="See how saved interviews and local recovery copies work." data-settings-jump="data-details">Explore data &amp; recovery</button></div>
         <div class="settings-about"><span>Process Collector</span><p id="build-identity" hidden></p></div>
       </section>
@@ -454,6 +460,7 @@
       <button type="button" id="close-foundation-topic" class="dialog-close" aria-label="Close topic" autofocus></button>
     </header>
     <div class="detail-body">
+      <div id="foundation-topic-gaps" class="topic-dialog-gaps" hidden></div>
       <p id="foundation-topic-answer" class="topic-dialog-answer"></p>
       <div id="foundation-topic-sources" class="topic-dialog-sources"></div>
       <div id="foundation-topic-repair" class="topic-dialog-repair" hidden></div>

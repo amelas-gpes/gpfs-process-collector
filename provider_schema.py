@@ -32,6 +32,9 @@ def wire_schema(schema, sources=None, participant_ids=(), topic_dimensions=None)
                 array = branch["properties"]["dimensions"]
                 array.update(minItems=len(dimensions), maxItems=len(dimensions))
                 array["items"]["properties"]["key"] = {"type": "string", "enum": list(dimensions)}
+                if "owner_followups" in branch["properties"]:
+                    followup_fields = branch["properties"]["owner_followups"]["items"]["properties"]
+                    followup_fields["dimension"] = {"type": "string", "enum": list(dimensions)}
                 branches.append(branch)
             topics["items"] = {"anyOf": branches}
     references = []
@@ -47,6 +50,8 @@ def wire_schema(schema, sources=None, participant_ids=(), topic_dimensions=None)
             return
         fields = node.get("properties", {})
         status = fields.get("status", {}).get("enum", [])
+        if not participant_ids and "owner_followup" in status:
+            status.remove("owner_followup")
         if "key" in fields and "evidence_turns" in fields and set(status) == {"unknown", "partial", "captured", "not_applicable"}:
             unknown, reported = copy.deepcopy(node), copy.deepcopy(node)
             unknown["properties"]["status"]["enum"] = ["unknown"]
@@ -59,8 +64,10 @@ def wire_schema(schema, sources=None, participant_ids=(), topic_dimensions=None)
         for name, prop in fields.items():
             if name in ("remove_steps", "remove_connections") and not participant_ids:
                 prop["maxItems"] = 0
+            if name == "owner_followups" and not participant_ids:
+                prop["maxItems"] = 0
             if name.endswith("evidence_turns") and prop.get("type") == "array":
-                participant_only = "source_quote" in fields
+                participant_only = "source_quote" in fields or "interim_action" in fields
                 allowed = participant_ids if participant_only else sources
                 if not allowed:
                     prop.pop("minItems", None)
@@ -69,7 +76,7 @@ def wire_schema(schema, sources=None, participant_ids=(), topic_dimensions=None)
                 prop["items"] = {"type": "string", "enum": allowed.copy()}
                 (participant_refs if participant_only else references).append(prop["items"])
                 if name == "evidence_turns" and set(fields).intersection(
-                        {"from", "actor", "boundary_reason", "stages", "facet", "relationship_type", "source_quote"}):
+                        {"from", "actor", "boundary_reason", "stages", "facet", "relationship_type", "source_quote", "interim_action"}):
                     prop["minItems"] = 1
             elif name == "source_id" and prop.get("type") == "string" and sources:
                 prop["enum"] = sources.copy()

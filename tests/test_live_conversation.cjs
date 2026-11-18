@@ -7,7 +7,7 @@ const exported=(source,tail)=>{const module={exports:{}};vm.runInNewContext(sour
 const voice=exported(fs.readFileSync(path.join(__dirname,"test_live_voice.cjs"),"utf8").split("(async()=>{")[0],"\nmodule.exports={setup};");
 let source=fs.readFileSync(path.join(__dirname,"test_agent_experience.cjs"),"utf8").split("let passed=0;")[0];
 source=source.replace("selectConversationView=view=>","const actualSchedule=scheduleWorkflow; selectConversationView=view=>");
-source=source.replace("setTeam:value=>","receiveLiveStatus,receiveLiveCaption,sessionObject,transcriptObject,enableMapUpdates:()=>{scheduleWorkflow=actualSchedule;},presenceState,runLiveCapture,applyLiveCapture,liveSnapshot,syncLiveCoverage,refreshWorkflow,getCapturedThrough:()=>liveCapturedThrough,setTeam:value=>");
+source=source.replace("setTeam:value=>","TOPICS,receiveLiveStatus,receiveLiveCaption,sessionObject,transcriptObject,enableMapUpdates:()=>{scheduleWorkflow=actualSchedule;},presenceState,runLiveCapture,applyLiveCapture,liveSnapshot,syncLiveCoverage,refreshWorkflow,getCapturedThrough:()=>liveCapturedThrough,setTeam:value=>");
 const app=exported(source,"\nmodule.exports={setup,approved,response,flush};");
 const captureCalls=h=>h.calls.filter(c=>c.url==="/api/agent-team/interview");
 function fixture(){
@@ -132,6 +132,26 @@ async function check(name,fn){await fn();passed++;console.log("PASS "+name);}
   h.t.conversationUI.live.assistantSpeaking=false;h.t.syncLiveCoverage();assert.equal(h.notes.length,1);
   h.t.state.turns[0].text="A later correction.";h.t.conversationUI.revision++;h.t.conversationUI.liveCoverageKey=null;h.notes.length=0;
   h.t.syncLiveCoverage();assert.equal(h.notes.length,0,"A lagging checkpoint sends no old advice");
+ });
+ await check("the live hint keeps a practical veto and an untouched topic open, while leaving an approved follow-up with its owner",async()=>{
+  const probe=async verified=>{
+   const h=fixture();
+   const followup={kind:"operational_hold",dimension:"release_conditions",gap:"Approve the Method B release test.",scope:"Method B",
+    interim_action:"Hold Method B until Accounting approves the test.",resolver:"Accounting",evidence_turns:["u1"]};
+   h.t.state.turns[0].text=followup.interim_action;
+   const memo_findings=h.t.TOPICS.map(([key])=>({key,status:key==="volume"?"unknown":["checks","lifecycle"].includes(key)?"partial":"captured",
+    answer:key==="volume"?"":"The participant described the current route.",evidence_turns:key==="volume"?[]:["u1"]}));
+   const topics=memo_findings.map(({key,status})=>({key,complete:status==="captured",ready_for_owner_review:key!=="volume",
+    owner_followups:["checks","lifecycle"].includes(key)?[{...followup,dimension:key==="checks"?"release_conditions":"handoffs"}]:[],gaps:[]}));
+   const result={...app.approved("Who receives a rejected item?"),coverage_verified:verified,memo_findings,coverage_assessment:{topics},
+    process_review:{findings:[{material:true,detail:"The return from rejection is unclear."}]},coverage_adjudication:{unconfirmed_topics:["lifecycle"]}};
+   assert.equal(await h.t.applyLiveCapture(result,h.t.liveSnapshot()),true);
+   assert.equal(h.notes.length,1);assert.equal(h.said.length,0);assert.equal(h.calls.length,0);
+   assert.ok(!h.notes[0].includes(followup.gap),"The silent hint shares topic labels only");
+   return h.notes[0];
+  };
+  assert.match(await probe(true),/Still open: lifecycle, volume\./);
+  assert.match(await probe(false),/Still open: lifecycle, checks, volume\./);
  });
  await check("an approved pause closes local input immediately, even when its spoken line fails",async()=>{
    const {h,v}=await connected();h.route(()=>app.response(app.approved()));

@@ -806,6 +806,18 @@ dialog.excerpt-dialog { inset: 0; width: min(660px, calc(100vw - 32px)); margin:
 .topic-dialog-status { display: inline-flex; margin-top: 9px; padding: 3px 9px; border-radius: var(--r-pill); background: var(--surface-2); color: var(--ink-2); font-size:var(--text-xs); font-weight: 600; }
 .topic-dialog-status:is([data-status="pending"],[data-status="partial"]) { background: var(--amber-soft); color: var(--amber); }
 .topic-dialog-status:is([data-status="captured"],[data-status="not_applicable"]) { background: var(--sage-soft); color: var(--sage); }
+.topic-dialog-gaps { margin: 0 0 18px; }
+.topic-gap-group { padding: 12px 14px; border-inline-start: 3px solid var(--amber); background: var(--amber-soft); border-radius: var(--r-sm); }
+.topic-gap-group + .topic-gap-group { margin-top: 10px; }
+.topic-gap-group.owner-followups { border-color: var(--accent); background: var(--accent-soft); }
+.topic-gap-group h3 { margin: 0 0 6px; font: 600 var(--text-md)/1.4 var(--font); color: var(--ink); }
+.topic-gap-group p, .topic-gap-group ul { margin: 0; color: var(--ink-2); font-size: var(--text-md); line-height: 1.5; }
+.topic-gap-group ul { padding-inline-start: 20px; }
+.topic-gap-group li + li, .topic-gap-group p + p, .topic-gap-group ul + p { margin-top: 6px; }
+.topic-gap-group article + article { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+.topic-gap-group .followup-kind { color: var(--ink); font-weight: 600; }
+.topic-gap-group dl { margin: 8px 0 0; }
+.topic-gap-group dd { margin: 0 0 5px; font-size: var(--text-md); }
 .topic-dialog-answer { margin: 0 0 14px; font: 400 19px/1.5 var(--font-serif); white-space: pre-wrap; overflow-wrap: anywhere; }
 .topic-dialog-hint { margin: 20px 0 0; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); font-size:var(--text-md); line-height: 1.55; }
 .topic-dialog-sources { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }

@@ -30,6 +30,7 @@
     ["Agents", "See the app workflow and read or copy agent prompts", "agents-details", "agents-details", "AI agent prompt library instructions workflow administrator"],
     ["Application logs", "Search recent or current-session activity", "logs-details", "logs-search", "application activity logs logging history events trace"],
     ["How this works", "A short guide to the interview and review", "help-guide", "help-guide", "help guide how works interview review workflow"],
+    ["Definition of done", "When an interview is complete and what goes to the process owner", "help-guide", "definition-of-done", "completion gaps hold handoff partial wrap up approval coverage topics follow-ups"],
     ["App version", "Version and build of this app", "help-guide", "build-identity", "version about build update release"],
   ];
   const panelName = id => tabs.find(tab => tab.dataset.settingsTarget === id)?.children[1]?.childNodes[0]?.textContent.trim() || id;

@@ -50,6 +50,146 @@ def topic(assessment, key):
     return next(item for item in assessment["topics"] if item["key"] == key)
 
 
+def held_method(topic_row):
+    action = "We hold Method B until Accounting releases the schedule."
+    dimension = next(row for row in topic_row["dimensions"] if row["key"] == "release_conditions")
+    dimension.update(status="owner_followup", detail=action, evidence_turns=["u_hold"])
+    disposition = {"dimension": "release_conditions", "kind": "operational_hold",
+        "gap": "Which method and approvals permit a Method B release?", "scope": "Method B",
+        "interim_action": action, "resolver": "Accounting", "evidence_turns": ["u_hold"]}
+    topic_row.update(owner_followups=[disposition])
+    return {"id": "u_hold", "role": "user", "text": action}
+
+
+class OwnerFollowupTests(unittest.TestCase):
+    def setUp(self):
+        self.findings, self.assessment, self.turns = fixture()
+        self.checks = topic(self.assessment, "checks")
+        self.turns.append(held_method(self.checks))
+        next(f for f in self.findings if f["key"] == "checks").update(status="partial")
+
+    def result(self, documents=None):
+        _, result = coverage.apply_assessment(self.findings, self.assessment, self.turns, documents)
+        return result
+
+    def test_hold_is_ready_for_review_with_the_dimension_still_open(self):
+        result = self.result()
+        self.assertTrue(result["all_topics_ready_for_owner_review"])
+        self.assertFalse(result["all_topics_covered"])
+        self.assertEqual(topic(result, "checks")["owner_followups"], self.checks["owner_followups"])
+
+    def test_answerable_blocker_alongside_a_handoff_keeps_the_interview_open(self):
+        self.checks["gaps"].append("What evidence is kept for normal releases?")
+        self.checks["next_question"] = self.checks["gaps"][0]
+        result = topic(self.result(), "checks")
+        self.assertFalse(result["ready_for_owner_review"])
+        self.assertTrue(result["owner_followups"])
+
+    def test_invalid_dispositions_and_generic_referrals_cannot_clear_a_release(self):
+        original = self.checks["owner_followups"][0]
+        for change in ({"interim_action": "We release on Friday."}, {"resolver": "Legal"},
+                       {"scope": "TBD"}, {"kind": "context_detail"}, {"evidence_turns": ["document_hold"]},
+                       {"interim_action": "Ask Accounting about that."}):
+            with self.subTest(change=change):
+                self.turns[-1]["text"] += " Ask Accounting about that."
+                self.checks["owner_followups"] = [dict(original, **change)]
+                result = topic(self.result([{"id": "document_hold"}]), "checks")
+                self.assertFalse(result["ready_for_owner_review"])
+                self.assertFalse(result["owner_followups"])
+                self.assertTrue(result["gaps"])
+
+    def test_a_known_external_handoff_and_nonmaterial_estimate_can_be_referred(self):
+        for key, dimension, kind, words in (
+                ("completion", "downstream_consumer", "external_handoff", "We deliver the reconciled ledger to Tax for its separate return."),
+                ("volume", "counts", "context_detail", "We use the same review at every volume. The operations register keeps counts.")):
+            with self.subTest(key=key):
+                row = topic(self.assessment, key)
+                next(d for d in row["dimensions"] if d["key"] == dimension).update(
+                    status="owner_followup", detail=words, evidence_turns=["u_extra"])
+                row["owner_followups"] = [{"dimension": dimension, "kind": kind, "gap": "Confirm the downstream detail.",
+                    "scope": "reconciled ledger" if key == "completion" else "every volume",
+                    "interim_action": words.split(". ")[0], "resolver": "Tax" if key == "completion" else "operations register",
+                    "evidence_turns": ["u_extra"]}]
+                self.turns.append({"id":"u_extra", "role":"user", "text":words})
+                self.assertTrue(topic(self.result(), key)["ready_for_owner_review"])
+                self.turns.pop()
+
+    def test_a_hedged_or_negated_holding_sentence_does_not_establish_a_hold(self):
+        row = self.checks["owner_followups"][0]
+        for testimony, action in (
+                ("I don't know whether Accounting holds Method B.", "Accounting holds Method B."),
+                ("We never hold Method B for Accounting.", "We never hold Method B for Accounting."),
+                ("I think Accounting holds Method B.", "I think Accounting holds Method B."),
+                ("We hold Method B. I don't know whether Accounting owns the rule.", "We hold Method B.")):
+            with self.subTest(testimony=testimony):
+                self.turns[-1]["text"] = testimony
+                row["interim_action"] = action
+                self.assertFalse(topic(self.result(), "checks")["ready_for_owner_review"])
+        row["interim_action"] = "Method B stays on hold until Accounting signs off"
+        self.turns[-1]["text"] = "I don't know the formula, so Method B stays on hold until Accounting signs off."
+        self.assertTrue(topic(self.result(), "checks")["ready_for_owner_review"])
+
+    def test_a_rule_can_hold_release_or_explicitly_allow_it_until_a_change(self):
+        row = self.checks["owner_followups"][0]
+        for words, allowed in (
+                ("We continue to release Method B until Accounting issues new instructions.", False),
+                ("We do not change the Method B release date unless Accounting requests it.", False),
+                ("We don't release Method B until Accounting issues instructions.", True),
+                ("Accounting must clear Method B before release.", True)):
+            with self.subTest(words=words):
+                self.turns[-1]["text"] = words
+                row["interim_action"] = words
+                self.assertEqual(topic(self.result(), "checks")["ready_for_owner_review"], allowed)
+
+    def test_accepted_exception_requires_authorized_continuation_and_owned_treatment_for_this_route(self):
+        row = self.checks["owner_followups"][0]
+        row.update(kind="accepted_exception", scope="Fund A", resolver="Treasury",
+                   gap="Confirm the exception's resolution.")
+        for words, scope, allowed in (
+                ("For Fund A we may close with the exception logged open and assigned to Treasury.", "Fund A", True),
+                ("For Fund A the exception is logged open and assigned to Treasury.", "Fund A", False),
+                ("For Fund A we may close with an open exception in the Treasury log.", "Fund A", False),
+                ("For Fund A we cannot close with an open exception assigned to Treasury.", "Fund A", False),
+                ("For Fund A we may close with the exception logged open and assigned to Treasury.", "Fund B", False)):
+            with self.subTest(words=words, scope=scope):
+                self.turns[-1]["text"] = words + " Fund B follows separate instructions."
+                row.update(interim_action=words, scope=scope)
+                self.assertEqual(topic(self.result(), "checks")["ready_for_owner_review"], allowed)
+
+    def test_adjacent_participant_sentences_can_supply_route_treatment_and_resolver(self):
+        row = self.checks["owner_followups"][0]
+        for kind, first, second, resolver in (
+                ("operational_hold", "We use Method B for Fund A.", "Release waits for the schedule. Treasury owns the decision.", "Treasury"),
+                ("accepted_exception", "For Fund A we may proceed with an open exception.",
+                 "We log it and escalate it to Treasury.", "Treasury")):
+            with self.subTest(kind=kind):
+                self.turns[-1]["text"] = first
+                self.turns.append({"id": "u_handling", "role": "user", "text": second})
+                row.update(kind=kind, scope="Fund A", interim_action=first + " " + second, resolver=resolver,
+                           evidence_turns=["u_hold", "u_handling"])
+                self.assertTrue(topic(self.result(), "checks")["ready_for_owner_review"])
+                self.turns.insert(-1, {"id":"u_correction", "role":"user", "text":"That treatment is being corrected."})
+                self.assertFalse(topic(self.result(), "checks")["ready_for_owner_review"])
+                self.turns.pop(-2)
+                self.turns.pop()
+        words = "Fund A remains held. For Fund B we may proceed with the open exception assigned to Treasury."
+        self.turns[-1]["text"] = words
+        row.update(kind="accepted_exception", scope="Fund A", interim_action=words, evidence_turns=["u_hold"])
+        self.assertFalse(topic(self.result(), "checks")["ready_for_owner_review"])
+
+    def test_changing_disposition_cannot_use_a_different_clients_evidence(self):
+        row = topic(self.assessment, "volume")
+        next(d for d in row["dimensions"] if d["key"] == "counts").update(
+            status="owner_followup", detail="Treasury supplies the counts.", evidence_turns=["u_routes"])
+        action = "We send the Fund B file to Treasury to get the counts."
+        self.turns.append({"id":"u_routes", "role":"user", "text":"Fund A has different instructions. " + action})
+        for kind in ("operational_hold", "accepted_exception", "external_handoff", "context_detail"):
+            with self.subTest(kind=kind):
+                row["owner_followups"] = [{"dimension":"counts", "kind":kind, "scope":"Fund A", "gap":"Who confirms the count?",
+                    "interim_action":action, "resolver":"Treasury", "evidence_turns":["u_routes"]}]
+                self.assertFalse(topic(self.result(), "volume")["ready_for_owner_review"])
+
+
 class GroupedAssessmentTests(unittest.TestCase):
     """The completion review runs topic groups concurrently; validation stays whole-account."""
 

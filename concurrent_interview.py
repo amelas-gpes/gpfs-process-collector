@@ -124,8 +124,8 @@ it; its subject stays open unless the participant returns to it themselves.
 breadth_due, when present, lists topics that are still open while recent questions stayed on parts
 already covered; their gaps and unresolved_wording say what is missing. The last lines of these
 instructions say how to turn to one of them.
-A topic's unresolved_wording quotes the wording in its notes that keeps that topic open. Unless the
-conversation has since settled that point, it is worth one neutral question.
+A topic's unresolved_wording may suggest an answerable gap. A reviewed owner_followup_only topic
+has no remaining participant question; a later correction or a new case may reopen it.
 known_unknowns lists, newest first, sentences in which the participant said a detail is unknown,
 unconfirmed, not theirs to give or left open for someone else. They come from the answers themselves,
 also from the answer just given, which no analysis has read yet. Each is a recorded gap: never ask for
@@ -142,8 +142,8 @@ earlier one. If an answer already gives it, or known_unknowns names it, choose a
 you write the question. The question asks for that need and nothing else.
 
 Return request_review=true and question="" only if the participant explicitly requests a whole
-interview wrap-up, or every applicable topic has a substantive explanation (or only explicitly
-unavailable gaps remain) after checking the entire account. A short 'no', hesitation, completed
+interview wrap-up, or all topics are explained or have only scoped owner follow-ups or explicitly
+unavailable gaps left after checking the entire account. A short 'no', hesitation, completed
 step, long conversation, existing draft or background status is not that request or readiness.
 Otherwise return request_review=false and exactly one question ending in '?' or one short request
 such as "Talk me through ...", preceded only by the brief answer permitted below.
@@ -1173,12 +1173,17 @@ class ConcurrentInterview:
                 wording_of = getattr(getattr(self.api, "interview_coverage", None), "uncertain_wording", None)
                 for finding in capture.get("memo_findings", []):
                     assessed = assessments.get(finding.get("key"), {})
+                    # An edited prefix has already been rejected. An appended answer can
+                    # change the route as well, so suppress prompts only for a current review.
+                    owner_only = (len(old_turns) == len(new_turns) and assessed.get("ready_for_owner_review") is True
+                                  and bool(assessed.get("owner_followups")))
                     wording = (wording_of(finding.get("answer"), finding.get("key"))
-                               if wording_of and finding.get("status") == "partial" else "")
+                               if wording_of and finding.get("status") == "partial" and not owner_only else "")
                     topics.append({"key": finding.get("key"), "status": finding.get("status"),
                                    "answer": str(finding.get("answer", ""))[:900],
                                    "evidence_turns": strings(finding.get("evidence_turns"), 20, 100),
                                    "gaps": strings(assessed.get("gaps")),
+                                   **({"owner_followup_only": True} if owner_only else {}),
                                    "participant_unavailable": bool(assessed.get("participant_unavailable") or
                                                        discussed.get(finding.get("key"), {}).get("participant_unavailable")),
                                    **({"unresolved_wording": wording} if wording else {})})
@@ -1221,7 +1226,8 @@ class ConcurrentInterview:
         if answers < BREADTH_AFTER_ANSWERS or answers % BREADTH_EVERY:
             return None
         open_topics = [topic for topic in topics if topic.get("status") in ("unknown", "partial")
-                       and not topic.get("participant_unavailable") and topic.get("key") not in BREADTH_LEFT_OUT]
+                       and not topic.get("participant_unavailable") and not topic.get("owner_followup_only")
+                       and topic.get("key") not in BREADTH_LEFT_OUT]
         if not open_topics:
             return None
         untouched = set(untouched or ())
@@ -1248,7 +1254,7 @@ class ConcurrentInterview:
         listed = "; ".join(f"{topic.get('label') or topic.get('topic')} ({TOPIC_ASKS.get(topic.get('topic'), 'what has not been described yet')})"
                            for topic in topics)
         return ("\nTHIS TURN: several questions have stayed on one part of the work while these topics have not been explored: "
-                f"{listed}. Unless the latest answer raised something that worries the participant, move to the one of them "
+                f"{listed}. Unless the latest answer raises a concern or leaves a consequential release or handoff unclear, move to the one of them "
                 "that connects best with what the participant has told you, and open it through a specific from their own "
                 "account (a step, role, system, record, figure or problem they named). The question must contain that specific "
                 "and must not be answered by anything already said. Never ask it as a stock question.")
@@ -1394,7 +1400,7 @@ class ConcurrentInterview:
         if capture:
             try:
                 unavailable = {topic.get("key") for topic in (capture.get("coverage_assessment") or {}).get("topics", [])
-                               if topic.get("participant_unavailable")}
+                               if topic.get("participant_unavailable") or topic.get("ready_for_owner_review") is True}
                 findings = capture["memo_findings"]
                 if any(finding["status"] not in ("captured", "not_applicable") and finding["key"] not in unavailable
                        for finding in findings):

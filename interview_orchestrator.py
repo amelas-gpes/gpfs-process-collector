@@ -393,8 +393,10 @@ class Coordinator:
             for topic in assessment.get("topics", []):
                 if topic["key"] in withdrawn:
                     topic["complete"] = False
+                    topic["ready_for_owner_review"] = False
                     topic["gaps"] = list(topic["gaps"]) + [self.WITHDRAWN_REPAIR_GAP]
             assessment["all_topics_covered"] = False
+            assessment["all_topics_ready_for_owner_review"] = False
             capture["withdrawn_repairs"] = withdrawn
             capture["repair_pass_findings"] = [item["detail"] for item in objections]
         return failures
@@ -507,9 +509,12 @@ class Coordinator:
         process = capture.get("process_review", {})
         if assessment.get("review_available") is False or process.get("review_available") is False:
             return []
-        open_keys = [item["key"] for item in capture["memo_findings"]
-                     if item["status"] not in ("captured", "not_applicable")]
         topics = {item["key"]: item for item in assessment.get("topics", [])}
+        delegated = {key for key, topic in topics.items() if topic.get("ready_for_owner_review") and topic.get("owner_followups")}
+        delegated.difference_update(capture.get("coverage_adjudication", {}).get("unconfirmed_topics", []))
+        open_keys = [item["key"] for item in capture["memo_findings"]
+                     if item["status"] not in ("captured", "not_applicable")
+                     and item["key"] not in delegated]
         unavailable_sources = set()
         if not open_keys:
             return []
@@ -648,6 +653,7 @@ class Coordinator:
                 for fact in fact_state["facts"] if fact["state"] != "active"][-128:]
             capture["fact_provenance"] = [
                 {"topic": fact["topic"], "text": fact["text"], "evidence_turns": list(fact["evidence_turns"]),
+                 **({"kind": "gap"} if fact["kind"] == "gap" else {}),
                  "history_ref": hashlib.sha256(fact["id"].encode()).hexdigest()[:16],
                  **{key: fact[key] for key in ("recorded_at", "origin", "origin_model") if key in fact},
                  "support": [dict(p) for p in fact.get("support", []) if p["source_id"] in fact["evidence_turns"]],
@@ -1052,6 +1058,8 @@ class Coordinator:
                 "text": question, "revision": ledger.revision, "completion_allowed": False}
             return self._remember(capture, context, turns, supporting, state["token"], state["run"], state.get("ticket"), state.get("fact_state"))
         question = "Thank you. All sixteen sections are captured and you have confirmed the account. It is ready for process-owner review."
+        if prior["completion"].get("owner_followup_count"):
+            question = "Thank you. You have confirmed the account. It is ready for process-owner review with the recorded follow-ups."
         capture.update(question=question, closure={"asked": True, "confirmed": True}, ready_for_draft=True)
         capture["completion"].update(allowed=True, complete=True, partial=False, participant_confirmed=True,
                                      ready_for_final_check=True, blockers=[], revision=ledger.revision,
@@ -1075,7 +1083,7 @@ class Coordinator:
                 "review_available": assessment.get("review_available", True),
                 "all_topics_covered": assessment.get("all_topics_covered", False),
                 "topics": [{key: copy.deepcopy(topic.get(key)) for key in
-                            ("key", "complete", "gaps", "next_question", "participant_unavailable")}
+                            ("key", "complete", "ready_for_owner_review", "gaps", "next_question", "participant_unavailable")}
                            for topic in assessment.get("topics", []) if isinstance(topic, dict)]}
             # A section whose proposed correction was not applied (refused by a guard, or
             # withdrawn after the process review of the corrected text) is open, and the
@@ -1093,6 +1101,7 @@ class Coordinator:
             for topic in context["coverage_assessment"]["topics"]:
                 if topic["key"] in withdrawn:
                     topic["complete"] = False
+                    topic["ready_for_owner_review"] = False
                     if Coordinator.WITHDRAWN_REPAIR_GAP not in (topic["gaps"] or []):
                         topic["gaps"] = list(topic["gaps"] or []) + [Coordinator.WITHDRAWN_REPAIR_GAP]
                     topic["proposed_correction"] = proposals.get(topic["key"]) or ""
@@ -1351,6 +1360,7 @@ class Coordinator:
 
             for key in deferred:
                 fact_state["topics"][key]["status"] = "partial"
+                fact_state["topics"][key].pop("owner_review_candidate", None)
             capture = capture_facts.public_capture(fact_state, transaction, api.COVERAGE)
             if not capture["question"].strip():
                 capture["question"] = api.next_uncovered_question(capture)
@@ -1372,10 +1382,15 @@ class Coordinator:
         candidate_full = (action != "document_followup" and not documents_pending
                           and api.memo_has_enough_detail(capture["memo_findings"]))
         open_findings = [item for item in capture["memo_findings"] if item["status"] not in ("captured", "not_applicable")]
+        owner_candidates = {item["key"] for item in open_findings
+                            if fact_state["topics"][item["key"]].get("owner_review_candidate")}
+        if open_findings and action != "document_followup" and not documents_pending:
+            candidate_full |= all(item["key"] in owner_candidates for item in open_findings)
         candidate_partial = (action != "document_followup" and not documents_pending and bool(open_findings)
-                             and all(fact_state["topics"][item["key"]]["discussed"]
-                                     and fact_state["topics"][item["key"]]["participant_unavailable"] for item in open_findings)
-                             and all(finding_reports_unavailable_knowledge(item, turns) for item in open_findings))
+                             and not candidate_full and all(item["key"] in owner_candidates or (
+                                 fact_state["topics"][item["key"]]["discussed"] and
+                                 fact_state["topics"][item["key"]]["participant_unavailable"] and
+                                 finding_reports_unavailable_knowledge(item, turns)) for item in open_findings))
         if not (candidate_full or candidate_partial):
             run.defer_roles(("coverage_reviewer", "process_reviewer"))
         self._publish(token, run, capture, supporting)
@@ -1523,6 +1538,10 @@ class Coordinator:
                            ("name", "purpose", "trigger", "completion", "accountable") if facts.get(key)]
                 question = (api.FINAL_CHECK_PREFIX + " we should add or correct in this account? " +
                             "Here is what I captured. " + ". ".join(summary) + ".")
+                if capture["completion"].get("owner_followup_count"):
+                    labels = [api.COVERAGE[t["key"]] for t in capture["coverage_assessment"]["topics"]
+                              if t.get("owner_followups")]
+                    question += " The recorded follow-ups for the process owner are in " + ", ".join(labels) + "."
                 kind = "final_check"
                 capture["closure"]["asked"] = True
             elif unavailable_topics := self._unavailable_only_topics(capture):
@@ -1536,7 +1555,7 @@ class Coordinator:
                 if not question:
                     question = next((item.get("next_question", "").strip()
                         for item in capture.get("coverage_assessment", {}).get("topics", [])
-                        if not item.get("complete") and not item.get("participant_unavailable")
+                        if not item.get("ready_for_owner_review") and not item.get("participant_unavailable")
                         and item.get("next_question", "").strip()), "")
                 # The same check _authorize applies, made here so that a refused reviewer
                 # question is counted under its own stage and never as a team question.
@@ -1620,7 +1639,8 @@ class Coordinator:
                 model_override=self.client.agent_models["coverage_reviewer"], topics=changed)
             received = {} if not assessment or assessment.get("review_available") is False else {
                 topic["key"]: {"key": topic["key"], "complete": topic["complete"],
-                               "gaps": topic["gaps"][:6], "next_question": topic["next_question"]}
+                               "gaps": topic["gaps"][:6], "next_question": topic["next_question"],
+                               **({"owner_followups": topic["owner_followups"]} if topic.get("owner_followups") else {})}
                 for topic in assessment["topics"] if topic["key"] in changed}
             with self._lock:
                 for key in changed:

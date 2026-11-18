@@ -242,6 +242,13 @@ resolves an earlier ambiguity, use the corrected reported fact; do not ask the p
 reconfirm it or list the superseded account as a current contradiction.
 Distinguish documented requirements or proposals
 from reported current practice. A document alone does not establish that its controls operate.
+Judge whether the interview explains the actual normal route, conditional routes and any known
+holds. A specifically held method can be fully described as held when the participant explains
+what stops or may continue and the role or source needed to proceed. Confirm those boundaries
+against what the person said. Unknown release vs acceptance, actor, rework or interim treatment
+that would require guessing is material. A referral alone does not explain the affected route.
+Allow owner follow-up for a known hold, a defined external handoff, or contextual information
+without operating impact. Never clear one client's, entity's or method's restriction for others.
 
 Return only genuine unresolved findings, each with a stable unique ASCII ID of 1–80 letters, digits, underscores or hyphens, kind, material flag,
 specific detail, exact authorized evidence_turns and one focused question. A missing detail can
@@ -342,6 +349,8 @@ def validate_coverage_review(assessment, ledger):
     for topic in assessment["topics"]:
         if not isinstance(topic, dict) or not isinstance(topic.get("complete"), bool):
             raise ValueError("A coverage topic needs an explicit assessed completion state.")
+        if "owner_followups" not in topic:
+            topic = dict(topic, owner_followups=[])
         if not set(TOPIC_SCHEMA["properties"]) <= set(topic):
             raise ValueError("A coverage topic is missing its supporting assessment.")
         entry = {key: copy.deepcopy(topic[key]) for key in TOPIC_SCHEMA["properties"]}
@@ -357,6 +366,11 @@ def validate_coverage_review(assessment, ledger):
                          "answer": entry["explanation"], "evidence_turns": entry["evidence_turns"]})
     data = ledger.snapshot
     _, checked = apply_assessment(proposed, {"topics": raw}, data["turns"], data["documents"], context=data["context"])
+    previous_ready = {topic["key"]: topic.get("ready_for_owner_review", topic["complete"])
+                      for topic in assessment["topics"]}
+    for topic in checked["topics"]:
+        topic["ready_for_owner_review"] &= previous_ready[topic["key"]] is True
+    checked["all_topics_ready_for_owner_review"] = all(t["ready_for_owner_review"] for t in checked["topics"])
     if "capture_repairs" in assessment:
         checked["capture_repairs"] = copy.deepcopy(assessment["capture_repairs"])
         validate_capture_repairs(checked, ledger.participant_ids | (ledger.source_ids & {"context"}))
@@ -676,11 +690,11 @@ def completion_permit(team, coverage_assessment=None, process_review=None, *, cu
         coverage = {"topics": [], "all_topics_covered": False}
     topics = coverage["topics"]
     topics_by_key = {topic["key"]: topic for topic in topics}
-    if coverage["all_topics_covered"] is not True:
+    if coverage.get("all_topics_ready_for_owner_review") is not True:
         blockers.append("coverage_incomplete")
     for key, required in TOPIC_DIMENSIONS.items():
         topic = topics_by_key.get(key, {})
-        if topic.get("complete") is not True:
+        if topic.get("ready_for_owner_review") is not True:
             blockers.append("coverage_unresolved:" + key)
     if process != results.get("process_reviewer") or not isinstance(process, dict):
         blockers.append("process_result_unbound")
@@ -700,6 +714,7 @@ def completion_permit(team, coverage_assessment=None, process_review=None, *, cu
     if user_stopped:
         blockers.append("participant_stopped")
     return {"allowed": complete, "ready_for_final_check": ready, "complete": complete,
+            "owner_followup_count": sum(len(t.get("owner_followups", [])) for t in topics),
             "partial": not complete, "participant_confirmed": confirmed,
             "blockers": list(dict.fromkeys(blockers)), "revision": team.ledger.revision,
             "run_id": team.run_id}

@@ -438,6 +438,37 @@ check("a saved interview keeps both records and reopens with them", async () => 
   assert.equal(notices.length > 0, true);
 });
 
+check("the reviewed handoff stays in its draft and reopens as historical evidence", async () => {
+  const {app}=harness();
+  const row={dimension:"exceptions_and_returns",kind:"operational_hold",gap:"The release authority is pending.",
+    scope:"Special invoices",interim_action:"We hold the special invoices.",resolver:"Treasury",evidence_turns:["t002"]};
+  app.state.turns.find(turn=>turn.id==="t002").text="We hold the special invoices. Treasury owns the decision.";
+  const result=reviewResult(app,{repairs:[],status:"partial"});
+  result.coverage_assessment={all_topics_covered:false,all_topics_ready_for_owner_review:true,
+    topics:[{key:"lifecycle",complete:false,ready_for_owner_review:true,owner_followups:[row],gaps:[]}]};
+  result.completion.owner_followup_count=1;
+  app.applyInterview(result);
+  app.setRequest(async()=>({draft:draftFixture(app),coverage_assessment:{topics:[],capture_repairs:[]}}));
+  await app.generateDraft();
+  const saved=plain(app.sessionObject());
+  assert.deepEqual(saved.owner_followups,[{...row,topic:"lifecycle"}]);
+  assert.deepEqual(saved.draft.owner_followups,saved.owner_followups);
+  assert.equal(app.transcriptObject().memo.all_topics_covered,false);
+  for(const exported of [app.memoMarkdown(),app.markdown(),app.transcriptMarkdown(app.transcriptObject())]){
+    for(const field of ["gap","scope","interim_action","resolver"])assert.ok(exported.includes(row[field]));
+  }
+  const reopened=harness();
+  await reopened.app.importSession({size:10,text:async()=>JSON.stringify(saved)});
+  assert.deepEqual(plain(reopened.app.state.savedOwnerFollowups),saved.owner_followups);
+  assert.equal(reopened.app.state.coverageVerified,false);
+  assert.equal(reopened.app.state.closure.confirmed,false);
+  assert.ok(reopened.app.memoMarkdown().includes(row.gap));
+  saved.owner_followups[0].evidence_turns=["missing"];
+  await reopened.app.importSession({size:10,text:async()=>JSON.stringify(saved)});
+  assert.match(reopened.notices.at(-1)[0],/missing participant answer/);
+  assert.equal(reopened.app.state.savedOwnerFollowups[0].evidence_turns[0],"t002");
+});
+
 queue.then(() => {
   assert.equal(providerCalls, 0);
   console.log(JSON.stringify({tests_passed:passed, provider_calls:providerCalls, voice_tests:0}));

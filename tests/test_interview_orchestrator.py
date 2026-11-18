@@ -12,7 +12,7 @@ from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 from test_server import server, interview_payload, interview_result, process_draft, coverage_topic_properties
-from test_interview_coverage import fixture
+from test_interview_coverage import fixture, held_method
 from fact_fixture import as_fact_delta
 
 # A completion review is one process-review call plus one coverage call per topic group.
@@ -203,6 +203,38 @@ class CoordinatorBoundaryTests(unittest.TestCase):
         self.assertTrue(confirmed["closure"]["confirmed"])
         self.assertEqual(confirmed["speech_authorization"]["kind"], "complete")
 
+    def test_candidate_handoff_uses_normal_review_calls_and_keeps_held_route_open(self):
+        client = SyntheticTeamProvider()
+        checks = next(t for t in client.assessment["topics"] if t["key"] == "checks")
+        witness = held_method(checks)
+        client.turns.append(witness)
+        def provide(path, body, *args, **kwargs):
+            result = client.reply(path, body, *args, **kwargs)
+            if body["text"]["format"]["name"] == "team_interview_capture":
+                output = result["output"][0]["content"][0]
+                delta = json.loads(output["text"])
+                next(row for row in delta["topic_states"] if row["key"] == "checks")["status"] = "owner_followup"
+                for kind, words in (("gap", checks["owner_followups"][0]["gap"]), ("detail", witness["text"])):
+                    delta["fact_operations"].append({"op": "add", "topic": "checks", "target_id": "", "kind": kind,
+                        "text": words, "evidence_turns": ["u_hold"], "support": [], "reason": "new_evidence"})
+                output["text"] = json.dumps(delta)
+            return result
+        client.request.side_effect = provide
+        payload, pending = prepared_review(client)
+        self.assertEqual(client.request.call_count, 1)
+        self.assertEqual(pending["review_purpose"], "completion")
+        self.assertTrue(any(f.get("kind") == "gap" and f["topic"] == "checks" for f in pending["fact_provenance"]))
+        reviewed = client.coordinator.review(payload)
+        self.assertEqual(reviewed["speech_authorization"]["kind"], "final_check")
+        self.assertFalse(reviewed["coverage_assessment"]["all_topics_covered"])
+        self.assertTrue(reviewed["coverage_assessment"]["all_topics_ready_for_owner_review"])
+        self.assertEqual(next(f for f in reviewed["memo_findings"] if f["key"] == "checks")["status"], "partial")
+        confirmed = client.coordinator.interview(reply_payload(payload, reviewed, "No, that is everything."))
+        self.assertTrue(confirmed["completion"]["complete"])
+        self.assertEqual(confirmed["completion"]["owner_followup_count"], 1)
+        self.assertIn("with the recorded follow-ups", confirmed["question"])
+        self.assertEqual(client.request.call_count, 1 + REVIEW_CALLS)
+
     def test_unsubstantiated_process_clearance_cannot_unlock_final_question(self):
         for summary, citations in (("", ["u_lifecycle"]), ("The reported route is clear.", []),
                                    ("UNKNOWN", ["u_lifecycle"]), ("No material blockers.", ["u_lifecycle"])):
@@ -213,6 +245,30 @@ class CoordinatorBoundaryTests(unittest.TestCase):
                 self.assertFalse(result["completion"]["ready_for_final_check"])
                 self.assertTrue(result["review_retry_required"])
                 self.assertFalse(result["process_review"]["review_available"])
+
+    def test_sent_notice_with_unknown_acceptance_keeps_the_finish_question_open(self):
+        client = SyntheticTeamProvider()
+        action = "We send the reconciled package and notice to AEA."
+        client.turns.append({"id": "u_aea", "role": "user", "text": action +
+                             " I don't know if that closes the quarter or if AEA has to accept it."})
+        completion = next(t for t in client.assessment["topics"] if t["key"] == "completion")
+        dimension = next(d for d in completion["dimensions"] if d["key"] == "downstream_consumer")
+        dimension.update(status="owner_followup", detail=action, evidence_turns=["u_aea"])
+        completion["owner_followups"] = [{"dimension": "downstream_consumer", "kind": "external_handoff",
+            "gap": "Confirm what AEA does with the final package.", "scope": "reconciled package",
+            "interim_action": action, "resolver": "AEA", "evidence_turns": ["u_aea"]}]
+        question = "What tells your team the quarter is finished after the notice goes to AEA?"
+        client.blocker(question)
+        client.process["findings"][0].update(kind="ambiguous_output", evidence_turns=["u_aea"],
+            detail="Sending the notice is established. Whether AEA must accept it before close is unresolved.")
+        _, result = reviewed_capture(client)
+        self.assertTrue(result["coverage_assessment"]["all_topics_ready_for_owner_review"])
+        self.assertEqual(result["completion"]["owner_followup_count"], 1)
+        self.assertIn("process_blocker:P1", result["completion"]["blockers"])
+        self.assertFalse(result["completion"]["ready_for_final_check"])
+        self.assertFalse(result["closure"]["confirmed"])
+        self.assertEqual(result["speech_authorization"]["kind"], "question")
+        self.assertEqual(result["question"], question)
 
     def test_context_only_clearance_needs_reported_background_beyond_the_intake_labels(self):
         for background, allowed in (("", False), ("UNKNOWN", False), ("Invoice approval", False),

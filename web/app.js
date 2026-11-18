@@ -66,7 +66,7 @@
     draftEdited: false, example: false, dirty: false,
     config: null, utterance: null, voice: null, speechVersion: 0, captureToken:null, coverageVerified:false,
     provisionalQuestion:null, advisory:{}, liveSuggestedQuestion:"",
-    captureRepairs:{memo:{},draft:{}}, draftCoverage:null,
+    captureRepairs:{memo:{},draft:{}}, draftCoverage:null, savedOwnerFollowups:[],
     localVoices: [], voiceChoice: null, voiceChoiceUser: false, speechOperation: null,
     recording: null, requestingMic: false, transcribing: false,
     taxonomy:[],connections_out:[],active_modules:[],recap_due:"none",memo_findings: [], focus: "", parking_lot: [], closure: {asked:false,confirmed:false}, coverageNeedsReview:false, captureProvenance:null, documentEvidence:[],
@@ -739,6 +739,7 @@
     CONTEXT_FIELDS.forEach(showFieldLimit);
   }
   function contextReviewChanged(){
+    state.savedOwnerFollowups=[];state.advisory={};
     if(!state.closure.asked&&!state.coverageVerified&&!pendingFinalCheck&&!pendingCompletionReview)return;
     suppressWorkflowReadiness();
     notice("The interview details changed. Choose Wrap up to review the updated account.",false,"review",true);
@@ -1161,7 +1162,8 @@
   function renderClosure() {
     const partialEnding = state.closure.partial === true, openSections = partialEnding ? state.closure.open || [] : [];
     $("closure-status").hidden = !state.coverageNeedsReview && !state.closure.asked && !state.closure.confirmed && !partialEnding;
-    $("closure-status").textContent = state.coverageNeedsReview ? "Coverage and completion need a new check." : state.closure.confirmed ? "You confirmed nothing is missing." : state.closure.asked ? "Waiting for your final confirmation."
+    const confirmed=state.completion?.owner_followup_count>0 ? "Account confirmed with follow-ups for the process owner." : "You confirmed nothing is missing.";
+    $("closure-status").textContent = state.coverageNeedsReview ? "Coverage and completion need a new check." : state.closure.confirmed ? confirmed : state.closure.asked ? "Waiting for your final confirmation."
       : partialEnding ? `Kept as a partial capture. ${openSections.length} section${openSections.length === 1 ? " needs" : "s need"} information you do not have here: ${openSections.join("; ")}. Create the draft, or add more detail.` : "";
     // While the final check waits for its reply, the reply it accepts is offered
     // as a control. In Live voice the reply is spoken, so the control waits.
@@ -1265,6 +1267,7 @@
     let prechecked = 0;
     let rewritten = 0;
     const participantIds=new Set(participantCoverageBasis().map(([id])=>id));
+    const reviewedTopics=currentCoverageAssessment()?.topics||[];
     TOPICS.forEach(([key, label]) => {
       const item = state.coverage.find(c => c.key === key);
       const finding = state.memo_findings.find(c => c.key === key);
@@ -1273,6 +1276,7 @@
       const awaitingReview=provisionalFinding(finding)||(!coverageVerified()&&!finding&&item?.status==="covered");
       const status = awaitingReview?"captured":finding ? (["not_applicable","captured"].includes(finding.status) ? "covered" : finding.status==="partial" ? "partial" : "missing") : ["partial","covered"].includes(item?.status) ? item.status : "missing";
       const advisory=awaitingReview?advisoryFor(finding):null,checking=awaitingReview&&!advisory&&Boolean(advisoryCheck);
+      const ownerFollowup=readyWithFollowups(reviewedTopics.find(topic=>topic.key===key));
       if(awaitingReview)provisional++;
       if(advisory?.complete)prechecked++;
       if (status === "covered") completed++;
@@ -1289,11 +1293,12 @@
       const needsDetail=awaitingReview?Boolean(advisory&&!advisory.complete):status!=="covered"&&finding?.status!=="not_applicable"&&!documentOnlyFinding(finding)&&discussed;
       node.classList.toggle("needs-detail", needsDetail);
       let title = `${label}: ${awaitingReview?(advisory?(advisory.complete?"captured; the advisory check found no gaps; completion review pending":"captured; the advisory check noted a gap: "+(advisory.gaps[0]||"see details")):checking?"captured; advisory check running":"captured; awaiting review"):documentOnlyFinding(finding)?"documented; confirmation pending":finding?.status === "not_applicable" ? "not applicable (participant confirmed)" : status === "missing" ? (discussed?"discussed; needs detail":"no detail captured yet") : status==="partial"?"In progress":"Covered"}`;
+      if(ownerFollowup)title=label+": owner follow-up recorded";
       if(repaired){rewritten++;title+="; rewritten by the completion review, earlier notes kept";}
       if(node.title!==title){node.title=title;node.setAttribute("aria-label",title);}
       setText(entry.dot, status === "covered" ? "✓" : advisory?.complete ? "·" : "");
       // The tick already says "covered"; the tooltip keeps the full state of each row.
-      setText(entry.detail, awaitingReview?(needsDetail?"Captured · needs detail":"Captured"):needsDetail?"Needs detail":finding?.status === "not_applicable" ? "Not applicable" : status === "covered" ? "" : status === "partial" ? (documentOnlyFinding(finding)?"Documented":topicStatusLabel("partial")) : "");
+      setText(entry.detail, ownerFollowup?"Owner follow-up":awaitingReview?(needsDetail?"Captured · needs detail":"Captured"):needsDetail?"Needs detail":finding?.status === "not_applicable" ? "Not applicable" : status === "covered" ? "" : status === "partial" ? (documentOnlyFinding(finding)?"Documented":topicStatusLabel("partial")) : "");
     });
     // In place: the list is filled once (and again only if something emptied it).
     const buttons=TOPICS.map(([key])=>coverageNodes.get(key).node),listed=root.children||[];
@@ -1489,7 +1494,7 @@
         if(entry&&evidence.includes(entry.source_id)&&typeof entry.quote==="string"&&entry.quote.trim()&&sources.get(entry.source_id)?.includes(entry.quote))support.push({source_id:entry.source_id,quote:text(entry.quote,1200)});
       }
       const unverified=strings(item.unverified||[],24).map(flag=>text(flag,600)).filter(Boolean);
-      if(evidence.length||unverified.length)facts.push({...factRecordFields(item),topic:item.topic,text:text(item.text,2400),evidence_turns:evidence,support,unverified});
+      if(evidence.length||unverified.length||item.kind==="gap")facts.push({...factRecordFields(item),...(item.kind==="gap"?{kind:"gap"}:{}),topic:item.topic,text:text(item.text,2400),evidence_turns:evidence,support,unverified});
     }
     return facts;
   }
@@ -1515,7 +1520,7 @@
       evidence_turns:Array.isArray(row.evidence_turns)?row.evidence_turns.filter(id=>allowed.has(id)):[]
     }));
     const basis=participantCoverageBasis(captured.turns);
-    analysisCheckpoint={basis:JSON.stringify(basis),count:basis.length,documents:captured.document_revision??activeDocumentSignature()};
+    analysisCheckpoint={basis:JSON.stringify(basis),count:basis.length,documents:captured.document_revision??activeDocumentSignature(),context:JSON.stringify(captured.context??state.context)};
   }
   function rememberKeptNotes(captured){
     // A pause request settles the conversation without new notes. Nothing is
@@ -1603,6 +1608,82 @@
     if(sourceOrigin && $("settings-source-return")?.hidden===false){returnToSource();return;}
     if(settingsRestoreFocus)opener.focus({preventScroll:true});
   }
+  function currentCoverageAssessment() {
+    const check=conversationUI.coverageCheckpoint;
+    if(!state.coverageVerified||!check?.assessment||check.assessment.review_available===false||
+       check.generation!==state.generation||check.documentRevision!==activeDocumentSignature()||
+       check.context!==JSON.stringify(state.context)||check.basis!==JSON.stringify(participantCoverageBasis()))return;
+    return check.assessment;
+  }
+  function currentTopicReview(key) {
+    return currentCoverageAssessment()?.topics?.find(topic=>topic.key===key);
+  }
+  function readyWithFollowups(topic,unconfirmed=conversationUI.coverageCheckpoint?.unconfirmedTopics||[]){
+    return topic?.ready_for_owner_review===true&&topic.owner_followups?.length>0&&!unconfirmed.includes(topic.key);
+  }
+  const followupKinds={operational_hold:"Operational hold",accepted_exception:"May proceed with an open exception",external_handoff:"External handoff",context_detail:"Supporting detail"};
+  function renderTopicGaps(key,finding,review,advisory) {
+    const panel=$("foundation-topic-gaps");
+    if(!panel)return;
+    const assessment=review||advisory;
+    const saved=!assessment&&(state.savedOwnerFollowups||[]).filter(row=>row.topic===key);
+    const followups=assessment?.owner_followups||saved||[];
+    const process=key==="lifecycle"&&review?conversationUI.coverageCheckpoint.processGaps:[];
+    const open=assessment?.gaps||[];
+    // Without a reviewer, show the active gap records the notes already carry.
+    // Never infer a blocker or a handoff from a keyword in a participant's answer.
+    const gaps=open.map(line=>line.replace(/^([a-z]+(?:_[a-z]+)*):\s*/,(_,field)=>readableTerm(field)+" — "));
+    if(!assessment)gaps.push(...(state.factProvenance||[]).filter(fact=>fact.topic===key&&fact.kind==="gap"&&!followups.some(row=>row.gap===fact.text)).map(fact=>fact.text));
+    gaps.push(...(process||[]).map(row=>row.detail));
+    const listed=[...new Set(gaps.filter(Boolean))];
+    const question=assessment?.next_question||(process||[]).find(row=>row.question)?.question||"";
+    let heading=review?"Open interview gaps":advisory?"Preliminary gaps":"Open in the notes";
+    if(!assessment&&listed.length&&analysisCheckpoint){
+      if(analysisCheckpoint.basis!==JSON.stringify(participantCoverageBasis())||analysisCheckpoint.documents!==activeDocumentSignature()||
+        (analysisCheckpoint.context&&analysisCheckpoint.context!==JSON.stringify(state.context)))heading="From earlier notes · update pending";
+      else if(analysisCheckpoint.restored)heading="Open in the saved notes · recheck pending";
+    }
+    if(!listed.length&&!question&&!followups.length){
+      if(documentOnlyFinding(finding)){
+        heading="Confirm current practice";
+        listed.push("Which parts of the written procedure do people follow today, and where does the work differ?");
+      }else if(!finding||finding.status==="unknown"||finding.status==="partial"){
+        heading="Coverage to check";
+        listed.push(TOPIC_GUIDES[key]);
+      }
+    }
+    const ownerHeading=saved?.length?"Saved owner follow-up · recheck pending":advisory&&!review?"Possible owner follow-up":"For the process owner";
+    const contents=JSON.stringify([key,heading,listed,question,ownerHeading,followups]);
+    if(panel.dataset.contents===contents)return;
+    panel.dataset.contents=contents;
+    const groups=[];
+    if(listed.length||question){
+      const section=el("section","topic-gap-group");
+      section.append(el("h3","",heading));
+      if(listed.length===1)section.append(el("p","",listed[0]));
+      else if(listed.length){
+        const list=el("ul");for(const value of listed)list.append(el("li","",value));section.append(list);
+      }
+      if(question&&!listed.includes(question)){
+        const line=el("p");line.append(el("strong","","Follow-up question "),el("span","",question));section.append(line);
+      }
+      groups.push(section);
+    }
+    if(followups.length){
+      const section=el("section","topic-gap-group owner-followups");section.append(el("h3","",ownerHeading));
+      for(const row of followups){
+        const item=el("article");
+        item.append(el("p","followup-kind",followupKinds[row.kind]||"Follow-up"),el("p","",row.gap));
+        const fields=el("dl");
+        for(const [label,value] of [["Affected work",row.scope],["What happens meanwhile",row.interim_action],["Who or what can resolve it",row.resolver]]){
+          if(value)fields.append(el("dt","",label),el("dd","",value));
+        }
+        item.append(fields);section.append(item);
+      }
+      groups.push(section);
+    }
+    panel.hidden=!groups.length;panel.replaceChildren(...groups);
+  }
   function showFoundationTopic(key, trigger) {
     if (!TOPICS.some(([topic]) => topic === key)) return;
     const dialog = $("foundation-dialog");
@@ -1610,12 +1691,15 @@
     const finding = state.memo_findings.find(item => item.key === key);
     foundationTopic = key; foundationReturnFocus = trigger?.closest?.("dialog")&&!trigger.closest("dialog").open ? $("open-memo") : trigger;
     $("foundation-topic-title").textContent = MEMO_HEADINGS[key];
-    const advisory=provisionalFinding(finding)?advisoryFor(finding):null;
+    const review=currentTopicReview(key),advisory=provisionalFinding(finding)?advisoryFor(finding):null;
     const statusBadge=$("foundation-topic-status");
     statusBadge.dataset.status=provisionalFinding(finding)||documentOnlyFinding(finding)?"pending":finding?.status||"unknown";
-    $("foundation-topic-status").textContent = provisionalFinding(finding)?(advisory?(advisory.complete?"Captured · pre-checked, completion review pending":"Captured · advisory check noted a gap"):"Captured · awaiting review"):documentOnlyFinding(finding)?"Documented · needs confirmation":findingStatusLabel(finding);
+    $("foundation-topic-status").textContent = readyWithFollowups(review)?"Owner follow-up recorded":provisionalFinding(finding)?(advisory?(advisory.complete?"Captured · pre-checked, completion review pending":"Captured · advisory check noted a gap"):"Captured · awaiting review"):documentOnlyFinding(finding)?"Documented · needs confirmation":findingStatusLabel(finding);
+    renderTopicGaps(key,finding,review,advisory);
     $("foundation-topic-answer").textContent = finding?.answer?.trim() ? finding.answer : "Not covered yet.";
-    $("foundation-topic-hint").textContent = advisory&&!advisory.complete&&advisory.gaps.length?`Advisory check: ${advisory.gaps.join(" ")}${advisory.next_question?` Suggested question: ${advisory.next_question}`:""}`:documentOnlyFinding(finding)?"Captured from the attached file. Follow up on stated gaps or differences in current practice; the file itself is not process-owner approval.":finding?.status==="partial" ? `Still open: ${TOPIC_GUIDES[key]}` : finding?.answer?.trim() ? "From the interview — not independently verified." : TOPIC_GUIDES[key];
+    const hint=$("foundation-topic-hint");
+    hint.textContent=documentOnlyFinding(finding)?"From the attached file.":finding?.answer?.trim()?"From the interview — not independently verified.":"";
+    hint.hidden=!hint.textContent;
     const sources=$("foundation-topic-sources");
     const focusedTurn=sources.contains(document.activeElement)?document.activeElement?.dataset?.sourceTurn:null;
     sources.hidden=!finding?.answer?.trim()&&!finding?.evidence_turns?.length;
@@ -2836,7 +2920,7 @@
     if(memo){
       Object.assign(state,memo);notesProgress=captureProgressMark(captured.turns);keepMapProgress(result,captured.turns);
       traceNotes("live_capture");
-      rememberCoverageCheckpoint(captured.turns,captured.revision,captured.document_revision,result.coverage_assessment);
+      rememberCoverageCheckpoint(captured.turns,captured.revision,captured.document_revision,result.coverage_assessment,result.process_review,result.coverage_adjudication);
       rewritten=acceptRepairs(repairs,memo.memo_findings);
       // The notes now include these answers; the notes line reads from this.
       rememberDiscussion(result,captured);
@@ -2974,6 +3058,7 @@
   }
   function suppressWorkflowReadiness() {
     currentVoiceEnding=null;
+    state.savedOwnerFollowups=[];
     state.completion=null;pendingFinalCheck=null;
     state.closure={asked:false,confirmed:false};
     clearTimeout(liveCompleteTimer);liveCompleteTimer=null;
@@ -2996,10 +3081,14 @@
     mapNote(message,"issue");$("workflow-status").textContent=message;
     const recheck=$("retry-workflow");recheck.hidden=false;recheck.textContent="Recheck coverage";recheck.dataset.coverageRecheck="true";
   }
-  function rememberCoverageCheckpoint(turns=state.turns,revision=conversationUI.revision,documentRevision=activeDocumentSignature(),assessment=null) {
+  function rememberCoverageCheckpoint(turns=state.turns,revision=conversationUI.revision,documentRevision=activeDocumentSignature(),assessment=null,processReview=null,adjudication=null) {
+    if(state.coverageVerified&&assessment?.review_available!==false&&assessment?.topics?.length)state.savedOwnerFollowups=[];
     const basis=participantCoverageBasis(turns);
+    const processGaps=(processReview?.findings||[]).filter(row=>row.material);
+    const unconfirmedTopics=adjudication?.unconfirmed_topics||(processGaps.length||processReview?.review_available===false?["lifecycle"]:[]);
     conversationUI.coverageCheckpoint={generation:state.generation,revision,documentRevision,sequence:++conversationUI.coverageCheckpointSequence,
-      basis:JSON.stringify(basis),through:basis.at(-1)?.[0]||null,assessment:assessment?clone(assessment):null};
+      basis:JSON.stringify(basis),through:basis.at(-1)?.[0]||null,assessment:assessment?clone(assessment):null,
+      context:assessment?JSON.stringify(state.context):null,processGaps,unconfirmedTopics};
     state.coverageNeedsReview=assessment?.review_available===false;
     const recheck=$("retry-workflow");
     if(recheck?.dataset.coverageRecheck){delete recheck.dataset.coverageRecheck;recheck.textContent="Try again";recheck.hidden=!recheck.dataset.layoutRetry;}
@@ -3039,6 +3128,8 @@
     const reviewed=topic=>checkpoint?.assessment?.topics?.find(item=>item.key===topic);
     const open=TOPICS.map(([topic])=>topic).filter(topic=>{
       const finding=state.memo_findings.find(item=>item.key===topic),review=reviewed(topic);
+      if(checkpoint.unconfirmedTopics?.includes(topic))return true;
+      if(state.coverageVerified&&readyWithFollowups(review))return false;
       return !finding||!["captured","not_applicable"].includes(finding.status)||review?.complete===false||(review?.gaps||[]).length>0;
     });
     const listed=[...open];
@@ -3115,7 +3206,7 @@
           analysisCheckpoint={basis:JSON.stringify(basis),count:basis.length,documents:captured.document_revision??activeDocumentSignature()};
           renderAnalysisThrough();
         }
-        notesProgress=captureProgressMark(captured.turns);state.completion=result.completion||null;state.coverageVerified=result.coverage_verified===true;if(typeof result.capture_token==="string")state.captureToken=result.capture_token;rememberCoverageCheckpoint(captured.turns,revision,captured.document_revision,result.coverage_assessment);}
+        notesProgress=captureProgressMark(captured.turns);state.completion=result.completion||null;state.coverageVerified=result.coverage_verified===true;if(typeof result.capture_token==="string")state.captureToken=result.capture_token;rememberCoverageCheckpoint(captured.turns,revision,captured.document_revision,result.coverage_assessment,result.process_review,result.coverage_adjudication);}
       // A diagram-only result cannot revoke a newer capture's completion review.
       // New participant evidence already revokes readiness when it arrives.
       if(options.documentIntake||pending&&memo)suppressWorkflowReadiness();else if(memo)announceReadiness();
@@ -4040,14 +4131,44 @@
   // participant asked for (preserve_capture) are pauses too, but not this one.
   function partialClosure(result,findings) {
     if(result?.speech_authorization?.kind!=="pause"||result.coverage_verified!==true||!coverageVerified()||result.review_retry_required===true||result.preserve_capture===true)return {};
-    return {partial:true,open:TOPICS.filter(([key])=>!["captured","not_applicable"].includes(findings.find(item=>item.key===key)?.status)).map(([,label])=>label)};
+    const unconfirmed=result.coverage_adjudication?.unconfirmed_topics||[];
+    const delegated=new Set((result.coverage_assessment?.topics||[]).filter(topic=>readyWithFollowups(topic,unconfirmed)).map(topic=>topic.key));
+    const open=TOPICS.filter(([key])=>!delegated.has(key)&&!["captured","not_applicable"].includes(findings.find(item=>item.key===key)?.status));
+    return {partial:true,open:open.map(([,label])=>label)};
   }
   function memoComplete(findings=state.memo_findings) {
     return findings.length===TOPICS.length && TOPICS.every(([key])=>findings.filter(f=>f.key===key&&["captured","not_applicable"].includes(f.status)).length===1);
   }
+  function assessmentFollowups(assessment) {
+    return (assessment?.topics||[]).flatMap(topic=>(topic.owner_followups||[]).map(row=>({...row,topic:topic.key})));
+  }
+  function savedFollowups(rows,turns) {
+    if(rows===undefined)return [];
+    if(!Array.isArray(rows)||rows.length>384)throw new Error("The saved owner follow-ups are invalid.");
+    const participants=new Set(turns.filter(turn=>turn.role==="user"&&!turn.document_event).map(turn=>turn.id));
+    return rows.map(row=>{
+      const fields=["gap","scope","interim_action","resolver"];
+      if(!TOPICS.some(([key])=>key===row?.topic)||!Object.hasOwn(followupKinds,row.kind)||
+        typeof row.dimension!=="string"||!row.dimension.trim()||row.dimension.length>100||
+        fields.some(key=>!text(row[key],500).trim())||!Array.isArray(row.evidence_turns)||!row.evidence_turns.length||
+        row.evidence_turns.length>400||row.evidence_turns.some(id=>!participants.has(id)))throw new Error("An owner follow-up is incomplete or cites a missing participant answer.");
+      return {topic:row.topic,dimension:row.dimension,kind:row.kind,gap:row.gap,scope:row.scope,interim_action:row.interim_action,resolver:row.resolver,evidence_turns:[...new Set(row.evidence_turns)]};
+    });
+  }
+  function interviewFollowups() {
+    const assessment=currentCoverageAssessment();
+    return assessment?assessmentFollowups(assessment):state.savedOwnerFollowups;
+  }
+  function followupDescription(row) {
+    return `${followupKinds[row.kind]} · ${row.scope} — ${row.gap}\nCurrent practice — ${row.interim_action}\nWho or what can resolve it — ${row.resolver}`;
+  }
+  function followupsMarkdown(rows) {
+    return rows.map(row=>"- "+escapeMarkdown(followupDescription(row)).replace(/\n/g,"\n  ")+" ("+row.evidence_turns.map(escapeMarkdown).join(", ")+")").join("\n");
+  }
   function announceReadiness() {
-    const complete=!state.closure.asked&&!state.closure.confirmed&&memoComplete()&&coverageVerified()&&(!state.config?.agent_team?.enabled||state.completion?.ready_for_final_check===true);
-    if(complete&&!conversationUI.readyAnnounced) notice(`All ${TOPICS.length} topics are covered. Create a draft whenever you’re ready, or keep talking.`,false,"ready");
+    const complete=!state.closure.asked&&!state.closure.confirmed&&coverageVerified()&&
+      (state.config?.agent_team?.enabled?state.completion?.ready_for_final_check===true:memoComplete());
+    if(complete&&!conversationUI.readyAnnounced) notice(state.completion?.owner_followup_count>0?"The account is ready for the final check. Owner follow-ups are in Notes.":`All ${TOPICS.length} topics are covered. Create a draft whenever you’re ready, or keep talking.`,false,"ready");
     if(!complete&&noticeKind==="ready") {clearTimeout(noticeTimer);noticeRegion().hidden=true;}
     conversationUI.readyAnnounced=complete;
   }
@@ -4128,7 +4249,7 @@
     state.parking_lot = parked;
     state.closure = {asked:result.closure?.asked === true&&(!full||result.closure?.confirmed===true),confirmed:!state.captureProvenance&&result.closure?.confirmed === true&&coverageVerified()&&(!state.config?.agent_team?.enabled||result.completion?.complete===true),...partialClosure(result,findings)};
     traceNotes("interview");
-    rememberCoverageCheckpoint(state.turns,conversationUI.revision,activeDocumentSignature(),result.coverage_assessment);
+    rememberCoverageCheckpoint(state.turns,conversationUI.revision,activeDocumentSignature(),result.coverage_assessment,result.process_review,result.coverage_adjudication);
     const rewritten = acceptRepairs(repairs,findings);
     state.dirty = true;
     // A review whose acknowledgement was never shown is not started.
@@ -4162,7 +4283,8 @@
         for(const topic of result.topics){
           const finding=state.memo_findings.find(f=>f.key===topic?.key);
           if(!finding||result.answers?.[topic.key]!==finding.answer)continue;
-          state.advisory[topic.key]={answer:finding.answer,complete:topic.complete===true,gaps:strings(topic.gaps,6).map(gap=>text(gap,500)),next_question:text(topic.next_question,1200)};
+          state.advisory[topic.key]={answer:finding.answer,complete:topic.complete===true,gaps:strings(topic.gaps,6).map(gap=>text(gap,500)),next_question:text(topic.next_question,1200),
+            owner_followups:Array.isArray(topic.owner_followups)?topic.owner_followups:[]};
         }
       }catch{/* Advisory only; a failed pre-check leaves topics awaiting review. */}
       finally{if(advisoryCheck===check){advisoryCheck=null;if(generation===state.generation)renderCoverage();}}
@@ -4849,6 +4971,7 @@
     }
     return {
       ...(value.question_limit_notice?{question_limit_notice:text(value.question_limit_notice,800)}:{}),...(value.step_id_high_water?{step_id_high_water:stepHighWater(value)}:{}),...(generated_by.length?{generated_by}:{}),...(field_evidence.length?{field_evidence}:{}),
+      ...(value.owner_followups?.length?{owner_followups:savedFollowups(value.owner_followups,sourceTurns)}:{}),
       title: text(value.title, 300), overview: text(value.overview, 12000), trigger: text(value.trigger, 6000),
       inputs: strings(value.inputs), outputs: strings(value.outputs), steps,
       connections:connections.map(c => ({from:c.from,to:c.to,label:text(c.label,300),evidence_turns:evidenceSources(c.evidence_turns||[],sourceTurns,documentEvidence)})),
@@ -4881,6 +5004,8 @@
       if(version!==state.version){notice("The interview changed while the draft was being prepared. Create the draft again to include the latest details.",false,"draft",true);return;}
       const documentEvidence=mergeDocumentEvidence(result.document_evidence);
       const draft=normalizeDraft({...result.draft,generated_by:result.generated_by||result.draft?.generated_by},state.turns,documentEvidence);
+      const followups=assessmentFollowups(currentCoverageAssessment()||result.coverage_assessment);
+      if(followups.length)draft.owner_followups=savedFollowups(followups,state.turns);
       const rewritten=normalizeRepairs(result.coverage_assessment?.capture_repairs,draft.memo_summary,state.turns,documentEvidence);
       const unreviewed=draftCoverageGap(result.coverage_assessment,draft.memo_summary);
       if(state.draft){
@@ -5167,7 +5292,14 @@
     part=section("7. Variations and boundaries");
     if(!d.variations?.length)part.append(el("p","","No variations established; this does not confirm there are none."));
     (d.variations||[]).forEach((item,i)=>{part.append(el("h3","",`Variation ${i+1}`));fields(part,[["Applies to",item.applies_to],["Difference",item.difference],["Reason",item.reason],["Cost / effort",item.cost],["Charging / billing",item.charging],["Removability / standardization",item.removability],["Boundary",item.boundary.replaceAll("_"," ")],["Boundary reason",item.boundary_reason],["Variation class",item.variant_class],["Substantive or presentation",item.substantive_or_presentation],["Reported source",item.source],["Standard route step",item.standard_route_ref]]);part.append(evidenceRow(item.evidence_turns));});
-    for(const [heading,values,empty] of [["8. Exceptions and recovery",d.exceptions],["9. Controls and checks",d.controls],["10. Open questions",d.open_questions,"No open questions recorded."],["11. Validation notes",d.validation_notes],["12. Parked topics",state.parking_lot,"No topics parked."]]){part=section(heading);if(values===d.exceptions)sourcedList(part,"exceptions");else if(values===d.controls)sourcedList(part,"controls");else list(part,values,empty);}
+    for(const [heading,values,empty] of [["8. Exceptions and recovery",d.exceptions],["9. Controls and checks",d.controls],["10. Open questions",d.open_questions,"No open questions recorded."],["11. Validation notes",d.validation_notes],["12. Parked topics",state.parking_lot,"No topics parked."]]){
+      part=section(heading);
+      if(values===d.open_questions&&d.owner_followups?.length){
+        part.append(el("h4","","For the process owner"));
+        for(const row of d.owner_followups)part.append(el("p","",followupDescription(row)),evidenceRow(row.evidence_turns));
+        if(values.length)list(part,values,empty);
+      }else if(values===d.exceptions)sourcedList(part,"exceptions");else if(values===d.controls)sourcedList(part,"controls");else list(part,values,empty);
+    }
     part=section("13. Complete interview evidence");part.append(el("p","report-evidence-note","The participant’s account and supplied context are evidence, not independent verification. AI questions are retained for conversational context."));
     state.turns.forEach(turn=>{part.append(el("h3","",`${turn.id} · ${turn.document_event?"File context update":turn.role==="user"?"Process participant":"AI interviewer"}`),el("p","report-transcript",turn.text));});
     const files=currentDocumentState()?.documents||[];
@@ -6239,6 +6371,8 @@
     const pendingSubmission=includePresentation?knowledgeUI?.exportAttempt?.():null;
     const provenance=state.captureProvenance===null?null:savedCaptureProvenance(state.captureProvenance);
     const presentation=includePresentation&&draftComponentDesigns.size?{presentation:{component_designs:Object.fromEntries(draftComponentDesigns)}}:{};
+    const followups=interviewFollowups();
+    if(followups.length)presentation.owner_followups=followups;
     const unfinished=intakeActive()?{ids:[...documentIntake.ids]}:owedFiles;
     return {...presentation,...(state.factHistory?.length?{fact_history:state.factHistory}:{}),...(unfinished?{unfinished_file_review:{ids:unfinished.ids.slice(0,20)}}:{}),...(pendingSubmission?{knowledge_pending_attempt:pendingSubmission}:{}),...(state.savedClosure?{saved_closure:state.savedClosure}:{}),...(pendingCompletionReview?{review_in_progress:true}:{}),...(state.generatedBy?.length?{generated_by:state.generatedBy}:{}),...(state.participant?{participant:state.participant}:{}),...(Object.keys(state.turnMetadata||{}).length?{turn_metadata:state.turnMetadata}:{}),...(state.consolidation?.length?{consolidation_required:state.consolidation}:{}),...(state.factProvenance?.length?{fact_provenance:state.factProvenance}:{}),capture_repairs:{memo:Object.values(state.captureRepairs.memo),draft:state.draft?Object.values(state.captureRepairs.draft):[]},taxonomy:state.taxonomy,connections_out:state.connections_out,document_evidence:state.documentEvidence.filter(source=>savedCitations.has(source.id)),workflow:conversationUI.workflow,schema_version:1,interview_id:interviewIdentity(),usage_id:usageHeaders()["X-Interview-Id"]||null,saved_at:new Date().toISOString(),context:state.context||readContext(),process_name_manual:state.processNameManual,derived_process_title:state.derivedProcessTitle,documents:documentController?.exportState(includePresentation)||null,document_questions_handled:[...documentQuestionsHandled],turns:state.turns,coverage:state.coverage,summary:state.summary,memo_findings:state.memo_findings,focus:state.focus,parking_lot:state.parking_lot,closure:{...currentClosure(),...(state.closure.partial?{partial:true}:{})},...(provenance?{capture_provenance:provenance}:{}),draft:state.draft,...(state.draftGeneratedAt?{draft_generated_at:state.draftGeneratedAt}:{}),draft_stale:draftIsStale(),draft_edited:state.draftEdited,capture:submissionCaptureState().capture,synthetic_example:state.example,unsent_answer:$("answer-text").value,voice_choice:state.voiceChoice,knowledge_process_id:knowledgeUI?.processId||null,knowledge_status:knowledgeUI?.exportReceipt()||null,knowledge_attribution:knowledgeUI?.exportAttribution?.()||null};
   }
@@ -6309,12 +6443,14 @@
       kind:turn.document_event?"document_context":"interview_message",text:turn.text,
       ...(turn.role==="assistant"&&turn.delivery==="text"?{delivery:"text"}:{}),
       ...(typeof turn.document_id==="string"?{document_id:turn.document_id}:{})}));
+    const followups=interviewFollowups();
     const topics=TOPICS.map(([key,label])=>{
       const finding=state.memo_findings.find(item=>item.key===key);
       const rewrite=repairFor("memo",finding);
       const facts=state.factProvenance?.filter(fact=>fact.topic===key).map(fact=>({...fact,support:fact.support.map(entry=>
         state.documentEvidence.some(source=>source.id===entry.source_id)?{source_id:entry.source_id,text_included:false}:entry)}));
-      return {key,label,...(facts?.length?{fact_provenance:facts}:{}),guide:TOPIC_GUIDES[key],status:finding?.status||"unknown",answer:finding?.answer||"",
+      const ownerRows=followups.filter(row=>row.topic===key);
+      return {key,label,...(ownerRows.length?{owner_followups:ownerRows}:{}),...(facts?.length?{fact_provenance:facts}:{}),guide:TOPIC_GUIDES[key],status:finding?.status||"unknown",answer:finding?.answer||"",
         evidence_turn_ids:[...(finding?.evidence_turns||[])],
         ...(rewrite?{review_rewrite:{previous_answer:rewrite.previous_answer,previous_evidence_turn_ids:[...rewrite.previous_evidence_turns]}}:{})};
     });
@@ -6362,6 +6498,8 @@
       `Participant completeness check: ${data.memo.closure.confirmed?"confirmed":data.memo.closure.asked?"asked; confirmation pending":"not yet requested"}.`,
       "These are separate from owner approval or independent verification. An empty question register does not prove completeness.");
     for(const topic of data.memo.topics)parts.push(`### ${md(topic.label)} · ${topic.status}`,topic.guide,block(topic.answer||"No assessment recorded."),`Cited sources: ${topic.evidence_turn_ids.map(md).join(", ")||"None recorded"}`);
+    const followups=data.memo.topics.flatMap(topic=>topic.owner_followups||[]);
+    if(followups.length)parts.push("### Owner follow-ups from the recorded review",followupsMarkdown(followups));
     for(const topic of data.memo.topics)for(const fact of topic.fact_provenance||[]){
       parts.push("### Evidence for "+md(topic.label),block(fact.text));
       for(const support of fact.support)parts.push("Source "+md(support.source_id),support.quote?block(support.quote):"Document reference; excerpt omitted from transcript export.");
@@ -6445,7 +6583,10 @@
     parts.push("## Variations and boundaries");
     if (!d.variations.length) parts.push("UNKNOWN / TBD — an empty list does not confirm there are no variations.");
     d.variations.forEach((item,index)=>parts.push(`### Variation ${index+1}`,`- Applies to: ${md(item.applies_to)}`,`- Difference: ${md(item.difference)}`,`- Reason: ${md(item.reason)}`,`- Cost / effort: ${md(item.cost)}`,`- Charging / billing: ${md(item.charging)}`,`- Removability / standardization: ${md(item.removability)}`,`- Boundary: ${md(item.boundary.replaceAll("_"," "))}`,`- Boundary reason: ${md(item.boundary_reason)}`,`- Class: ${md(item.variant_class||"unclassified")}`,`- Nature: ${md(item.substantive_or_presentation||"unknown")}`,`- Reported source: ${md(item.source||"UNKNOWN / TBD")}`,`- Standard route step: ${md(item.standard_route_ref||"UNKNOWN / TBD")}`,`Sources: ${sources(item.evidence_turns)}`));
-    parts.push("## Exceptions",sourcedList("exceptions"),"## Controls",sourcedList("controls"),"## Open questions",list(d.open_questions,"No open questions recorded."),"## Validation notes",list(d.validation_notes),"## Parked topics",list(state.parking_lot,"No topics parked."),"## Interview evidence","This is the verbatim, unredacted interview record. Check it for sensitive details before sharing. Coverage does not guarantee exhaustiveness.");
+    parts.push("## Exceptions",sourcedList("exceptions"),"## Controls",sourcedList("controls"),"## Open questions");
+    if(d.owner_followups?.length)parts.push("### For the process owner",followupsMarkdown(d.owner_followups));
+    if(d.open_questions.length||!d.owner_followups?.length)parts.push(list(d.open_questions,"No open questions recorded."));
+    parts.push("## Validation notes",list(d.validation_notes),"## Parked topics",list(state.parking_lot,"No topics parked."),"## Interview evidence","This is the verbatim, unredacted interview record. Check it for sensitive details before sharing. Coverage does not guarantee exhaustiveness.");
     state.turns.forEach(t => parts.push(`### ${md(t.id)} · ${t.document_event?"File context update":t.role === "user" ? "Process participant" : "AI interviewer"}`, md(t.text)));
     const files=currentDocumentState()?.documents||[];
     if(files.length){
@@ -6478,7 +6619,10 @@
     if(d.taxonomy?.length){parts.push("## Classification");d.taxonomy.forEach(tag=>parts.push(`- ${md(facetLabels[tag.facet]||readableTerm(tag.facet))}: ${md(readableTerm(tag.value))} · ${md(tag.note)} (Sources: ${cite(tag.evidence_turns)})`));}
     if(d.connections_out?.length){parts.push("## Connected processes");d.connections_out.forEach(link=>parts.push(`- ${md(readableTerm(link.relationship_type))}: ${md(link.counterpart)} · ${md(link.condition)} (Sources: ${cite(link.evidence_turns)})`));}
     if(d.variations.length){parts.push("## Variation differences");d.variations.forEach((v,index)=>parts.push(`### ${index+1}. ${md(v.applies_to)}`,`- What differs: ${md(v.difference)}`,`- Why: ${md(v.reason)}`,`- What it costs us: ${md(v.cost)}`,`- Do we charge: ${md(v.charging)}`,`- Could it go away: ${md(v.removability)}`,`- Boundary: ${md(v.boundary.replaceAll("_"," "))}. ${md(v.boundary_reason)}`));}
-    parts.push("## Questions for the process owner",d.open_questions.length?d.open_questions.slice(0,5).map((q,index)=>`${index+1}. ${md(q)}`).join("\n"):"No open questions recorded; the process owner should still review the draft.");
+    parts.push("## Questions for the process owner");
+    if(d.owner_followups?.length)parts.push(followupsMarkdown(d.owner_followups));
+    if(d.open_questions.length)parts.push(d.open_questions.slice(0,5).map((q,index)=>`${index+1}. ${md(q)}`).join("\n"));
+    else if(!d.owner_followups?.length)parts.push("No open questions recorded; the process owner should still review the draft.");
     if(d.open_questions.length>5){const extra=d.open_questions.length-5;parts.push(extra+(extra===1?" more open question is":" more open questions are")+" in the complete report.");}
     const excerpts=citedDocumentEvidence();
     if(excerpts.length){parts.push("## Cited documents");for(const source of excerpts)parts.push(md(sourceCaption(source.id))+ " ("+md(source.id)+")",aiTranscribed(source)?"**"+md(AI_TRANSCRIPTION_NOTE)+"**":"");}
@@ -6513,6 +6657,7 @@
     rawTrace("interview.clearing", {turn_count:state.turns.length, generation:state.generation});
     state.historicalDraft=false;owedFiles=null;renderOwedFiles();state.draftUndo=[];state.draftRedo=[];
     state.savedClosure=null;state.resumedReviewAck=null;state.resumeFileIntake=null;state.previousMap=null;state.mapCorrections=[];state.dictatedAnswer=null;
+    state.savedOwnerFollowups=[];
     deferredDiagrams.clear();
     draftComponentDesigns.clear();
     concurrentInterview?.reset();
@@ -6658,6 +6803,7 @@
       });
       if (turns.reduce((n,t) => n+charCount(t.text),0) > 400000) throw new Error("This interview is too long to open.");
       const documentEvidence=normalizeDocumentEvidence(saved.document_evidence);
+      const ownerFollowups=savedFollowups(saved.owner_followups,turns);
       const draft = saved.draft ? normalizeDraft(saved.draft,turns,documentEvidence,saved.context) : null;
       const workflow=saved.workflow?normalizeWorkingMap(saved.workflow,turns,documentEvidence,saved.context):null;
       const designs=savedDesigns(saved.presentation?.component_designs,draft);
@@ -6693,6 +6839,7 @@
       state.captureRepairs=captureRepairs;
       state.consolidation=TOPICS.map(([key])=>key).filter(key=>Array.isArray(saved.consolidation_required)&&saved.consolidation_required.includes(key));
       state.factHistory=retiredFacts(saved.fact_history);
+      state.savedOwnerFollowups=ownerFollowups;
       state.factProvenance=normalizedFacts(saved.fact_provenance,turns,documentEvidence);
       state.generatedBy=generationRecords(saved.generated_by);state.turnMetadata={};
       for(const turn of turns){
@@ -6729,7 +6876,7 @@
       if(workflow)conversationUI.applied=conversationUI.revision;
       renderWorkingMap();
       notesProgress=savedCaptureProgress(saved.capture,turns,"notes");mapProgress=savedCaptureProgress(saved.capture,turns,"map");
-      analysisCheckpoint={restored:true,basis:JSON.stringify(participantCoverageBasis(turns)),count:notesProgress?.count||0,documents:activeDocumentSignature()};
+      analysisCheckpoint={restored:true,basis:JSON.stringify(participantCoverageBasis(turns)),count:notesProgress?.count||0,documents:activeDocumentSignature(),context:JSON.stringify(state.context)};
       state.historicalDraft=Boolean(draft);
       state.draftEvidence = draft&&saved.draft_stale===false ? draftEvidenceMark() : null;
       $("answer-text").value = unsent;

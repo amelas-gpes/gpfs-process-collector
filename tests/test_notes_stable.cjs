@@ -7,7 +7,7 @@
 // captions arrive through the real receiveLiveCaption. No browser, provider or network.
 const assert=require("node:assert/strict");
 const {open}=require("./fixtures/app_page.cjs");
-const EXPOSE="renderTranscript,renderCoverage,receiveLiveCaption,showFoundationTopic,closeFoundationTopic,tab,selectConversationView";
+const EXPOSE="renderTranscript,renderCoverage,receiveLiveCaption,showFoundationTopic,closeFoundationTopic,tab,selectConversationView,rememberCoverageCheckpoint,normalizedFacts";
 const topic=(page,key)=>page.document.querySelector(`[data-foundation-topic="${key}"]`);
 // A mouse press as the browser treats it: the click goes to the element only if the element under
 // the pointer at mouse-up is the one that was there at mouse-down.
@@ -100,6 +100,56 @@ async function check(name,fn){
   page.t.showFoundationTopic("purpose",topic(page,"purpose"));assert.deepEqual(links(),[]);assert.equal(sources.hidden,true);
   page.t.showFoundationTopic("trigger",topic(page,"trigger"));assert.deepEqual(links(),["t002","t003"]);
   delta();assert.deepEqual(links(),["t002","t003"]);
+ });
+ await check("topic details show concrete early gaps and omit resolved or unasked gaps",async()=>{
+  const page=await open({config,expose:EXPOSE}),delta=await voice(page);
+  const gap="Who receives the low-stock email when the buyer is away?";
+  page.state.factProvenance=page.t.normalizedFacts([{topic:"trigger",kind:"gap",text:gap,evidence_turns:["t002"]}],page.state.turns,[]);
+  page.t.showFoundationTopic("trigger",topic(page,"trigger"));
+  const panel=page.$("foundation-topic-gaps"),section=panel.querySelector("section");
+  assert.match(panel.textContent,/Open in the notes/);assert.ok(panel.textContent.includes(gap));
+  delta();assert.equal(panel.querySelector("section"),section,"Captions keep the details in place");
+  assert.equal(page.$("coverage-list").textContent.includes(gap),false);
+  page.state.factProvenance=[];page.t.renderCoverage();
+  assert.match(panel.textContent,/Coverage to check/);assert.ok(!panel.textContent.includes(gap));
+  page.t.showFoundationTopic("volume",topic(page,"volume"));
+  assert.match(panel.textContent,/Coverage to check/);assert.ok(!panel.textContent.includes("Owner follow-up"));
+ });
+ await check("reviewed owner handoffs retain scope, action and resolver separately from interview gaps",async()=>{
+  const page=await open({config,expose:EXPOSE});await voice(page);
+  const row={dimension:"deadlines",kind:"operational_hold",gap:"Bank cutoff is awaiting confirmation.",scope:"Same-day wires",interim_action:"Hold the wire for Treasury.",resolver:"Treasury's current cutoff matrix",evidence_turns:["t002"]};
+  const handoff={key:"trigger",ready_for_owner_review:true,owner_followups:[row],gaps:[],next_question:"",complete:false};
+  const review={topics:[handoff,{key:"lifecycle",complete:true,gaps:[],next_question:""}]};
+  page.state.coverageVerified=true;
+  page.t.rememberCoverageCheckpoint(undefined,undefined,undefined,review,{findings:[{material:true,detail:"The return after a rejected payment is missing.",question:"Who receives the rejected payment?"}]});
+  page.t.renderCoverage();page.t.showFoundationTopic("trigger",topic(page,"trigger"));
+  const panel=page.$("foundation-topic-gaps");
+  assert.match(panel.textContent,/For the process owner/);
+  for(const value of [row.gap,row.scope,row.interim_action,row.resolver])assert.ok(panel.textContent.includes(value),value);
+  assert.ok(!panel.textContent.includes("Open interview gaps"));
+  assert.equal(topic(page,"trigger").querySelector(".coverage-state").textContent,"Owner follow-up");
+  page.t.showFoundationTopic("lifecycle",topic(page,"lifecycle"));
+  assert.match(panel.textContent,/Open interview gaps/);assert.match(panel.textContent,/return after a rejected payment/);
+  page.t.showFoundationTopic("trigger",topic(page,"trigger"));
+  page.state.turns.push({id:"new",role:"user",text:"Treasury has since changed the cutoff."});
+  page.t.renderCoverage();
+  assert.ok(!panel.textContent.includes(row.interim_action),"A new answer supersedes the assessment");
+  assert.notEqual(topic(page,"trigger").querySelector(".coverage-state").textContent,"Owner follow-up");
+  page.state.coverageVerified=false;page.state.savedOwnerFollowups=[{...row,topic:"trigger"}];
+  page.t.renderCoverage();
+  assert.match(panel.textContent,/Saved owner follow-up · recheck pending/);
+  assert.notEqual(page.text("foundation-topic-status"),"Owner follow-up recorded");
+ });
+ await check("advisory handoffs stay provisional and can coexist with a question for the participant",async()=>{
+  const page=await open({config,expose:EXPOSE});await voice(page);
+  const finding=page.state.memo_findings[0];finding.status="captured";
+  page.state.advisory.trigger={answer:finding.answer,complete:false,gaps:["receiver: Notification recipient for overnight requests is unclear."],next_question:"Who gets an overnight request?",
+   owner_followups:[{kind:"external_handoff",gap:"Tax determines the applicable deadline.",scope:"Tax requests",interim_action:"Send intake to Tax.",resolver:"Tax lead"}]};
+  page.t.showFoundationTopic("trigger",topic(page,"trigger"));
+  const content=page.text("foundation-topic-gaps");
+  assert.match(content,/Preliminary gaps/);assert.match(content,/Receiver — Notification recipient/);
+  assert.match(content,/Who gets an overnight request/);assert.match(content,/Possible owner follow-up/);
+  assert.equal(topic(page,"trigger").querySelector(".coverage-dot").textContent,"");
  });
  console.log(JSON.stringify({checks_passed:passed,checks_failed:failed.length,provider_calls:0,network_calls:0,real_browser:false}));
  if(failed.length)process.exitCode=1;

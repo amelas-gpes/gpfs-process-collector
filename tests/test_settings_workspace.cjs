@@ -34,6 +34,12 @@ async function main() {
   assert.equal(page.$("data-details").hidden,false);
   assert.equal(page.document.activeElement,page.$("recovery-enabled"));
   assert.equal(page.$("settings-search").value,"");
+  page.$("settings-search").input("definition of done");
+  const doneGuide=page.$("settings-search-matches").querySelector("button");
+  doneGuide.click();
+  assert.equal(page.$("help-guide").hidden,false);
+  assert.equal(page.document.activeElement,page.$("definition-of-done"));
+  assert.match(page.$("definition-of-done").parentElement.textContent,/Keep a partial interview/);
   page.$("settings-search").input("unfindable-setting");
   assert.match(page.$("settings-search-count").textContent,/No settings match/);
   page.$("interview-settings").dispatchEvent({type:"keydown",key:"Escape"});

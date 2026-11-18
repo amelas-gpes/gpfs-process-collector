@@ -125,52 +125,42 @@ contracts or decide which source ought to prevail.
 
 SELECTION = """
 NATURAL DISCOVERY AND COVERAGE
-The sixteen topics are a private completeness guide, not a script or an entrance
-exam. Build the account through an ordinary conversation about the work. Let the
-participant finish their thought, including hesitations and short pauses. A caption
-fragment, listening sound or quiet checkpoint is not a complete spoken answer.
-Before asking, read the full account and extract what is already established.
-An overview already establishes the steps, roles, outputs and events it names.
-Do not make the person repeat that overview one step at a time. Ask only for a
-missing dimension. If they said a senior checks the amounts before the manager
-and client approve the notices, do not ask who checks them or what happens next.
-Ask what the senior compares, if that is still unexplained. If they said a bank
-email confirms receipt, do not ask how they know the money arrived; ask about an
-unexplained receipt check or another gap. These are examples, not assumed facts.
+Use the sixteen topics privately. Let the person finish, including hesitations;
+a partial caption or listening cue is not an answer. Use the whole conversation.
+If they described the stages already, ask about the missing decision at one stage
+instead of requesting the walkthrough again. If they named the reviewer, ask what
+that person compares only if the comparison is still unclear.
 
-Respond to a direct question, correction or confusion FIRST. If the participant
-says they already answered, find and use that answer. Acknowledge the actual fact
-briefly and move on; do not rephrase the same question, apologise in a loop or jump
-to an unrelated heading. Distinguish a start email from a bank's completion email;
-keep the participant's explanation attached to the right event. Do not ask
-"you were saying 'We/It'" from a partial caption or make them finish a single word.
+Respond to a direct question, correction or confusion FIRST. Find an earlier answer
+if the participant says they gave it. Keep each fact tied to its event. Do not
+repeat the question, apologise in a loop or prompt someone to finish a single word.
 
-Start with the work they name. If it is broad (such as capital activity), narrow
-it once to the work they want to explain. Once they say capital calls, retain it.
-Invite a practical walkthrough, for example "Talk me through how a capital call
-normally goes." Follow its steps and handoffs; ask ONE short, concrete request.
-Clarify a consequential ambiguity when needed, otherwise let the story move on.
-Do not drill every mechanism as soon as it is named. After one or two useful
-follow-ups on a detail, continue the route or park an unavailable detail.
-When they say they do not know, accept that answer once and move to a different
-part of the work. Do not immediately ask the same need as how they find it, who
-knows it or where they could look it up. Capture a resolver only if volunteered.
-For example, after "I don't know what sets the payment date", leave that date's
-basis open and continue the workflow; do not ask how they find the payment date.
+Start with the work they name. Narrow it once if broad. Follow an ordinary example
+with ONE short, concrete question at a time. For a routing overview, learn how they
+choose the detailed process that owns the finish. For a specific route, clarify the
+unit and observable proof of finish. If a notice goes out, what tells them the case
+can close? Ask about acceptance only when the account leaves that boundary open.
 
-Learn entity/client applicability, normal-versus-client practice, start, finish
-and parent/dependencies from the story. Clarify scope at the point it matters,
-without holding the walkthrough until every scope slot is filled. Use everyday
-language anchored to reported work: "Does that work the same across your funds?"
-rather than "Which entity types or part of GPFS does this serve?" Do not make a
-participant certify the GPFS standard before describing their own work. Unknown
-standard status/basis remains a gap; do not keep asking it in new words.
+Prioritize answerable gaps that change an action, check, release, handoff or recovery.
+If a missing rule is someone else's, ask about the participant's actual handling only
+if still unclear: "What happens to those entries while Treasury decides?" Once they
+have explained the affected route, what holds or proceeds, and where it goes, leave
+the outside decision for owner review. An escalated exception may permit normal work
+to continue; a blocked method can stop just that method. Follow what they reported.
+If they cannot explain the handling either, retain that gap and move on. Never press
+for an unknown again by asking who knows it. Keep a resolver or source when supplied.
+
+Learn applicability, start, finish and dependencies from the story: "Does that
+work the same across your funds?" For a client, method or country variation, ask
+which step, approval or finish differs. Accept an unknown GPFS standard. A volume,
+cost or archive detail can go to the owner when it leaves the route unchanged;
+if a threshold selects the approver or a file unlocks release, prioritize it.
 
 Use conditional modules only where relevant to this participant's work. Attach
 rule questions to an actual calculation or decision: "Where do the investor
 amounts come from?" or "What sets the payment date?" Never ask about "the main
 rule", business-rule lineage, entity applicability or taxonomy in the abstract.
-If the calculation is upstream, capture its source/output and continue this route.
+If the calculation is upstream, capture its output and how the participant knows it is ready.
 Record mentioned documentation as existing, unreviewed material; an attachment
 is not required to remember that it exists. Ask only for genuinely missing detail.
 
@@ -279,6 +269,8 @@ def legacy_defaults(value, schema):
                 "entity_scope": [], "parent_process": "", "operating_details": [], "variant_class": "unclassified",
                 "substantive_or_presentation": "unknown", "source": "", "standard_route_ref": ""}
     fields = set(schema.get("properties", {}))
+    if {"owner_followups", "dimensions"} <= fields:
+        value.setdefault("owner_followups", [])
     if fields == {"needed", "edits"}:
         value.setdefault("edits", [])
     if "discard_step_removals" in fields and "remove_steps" in fields:

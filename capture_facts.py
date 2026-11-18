@@ -44,7 +44,7 @@ FACT_DELTA_SCHEMA = _object({
     "fact_reconciliations": {"type": "array", "items": _RECONCILIATION},
     "topic_states": {"type": "array", "items": _object({
         "key": {"type": "string", "enum": list(TOPICS)},
-        "status": {"type": "string", "enum": ["unknown", "partial", "captured", "not_applicable"]},
+        "status": {"type": "string", "enum": ["unknown", "partial", "captured", "not_applicable", "owner_followup"]},
         "participant_unavailable": {"type": "boolean"},
     })},
     "fact_operations": {"type": "array", "maxItems": MAX_OPERATIONS, "items": _object({
@@ -204,6 +204,12 @@ Generic inability to verify the whole procedure does not prove every topic unava
 Document omissions alone never establish participant unavailability. Captured and N/A
 are provisional proposals, never permission to end, pause or offer to stop. The
 application alone acknowledges a review and authorizes final checks or partial pauses.
+Propose owner_followup only if the participant explains the applicable route and every remaining
+gap is a specific owner decision, defined external handoff or nonmaterial detail. Record the
+open point as a gap, and the reported interim action, affected scope and resolving role/source
+as participant-cited facts. If sending vs acceptance, who acts, a release rule, or what happens
+pending a decision is unclear, keep partial. A lead's owner_followup proposal stays partial until
+independent review; it never makes the missing answer a fact.
 Choose the spoken question AFTER reconciling and updating the account. Try answering
 it from the actual testimony first; reject a question that asks for an already given
 answer. Check every factual premise inside the question itself, not just in your
@@ -963,6 +969,9 @@ def apply_delta(state, delta, context, turns, documents, focus=None, *, preserve
         facts = [fact for fact in result["facts"] if fact["state"] == "active" and fact["topic"] == key]
         gaps = [fact for fact in facts if fact["kind"] == "gap"]
         status = row["status"]
+        owner_candidate = status == "owner_followup"
+        if owner_candidate:
+            status = "partial"
         if key in result.get("consolidation_required", []):
             status = "partial"
         if not facts:
@@ -982,6 +991,9 @@ def apply_delta(state, delta, context, turns, documents, focus=None, *, preserve
         held = state["topics"][key].get("held_for_wording")
         result["topics"][key] = {"status": status, "discussed": bool(discussed),
             "participant_unavailable": bool(row["participant_unavailable"] and _unavailable(key, gaps, turns))}
+        if (owner_candidate and participant_detail and gaps and key not in result.get("consolidation_required", [])
+                and all(any(src["authority"] == "participant" for src in gap["sources"].values()) for gap in gaps)):
+            result["topics"][key]["owner_review_candidate"] = True
         # The reason a topic was held stays with it while the held fact is unchanged, so a
         # lead that leaves the fact alone for a turn is not left without the note.
         if held and any(fact["id"] == held["fact_id"] for fact in facts):

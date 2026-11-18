@@ -108,7 +108,7 @@ class FoundationConsumerTests(unittest.TestCase):
         self.assertIn(notes, server.foundation_instructions("capture"))
         self.assertNotIn(notes, server.foundation_instructions("draft"))
         statuses = server.capture_facts.FACT_DELTA_SCHEMA["properties"]["topic_states"]["items"]["properties"]["status"]["enum"]
-        self.assertEqual(sorted(statuses), ["captured", "not_applicable", "partial", "unknown"])
+        self.assertEqual(sorted(statuses), ["captured", "not_applicable", "owner_followup", "partial", "unknown"])
         for status in statuses:
             self.assertIn(status, notes)
         for other in ("answered", "disputed", "awaiting evidence"):

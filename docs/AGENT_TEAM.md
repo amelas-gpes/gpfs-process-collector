@@ -99,7 +99,7 @@ The process reviewer checks the candidate account against the participant transc
 
 ## Completion belongs to the application
 
-`completion_permit` requires successful, fresh results bound to the actual run, all sixteen topics complete under the dimension validator, and no material process-review blocker. Pending document review also prevents a final check. A completed role means its work returned a usable result; it does not mean the account passed.
+`completion_permit` requires successful reviews of the current evidence across all sixteen topics and a process review with no material blocker. Each topic must be covered, explicitly inapplicable, or ready for owner review with its remaining questions accounted for. A reviewed owner follow-up keeps the underlying fact open. It records the affected scope, what proceeds or waits, the role or source that can resolve it, and supporting participant statements. Pending document review also prevents a final check.
 
 Only after those requirements are satisfied can the application ask its global final omissions check. Full completion additionally requires an explicit participant response to that actual check. “Yes” to whether anything remains means there is more to add. A local “No,” an answer with a new correction, a stale result or a replacement clean assessment cannot satisfy confirmation. New information is reviewed again.
 

@@ -14,7 +14,7 @@ The app header has one labeled **Menu** for Settings and interview actions. Sett
 | AI usage | Reported daily/interview counts, configured token limits, progress meters and refresh. Unknown usage is explicit. |
 | Agents | Administrators can follow the interview workflow, open the prompts for any agent and copy the full text of a selected prompt. |
 | Application logs | Recent/current app session selection, search, refresh and expandable saved records. The existing bounded reader and request protection are unchanged. |
-| Help & about | Three-step guide, saving guidance, release version and build identity. |
+| Help & about | Interview guide, searchable definition of done, guidance on open gaps and owner follow-ups, saving, release version and build identity. |
 
 The setting finder searches a static index of control names and descriptions. It never indexes interview content or private values. Selecting a result opens its section, reveals a needed disclosure, and focuses the control or its section when disabled. Unavailable reviewed-voice and recovery controls are omitted from results.
 

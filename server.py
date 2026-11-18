@@ -153,7 +153,7 @@ urlopen = build_opener(NoProviderRedirect(), WatchedHTTPSHandler()).open
 # The clock of the provider watchdog thread. It is read here once, so that a test which
 # replaces time.monotonic to walk a deadline does not hand its prepared values to that thread.
 _steady_clock = time.monotonic
-VERSION = "0.32.0"
+VERSION = "0.33.0"
 APP_DIR = Path(__file__).resolve().parent
 WEB_DIR = APP_DIR / "web"
 DIAGNOSTIC_MAX_BYTES = 1024 * 1024
@@ -1609,6 +1609,9 @@ For example, a rule scoped to European regulated payments must not become a US s
 a later reference table abbreviates the same rule without repeating its geographic qualification.
 Check every required completion activity against steps, descriptions and completion_criteria, not
 only the memo or open_questions. Represent a required check and its reported role in the workflow. Leave a participant or assignment open when only the role is known.
+Trace each reported route to its own finish. A release held for one method must end at that hold.
+If a different route explicitly allows an owned open exception, preserve its required escalation
+and permitted finish. Confirm whether delivery, receipt or acceptance ends the work from the cited wording.
 Check each retry/rejoin/resubmission edge against its exact destination in the source. Reverification
 before resubmission does not establish which earlier step resumes or whether authorization/checks
 repeat. Keep the documented investigation/reverification and leave the next handoff UNKNOWN when
@@ -1660,8 +1663,8 @@ The summary must contain reported facts only, at most 90 words; leave it empty i
 Return all sixteen memo coverage keys exactly once: name,purpose,trigger,completion,accountable,lifecycle,checks,variations,pain_points,risk,materials,scope,rules,connections,data_systems,volume.
 covered means sufficiently explained by evidence, partial means some detail is known, missing means unknown.
 These are interview coverage indicators, not proof a process/control works or has been audited.
-Set ready_for_draft true only when all sixteen memo findings are captured or explicitly not_applicable.
-Any unknown or partial topic means there is not yet enough detail, even if a useful partial draft can be made.
+Set your candidate ready_for_draft true only when all sixteen findings are captured or explicitly not_applicable.
+Keep unknowns partial and explain their practical effect. Only the independent completion review can accept a scoped owner follow-up.
 For action start, greet briefly and ask about the trigger or a more useful gap if context already explains it.
 Treat the attached server-owned FOUNDATION as the standing interview framework. Never read its sixteen
 questions verbatim or march through a questionnaire. Let each answer inform the next useful question.
@@ -1890,6 +1893,9 @@ field_evidence with the field, zero-based index (zero for trigger), its exact te
 establish it. Copy the text of an unchanged entry from the candidate character for character. A documentary claim stays
 attributed to the written procedure. Drop an unsupported claim or move it to open_questions. Keep open_questions
 in priority order. The overview summarizes the cited sections. Any remaining uncertainty requires owner review.
+Keep each unresolved decision with its affected route, interim action and resolving source or
+role when reported. On an overview show the handoff to the detailed process. Check every path to
+release against its mandatory prerequisites, including whether the recipient must accept delivery.
 """
 DRAFT_AUDIT_INSTRUCTIONS += "\nCompare every proposed open question and every unknown with the participant's account. Ask only about the remaining gap. A stated separation of roles can be established while its technical enforcement stays unknown."
 
@@ -1905,16 +1911,17 @@ DRAFT_AUDIT_INSTRUCTIONS += "\nCompare every proposed open question and every un
 FOUNDATION_CONSUMERS = ("capture", "live", "interview", "draft")
 _FOUNDATION_MARK = re.compile(r"<!--\s*prompt:omit\s+([a-z, ]+?)\s*-->(.*?)<!--\s*prompt:end\s*-->", re.S)
 # The capture call returns a fact transaction: it has no field for a step map, a variation
-# record or a memo, four topic statuses, and the application closes the interview. This
+# record or a memo, and the application closes the interview. This
 # stands in for the parts of the foundation that describe those things.
 FOUNDATION_CAPTURE_NOTES = """
 HOW TO READ THE FOUNDATION IN THIS CALL: it is reference material for the facts and topic
 states you return. The rules above decide what you return.
 WHO IS WHO: "participant" is the person being interviewed (role "user" in turns). Where the
 foundation says "the user requires", it means the firm that asked for this capture.
-STATUS: a topic state is one of unknown, partial, captured or not_applicable. Record a
-dispute, an estimate, a pending confirmation or a source nobody has reviewed as a gap fact
-and keep that topic partial.
+STATUS: use unknown, partial, captured, not_applicable or owner_followup. Keep a material
+unresolved fact partial. Propose owner_followup only when the participant explains what the
+open decision affects, how the work proceeds or stops, and who or what can resolve it.
+Keep the gap visible for the independent review; this proposal cannot close a topic.
 The application, not this call, keeps the process map and the variation records, recaps,
 asks the final completeness question, records confirmation and writes the memo and the
 appendix. The foundation's closing steps and deliverables are therefore left out here.
@@ -2388,15 +2395,15 @@ def participant_requested_stop(turns, action="answer"):
 def next_uncovered_question(result):
     assessments = {item["key"]: item for item in result.get("coverage_assessment", {}).get("topics", [])}
     findings = {item["key"]: item for item in result["memo_findings"]}
+    parked = {key for key, item in assessments.items()
+              if item.get("participant_unavailable") or item.get("ready_for_owner_review") is True}
     # Untouched sections take priority over repeatedly probing acknowledged gaps.
     for status in ("unknown", "partial"):
         for key in ("name", "lifecycle", "trigger", "completion", "purpose", "accountable", "checks", "variations", "scope", "rules", "connections", "data_systems", "volume",
                     "pain_points", "risk", "materials"):
-            if findings[key]["status"] != status:
+            if findings[key]["status"] != status or key in parked:
                 continue
             assessment = assessments.get(key, {})
-            if assessment.get("participant_unavailable"):
-                continue
             question = assessment.get("next_question", "").strip()
             if question and not WRAP_UP_LANGUAGE.search(question):
                 return question
@@ -2424,7 +2431,7 @@ def next_uncovered_question(result):
     # sections rather than asking a vague question the participant cannot act on.
     open_labels = [COVERAGE[key] for key in COVERAGE
                    if findings[key]["status"] not in ("captured", "not_applicable")
-                   and not assessments.get(key, {}).get("participant_unavailable")]
+                   and key not in parked]
     if open_labels:
         return ("Some sections still need clarification: " + "; ".join(open_labels)
                 + ". Which of these can you help explain next?")

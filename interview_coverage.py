@@ -196,7 +196,34 @@ unavailable, or generalize one unavailable detail to every gap. Set it false whe
 dimension is answerable or unasked. A polite short answer or local 'nothing else' is not a request
 to end the interview. This audit can veto completion but cannot promote the original findings,
 add process facts to them, or authorize closure.
-""" + COMPLETION_POLICY + TOPIC_RUBRIC
+""" + COMPLETION_POLICY + TOPIC_RUBRIC + """
+INTERVIEW READINESS AND OWNER FOLLOW-UP
+Review what happens in practice, including an explicit stop. A documented policy, an unanswered
+question or a referral on its own cannot establish that a route is understood. For each material
+route, can a colleague identify the applicable client/method, trigger, performer, release checks,
+observable finish and evidence, and next recipient or required acceptance? A routing overview may
+end at selection and handoff to a named detailed process; do not invent its own transaction.
+If the participant could settle a material uncertainty, keep the dimension unresolved and ask one
+question. If nobody here knows the route or what happens pending a decision, keep the gap even
+when someone else could answer. An available formal sign-off is separate from current practice.
+Use dimension status owner_followup ONLY when the participant HAS established the present route
+and specifically describes one of these dispositions: the affected work stops pending a named
+decision (operational_hold); the work may explicitly close or proceed with a recorded, owned
+open exception (accepted_exception); the responsibility passes to another team or authoritative source
+and its boundary is understood (external_handoff); or a missing contextual detail can be obtained
+elsewhere without changing how the work runs (context_detail). For each such dimension give
+owner_followups with the precise gap, affected scope, what actually stops or continues, and the
+resolving role or source. Copy interim_action as verbatim sentence(s) or a separately stated
+clause about what happens; keep qualifiers and route restrictions. Copy scope and resolver as exact
+words from the cited participant. For accepted_exception cite explicit permission to proceed
+with the open exception and its recorded ownership or escalation; include the owner in the
+interim_action. Keep these follow-ups out of gaps and next_question. Use gaps only for remaining
+interview blockers. Supply owner_followups=[] when none qualify. Other unavailability stays a gap.
+Do not allow an unknown acceptance requirement, missing route or ambiguous authority to be treated
+as a contextual detail. 'I don't know; ask the owner' gives no interim route. Review a failed
+transfer, wait, escalation or permission to proceed only when reported. Treat different client,
+entity and method restrictions separately. Never use a handoff to avoid fixing a capture omission.
+"""
 
 
 def _object(properties):
@@ -246,13 +273,20 @@ def statements(text):
 # stays a concise summary; only the repair schema below lifts that cap.
 DIMENSION_SCHEMA = _object({
     "key": _TEXT,
-    "status": {"type": "string", "enum": ["supported", "unresolved", "not_applicable"]},
+    "status": {"type": "string", "enum": ["supported", "unresolved", "not_applicable", "owner_followup"]},
     "detail": {"type": "string", "maxLength": 800}, "evidence_turns": _TEXTS,
+})
+OWNER_FOLLOWUP_SCHEMA = _object({
+    "dimension": _TEXT,
+    "kind": {"type": "string", "enum": ["operational_hold", "accepted_exception", "external_handoff", "context_detail"]},
+    **{key: {"type":"string", "maxLength": 500} for key in ("gap", "scope", "interim_action", "resolver")},
+    "evidence_turns": _TEXTS,
 })
 TOPIC_SCHEMA = _object({
     "key": {"type": "string", "enum": list(TOPIC_DIMENSIONS)},
     "explanation": {"type": "string", "maxLength": 4000}, "evidence_turns": _TEXTS,
     "dimensions": {"type": "array", "items": DIMENSION_SCHEMA},
+    "owner_followups": {"type": "array", "items": OWNER_FOLLOWUP_SCHEMA, "maxItems": 24},
     "gaps": {"type": "array", "items": {"type": "string", "maxLength": 500}},
     "next_question": {"type": "string", "maxLength": 1200},
     "participant_unavailable": {"type": "boolean"},
@@ -1048,6 +1082,81 @@ def context_has_evidence(context):
         for key in ("process_name", "process_owner", "background"))
 
 
+_CONTEXT_DIMENSIONS = {
+    "name": {"other_names"}, "volume": set(TOPIC_DIMENSIONS["volume"]),
+    "variations": {"effort", "charging", "removal_constraints"},
+    "materials": {"availability_and_review"}, "data_systems": {"storage"},
+}
+_RELEASE_VERBS = r"(?:releas\w*|clos\w*|proceed\w*|continu\w*|execut\w*|post(?:s|ed|ing)?|pay\w*|submit\w*|send\w*|calculat\w*)"
+_HOLD_ACTION = re.compile(r"\b(?:hold|holds|held|stop\w*|suspend\w*|block\w*|wait\w*|pause\w*|prohibit\w*|defer\w*)\b|"
+                          r"\b(?:do(?:es)? not|don['’]t|doesn['’]t|cannot|can['’]t|never|no) (?:be )?" + _RELEASE_VERBS +
+                          r"\b|\b(?:must|needs? to|has to|have to) (?:clear|approve|review|accept|confirm|verify|resolve|sign off)"
+                          r"\b[^.!?;]{0,180}\bbefore\b[^.!?;]{0,60}\b" + _RELEASE_VERBS + r"\b", re.I)
+_BARE_REFERRAL = re.compile(r"^(?:(?:I|we|you) (?:(?:can|could|would|should|must|need to|have to) )?)?"
+                            r"(?:ask|check with|speak (?:to|with)|talk (?:to|with)|contact)\b[^.;!?]*[.!?]?$", re.I)
+_TENTATIVE_ACTION = re.compile(r"\b(?:I|we) (?:guess|think|believe|suspect)|\b(?:might|perhaps|maybe|probably|unsure|not sure)\b", re.I)
+_DENIES_HOLD = re.compile(r"\b(?:never|not|cannot|can['’]t|don['’]t|doesn['’]t) (?:have to |on |be )?"
+                          r"(?:hold|held|stop\w*|pause\w*|block\w*|wait\w*|suspend\w*)\b", re.I)
+_OPEN_EXCEPTION = re.compile(r"\b(?:open|outstanding|unresolved)\b", re.I)
+_OWNED_EXCEPTION = re.compile(r"\b(?:own(?:s|ed|er|ership)?|assign\w*|escalat\w*|responsib\w*)\b", re.I)
+_PROCEED = re.compile(r"\b(?:can|may|allow(?:ed)? to|permitted to|authorized to|we|I|they) "
+                      r"(?:still )?(?:be )?(?:close[ds]?|proceed|release[ds]?|continue|finish(?:ed)?)\b", re.I)
+_DENIES_PROCEED = re.compile(r"\b(?:never|not|cannot|can['’]t|don['’]t|doesn['’]t) (?:be )?(?:clos|proceed|releas|continu|finish)", re.I)
+_ROUTE_LABEL = re.compile(r"\b([Mm]ethod|[Ff]und|[Cc]lient|[Ee]ntity|[Rr]oute|[Cc]lass|[Vv]ehicle|[Tt]ier) ([A-Z0-9][\w-]*)\b")
+
+
+def _owner_followups(rows, key, participant, sources):
+    """A handoff needs a participant's own interim action and named source or role."""
+    if not isinstance(rows, list) or len(rows) > 24:
+        raise ValueError("Owner follow-ups must be a bounded list.")
+    accepted, gaps = [], []
+    for row in rows:
+        if not isinstance(row, dict) or set(row) != set(OWNER_FOLLOWUP_SCHEMA["properties"]):
+            raise ValueError("Invalid owner follow-up fields.")
+        dimension, kind = row["dimension"], row["kind"]
+        if dimension not in TOPIC_DIMENSIONS[key] or kind not in OWNER_FOLLOWUP_SCHEMA["properties"]["kind"]["enum"]:
+            raise ValueError("Unknown owner follow-up dimension or disposition.")
+        fields = {name: _text(row[name], name, 500) for name in ("gap", "scope", "interim_action", "resolver")}
+        refs = sources(row["evidence_turns"])
+        testimony = [" ".join(participant[ref].casefold().split()) for ref in refs if ref in participant]
+        basis = [clause for turn in testimony for clause in re.split(r"(?<=[.!?;]) |, (?:so|but) ", turn)
+                 if not clause.endswith("?") and not explicit_knowledge_gap(clause)
+                 and not _TENTATIVE_ACTION.search(clause) and not uncertain_wording(clause, "accountable")]
+        def grounded(value):
+            words = " ".join(value.casefold().split())
+            return bool(words and any(re.search(r"(?<!\w)" + re.escape(words) + r"(?!\w)", clause) for clause in basis))
+        action = fields["interim_action"]
+        # An exact passage may cross adjacent cited participant turns, separated
+        # by an interviewer question. Keep intervening qualifications intact.
+        cited = set(refs)
+        all_testimony = " ".join((words if words.endswith((".", "!", "?")) else words + ".")
+                                 if ref in cited else "\x00" for ref, words in participant.items())
+        whole_action = re.escape(" ".join(action.casefold().split()).rstrip(".!?"))
+        action_cited = re.search(r"(?:^|(?<=[.!?;\x00]) |, (?:so|but) )" + whole_action +
+                                 r"(?=[.!?;](?: |$)|, (?:so|but) |$)", " ".join(all_testimony.casefold().split()))
+        scope_labels = {(kind.casefold(), value) for kind, value in _ROUTE_LABEL.findall(fields["scope"])}
+        mixed_scope = any(label.casefold() == unit and value != target for unit, target in scope_labels
+                          for label, value in _ROUTE_LABEL.findall(action))
+        lacks_exception_authority = (kind == "accepted_exception" and
+                                     (not _OPEN_EXCEPTION.search(action) or not _OWNED_EXCEPTION.search(action)
+                                      or not _PROCEED.search(action) or _DENIES_PROCEED.search(action)
+                                      or fields["resolver"].casefold() not in action.casefold()))
+        if (not refs or any(ref not in participant for ref in refs)
+                or not all(value and not _EMPTY_DETAIL.fullmatch(value) for value in fields.values())
+                or len(action.split()) < 3 or explicit_knowledge_gap(action) or _TENTATIVE_ACTION.search(action)
+                or (_BARE_REFERRAL.fullmatch(action) and not _HOLD_ACTION.search(action))
+                or not action_cited or not grounded(fields["scope"]) or not grounded(fields["resolver"])
+                or fields["scope"].casefold() not in action.casefold() or mixed_scope
+                or fields["resolver"].casefold() in {"he", "she", "they", "him", "her", "them", "someone", "somebody", "somewhere"}
+                or (kind == "operational_hold" and (not _HOLD_ACTION.search(action) or _DENIES_HOLD.search(action)))
+                or lacks_exception_authority
+                or (kind == "context_detail" and dimension not in _CONTEXT_DIMENSIONS.get(key, set()))):
+            gaps.append(f"{dimension}: The owner follow-up needs the affected route, a participant-supported interim action and the role or source that can resolve it.")
+        else:
+            accepted.append({"dimension": dimension, "kind": kind, **fields, "evidence_turns": refs})
+    return accepted, gaps
+
+
 def apply_assessment(findings, assessment, turns, documents=None, required_keys=None, context=None):
     """Return (demotion-only findings, public assessment); never mutate inputs.
 
@@ -1095,6 +1204,8 @@ def apply_assessment(findings, assessment, turns, documents=None, required_keys=
     revised_by_key = {item["key"]: item for item in revised}
     public = {}
     for raw in topics:
+        if isinstance(raw, dict) and "owner_followups" not in raw:
+            raw = dict(raw, owner_followups=[])
         if not isinstance(raw, dict) or set(raw) != set(TOPIC_SCHEMA["properties"]):
             raise ValueError("Invalid topic assessment fields.")
         key = raw["key"]
@@ -1103,6 +1214,9 @@ def apply_assessment(findings, assessment, turns, documents=None, required_keys=
         explanation = _text(raw["explanation"], "Topic explanation")
         refs = sources(raw["evidence_turns"])
         gaps = [gap for gap in _strings(raw["gaps"], "Topic gaps") if gap]
+        followups, followup_gaps = _owner_followups(raw["owner_followups"], key, participant, sources)
+        gaps.extend(followup_gaps)
+        delegated = {row["dimension"] for row in followups}
         dimensions = raw["dimensions"]
         if not isinstance(dimensions, list) or len(dimensions) > len(TOPIC_DIMENSIONS[key]):
             raise ValueError("Invalid topic dimension list.")
@@ -1114,11 +1228,14 @@ def apply_assessment(findings, assessment, turns, documents=None, required_keys=
             if not isinstance(dimension_key, str) or dimension_key not in TOPIC_DIMENSIONS[key] or dimension_key in checked:
                 raise ValueError("Assessment has an unknown or duplicate dimension.")
             status = dimension["status"]
-            if status not in ("supported", "unresolved", "not_applicable"):
+            if status not in ("supported", "unresolved", "not_applicable", "owner_followup"):
                 raise ValueError("Invalid assessment dimension status.")
             detail = _text(dimension["detail"], "Dimension detail")
             evidence = sources(dimension["evidence_turns"])
-            if status != "unresolved" and (not detail or _EMPTY_DETAIL.fullmatch(detail)
+            if status == "owner_followup":
+                if dimension_key not in delegated or not detail or _EMPTY_DETAIL.fullmatch(detail) or not participant_supported(evidence):
+                    status = "unresolved"
+            elif status != "unresolved" and (not detail or _EMPTY_DETAIL.fullmatch(detail)
                     or repair_has_uncertainty(detail, key) or explicit_knowledge_gap(detail)
                     or not participant_supported(evidence)):
                 status = "unresolved"
@@ -1128,6 +1245,8 @@ def apply_assessment(findings, assessment, turns, documents=None, required_keys=
         for missing in TOPIC_DIMENSIONS[key].keys() - checked.keys():
             gaps.append(f"{missing}: No assessment was supplied for this required dimension.")
             checked[missing] = {"key": missing, "status": "unresolved", "detail": "", "evidence_turns": []}
+        if any(checked[dimension]["status"] != "owner_followup" for dimension in delegated):
+            gaps.append("The reported owner follow-up does not match its assessed dimension.")
         if not explanation or _EMPTY_DETAIL.fullmatch(explanation) or not participant_supported(refs):
             gaps.append("A clear participant-supported explanation of this section is not established.")
         na_reason = _text(raw["not_applicable_reason"], "Not-applicable reason")
@@ -1146,16 +1265,25 @@ def apply_assessment(findings, assessment, turns, documents=None, required_keys=
                            all(ref in participant for ref in unavailable_refs) and
                            any(explicit_knowledge_gap(participant[ref]) for ref in unavailable_refs))
         gaps = list(dict.fromkeys(gaps))
-        complete = original[key]["status"] in ("captured", "not_applicable") and not gaps
+        next_question = _text(raw["next_question"], "Next topic question", 1200)
+        complete = original[key]["status"] in ("captured", "not_applicable") and not gaps and not followups
+        # Readiness can disposition a specific partial account without promoting any
+        # missing fact to covered. An untouched/unsupported section still needs work.
+        ready = complete or bool(followups and not gaps and not next_question
+                                 and original[key]["status"] in ("partial", "captured")
+                                 and original[key].get("answer", "").strip()
+                                 and participant_supported(original[key].get("evidence_turns", [])))
         if original[key]["status"] in ("captured", "not_applicable") and not complete:
             revised_by_key[key]["status"] = "partial"
         public[key] = {"key": key, "explanation": explanation, "evidence_turns": refs,
                        "dimensions": [checked[dimension_key] for dimension_key in TOPIC_DIMENSIONS[key]],
-                       "gaps": gaps, "next_question": _text(raw["next_question"], "Next topic question", 1200),
+                       "gaps": gaps, "next_question": next_question, "owner_followups": followups,
+                       "ready_for_owner_review": ready,
                        "participant_unavailable": unavailable, "unavailable_evidence_turns": unavailable_refs,
                        "not_applicable_reason": na_reason, "not_applicable_evidence_turns": na_refs,
                        "complete": complete}
     return revised, {"topics": [public[key] for key in required],
+                     "all_topics_ready_for_owner_review": all(topic["ready_for_owner_review"] for topic in public.values()),
                      "all_topics_covered": all(topic["complete"] for topic in public.values())}
 
 
@@ -1255,6 +1383,8 @@ def apply_repair_assessment(findings, assessment, turns, documents=None, context
     participants = {turn["id"] for turn in turns if turn.get("role") == "user" and not turn.get("document_event")} | {"context"}
     plain, requested, statement_sources = [], set(), {}
     for topic in assessment["topics"]:
+        if isinstance(topic, dict) and "owner_followups" not in topic:
+            topic = dict(topic, owner_followups=[])
         if not isinstance(topic, dict) or set(topic) != set(REPAIR_TOPIC_SCHEMA["properties"]):
             raise ValueError("Invalid repair topic fields.")
         repair = topic["capture_repair"]

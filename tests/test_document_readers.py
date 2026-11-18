@@ -122,8 +122,8 @@ class ServerSaysWhatItCannotRead(unittest.TestCase):
             httpd.shutdown()
             httpd.server_close()
             worker.join(timeout=2)
-            for worker in httpd.documents._workers:
-                worker.join(timeout=10)
+            for document_worker in httpd.documents._workers:
+                document_worker.join(timeout=10)
         self.addCleanup(stop)
         url = f'http://127.0.0.1:{httpd.server_port}'
         with urlopen(Request(url + '/api/config', headers={'Origin': url}), timeout=10) as response:

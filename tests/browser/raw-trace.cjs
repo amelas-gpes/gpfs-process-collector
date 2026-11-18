@@ -36,8 +36,14 @@ async function main() {
     await page.locator("#type-instead").click();
     await page.locator("#answer-text").fill("unsent-canary-748129");
     await page.locator("#answer-text").fill(answer);
-    await page.locator("#send-answer").click();
-    await page.getByText("What happens after the invoice is logged?", {exact:true}).first().waitFor({state:"attached"});
+    const [reply] = await Promise.all([
+      page.waitForResponse(response => response.url().endsWith("/api/conversation/turn") && response.request().postDataJSON().action === "answer"),
+      page.locator("#send-answer").click()
+    ]);
+    assert.equal(reply.status(), 200);
+    const {question} = await reply.json();
+    assert(question);
+    await page.getByText(question, {exact:true}).first().waitFor({state:"attached"});
     const folder = path.join(dir, "raw-trace");
     const traceFile = path.join(folder, fs.readdirSync(folder).find(name => name.endsWith(".jsonl")));
     // The active writer can have an unfinished final line when sampled.

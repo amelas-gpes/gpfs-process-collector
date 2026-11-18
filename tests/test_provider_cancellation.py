@@ -148,6 +148,36 @@ class ProviderCancellationTests(unittest.TestCase):
         self.assertEqual((outcome["error"].status, outcome["error"].category), (504, "timeout"))
         self.assertEqual(free(self.client._provider_slots, self.client.provider_slots), self.client.provider_slots)
 
+    def test_silent_tls_handshake_can_be_cancelled_or_reach_its_deadline(self):
+        # The peer accepts ClientHello but sends no handshake response. Cancellation must
+        # release the request even before HTTPSConnection has returned a connected SSL socket.
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), server.WatchedHTTPSHandler())
+        with socket.socket() as listener:
+            listener.settimeout(3)
+            listener.bind(("127.0.0.1", 0))
+            listener.listen()
+
+            def local(request, timeout):
+                request.full_url = f"https://127.0.0.1:{listener.getsockname()[1]}/v1/responses"
+                return opener.open(request, timeout=timeout)
+
+            with patch.object(server, "urlopen", local):
+                for cancel in (True, False):
+                    with self.subTest(cancel=cancel):
+                        flag = threading.Event()
+                        thread, outcome = self.ask(cancelled=flag.is_set, timeout=10 if cancel else .8)
+                        self.addCleanup(thread.join, 3)
+                        with listener.accept()[0] as peer:
+                            peer.settimeout(2)
+                            self.assertTrue(peer.recv(1))
+                            if cancel:
+                                flag.set()
+                            thread.join(2)
+                            self.assertFalse(thread.is_alive())
+                            error = outcome["error"]
+                            self.assertEqual((error.status, error.category), (409, "cancelled") if cancel else (504, "timeout"))
+                            self.assertEqual(free(self.client._provider_slots, self.client.provider_slots), self.client.provider_slots)
+
     def test_an_answer_that_arrives_in_time_is_returned_unchanged(self):
         self.provider.release.set()
         thread, outcome = self.ask(cancelled=lambda: False)

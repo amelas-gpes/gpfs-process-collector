@@ -29,7 +29,7 @@ from concurrent.futures import ThreadPoolExecutor
 import time
 import unicodedata
 import uuid
-from http.client import BadStatusLine, HTTPException, IncompleteRead, LineTooLong
+from http.client import BadStatusLine, HTTPException, HTTPSConnection, IncompleteRead, LineTooLong
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.error import HTTPError, URLError
 from urllib.parse import unquote, urlsplit
@@ -75,6 +75,33 @@ class ProviderResponseReader(io.RawIOBase):
                 super().close()
 
 
+class ProviderTLSHandshake:
+    """Use the connection's TLS configuration and check cancellation while the peer negotiates."""
+    def __init__(self, context, check_active):
+        self.context = context
+        self.check_active = check_active
+
+    def wrap_socket(self, sock, **options):
+        # HTTPSConnection supplies the origin hostname, including when using a proxy tunnel.
+        transport = self.context.wrap_socket(sock, do_handshake_on_connect=False, **options)
+        try:
+            timeout = transport.gettimeout()
+            transport.settimeout(min(.25, timeout) if timeout is not None else .25)
+            while True:
+                self.check_active()
+                try:
+                    transport.do_handshake()
+                    break
+                except TimeoutError:
+                    continue
+            transport.settimeout(timeout)
+            return transport
+        except BaseException:
+            # wrap_socket transferred the descriptor; the connection still holds the detached socket.
+            transport.close()
+            raise
+
+
 class NamesProviderSockets:
     """Names each connection's socket to the request that opened it (request.provider_sockets).
 
@@ -91,6 +118,8 @@ class NamesProviderSockets:
             connection = http_class(host, **options)
             check_active = getattr(req, "check_provider_active", None)
             if check_active is not None:
+                if isinstance(connection, HTTPSConnection):
+                    connection._context = ProviderTLSHandshake(connection._context, check_active)
                 response_type = connection.response_class
 
                 def watched_response(sock, *args, **kwargs):

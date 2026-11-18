@@ -198,6 +198,7 @@ provider_usage = local_module("provider_usage", "provider_usage.py")
 documents = local_module("documents", "documents.py")
 gpfs_interview = local_module("gpfs_interview", "gpfs_interview.py")
 draft_audit = local_module("draft_audit", "draft_audit.py")
+route_key = draft_audit.route_key
 provider_schema = local_module("provider_schema", "provider_schema.py")
 interview_coverage = local_module("interview_coverage", "interview_coverage.py")
 capture_facts = local_module("capture_facts", "capture_facts.py")
@@ -3742,10 +3743,6 @@ def add_workflow_structure_questions(existing, steps, connections, extra=(), max
     register = add_workflow_questions(existing, [*required, *extra], maximum)
     available = maximum - len(register)
     return register + _new_workflow_questions(register, branches)[:available]
-
-
-def route_key(edge):
-    return edge["from"], edge["to"], " ".join(edge["label"].casefold().split())
 
 
 def revised_steps(update, previous):

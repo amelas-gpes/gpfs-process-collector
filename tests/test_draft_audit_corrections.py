@@ -93,6 +93,17 @@ class MergeTests(unittest.TestCase):
         self.assertEqual(merged["inputs"], draft["inputs"])
         self.assertEqual(merged["overview"], draft["overview"])
 
+    def test_audit_removal_matches_condition_words_and_preserves_other_routes(self):
+        draft = candidate()
+        edge = draft["connections"][1]
+        edge["label"] = "Approval received"
+        parallel = {**edge, "label": "Rework requested"}
+        draft["connections"].append(parallel)
+        dropped = {"from": edge["from"], "to": edge["to"], "label": " APPROVAL   received  "}
+        merged = draft_audit.merge(draft, corrections(drop_connections=[dropped]))
+        self.assertEqual(merged["connections"], [draft["connections"][0], parallel])
+        self.assertEqual(len(draft["connections"]), 3)
+
     def test_a_returned_finding_replaces_the_finding_with_its_key(self):
         draft = candidate()
         key = draft["memo_summary"][0]["key"]

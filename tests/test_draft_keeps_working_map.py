@@ -195,6 +195,20 @@ class DraftFromCheckedMapTests(unittest.TestCase):
         self.assertEqual(candidate["connections"], [new_route])
         self.assertEqual(graph["steps"][0]["id"], "s1")
 
+    def test_checked_route_edits_match_the_working_map_condition_across_case_and_spacing(self):
+        payload = self.draft_payload()
+        edge = payload["previous_capture"]["workflow"]["connections"][0]
+        updated = {**edge, "label": "  Submitted  FOR approval ", "evidence_turns": ["u1"]}
+        self.changes["connections"] = [updated]
+        self.client.draft(dict(payload, prepare_only=True))
+        draft = self.client.draft(payload)["draft"]
+        self.assertEqual(draft["connections"], [updated])
+
+        self.changes["connections"] = []
+        self.changes["drop_connections"] = [{key: updated[key] for key in ("from", "to", "label")}]
+        self.assertEqual(self.client.draft(payload)["draft"]["connections"], [])
+        self.assertEqual(payload["previous_capture"]["workflow"]["connections"], [edge])
+
     def test_invalid_map_changes_are_not_prepared_or_cached_and_full_replies_still_work(self):
         payload = self.draft_payload()
         for changes in ({"drop_steps": ["missing"]}, {"steps": [self.draft["steps"][1]] * 2},

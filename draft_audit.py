@@ -8,8 +8,9 @@ SECTIONS = ("title", "overview", "trigger", "inputs", "outputs", "exceptions", "
 FIELDS = ("trigger", "inputs", "outputs", "exceptions", "controls")
 
 
-def _route(edge):
-    return edge.get("from"), edge.get("to"), edge.get("label")
+def route_key(edge):
+    """Identify a route by its exact endpoints and the words of its condition."""
+    return edge["from"], edge["to"], " ".join(edge["label"].casefold().split())
 
 
 def _rows(value):
@@ -32,11 +33,11 @@ def changed_map(baseline, changes):
     added = [step for step in _rows(changes.get("steps")) if step.get("id") not in seen]
     seen.update(step.get("id") for step in added)
 
-    dropped = {_route(edge) for edge in _rows(changes.get("drop_connections"))}
-    replaced = {_route(edge): edge for edge in _rows(changes.get("connections"))}
+    dropped = {route_key(edge) for edge in _rows(changes.get("drop_connections"))}
+    replaced = {route_key(edge): edge for edge in _rows(changes.get("connections"))}
     connections, drawn = [], set()
     for edge in [*_rows(baseline.get("connections")), *_rows(changes.get("connections"))]:
-        key = _route(edge)
+        key = route_key(edge)
         if key in drawn or edge.get("from") not in seen or edge.get("to") not in seen:
             continue
         if key in replaced:
@@ -62,11 +63,11 @@ def changed_map(baseline, changes):
 def draft_from_map(baseline, reply):
     """Apply first-pass changes. Refuse ambiguous edits before the candidate is cached."""
     step_ids = {step["id"] for step in baseline["steps"]}
-    route_ids = {_route(edge) for edge in baseline["connections"]}
+    route_ids = {route_key(edge) for edge in baseline["connections"]}
     steps = [step["id"] for step in reply["steps"]]
-    routes = [_route(edge) for edge in reply["connections"]]
+    routes = [route_key(edge) for edge in reply["connections"]]
     drop_steps = reply["drop_steps"]
-    drop_routes = [_route(edge) for edge in reply["drop_connections"]]
+    drop_routes = [route_key(edge) for edge in reply["drop_connections"]]
     if any(len(ids) != len(set(ids)) for ids in (steps, routes, drop_steps, drop_routes)):
         raise ValueError("The draft repeats a map change.")
     if (not set(drop_steps) <= step_ids or not set(drop_routes) <= route_ids

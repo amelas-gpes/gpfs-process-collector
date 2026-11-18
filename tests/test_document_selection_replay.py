@@ -19,6 +19,45 @@ class DocumentSelectionReplayTests(unittest.TestCase):
     tearDown = test_concurrent_http.ConcurrentHTTPTests.tearDown
     post = test_concurrent_http.ConcurrentHTTPTests.post
 
+    def test_background_file_review_can_finish_while_a_question_is_being_prepared(self):
+        scope = self.httpd.documents_store.create_scope()
+        store = self.httpd.documents_store
+        file_id = store.add(scope, "intake.csv", b"role,action\nClerk,Log the invoice\n")["id"]
+        store.extract(scope, file_id)
+        source_id = store.chunks(scope, file_id, limit=1)["chunks"][0]["id"]
+        analysis = {"phase": "deep", "disposition": "relevant", "summary": "Invoice intake.",
+                    "observations": [], "questions": [], "reviewed_chunks": 0, "version": 1}
+        store.update(scope, file_id, {"analysis": analysis})
+
+        def finish_review(_body):
+            note = {"id": "note1", "text": "The clerk logs the invoice.", "sources": [{"source_id": source_id}]}
+            question = {"id": "question1", "text": "Who receives the log?", "sources": [{"source_id": source_id}]}
+            store.update(scope, file_id, {"analysis": {**analysis, "phase": "complete", "reviewed_chunks": 1,
+                         "review_complete": True, "version": 2, "observations": [note], "questions": [question]}})
+
+        self.client.hooks["conversation_question"] = finish_review
+        payload = {**self.client.payload(), "document_scope": scope, "document_required_ids": [file_id]}
+        status, reply = self.post("/api/conversation/turn", payload)
+        self.assertEqual(status, 200, reply)
+        self.assertTrue(reply["question"])
+        self.assertEqual(reply["document_reading"]["documents"][0]["id"], file_id)
+        self.assertEqual(store.get(scope, file_id)["analysis"]["phase"], "complete")
+
+    def test_changed_evidence_or_file_availability_invalidates_an_inflight_response(self):
+        bind = server.interview_orchestrator.Coordinator._source_binding
+        original = {"id": "doc_one", "source_revision": "v1", "disposition": "relevant",
+                    "excerpts": [{"id": "chunk1", "text": "The clerk logs the invoice."}],
+                    "review": {"phase": "deep", "review_stopped": False, "unread_visual_units": 1, "limitations": []}}
+        original_binding = bind({}, {"documents": [original]})
+        for changes in ({"source_revision": "v2"}, {"disposition": "parked"},
+                        {"excerpts": [{"id": "chunk1", "text": "The clerk approves the invoice."}]},
+                        {"review": {**original["review"], "phase": "error"}},
+                        {"review": {**original["review"], "review_stopped": True}},
+                        {"review": {**original["review"], "unread_visual_units": 0}},
+                        {"review": {**original["review"], "limitations": ["The scan could not be read."]}}):
+            with self.subTest(changes=changes):
+                self.assertNotEqual(bind({}, {"documents": [{**original, **changes}]}), original_binding)
+
     def test_source_recheck_passes_the_selection_options_of_the_snapshot(self):
         context = self.client.payload()["context"]
         original = {"documents": [], "source_revision": "one"}

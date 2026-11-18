@@ -1146,10 +1146,21 @@ def sync_review(state, capture, context, turns, documents):
 def supporting_identity(supporting):
     def canonical(value, key=""):
         if isinstance(value, dict):
-            return {name: canonical(item, name) for name, item in value.items()
-                    if not (key == "review" and name == "reviewed_chunks")}
+            if key == "document":
+                # The background reader adds interpretations as it works. The selected
+                # passages, their text and the file's source revision identify the evidence.
+                value = {name: item for name, item in value.items() if name not in ("observations", "questions")}
+            elif key == "review":
+                value = dict(value)
+                value.pop("reviewed_chunks", None)
+                if value.get("phase") in ("deep", "complete"):
+                    # Finishing a normal review does not change the source. A stopped or
+                    # failed review, changed extraction coverage or limitations still matter.
+                    value.pop("phase")
+                    value.pop("review_complete", None)
+            return {name: canonical(item, name) for name, item in value.items()}
         if isinstance(value, list):
-            result = [canonical(item) for item in value]
+            result = [canonical(item, "document" if key == "documents" else "") for item in value]
             if key in ("documents", "pending_documents", "excerpts", "retained_evidence", "source_versions"):
                 result.sort(key=lambda item: json.dumps(item, sort_keys=True, ensure_ascii=False))
             return result

@@ -139,6 +139,14 @@ let checks = 0;
   assert.equal(app.draftAheadReady(),true);
   app.state.turns=[...turns,{id:"t4",role:"user",text:"One more thing."}];
   assert.equal(app.draftAheadReady(),false,"A further answer makes it another account");
+  ready();app.conversationUI.workflowCheckPending=true;app.prepareDraftAhead();
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(app.draftAheadReady(),true);
+  app.conversationUI.workflowCheckPending=false;
+  assert.equal(app.draftAheadReady(),false,"An identical map can now use the checked draft path");
+  app.prepareDraftAhead();await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(sent.length,2);
+  assert.equal(app.draftAheadReady(),true);
   // While the final check waits for its answer nothing is started; once it is confirmed, it is.
   ready();app.draftAhead.turns=-1;app.state.closure={asked:true,confirmed:false};app.armDraftAhead();
   assert.equal(sent.length,0,"The account is about to grow by the answer to the final check");

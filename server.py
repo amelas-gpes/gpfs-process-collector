@@ -373,6 +373,9 @@ DRAFT_AUDIT_SCHEMA = obj({
     "memo_summary": DRAFT_SCHEMA["properties"]["memo_summary"],
     "field_evidence": FIELD_EVIDENCE,
 })
+# On a checked map, steps and connections are upserts. The rest of the draft is written in full.
+DRAFT_FROM_MAP_SCHEMA = obj({**DRAFT_SCHEMA["properties"], "drop_steps": STRINGS,
+                             "drop_connections": DRAFT_AUDIT_SCHEMA["properties"]["drop_connections"]})
 WORKFLOW_AUDIT_SCHEMA = obj({
     "title": STRING,
     "discard_step_upserts": STRINGS,
@@ -1894,23 +1897,23 @@ _DRAFT_KEEPS_NOTES = ("\nThe working notes are the topic notes the participant h
                       "notes are a working interpretation, never evidence: cite the sources themselves.")
 
 
-def draft_instructions(with_notes=False):
-    """The draft's instructions; with_notes when the request carries the interview's topic notes.
+_DRAFT_FROM_MAP = """
+The working map has already passed its source check. The server copies its steps and routes into the
+draft. Return empty steps, connections, drop_steps and drop_connections when the map stands as drawn.
+Read all the turns and authorized files, including answers given since the map was drawn. Return a
+whole step or connection only to add missing work or correct a material fact or supported detail.
+Keep a corrected step's id, existing supported details and citations. Use a fresh id for new work.
+To remove unsupported work, return its id in drop_steps or the original from/to/label in
+drop_connections. To relabel a route, drop the original and return the corrected route. Never
+restate unchanged items or make wording-only edits. Write all other sections in full, referencing
+the final step IDs. Describe material differences in validation_notes.
+"""
 
-    A draft used to re-derive the map from the turns, with the working map as "a prior
-    interpretation" only. Its steps were then renumbered, regrouped or left unconnected: Review
-    showed a different map from the one the participant had watched being drawn, and open
-    questions cited step ids that meant something else there. It is now told to keep the working
-    map where the sources support it; the audit that follows still checks every route and removes
-    what they do not support. The output allowance follows the map (draft_output_tokens), so a
-    map of any size can be written out step for step.
 
-    The memo had the same fault: written without the notes, a draft gave a topic a different
-    status from the Notes list in 134 places across 45 drafts (a process name the notes held
-    as captured became partial because the draft added "other names are UNKNOWN"). With the
-    notes it starts each section from what the participant was shown.
-    """
-    return DRAFT_INSTRUCTIONS + foundation_instructions("draft") + _DRAFT_KEEPS_MAP + (_DRAFT_KEEPS_NOTES if with_notes else "")
+def draft_instructions(with_notes=False, from_map=False):
+    """Construct the draft prompt for a complete map or changes to an independently checked map."""
+    return (DRAFT_INSTRUCTIONS + foundation_instructions("draft") + (_DRAFT_FROM_MAP if from_map else _DRAFT_KEEPS_MAP)
+            + (_DRAFT_KEEPS_NOTES if with_notes else ""))
 
 
 def draft_audit_instructions():
@@ -2930,6 +2933,39 @@ def transcription_hints(header):
         if 2 <= len(word) <= 60 and re.fullmatch(r"\w[\w &./'’+-]*", word) and word not in words:
             words.append(word)
     return words[:MAX_TRANSCRIPTION_HINTS]
+
+
+def _fingerprint(value):
+    return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode()).digest()
+
+
+def checked_map_key(workflow, context, turns, documents, scope):
+    """Identify the displayed graph, the interview and the actual evidence its steps and routes cite."""
+    if not workflow or not workflow["steps"]:
+        return None
+    active = [source for source in documents if not source.get("retained_only")]
+    available = evidence_sources(turns, active, context)
+    cited = {ref for row in workflow["steps"] + workflow["connections"] for ref in row["evidence_turns"]}
+    if not cited <= available:
+        return None
+    steps = []
+    for row in workflow["steps"]:
+        step = dict(row)
+        gpfs_interview.legacy_defaults(step, DRAFT_SCHEMA["properties"]["steps"]["items"])
+        if step["rule_source_ref"] and step["rule_source_ref"] not in step["evidence_turns"]:
+            return None
+        # The browser's normalizeWorkingMap displays these four empty fields as UNKNOWN / TBD.
+        for field in ("input", "output", "completion_criteria", "handoff"):
+            if not step[field]:
+                step[field] = "UNKNOWN / TBD"
+        steps.append(step)
+    excerpts = {source["id"]: source["text"] for source in active if source["id"] in cited}
+    return _fingerprint([context, scope, steps, workflow["connections"], excerpts])
+
+
+def _map_account(turns):
+    # Assistant captions may be revised when switching between live voice and typing.
+    return [[turn["id"], turn["text"]] for turn in turns if turn["role"] == "user" and not turn.get("document_event")]
 
 
 def check_draft_candidate(result):
@@ -4154,6 +4190,13 @@ _DRAFT_DISCLAIMER = re.compile(
     r"(?:\s*(?:it is not|this is not|participant confirmation)\b[^.:]{0,160}\.)?\s*$", re.IGNORECASE)
 
 
+def validate_step_rule_sources(steps, authorized):
+    for step in steps:
+        reference = step.get("rule_source_ref")
+        if reference and (reference not in authorized or reference not in step["evidence_turns"]):
+            raise ValueError("A step rule source must be an authorized source cited by that step.")
+
+
 def validate_draft(draft, turns, documents=None, context=None):
     # First-pass and historical drafts retain their string fields. The final audit can bind those exact values to evidence.
     checked = {key: value for key, value in draft.items() if key != "field_evidence"}
@@ -4198,10 +4241,7 @@ def validate_draft(draft, turns, documents=None, context=None):
     if any(v.get("standard_route_ref") and v["standard_route_ref"] not in ids for v in draft["variations"]):
         raise ValueError("A variation references a missing standard-route step.")
     gpfs_interview.validate_operating_details(draft["steps"], turns, documents, context)
-    rule_refs = set(evidence_sources(turns, documents, context))
-    for step in draft["steps"]:
-        if step.get("rule_source_ref") and (step["rule_source_ref"] not in rule_refs or step["rule_source_ref"] not in step["evidence_turns"]):
-            raise ValueError("A step rule source must be an authorized source cited by that step.")
+    validate_step_rule_sources(draft["steps"], valid_sources)
     if len(set(ids)) != len(ids) or any(not re.fullmatch(r"[A-Za-z0-9_-]{1,40}", i) for i in ids):
         raise ValueError("The process map contains invalid or duplicate step IDs.")
     for step in draft["steps"]:
@@ -4904,6 +4944,7 @@ class OpenAIClient:
         self._background_slots = threading.BoundedSemaphore(max(1, self.provider_slots - PROVIDER_FOREGROUND_RESERVE))
         self._draft_lock = threading.Lock()
         self._draft_candidates = {}
+        self._checked_maps = {}  # Bounded fingerprints only. Lost entries use full draft generation.
         # Candidates being written now, by the key of what they are written from (see draft).
         self._draft_pending = {}
         # The page asks for the first half of a draft when the participant wraps up, so that
@@ -5831,6 +5872,24 @@ class OpenAIClient:
             result["ready_for_draft"] = memo_has_enough_detail(findings)
         return result
 
+    def _map_was_checked(self, key, account):
+        with self._draft_lock:
+            prior = self._checked_maps.get(key)
+        return prior is not None and len(account) >= prior[0] and _fingerprint(account[:prior[0]]) == prior[1]
+
+    def remember_checked_map(self, previous, workflow, context, turns, evidence, scope):
+        """Remember only source-checked changes descending from an empty or checked baseline."""
+        account = _map_account(turns)
+        if previous["steps"] and not self._map_was_checked(checked_map_key(previous, context, turns, evidence, scope), account):
+            return
+        key = checked_map_key(workflow, context, turns, evidence, scope)
+        if key is not None:
+            prefix = (len(account), _fingerprint(account))
+            with self._draft_lock:
+                if key not in self._checked_maps and len(self._checked_maps) >= 128:
+                    self._checked_maps.pop(next(iter(self._checked_maps)))
+                self._checked_maps[key] = prefix
+
     def workflow(self, payload):
         started = time.monotonic()
         supporting = payload.get("_supporting_documents", {})
@@ -5894,6 +5953,8 @@ class OpenAIClient:
                                          model_override=self.workflow_audit_model),
                     context=context, turns=turns, documents=document_evidence, baseline=previous["workflow"],
                     judged=judged_route_steps([*proposals, *audit["upsert_connections"]], capture["workflow"]["connections"]))
+                self.remember_checked_map(previous["workflow"], capture["workflow"], context, turns,
+                                          document_evidence, payload.get("document_scope"))
             except ValueError as error:
                 raise APIError(own_wording(error, UNUSABLE_RESULT_MESSAGE)) from None
         try:
@@ -5977,7 +6038,9 @@ class OpenAIClient:
         generation_timeout = draft_generation_timeout(turns, active_evidence, output_tokens)
         source_payload = {"context": context, "turns": turns, "supporting_documents": supporting,
                           "working_map": prior, **({"working_notes": notes} if notes else {})}
-        candidate_key = hashlib.sha256(json.dumps(source_payload, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+        reuse = self._map_was_checked(checked_map_key(prior, context, turns, active_evidence, payload.get("document_scope")),
+                                     _map_account(turns))
+        candidate_key = _fingerprint([source_payload, reuse])
         # One candidate is written per account. A request that finds the same candidate being
         # written (the page starts it when the participant wraps up) waits for that one instead
         # of writing a second; if the first fails or takes too long, this request writes its own.
@@ -6005,9 +6068,23 @@ class OpenAIClient:
             provider_usage.remember_stages(cached[2])
         else:
             try:
-                result = self.structured(draft_instructions(bool(notes)),
-                                         source_payload, DRAFT_SCHEMA, "process_draft", output_tokens,
+                result = self.structured(draft_instructions(bool(notes), reuse), source_payload,
+                                         DRAFT_FROM_MAP_SCHEMA if reuse else DRAFT_SCHEMA, "process_draft", output_tokens,
                                          request_timeout=generation_timeout, model_override=self.draft_model)
+                if reuse:
+                    try:
+                        if isinstance(result, dict) and ("drop_steps" in result or "drop_connections" in result):
+                            check_schema(result, DRAFT_FROM_MAP_SCHEMA, "draft_map_changes")
+                            result = draft_audit.draft_from_map(prior, result)
+                            # Check evidence, limits and endpoints before sharing even a prepared candidate.
+                            validate_workflow({key: result[key] for key in WORKFLOW_SCHEMA["properties"]},
+                                              turns, active_evidence, context=context)
+                            validate_step_rule_sources(result["steps"], evidence_sources(turns, active_evidence, context))
+                        else:
+                            # Compatible providers may still return a complete candidate.
+                            check_schema(result, DRAFT_SCHEMA, "draft")
+                    except ValueError as error:
+                        raise APIError(own_wording(error, UNUSABLE_RESULT_MESSAGE)) from None
                 check_draft_candidate(result)
                 with self._draft_lock:
                     while len(self._draft_candidates) >= 8:

@@ -36,7 +36,18 @@ const {chromium}=require(process.env.COLLECTOR_PLAYWRIGHT||"playwright");
   const diagram=await page.evaluate(()=>({steps:document.querySelectorAll("[data-step-id]").length,
    markers:[...document.querySelectorAll("[data-implied]")].map(node=>node.getAttribute("data-implied")).sort().join(",")}));
   assert.deepEqual(diagram,{steps:3,markers:"end,start"});
+  await page.locator('[data-tab="review"]').click();
+  const responsePromise=page.waitForResponse(response=>new URL(response.url()).pathname==="/api/draft");
+  await page.locator("#review-create-draft").click();
+  const response=await responsePromise;
+  const result=await response.json();
+  assert.equal(response.status(),200,JSON.stringify(result));
+  const checkedMap=response.request().postDataJSON().previous_capture.workflow;
+  const identity=step=>[step.id,step.title,step.evidence_turns];
+  assert.deepEqual(result.draft.steps.map(identity),checkedMap.steps.map(identity));
+  assert.deepEqual(result.draft.connections,checkedMap.connections);
+  await page.locator("#review-heading").waitFor({state:"visible"});
   assert.deepEqual(errors,[]);
-  console.log(JSON.stringify({checks_passed:5,first,second,third,diagram,provider_calls:0,real_browser:true}));
+  console.log(JSON.stringify({checks_passed:9,first,second,third,diagram,draft_steps:result.draft.steps.length,provider_calls:0,real_browser:true}));
  }finally{await browser.close();child.kill();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

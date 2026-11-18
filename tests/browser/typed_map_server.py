@@ -14,7 +14,8 @@ tests = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(tests))
 from test_background_continuity import step
 from test_concurrent_http import ConversationProvider
-from test_server import server
+from test_draft_audit_corrections import corrections
+from test_server import fixture_route_support, server
 
 
 class TypingProvider(ConversationProvider):
@@ -25,10 +26,20 @@ class TypingProvider(ConversationProvider):
 
     def reply(self, path, body, *args, **kwargs):
         name = body["text"]["format"]["name"] if path == "responses" else ""
-        if name not in ("team_working_process_map", "team_working_map_source_audit"):
+        if name not in ("team_working_process_map", "team_working_map_source_audit", "process_draft", "process_draft_audit"):
             return super().reply(path, body, *args, **kwargs)
         sent = json.loads(body["input"][0]["content"])
-        if name == "team_working_process_map":
+        if name == "process_draft":
+            fields = body["text"]["format"]["schema"]["properties"]
+            # A full-draft request here means that the checked map did not survive the browser round trip.
+            assert "drop_steps" in fields, "Create draft requested a full rewrite of the checked map"
+            result = {key: [] if spec["type"] == "array" else "" for key, spec in fields.items()}
+            result.update(title="Invoice handling", overview="The interview describes how invoices are handled.",
+                          memo_summary=[{"key": key, "answer": "UNKNOWN", "status": "unknown", "evidence_turns": []}
+                                        for key in server.COVERAGE])
+        elif name == "process_draft_audit":
+            result = corrections(route_support=fixture_route_support(sent["proposed_routes_to_verify"], sent["turns"]))
+        elif name == "team_working_process_map":
             time.sleep(self.draw_seconds)
             previous = sent["previous_capture"]["workflow"]
             drawn = {source for item in previous["steps"] for source in item["evidence_turns"]}

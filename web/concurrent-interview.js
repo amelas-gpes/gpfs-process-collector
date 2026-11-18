@@ -147,7 +147,8 @@
           // The map through an earlier answer, while the map of this answer is being drawn.
           const key=JSON.stringify([behind.revision,behind.version??0]);
           if(key!==this.appliedMap){
-            this.options.applyWorkflow?.(behind.workflow_capture,{snapshot:{...snapshot,turns:behind.turns},revision:behind.revision,checkpoint:true});
+            this.options.applyWorkflow?.(behind.workflow_capture,{snapshot:{...snapshot,turns:behind.turns},revision:behind.revision,
+              checkpoint:true,check:behind.checked===false?"working":""});
             global.CollectorRawTrace?.record("analysis.workflow_checkpoint_applied",{revision:behind.revision,through_turn_id:behind.through_turn_id});
             this.appliedMap=key;
           }

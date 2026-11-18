@@ -1736,6 +1736,7 @@ class _MapJob:
         api = coordinator.api
         self.coordinator, self.client, self.api = coordinator, coordinator.client, api
         self.started = time.monotonic()
+        self.scope = payload.get("document_scope")
         self.supporting = payload.get("_supporting_documents", {})
         self.evidence = api.document_evidence_catalog(self.supporting)
         self.context, self.turns = api.validate_payload(payload, require_answers=not bool(self.evidence))
@@ -1880,6 +1881,9 @@ class _MapJob:
         if not self.live():
             raise self.api.APIError("This workflow response was cancelled or replaced. The existing map is unchanged.", 409)
         self.coordinator._publish(self.token, run, capture, self.supporting)
+        remember = getattr(self.client, "remember_checked_map", None)
+        if remember and not drawn_only:
+            remember(self.previous["workflow"], capture["workflow"], self.context, self.turns, self.evidence, self.scope)
         if self.evidence:
             capture["document_evidence"] = self.evidence
         return capture

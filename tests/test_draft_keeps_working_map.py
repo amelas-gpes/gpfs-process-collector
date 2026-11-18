@@ -11,7 +11,7 @@ import copy
 import unittest
 from unittest.mock import Mock
 
-from test_server import server, interview_payload, process_draft, fixture_draft_audit
+from test_server import server, interview_payload, process_draft, fixture_draft_audit, fixture_workflow_audit
 
 
 class DraftKeepsWorkingMapTests(unittest.TestCase):
@@ -70,6 +70,137 @@ class DraftKeepsWorkingMapTests(unittest.TestCase):
         self.assertEqual(seen[0][1], server.draft_instructions())
         self.assertIn("working_map", seen[0][2], "The draft request names the working map it was given, also when there is none")
         self.assertIn("proposed_routes_to_verify", seen[1][2], "Every route of the candidate still goes to the audit")
+
+
+class DraftFromCheckedMapTests(unittest.TestCase):
+    def setUp(self):
+        self.client = server.OpenAIClient({"OPENAI_API_KEY": "fictional"})
+        self.account = interview_payload()
+        self.draft = process_draft()
+        self.changes = {**self.draft, "steps": [], "connections": [], "drop_steps": [], "drop_connections": []}
+        self.requests = []
+        self.update = {"title": self.draft["title"], "upsert_steps": self.draft["steps"],
+                       "upsert_connections": self.draft["connections"], "remove_steps": [], "remove_connections": [],
+                       "open_questions": [], "memo_findings": [], "summary": "", "focus": "", "parking_lot": []}
+
+        def structured(instructions, data, schema, name, *args, **kwargs):
+            self.requests.append((name, schema, data))
+            if name in ("working_process_map", "team_working_process_map"):
+                return copy.deepcopy(self.update)
+            if name in ("working_process_map_audit", "team_working_map_source_audit"):
+                return fixture_workflow_audit(self.update, data["turns"])
+            if name == "process_draft":
+                return copy.deepcopy(self.changes if schema is server.DRAFT_FROM_MAP_SCHEMA else self.draft)
+            if name == "process_draft_audit":
+                return fixture_draft_audit(data["candidate_draft"], data["turns"])
+            raise server.APIError("No further scripted reply.", 503)
+        self.client.structured = Mock(side_effect=structured)
+
+    def capture(self, result):
+        return {key: copy.deepcopy(result[key]) for key in server.WORKFLOW_PREVIOUS_SCHEMA["properties"]}
+
+    def draft_payload(self):
+        return {**self.account, "previous_capture": self.capture(self.client.workflow(self.account))}
+
+    def schemas(self):
+        return [schema for name, schema, data in self.requests if name == "process_draft"]
+
+    def test_prepared_changes_keep_the_exact_map_and_every_route_is_independently_audited(self):
+        payload = self.draft_payload()
+        old = copy.deepcopy(payload["previous_capture"]["workflow"])
+        self.client.draft(dict(payload, prepare_only=True))
+        result = self.client.draft(payload)["draft"]
+        self.assertEqual(self.schemas(), [server.DRAFT_FROM_MAP_SCHEMA])
+        audit = next(data for name, schema, data in self.requests if name == "process_draft_audit")
+        for key in ("steps", "connections"):
+            self.assertEqual(audit["candidate_draft"][key], old[key])
+            self.assertEqual(result[key], old[key])
+        self.assertEqual(audit["proposed_routes_to_verify"], old["connections"])
+        self.assertNotIn("drop_steps", result)
+        self.assertNotIn("drop_connections", result)
+
+    def test_draw_only_uses_full_draft_until_the_separate_source_check_finishes(self):
+        coordinator = self.client.coordinator
+        drawn = self.capture(coordinator.workflow_draw(self.account)["capture"])
+        self.client.draft(dict(self.account, previous_capture=drawn, prepare_only=True))
+        checked = self.capture(coordinator.workflow_check(self.account, drawn))
+        self.client.draft(dict(self.account, previous_capture=checked, prepare_only=True))
+        self.assertEqual(self.schemas(), [server.DRAFT_SCHEMA, server.DRAFT_FROM_MAP_SCHEMA])
+
+    def test_appended_answers_can_change_kept_work_but_rewritten_sources_or_maps_use_full_drafts(self):
+        payload = self.draft_payload()
+        newer = copy.deepcopy(payload)
+        newer["turns"].append({"id": "u4", "role": "user", "text": "The supervisor approves invoices."})
+        changed_step = {**self.draft["steps"][1], "actor": "Supervisor", "evidence_turns": ["u4"]}
+        self.changes["steps"] = [changed_step]
+        result = self.client.draft(newer)["draft"]
+        self.assertEqual([step["actor"] for step in result["steps"]], [self.draft["steps"][0]["actor"], "Supervisor"])
+        self.assertEqual(result["steps"][1]["evidence_turns"], ["u4"])
+        for change in ("answer", "map", "scope", "context"):
+            other = copy.deepcopy(payload)
+            if change == "answer":
+                other["turns"][1]["text"] += " Correction."
+            if change == "map":
+                other["previous_capture"]["workflow"]["steps"][0]["title"] = "Changed in a saved file"
+            if change == "scope":
+                other["document_scope"] = "different-workspace"
+            if change == "context":
+                other["context"]["process_owner"] = "Different team"
+            other["workflow_checked"] = True  # A browser flag cannot certify a map.
+            self.client.draft(dict(other, prepare_only=True))
+        self.assertEqual(self.schemas(), [server.DRAFT_FROM_MAP_SCHEMA] + [server.DRAFT_SCHEMA] * 4)
+
+    def test_document_binding_normalized_legacy_browser_values_and_unchecked_ancestry(self):
+        context, turns = server.validate_payload(self.account)
+        graph = self.draft_payload()["previous_capture"]["workflow"]
+        graph["steps"][0]["evidence_turns"] = ["doc_example"]
+        graph["steps"][0]["input"] = ""
+        excerpt = {"id": "doc_example", "text": "The clerk logs the invoice."}
+        self.client.remember_checked_map({"steps": []}, graph, context, turns, [excerpt], "scope")
+        browser = copy.deepcopy(graph)
+        for step in browser["steps"]:
+            server.gpfs_interview.legacy_defaults(step, server.DRAFT_SCHEMA["properties"]["steps"]["items"])
+        browser["steps"][0]["input"] = "UNKNOWN / TBD"
+        account = server._map_account(turns)
+        def recognized(candidate, evidence):
+            return self.client._map_was_checked(server.checked_map_key(candidate, context, turns, evidence, "scope"), account)
+        self.assertTrue(recognized(browser, [excerpt]))
+        for evidence in ([], [{**excerpt, "text": "Different text"}], [{**excerpt, "retained_only": True}]):
+            self.assertFalse(recognized(browser, evidence))
+        other = copy.deepcopy(graph)
+        other["steps"][0]["title"] = "Unverified ancestor"
+        next_map = copy.deepcopy(graph)
+        next_map["steps"][0]["actor"] = "Another actor"
+        self.client.remember_checked_map(other, next_map, context, turns, [excerpt], "scope")
+        self.assertFalse(recognized(next_map, [excerpt]))
+
+    def test_changed_routes_and_steps_include_additions_replacements_and_deletions(self):
+        graph = self.draft_payload()["previous_capture"]["workflow"]
+        added = {**graph["steps"][0], "id": "new"}
+        retained = {**graph["steps"][1], "description": "Updated description"}
+        new_route = {**graph["connections"][0], "from": "new", "label": "Submitted"}
+        changes = {**self.changes, "steps": [added, retained], "drop_steps": [graph["steps"][0]["id"]],
+                   "connections": [new_route], "drop_connections": [
+                       {key: graph["connections"][0][key] for key in ("from", "to", "label")}]}
+        candidate = server.draft_audit.draft_from_map(graph, changes)
+        self.assertEqual(candidate["steps"], [added, retained])
+        self.assertEqual(candidate["connections"], [new_route])
+        self.assertEqual(graph["steps"][0]["id"], "s1")
+
+    def test_invalid_map_changes_are_not_prepared_or_cached_and_full_replies_still_work(self):
+        payload = self.draft_payload()
+        for changes in ({"drop_steps": ["missing"]}, {"steps": [self.draft["steps"][1]] * 2},
+                        {"steps": [self.draft["steps"][0]], "drop_steps": ["s1"]},
+                        {"connections": [{**self.draft["connections"][0], "to": "missing"}]},
+                        {"steps": [{**self.draft["steps"][1], "evidence_turns": ["fabricated"]}]},
+                        {"steps": [{**self.draft["steps"][1], "rule_source_ref": "u1"}]}):
+            with self.subTest(changes=changes):
+                self.changes = {**self.draft, "steps": [], "connections": [], "drop_steps": [], "drop_connections": [], **changes}
+                with self.assertRaises(server.APIError):
+                    self.client.draft(dict(payload, prepare_only=True))
+                self.assertFalse(self.client._draft_candidates)
+        self.changes = self.draft
+        self.assertEqual(self.client.draft(payload)["draft"]["steps"], self.draft["steps"])
 
 
 if __name__ == "__main__":

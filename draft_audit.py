@@ -16,6 +16,70 @@ def _rows(value):
     return [row for row in value if isinstance(row, dict)] if isinstance(value, list) else []
 
 
+def changed_map(baseline, changes):
+    """Apply step and route edits while preserving the order and evidence of retained work."""
+    removed = {step for step in changes.get("drop_steps") or [] if isinstance(step, str)}
+    corrected = {step.get("id"): step for step in _rows(changes.get("steps"))}
+    steps, seen = [], set()
+    for step in _rows(baseline.get("steps")):
+        if step.get("id") in corrected:
+            steps.append(copy.deepcopy(corrected[step["id"]]))
+        elif step.get("id") not in removed:
+            steps.append(copy.deepcopy(step))
+        else:
+            continue
+        seen.add(step.get("id"))
+    added = [step for step in _rows(changes.get("steps")) if step.get("id") not in seen]
+    seen.update(step.get("id") for step in added)
+
+    dropped = {_route(edge) for edge in _rows(changes.get("drop_connections"))}
+    replaced = {_route(edge): edge for edge in _rows(changes.get("connections"))}
+    connections, drawn = [], set()
+    for edge in [*_rows(baseline.get("connections")), *_rows(changes.get("connections"))]:
+        key = _route(edge)
+        if key in drawn or edge.get("from") not in seen or edge.get("to") not in seen:
+            continue
+        if key in replaced:
+            edge = replaced[key]
+        elif key in dropped:
+            continue
+        connections.append(copy.deepcopy(edge))
+        drawn.add(key)
+
+    # A newly added step stands where its routes put it: before the first step it leads to when
+    # nothing leads into it (a start event), otherwise after the last step that leads into it. The
+    # report numbers steps in this order.
+    for step in added:
+        order = [row.get("id") for row in steps]
+        targets = [order.index(edge["to"]) for edge in connections if edge.get("from") == step.get("id") and edge.get("to") in order]
+        origins = [order.index(edge["from"]) for edge in connections if edge.get("to") == step.get("id") and edge.get("from") in order]
+        position = max(origins) + 1 if origins else min(targets) if targets else len(steps)
+        steps.insert(position, copy.deepcopy(step))
+
+    return steps, connections
+
+
+def draft_from_map(baseline, reply):
+    """Apply first-pass changes. Refuse ambiguous edits before the candidate is cached."""
+    step_ids = {step["id"] for step in baseline["steps"]}
+    route_ids = {_route(edge) for edge in baseline["connections"]}
+    steps = [step["id"] for step in reply["steps"]]
+    routes = [_route(edge) for edge in reply["connections"]]
+    drop_steps = reply["drop_steps"]
+    drop_routes = [_route(edge) for edge in reply["drop_connections"]]
+    if any(len(ids) != len(set(ids)) for ids in (steps, routes, drop_steps, drop_routes)):
+        raise ValueError("The draft repeats a map change.")
+    if (not set(drop_steps) <= step_ids or not set(drop_routes) <= route_ids
+            or set(steps).intersection(drop_steps) or set(routes).intersection(drop_routes)):
+        raise ValueError("The draft removes an unknown or updated map item.")
+    final_ids = step_ids.union(steps).difference(drop_steps)
+    if any(start not in final_ids or end not in final_ids for start, end, _ in routes):
+        raise ValueError("A changed draft connection references a nonexistent step.")
+    candidate = {key: value for key, value in reply.items() if key not in ("drop_steps", "drop_connections")}
+    candidate["steps"], candidate["connections"] = changed_map(baseline, reply)
+    return candidate
+
+
 def merge(candidate, audit):
     """Return the audited draft: the candidate with the audit's corrections applied.
 
@@ -37,45 +101,8 @@ def merge(candidate, audit):
         if key in changed and key in audit:
             merged[key] = copy.deepcopy(audit[key])
 
-    removed = {step for step in audit.get("drop_steps") or [] if isinstance(step, str)}
-    corrected = {step.get("id"): step for step in _rows(audit.get("steps"))}
-    steps, seen = [], set()
-    for step in _rows(candidate.get("steps")):
-        if step.get("id") in corrected:
-            steps.append(copy.deepcopy(corrected[step["id"]]))
-        elif step.get("id") not in removed:
-            steps.append(copy.deepcopy(step))
-        else:
-            continue
-        seen.add(step.get("id"))
-    added = [step for step in _rows(audit.get("steps")) if step.get("id") not in seen]
-    seen.update(step.get("id") for step in added)
-    merged["steps"] = steps
-
-    dropped = {_route(edge) for edge in _rows(audit.get("drop_connections"))}
-    replaced = {_route(edge): edge for edge in _rows(audit.get("connections"))}
-    connections, drawn = [], set()
-    for edge in [*_rows(candidate.get("connections")), *_rows(audit.get("connections"))]:
-        key = _route(edge)
-        if key in drawn or edge.get("from") not in seen or edge.get("to") not in seen:
-            continue
-        if key in replaced:
-            edge = replaced[key]
-        elif key in dropped:
-            continue
-        connections.append(copy.deepcopy(edge))
-        drawn.add(key)
-    merged["connections"] = connections
-
-    # A step the audit adds stands where its routes put it: before the first step it leads to when
-    # nothing leads into it (a start event), otherwise after the last step that leads into it. The
-    # report numbers steps in this order.
-    for step in added:
-        order = [row.get("id") for row in steps]
-        targets = [order.index(edge["to"]) for edge in connections if edge.get("from") == step.get("id") and edge.get("to") in order]
-        origins = [order.index(edge["from"]) for edge in connections if edge.get("to") == step.get("id") and edge.get("from") in order]
-        position = max(origins) + 1 if origins else min(targets) if targets else len(steps)
-        steps.insert(position, copy.deepcopy(step))
+    merged["steps"], merged["connections"] = changed_map(candidate, audit)
+    seen = {step["id"] for step in merged["steps"]}
 
     findings = {row.get("key"): row for row in _rows(audit.get("memo_summary"))}
     memo = [copy.deepcopy(findings.pop(row.get("key"), row)) for row in _rows(candidate.get("memo_summary"))]

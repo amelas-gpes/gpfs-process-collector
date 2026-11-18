@@ -71,7 +71,7 @@
     recording: null, requestingMic: false, transcribing: false,
     taxonomy:[],connections_out:[],active_modules:[],recap_due:"none",memo_findings: [], focus: "", parking_lot: [], closure: {asked:false,confirmed:false}, coverageNeedsReview:false, captureProvenance:null, documentEvidence:[],
   };
-  const conversationUI = {view:"voice", typing:false, live:null, status:"idle", muted:false, captions:new Map(), pendingParticipantCaptions:new Set(), workflow:null, revision:0, applied:-1, flowBusy:false, flowTimer:null, flowAbort:null, flowErrorNotified:false, coverageCheckpoint:null, coverageCheckpointSequence:0, liveCoverageKey:null, liveCoverageSequence:0};
+  const conversationUI = {view:"voice", typing:false, live:null, status:"idle", muted:false, captions:new Map(), pendingParticipantCaptions:new Set(), workflow:null, workflowCheckPending:false, revision:0, applied:-1, flowBusy:false, flowTimer:null, flowAbort:null, flowErrorNotified:false, coverageCheckpoint:null, coverageCheckpointSequence:0, liveCoverageKey:null, liveCoverageSequence:0};
   const workflowCanvases=new Map();
   const deferredDiagrams=new Map();
   const workflowPlayers=new Map();
@@ -108,6 +108,10 @@
     if(state.closure?.asked&&!state.closure?.confirmed)return;
     draftAhead.generation=state.generation;draftAhead.turns=state.turns.length;prepareDraftAhead();
   }
+  function draftPreparationKey(body){
+    // A source check may finish without changing a single step in the request body.
+    return (conversationUI.workflowCheckPending?"pending:":"settled:")+body;
+  }
   function prepareDraftAhead(){
     try{
       if(state.config?.draft_prepare!==true||draftAhead.flight||draftInFlight||state.example||intakeActive()||conversationUI.live?.active)return;
@@ -116,11 +120,12 @@
       // more, and Create draft is usually clicked sooner. A map that arrives later is another
       // account, and gets a head start of its own once this one has ended.
       const body=JSON.stringify({...snapshot(),previous_capture:captureForFollowup(),prepare_only:true});
-      if(body===draftAhead.body)return;
-      draftAhead.body=body;draftAhead.flight=true;
+      const key=draftPreparationKey(body);
+      if(key===draftAhead.body)return;
+      draftAhead.body=key;draftAhead.flight=true;
       const generation=state.generation;
       fetch("/api/draft",{method:"POST",credentials:"same-origin",headers:{...usageHeaders(),"X-CSRF-Token":state.config?.csrf_token||"","Content-Type":"application/json"},body})
-        .then(response=>response.ok?response.json():null).then(result=>{if(result?.prepared===true){draftAhead.ready=body;draftAhead.readyAt=Date.now();}}).catch(()=>{})
+        .then(response=>response.ok?response.json():null).then(result=>{if(result?.prepared===true&&key===draftAhead.body&&generation===state.generation){draftAhead.ready=key;draftAhead.readyAt=Date.now();}}).catch(()=>{})
         .finally(()=>{draftAhead.flight=false;if(generation===state.generation)prepareDraftAhead();});
     }catch{/* A head start only. */}
   }
@@ -128,7 +133,7 @@
   function draftAheadReady(){
     try{
       return Boolean(draftAhead.ready)&&draftAhead.generation===state.generation&&Date.now()-draftAhead.readyAt<DRAFT_AHEAD_KEPT_MS&&
-        draftAhead.ready===JSON.stringify({...snapshot(),previous_capture:captureForFollowup(),prepare_only:true});
+        draftAhead.ready===draftPreparationKey(JSON.stringify({...snapshot(),previous_capture:captureForFollowup(),prepare_only:true}));
     }catch{return false;}
   }
   const INTERVIEW_ID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -2231,8 +2236,12 @@
   }
   function captureForFollowup() {
     const prior=conversationUI.workflow;
-    return sendableCapture(clone({workflow:prior?{title:prior.title,steps:prior.steps,connections:prior.connections,open_questions:prior.open_questions}:{title:"",steps:[],connections:[],open_questions:[]},
-      memo_findings:state.memo_findings,summary:state.summary,focus:state.focus,parking_lot:state.parking_lot}));
+    // A map can be ready before the first notes arrive. Send the same unknown topics as a fresh capture.
+    const findings=state.memo_findings.length===TOPICS.length?state.memo_findings:normalizeFindings(state.memo_findings,state.turns);
+    const capture=clone({workflow:prior?{title:prior.title,steps:prior.steps,connections:prior.connections,open_questions:prior.open_questions}:{title:"",steps:[],connections:[],open_questions:[]},
+      memo_findings:findings,summary:state.summary,focus:state.focus,parking_lot:state.parking_lot});
+    for(const item of [...capture.workflow.steps,...capture.memo_findings])delete item.reviewed_fields;
+    return sendableCapture(capture);
   }
   // The files this intake was started for, as distinct from files reviewed earlier.
   function intakeDocuments(documents) {
@@ -3181,7 +3190,8 @@
     if(status)status.textContent=message;
     conversationUI.applied=-1;
   }
-  function publishWorkingMap(graph,response,turns){
+  function publishWorkingMap(graph,response,turns,check=""){
+    conversationUI.workflowCheckPending=Boolean(check);
     const retry=$("retry-workflow");if(retry?.dataset.mapOnly){delete retry.dataset.mapOnly;retry.hidden=true;}
     const previous=conversationUI.workflow;
     if(typeof response?.question_limit_notice==="string")graph.question_limit_notice=text(response.question_limit_notice,800);
@@ -3908,7 +3918,7 @@
     const workflow=optionalWorkingMap(capture?.workflow,captured.turns,evidence);
     if(!workflow)return;
     state.documentEvidence=evidence;
-    publishWorkingMap(workflow,capture,captured.turns);mapProgress=captureProgressMark(captured.turns);
+    publishWorkingMap(workflow,capture,captured.turns,check);mapProgress=captureProgressMark(captured.turns);
     const current=mapProgress.basis===captureProgressMark().basis;
     if(current){conversationUI.applied=conversationUI.revision;settleMapStatus();}
     applyProcessTitle(workflow.title);renderWorkingMap();
@@ -3945,7 +3955,7 @@
     // passes the explicit synchronized completion/review path.
     state.coverageVerified=false;state.completion=null;state.closure={asked:false,confirmed:false};
     state.dirty=true;
-    if(workflow){publishWorkingMap(workflow,result.workflow_capture,captured.turns);mapProgress=captureProgressMark(captured.turns);
+    if(workflow){publishWorkingMap(workflow,result.workflow_capture,captured.turns,check);mapProgress=captureProgressMark(captured.turns);
       const current=mapProgress.basis===captureProgressMark().basis;
       if(current){conversationUI.applied=conversationUI.revision;settleMapStatus();}
       applyProcessTitle(workflow.title);renderWorkingMap();showMapStatus(current,check);if(current)prepareDraftAhead();}
@@ -4073,10 +4083,10 @@
     };
     const repairs=memo?reviewedRepairs(result,memo.findings,state.turns,documentEvidence):null;
     if(graph){
-      state.documentEvidence=documentEvidence;publishWorkingMap(graph,result.workflow_capture,state.turns);
+      const check=result.workflow_checked===false?(result.workflow_check_state==="error"?"error":"working"):"";
+      state.documentEvidence=documentEvidence;publishWorkingMap(graph,result.workflow_capture,state.turns,check);
       conversationUI.applied=conversationUI.revision;mapProgress=captureProgressMark();
       applyProcessTitle(graph.title);renderWorkingMap();
-      const check=result.workflow_checked===false?(result.workflow_check_state==="error"?"error":"working"):"";
       if(check==="error"&&analysisState.scope==="workflow")mapNeedsRetry(analysisState.message);
       else{showMapStatus(true,check);settleMapStatus();}
     }
@@ -6453,7 +6463,7 @@
     conversationUI.live?.stop({immediate:true});
     clearTimeout(conversationUI.flowTimer);conversationUI.flowAbort?.abort();
     liveLeads.clear();liveAbsorbed.clear();
-    Object.assign(conversationUI,{workflow:null,revision:0,applied:-1,flowBusy:false,flowTimer:null,flowAbort:null,flowErrorNotified:false,typing:false,status:"idle",readyAnnounced:false,captions:new Map(),pendingParticipantCaptions:new Set(),coverageCheckpoint:null,liveCoverageKey:null});
+    Object.assign(conversationUI,{workflow:null,workflowCheckPending:false,revision:0,applied:-1,flowBusy:false,flowTimer:null,flowAbort:null,flowErrorNotified:false,typing:false,status:"idle",readyAnnounced:false,captions:new Map(),pendingParticipantCaptions:new Set(),coverageCheckpoint:null,liveCoverageKey:null});
     selectConversationView("voice");renderWorkingMap();
     if($("workflow-status"))$("workflow-status").textContent="";
     for(const id of ["retry-workflow","map-retry-layout"])if($(id)){$(id).hidden=true;$(id).disabled=false;delete $(id).dataset.layoutRetry;delete $(id).dataset.coverageRecheck;}if($("retry-workflow"))$("retry-workflow").textContent="Try again";

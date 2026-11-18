@@ -135,7 +135,10 @@ def agent_prompts(api):
         ]),
         _agent("draft_writer", "Draft writer", "Builds a process draft from the interview and its supporting evidence.", [
             _prompt("draft", "Generate the process draft",
-                    "Runs when a participant requests a draft.", api.draft_instructions()),
+                    "Writes the whole draft when the current map has no matching source check.", api.draft_instructions()),
+            _prompt("draft_from_map", "Generate a draft from the checked map",
+                    "Writes the report and any additions, corrections or removals to the source-checked map.",
+                    api.draft_instructions(from_map=True)),
         ]),
         _agent("draft_auditor", "Draft auditor", "Checks the proposed draft against the reported work and its sources.", [
             _prompt("draft_audit", "Audit the draft",

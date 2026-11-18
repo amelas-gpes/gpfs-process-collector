@@ -412,6 +412,8 @@ an inference and an unanswered question. Mark every observation as stated or inf
 For a stated observation copy a short exact passage from one of its sources into quote. For a visual
 source, quote its transcription. Label inferences explicitly and leave quote empty.
 Assess relevance against the current question, the participant's stated purpose and conversation.
+When a short register lists who handles each record, include each distinct role, action and record
+together in a cited observation, within the observation limit. Keep independent records separate.
 For phase quick, briefly identify what the supplied text establishes and its relevance. The app
 already shows receipt/progress; do not propose another spoken receipt acknowledgment. If the person
 asked whether their documentation is sufficient, assess the content already present and propose

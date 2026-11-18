@@ -2,13 +2,17 @@ name: Windows regression replay
 on:
   push:
     branches: [qa/collector-regression-2026-11-17]
-    paths: [.github/workflows/windows-regression-replay.yml]
+    paths: ['**/*.py', '.github/workflows/windows-regression-replay.yml']
 permissions:
   contents: read
 jobs:
   regression:
     runs-on: windows-latest
     timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -31,4 +35,19 @@ jobs:
           git config --global user.name 'Process Collector QA'
           git config --global user.email 'qa@localhost'
       - name: Run repository Python tests
-        run: python -I -B -m unittest discover -s tests -v
+        shell: pwsh
+        env:
+          TEST_SHARD: ${{ matrix.shard }}
+        run: |
+          @'
+          import os
+          from pathlib import Path
+          import unittest
+
+          suites = sorted(Path("tests").glob("test*.py"))[int(os.environ["TEST_SHARD"])::3]
+          loader = unittest.TestLoader()
+          tests = unittest.TestSuite(loader.discover("tests", pattern=file.name) for file in suites)
+          result = unittest.TextTestRunner(verbosity=2).run(tests)
+          raise SystemExit(0 if result.wasSuccessful() else 1)
+          '@ | python -I -B -
+          exit $LASTEXITCODE

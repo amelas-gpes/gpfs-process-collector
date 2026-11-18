@@ -1921,7 +1921,7 @@ _STOP_COURTESY = (r"(?:please|sorry|bye|goodbye|thanks|thank you)"
                   r"(?: (?:very|so) much| a lot| for (?:your|the) (?:help|time|patience)| about that)?")
 _STOP_APPOINTMENT = r"(?:a|an|another|my|my next|the next) (?:meeting|call|appointment)"
 _STOP_GO = (r"i(?:(?: have|['’]ve got| have got| need) to| must) (?:go|leave|run)(?: now| soon| shortly)?"
-            r"(?: to " + _STOP_APPOINTMENT + r")?")
+            r"(?: (?:to|for) " + _STOP_APPOINTMENT + r")?")
 # When the meeting or call is: 'now', 'in five minutes', 'at three'. Nothing longer
 # may follow, so 'I have a meeting with the controller before anything is released'
 # stays an answer.
@@ -1987,7 +1987,7 @@ _STOP_OPEN = r"(?:" + _STOP_FILLER + r" ){0,4}(?:please )?"
 _STOP_AND_LATER = r"(?: (?:and|but|so)(?: then)? " + _STOP_RESUME + r")?"
 # After a firm request, the speaker can share a subject with a second verb:
 # “I need to stop now and go to a meeting.” Work destinations stay outside this list.
-_STOP_LEAVING = (r"(?:(?:go|get|head|run) to|join|attend|take) " + _STOP_APPOINTMENT +
+_STOP_LEAVING = (r"(?:(?:go|get|head|run) to|leave for|join|attend|take) " + _STOP_APPOINTMENT +
                  r"|get back to (?:work|my desk)|take (?:a|my) break|pick up (?:my|the) (?:kids?|children)")
 # The message is read clause by clause (see _stop_clauses); every pattern is
 # anchored to one clause, so matching stays linear in the length of the message.

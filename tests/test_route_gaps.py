@@ -132,6 +132,43 @@ class RouteGapTests(unittest.TestCase):
         gaps = server.route_gaps(steps, [edge('S1', 'S2'), edge('S3', 'S4'), edge('S4', 'S5')])
         self.assertEqual([gap['steps'] for gap in gaps], [['S1', 'S2'], ['S6']])
 
+    def test_branch_that_only_feeds_into_the_started_route_needs_a_trigger(self):
+        steps = [step('S1', 'Grant changes', 'start'), step('S2', 'Tie the balances'),
+                 step('S3', 'Select the option'), step('S4', 'Review the selection'), step('S5', 'File package')]
+        edges = [edge('S1', 'S2'), edge('S2', 'S5'), edge('S3', 'S4'), edge('S4', 'S3'), edge('S4', 'S5')]
+        workflow = {'title': 'Grant changes', 'steps': steps, 'connections': edges, 'open_questions': []}
+        branch = {'kind': 'unreached_branch', 'start': 'S1', 'steps': ['S3', 'S4']}
+        self.assertEqual(server.route_gaps(steps, edges), [branch])
+        unavailable = Repair(None)
+        waiting = connect(unavailable, workflow)
+        self.assertEqual(unavailable.asked, [[branch]])
+        self.assertEqual(waiting['connections'], edges)
+        question = next(item for item in waiting['open_questions'] if 'its own trigger' in item)
+        self.assertIn('S3 (Select the option)', question)
+        self.assertIn('S1 (Grant changes)', question)
+        # A repeated check stays within the repair budget, and the clarification survives.
+        repeated = Repair(None)
+        self.assertIn(question, connect(repeated, waiting, baseline=workflow)['open_questions'])
+        self.assertFalse(repeated.asked)
+        supported = Repair({'connections': [SELECT_AFTER_TIE], 'replaced_connections': []})
+        repaired = connect(supported, waiting)
+        self.assertEqual(supported.asked, [[branch]])
+        self.assertEqual(paths(repaired, 'S1', 'S4'), [['S1', 'S2', 'S3', 'S4']])
+        self.assertNotIn(question, repaired['open_questions'])
+        self.assertEqual(server.route_gaps(steps, repaired['connections']), [])
+
+    def test_direction_check_requires_one_reported_start_and_stays_in_its_component(self):
+        steps = [step('A', 'Start A', 'start'), step('B', 'Submit'),
+                 step('C', 'Independent request', 'start'), step('D', 'Receive')]
+        edges = [edge('A', 'B'), edge('C', 'B'), edge('D', 'C')]
+        self.assertEqual(server.route_gaps(steps, edges), [])
+        self.assertFalse(any('its own trigger' in q for q in server.workflow_structure_questions(steps, edges)))
+        steps[0]['type'] = steps[2]['type'] = 'activity'
+        self.assertEqual(server.route_gaps(steps, edges), [])
+        steps[0]['type'] = 'start'
+        separate = [edge('A', 'B'), edge('C', 'D')]
+        self.assertEqual(server.route_gaps(steps, separate), [{'kind': 'detached', 'steps': ['C', 'D'], 'gate': False}])
+
     def test_sources_put_the_gate_on_the_route_and_the_bypass_is_rerouted_through_it(self):
         repair = Repair({'connections': [SELECT_AFTER_TIE, OTHER_OPTION], 'replaced_connections': [BYPASS]})
         workflow = connect(repair)

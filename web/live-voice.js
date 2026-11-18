@@ -34,6 +34,14 @@
   const READING_HOLD_MS = 1000;
   // Match the trusted startup developer message configured by the server.
   const OPENING_GREETING = 'Greet the participant now in English. Say: "Hi, I\'m here to help you capture how your work gets done. What work would you like to walk through together?" Then pause and listen. Ask only this one question.';
+  // The same line with the name of the work, when the participant has typed one that is plain words
+  // (server.py spoken_process_name applies the same test to the server's own opening message).
+  const SPOKEN_NAME = /^[\p{L}\p{N}](?:[\p{L}\p{N} &/,.()'’+-]{1,78}[\p{L}\p{N})]|[\p{L}\p{N}]{1,2})$/u;
+  const spokenProcessName = context => {
+    const name = typeof context?.process_name === "string" ? context.process_name.trim().replace(/\s+/gu," ") : "";
+    return SPOKEN_NAME.test(name) ? name : "";
+  };
+  const namedOpeningGreeting = name => `Greet the participant now in English. Say: "Hi, I'm here to help you capture how this work gets done: ${name}. What usually sets it in motion?" Then pause and listen. Ask only this one question.`;
   const DOCUMENT_OPENING_GREETING = "Greet briefly, read the supplied document context, and continue from its identified process. If the participant requested a documentation assessment, state what it already covers and ask only one material unresolved question. Do not restart process-name or walkthrough questions answered by the file.";
   const encoder = new TextEncoder();
   // Listening cues and brief acknowledgements: the interviewer saying only these
@@ -165,7 +173,7 @@
           playing:false,buffering:false,lastSample:null,lastInput:-Infinity,lastOutput:-Infinity},
         timers:new Set(), finalized:false, stopResolve:null, commentary:new Map(), said:null, lines:[], held:null,
         gate:null, speech:[], metered:[], withheld:[], withheldFragments:0,
-        greeting:Array.isArray(turns) && turns.length === 0 ? {status:"queued",event_id:null} : null,
+        greeting:Array.isArray(turns) && turns.length === 0 ? {status:"queued",event_id:null,name:spokenProcessName(context)} : null,
         context:{records:new Map(),history:new Map(),pending:new Map(),bytes:0,events:0}};
       this.operation = op;
       this.setStatus("permission");
@@ -606,7 +614,7 @@
         // Official Live opening flow: one commentary append after startup. Keep
         // the input audio track active; do not create a synthetic transcript.
         sendEvent(op,{type:"session.commentary.append",event_id:op.greeting.event_id,
-          delegation_id:null,content:op.greeting.documentContext?DOCUMENT_OPENING_GREETING:OPENING_GREETING});
+          delegation_id:null,content:op.greeting.documentContext?DOCUMENT_OPENING_GREETING:op.greeting.name?namedOpeningGreeting(op.greeting.name):OPENING_GREETING});
         if (op.greeting.status === "sent") this.notify("onGreeting",{...op.greeting});
       } catch {
         this.finishGreeting(op,"rejected","send_failed");

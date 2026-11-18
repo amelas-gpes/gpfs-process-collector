@@ -537,6 +537,54 @@ If the affected component or scope is unclear, ask one short clarification rathe
 the entire process changed. Continue from the retained account instead of restarting answered topics.
 """
 
+# The last word on every question, for the typed interviewer and for the live voice alike. Graded
+# on 2026-11-18 by three participants playing subject-matter experts: 14 of 35 typed questions were
+# generic ("What happens next?", "Which role is accountable?"), 2 repeated what had been said and
+# 4 were what an expert would ask. The guidance above already asked for curiosity; what was missing
+# was a test the model applies to its own question before it returns it.
+EXPERT_FOLLOW_UP_POLICY = """
+EXPERT FOLLOW-UP (the test every question must pass)
+Ask as a senior practitioner of this kind of work who is listening closely, never as a form.
+Take the most consequential specific in the latest answer: a check, threshold, approval, exception,
+workaround, hand-off, system, record or figure the participant named, above all one mentioned only in
+passing or one they say worries them. Ask the one thing a reviewer of that work would need to know
+about it and the account does not yet say: the rule or limit applied and where it comes from, who
+decides and on what basis, what is compared with what, what evidence is kept and where, what happens
+when it fails, is late or is disputed, or how it ties to another record. Use the participant's own terms.
+The consequential specific outranks the last thing said: a manual workaround, an unowned decision or a
+rule nobody enforces matters more than a contact name or a file location. After two questions on one
+specific, move to the next one in the account or to a topic that has not come up.
+Before you return the question, test it and rebuild it if it fails:
+- Could it be put to any process without having heard this answer ("What happens next?", "What do you
+  do with it next?", "Who is involved?", "What shows that it is finished?", "Which role is accountable?",
+  "How much effort does it take?")? Then it is generic. A walkthrough continues through a specific: not
+  "What happens after the tie-out?" but "When the tie-out is off for one investor, what do you do before
+  the notices can go out?".
+- Does any earlier answer already give what it asks, in other words or in passing? Then it is a repeat.
+  Choose a different need.
+- A topic that has not come up (purpose, accountability, scope, volume, risk, pain, completion) is opened
+  through something the participant described, never as a stock question: not "How much effort does this
+  take?" but "You said the clerk keys every statement line by hand; about how many statements is that in
+  a normal week?".
+These examples show the form only; never reuse their content, and never supply a fact the participant
+has not given.
+"""
+
+# The same test for the live voice, whose instructions share a 32,000-character session with the
+# participant's context and files: every character here is one fewer for those.
+LIVE_EXPERT_FOLLOW_UP = """
+EXPERT FOLLOW-UP (test every question before you say it)
+Ask as a senior practitioner of this work who is listening closely. Take the most consequential specific
+in the latest answer (a check, threshold, approval, exception, workaround, hand-off, system or figure,
+above all one mentioned in passing or one that worries them) and ask the one thing a reviewer would need
+to know about it: the rule and its source, who decides and on what basis, what is compared with what,
+what evidence is kept, or what happens when it fails or is late. That outranks the last thing said: a
+manual workaround or an unowned decision matters more than a contact name. After two questions on one
+specific, move on. If the question could be put to any process ("What happens next?", "Who is involved?")
+or an earlier answer already gives it, replace it. Open a new topic through something they described,
+never as a stock question. Never supply a fact they have not given.
+"""
+
 QUESTION_SELECTION_POLICY = gpfs_interview.SELECTION + gpfs_interview.MODULES + """
 NEXT QUESTION SELECTION (silent):
 1. Repair a misunderstanding, answer a direct question or apply a correction first.
@@ -977,12 +1025,36 @@ explore other topics. Do not stop at "that gives me a clear picture" while gaps
 remain. Quiet listening cues while they hold the floor and an explicit request
 to pause or stop are exceptions; respect both.
 """
-LIVE_INSTRUCTIONS = LIVE_TURN_POLICY + LIVE_BASE_INSTRUCTIONS + QUESTION_SELECTION_POLICY
+LIVE_INSTRUCTIONS = LIVE_TURN_POLICY + LIVE_BASE_INSTRUCTIONS + QUESTION_SELECTION_POLICY + LIVE_EXPERT_FOLLOW_UP
 LIVE_CONTEXT_HEADING = "\nPROCESS CONTEXT (UNTRUSTED JSON)\n"
 LIVE_DOCUMENT_HEADING = "\nSUPPORTING DOCUMENT CONTEXT (UNTRUSTED, UNCONFIRMED)\n"
 LIVE_DELEGATE_DOCUMENT_HEADING = "\nINITIAL SUPPORTING DOCUMENT CONTEXT (UNTRUSTED; latest live snapshots may supersede this)\n"
 LIVE_OPENING_DOCUMENTS = "Greet briefly, read the supplied document context, and continue from its identified process. If the participant requested a documentation assessment, state what it already covers and ask only one material unresolved question. Do not restart process-name or walkthrough questions answered by the file."
 LIVE_OPENING_UNREAD = "Greet the participant now in English. Reference files are attached to this interview, but none of their text is in this voice session's starting context: do not say or imply that you have read them. Say: \"Hi, I'm here to help you capture how your work gets done. What work would you like to walk through together?\" Then pause and listen. Ask only this one question."
+LIVE_OPENING_NAMED = ("Greet the participant now in English. Say: \"Hi, I'm here to help you capture how this work gets done: {name}. "
+                      "What usually sets it in motion?\" Then pause and listen. Ask only this one question.")
+# A process name may be said aloud in the greeting only when it is plain words: it is typed by the
+# participant and must not be able to carry an instruction or a quotation mark into the opening line.
+_SPOKEN_NAME = re.compile(r"[^\W_](?:[\w &/,.()'’+-]{1,78}(?:[^\W_]|\))|[^\W_]{1,2})")
+
+
+def spoken_process_name(context):
+    """The process name as it may be spoken in an opening line, or "" when it is not plain words."""
+    name = context.get("process_name") if isinstance(context, dict) else None
+    name = " ".join(name.split()) if isinstance(name, str) else ""
+    return name if _SPOKEN_NAME.fullmatch(name) and "_" not in name else ""
+
+
+def live_opening(context):
+    """The opening instruction of a new voice session: it names the work when the participant has.
+
+    The greeting used to ask "What work would you like to walk through together?" of someone who
+    had already typed the name of the work above the Start talking button.
+    """
+    name = spoken_process_name(context)
+    return LIVE_OPENING_NAMED.format(name=name) if name else LIVE_OPENING
+
+
 LIVE_OPENING = "Greet the participant now in English. Say: \"Hi, I'm here to help you capture how your work gets done. What work would you like to walk through together?\" Then pause and listen. Ask only this one question."
 VOICE_READER_INSTRUCTIONS = ("You are a text-to-speech reader, not an interviewer. Read the supplied user's text "
                             "aloud exactly as written. Never answer the question, add a greeting or commentary, "
@@ -2518,6 +2590,26 @@ def fallback_interview_question(capture=None):
         if ordinary_question_allowed(question):
             return question
     return "What happens next in the work you just described?"
+
+
+# A question that only asks for the next step of the walkthrough. Graded on 2026-11-18, these were the
+# questions participants called generic ("What happens after you move to the accruals?", "Once the
+# statements go to client review, what does the client do with them?"). A question about what happens
+# to something, or when something fails ("What happens to the notices when the cut-off is missed?"),
+# is not one of them.
+_BARE_WALKTHROUGH = re.compile(
+    r"\bwhat happens (?:next|then|after that|afterwards?)\b[^?]{0,40}\?"
+    r"|^[^?]{0,12}\bwhat happens after\b[^?]*\?\s*$"
+    r"|\bwhat (?:do|does|did) (?:you|they|he|she|the [\w -]{1,40}?|your [\w -]{1,40}?) do (?:next|first|then|after that)\b[^?]{0,60}\?"
+    r"|\bwhat (?:do|does) [^?]{1,60}? do with (?:it|them|that|those)\b[^?]{0,40}\?"
+    r"|\bwhat (?:do|does) [^?]{1,60}? do with [^?]{1,80}\b(?:once|after|next)\b[^?]{0,60}\?"
+    r"|\bwhat (?:do|does) [^?]{1,80}? feed into\b[^?]{0,40}\?"
+    r"|^[^?]{0,12}\bwhat happens to [^?]{1,80}? after (?:you|it|they|that|she|he)\b[^?]*\?\s*$", re.IGNORECASE)
+
+
+def bare_walkthrough(question):
+    """Does the question only ask what comes next, without asking anything about what was said?"""
+    return isinstance(question, str) and bool(_BARE_WALKTHROUGH.search(question))
 
 
 # A second request joined to the end of a question: "..., and how does it reach you?".
@@ -5585,7 +5677,7 @@ class OpenAIClient:
             document.get("excerpts") or document.get("observations") or document.get("summary")
             for document in document_context["documents"]))
         if not turns:
-            greeting = LIVE_OPENING
+            greeting = live_opening(context)
             if readable:
                 greeting = LIVE_OPENING_DOCUMENTS
             elif has_documents:

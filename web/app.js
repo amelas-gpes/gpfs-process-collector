@@ -112,7 +112,9 @@
     try{
       if(state.config?.draft_prepare!==true||draftAhead.flight||draftInFlight||state.example||intakeActive()||conversationUI.live?.active)return;
       if(draftAhead.generation!==state.generation||draftAhead.turns!==state.turns.length||!state.turns.some(turn=>turn.role==="user"))return;
-      if(conversationUI.applied!==conversationUI.revision)return;
+      // It does not wait for the map to catch up: after a spoken interview that takes a minute or
+      // more, and Create draft is usually clicked sooner. A map that arrives later is another
+      // account, and gets a head start of its own once this one has ended.
       const body=JSON.stringify({...snapshot(),previous_capture:captureForFollowup(),prepare_only:true});
       if(body===draftAhead.body)return;
       draftAhead.body=body;draftAhead.flight=true;
@@ -1685,7 +1687,11 @@
   }
   function setReading(value) {reading=value;showReading();}
   const interviewLines=["review_pending","complete","pause","acknowledgement","review_failed"];
-  function isInterviewerLine(turn){return turn.role==="assistant"&&interviewLines.includes(state.turnMetadata?.[turn.id]?.kind);}
+  // What the live voice says only to show it is listening ("Okay.", "Sure,"). It is not a question:
+  // on its own it is shown as an interviewer line, and before a question it is part of that question.
+  const LIVE_FILLER=/^(?:(?:m+(?:[ -]*h+m*)?|h+m+|u+h[ -]*h+u+h|uh|um|okay|ok|right|sure|yes|yeah|i see|got it|go ahead|go on|thanks|thank you|good to know)[\s.,!?…—-]*)+$/i;
+  const fillerLine=value=>typeof value==="string"&&value.length<=40&&LIVE_FILLER.test(value.trim());
+  function isInterviewerLine(turn){return turn.role==="assistant"&&(interviewLines.includes(state.turnMetadata?.[turn.id]?.kind)||!turn.document_event&&fillerLine(turn.text));}
   function turnCaption(turn, position) {
     if(isInterviewerLine(turn))return "Interviewer";
     return `${turn.role==="user"?"Answer":"Question"} ${position}`;
@@ -2582,6 +2588,11 @@
     if($("withheld-count"))$("withheld-count").textContent=String(items.length);
     list.replaceChildren(...items.map(item=>el("li","",item.text.replace(/\s+/g," ").trim())));
   }
+  const LIVE_SOUND=/\[(?:inhales?|exhales?|breath(?:es|ing)?|laughs?|laughter|chuckles?|sighs?|pauses?|clears throat|coughs?|hm+)\]/i;
+  const LIVE_SOUND_ALL=new RegExp("\\s*"+LIVE_SOUND.source+"\\s*","gi");
+  // The filler each live caption continues, by caption key, and the captions of those fillers (see
+  // receiveLiveCaption). Both belong to one interview and are emptied with its captions.
+  const liveLeads=new Map(),liveAbsorbed=new Set();
   function receiveLiveCaption(caption) {
     if(!caption.text||!["user","assistant"].includes(caption.role))return;
     const key=`${caption.role}:${caption.id}`;
@@ -2598,7 +2609,29 @@
     // The spoken reply to the final check is heard to its end inside the room
     // kept for closing (its first words already withdraw the "asked" state).
     if(caption.role==="user"&&liveFinalReply!==key&&transcriptLimit().finalReply)liveFinalReply=key;
+    // A filler that a later caption has taken up is finished: a late checkpoint for it adds nothing.
+    if(caption.role==="assistant"&&liveAbsorbed.has(key))return;
     let ids=conversationUI.captions.get(key)||[];
+    // The live voice often says "Okay." and then, as a caption of its own, the question. The two are
+    // one turn of the interviewer: the new caption continues the filler's line instead of starting
+    // "Question 4" after a "Question 3" that only said "Okay."
+    if(caption.role==="assistant"&&!ids.length){
+      const last=state.turns.at(-1);
+      if(last?.role==="assistant"&&!last.document_event&&fillerLine(last.text)){
+        for(const [other,held] of conversationUI.captions){
+          if(other!==key&&other.startsWith("assistant:")&&held.length===1&&held[0]===last.id){
+            conversationUI.captions.delete(other);liveAbsorbed.add(other);liveLeads.set(key,last.text.trim());ids=[last.id];break;
+          }
+        }
+      }
+    }
+    // The live voice's captions carry its breathing and laughter as "[inhale]"; they are not words.
+    if(caption.role==="assistant"&&LIVE_SOUND.test(caption.text)){
+      caption={...caption,text:caption.text.replace(LIVE_SOUND_ALL," ").replace(/ {2,}/gu," ").replace(/ ([,.?!;:])/gu,"$1")};
+      if(!caption.text.trim())return;
+    }
+    const lead=caption.role==="assistant"?liveLeads.get(key):undefined;
+    if(lead)caption={...caption,text:lead+" "+caption.text.replace(/^\s+/u,"")};
     const unchanged=ids.length && ids.map(id=>state.turns.find(t=>t.id===id)?.text||"").join("")===caption.text;
     const stopPrefix=caption.final&&caption.role==="user"&&liveFrontActive()?voiceStopPrefix(caption.text):null;
     const stopRequested=()=>{
@@ -3075,6 +3108,8 @@
       if(options.documentIntake||pending&&memo)suppressWorkflowReadiness();else if(memo)announceReadiness();
       conversationUI.applied=revision;state.dirty=true;updateSaveHint();renderCoverage();updateControls();
       conversationUI.flowErrorNotified=false;
+      // The map of a spoken interview becomes current here: a wrapped-up account can get its head start.
+      prepareDraftAhead();
       // A retry that succeeded for the current answers: the earlier map failure leaves Notes as well.
       if(!pending)settleMapStatus();
       const status=state.coverageNeedsReview?(memo?"Coverage review incomplete — retry to confirm sections":"Saved coverage needs a new check. Choose Wrap up when ready."):pending?"Updating latest answers…":"Up to date";
@@ -3913,7 +3948,7 @@
     if(workflow){publishWorkingMap(workflow,result.workflow_capture,captured.turns);mapProgress=captureProgressMark(captured.turns);
       const current=mapProgress.basis===captureProgressMark().basis;
       if(current){conversationUI.applied=conversationUI.revision;settleMapStatus();}
-      applyProcessTitle(workflow.title);renderWorkingMap();showMapStatus(current,check);}
+      applyProcessTitle(workflow.title);renderWorkingMap();showMapStatus(current,check);if(current)prepareDraftAhead();}
     renderCoverage();updateControls();updateSaveHint();
   }
   function rememberCompletionReview(result,liveCaptureSource=null){
@@ -6417,6 +6452,7 @@
     if($("workflow-step-dialog")?.open)$("workflow-step-dialog").close();
     conversationUI.live?.stop({immediate:true});
     clearTimeout(conversationUI.flowTimer);conversationUI.flowAbort?.abort();
+    liveLeads.clear();liveAbsorbed.clear();
     Object.assign(conversationUI,{workflow:null,revision:0,applied:-1,flowBusy:false,flowTimer:null,flowAbort:null,flowErrorNotified:false,typing:false,status:"idle",readyAnnounced:false,captions:new Map(),pendingParticipantCaptions:new Set(),coverageCheckpoint:null,liveCoverageKey:null});
     selectConversationView("voice");renderWorkingMap();
     if($("workflow-status"))$("workflow-status").textContent="";

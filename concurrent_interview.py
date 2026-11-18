@@ -36,9 +36,19 @@ _SPEAKER_LIMIT = re.compile(
     r" (?:give|provide|name|say|tell|confirm|know|have|specify|identify|recall|remember)\b"
     r"|\bleave (?:that|this|it|them)(?: (?:item|point|one))? open\b|\b(?:unspecified|undocumented|undefined)\b"
     r"|\b(?:is|are|isn(?:'|’)?t|aren(?:'|’)?t|was|were) not (?:yet )?(?:documented|defined|specified)\b"
-    r"|\bno (?:documented|confirmed|defined) \w+", re.I)
+    r"|\bno (?:documented|confirmed|defined|written|formal|fixed|agreed|official|standard) \w+"
+    r"|\b(?:each|every) (?:preparer|person|analyst|accountant|one of us|team) (?:decides|does it (?:their|his|her) own way)\b"
+    r"|\b(?:nobody|no one|no-one) (?:has |ever )?(?:decided|defined|confirmed|owns)\b"
+    r"|\bwe (?:don(?:'|’)?t|do not) have a (?:rule|threshold|standard|policy|test|template)\b", re.I)
 MAX_KNOWN_UNKNOWNS = 12
 MAX_SKIPPED_QUESTIONS = 8
+# Added to the instructions when the model's first question only asked what comes next.
+REBUILD_DIRECTIVE = (
+    "\nREBUILD: your question was \"{question}\". It only asks what comes next; the participant will tell the walkthrough "
+    "anyway, and the question shows nothing of what you heard. Ask instead the one thing a senior reviewer of this work would "
+    "need to know about the most consequential specific in the latest answer: the rule or limit applied and where it comes "
+    "from, who decides and on what basis, what is compared with what, what evidence is kept, or what happens when it fails or "
+    "is late. Do not use the words \"what happens next\", \"what happens after\" or \"do with it\".")
 # What each topic asks for, in a phrase, for the turn that points the question at it.
 TOPIC_ASKS = {
     "name": "what people call this work, and any other name for it",
@@ -57,8 +67,12 @@ TOPIC_ASKS = {
     "volume": "how many items go through it, how often, and how much effort it takes",
 }
 # From this many answers on, every BREADTH_EVERY-th question is pointed at a topic that is still open.
-BREADTH_AFTER_ANSWERS = 6
-BREADTH_EVERY = 3
+BREADTH_AFTER_ANSWERS = 8
+BREADTH_EVERY = 4
+BREADTH_TOPICS = 4
+# Not turned to on purpose: the walkthrough itself covers the flow and its checks, and "does the team
+# use another name for this?" in the middle of an interview is a wasted turn.
+BREADTH_LEFT_OUT = ("lifecycle", "checks", "name")
 # Output allowance of the question reply, which includes the model's reasoning. With a file to
 # read the reasoning once ran to 600 tokens and the reply was cut off: the turn failed although
 # the answer was retained. The first allowance leaves room for that; a reply that is still cut
@@ -107,10 +121,9 @@ applies. When action is skip, change to another answerable subject without repea
 skipped_questions lists, newest first, questions the participant left unanswered by choosing Skip or by
 moving on. Never ask one of them again, in the same or in other words, and do not ask who could answer
 it; its subject stays open unless the participant returns to it themselves.
-breadth_due, when present, names one topic that is still open while recent questions stayed on parts
-already covered. Ask about that topic now, in the participant's own terms; its gaps and
-unresolved_wording say what is missing. Only a correction or a half-finished statement in the latest
-answer comes before it. Do not ask another question about the branch you were on.
+breadth_due, when present, lists topics that are still open while recent questions stayed on parts
+already covered; their gaps and unresolved_wording say what is missing. The last lines of these
+instructions say how to turn to one of them.
 A topic's unresolved_wording quotes the wording in its notes that keeps that topic open. Unless the
 conversation has since settled that point, it is worth one neutral question.
 known_unknowns lists, newest first, sentences in which the participant said a detail is unknown,
@@ -171,7 +184,7 @@ def question_policy(api, file_followup=False):
         getattr(api, name, "") for name in
         ("QUESTIONING_POLICY", "CURIOSITY_POLICY", "CORRECTION_SCOPE_POLICY")) + "\n" + (
         getattr(coverage, "TOPIC_RUBRIC", "")) + "\n" + (
-        getattr(api, "QUESTION_SELECTION_POLICY", "")) + """
+        getattr(api, "QUESTION_SELECTION_POLICY", "")) + getattr(api, "EXPERT_FOLLOW_UP_POLICY", "") + """
 Only the short response and request_review flag are returned; keep this selection work silent.
 """
 
@@ -1187,47 +1200,75 @@ class ConcurrentInterview:
                     payload.get("turns") if isinstance(payload.get("turns"), list) else turns, payload.get("action", "answer"))}
 
     def _breadth_due(self, topics, turns, untouched=()):
-        """The open topic the next question should turn to, or None.
+        """The open topics the next question may turn to, or None.
 
         Measured on 2026-11-18: a participant who answered every question in full was asked
         about one exception branch for some twenty questions, while three topics stayed open
         and were never asked about in forty-five answers. The map's open questions and the
         latest answer both point at the branch in hand, and nothing pointed away from it.
-        Once the walkthrough has had its first answers, every third question is therefore
-        given one open topic to turn to: a topic nobody has touched first, then a partly
-        covered one, a different one each time. The flow and its checks are left out, since
-        the walkthrough itself covers them, and so is a topic the participant cannot speak to.
+        Once the walkthrough is well under way, every fourth question is therefore given the
+        open topics to choose from: those nobody has touched first, then partly covered ones,
+        starting at a different one each time. The first version named a single topic from
+        the sixth answer on and produced stock questions ("Which role is accountable for the
+        overall result?") in the middle of a walkthrough, so the model now picks the topic
+        that connects to what was said and has to ask it through the participant's own
+        account. The flow and its checks are left out, since the walkthrough itself covers
+        them, and so is a topic the participant cannot speak to.
         """
         answers = sum(1 for turn in turns if isinstance(turn, dict) and turn.get("role") == "user")
         if answers < BREADTH_AFTER_ANSWERS or answers % BREADTH_EVERY:
             return None
         open_topics = [topic for topic in topics if topic.get("status") in ("unknown", "partial")
-                       and not topic.get("participant_unavailable") and topic.get("key") not in ("lifecycle", "checks")]
+                       and not topic.get("participant_unavailable") and topic.get("key") not in BREADTH_LEFT_OUT]
         if not open_topics:
             return None
         untouched = set(untouched or ())
         ordered = sorted(open_topics, key=lambda topic: (topic.get("key") not in untouched, topic.get("status") != "unknown"))
-        chosen = ordered[(answers // BREADTH_EVERY) % len(ordered)]
+        first = (answers // BREADTH_EVERY) % len(ordered)
         labels = getattr(self.api, "COVERAGE", None) or {}
-        return {"topic": chosen["key"], "label": labels.get(chosen["key"], chosen["key"]),
-                "gaps": list(chosen.get("gaps") or [])[:3],
-                **({"unresolved_wording": chosen["unresolved_wording"]} if chosen.get("unresolved_wording") else {})}
+        return {"topics": [{"topic": topic["key"], "label": labels.get(topic["key"], topic["key"]),
+                            "gaps": list(topic.get("gaps") or [])[:2],
+                            **({"unresolved_wording": topic["unresolved_wording"]} if topic.get("unresolved_wording") else {})}
+                           for topic in (ordered[first:] + ordered[:first])[:BREADTH_TOPICS]]}
 
     @staticmethod
     def _breadth_directive(model_input):
-        """The last lines of the instructions on a turn that has an open topic to turn to.
+        """The last lines of the instructions on a turn that has open topics to turn to.
 
         A field among the advice was passed over: with breadth_due set, the question after it
-        was about the branch in hand in two of three turns. The topic is therefore named in the
-        instructions themselves, last, with what it asks for in plain words.
+        was about the branch in hand in two of three turns. The topics are therefore named in
+        the instructions themselves, last, each with what it asks for in plain words.
         """
         due = (model_input.get("analysis_advice") or {}).get("breadth_due") if isinstance(model_input, dict) else None
-        if not due:
+        topics = [topic for topic in (due or {}).get("topics") or [] if isinstance(topic, dict)]
+        if not topics:
             return ""
-        return ("\nTHIS TURN: several questions have stayed on one part of the work while other topics are open. Your question "
-                f"must be about this topic and nothing else: {due.get('label') or due.get('topic')}"
-                f" ({TOPIC_ASKS.get(due.get('topic'), 'what has not been described yet')}). "
-                "Word it for this participant and this work; do not ask about the branch of the last answers.")
+        listed = "; ".join(f"{topic.get('label') or topic.get('topic')} ({TOPIC_ASKS.get(topic.get('topic'), 'what has not been described yet')})"
+                           for topic in topics)
+        return ("\nTHIS TURN: several questions have stayed on one part of the work while these topics have not been explored: "
+                f"{listed}. Unless the latest answer raised something that worries the participant, move to the one of them "
+                "that connects best with what the participant has told you, and open it through a specific from their own "
+                "account (a step, role, system, record, figure or problem they named). The question must contain that specific "
+                "and must not be answered by anything already said. Never ask it as a stock question.")
+
+    @staticmethod
+    def _skip_directive(model_input):
+        """The last lines of the instructions when the participant has passed over a question.
+
+        The skipped questions are also in the input (skipped_questions). There they were asked
+        again in other words two turns later ("What does the completed work deliver?", skipped,
+        then "What result is the work meant to produce?"), so they are named here, last. They
+        are the interviewer's own earlier lines, never the participant's words.
+        """
+        rows = model_input.get("skipped_questions") if isinstance(model_input, dict) else None
+        asked = [" ".join(str(row.get("question") or "").split())[:200].translate(str.maketrans({'"': "'", "{": "(", "}": ")", "`": "'"}))
+                 for row in rows or [] if isinstance(row, dict)]
+        asked = [text for text in asked if text][:4]
+        if not asked:
+            return ""
+        return ("\nPASSED OVER: the participant chose not to answer " + "; ".join(f'"{text}"' for text in asked)
+                + ". Do not ask for the same information again in any wording, and do not ask who could answer it. "
+                "Ask about a different part of the work.")
 
     @staticmethod
     def _question_leads(register):
@@ -1292,6 +1333,29 @@ class ConcurrentInterview:
                     if len(found) >= MAX_KNOWN_UNKNOWNS:
                         return found
         return found
+
+    def _rebuilt(self, question, ask, revision, cut_off=None):
+        """The model's question, or its second attempt when the first only asked what comes next.
+
+        "What happens after that?" costs the participant a turn and tells them nobody was
+        listening. Such a question is put back to the model once, with the reason; whatever
+        that second request returns or raises, the turn still gets a question.
+        """
+        bare = getattr(self.api, "bare_walkthrough", None)
+        if not callable(bare) or not bare(question):
+            return question
+        raw_trace.emit("interview.fast_question.rebuild", {"revision": revision, "content": {"question": question}})
+        try:
+            again = ask(QUESTION_OUTPUT_TOKENS, REBUILD_DIRECTIVE.format(question=question[:300].replace("{", "(").replace("}", ")")))
+            again = again.get("question") if isinstance(again, dict) and not again.get("request_review") else None
+        except Exception as error:
+            if isinstance(error, getattr(self.api, "APIError", ())) or (cut_off and isinstance(error, cut_off)):
+                again = None
+            else:
+                raise
+        usable = (isinstance(again, str) and again.strip() and not bare(again)
+                  and not self.api.question_rejection(again.strip()[:1200], 1200, single=True))
+        return again.strip()[:1200] if usable else question
 
     @staticmethod
     def _asked_before(question, turns):
@@ -1570,7 +1634,9 @@ class ConcurrentInterview:
             question, kind, sync_required = "", "question", True
         elif not any(turn.get("role") == "user" for turn in turns) and not payload.get("_supporting_documents", {}).get("documents"):
             route = "opening"
-            question = "What starts this work?" if context.get("process_name") else "What work would you like to walk through?"
+            named = getattr(self.api, "spoken_process_name", lambda value: "")(context)
+            question = (f"Let's walk through {named}. Talk me through the most recent time you did it, starting with what set it off." if named else
+                        "What starts this work?" if context.get("process_name") else "What work would you like to walk through?")
             if payload.get("action") == "skip":
                 route = "skip_fallback"
                 question = self._fallback_question(session, payload, context, turns, "skip")
@@ -1588,8 +1654,9 @@ class ConcurrentInterview:
                 "content": {"turns": model_input["turns"], "analysis_advice": model_input["analysis_advice"]}})
             cut_off = getattr(self.api, "OutputTruncated", None)
 
-            def ask(allowance):
-                return self.client.structured(question_policy(self.api, file_followup) + self._breadth_directive(model_input), model_input,
+            def ask(allowance, extra=""):
+                return self.client.structured(question_policy(self.api, file_followup) + self._breadth_directive(model_input)
+                    + self._skip_directive(model_input) + extra, model_input,
                     QUESTION_SCHEMA, "conversation_question", allowance, reasoning_effort="low",
                     model_override=self.client.agent_models["lead_interviewer"])
             try:
@@ -1628,6 +1695,8 @@ class ConcurrentInterview:
                 sync_required = response["request_review"] and not file_followup
                 question = response["question"].strip()
                 trimmer = getattr(self.api, "one_request", None)
+                if not sync_required and not file_followup:
+                    question = self._rebuilt(question, ask, revision, cut_off)
                 if callable(trimmer) and not sync_required:
                     # One request a turn: a second one joined on with ", and" is left for a later turn.
                     question = trimmer(question)

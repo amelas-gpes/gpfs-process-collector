@@ -21,7 +21,7 @@ class ConversationProvider(SyntheticTeamProvider):
         if path == "responses" and body["text"]["format"]["name"] == "conversation_question":
             if "conversation_question" in self.hooks:
                 self.hooks["conversation_question"](body)
-            value = {"question": "What happens after the invoice is logged?", "request_review": False}
+            value = {"question": "Who checks the invoice against the purchase order once it is logged?", "request_review": False}
             return {"status": "completed", "output": [{"content": [{"type": "output_text", "text": json.dumps(value)}]}]}
         return super().reply(path, body, *args, **kwargs)
 

@@ -199,8 +199,13 @@ class LiveDocumentBudgetTests(unittest.TestCase):
         payload['turns'] = []
         self.client.live_session(payload)
         greeting = self.client.request.call_args.args[1]['session']['input'][-1]['content'][0]['text']
-        self.assertIn('What work would you like to walk through together?', greeting)
+        # The plain greeting names the work when the participant has typed its name.
+        self.assertEqual(greeting, server.live_opening(payload['context']))
         self.assertNotIn('Reference files', greeting)
+        payload['context'] = {**payload['context'], 'process_name': ''}
+        self.client.live_session(payload)
+        greeting = self.client.request.call_args.args[1]['session']['input'][-1]['content'][0]['text']
+        self.assertIn('What work would you like to walk through together?', greeting)
 
     def test_the_delegate_receives_the_same_bounded_block_not_the_full_context(self):
         supporting = self.supporting(large_csv())
@@ -236,7 +241,7 @@ class LiveDocumentBudgetTests(unittest.TestCase):
             self.assertIn(phrase, ' '.join(server.LIVE_DOCUMENT_POLICY.split()))
         self.assertIn(server.LIVE_DOCUMENT_POLICY, server.LIVE_BASE_INSTRUCTIONS)
         self.assertIn(server.LIVE_DOCUMENT_POLICY, server.LIVE_BACKEND_INSTRUCTIONS)
-        self.assertLess(len(server.LIVE_INSTRUCTIONS), 16000)
+        self.assertLess(len(server.LIVE_INSTRUCTIONS), 17000)
         _, top, delegated, block = self.start(live_payload(supporting))
         self.assertTrue(top.startswith(server.LIVE_INSTRUCTIONS + '\nPROCESS CONTEXT (UNTRUSTED JSON)\n'))
         untrusted = top[len(server.LIVE_INSTRUCTIONS):]

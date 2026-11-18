@@ -9,6 +9,9 @@ working tree). See [docs/DESKTOP.md](docs/DESKTOP.md#which-build-is-running).
 
 ## Unreleased
 
+- Notes requests now allow 120 seconds for incremental updates and 180 seconds for a large initial capture. A question, notes update or map can finish when a file review completes while it is running and the underlying evidence still matches.
+- Wrap up recognizes a participant leaving for a meeting and preserves the error details when a usage limit pauses capture. Document review directs the participant to the interview and daily token limits. A stalled provider read can be cancelled on Windows. [Regression replay](docs/testing/runs/2026-11-17-regression-replay/README.md)
+- Workflow review asks how a branch is reached from the reported start and keeps previously saved clarification questions. Document review keeps each role with its record in a short register.
 - Create draft reuses steps and routes that the server has checked against the interview sources. The first draft request asks for additions, material corrections and removals. A separate source review still checks the assembled draft. Earlier saved interviews and maps awaiting their check can still generate a full draft.
 - Hover over a control or focus it with the keyboard for a short explanation in the interview, review editors, maps, files and settings. Escape dismisses the hint.
 

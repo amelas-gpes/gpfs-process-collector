@@ -31,6 +31,7 @@
     ["Application logs", "Search recent or current-session activity", "logs-details", "logs-search", "application activity logs logging history events trace"],
     ["How this works", "A short guide to the interview and review", "help-guide", "help-guide", "help guide how works interview review workflow"],
     ["Definition of done", "When an interview is complete and what goes to the process owner", "help-guide", "definition-of-done", "completion gaps hold handoff partial wrap up approval coverage topics follow-ups"],
+    ["Keyboard shortcuts", "Keys for Settings, saving and sending a reply", "help-guide", "keyboard-shortcuts", "keyboard shortcuts keys hotkeys send escape"],
     ["App version", "Version and build of this app", "help-guide", "build-identity", "version about build update release"],
   ];
   const panelName = id => tabs.find(tab => tab.dataset.settingsTarget === id)?.children[1]?.childNodes[0]?.textContent.trim() || id;
@@ -44,6 +45,7 @@
     if (!tabs.some(tab => tab.dataset.settingsTarget === id && !tab.hidden)) return;
     active = id;
     finder.value = "";
+    delete dialog.dataset.searching;
     $("settings-search-results").hidden = true;
     closeVoice();
     for (const panel of panels) panel.hidden = panel.id !== id;
@@ -74,10 +76,13 @@
     const query = finder.value.trim().toLowerCase();
     if (!query) { show(active); return; }
     closeVoice();
+    // No section is on screen while results are listed, so none is drawn as the current one.
+    dialog.dataset.searching = "true";
     for (const panel of panels) panel.hidden = true;
     $("settings-search-results").hidden = false;
     const matches = index.filter(entry => available(entry) && query.split(/\s+/).every(word => entry.join(" ").toLowerCase().includes(word)));
-    $("settings-search-count").textContent = matches.length ? `${matches.length} matching ${matches.length === 1 ? "setting" : "settings"}` : "No settings match. Try voice, recovery, context or logs.";
+    $("settings-search-count").textContent = matches.length ? `${matches.length} matching ${matches.length === 1 ? "setting" : "settings"}` : `No settings match “${finder.value.trim()}”.`;
+    $("settings-search-suggestions").hidden = matches.length > 0;
     const list = $("settings-search-matches");
     list.replaceChildren();
     for (const entry of matches) {
@@ -141,8 +146,11 @@
       const known = typeof used === "number" && Number.isFinite(used);
       $("usage-" + scope + "-value").textContent = known ? used.toLocaleString("en-US") : "—";
       $("usage-" + scope + "-limit").textContent = !usage ? "Usage unavailable" : Number(cap) > 0 ? `Limit: ${Number(cap).toLocaleString("en-US")} tokens` : "No workspace limit set";
-      const meter = $("usage-" + scope + "-meter");
-      meter.hidden = !known || !(Number(cap) > 0); meter.max = Math.max(1, Number(cap) || 1); meter.value = known ? Math.min(used, meter.max) : 0;
+      const meter = $("usage-" + scope + "-meter"), limited = known && Number(cap) > 0;
+      meter.hidden = !limited; meter.max = Math.max(1, Number(cap) || 1); meter.value = known ? Math.min(used, meter.max) : 0;
+      // Past three quarters the bar turns to the caution color, and past nine tenths to the alert color.
+      meter.optimum = 0; meter.low = meter.max * .75; meter.high = meter.max * .9;
+      $("usage-" + scope + "-percent").textContent = limited ? Math.min(999, Math.round(used / Number(cap) * 100)) + "%" : "";
     }
   }
   for (const tab of tabs) {
@@ -185,6 +193,9 @@
   dialog.addEventListener("click", event => { if (!$("voice-picker").contains(event.target)) closeVoice(); });
   dialog.addEventListener("close", () => { finder.value = ""; show(active); });
   finder.addEventListener("input", search);
+  for (const chip of dialog.querySelectorAll("[data-settings-suggest]")) chip.addEventListener("click", () => {
+    finder.value = chip.dataset.settingsSuggest; search(); finder.focus();
+  });
   finder.addEventListener("keydown", event => {
     if (event.key === "Enter" && finder.value.trim()) { event.preventDefault(); $("settings-search-matches").querySelector("button")?.click(); }
     if (event.key === "ArrowDown" && finder.value.trim()) { event.preventDefault(); $("settings-search-matches").querySelector("button")?.focus(); }

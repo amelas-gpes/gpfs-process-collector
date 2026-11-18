@@ -9,6 +9,9 @@ working tree). See [docs/DESKTOP.md](docs/DESKTOP.md#which-build-is-running).
 
 ## Unreleased
 
+- **Settings is a larger window with a clearer layout.** It opens up to 1280 by 900 pixels (from 1040 by 800). The title, setting finder and sections sit in a sidebar, grouped as General, Workspace and Support; each section pins its heading and lays its controls out in cards beside a short explanation. Appearance shows a miniature of the workspace in each theme. The voice list opens over the page instead of pushing the switches down. AI usage shows the share of each limit used, and its bar changes color past 75% and 90%. Application logs are one compact list with search beside the session filter. Help & about lists the keyboard shortcuts. A search with no match suggests searches that do match. No preference, storage or request behavior changed. [Settings experience](docs/SETTINGS_EXPERIENCE.md)
+- **More formats on Review is a menu.** It is a button beside Download report whose choices (BPMN, step table, diagram, print) open in a floating panel and say what each one produces. Opening it no longer moves the heading and buttons, and it closes on a choice, on Escape and on a click elsewhere.
+
 ## 0.33.0 · November 18, 2026
 
 - Interviews keep asking when a missing answer changes how the work proceeds, who accepts it, or what permits release or closure. A documented hold, accepted exception, external handoff or supporting detail can go to the process owner with the affected work, current action, resolving role or source, and participant evidence.

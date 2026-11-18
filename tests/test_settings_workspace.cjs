@@ -40,11 +40,25 @@ async function main() {
   assert.equal(page.$("help-guide").hidden,false);
   assert.equal(page.document.activeElement,page.$("definition-of-done"));
   assert.match(page.$("definition-of-done").parentElement.textContent,/Keep a partial interview/);
+  page.$("settings-search").input("shortcuts");
+  results=page.$("settings-search-matches").querySelectorAll("button");
+  assert.equal(results.length,1);
+  results[0].click();
+  assert.equal(page.$("help-guide").hidden,false);
+  assert.equal(page.document.activeElement,page.$("keyboard-shortcuts"),"The finder reaches the keyboard shortcuts");
   page.$("settings-search").input("unfindable-setting");
-  assert.match(page.$("settings-search-count").textContent,/No settings match/);
+  assert.match(page.$("settings-search-count").textContent,/No settings match “unfindable-setting”/);
+  assert.equal(page.$("settings-search-suggestions").hidden,false,"An empty result offers searches that do match");
+  assert.equal(page.$("interview-settings").dataset.searching,"true","No section is marked current while results are listed");
+  page.document.querySelector('[data-settings-suggest="voice"]').click();
+  assert.equal(page.$("settings-search").value,"voice");
+  assert(page.$("settings-search-matches").querySelectorAll("button").length>0);
+  assert.equal(page.$("settings-search-suggestions").hidden,true);
+  assert.equal(page.document.activeElement,page.$("settings-search"),"A suggestion leaves the finder ready for more typing");
   page.$("interview-settings").dispatchEvent({type:"keydown",key:"Escape"});
   assert.equal(page.$("settings-search-results").hidden,true);
   assert(page.$("interview-settings").open,"Escape clears search before closing Settings");
+  assert.equal(page.$("interview-settings").dataset.searching,undefined);
   settings.show("preferences-details");
   const dark=page.document.querySelectorAll('input[name="settings-theme"]').find(radio=>radio.value==="dark");
   dark.checked=true;dark.dispatchEvent({type:"change"});
@@ -65,6 +79,9 @@ async function main() {
   assert.equal(page.$("usage-interview-value").textContent,"250");
   assert.equal(page.$("usage-day-meter").value,1250);
   assert.equal(page.$("usage-day-meter").max,2000);
+  assert.equal(page.$("usage-day-percent").textContent,"63%");
+  assert.equal(page.$("usage-interview-percent").textContent,"50%");
+  assert.deepEqual([page.$("usage-day-meter").low,page.$("usage-day-meter").high,page.$("usage-day-meter").optimum],[1500,1800,0],"The bar warns near the limit");
   page.route(url=>{
     if(url!=="/api/usage/check")return undefined;
     page.document.activeElement=page.document.body;
@@ -75,6 +92,8 @@ async function main() {
   assert.equal(page.$("usage-day-value").textContent,"1,300");
   settings.setUsage(undefined);
   assert.equal(page.$("usage-day-value").textContent,"—");
+  assert.equal(page.$("usage-day-percent").textContent,"");
+  assert.equal(page.$("usage-day-meter").hidden,true);
   assert.equal(page.$("usage-check").disabled,true);
   settings.show("logs-details");
   page.document.querySelector('[data-log-scope="current"]').click();
@@ -97,6 +116,6 @@ async function main() {
   mobile.$("settings-tab-preferences").dispatchEvent({type:"keydown",key:"ArrowDown"});
   assert.equal(mobile.document.activeElement,mobile.$("settings-tab-usage"),"Down moves to the same column in mobile navigation");
   assert.equal(mobile.$("interview-settings").querySelector('[role="tablist"]').getAttribute("aria-orientation"),"horizontal");
-  console.log("Settings: direct entry, all six sections, keyboard navigation, finder, appearance, voice picker, disabled state, usage, log scope and source context passed.");
+  console.log("Settings: direct entry, all six sections, keyboard navigation, finder and its suggestions, appearance, voice picker, disabled state, usage and limits, log scope and source context passed.");
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

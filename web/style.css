@@ -1632,9 +1632,23 @@ dialog.excerpt-dialog { inset: 0; width: min(660px, calc(100vw - 32px)); margin:
 :is(.turn-text,.documents-summary,.report-document p,.ww-description) { unicode-bidi: plaintext; }
 
 #printed-workflow { display:none; }
+/* More formats: a menu button beside Download report. Its panel floats, so opening it never moves the heading. */
 .report-more-exports { position:relative; }
-.report-more-exports > summary { cursor:pointer; }
-.report-more-exports button { display:block; }
+.report-more-exports > summary { display:inline-flex; align-items:center; gap:8px; min-height:42px; padding:10px 14px 10px 18px; border:1px solid var(--control-border); border-radius:var(--r-pill); background:var(--surface); color:var(--ink); font-size:var(--text-md); font-weight:600; line-height:1.2; white-space:nowrap; list-style:none; cursor:pointer; transition:background var(--dur-fast), border-color var(--dur-fast); }
+.report-more-exports > summary::-webkit-details-marker { display:none; }
+.report-more-exports > summary::after { content:""; width:14px; height:14px; background:var(--muted); -webkit-mask:var(--i-chevron-down) center/contain no-repeat; mask:var(--i-chevron-down) center/contain no-repeat; transition:rotate var(--dur-fast); }
+.report-more-exports > summary:hover, .report-more-exports[open] > summary { background:var(--surface-2); }
+.report-more-exports[open] > summary::after { rotate:180deg; }
+.report-export-menu { position:absolute; z-index:6; top:calc(100% + 6px); right:0; width:268px; padding:6px; border:1px solid var(--line); border-radius:var(--r-xl); background:var(--surface); box-shadow:var(--shadow-lg); }
+.report-export-menu p { margin:4px 8px 6px; color:var(--muted); font-size:var(--text-xs); font-weight:400; }
+.report-export-menu button { display:flex; align-items:flex-start; gap:10px; width:100%; padding:10px; border:0; border-radius:var(--r-md); background:none; color:var(--ink); text-align:left; font-size:var(--text-md); font-weight:600; }
+.report-export-menu button::before { --icon-size:17px; margin-top:3px; color:var(--muted); }
+.report-export-menu button:hover { background:var(--surface-2); }
+.report-export-menu small { display:block; margin-top:2px; color:var(--muted); font-size:var(--text-xs); font-weight:400; }
+@media (max-width:760px) {
+  .report-more-exports > summary, .report-export-menu button { min-height:44px; }
+  .report-export-menu { right:auto; left:0; width:min(268px, calc(100vw - 28px)); }
+}
 @media print {
   #printed-workflow { display:block!important; clear:both; break-before:page; }
   #printed-workflow > svg { display:block; width:100%; max-height:8in; height:auto; }

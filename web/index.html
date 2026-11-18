@@ -233,7 +233,7 @@
         <div class="review-actions">
           <button class="text-button" id="regenerate-draft" data-icon="refresh">Update draft</button>
           <button class="button secondary" id="export-markdown" data-icon="download" disabled>Download report</button>
-          <details class="report-more-exports"><summary aria-description="Choose a diagram, spreadsheet, workflow file or printable report.">More formats</summary><button type="button" id="download-bpmn" aria-description="Export the process as BPMN 2.0 XML for a modeling tool." class="text-button">BPMN 2.0 workflow</button><button type="button" id="download-step-csv" aria-description="Download the steps as rows for a spreadsheet." class="text-button">Step table (CSV)</button><button type="button" id="download-png" aria-description="Save a raster image of the process diagram." class="text-button">Diagram (PNG)</button><button type="button" id="print-report" aria-description="Open the print dialog for a paper copy or PDF." class="text-button">Print / save as PDF</button></details>
+          <details class="report-more-exports" id="report-more-exports"><summary aria-description="Choose a diagram, spreadsheet, workflow file or printable report.">More formats</summary><div class="report-export-menu" role="group" aria-label="More formats"><p>Download in another format</p><button type="button" id="download-bpmn" aria-description="Export the process as BPMN 2.0 XML for a modeling tool." data-icon="workflow"><span>BPMN 2.0 workflow <small>For a modeling tool · .bpmn</small></span></button><button type="button" id="download-step-csv" aria-description="Download the steps as rows for a spreadsheet." data-icon="lines"><span>Step table (CSV) <small>Rows for a spreadsheet · .csv</small></span></button><button type="button" id="download-png" aria-description="Save a raster image of the process diagram." data-icon="map"><span>Diagram (PNG) <small>Image of the process map · .png</small></span></button><button type="button" id="print-report" aria-description="Open the print dialog for a paper copy or PDF." data-icon="file"><span>Print / save as PDF <small>Opens the print dialog</small></span></button></div></details>
           <button type="button" class="text-button" id="draft-recheck" aria-description="Check the saved topic findings against the available evidence." hidden>Recheck saved coverage</button>
           <span id="draft-busy" role="status" hidden></span>
           <span class="muted" id="filed-revision" hidden></span>
@@ -321,127 +321,164 @@
   </dialog>
 <dialog id="knowledge-submit" class="knowledge-dialog" aria-labelledby="knowledge-submit-title"></dialog>
 <dialog id="interview-settings" class="interview-settings" aria-labelledby="settings-title">
-  <header class="settings-heading">
-    <div><span class="settings-eyebrow">YOUR WORKSPACE</span><h2 id="settings-title">Settings</h2></div>
-    <div class="settings-find"><label for="settings-search" class="sr-only">Find a setting</label><input id="settings-search" aria-description="Find a setting by its name or purpose." type="search" placeholder="Find a setting…" autocomplete="off" autofocus><kbd aria-hidden="true">Esc</kbd></div>
-    <button type="button" class="settings-done" id="close-interview-settings" aria-description="Close settings and return to the workspace.">Done<span data-icon="x" aria-hidden="true"></span></button>
-  </header>
   <div class="settings-layout">
-    <nav class="settings-navigation" aria-label="Settings sections">
-      <div class="settings-tabs" role="tablist" aria-label="Settings sections" aria-orientation="vertical">
-        <button type="button" id="settings-tab-preferences" aria-description="Choose appearance, interviewer voice and playback options." role="tab" aria-selected="true" aria-controls="preferences-details" data-settings-target="preferences-details"><span data-icon="sliders" aria-hidden="true"></span><span>Preferences<small>Appearance &amp; voice</small></span></button>
-        <button type="button" id="settings-tab-context" aria-description="Set the goal, background and people involved in the interview." role="tab" aria-selected="false" aria-controls="context-details" tabindex="-1" data-settings-target="context-details"><span data-icon="memo" aria-hidden="true"></span><span>Interview context<small>People, goal &amp; background</small></span></button>
-        <button type="button" id="settings-tab-data" aria-description="See what is stored and manage local interview recovery." role="tab" aria-selected="false" aria-controls="data-details" tabindex="-1" data-settings-target="data-details"><span data-icon="shield" aria-hidden="true"></span><span>Data &amp; recovery<small>Privacy &amp; local copies</small></span></button>
-        <button type="button" id="settings-tab-usage" aria-description="Check the AI tokens counted for this workspace and interview." role="tab" aria-selected="false" aria-controls="usage-details" tabindex="-1" data-settings-target="usage-details"><span data-icon="sparkle" aria-hidden="true"></span><span>AI usage<small>Activity &amp; token limits</small></span></button>
-        <button type="button" id="settings-tab-agents" aria-description="Explore interview roles and inspect their prompts." role="tab" aria-selected="false" aria-controls="agents-details" tabindex="-1" data-settings-target="agents-details" hidden><span data-icon="workflow" aria-hidden="true"></span><span>Agents<small>Workflow &amp; prompts</small></span></button>
-        <button type="button" id="settings-tab-logs" aria-description="Inspect activity and recorded details for recent sessions." role="tab" aria-selected="false" aria-controls="logs-details" tabindex="-1" data-settings-target="logs-details"><span data-icon="file" aria-hidden="true"></span><span>Application logs<small>Search saved activity</small></span></button>
-        <button type="button" id="settings-tab-help" aria-description="Read how to capture, check and save a process." role="tab" aria-selected="false" aria-controls="help-guide" tabindex="-1" data-settings-target="help-guide"><span data-icon="workflow" aria-hidden="true"></span><span>Help &amp; about<small>A quick guide to the app</small></span></button>
-      </div>
-      <p class="settings-nav-note">Quick access, anytime.<br>Ctrl / ⌘ + ,</p>
-    </nav>
-    <div class="settings-body" id="settings-body">
-      <p id="agents-access-notice" class="settings-footnote" role="status" hidden></p>
-      <button class="settings-return" type="button" id="settings-source-return" aria-description="Return to the item that linked to this source." data-icon="arrow-left" hidden>Back to what you were reviewing</button>
-      <section id="settings-search-results" class="settings-results" aria-label="Matching settings" hidden><p id="settings-search-count" role="status" aria-live="polite"></p><div id="settings-search-matches"></div></section>
-      <section id="preferences-details" class="settings-panel" data-settings-panel role="tabpanel" aria-labelledby="settings-tab-preferences" tabindex="0">
-        <header class="settings-section-heading"><span class="settings-eyebrow">MAKE IT YOURS</span><h3>Your preferences</h3><p>Choose how the app looks and sounds. Changes apply immediately.</p></header>
-        <div class="settings-block">
-          <fieldset class="theme-choices"><legend>Appearance</legend><p>Follow your device, or choose your own look.</p>
-            <label class="theme-choice"><input type="radio" name="settings-theme" value="system" checked><span><strong>System</strong><small>Match your device</small></span></label>
-            <label class="theme-choice"><input type="radio" name="settings-theme" value="light"><span><strong>Light</strong><small>Bright &amp; focused</small></span></label>
-            <label class="theme-choice"><input type="radio" name="settings-theme" value="dark"><span><strong>Dark</strong><small>Easy on the eyes</small></span></label>
-          </fieldset>
-          <select id="theme-select" class="settings-source-control" tabindex="-1" aria-hidden="true"><option value="system">System default</option><option value="light">Light</option><option value="dark">Dark</option></select>
+    <aside class="settings-sidebar">
+      <header class="settings-heading"><h2 id="settings-title">Settings</h2></header>
+      <div class="settings-find" data-icon="search"><label for="settings-search" class="sr-only">Find a setting</label><input id="settings-search" aria-description="Find a setting by its name or purpose." type="search" placeholder="Find a setting…" autocomplete="off" autofocus></div>
+      <nav class="settings-navigation" aria-label="Settings sections">
+        <div class="settings-tabs" role="tablist" aria-label="Settings sections" aria-orientation="vertical">
+          <span class="settings-nav-group" aria-hidden="true">General</span>
+          <button type="button" id="settings-tab-preferences" aria-description="Choose appearance, interviewer voice and playback options." role="tab" aria-selected="true" aria-controls="preferences-details" data-settings-target="preferences-details"><span data-icon="sliders" aria-hidden="true"></span><span>Preferences<small>Appearance &amp; voice</small></span></button>
+          <button type="button" id="settings-tab-context" aria-description="Set the goal, background and people involved in the interview." role="tab" aria-selected="false" aria-controls="context-details" tabindex="-1" data-settings-target="context-details"><span data-icon="memo" aria-hidden="true"></span><span>Interview context<small>People, goal &amp; background</small></span></button>
+          <span class="settings-nav-group" aria-hidden="true">Workspace</span>
+          <button type="button" id="settings-tab-data" aria-description="See what is stored and manage local interview recovery." role="tab" aria-selected="false" aria-controls="data-details" tabindex="-1" data-settings-target="data-details"><span data-icon="shield" aria-hidden="true"></span><span>Data &amp; recovery<small>Privacy &amp; local copies</small></span></button>
+          <button type="button" id="settings-tab-usage" aria-description="Check the AI tokens counted for this workspace and interview." role="tab" aria-selected="false" aria-controls="usage-details" tabindex="-1" data-settings-target="usage-details"><span data-icon="sparkle" aria-hidden="true"></span><span>AI usage<small>Activity &amp; token limits</small></span></button>
+          <button type="button" id="settings-tab-agents" aria-description="Explore interview roles and inspect their prompts." role="tab" aria-selected="false" aria-controls="agents-details" tabindex="-1" data-settings-target="agents-details" hidden><span data-icon="workflow" aria-hidden="true"></span><span>Agents<small>Workflow &amp; prompts</small></span></button>
+          <button type="button" id="settings-tab-logs" aria-description="Inspect activity and recorded details for recent sessions." role="tab" aria-selected="false" aria-controls="logs-details" tabindex="-1" data-settings-target="logs-details"><span data-icon="lines" aria-hidden="true"></span><span>Application logs<small>Search saved activity</small></span></button>
+          <span class="settings-nav-group" aria-hidden="true">Support</span>
+          <button type="button" id="settings-tab-help" aria-description="Read how to capture, check and save a process." role="tab" aria-selected="false" aria-controls="help-guide" tabindex="-1" data-settings-target="help-guide"><span data-icon="info" aria-hidden="true"></span><span>Help &amp; about<small>Guide, shortcuts &amp; version</small></span></button>
         </div>
-        <div id="voice-options" class="settings-block voice-options">
-          <div class="settings-block-heading"><div><h4>Voice &amp; playback</h4><p>The voice used to read questions and in reviewed voice.</p></div><span class="settings-tag">PLAYBACK</span></div>
-          <div class="voice-picker-row">
-            <div class="voice-picker" id="voice-picker"><span id="voice-picker-label" class="settings-field-label">Interviewer voice</span>
-              <button type="button" id="voice-picker-toggle" aria-description="Choose the voice used for question playback and reviewed voice." class="voice-picker-toggle" aria-haspopup="listbox" aria-expanded="false" aria-controls="voice-picker-list" aria-labelledby="voice-picker-label voice-picker-name"><span data-icon="mic" aria-hidden="true"></span><span><strong id="voice-picker-name">Loading voices…</strong><small id="voice-picker-kind">Available voices</small></span><span data-icon="chevron-down" aria-hidden="true"></span></button>
-              <div id="voice-picker-panel" class="voice-picker-panel" hidden><label class="sr-only" for="voice-picker-search">Find a voice</label><input id="voice-picker-search" aria-description="Filter available voices by name." type="search" placeholder="Find a voice…" autocomplete="off"><div id="voice-picker-list" role="listbox" aria-label="Interviewer voices"></div></div>
-            </div>
-            <button type="button" class="settings-action voice-preview-button" id="preview-voice" aria-description="Hear a sample of the selected voice." data-icon="play">Preview voice</button>
-          </div>
-          <select id="voice-select" class="settings-source-control" aria-label="Interviewer voice" aria-describedby="voice-description" tabindex="-1" aria-hidden="true"></select>
-          <div class="settings-voice-feedback"><p id="voice-description"></p><button class="text-button small" id="stop-speaking" aria-description="Stop the current voice sample." data-icon="x" hidden>Stop preview</button><span id="voice-status" role="status" hidden></span></div>
-          <p id="voice-availability" class="settings-callout" hidden></p>
-          <div class="voice-settings">
-            <label class="settings-switch-row"><span><strong>Read questions aloud when typing</strong><small>Hear each question while you use the text interview.</small></span><input type="checkbox" id="speak-questions"></label>
-            <label class="settings-switch-row"><span><strong>Stop recording when I pause</strong><small>Finish a dictated reply after a natural pause.</small></span><input type="checkbox" id="stop-on-silence" checked></label>
-            <label id="review-voice-transcript-option" class="settings-switch-row" hidden><span><strong>Edit each reviewed-voice answer before sending</strong><small>Check the transcription before it joins the interview.</small></span><input type="checkbox" id="review-voice-transcript"></label>
-            <p id="review-voice-audio-notice" class="settings-footnote" hidden>Reviewed voice sends the recording from when listening begins, including sound before your first words, to transcription.</p>
-          </div>
-          <p id="voice-mode-note" class="settings-footnote">Live conversation uses its own voice. This selection controls question playback and reviewed voice.</p>
-          <button type="button" class="text-button small" id="export-voice-timing" aria-description="Download timing measurements from the voice interview." hidden>Save voice timings</button>
-        </div>
-      </section>
-      <section id="context-details" class="settings-panel" data-settings-panel role="tabpanel" aria-labelledby="settings-tab-context" tabindex="0" hidden>
-        <header class="settings-section-heading"><span class="settings-eyebrow">THIS INTERVIEW</span><h3>Interview context</h3><p>Give the interviewer a starting point. These details stay with this interview.</p></header>
-        <div class="settings-context-grid settings-fields"><div><label for="interview-participant">Participant name or role <small>Optional</small></label><input id="interview-participant" aria-description="Identify the person or role describing the work." maxlength="180" dir="auto" autocomplete="off" placeholder="Who is sharing the process?"></div><div><label for="process-owner">Process owner <small>Optional</small></label><input id="process-owner" aria-description="Identify who can confirm that the procedure reflects current practice." maxlength="180" placeholder="Who is responsible?" dir="auto" autocomplete="off"></div></div>
-        <div class="settings-fields settings-context-fields"><label for="objective">Goal for this interview</label><textarea id="objective" aria-description="Set what this interview should establish before it starts." rows="3" aria-describedby="objective-limit context-lock-note" required dir="auto" autocomplete="off">Understand the current process, responsibilities, handoffs, and exceptions.</textarea><p id="objective-limit" class="field-limit" hidden></p><label for="background">Background <small>Optional</small></label><textarea id="background" aria-description="Give the interviewer boundaries, terminology or background before starting." rows="5" aria-describedby="background-limit context-lock-note" placeholder="Useful background, boundaries or things to focus on…" dir="auto" autocomplete="off"></textarea><p id="background-limit" class="field-limit" hidden></p></div>
-        <p id="context-lock-note" class="settings-callout" data-icon="shield">Goal and background lock when the interview starts. Process owner can be changed at any time.</p>
-      </section>
-      <section id="data-details" class="settings-panel" data-settings-panel role="tabpanel" aria-labelledby="settings-tab-data" tabindex="0" hidden>
-        <header class="settings-section-heading"><span class="settings-eyebrow">YOUR WORK, YOUR CONTROL</span><h3>Data &amp; recovery</h3><p>Understand what is kept, what is sent, and how to protect unfinished work.</p></header>
-        <div id="recovery-setting" class="settings-block recovery-setting" hidden>
-          <label class="settings-switch-row recovery-switch"><span><strong>Keep a recovery copy on this computer</strong><small>Recover an unsaved interview after a closed tab or restart.</small></span><input type="checkbox" id="recovery-enabled" aria-describedby="recovery-description recovery-status"></label>
-          <p id="recovery-description">Off unless you turn it on. Keeps one local copy of your transcript, notes, map, draft and unsent answer. Never recordings.</p><p id="recovery-status" role="status"></p>
-          <details class="settings-disclosure"><summary aria-description="See when the local recovery copy is saved and erased.">How recovery copies are cleared</summary><p>The copy is written a few seconds after a change. It stays on this computer and is offered when the app next opens. It is deleted after a confirmed Save copy, when you start over or open another interview, when you discard it, when you turn this off, and after seven days. Save copy is still the way to keep an interview long term.</p></details>
-        </div>
-        <div class="settings-data-grid"><article><span class="settings-tag" data-icon="folder">ON THIS COMPUTER</span><h4>Your local workspace</h4><p>The app keeps uploaded originals, extracted content, filed processes and application logs on this computer.</p><button type="button" class="text-button" aria-description="Inspect activity recorded by the local app." data-settings-jump="logs-details">View application logs</button></article><article><span class="settings-tag" data-icon="sparkle">WITH THE AI SERVICE</span><h4>Content used for the interview</h4><p>Submitted answers, connected voice, file reviews and matching excerpts go to the AI service. Installed computer voices play locally.</p></article></div>
-        <details class="settings-disclosure settings-full-notice"><summary aria-description="See where files, answers and interview activity are stored or sent.">Full data handling details</summary><p id="data-notice" tabindex="-1"></p></details>
-      </section>
-      <section id="usage-details" class="settings-panel" data-settings-panel role="tabpanel" aria-labelledby="settings-tab-usage" tabindex="0" hidden>
-        <header class="settings-section-heading"><span class="settings-eyebrow">A CLEARER PICTURE</span><h3>AI usage</h3><p>See the token counts reported for this workspace and interview.</p></header>
-        <div class="settings-usage-grid"><article><span class="settings-tag">TODAY</span><strong id="usage-day-value">—</strong><span>tokens used</span><small id="usage-day-limit">Waiting for usage information</small><meter id="usage-day-meter" min="0" max="1" value="0" aria-label="Daily token limit used" hidden></meter></article><article><span class="settings-tag">THIS INTERVIEW</span><strong id="usage-interview-value">—</strong><span>tokens used</span><small id="usage-interview-limit">Waiting for usage information</small><meter id="usage-interview-meter" min="0" max="1" value="0" aria-label="Interview token limit used" hidden></meter></article></div>
-        <p id="usage-summary" class="settings-callout" role="status" aria-live="polite">Usage is not available from this connection.</p><button type="button" id="usage-check" aria-description="Read the latest token counts from the workspace." class="settings-action" data-icon="refresh">Refresh usage</button><p class="settings-footnote">Token counts measure activity, not a bill. Workspace limits apply to counted requests; connected Live voice, transcription and playback are not included.</p>
-      </section>
-      <section id="logs-details" class="settings-panel" data-settings-panel role="tabpanel" aria-labelledby="settings-tab-logs" tabindex="0" hidden>
-        <header class="settings-section-heading"><span class="settings-eyebrow">BEHIND THE ACTIVITY</span><h3>Application logs</h3><p>Inspect activity saved on this computer. Expand an entry for its recorded details.</p></header>
-        <div class="log-toolbar"><div class="settings-segmented" role="group" aria-label="Log sessions"><button type="button" data-log-scope="all" aria-description="Show entries across recently recorded sessions." aria-pressed="true">Recent sessions</button><button type="button" data-log-scope="current" aria-description="Limit entries to this session." aria-pressed="false">Current session</button></div><button type="button" id="logs-refresh" aria-description="Load the latest activity for the selected sessions." class="settings-action" data-icon="refresh">Refresh</button></div>
-        <select id="logs-scope" class="settings-source-control" aria-label="Log sessions" tabindex="-1" aria-hidden="true"><option value="all">Recent sessions</option><option value="current">Current session</option></select>
-        <label class="sr-only" for="logs-search">Search loaded entries</label><input id="logs-search" aria-description="Find wording or events within the loaded log entries." type="search" placeholder="Search events, wording or session…" autocomplete="off">
-        <p id="logs-status" class="settings-footnote" role="status" aria-live="polite"></p><p id="logs-count" class="settings-log-count"></p><div id="logs-entries" class="log-entries" aria-label="Saved log entries"></div><p class="settings-footnote">Entries may include interview wording and AI exchanges. Recovery copies are managed separately under Data &amp; recovery.</p>
-      </section>
-      <section id="agents-details" class="settings-panel" data-settings-panel role="tabpanel" aria-labelledby="settings-tab-agents" tabindex="0" hidden>
-        <header class="settings-section-heading"><h3>Agents</h3><p>Follow the work through the app and inspect the instructions each agent receives.</p></header>
-        <p id="agents-status" class="settings-footnote" role="status" aria-live="polite"></p>
-        <button type="button" id="agents-retry" aria-description="Try loading the interview roles and prompts again." class="settings-action" hidden>Try again</button>
-        <div id="agents-content" hidden>
-          <div class="settings-segmented agent-views" role="group" aria-label="Agent views">
-            <button type="button" id="agents-overview-button" aria-description="See how the interview agents divide the work." aria-controls="agents-overview" aria-pressed="true">Overview</button>
-            <button type="button" id="agents-library-button" aria-description="Inspect the instructions supplied to each agent." aria-controls="agents-library" aria-pressed="false">Prompt library</button>
-          </div>
-          <div id="agents-overview"></div>
-          <div id="agents-library" hidden>
-            <div class="agent-prompt-picker"><label for="agent-select">Agent</label><select id="agent-select" aria-description="Choose the role whose instructions you want to inspect."></select>
-              <p id="agent-description"></p>
-            </div>
-            <div id="agent-prompt-details">
-              <div class="agent-prompt-picker"><label for="agent-prompt-select">Prompt</label><select id="agent-prompt-select" aria-description="Choose an instruction used by this agent."></select>
-                <p id="agent-prompt-when"></p>
-              </div>
-              <section class="agent-prompt-source" aria-labelledby="agent-prompt-heading">
-                <header><h4 id="agent-prompt-heading">Prompt text</h4><button type="button" class="settings-action" id="agent-copy-prompt" aria-description="Copy the displayed instruction to the clipboard.">Copy prompt</button></header>
-                <pre id="agent-prompt-text" role="region" tabindex="0" aria-labelledby="agent-prompt-heading"></pre>
-              </section>
-              <p id="agent-copy-status" class="settings-footnote" role="status" aria-live="polite"></p>
-            </div>
-          </div>
-        </div>
-      </section>
-      <section id="help-guide" class="settings-panel" data-settings-panel role="tabpanel" aria-labelledby="settings-tab-help" tabindex="0" hidden>
-        <header class="settings-section-heading"><span class="settings-eyebrow">FROM CONVERSATION TO CLARITY</span><h3>How this works</h3><p>A useful process document starts with your account of how the work gets done.</p></header>
-        <ol class="settings-guide"><li><span>01</span><div><h4>Tell the story</h4><p>Talk or type about a process. Describe what starts the work, who does it and how you know it is complete. Add files when they help.</p></div></li><li><span>02</span><div><h4>Connect the details</h4><p>Open a topic in Notes to see what is known, what still needs an answer and which sources support it.</p></div></li><li><span>03</span><div><h4>Review it together</h4><p>Choose Wrap up to check the account. You can add details, confirm the final omissions question when it appears, or save a partial draft for follow-up.</p></div></li></ol>
-        <section class="settings-help-note" aria-labelledby="definition-of-done"><h4 id="definition-of-done" tabindex="-1">Definition of done</h4>
-          <p>The interview is done when someone can follow the work from its trigger to its finish, the app has reviewed all 16 topics and the participant confirms the account. The process owner then reviews it for approval.</p>
-          <p><strong>Keep asking</strong> when an answer could change how someone performs, checks, releases or closes the work. For a client variation, establish what changes. For an overview, identify which detailed process owns the finish.</p>
-          <p><strong>Hand a question to the owner</strong> when the participant explains the affected work, what can proceed or must wait, and who or what can resolve it. One method may stay on hold. Another route may allow closure with an exception if someone records it and takes responsibility.</p>
-          <p><strong>Keep a partial interview</strong> if a material gap leaves the route or its hold unclear. Open a topic in Notes to see its gaps and follow-ups. You can save the interview and return with someone who knows the missing detail.</p>
+      </nav>
+      <p class="settings-nav-note"><span>Open Settings</span><span class="settings-keys"><kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>,</kbd></span></p>
+    </aside>
+    <div class="settings-main">
+      <button type="button" class="settings-done" id="close-interview-settings" aria-description="Close settings and return to the workspace.">Done<span data-icon="x" aria-hidden="true"></span></button>
+      <div class="settings-body" id="settings-body">
+        <p id="agents-access-notice" class="settings-callout settings-banner" role="status" data-icon="shield" hidden></p>
+        <button class="settings-return" type="button" id="settings-source-return" aria-description="Return to the item that linked to this source." data-icon="arrow-left" hidden>Back to what you were reviewing</button>
+        <section id="settings-search-results" class="settings-results" aria-label="Matching settings" hidden>
+          <header class="settings-section-heading"><h3>Search results</h3><p id="settings-search-count" role="status" aria-live="polite"></p></header>
+          <div id="settings-search-matches" class="settings-result-list"></div>
+          <div id="settings-search-suggestions" class="settings-suggestions" hidden><span>Try</span><button type="button" class="settings-chip" data-settings-suggest="voice">voice</button><button type="button" class="settings-chip" data-settings-suggest="recovery">recovery</button><button type="button" class="settings-chip" data-settings-suggest="context">context</button><button type="button" class="settings-chip" data-settings-suggest="logs">logs</button></div>
         </section>
-        <div class="settings-help-note"><h4>Keep a copy of your work</h4><p>Save copy downloads a restorable interview. Team activity shows what is running; a completed task does not approve the account.</p><button type="button" class="text-button" aria-description="See how saved interviews and local recovery copies work." data-settings-jump="data-details">Explore data &amp; recovery</button></div>
-        <div class="settings-about"><span>Process Collector</span><p id="build-identity" hidden></p></div>
-      </section>
+        <section id="preferences-details" class="settings-panel" data-settings-panel role="tabpanel" aria-labelledby="settings-tab-preferences" tabindex="0">
+          <header class="settings-section-heading"><h3>Preferences</h3><p>Choose how the app looks and sounds. Changes apply immediately.</p></header>
+          <div class="settings-block">
+            <div class="settings-block-heading"><h4 id="appearance-heading">Appearance</h4><p>Follow your device, or choose your own look.</p></div>
+            <fieldset class="theme-choices" aria-labelledby="appearance-heading">
+              <label class="theme-choice"><span class="theme-preview" aria-hidden="true"><i data-tone="light"></i><i data-tone="dark"></i></span><span class="theme-choice-label"><input type="radio" name="settings-theme" value="system" checked><span><strong>System</strong><small>Match your device</small></span></span></label>
+              <label class="theme-choice"><span class="theme-preview" aria-hidden="true"><i data-tone="light"></i></span><span class="theme-choice-label"><input type="radio" name="settings-theme" value="light"><span><strong>Light</strong><small>Bright &amp; focused</small></span></span></label>
+              <label class="theme-choice"><span class="theme-preview" aria-hidden="true"><i data-tone="dark"></i></span><span class="theme-choice-label"><input type="radio" name="settings-theme" value="dark"><span><strong>Dark</strong><small>Easy on the eyes</small></span></span></label>
+            </fieldset>
+            <select id="theme-select" class="settings-source-control" tabindex="-1" aria-hidden="true"><option value="system">System default</option><option value="light">Light</option><option value="dark">Dark</option></select>
+          </div>
+          <div id="voice-options" class="settings-block voice-options">
+            <div class="settings-block-heading"><h4>Voice &amp; playback</h4><p>The voice used to read questions and in reviewed voice.</p><p id="voice-mode-note" class="settings-footnote">Live conversation uses its own voice. This selection controls question playback and reviewed voice.</p></div>
+            <div class="settings-block-body">
+              <div class="settings-card settings-rows">
+                <div class="settings-item voice-item">
+                  <div class="voice-picker-row">
+                    <div class="voice-picker" id="voice-picker"><span id="voice-picker-label" class="settings-field-label">Interviewer voice</span>
+                      <button type="button" id="voice-picker-toggle" aria-description="Choose the voice used for question playback and reviewed voice." class="voice-picker-toggle" aria-haspopup="listbox" aria-expanded="false" aria-controls="voice-picker-list" aria-labelledby="voice-picker-label voice-picker-name"><span data-icon="mic" aria-hidden="true"></span><span><strong id="voice-picker-name">Loading voices…</strong><small id="voice-picker-kind">Available voices</small></span><span data-icon="chevron-down" aria-hidden="true"></span></button>
+                      <div id="voice-picker-panel" class="voice-picker-panel" hidden><label class="sr-only" for="voice-picker-search">Find a voice</label><input id="voice-picker-search" aria-description="Filter available voices by name." type="search" placeholder="Find a voice…" autocomplete="off"><div id="voice-picker-list" role="listbox" aria-label="Interviewer voices"></div></div>
+                    </div>
+                    <button type="button" class="settings-action voice-preview-button" id="preview-voice" aria-description="Hear a sample of the selected voice." data-icon="play">Preview voice</button>
+                  </div>
+                  <select id="voice-select" class="settings-source-control" aria-label="Interviewer voice" aria-describedby="voice-description" tabindex="-1" aria-hidden="true"></select>
+                  <div class="settings-voice-feedback"><p id="voice-description"></p><button class="text-button small" id="stop-speaking" aria-description="Stop the current voice sample." data-icon="x" hidden>Stop preview</button><span id="voice-status" role="status" hidden></span></div>
+                  <p id="voice-availability" class="settings-callout" data-icon="alert" hidden></p>
+                </div>
+                <label class="settings-switch-row"><span><strong>Read questions aloud when typing</strong><small>Hear each question while you use the text interview.</small></span><input type="checkbox" id="speak-questions"></label>
+                <label class="settings-switch-row"><span><strong>Stop recording when I pause</strong><small>Finish a dictated reply after a natural pause.</small></span><input type="checkbox" id="stop-on-silence" checked></label>
+                <label id="review-voice-transcript-option" class="settings-switch-row" hidden><span><strong>Edit each reviewed-voice answer before sending</strong><small>Check the transcription before it joins the interview.</small></span><input type="checkbox" id="review-voice-transcript"></label>
+              </div>
+              <p id="review-voice-audio-notice" class="settings-footnote" hidden>Reviewed voice sends the recording from when listening begins, including sound before your first words, to transcription.</p>
+              <button type="button" class="text-button small" id="export-voice-timing" aria-description="Download timing measurements from the voice interview." data-icon="download" hidden>Save voice timings</button>
+            </div>
+          </div>
+        </section>
+        <section id="context-details" class="settings-panel" data-settings-panel role="tabpanel" aria-labelledby="settings-tab-context" tabindex="0" hidden>
+          <header class="settings-section-heading"><h3>Interview context</h3><p>Give the interviewer a starting point. These details stay with this interview.</p></header>
+          <p id="context-lock-note" class="settings-callout settings-banner" data-icon="shield">Goal and background lock when the interview starts. Process owner can be changed at any time.</p>
+          <div class="settings-block">
+            <div class="settings-block-heading"><h4>People</h4><p>Who is describing the work, and who can confirm it reflects current practice.</p></div>
+            <div class="settings-card settings-context-grid settings-fields"><div><label for="interview-participant">Participant name or role <small>Optional</small></label><input id="interview-participant" aria-description="Identify the person or role describing the work." maxlength="180" dir="auto" autocomplete="off" placeholder="Who is sharing the process?"></div><div><label for="process-owner">Process owner <small>Optional</small></label><input id="process-owner" aria-description="Identify who can confirm that the procedure reflects current practice." maxlength="180" placeholder="Who is responsible?" dir="auto" autocomplete="off"></div></div>
+          </div>
+          <div class="settings-block">
+            <div class="settings-block-heading"><h4>Goal</h4><p>What this interview should establish before it starts.</p></div>
+            <div class="settings-card settings-fields settings-context-fields"><label for="objective">Goal for this interview</label><textarea id="objective" aria-description="Set what this interview should establish before it starts." rows="3" aria-describedby="objective-limit context-lock-note" required dir="auto" autocomplete="off">Understand the current process, responsibilities, handoffs, and exceptions.</textarea><p id="objective-limit" class="field-limit" hidden></p></div>
+          </div>
+          <div class="settings-block">
+            <div class="settings-block-heading"><h4>Background</h4><p>Boundaries, terminology and areas the interviewer should focus on.</p></div>
+            <div class="settings-card settings-fields settings-context-fields"><label for="background">Background <small>Optional</small></label><textarea id="background" aria-description="Give the interviewer boundaries, terminology or background before starting." rows="6" aria-describedby="background-limit context-lock-note" placeholder="Useful background, boundaries or things to focus on…" dir="auto" autocomplete="off"></textarea><p id="background-limit" class="field-limit" hidden></p></div>
+          </div>
+        </section>
+        <section id="data-details" class="settings-panel" data-settings-panel role="tabpanel" aria-labelledby="settings-tab-data" tabindex="0" hidden>
+          <header class="settings-section-heading"><h3>Data &amp; recovery</h3><p>Understand what is kept, what is sent, and how to protect unfinished work.</p></header>
+          <div id="recovery-setting" class="settings-block recovery-setting" hidden>
+            <div class="settings-block-heading"><h4>Recovery copy</h4><p id="recovery-description">Off unless you turn it on. Keeps one local copy of your transcript, notes, map, draft and unsent answer. Never recordings.</p></div>
+            <div class="settings-card settings-rows">
+              <label class="settings-switch-row recovery-switch"><span><strong>Keep a recovery copy on this computer</strong><small>Recover an unsaved interview after a closed tab or restart.</small></span><input type="checkbox" id="recovery-enabled" aria-describedby="recovery-description recovery-status"></label>
+              <p id="recovery-status" class="settings-status-line" role="status"></p>
+              <details class="settings-disclosure"><summary aria-description="See when the local recovery copy is saved and erased.">How recovery copies are cleared</summary><p>The copy is written a few seconds after a change. It stays on this computer and is offered when the app next opens. It is deleted after a confirmed Save copy, when you start over or open another interview, when you discard it, when you turn this off, and after seven days. Save copy is still the way to keep an interview long term.</p></details>
+            </div>
+          </div>
+          <div class="settings-block">
+            <div class="settings-block-heading"><h4>Where your data lives</h4><p>What stays on this computer, and what is sent to the AI service during an interview.</p></div>
+            <div class="settings-block-body">
+              <div class="settings-data-grid"><article><span class="settings-tag" data-icon="folder">ON THIS COMPUTER</span><h4>Your local workspace</h4><p>The app keeps uploaded originals, extracted content, filed processes and application logs on this computer.</p><button type="button" class="settings-link" aria-description="Inspect activity recorded by the local app." data-settings-jump="logs-details" data-icon-end="arrow-right">View application logs</button></article><article><span class="settings-tag" data-icon="sparkle">WITH THE AI SERVICE</span><h4>Content used for the interview</h4><p>Submitted answers, connected voice, file reviews and matching excerpts go to the AI service. Installed computer voices play locally.</p></article></div>
+              <details class="settings-card settings-disclosure settings-full-notice"><summary aria-description="See where files, answers and interview activity are stored or sent.">Full data handling details</summary><p id="data-notice" tabindex="-1"></p></details>
+            </div>
+          </div>
+        </section>
+        <section id="usage-details" class="settings-panel" data-settings-panel role="tabpanel" aria-labelledby="settings-tab-usage" tabindex="0" hidden>
+          <header class="settings-section-heading"><h3>AI usage</h3><p>See the token counts reported for this workspace and interview.</p></header>
+          <div class="settings-usage-grid"><article><span class="settings-tag" data-icon="sparkle">TODAY</span><strong id="usage-day-value">—</strong><span>tokens used</span><div class="usage-limit"><small id="usage-day-limit">Waiting for usage information</small><output id="usage-day-percent" aria-hidden="true"></output><meter id="usage-day-meter" min="0" max="1" value="0" aria-label="Daily token limit used" hidden></meter></div></article><article><span class="settings-tag" data-icon="memo">THIS INTERVIEW</span><strong id="usage-interview-value">—</strong><span>tokens used</span><div class="usage-limit"><small id="usage-interview-limit">Waiting for usage information</small><output id="usage-interview-percent" aria-hidden="true"></output><meter id="usage-interview-meter" min="0" max="1" value="0" aria-label="Interview token limit used" hidden></meter></div></article></div>
+          <div class="settings-usage-actions"><p id="usage-summary" class="settings-status-line" role="status" aria-live="polite">Usage is not available from this connection.</p><button type="button" id="usage-check" aria-description="Read the latest token counts from the workspace." class="settings-action" data-icon="refresh">Refresh usage</button></div>
+          <p class="settings-footnote">Token counts measure activity, not a bill. Workspace limits apply to counted requests; connected Live voice, transcription and playback are not included.</p>
+        </section>
+        <section id="logs-details" class="settings-panel" data-settings-panel role="tabpanel" aria-labelledby="settings-tab-logs" tabindex="0" hidden>
+          <header class="settings-section-heading"><h3>Application logs</h3><p>Inspect activity saved on this computer. Expand an entry for its recorded details.</p></header>
+          <div class="log-toolbar"><div class="settings-segmented" role="group" aria-label="Log sessions"><button type="button" data-log-scope="all" aria-description="Show entries across recently recorded sessions." aria-pressed="true">Recent sessions</button><button type="button" data-log-scope="current" aria-description="Limit entries to this session." aria-pressed="false">Current session</button></div><div class="log-search" data-icon="search"><label class="sr-only" for="logs-search">Search loaded entries</label><input id="logs-search" aria-description="Find wording or events within the loaded log entries." type="search" placeholder="Search events, wording or session…" autocomplete="off"></div><button type="button" id="logs-refresh" aria-description="Load the latest activity for the selected sessions." class="settings-action" data-icon="refresh">Refresh</button></div>
+          <select id="logs-scope" class="settings-source-control" aria-label="Log sessions" tabindex="-1" aria-hidden="true"><option value="all">Recent sessions</option><option value="current">Current session</option></select>
+          <div class="log-summary"><p id="logs-status" class="settings-status-line" role="status" aria-live="polite"></p><p id="logs-count" class="settings-log-count"></p></div>
+          <div id="logs-entries" class="log-entries" aria-label="Saved log entries"></div><p class="settings-footnote">Entries may include interview wording and AI exchanges. Recovery copies are managed separately under Data &amp; recovery.</p>
+        </section>
+        <section id="agents-details" class="settings-panel" data-settings-panel role="tabpanel" aria-labelledby="settings-tab-agents" tabindex="0" hidden>
+          <header class="settings-section-heading"><h3>Agents</h3><p>Follow the work through the app and inspect the instructions each agent receives.</p></header>
+          <p id="agents-status" class="settings-status-line" role="status" aria-live="polite"></p>
+          <button type="button" id="agents-retry" aria-description="Try loading the interview roles and prompts again." class="settings-action" data-icon="refresh" hidden>Try again</button>
+          <div id="agents-content" hidden>
+            <div class="settings-segmented agent-views" role="group" aria-label="Agent views">
+              <button type="button" id="agents-overview-button" aria-description="See how the interview agents divide the work." aria-controls="agents-overview" aria-pressed="true">Overview</button>
+              <button type="button" id="agents-library-button" aria-description="Inspect the instructions supplied to each agent." aria-controls="agents-library" aria-pressed="false">Prompt library</button>
+            </div>
+            <div id="agents-overview"></div>
+            <div id="agents-library" hidden>
+              <div class="agent-prompt-picker"><label for="agent-select">Agent</label><select id="agent-select" aria-description="Choose the role whose instructions you want to inspect."></select>
+                <p id="agent-description"></p>
+              </div>
+              <div id="agent-prompt-details">
+                <div class="agent-prompt-picker"><label for="agent-prompt-select">Prompt</label><select id="agent-prompt-select" aria-description="Choose an instruction used by this agent."></select>
+                  <p id="agent-prompt-when"></p>
+                </div>
+                <section class="agent-prompt-source" aria-labelledby="agent-prompt-heading">
+                  <header><h4 id="agent-prompt-heading">Prompt text</h4><button type="button" class="settings-action" id="agent-copy-prompt" aria-description="Copy the displayed instruction to the clipboard.">Copy prompt</button></header>
+                  <pre id="agent-prompt-text" role="region" tabindex="0" aria-labelledby="agent-prompt-heading"></pre>
+                </section>
+                <p id="agent-copy-status" class="settings-footnote" role="status" aria-live="polite"></p>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section id="help-guide" class="settings-panel" data-settings-panel role="tabpanel" aria-labelledby="settings-tab-help" tabindex="0" hidden>
+          <header class="settings-section-heading"><h3>How this works</h3><p>A useful process document starts with your account of how the work gets done.</p></header>
+          <ol class="settings-guide"><li><span>01</span><div><h4>Tell the story</h4><p>Talk or type about a process. Describe what starts the work, who does it and how you know it is complete. Add files when they help.</p></div></li><li><span>02</span><div><h4>Connect the details</h4><p>Open a topic in Notes to see what is known, what still needs an answer and which sources support it.</p></div></li><li><span>03</span><div><h4>Review it together</h4><p>Choose Wrap up to check the account. You can add details, confirm the final omissions question when it appears, or save a partial draft for follow-up.</p></div></li></ol>
+          <section class="settings-help-note settings-done-guide" aria-labelledby="definition-of-done"><h4 id="definition-of-done" tabindex="-1">Definition of done</h4>
+            <p>The interview is done when someone can follow the work from its trigger to its finish, the app has reviewed all 16 topics and the participant confirms the account. The process owner then reviews it for approval.</p>
+            <p><strong>Keep asking</strong> when an answer could change how someone performs, checks, releases or closes the work. For a client variation, establish what changes. For an overview, identify which detailed process owns the finish.</p>
+            <p><strong>Hand a question to the owner</strong> when the participant explains the affected work, what can proceed or must wait, and who or what can resolve it. One method may stay on hold. Another route may allow closure with an exception if someone records it and takes responsibility.</p>
+            <p><strong>Keep a partial interview</strong> if a material gap leaves the route or its hold unclear. Open a topic in Notes to see its gaps and follow-ups. You can save the interview and return with someone who knows the missing detail.</p>
+          </section>
+          <div class="settings-help-pair">
+            <div class="settings-help-note"><h4>Keep a copy of your work</h4><p>Save copy downloads a restorable interview. Team activity shows what is running; a completed task does not approve the account.</p><button type="button" class="settings-link" aria-description="See how saved interviews and local recovery copies work." data-settings-jump="data-details" data-icon-end="arrow-right">Explore data &amp; recovery</button></div>
+            <section class="settings-help-note" aria-labelledby="keyboard-shortcuts"><h4 id="keyboard-shortcuts" tabindex="-1">Keyboard shortcuts</h4>
+              <dl class="settings-shortcuts"><div><dt>Open Settings</dt><dd><kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>,</kbd></dd></div><div><dt>Save a copy of the interview</dt><dd><kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>S</kbd></dd></div><div><dt>Send a typed reply</dt><dd><kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>Enter</kbd></dd></div><div><dt>Stop reading aloud, or close a panel</dt><dd><kbd>Esc</kbd></dd></div></dl>
+            </section>
+          </div>
+          <div class="settings-about"><img src="/assets/gpfs-symbol.svg" alt="" width="28" height="32"><div><span>Process Collector</span><p id="build-identity" hidden></p></div></div>
+        </section>
+      </div>
     </div>
   </div>
 </dialog>

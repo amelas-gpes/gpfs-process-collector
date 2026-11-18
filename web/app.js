@@ -7191,6 +7191,13 @@
         download(await api.png(svg),name+".png","image/png");
       }catch(error){notice(error.message||"Could not prepare the export.",true);}
     });
+    // More formats is a menu: it closes on a choice, on Escape and on a click elsewhere, like the transcript export menu.
+    const moreExports=$("report-more-exports");
+    if(moreExports){
+      moreExports.addEventListener("click",event=>{if(event.target?.closest?.("button"))moreExports.open=false;});
+      moreExports.addEventListener("keydown",event=>{if(event.key==="Escape"&&moreExports.open){event.stopPropagation();moreExports.open=false;moreExports.querySelector("summary")?.focus();}});
+      document.addEventListener("click",event=>{if(moreExports.open&&!moreExports.contains(event.target))moreExports.open=false;});
+    }
     window.addEventListener?.("beforeprint",preparePrint);
     window.addEventListener?.("afterprint",()=>$("printed-workflow")?.replaceChildren());
     window.matchMedia?.("print")?.addEventListener?.("change",event=>{if(event.matches)preparePrint();});

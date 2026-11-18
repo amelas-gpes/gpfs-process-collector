@@ -13,7 +13,7 @@ import time
 import unittest
 from unittest.mock import Mock
 
-from test_server import server
+from test_server import server, interview_payload, process_draft
 
 CORPUS = Path(__file__).resolve().parents[1] / 'docs' / 'testing' / 'runs' / '2026-11-16-process-capture' / 'interviews'
 
@@ -131,6 +131,68 @@ class RouteGapTests(unittest.TestCase):
         steps[0]['type'] = 'activity'
         gaps = server.route_gaps(steps, [edge('S1', 'S2'), edge('S3', 'S4'), edge('S4', 'S5')])
         self.assertEqual([gap['steps'] for gap in gaps], [['S1', 'S2'], ['S6']])
+
+    def test_branch_that_only_feeds_into_the_started_route_needs_a_trigger(self):
+        steps = [step('S1', 'Grant changes', 'start'), step('S2', 'Tie the balances'),
+                 step('S3', 'Select the option'), step('S4', 'Review the selection'), step('S5', 'File package')]
+        edges = [edge('S1', 'S2'), edge('S2', 'S5'), edge('S3', 'S4'), edge('S4', 'S3'), edge('S4', 'S5')]
+        workflow = {'title': 'Grant changes', 'steps': steps, 'connections': edges, 'open_questions': []}
+        branch = {'kind': 'unreached_branch', 'start': 'S1', 'steps': ['S3', 'S4']}
+        self.assertEqual(server.route_gaps(steps, edges), [branch])
+        unavailable = Repair(None)
+        waiting = connect(unavailable, workflow)
+        self.assertEqual(unavailable.asked, [[branch]])
+        self.assertEqual(waiting['connections'], edges)
+        question = next(item for item in waiting['open_questions'] if 'its own trigger' in item)
+        self.assertIn('S3 (Select the option)', question)
+        self.assertIn('S1 (Grant changes)', question)
+        # A repeated check stays within the repair budget, and the clarification survives.
+        repeated = Repair(None)
+        self.assertIn(question, connect(repeated, waiting, baseline=workflow)['open_questions'])
+        self.assertFalse(repeated.asked)
+        supported = Repair({'connections': [SELECT_AFTER_TIE], 'replaced_connections': []})
+        repaired = connect(supported, waiting)
+        self.assertEqual(supported.asked, [[branch]])
+        self.assertEqual(paths(repaired, 'S1', 'S4'), [['S1', 'S2', 'S3', 'S4']])
+        self.assertNotIn(question, repaired['open_questions'])
+        self.assertEqual(server.route_gaps(steps, repaired['connections']), [])
+
+    def test_full_saved_map_and_draft_registers_prioritize_existing_and_required_questions(self):
+        turns = interview_payload()['turns']
+        draft = process_draft()
+        draft['steps'][0]['type'] = 'start'
+        draft['steps'].append(step('s3', 'Match an external receipt'))
+        draft['connections'].append(edge('s3', 's2'))
+        workflow = {key: draft[key] for key in ('title', 'steps', 'connections', 'open_questions')}
+        questions = server.workflow_structure_questions(draft['steps'], draft['connections'])
+        required = [q for q in questions if 'its own trigger' not in q]
+        self.assertTrue(required, 'This map also needs an ordinary convergence clarification')
+        self.assertTrue(any('its own trigger' in q for q in questions))
+
+        for validate, artifact, limit in [(server.validate_workflow, workflow, 500), (server.validate_draft, draft, 100)]:
+            with self.subTest(limit=limit):
+                register = required + [f'Who approves exception {i}?' for i in range(limit - len(required))]
+                def checked(items):
+                    return validate({**copy.deepcopy(artifact), 'open_questions': list(items)}, turns)['open_questions']
+                self.assertEqual(checked(register), register)
+                self.assertEqual(checked(register[1:]), register)
+                self.assertTrue(any('its own trigger' in q for q in checked(register[:-1])))
+                with self.assertRaises(ValueError):
+                    checked(['A separate saved question?', *register])
+                with self.assertRaises(ValueError):
+                    checked(['A separate saved question?', *register[1:]])
+
+    def test_direction_check_requires_one_reported_start_and_stays_in_its_component(self):
+        steps = [step('A', 'Start A', 'start'), step('B', 'Submit'),
+                 step('C', 'Independent request', 'start'), step('D', 'Receive')]
+        edges = [edge('A', 'B'), edge('C', 'B'), edge('D', 'C')]
+        self.assertEqual(server.route_gaps(steps, edges), [])
+        self.assertFalse(any('its own trigger' in q for q in server.workflow_structure_questions(steps, edges)))
+        steps[0]['type'] = steps[2]['type'] = 'activity'
+        self.assertEqual(server.route_gaps(steps, edges), [])
+        steps[0]['type'] = 'start'
+        separate = [edge('A', 'B'), edge('C', 'D')]
+        self.assertEqual(server.route_gaps(steps, separate), [{'kind': 'detached', 'steps': ['C', 'D'], 'gate': False}])
 
     def test_sources_put_the_gate_on_the_route_and_the_bypass_is_rerouted_through_it(self):
         repair = Repair({'connections': [SELECT_AFTER_TIE, OTHER_OPTION], 'replaced_connections': [BYPASS]})

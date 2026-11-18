@@ -144,7 +144,8 @@ class DocumentContextHTTP(unittest.TestCase):
         self.httpd.shutdown()
         self.httpd.server_close()
         self.worker.join(timeout=2)
-        self.httpd.documents._worker.join(timeout=10)  # A review still unwinding holds the database open.
+        for worker in self.httpd.documents._workers:
+            worker.join(timeout=10)
         self.temporary.cleanup()
 
     def post(self, path, payload, headers=None):

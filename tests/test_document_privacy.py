@@ -103,7 +103,8 @@ class UploadContext(unittest.TestCase):
             httpd.shutdown()
             httpd.server_close()
             worker.join(timeout=2)
-            httpd.documents._worker.join(timeout=10)  # A review still unwinding holds the database open.
+            for document_worker in httpd.documents._workers:
+                document_worker.join(timeout=10)
         running = self.enterContext(ExitStack())
         running.callback(stop)
         url = f'http://127.0.0.1:{httpd.server_port}'
@@ -121,7 +122,7 @@ class UploadContext(unittest.TestCase):
         post('/api/documents/action', {'scope': scope, 'id': uploaded['id'], 'action': 'remove'})
         # Close the workers and SQLite handles before inspecting every persisted byte on Windows.
         running.close()
-        self.assertFalse(httpd.documents._worker.is_alive())
+        self.assertFalse(any(worker.is_alive() for worker in httpd.documents._workers))
         everything = stored_bytes(self.root.parent / 'served')
         self.assertIn(b'FictionalClerk', everything, 'Remove is not erasure: the file and its text stay on this computer')
         for words in (b'ZQTRANSCRIPT', b'ZQACCT', b'ZQEARLIER'):

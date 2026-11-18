@@ -5,6 +5,7 @@ that is not streamed behaves: nothing arrives until the whole answer exists. No 
 network or credential is used.
 """
 import json
+import socket
 import threading
 import time
 import unittest
@@ -24,6 +25,9 @@ class SlowProvider:
 
     def __init__(self, delay=5.0):
         self.delay, self.release, self.outcomes = delay, threading.Event(), []
+        self.waiting = threading.Event()
+        self.outcome_recorded = threading.Event()
+        self.prefix_bytes = 0
         owner = self
 
         class Handler(BaseHTTPRequestHandler):
@@ -32,18 +36,19 @@ class SlowProvider:
 
             def do_POST(self):
                 self.rfile.read(int(self.headers.get("Content-Length", "0")))
-                owner.release.wait(owner.delay)
                 raw = json.dumps({"status": "completed", "output": [{"content": [
                     {"type": "output_text", "text": json.dumps({"question": "What happens next?"})}]}]}).encode()
+                response = (f"HTTP/1.0 200 OK\r\nContent-Type: application/json\r\nContent-Length: {len(raw)}\r\n\r\n".encode() + raw)
                 try:
-                    self.send_response(200)
-                    self.send_header("Content-Type", "application/json")
-                    self.send_header("Content-Length", str(len(raw)))
-                    self.end_headers()
-                    self.wfile.write(raw)
+                    if owner.prefix_bytes:
+                        self.wfile.write(response[:owner.prefix_bytes])
+                    owner.waiting.set()
+                    owner.release.wait(owner.delay)
+                    self.wfile.write(response[owner.prefix_bytes:])
                     owner.outcomes.append("answered")
                 except OSError:
                     owner.outcomes.append("client_gone")
+                owner.outcome_recorded.set()
 
         self.httpd = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
         self.worker = threading.Thread(target=self.httpd.serve_forever, kwargs={"poll_interval": 0.01}, daemon=True)
@@ -111,6 +116,30 @@ class ProviderCancellationTests(unittest.TestCase):
         self.assertEqual((outcome["error"].status, outcome["error"].category), (409, "cancelled"))
         self.assertEqual(free(self.client._provider_slots, self.client.provider_slots), self.client.provider_slots)
 
+    def test_cancellation_interrupts_a_partial_response_without_a_socket_shutdown_wakeup(self):
+        # A timed Winsock recv can still be waiting for readability after local shutdown.
+        for cut in (9, 80):  # incomplete status line, then incomplete JSON body
+            with self.subTest(cut=cut), patch.object(socket.socket, "shutdown", return_value=None):
+                self.provider.waiting.clear()
+                self.provider.prefix_bytes = cut
+                flag = threading.Event()
+                thread, outcome = self.ask(cancelled=flag.is_set)
+                self.assertTrue(self.provider.waiting.wait(2))
+                flag.set()
+                thread.join(2)
+                self.assertFalse(thread.is_alive())
+                self.assertEqual((outcome["error"].status, outcome["error"].category), (409, "cancelled"))
+                self.assertEqual(free(self.client._provider_slots, self.client.provider_slots), self.client.provider_slots)
+
+    def test_slow_partial_header_and_body_arrive_intact(self):
+        self.provider.delay = .65
+        for cut in (9, 80):
+            with self.subTest(cut=cut):
+                self.provider.prefix_bytes = cut
+                thread, outcome = self.ask(cancelled=lambda: False)
+                thread.join(3)
+                self.assertEqual(outcome["result"]["status"], "completed")
+
     def test_a_request_past_its_time_is_ended_while_the_provider_is_still_silent(self):
         thread, outcome = self.ask(timeout=.6)
         thread.join(4)
@@ -124,6 +153,7 @@ class ProviderCancellationTests(unittest.TestCase):
         thread, outcome = self.ask(cancelled=lambda: False)
         thread.join(5)
         self.assertEqual(outcome["result"]["status"], "completed")
+        self.assertTrue(self.provider.outcome_recorded.wait(3), "The provider did not record its outcome")
         self.assertEqual(self.provider.outcomes, ["answered"])
 
     def test_a_cancelled_request_is_recorded_as_cancelled(self):

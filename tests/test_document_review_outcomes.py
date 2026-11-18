@@ -162,6 +162,18 @@ class PausedReviewWordingTests(ReviewCase):
         plain = server.APIError('The model declined this request.')
         self.assertEqual((plain.status, plain.category, plain.transient), (502, None, False))
 
+    def test_local_token_budget_reaches_the_file_card_without_contacting_the_provider(self):
+        client = server.OpenAIClient({'OPENAI_API_KEY': 'test-key', 'DAILY_TOKEN_CAP': '1'})
+        with patch.object(server, 'urlopen') as transport:
+            service = self.service(lambda context, record, chunks, phase:
+                                   client.analyze_document(context, record, chunks, phase, self.store))
+            record = service.upload(self.scope, 'cited.csv', b'important,field\na,1\n')
+            paused = self.wait(record['id'], 'error')
+        transport.assert_not_called()
+        self.assertIn('local token budget', paused['analysis']['error'])
+        self.assertEqual(paused['analysis']['retry_reason'], paused['analysis']['error'])
+        self.assertTrue(paused['analysis']['retry_required'])
+
     def test_a_rejected_key_reaches_the_file_card_through_the_real_request_path(self):
         client = server.OpenAIClient({'OPENAI_API_KEY': 'sk-test-sentinel-not-a-real-credential'})
         rejected = urllib.error.HTTPError('https://api.openai.com/v1/responses', 401, 'Unauthorized', {},

@@ -39,7 +39,7 @@ def workbook_bytes(sheets=1, rows=3, formulas=False):
 class DocumentStoreTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
-        self.root = Path(self.temporary.name) / 'documents'
+        self.root = Path(self.temporary.name).resolve() / 'documents'
         self.store = documents.DocumentStore(self.root)
         self.scope = self.store.create_scope()
 
@@ -54,7 +54,7 @@ class DocumentStoreTests(unittest.TestCase):
         # A nested checkout pushes <root>/<64-char scope>/<doc id>/.pending-<24> past 260
         # characters. Clean up through an extended-length root: plain rmtree cannot
         # remove files whose plain path exceeds MAX_PATH.
-        base = tempfile.TemporaryDirectory(dir='\\\\?\\' + documents.os.path.abspath(tempfile.gettempdir()))
+        base = tempfile.TemporaryDirectory(dir='\\\\?\\' + str(Path(tempfile.gettempdir()).resolve()))
         self.addCleanup(base.cleanup)
         root = Path(base.name[4:]) / ('nested-' * ((190 - len(base.name)) // 7)) / 'documents'
         self.assertLess(len(str(root)), documents.LONG_PATH_THRESHOLD)

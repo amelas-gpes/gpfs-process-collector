@@ -100,6 +100,8 @@ RETRY_DELAYS = (2, 8)
 # exception may quote document text, so only its category chooses among them.
 REVIEW_PAUSED = 'Document review paused after an invalid response or service error. Select Retry review to try again.'
 REVIEW_PAUSED_BY_CATEGORY = {
+    'budget_reached': ('This review request would exceed the local token budget. '
+                       'Check the interview and daily token limits before selecting Retry review.'),
     'quota': ('Document review paused: the selected API project has no available API quota. '
               "Check that project's billing and usage limits, then select Retry review."),
     'authentication': ('Document review paused: the AI service rejected the API key or its project permissions. '

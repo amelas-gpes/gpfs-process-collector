@@ -1,0 +1,692 @@
+{
+  "method": "Real provider. Freshly submitted uploads and saved participant answers. The final map state was polled independently after the recorded wrap events, including after recovery attempts. A checked flag is the application’s source-review result, not an independent fidelity grade.",
+  "cases": [
+    {
+      "case": "U1",
+      "cohort": "upload",
+      "participant_answers": 0,
+      "successful_followups": 1,
+      "notes_state": "ready",
+      "notes_error_code": null,
+      "workflow_state": "ready",
+      "workflow_checked": true,
+      "map_version": 2,
+      "steps": 13,
+      "connections": 13,
+      "open_questions": 9,
+      "extraction": {
+        "case": "U1",
+        "status": "ready",
+        "chunks": 4,
+        "indexed": 4,
+        "total": 4,
+        "source_sha_matches": true
+      },
+      "first_file_question_seconds": 19.21
+    },
+    {
+      "case": "U2",
+      "cohort": "upload",
+      "participant_answers": 0,
+      "successful_followups": 1,
+      "notes_state": "ready",
+      "notes_error_code": null,
+      "workflow_state": "ready",
+      "workflow_checked": true,
+      "map_version": 2,
+      "steps": 5,
+      "connections": 4,
+      "open_questions": 8,
+      "extraction": {
+        "case": "U2",
+        "status": "ready",
+        "chunks": 1,
+        "indexed": 11,
+        "total": 11,
+        "source_sha_matches": true
+      },
+      "first_file_question_seconds": 7.42
+    },
+    {
+      "case": "U3",
+      "cohort": "upload",
+      "participant_answers": 0,
+      "successful_followups": 1,
+      "notes_state": "ready",
+      "notes_error_code": null,
+      "workflow_state": "ready",
+      "workflow_checked": true,
+      "map_version": 2,
+      "steps": 1,
+      "connections": 0,
+      "open_questions": 6,
+      "extraction": {
+        "case": "U3",
+        "status": "ready",
+        "chunks": 1,
+        "indexed": 2,
+        "total": 2,
+        "source_sha_matches": true
+      },
+      "first_file_question_seconds": 7.47
+    },
+    {
+      "case": "U4",
+      "cohort": "upload",
+      "participant_answers": 0,
+      "successful_followups": 1,
+      "notes_state": "ready",
+      "notes_error_code": null,
+      "workflow_state": "ready",
+      "workflow_checked": true,
+      "map_version": 2,
+      "steps": 22,
+      "connections": 22,
+      "open_questions": 14,
+      "extraction": {
+        "case": "U4",
+        "status": "ready",
+        "chunks": 4,
+        "indexed": 4,
+        "total": 4,
+        "source_sha_matches": true
+      },
+      "first_file_question_seconds": 29.5
+    },
+    {
+      "case": "U5",
+      "cohort": "upload",
+      "participant_answers": 0,
+      "successful_followups": 1,
+      "notes_state": "ready",
+      "notes_error_code": null,
+      "workflow_state": "ready",
+      "workflow_checked": true,
+      "map_version": 2,
+      "steps": 1,
+      "connections": 0,
+      "open_questions": 5,
+      "extraction": {
+        "case": "U5",
+        "status": "ready",
+        "chunks": 1,
+        "indexed": 3,
+        "total": 3,
+        "source_sha_matches": true
+      },
+      "first_file_question_seconds": 10.83
+    },
+    {
+      "case": "U6",
+      "cohort": "upload",
+      "participant_answers": 0,
+      "successful_followups": 1,
+      "notes_state": "ready",
+      "notes_error_code": null,
+      "workflow_state": "ready",
+      "workflow_checked": true,
+      "map_version": 2,
+      "steps": 4,
+      "connections": 2,
+      "open_questions": 10,
+      "extraction": {
+        "case": "U6",
+        "status": "ready",
+        "chunks": 1,
+        "indexed": 10,
+        "total": 10,
+        "source_sha_matches": true
+      },
+      "first_file_question_seconds": 17.53
+    },
+    {
+      "case": "U7",
+      "cohort": "upload",
+      "participant_answers": 0,
+      "successful_followups": 1,
+      "notes_state": "ready",
+      "notes_error_code": null,
+      "workflow_state": "ready",
+      "workflow_checked": true,
+      "map_version": 2,
+      "steps": 3,
+      "connections": 1,
+      "open_questions": 9,
+      "extraction": {
+        "case": "U7",
+        "status": "ready",
+        "chunks": 1,
+        "indexed": 3,
+        "total": 3,
+        "source_sha_matches": true
+      },
+      "first_file_question_seconds": 6.49
+    },
+    {
+      "case": "U8",
+      "cohort": "upload",
+      "participant_answers": 0,
+      "successful_followups": 1,
+      "notes_state": "ready",
+      "notes_error_code": null,
+      "workflow_state": "ready",
+      "workflow_checked": true,
+      "map_version": 2,
+      "steps": 20,
+      "connections": 18,
+      "open_questions": 22,
+      "extraction": {
+        "case": "U8",
+        "status": "ready",
+        "chunks": 5,
+        "indexed": 5,
+        "total": 5,
+        "source_sha_matches": true
+      },
+      "first_file_question_seconds": 18.84
+    },
+    {
+      "case": "U9",
+      "cohort": "upload",
+      "participant_answers": 0,
+      "successful_followups": 1,
+      "notes_state": "ready",
+      "notes_error_code": null,
+      "workflow_state": "ready",
+      "workflow_checked": true,
+      "map_version": 2,
+      "steps": 10,
+      "connections": 4,
+      "open_questions": 15,
+      "extraction": {
+        "case": "U9",
+        "status": "ready",
+        "chunks": 1,
+        "indexed": 10,
+        "total": 10,
+        "source_sha_matches": true
+      },
+      "first_file_question_seconds": 7.1
+    },
+    {
+      "case": "U10",
+      "cohort": "upload",
+      "participant_answers": 0,
+      "successful_followups": 1,
+      "notes_state": "ready",
+      "notes_error_code": null,
+      "workflow_state": "ready",
+      "workflow_checked": true,
+      "map_version": 2,
+      "steps": 23,
+      "connections": 24,
+      "open_questions": 17,
+      "extraction": {
+        "case": "U10",
+        "status": "ready",
+        "chunks": 24,
+        "indexed": 24,
+        "total": 24,
+        "source_sha_matches": true
+      },
+      "first_file_question_seconds": 122.71
+    },
+    {
+      "case": "T01",
+      "cohort": "typed",
+      "participant_answers": 5,
+      "successful_followups": 5,
+      "notes_state": "ready",
+      "notes_error_code": null,
+      "workflow_state": "ready",
+      "workflow_checked": true,
+      "map_version": 4,
+      "steps": 39,
+      "connections": 38,
+      "open_questions": 36,
+      "successful_question_seconds": [
+        3.07,
+        4.688,
+        2.046,
+        4.316,
+        3.981
+      ],
+      "recorded_wrap_http_status": [
+        200
+      ]
+    },
+    {
+      "case": "T02",
+      "cohort": "typed",
+      "participant_answers": 7,
+      "successful_followups": 7,
+      "notes_state": "ready",
+      "notes_error_code": null,
+      "workflow_state": "ready",
+      "workflow_checked": true,
+      "map_version": 4,
+      "steps": 45,
+      "connections": 51,
+      "open_questions": 27,
+      "successful_question_seconds": [
+        2.2,
+        2.641,
+        2.625,
+        2.559,
+        2.536,
+        2.974,
+        1.738
+      ],
+      "recorded_wrap_http_status": [
+        502,
+        200
+      ]
+    },
+    {
+      "case": "T03",
+      "cohort": "typed",
+      "participant_answers": 7,
+      "successful_followups": 7,
+      "notes_state": "ready",
+      "notes_error_code": null,
+      "workflow_state": "ready",
+      "workflow_checked": true,
+      "map_version": 2,
+      "steps": 11,
+      "connections": 11,
+      "open_questions": 16,
+      "successful_question_seconds": [
+        1.92,
+        1.77,
+        2.195,
+        3.354,
+        3.445,
+        2.272,
+        1.585
+      ],
+      "recorded_wrap_http_status": [
+        200
+      ]
+    },
+    {
+      "case": "T04",
+      "cohort": "typed",
+      "participant_answers": 5,
+      "successful_followups": 5,
+      "notes_state": "ready",
+      "notes_error_code": null,
+      "workflow_state": "ready",
+      "workflow_checked": true,
+      "map_version": 2,
+      "steps": 15,
+      "connections": 14,
+      "open_questions": 16,
+      "successful_question_seconds": [
+        2.493,
+        2.909,
+        2.567,
+        2.465,
+        1.581
+      ],
+      "recorded_wrap_http_status": [
+        200
+      ]
+    },
+    {
+      "case": "T05",
+      "cohort": "typed",
+      "participant_answers": 6,
+      "successful_followups": 6,
+      "notes_state": "ready",
+      "notes_error_code": null,
+      "workflow_state": "ready",
+      "workflow_checked": true,
+      "map_version": 2,
+      "steps": 36,
+      "connections": 42,
+      "open_questions": 26,
+      "successful_question_seconds": [
+        1.813,
+        1.535,
+        4.376,
+        5.09,
+        3.739,
+        2.835
+      ],
+      "recorded_wrap_http_status": [
+        200
+      ]
+    },
+    {
+      "case": "T06",
+      "cohort": "typed",
+      "participant_answers": 6,
+      "successful_followups": 6,
+      "notes_state": "ready",
+      "notes_error_code": null,
+      "workflow_state": "ready",
+      "workflow_checked": true,
+      "map_version": 4,
+      "steps": 28,
+      "connections": 27,
+      "open_questions": 23,
+      "successful_question_seconds": [
+        1.574,
+        2.743,
+        2.283,
+        2.803,
+        4.38,
+        3.999
+      ],
+      "recorded_wrap_http_status": [
+        200
+      ]
+    },
+    {
+      "case": "T07",
+      "cohort": "typed",
+      "participant_answers": 4,
+      "successful_followups": 4,
+      "notes_state": "ready",
+      "notes_error_code": null,
+      "workflow_state": "ready",
+      "workflow_checked": true,
+      "map_version": 5,
+      "steps": 21,
+      "connections": 26,
+      "open_questions": 22,
+      "successful_question_seconds": [
+        2.02,
+        4.056,
+        2.486,
+        3.782
+      ],
+      "recorded_wrap_http_status": [
+        200
+      ]
+    },
+    {
+      "case": "T08",
+      "cohort": "typed",
+      "participant_answers": 6,
+      "successful_followups": 6,
+      "notes_state": "ready",
+      "notes_error_code": null,
+      "workflow_state": "ready",
+      "workflow_checked": true,
+      "map_version": 4,
+      "steps": 38,
+      "connections": 43,
+      "open_questions": 26,
+      "successful_question_seconds": [
+        2.112,
+        1.831,
+        2.853,
+        3.147,
+        3.301,
+        2.881
+      ],
+      "recorded_wrap_http_status": [
+        200
+      ]
+    },
+    {
+      "case": "T09",
+      "cohort": "typed",
+      "participant_answers": 6,
+      "successful_followups": 6,
+      "notes_state": "ready",
+      "notes_error_code": null,
+      "workflow_state": "ready",
+      "workflow_checked": true,
+      "map_version": 6,
+      "steps": 16,
+      "connections": 12,
+      "open_questions": 22,
+      "successful_question_seconds": [
+        2.325,
+        3.333,
+        2.952,
+        2.907,
+        2.922,
+        2.429
+      ],
+      "recorded_wrap_http_status": [
+        200
+      ]
+    },
+    {
+      "case": "T10",
+      "cohort": "typed",
+      "participant_answers": 5,
+      "successful_followups": 5,
+      "notes_state": "ready",
+      "notes_error_code": null,
+      "workflow_state": "ready",
+      "workflow_checked": true,
+      "map_version": 6,
+      "steps": 20,
+      "connections": 22,
+      "open_questions": 16,
+      "successful_question_seconds": [
+        2.701,
+        2.844,
+        3.671,
+        3.739,
+        2.707
+      ],
+      "recorded_wrap_http_status": [
+        200
+      ]
+    },
+    {
+      "case": "T11",
+      "cohort": "typed",
+      "participant_answers": 6,
+      "successful_followups": 6,
+      "notes_state": "ready",
+      "notes_error_code": null,
+      "workflow_state": "ready",
+      "workflow_checked": true,
+      "map_version": 2,
+      "steps": 39,
+      "connections": 45,
+      "open_questions": 32,
+      "successful_question_seconds": [
+        2.281,
+        1.979,
+        2.076,
+        2.414,
+        4.313,
+        4.202
+      ],
+      "recorded_wrap_http_status": [
+        200
+      ]
+    },
+    {
+      "case": "T12",
+      "cohort": "typed",
+      "participant_answers": 5,
+      "successful_followups": 5,
+      "notes_state": "ready",
+      "notes_error_code": null,
+      "workflow_state": "ready",
+      "workflow_checked": true,
+      "map_version": 6,
+      "steps": 37,
+      "connections": 44,
+      "open_questions": 25,
+      "successful_question_seconds": [
+        3.194,
+        2.44,
+        2.477,
+        3.172,
+        3.072
+      ],
+      "recorded_wrap_http_status": [
+        429,
+        200
+      ]
+    },
+    {
+      "case": "T13",
+      "cohort": "typed",
+      "participant_answers": 8,
+      "successful_followups": 8,
+      "notes_state": "ready",
+      "notes_error_code": null,
+      "workflow_state": "ready",
+      "workflow_checked": true,
+      "map_version": 4,
+      "steps": 10,
+      "connections": 8,
+      "open_questions": 17,
+      "successful_question_seconds": [
+        1.89,
+        2.604,
+        2.862,
+        2.157,
+        2.478,
+        3.836,
+        3.236,
+        3.002
+      ],
+      "recorded_wrap_http_status": [
+        200
+      ]
+    },
+    {
+      "case": "STRESS-T03",
+      "cohort": "concurrent",
+      "participant_answers": 7,
+      "successful_followups": 7,
+      "notes_state": "error",
+      "notes_error_code": "budget_reached",
+      "workflow_state": "ready",
+      "workflow_checked": true,
+      "map_version": 4,
+      "steps": 10,
+      "connections": 10,
+      "open_questions": 15,
+      "successful_question_seconds": [
+        2.826,
+        4.328,
+        3.709,
+        2.386,
+        3.42,
+        1.754,
+        1.637
+      ],
+      "recorded_wrap_http_status": [
+        429,
+        429
+      ]
+    },
+    {
+      "case": "STRESS-T04",
+      "cohort": "concurrent",
+      "participant_answers": 5,
+      "successful_followups": 5,
+      "notes_state": "ready",
+      "notes_error_code": null,
+      "workflow_state": "ready",
+      "workflow_checked": true,
+      "map_version": 4,
+      "steps": 16,
+      "connections": 17,
+      "open_questions": 22,
+      "successful_question_seconds": [
+        3.883,
+        1.939,
+        2.976,
+        1.807,
+        2.114
+      ],
+      "recorded_wrap_http_status": [
+        429,
+        200
+      ]
+    },
+    {
+      "case": "STRESS-T06",
+      "cohort": "concurrent",
+      "participant_answers": 6,
+      "successful_followups": 6,
+      "notes_state": "ready",
+      "notes_error_code": null,
+      "workflow_state": "ready",
+      "workflow_checked": true,
+      "map_version": 4,
+      "steps": 21,
+      "connections": 21,
+      "open_questions": 13,
+      "successful_question_seconds": [
+        1.692,
+        2.202,
+        2.479,
+        3.225,
+        3.462,
+        1.501
+      ],
+      "recorded_wrap_http_status": [
+        200
+      ]
+    },
+    {
+      "case": "STRESS-T09",
+      "cohort": "concurrent",
+      "participant_answers": 6,
+      "successful_followups": 6,
+      "notes_state": "ready",
+      "notes_error_code": null,
+      "workflow_state": "ready",
+      "workflow_checked": true,
+      "map_version": 4,
+      "steps": 17,
+      "connections": 17,
+      "open_questions": 23,
+      "successful_question_seconds": [
+        2.344,
+        3.698,
+        3.831,
+        2.526,
+        4.621,
+        3.315
+      ],
+      "recorded_wrap_http_status": [
+        429,
+        200,
+        200
+      ]
+    },
+    {
+      "case": "STRESS-T13",
+      "cohort": "concurrent",
+      "participant_answers": 8,
+      "successful_followups": 8,
+      "notes_state": "error",
+      "notes_error_code": "budget_reached",
+      "workflow_state": "ready",
+      "workflow_checked": true,
+      "map_version": 4,
+      "steps": 10,
+      "connections": 8,
+      "open_questions": 14,
+      "successful_question_seconds": [
+        1.996,
+        2.204,
+        2.537,
+        1.513,
+        3.103,
+        4.314,
+        2.664,
+        2.667
+      ],
+      "recorded_wrap_http_status": [
+        429,
+        429
+      ]
+    }
+  ]
+}

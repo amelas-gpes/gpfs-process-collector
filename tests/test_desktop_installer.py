@@ -70,7 +70,7 @@ class InstalledPython(unittest.TestCase):
     of both the update task (pythonw.exe) and the window (python.exe)."""
 
     def setUp(self):
-        self.root = Path(self.enterContext(tempfile.TemporaryDirectory()))
+        self.root = Path(self.enterContext(tempfile.TemporaryDirectory())).resolve()
 
     def python(self, name, files=("python.exe", "pythonw.exe")):
         folder = self.root / name

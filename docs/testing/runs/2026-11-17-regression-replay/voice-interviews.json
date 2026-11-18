@@ -1,0 +1,275 @@
+{
+  "code_commit": "dde4da1f4ebecba60bb0b43d0c482f92fe967995",
+  "utc_report_time": "2026-11-18T00:36:21+00:00",
+  "environment": "macOS, headless Chrome 157; isolated loopback server and synthetic audio",
+  "case_results": [
+    {
+      "case_id": "V01",
+      "mode": "recorded",
+      "clips_planned": 6,
+      "clips_transcribed_http_200": 6,
+      "synthetic_audio_seconds": 220.69,
+      "reference_words": 620,
+      "word_edits": 10,
+      "word_error_rate": 0.01613,
+      "exact_clips": 2,
+      "transcription_latency_seconds": {
+        "median": 1.873,
+        "range": [
+          1.745,
+          2.572
+        ]
+      },
+      "followup_questions_received": 6,
+      "saved_memo_findings": 0,
+      "saved_graph_steps": 0,
+      "wrap_up_requests": [
+        {
+          "http_status": 502,
+          "budget_limited": true
+        }
+      ],
+      "caveats": [
+        "Recorded clips use the archived intended wording and synthetic speech.",
+        "One or more foreground or background operations reached the test budget."
+      ]
+    },
+    {
+      "case_id": "V02",
+      "mode": "recorded",
+      "clips_planned": 6,
+      "clips_transcribed_http_200": 6,
+      "synthetic_audio_seconds": 79.96,
+      "reference_words": 271,
+      "word_edits": 2,
+      "word_error_rate": 0.00738,
+      "exact_clips": 5,
+      "transcription_latency_seconds": {
+        "median": 1.352,
+        "range": [
+          0.959,
+          2.903
+        ]
+      },
+      "followup_questions_received": 6,
+      "saved_memo_findings": 16,
+      "saved_graph_steps": 0,
+      "wrap_up_requests": [
+        {
+          "http_status": 502,
+          "budget_limited": true
+        }
+      ],
+      "caveats": [
+        "Recorded clips use the archived intended wording and synthetic speech.",
+        "One or more foreground or background operations reached the test budget."
+      ]
+    },
+    {
+      "case_id": "V03",
+      "mode": "recorded",
+      "clips_planned": 3,
+      "clips_transcribed_http_200": 3,
+      "synthetic_audio_seconds": 179.59,
+      "reference_words": 547,
+      "word_edits": 1,
+      "word_error_rate": 0.00183,
+      "exact_clips": 2,
+      "transcription_latency_seconds": {
+        "median": 1.498,
+        "range": [
+          1.49,
+          5.573
+        ]
+      },
+      "followup_questions_received": 3,
+      "saved_memo_findings": 0,
+      "saved_graph_steps": 31,
+      "wrap_up_requests": [
+        {
+          "http_status": 502,
+          "budget_limited": true
+        }
+      ],
+      "caveats": [
+        "Recorded clips use the archived intended wording and synthetic speech.",
+        "One or more foreground or background operations reached the test budget.",
+        "Includes a two-minute monologue."
+      ]
+    },
+    {
+      "case_id": "V04",
+      "mode": "recorded",
+      "clips_planned": 5,
+      "clips_transcribed_http_200": 5,
+      "synthetic_audio_seconds": 135.59,
+      "reference_words": 464,
+      "word_edits": 7,
+      "word_error_rate": 0.01509,
+      "exact_clips": 1,
+      "transcription_latency_seconds": {
+        "median": 1.503,
+        "range": [
+          1.45,
+          1.901
+        ]
+      },
+      "followup_questions_received": 5,
+      "saved_memo_findings": 16,
+      "saved_graph_steps": 0,
+      "wrap_up_requests": [
+        {
+          "http_status": 502,
+          "budget_limited": true
+        }
+      ],
+      "caveats": [
+        "Recorded clips use the archived intended wording and synthetic speech.",
+        "One or more foreground or background operations reached the test budget."
+      ]
+    },
+    {
+      "case_id": "V05",
+      "mode": "live",
+      "clips_planned": 5,
+      "clips_played": 5,
+      "session_established": true,
+      "synthetic_audio_seconds": 99.16,
+      "connection_attempt_window_seconds": 114.69,
+      "input_caption_events": 290,
+      "output_caption_events": 22,
+      "page_errors": 0,
+      "first_audio_after_shim_start_ms": 2800,
+      "participant_clips_with_observed_model_audio_overlap": 2,
+      "last_workflow_http_status": 429,
+      "caveats": [
+        "The replay can inject clips before the interviewer finishes or asks a fresh question. Multiple clips can appear in one displayed answer.",
+        "The workflow request at the end returned local HTTP 429."
+      ]
+    },
+    {
+      "case_id": "V06",
+      "mode": "live",
+      "clips_planned": 4,
+      "clips_played": 4,
+      "session_established": true,
+      "synthetic_audio_seconds": 55.22,
+      "connection_attempt_window_seconds": 70.2,
+      "input_caption_events": 158,
+      "output_caption_events": 19,
+      "page_errors": 0,
+      "first_audio_after_shim_start_ms": 2682,
+      "participant_clips_with_observed_model_audio_overlap": 0,
+      "last_workflow_http_status": 429,
+      "caveats": [
+        "The replay can inject clips before the interviewer finishes or asks a fresh question. Multiple clips can appear in one displayed answer.",
+        "The workflow request at the end returned local HTTP 429."
+      ]
+    },
+    {
+      "case_id": "V07",
+      "mode": "live",
+      "clips_planned": 5,
+      "clips_played": 5,
+      "session_established": true,
+      "synthetic_audio_seconds": 30.66,
+      "connection_attempt_window_seconds": 45.7,
+      "input_caption_events": 97,
+      "output_caption_events": 22,
+      "page_errors": 0,
+      "first_audio_after_shim_start_ms": 2218,
+      "participant_clips_with_observed_model_audio_overlap": 0,
+      "last_workflow_http_status": 429,
+      "caveats": [
+        "The replay can inject clips before the interviewer finishes or asks a fresh question. Multiple clips can appear in one displayed answer.",
+        "The workflow request at the end returned local HTTP 429."
+      ]
+    }
+  ],
+  "recorded_summary": {
+    "total_clips": 20,
+    "duration_seconds": 615.8,
+    "reference_words": 1902,
+    "word_edits": 20,
+    "word_error_rate": 0.010515,
+    "response_latency_seconds": {
+      "median": 1.674,
+      "range": [
+        0.959,
+        5.573
+      ]
+    },
+    "observed_term_errors": [
+      [
+        "so OFAC",
+        "SOFAC"
+      ],
+      [
+        "Passthrough",
+        "PassThru"
+      ],
+      [
+        "Signatory A",
+        "Signatory"
+      ],
+      [
+        "known",
+        "non"
+      ],
+      [
+        "entity and",
+        "Entrilia"
+      ]
+    ]
+  },
+  "live_summary": {
+    "clips_played": 14,
+    "connection_attempt_window_seconds": 230.59,
+    "synthetic_audio_seconds": 185.04,
+    "page_errors": 0,
+    "billing_note": "Connection-attempt windows include setup and shutdown and upper-bound live-session minutes. No billing statement was queried."
+  },
+  "text_usage_voice_lane": {
+    "metered_models": [
+      {
+        "model": "gpt-6-luna",
+        "input_tokens": 184241,
+        "output_tokens": 18020,
+        "cached_input_tokens": 133682
+      },
+      {
+        "model": "gpt-6.1-terra",
+        "input_tokens": 52221,
+        "output_tokens": 33685,
+        "cached_input_tokens": 27610
+      }
+    ],
+    "reported_tokens": 288167,
+    "estimated_standard_text_usd": 0.209819,
+    "conservative_text_upper_usd": 1.083454,
+    "unmetered_dispatched_text_requests": 4,
+    "cost_method": "Input/output/cached usage is summed from completed provider responses. The upper estimate charges 2.5 times uncached input, plus the JSON byte limit and maximum output for dispatched requests that returned no usage. Audio is counted separately."
+  },
+  "separate_source_repair": {
+    "case_id": "GP-03",
+    "metered_model": "gpt-6.1-terra",
+    "input_tokens": 5271,
+    "output_tokens": 263,
+    "cached_tokens": 0,
+    "estimated_standard_text_usd": 0.006586
+  },
+  "limits": [
+    "Cost is estimated, not an invoice. Quota on the real provider was not required to fail the test. The local guard reserves input-byte and maximum output estimates concurrently, so it can block requests before cumulative usage reaches the configured ceiling.",
+    "Notes or diagrams counted here are snapshots captured by the replay. Counts do not assess their meaning or completeness.",
+    "Physical microphone, acoustic echo, and speaker quality were not exercised."
+  ],
+  "estimated_lane_cost_usd": {
+    "recorded_audio_usd": 0.046188,
+    "live_audio_connection_window_upper_usd": 0.192158,
+    "text_reported_usd_including_gp03": 0.216405,
+    "reported_text_plus_audio_window_usd": 0.454751,
+    "conservative_all_in_upper_usd": 1.336293,
+    "allocated_max_usd": 2,
+    "notes": "Live session windows bound chargeable duration, using $0.05 per minute. Transcription uses $0.0045 per submitted audio minute. The all-in estimate includes unreported/cancelled text requests and the separate GP-03 source repair."
+  }
+}

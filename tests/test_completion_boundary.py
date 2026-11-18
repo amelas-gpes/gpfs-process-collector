@@ -148,6 +148,7 @@ class CompletionBoundaryTests(unittest.TestCase):
                 "Can we stop here and go back to the approval step? I missed something.",
                 "I need to stop now and go to the vault to verify the amount.",
                 "I need to stop now and attend a meeting with the reviewer before release.",
+                "I need to stop now and leave for my next meeting with the reviewer before release.",
                 "Let's pause and look at the exceptions instead.",
                 "Let's stop, I got that wrong. The senior checks it first.",
                 "Let's finish. The last step is filing.",
@@ -226,6 +227,7 @@ class CompletionBoundaryTests(unittest.TestCase):
                 "Can we stop here and continue tomorrow?", "Let's stop here and pick this up next week.",
                 "Let's stop and continue tomorrow.", "Can we stop and pick this up tomorrow?",
                 "I need to stop now and go to a meeting.", "I need to stop now and I have another call.",
+                "I need to stop now and leave for my next meeting.", "I have to leave for my appointment.",
                 "Can we pause the interview and get back to work?", "I need to stop now and pick up my kids.",
                 "I must go now.", "Let's pause the interview and my manager is calling.",
                 "We need to stop now, thanks.", "I need to stop here. Thanks, bye.", "I need to end the call."):

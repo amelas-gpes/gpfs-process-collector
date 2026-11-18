@@ -363,7 +363,7 @@ class ConcurrentInterview:
                            "pending": None, "running": False, "working_revision": None,
                            "capture": None, "capture_revision": None, "capture_turns": None, "workflow_capture": None,
                            "capture_preserved": False, "rebuild_notes": False, "rebuild_map": False, "workflow_turns": None,
-                           "workflow_revision": None, "error": None, "workflow_error": None,
+                           "workflow_revision": None, "error": None, "error_code": None, "error_status": None, "workflow_error": None,
                            "capture_run_id": None, "capture_run_revision": None,
                            "graph_run_id": None, "graph_run_revision": None,
                            "graph_running": False, "graph_pending": None, "workflow_state": "queued",
@@ -417,8 +417,7 @@ class ConcurrentInterview:
                 raw_trace.emit("worker.capture.queued", {"revision": revision, "generation": session["generation"], "force": force})
                 session["pending"] = (session["generation"], revision, copy.deepcopy(payload), raw_trace.wrap(self._capture_snapshot))
                 session["source_payload"] = copy.deepcopy(payload)
-                session["state"] = "queued"
-                session["error"] = None
+                session.update(state="queued", error=None, error_code=None, error_status=None)
                 session["workflow_error"] = None
                 session["workflow_state"] = "queued"
                 users = any(turn.get("role") == "user" and not turn.get("document_event") for turn in payload["turns"])
@@ -654,7 +653,7 @@ class ConcurrentInterview:
                     # reply carries no notes and must never replace them: the
                     # revision is settled, the earlier capture and basis stay.
                     session.update(capture_revision=revision, capture_preserved=True,
-                                   state="ready", error=None)
+                                   state="ready", error=None, error_code=None, error_status=None)
                     self._changed.notify_all()
                 elif (not current and not self._closed and not capture.get("preserve_capture")
                       and session["capture_revision"] != session["revision"]):
@@ -676,7 +675,7 @@ class ConcurrentInterview:
                                    capture_preserved=False, rebuild_notes=False,
                                    capture_turns=copy.deepcopy(payload["turns"]),
                                    capture_basis=copy.deepcopy(payload),
-                                   state="ready", error=None)
+                                   state="ready", error=None, error_code=None, error_status=None)
                     self._changed.notify_all()
                 if current and (not (any(turn.get("role") == "user" for turn in work["turns"]) or self._documented(payload))
                                 or capture.get("preserve_capture")):
@@ -690,18 +689,21 @@ class ConcurrentInterview:
             with self._lock:
                 self._note_refusal(session, work, error)
                 if not self._closed and session["generation"] == generation:
-                    session.update(state="error", error=self._safe_worker_error(error,
-                        "Background analysis could not finish. Retry analysis before wrapping up."),
-                        error_code=getattr(error, "category", None))
+                    self._record_capture_error(session, error, "Background analysis could not finish. Retry analysis before wrapping up.")
                     self._changed.notify_all()
         finally:
             with self._lock:
                 session["working_revision"] = None
 
+    def _record_capture_error(self, session, error, fallback):
+        session.update(state="error", error=self._safe_worker_error(error, fallback),
+                       error_code=getattr(error, "category", None),
+                       error_status=error.status if isinstance(error, self.api.APIError) else 502)
+
     @staticmethod
     def _safe_worker_error(error, fallback):
         return {"quota": "The provider quota has been reached. Your answers are retained.",
-                "budget_reached": "This interview has reached its usage budget. Your answers are retained.",
+                "budget_reached": "This request would exceed a local usage limit. Your answers are retained.",
                 "rate_limit": "The provider is busy. Try again shortly.",
                 "timeout": "The provider timed out. Your answers are retained."}.get(getattr(error, "category", None), fallback)
 
@@ -1610,7 +1612,7 @@ class ConcurrentInterview:
                 if revision != session["revision"]:
                     self._drop_pending_map(session)
                     session["generation"] += 1
-                    session.update(revision=revision, pending=None, state="queued", error=None,
+                    session.update(revision=revision, pending=None, state="queued", error=None, error_code=None, error_status=None,
                                    workflow_state="queued", workflow_error=None)
                 session["source_payload"] = copy.deepcopy(payload)
             else:
@@ -1627,7 +1629,7 @@ class ConcurrentInterview:
                 with self._lock:
                     if session["revision"] == revision:
                         session.update(capture_revision=revision, capture_preserved=True,
-                                       state="ready", error=None, workflow_state="ready", workflow_error=None)
+                                       state="ready", error=None, error_code=None, error_status=None, workflow_state="ready", workflow_error=None)
                         self._changed.notify_all()
         elif needs_sync:
             route = "synchronize"
@@ -1800,7 +1802,7 @@ class ConcurrentInterview:
                 session["revision"] = revision
                 session["generation"] += 1
                 session["pending"] = None
-                session.update(state="queued", error=None, workflow_error=None)
+                session.update(state="queued", error=None, error_code=None, error_status=None, workflow_error=None)
                 # The map of this revision can arrive after this request has answered. Its
                 # status poll reads the server's own snapshot of the revision, as after a turn.
                 session["source_payload"] = copy.deepcopy(payload)
@@ -1828,8 +1830,7 @@ class ConcurrentInterview:
                 with self._lock:
                     self._note_refusal(session, work, error)
                     if session["revision"] == revision:
-                        session.update(state="error", error=self._safe_worker_error(error, "Notes could not finish."),
-                                       error_code=getattr(error, "category", None))
+                        self._record_capture_error(session, error, "Notes could not finish.")
                         self._changed.notify_all()
                 raise
             if capture.get("no_new_run") is True or capture.get("preserve_capture") is True:
@@ -1841,7 +1842,7 @@ class ConcurrentInterview:
                     with self._lock:
                         if not self._closed and session["revision"] == revision:
                             session.update(capture_revision=revision, capture_preserved=True,
-                                           state="ready", error=None)
+                                           state="ready", error=None, error_code=None, error_status=None)
                 return self._synchronized(session, payload, revision, capture)
             # A correction after the final check is a new account. Its graph
             # must catch up too, even though an older capture capability exists.
@@ -1869,7 +1870,7 @@ class ConcurrentInterview:
                 if session["state"] == "error":
                     # One explicit retry per sync invocation; never make an
                     # invisible paid retry loop when the provider stays down.
-                    raise self.api.APIError(session["error"], category=session.get("error_code"))
+                    raise self.api.APIError(session["error"], status=session["error_status"], category=session["error_code"])
                 remaining = deadline - time.monotonic()
                 if remaining <= 0:
                     raise self.api.APIError("Analysis is still catching up. Your answers are retained; retry wrap-up.", 504)

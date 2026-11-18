@@ -97,6 +97,30 @@ async function exercise(browser, url, width) {
       assert.equal(await page.locator("#coverage-consolidation").isVisible(), true);
       assert.equal(await page.locator("#memo-focus-block").isVisible(), true);
     });
+    // The native close event is queued. Dismissing the previous topic must leave focus on a
+    // control the participant has already selected while that event is still pending.
+    await topic(page, "name").click();
+    await page.locator("#foundation-dialog[open]").waitFor();
+    const focusAfterClose = await page.evaluate(async () => {
+      const dialog = document.querySelector("#foundation-dialog");
+      const closed = new Promise(resolve => dialog.addEventListener("close", resolve, {once:true}));
+      document.querySelector("#close-foundation-topic").click();
+      document.querySelector('[data-foundation-topic="purpose"]').focus();
+      await closed;
+      return document.activeElement.dataset.foundationTopic;
+    });
+    assert.equal(focusAfterClose, "purpose", "A late close event must preserve the next topic's focus");
+    await topic(page, "name").click();
+    const nextTopic = await page.evaluate(async () => {
+      const dialog = document.querySelector("#foundation-dialog");
+      const closed = new Promise(resolve => dialog.addEventListener("close", resolve, {once:true}));
+      document.querySelector("#close-foundation-topic").click();
+      document.querySelector('[data-foundation-topic="purpose"]').click();
+      await closed;
+      return document.querySelector("[data-foundation-topic].selected")?.dataset.foundationTopic;
+    });
+    assert.equal(nextTopic, "purpose", "The previous close event must leave the reopened topic selected");
+    await checkDialog(page, "Purpose", purposeAnswer);
     await topic(page, "name").focus();
     await page.keyboard.press("Enter");
     await checkDialog(page, "Name and other names", nameAnswer);

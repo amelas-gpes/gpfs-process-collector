@@ -46,7 +46,7 @@
     data_systems:"Recorded result, input origins, entry mode, workpapers and repeated calculations.",
     volume:"Normal counts, peaks, exceptions and attributed effort by step."
   };
-  let foundationTopic = null, foundationReturnFocus = null, foundationRestoreFocus = true;
+  let foundationTopic = null, foundationReturnFocus = null, foundationFocusBeforeOpen = null, foundationRestoreFocus = true;
   const readingUI = {transcript:{query:"",matches:[],index:-1,matchEnds:[]},report:{query:"",matches:[],index:-1}};
   const transcriptRows = [];
   let sourceOrigin=null;
@@ -1647,6 +1647,7 @@
       if(rewrite&&reading)rewrite.querySelector("details").open=true;
     }
     if (!dialog.open) {
+      foundationFocusBeforeOpen = document.activeElement;
       dialog.showModal();
       const body=dialog.querySelector(".detail-body");
       if(body)body.scrollTop=0;
@@ -1659,14 +1660,24 @@
   }
   function initFoundationDialog() {
     $("close-foundation-topic").addEventListener("click",() => closeFoundationTopic());
-    $("foundation-dialog").addEventListener("close",() => {
+    const dialog = $("foundation-dialog");
+    dialog.addEventListener("close",() => {
+      // A native close event can arrive after the participant opens another topic.
+      if (dialog.open) return;
       document.querySelectorAll("[data-foundation-topic]").forEach(button => button.classList.remove("selected"));
       let trigger = foundationReturnFocus?.isConnected ? foundationReturnFocus : document.querySelector(`[data-foundation-topic="${foundationTopic}"]`);
       // Resizing can move a desktop topic into the closed mobile memo sheet
       // while its details remain open. Return to the visible memo control.
       if(trigger?.closest?.("dialog")&&!trigger.closest("dialog").open)trigger=$("open-memo");
-      if (foundationRestoreFocus && trigger) {revealAncestors(trigger);trigger.focus({preventScroll:true});}
-      foundationReturnFocus = null; foundationTopic = null; foundationRestoreFocus = true;
+      // The browser may already have restored focus and handled the participant's next Tab.
+      // Recover ordinary return focus without taking it away from a new control.
+      const active = document.activeElement;
+      if (foundationRestoreFocus && trigger && (!active || active === document.body || dialog.contains(active) ||
+          active === foundationFocusBeforeOpen || active === foundationReturnFocus)) {
+        revealAncestors(trigger);
+        trigger.focus({preventScroll:true});
+      }
+      foundationReturnFocus = null; foundationFocusBeforeOpen = null; foundationTopic = null; foundationRestoreFocus = true;
     });
   }
   // A question being read aloud by Listen, by "Read questions aloud when typing" or by Preview voice

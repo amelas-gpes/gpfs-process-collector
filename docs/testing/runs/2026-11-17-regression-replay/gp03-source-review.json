@@ -1,0 +1,50 @@
+{
+  "provider_calls": 1,
+  "seconds": 5.47,
+  "usage": {
+    "bytes": 23721,
+    "model": "gpt-6.1-terra",
+    "output_cap": 8119,
+    "ceiling": 0.099898,
+    "input_tokens": 5271,
+    "output_tokens": 263,
+    "cached_tokens": 0
+  },
+  "before": {
+    "steps": 22,
+    "edges": 24,
+    "unreachable_from_start": [
+      "S11",
+      "S12",
+      "S13"
+    ],
+    "start_to_schedule": false,
+    "zero_proof_to_schedule": false,
+    "can_reach_schedule_without_method": false,
+    "can_reach_schedule_without_zero_proof": false,
+    "can_reach_release_without_method": false,
+    "can_reach_release_without_zero_proof": false,
+    "method_B_to_release": false,
+    "method_B_to_hold": true
+  },
+  "after": {
+    "steps": 22,
+    "edges": 24,
+    "unreachable_from_start": [
+      "S11",
+      "S12",
+      "S13"
+    ],
+    "start_to_schedule": false,
+    "zero_proof_to_schedule": false,
+    "can_reach_schedule_without_method": false,
+    "can_reach_schedule_without_zero_proof": false,
+    "can_reach_release_without_method": false,
+    "can_reach_release_without_zero_proof": false,
+    "method_B_to_release": false,
+    "method_B_to_hold": true
+  },
+  "added_endpoints": [],
+  "removed_endpoints": [],
+  "unresolved_branch_question": true
+}

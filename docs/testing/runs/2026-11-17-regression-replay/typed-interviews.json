@@ -1,0 +1,1419 @@
+{
+  "build": "dde4da1f4ebecba60bb0b43d0c482f92fe967995",
+  "test": "November 16 saved typed interviews replayed against the live provider on isolated local listeners",
+  "method": "Saved participant answers in original order and context, fresh model replies. Source checks polled after Wrap up. Manual map update results are distinguished from background source checks. The historical live cadence, questions and wording can differ.",
+  "summary": {
+    "cases": 21,
+    "all_answers_accepted_cases": 21,
+    "recorded_answers": 122,
+    "accepted_answers": 122,
+    "initial_notes_received_cases": 20,
+    "notes_received_cases": 21,
+    "background_checked_maps": 10,
+    "latest_map_outcomes": {
+      "successful_manual_workflow_update": 11,
+      "source_checked": 10
+    },
+    "questions_median_seconds": 3.0949999999999998,
+    "questions_p95_seconds": 5.518,
+    "maximum_question_seconds": 7.007,
+    "step_and_edge_citations_checked": 959,
+    "graphs_with_invalid_identifiers_or_citations": 0
+  },
+  "usage": {
+    "allocated_usd": 8,
+    "project_invoice_available": false,
+    "models": {
+      "gpt-6-luna": {
+        "requests_with_model": 146,
+        "input_tokens": 1074688,
+        "output_tokens": 74993,
+        "cached_tokens": 838902,
+        "ordinary_uncached_estimate_usd": 0.144965,
+        "all_inputs_at_2_5x_usd": 0.306169
+      },
+      "gpt-6.1-terra": {
+        "requests_with_model": 142,
+        "input_tokens": 1419437,
+        "output_tokens": 456608,
+        "cached_tokens": 458361,
+        "ordinary_uncached_estimate_usd": 3.702477,
+        "all_inputs_at_2_5x_usd": 5.831633
+      }
+    },
+    "reported_tokens": 3025726,
+    "ordinary_uncached_estimate_usd": 3.84744,
+    "all_inputs_at_2_5x_conservative_estimate_usd": 6.1378,
+    "remaining_allocation_after_conservative_estimate_usd": 1.8622,
+    "allowance_held_for_unreported_charges_usd": 0.35,
+    "unsuccessful_requests_by_category": {
+      "budget_reached": 48
+    },
+    "cost_method": "Only observed model input/output tokens; upper estimate charges 2.5× full-price input across all tokens, including cache hits. Local budget_reached requests are rejected before transport."
+  },
+  "route_gap_repair_results_anonymous": {
+    "unresolved": 15,
+    "connected": 8
+  },
+  "cases": [
+    {
+      "case_id": "FA-02",
+      "recorded_answers": 6,
+      "accepted_answers": 6,
+      "all_recorded_answers_accepted": true,
+      "successful_question_median_seconds": 2.9530000000000003,
+      "successful_question_p95_seconds": 5.548,
+      "question_http_failures": [],
+      "foreground_resumes": 0,
+      "wrap_attempts": [
+        {
+          "status": 200,
+          "seconds": 83.265,
+          "workflow_state": "ready",
+          "workflow_error": null
+        }
+      ],
+      "notes_topics": 16,
+      "restored_notes_retry": {},
+      "latest_notes_topics": 16,
+      "notes_state": "ready",
+      "initial_wrap_map_state": "ready",
+      "background_final_status": "source_check_failed",
+      "background_final_detail": {
+        "state": "ready",
+        "workflow_state": "ready",
+        "workflow_check_state": "error",
+        "workflow_checked": false,
+        "workflow_version": 5,
+        "workflow_check_error": "The workflow could not be checked against its sources. Your answers are retained.",
+        "workflow_pending": false,
+        "http_status": 200,
+        "wait_seconds": 200.388
+      },
+      "background_map_steps": 13,
+      "background_map_connections": 9,
+      "manual_update_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 37.45,
+          "code": null,
+          "error": null,
+          "steps": 13,
+          "connections": 9
+        }
+      ],
+      "latest_map_result": "successful_manual_workflow_update",
+      "latest_map_steps": 13,
+      "latest_map_connections": 9,
+      "final_graph_integrity": {
+        "duplicate_step_ids": 0,
+        "edges_with_missing_endpoint": 0,
+        "step_and_edge_citations_checked": 29,
+        "citations_without_participant_turn": []
+      },
+      "observed_errors": [],
+      "review": "The notes and map preserve that the custodian name alone cannot establish attribution. Ambiguous receipts stay unresolved pending matching evidence."
+    },
+    {
+      "case_id": "FA-04",
+      "recorded_answers": 6,
+      "accepted_answers": 6,
+      "all_recorded_answers_accepted": true,
+      "successful_question_median_seconds": 4.0595,
+      "successful_question_p95_seconds": 5.518,
+      "question_http_failures": [],
+      "foreground_resumes": 0,
+      "wrap_attempts": [
+        {
+          "status": 200,
+          "seconds": 65.201,
+          "workflow_state": "ready",
+          "workflow_error": null
+        }
+      ],
+      "notes_topics": 16,
+      "restored_notes_retry": {},
+      "latest_notes_topics": 16,
+      "notes_state": "ready",
+      "initial_wrap_map_state": "ready",
+      "background_final_status": "source_checked",
+      "background_final_detail": {
+        "state": "ready",
+        "workflow_state": "ready",
+        "workflow_checked": true,
+        "workflow_version": 4,
+        "workflow_pending": false,
+        "http_status": 200,
+        "wait_seconds": 180.361
+      },
+      "background_map_steps": 11,
+      "background_map_connections": 4,
+      "manual_update_attempts": [],
+      "latest_map_result": "source_checked",
+      "latest_map_steps": 11,
+      "latest_map_connections": 4,
+      "final_graph_integrity": {
+        "duplicate_step_ids": 0,
+        "edges_with_missing_endpoint": 0,
+        "step_and_edge_citations_checked": 21,
+        "citations_without_participant_turn": []
+      },
+      "observed_errors": [],
+      "review": "A 4-edge, 11-step source-checked design map explicitly marks actual execution on hold. Both S1 (operational hold) and S5 (legal clearance) are isolated; the completion edges explicitly include delivery status and reconciliation, omitting the legal-clearance block. Open questions identify the missing route. No real transaction was attempted."
+    },
+    {
+      "case_id": "FA-07",
+      "recorded_answers": 6,
+      "accepted_answers": 6,
+      "all_recorded_answers_accepted": true,
+      "successful_question_median_seconds": 2.865,
+      "successful_question_p95_seconds": 5.197,
+      "question_http_failures": [],
+      "foreground_resumes": 0,
+      "wrap_attempts": [
+        {
+          "status": 200,
+          "seconds": 128.489,
+          "workflow_state": "ready",
+          "workflow_error": null
+        }
+      ],
+      "notes_topics": 16,
+      "restored_notes_retry": {},
+      "latest_notes_topics": 16,
+      "notes_state": "ready",
+      "initial_wrap_map_state": "ready",
+      "background_final_status": "source_checked",
+      "background_final_detail": {
+        "state": "ready",
+        "workflow_state": "ready",
+        "workflow_checked": true,
+        "workflow_version": 2,
+        "workflow_pending": false,
+        "http_status": 200,
+        "wait_seconds": 132.34
+      },
+      "background_map_steps": 18,
+      "background_map_connections": 17,
+      "manual_update_attempts": [],
+      "latest_map_result": "source_checked",
+      "latest_map_steps": 18,
+      "latest_map_connections": 17,
+      "final_graph_integrity": {
+        "duplicate_step_ids": 0,
+        "edges_with_missing_endpoint": 0,
+        "step_and_edge_citations_checked": 45,
+        "citations_without_participant_turn": []
+      },
+      "observed_errors": [],
+      "review": "The interviewer did not repeat the request for an unconfirmed Team Lead approval form. The Rules note includes both AML and admission gates. A separate issue remained: two FA-05 equalization records describe the same subsequent-close handoff, under an equivalent counterpart but slightly different conditions."
+    },
+    {
+      "case_id": "FA-08",
+      "recorded_answers": 6,
+      "accepted_answers": 6,
+      "all_recorded_answers_accepted": true,
+      "successful_question_median_seconds": 3.3064999999999998,
+      "successful_question_p95_seconds": 4.261,
+      "question_http_failures": [],
+      "foreground_resumes": 0,
+      "wrap_attempts": [
+        {
+          "status": 200,
+          "seconds": 45.524,
+          "workflow_state": "error",
+          "workflow_error": "This interview has reached its usage budget. Your answers are retained."
+        }
+      ],
+      "notes_topics": 16,
+      "restored_notes_retry": {},
+      "latest_notes_topics": 16,
+      "notes_state": "ready",
+      "initial_wrap_map_state": "error",
+      "background_final_status": "map_failed",
+      "background_final_detail": {
+        "state": "ready",
+        "workflow_state": "error",
+        "workflow_error": "This interview has reached its usage budget. Your answers are retained.",
+        "workflow_pending": false
+      },
+      "background_map_steps": 0,
+      "background_map_connections": 0,
+      "manual_update_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 155.87,
+          "code": null,
+          "error": null,
+          "steps": 16,
+          "connections": 10
+        }
+      ],
+      "latest_map_result": "successful_manual_workflow_update",
+      "latest_map_steps": 16,
+      "latest_map_connections": 10,
+      "final_graph_integrity": {
+        "duplicate_step_ids": 0,
+        "edges_with_missing_endpoint": 0,
+        "step_and_edge_citations_checked": 43,
+        "citations_without_participant_turn": []
+      },
+      "observed_errors": [
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 4.95
+        },
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 3.36
+        },
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 3.2
+        },
+        {
+          "kind": "wrap.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 45.53
+        }
+      ],
+      "review": null
+    },
+    {
+      "case_id": "FA-10",
+      "recorded_answers": 6,
+      "accepted_answers": 6,
+      "all_recorded_answers_accepted": true,
+      "successful_question_median_seconds": 3.837,
+      "successful_question_p95_seconds": 4.403,
+      "question_http_failures": [],
+      "foreground_resumes": 0,
+      "wrap_attempts": [
+        {
+          "status": 200,
+          "seconds": 59.888,
+          "workflow_state": "error",
+          "workflow_error": "This interview has reached its usage budget. Your answers are retained."
+        }
+      ],
+      "notes_topics": 16,
+      "restored_notes_retry": {},
+      "latest_notes_topics": 16,
+      "notes_state": "ready",
+      "initial_wrap_map_state": "error",
+      "background_final_status": "map_failed",
+      "background_final_detail": {
+        "state": "ready",
+        "workflow_state": "error",
+        "workflow_error": "This interview has reached its usage budget. Your answers are retained.",
+        "workflow_pending": false
+      },
+      "background_map_steps": 0,
+      "background_map_connections": 0,
+      "manual_update_attempts": [
+        {
+          "http_status": 429,
+          "seconds": 0.02,
+          "code": "budget_reached",
+          "error": "This request would pass the local token budget. Save your interview or adjust the limit in local settings.",
+          "steps": 0,
+          "connections": 0
+        },
+        {
+          "http_status": 200,
+          "seconds": 155.5,
+          "code": null,
+          "error": null,
+          "steps": 21,
+          "connections": 18
+        }
+      ],
+      "latest_map_result": "successful_manual_workflow_update",
+      "latest_map_steps": 21,
+      "latest_map_connections": 18,
+      "final_graph_integrity": {
+        "duplicate_step_ids": 0,
+        "edges_with_missing_endpoint": 0,
+        "step_and_edge_citations_checked": 50,
+        "citations_without_participant_turn": []
+      },
+      "observed_errors": [
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 5.83
+        },
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 3.68
+        },
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 4.0
+        },
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 4.41
+        },
+        {
+          "kind": "wrap.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 59.89
+        }
+      ],
+      "review": null
+    },
+    {
+      "case_id": "FA-11-browser",
+      "recorded_answers": 7,
+      "accepted_answers": 7,
+      "all_recorded_answers_accepted": true,
+      "successful_question_median_seconds": 3.382,
+      "successful_question_p95_seconds": 4.651,
+      "question_http_failures": [],
+      "foreground_resumes": 0,
+      "wrap_attempts": [
+        {
+          "status": 200,
+          "seconds": 69.446,
+          "workflow_state": "error",
+          "workflow_error": "This interview has reached its usage budget. Your answers are retained."
+        }
+      ],
+      "notes_topics": 16,
+      "restored_notes_retry": {},
+      "latest_notes_topics": 16,
+      "notes_state": "ready",
+      "initial_wrap_map_state": "error",
+      "background_final_status": "map_failed",
+      "background_final_detail": {
+        "state": "ready",
+        "workflow_state": "error",
+        "workflow_error": "This interview has reached its usage budget. Your answers are retained.",
+        "workflow_pending": false
+      },
+      "background_map_steps": 0,
+      "background_map_connections": 0,
+      "manual_update_attempts": [
+        {
+          "http_status": 429,
+          "seconds": 0.03,
+          "code": "budget_reached",
+          "error": "This request would pass the local token budget. Save your interview or adjust the limit in local settings.",
+          "steps": 0,
+          "connections": 0
+        },
+        {
+          "http_status": 200,
+          "seconds": 75.08,
+          "code": null,
+          "error": null,
+          "steps": 8,
+          "connections": 5
+        }
+      ],
+      "latest_map_result": "successful_manual_workflow_update",
+      "latest_map_steps": 8,
+      "latest_map_connections": 5,
+      "final_graph_integrity": {
+        "duplicate_step_ids": 0,
+        "edges_with_missing_endpoint": 0,
+        "step_and_edge_citations_checked": 18,
+        "citations_without_participant_turn": []
+      },
+      "observed_errors": [
+        {
+          "kind": "wrap.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 69.45
+        }
+      ],
+      "review": null
+    },
+    {
+      "case_id": "FA-11",
+      "recorded_answers": 7,
+      "accepted_answers": 7,
+      "all_recorded_answers_accepted": true,
+      "successful_question_median_seconds": 3.852,
+      "successful_question_p95_seconds": 6.675,
+      "question_http_failures": [
+        429
+      ],
+      "foreground_resumes": 1,
+      "wrap_attempts": [
+        {
+          "status": 200,
+          "seconds": 48.455,
+          "workflow_state": "error",
+          "workflow_error": "This interview has reached its usage budget. Your answers are retained."
+        }
+      ],
+      "notes_topics": 16,
+      "restored_notes_retry": {},
+      "latest_notes_topics": 16,
+      "notes_state": "ready",
+      "initial_wrap_map_state": "error",
+      "background_final_status": "map_failed",
+      "background_final_detail": {
+        "state": "ready",
+        "workflow_state": "error",
+        "workflow_error": "This interview has reached its usage budget. Your answers are retained.",
+        "workflow_pending": false
+      },
+      "background_map_steps": 0,
+      "background_map_connections": 0,
+      "manual_update_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 103.66,
+          "code": null,
+          "error": null,
+          "steps": 8,
+          "connections": 10
+        }
+      ],
+      "latest_map_result": "successful_manual_workflow_update",
+      "latest_map_steps": 8,
+      "latest_map_connections": 10,
+      "final_graph_integrity": {
+        "duplicate_step_ids": 0,
+        "edges_with_missing_endpoint": 0,
+        "step_and_edge_citations_checked": 26,
+        "citations_without_participant_turn": []
+      },
+      "observed_errors": [
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 1.96
+        },
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 1.53
+        },
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 4.71
+        },
+        {
+          "kind": "question",
+          "status": 429,
+          "error": "This request would pass the local token budget. Save your interview or adjust the limit in local settings.",
+          "seconds": 0.008
+        },
+        {
+          "kind": "wrap.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 48.46
+        }
+      ],
+      "review": null
+    },
+    {
+      "case_id": "FA-12",
+      "recorded_answers": 6,
+      "accepted_answers": 6,
+      "all_recorded_answers_accepted": true,
+      "successful_question_median_seconds": 2.4290000000000003,
+      "successful_question_p95_seconds": 2.977,
+      "question_http_failures": [],
+      "foreground_resumes": 0,
+      "wrap_attempts": [
+        {
+          "status": 200,
+          "seconds": 84.803,
+          "workflow_state": "error",
+          "workflow_error": "This interview has reached its usage budget. Your answers are retained."
+        }
+      ],
+      "notes_topics": 16,
+      "restored_notes_retry": {},
+      "latest_notes_topics": 16,
+      "notes_state": "ready",
+      "initial_wrap_map_state": "error",
+      "background_final_status": "map_failed",
+      "background_final_detail": {
+        "state": "ready",
+        "workflow_state": "error",
+        "workflow_error": "This interview has reached its usage budget. Your answers are retained.",
+        "workflow_pending": false
+      },
+      "background_map_steps": 0,
+      "background_map_connections": 0,
+      "manual_update_attempts": [
+        {
+          "http_status": 429,
+          "seconds": 88.01,
+          "code": "budget_reached",
+          "error": "This request would pass the local token budget. Save your interview or adjust the limit in local settings.",
+          "steps": 0,
+          "connections": 0
+        },
+        {
+          "http_status": 200,
+          "seconds": 182.29,
+          "code": null,
+          "error": null,
+          "steps": 20,
+          "connections": 21
+        }
+      ],
+      "latest_map_result": "successful_manual_workflow_update",
+      "latest_map_steps": 20,
+      "latest_map_connections": 21,
+      "final_graph_integrity": {
+        "duplicate_step_ids": 0,
+        "edges_with_missing_endpoint": 0,
+        "step_and_edge_citations_checked": 72,
+        "citations_without_participant_turn": []
+      },
+      "observed_errors": [
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 2.98
+        },
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 2.46
+        },
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 2.33
+        },
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 2.4
+        },
+        {
+          "kind": "wrap.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 84.81
+        }
+      ],
+      "review": "Notes retain the marked internal tie-out PDF in the binder and reserve release for the clean client-approved package."
+    },
+    {
+      "case_id": "FA-13",
+      "recorded_answers": 6,
+      "accepted_answers": 6,
+      "all_recorded_answers_accepted": true,
+      "successful_question_median_seconds": 2.8034999999999997,
+      "successful_question_p95_seconds": 5.173,
+      "question_http_failures": [],
+      "foreground_resumes": 0,
+      "wrap_attempts": [
+        {
+          "status": 200,
+          "seconds": 103.578,
+          "workflow_state": "queued",
+          "workflow_error": null
+        }
+      ],
+      "notes_topics": 16,
+      "restored_notes_retry": {},
+      "latest_notes_topics": 16,
+      "notes_state": "ready",
+      "initial_wrap_map_state": "queued",
+      "background_final_status": "source_checked",
+      "background_final_detail": {
+        "state": "ready",
+        "workflow_state": "ready",
+        "workflow_checked": true,
+        "workflow_version": 6,
+        "workflow_pending": false,
+        "http_status": 200,
+        "wait_seconds": 128.311
+      },
+      "background_map_steps": 16,
+      "background_map_connections": 16,
+      "manual_update_attempts": [],
+      "latest_map_result": "source_checked",
+      "latest_map_steps": 16,
+      "latest_map_connections": 16,
+      "final_graph_integrity": {
+        "duplicate_step_ids": 0,
+        "edges_with_missing_endpoint": 0,
+        "step_and_edge_citations_checked": 61,
+        "citations_without_participant_turn": []
+      },
+      "observed_errors": [],
+      "review": "The interviewer treats binder support as records. A structured link identifies FA-15A as recipient and cites three participant answers. Two near-identical questions about the external-copy validation remained across the replay, in which participant answers were fixed."
+    },
+    {
+      "case_id": "FA-15A",
+      "recorded_answers": 6,
+      "accepted_answers": 6,
+      "all_recorded_answers_accepted": true,
+      "successful_question_median_seconds": 3.3555,
+      "successful_question_p95_seconds": 7.007,
+      "question_http_failures": [
+        429
+      ],
+      "foreground_resumes": 1,
+      "wrap_attempts": [
+        {
+          "status": 200,
+          "seconds": 31.732,
+          "workflow_state": "working",
+          "workflow_error": null
+        }
+      ],
+      "notes_topics": 16,
+      "restored_notes_retry": {},
+      "latest_notes_topics": 16,
+      "notes_state": "ready",
+      "initial_wrap_map_state": "working",
+      "background_final_status": "source_checked",
+      "background_final_detail": {
+        "state": "ready",
+        "workflow_state": "ready",
+        "workflow_checked": true,
+        "workflow_version": 2,
+        "workflow_pending": false,
+        "http_status": 200,
+        "wait_seconds": 76.165
+      },
+      "background_map_steps": 11,
+      "background_map_connections": 10,
+      "manual_update_attempts": [],
+      "latest_map_result": "source_checked",
+      "latest_map_steps": 11,
+      "latest_map_connections": 10,
+      "final_graph_integrity": {
+        "duplicate_step_ids": 0,
+        "edges_with_missing_endpoint": 0,
+        "step_and_edge_citations_checked": 41,
+        "citations_without_participant_turn": []
+      },
+      "observed_errors": [
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 1.9
+        },
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 2.01
+        },
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 4.3
+        },
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 2.69
+        },
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 4.03
+        },
+        {
+          "kind": "question",
+          "status": 429,
+          "error": "This request would pass the local token budget. Save your interview or adjust the limit in local settings.",
+          "seconds": 0.018
+        }
+      ],
+      "review": null
+    },
+    {
+      "case_id": "FA-15B",
+      "recorded_answers": 6,
+      "accepted_answers": 6,
+      "all_recorded_answers_accepted": true,
+      "successful_question_median_seconds": 2.8834999999999997,
+      "successful_question_p95_seconds": 4.711,
+      "question_http_failures": [],
+      "foreground_resumes": 0,
+      "wrap_attempts": [
+        {
+          "status": 200,
+          "seconds": 55.627,
+          "workflow_state": "error",
+          "workflow_error": "This interview has reached its usage budget. Your answers are retained."
+        }
+      ],
+      "notes_topics": 16,
+      "restored_notes_retry": {},
+      "latest_notes_topics": 16,
+      "notes_state": "ready",
+      "initial_wrap_map_state": "error",
+      "background_final_status": "map_failed",
+      "background_final_detail": {
+        "state": "ready",
+        "workflow_state": "error",
+        "workflow_error": "This interview has reached its usage budget. Your answers are retained.",
+        "workflow_pending": false
+      },
+      "background_map_steps": 0,
+      "background_map_connections": 0,
+      "manual_update_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 136.23,
+          "code": null,
+          "error": null,
+          "steps": 19,
+          "connections": 15
+        }
+      ],
+      "latest_map_result": "successful_manual_workflow_update",
+      "latest_map_steps": 19,
+      "latest_map_connections": 15,
+      "final_graph_integrity": {
+        "duplicate_step_ids": 0,
+        "edges_with_missing_endpoint": 0,
+        "step_and_edge_citations_checked": 47,
+        "citations_without_participant_turn": []
+      },
+      "observed_errors": [
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 2.99
+        },
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 3.14
+        },
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 2.79
+        },
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 4.71
+        },
+        {
+          "kind": "wrap.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 55.63
+        }
+      ],
+      "review": "The Rules note requires auditor confirmation or a documented authorized reason, plus final reconciliation; an upload receipt alone is insufficient. Manual map retry produced S11 for saving proof and S12 for closing the request."
+    },
+    {
+      "case_id": "FA-17",
+      "recorded_answers": 5,
+      "accepted_answers": 5,
+      "all_recorded_answers_accepted": true,
+      "successful_question_median_seconds": 2.596,
+      "successful_question_p95_seconds": 4.108,
+      "question_http_failures": [],
+      "foreground_resumes": 0,
+      "wrap_attempts": [
+        {
+          "status": 200,
+          "seconds": 93.435,
+          "workflow_state": "queued",
+          "workflow_error": null
+        }
+      ],
+      "notes_topics": 16,
+      "restored_notes_retry": {},
+      "latest_notes_topics": 16,
+      "notes_state": "ready",
+      "initial_wrap_map_state": "queued",
+      "background_final_status": "source_checked",
+      "background_final_detail": {
+        "state": "ready",
+        "workflow_state": "ready",
+        "workflow_checked": true,
+        "workflow_version": 2,
+        "workflow_pending": false,
+        "http_status": 200,
+        "wait_seconds": 188.371
+      },
+      "background_map_steps": 23,
+      "background_map_connections": 20,
+      "manual_update_attempts": [],
+      "latest_map_result": "source_checked",
+      "latest_map_steps": 23,
+      "latest_map_connections": 20,
+      "final_graph_integrity": {
+        "duplicate_step_ids": 0,
+        "edges_with_missing_endpoint": 0,
+        "step_and_edge_citations_checked": 45,
+        "citations_without_participant_turn": []
+      },
+      "observed_errors": [],
+      "review": "Notes and structured links both identify FA-16 as handling insufficient funds. The interviewer did not ask again what followed settlement. Two consecutive questions asked which payment details were matched to the invoice; the fixed participant reply between those turns did not supply that detail."
+    },
+    {
+      "case_id": "FA-19B",
+      "recorded_answers": 6,
+      "accepted_answers": 6,
+      "all_recorded_answers_accepted": true,
+      "successful_question_median_seconds": 2.7329999999999997,
+      "successful_question_p95_seconds": 3.092,
+      "question_http_failures": [],
+      "foreground_resumes": 0,
+      "wrap_attempts": [
+        {
+          "status": 200,
+          "seconds": 69.559,
+          "workflow_state": "ready",
+          "workflow_error": null
+        }
+      ],
+      "notes_topics": 16,
+      "restored_notes_retry": {},
+      "latest_notes_topics": 16,
+      "notes_state": "ready",
+      "initial_wrap_map_state": "ready",
+      "background_final_status": "source_check_failed",
+      "background_final_detail": {
+        "state": "ready",
+        "workflow_state": "ready",
+        "workflow_check_state": "error",
+        "workflow_checked": false,
+        "workflow_version": 2,
+        "workflow_check_error": "This interview has reached its usage budget. Your answers are retained.",
+        "workflow_pending": false,
+        "http_status": 200,
+        "wait_seconds": 52.14
+      },
+      "background_map_steps": 20,
+      "background_map_connections": 16,
+      "manual_update_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 31.43,
+          "code": null,
+          "error": null,
+          "steps": 20,
+          "connections": 16
+        }
+      ],
+      "latest_map_result": "successful_manual_workflow_update",
+      "latest_map_steps": 20,
+      "latest_map_connections": 16,
+      "final_graph_integrity": {
+        "duplicate_step_ids": 0,
+        "edges_with_missing_endpoint": 0,
+        "step_and_edge_citations_checked": 42,
+        "citations_without_participant_turn": []
+      },
+      "observed_errors": [],
+      "review": null
+    },
+    {
+      "case_id": "FA-20",
+      "recorded_answers": 6,
+      "accepted_answers": 6,
+      "all_recorded_answers_accepted": true,
+      "successful_question_median_seconds": 3.4855,
+      "successful_question_p95_seconds": 5.645,
+      "question_http_failures": [],
+      "foreground_resumes": 0,
+      "wrap_attempts": [
+        {
+          "status": 200,
+          "seconds": 89.207,
+          "workflow_state": "working",
+          "workflow_error": null
+        }
+      ],
+      "notes_topics": 16,
+      "restored_notes_retry": {},
+      "latest_notes_topics": 16,
+      "notes_state": "ready",
+      "initial_wrap_map_state": "working",
+      "background_final_status": "source_checked",
+      "background_final_detail": {
+        "state": "ready",
+        "workflow_state": "ready",
+        "workflow_checked": true,
+        "workflow_version": 2,
+        "workflow_pending": false,
+        "http_status": 200,
+        "wait_seconds": 184.463
+      },
+      "background_map_steps": 15,
+      "background_map_connections": 13,
+      "manual_update_attempts": [],
+      "latest_map_result": "source_checked",
+      "latest_map_steps": 15,
+      "latest_map_connections": 13,
+      "final_graph_integrity": {
+        "duplicate_step_ids": 0,
+        "edges_with_missing_endpoint": 0,
+        "step_and_edge_citations_checked": 38,
+        "citations_without_participant_turn": []
+      },
+      "observed_errors": [],
+      "review": "The checked diagram connects identity validation to ownership tracing and then screening (S4→S5→S6). Operating purpose describes KYC and approval. One Compliance Officer escalation remained, but it cited only the later of two corroborating answers (t011 and not t005)."
+    },
+    {
+      "case_id": "GP-02",
+      "recorded_answers": 3,
+      "accepted_answers": 3,
+      "all_recorded_answers_accepted": true,
+      "successful_question_median_seconds": 2.987,
+      "successful_question_p95_seconds": 3.152,
+      "question_http_failures": [],
+      "foreground_resumes": 0,
+      "wrap_attempts": [
+        {
+          "status": 200,
+          "seconds": 52.818,
+          "workflow_state": "working",
+          "workflow_error": null
+        }
+      ],
+      "notes_topics": 16,
+      "restored_notes_retry": {},
+      "latest_notes_topics": 16,
+      "notes_state": "ready",
+      "initial_wrap_map_state": "working",
+      "background_final_status": "source_checked",
+      "background_final_detail": {
+        "state": "ready",
+        "workflow_state": "ready",
+        "workflow_checked": true,
+        "workflow_version": 4,
+        "workflow_pending": false,
+        "http_status": 200,
+        "wait_seconds": 88.16
+      },
+      "background_map_steps": 12,
+      "background_map_connections": 6,
+      "manual_update_attempts": [],
+      "latest_map_result": "source_checked",
+      "latest_map_steps": 12,
+      "latest_map_connections": 6,
+      "final_graph_integrity": {
+        "duplicate_step_ids": 0,
+        "edges_with_missing_endpoint": 0,
+        "step_and_edge_citations_checked": 20,
+        "citations_without_participant_turn": []
+      },
+      "observed_errors": [],
+      "review": null
+    },
+    {
+      "case_id": "GP-03",
+      "recorded_answers": 6,
+      "accepted_answers": 6,
+      "all_recorded_answers_accepted": true,
+      "successful_question_median_seconds": 3.7584999999999997,
+      "successful_question_p95_seconds": 4.203,
+      "question_http_failures": [],
+      "foreground_resumes": 0,
+      "wrap_attempts": [
+        {
+          "status": 200,
+          "seconds": 105.059,
+          "workflow_state": "working",
+          "workflow_error": null
+        }
+      ],
+      "notes_topics": 16,
+      "restored_notes_retry": {},
+      "latest_notes_topics": 16,
+      "notes_state": "ready",
+      "initial_wrap_map_state": "working",
+      "background_final_status": "source_checked",
+      "background_final_detail": {
+        "state": "ready",
+        "workflow_state": "ready",
+        "workflow_checked": true,
+        "workflow_version": 6,
+        "workflow_pending": false,
+        "http_status": 200,
+        "wait_seconds": 228.492
+      },
+      "background_map_steps": 22,
+      "background_map_connections": 24,
+      "manual_update_attempts": [],
+      "latest_map_result": "source_checked",
+      "latest_map_steps": 22,
+      "latest_map_connections": 24,
+      "final_graph_integrity": {
+        "duplicate_step_ids": 0,
+        "edges_with_missing_endpoint": 0,
+        "step_and_edge_citations_checked": 66,
+        "citations_without_participant_turn": []
+      },
+      "observed_errors": [],
+      "review": "The declared trigger reaches client method selection before point calculation. Method B terminates in a hold. A separate entry at S11 reaches cumulative carry calculation (S13) and review/release without first passing S5. The chart asks how schedule building follows the zero-sum proof; the prerequisite remains incomplete."
+    },
+    {
+      "case_id": "GP-05",
+      "recorded_answers": 8,
+      "accepted_answers": 8,
+      "all_recorded_answers_accepted": true,
+      "successful_question_median_seconds": 3.7785,
+      "successful_question_p95_seconds": 4.993,
+      "question_http_failures": [],
+      "foreground_resumes": 0,
+      "wrap_attempts": [
+        {
+          "status": 502,
+          "seconds": 53.82,
+          "error": "This interview has reached its usage budget. Your answers are retained."
+        }
+      ],
+      "notes_topics": 0,
+      "restored_notes_retry": {
+        "http_status": 200,
+        "seconds": 27.21,
+        "code": null,
+        "error": null
+      },
+      "latest_notes_topics": 16,
+      "notes_state": "error",
+      "initial_wrap_map_state": null,
+      "background_final_status": "source_checked",
+      "background_final_detail": {
+        "state": "error",
+        "workflow_state": "ready",
+        "workflow_checked": true,
+        "workflow_version": 4,
+        "workflow_pending": false,
+        "error": "This interview has reached its usage budget. Your answers are retained.",
+        "http_status": 200,
+        "wait_seconds": 92.209
+      },
+      "background_map_steps": 18,
+      "background_map_connections": 26,
+      "manual_update_attempts": [],
+      "latest_map_result": "source_checked",
+      "latest_map_steps": 18,
+      "latest_map_connections": 26,
+      "final_graph_integrity": {
+        "duplicate_step_ids": 0,
+        "edges_with_missing_endpoint": 0,
+        "step_and_edge_citations_checked": 76,
+        "citations_without_participant_turn": []
+      },
+      "observed_errors": [
+        {
+          "kind": "wrap.sync",
+          "status": 502,
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 53.82
+        }
+      ],
+      "review": "The source-checked map requires zero at each partner before accounting close. Notes initially hit the local QA token limit."
+    },
+    {
+      "case_id": "MC-01",
+      "recorded_answers": 3,
+      "accepted_answers": 3,
+      "all_recorded_answers_accepted": true,
+      "successful_question_median_seconds": 2.699,
+      "successful_question_p95_seconds": 3.048,
+      "question_http_failures": [],
+      "foreground_resumes": 0,
+      "wrap_attempts": [
+        {
+          "status": 200,
+          "seconds": 49.805,
+          "workflow_state": "error",
+          "workflow_error": "This interview has reached its usage budget. Your answers are retained."
+        }
+      ],
+      "notes_topics": 16,
+      "restored_notes_retry": {},
+      "latest_notes_topics": 16,
+      "notes_state": "ready",
+      "initial_wrap_map_state": "error",
+      "background_final_status": "map_failed",
+      "background_final_detail": {
+        "state": "ready",
+        "workflow_state": "error",
+        "workflow_error": "This interview has reached its usage budget. Your answers are retained.",
+        "workflow_pending": false
+      },
+      "background_map_steps": 0,
+      "background_map_connections": 0,
+      "manual_update_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 133.95,
+          "code": null,
+          "error": null,
+          "steps": 16,
+          "connections": 15
+        }
+      ],
+      "latest_map_result": "successful_manual_workflow_update",
+      "latest_map_steps": 16,
+      "latest_map_connections": 15,
+      "final_graph_integrity": {
+        "duplicate_step_ids": 0,
+        "edges_with_missing_endpoint": 0,
+        "step_and_edge_citations_checked": 49,
+        "citations_without_participant_turn": []
+      },
+      "observed_errors": [
+        {
+          "kind": "turn.notes_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 2.02
+        },
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 2.02
+        },
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 2.7
+        },
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 3.05
+        },
+        {
+          "kind": "wrap.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 49.81
+        }
+      ],
+      "review": null
+    },
+    {
+      "case_id": "MC-02B",
+      "recorded_answers": 5,
+      "accepted_answers": 5,
+      "all_recorded_answers_accepted": true,
+      "successful_question_median_seconds": 3.878,
+      "successful_question_p95_seconds": 6.385,
+      "question_http_failures": [],
+      "foreground_resumes": 0,
+      "wrap_attempts": [
+        {
+          "status": 200,
+          "seconds": 71.186,
+          "workflow_state": "working",
+          "workflow_error": null
+        }
+      ],
+      "notes_topics": 16,
+      "restored_notes_retry": {},
+      "latest_notes_topics": 16,
+      "notes_state": "ready",
+      "initial_wrap_map_state": "working",
+      "background_final_status": "source_checked",
+      "background_final_detail": {
+        "state": "ready",
+        "workflow_state": "ready",
+        "workflow_checked": true,
+        "workflow_version": 4,
+        "workflow_pending": false,
+        "http_status": 200,
+        "wait_seconds": 116.265
+      },
+      "background_map_steps": 17,
+      "background_map_connections": 17,
+      "manual_update_attempts": [],
+      "latest_map_result": "source_checked",
+      "latest_map_steps": 17,
+      "latest_map_connections": 17,
+      "final_graph_integrity": {
+        "duplicate_step_ids": 0,
+        "edges_with_missing_endpoint": 0,
+        "step_and_edge_citations_checked": 52,
+        "citations_without_participant_turn": []
+      },
+      "observed_errors": [],
+      "review": "The Trigger note explicitly requires both AEA's quarter-close email and the saved Bilixio reports."
+    },
+    {
+      "case_id": "MC-04",
+      "recorded_answers": 6,
+      "accepted_answers": 6,
+      "all_recorded_answers_accepted": true,
+      "successful_question_median_seconds": 3.2865,
+      "successful_question_p95_seconds": 4.428,
+      "question_http_failures": [],
+      "foreground_resumes": 0,
+      "wrap_attempts": [
+        {
+          "status": 200,
+          "seconds": 54.981,
+          "workflow_state": "error",
+          "workflow_error": "This interview has reached its usage budget. Your answers are retained."
+        }
+      ],
+      "notes_topics": 16,
+      "restored_notes_retry": {},
+      "latest_notes_topics": 16,
+      "notes_state": "ready",
+      "initial_wrap_map_state": "error",
+      "background_final_status": "map_failed",
+      "background_final_detail": {
+        "state": "ready",
+        "workflow_state": "error",
+        "workflow_error": "This interview has reached its usage budget. Your answers are retained.",
+        "workflow_pending": false
+      },
+      "background_map_steps": 0,
+      "background_map_connections": 0,
+      "manual_update_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 162.88,
+          "code": null,
+          "error": null,
+          "steps": 16,
+          "connections": 16
+        }
+      ],
+      "latest_map_result": "successful_manual_workflow_update",
+      "latest_map_steps": 16,
+      "latest_map_connections": 16,
+      "final_graph_integrity": {
+        "duplicate_step_ids": 0,
+        "edges_with_missing_endpoint": 0,
+        "step_and_edge_citations_checked": 55,
+        "citations_without_participant_turn": []
+      },
+      "observed_errors": [
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 3.04
+        },
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 2.62
+        },
+        {
+          "kind": "wrap.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 54.98
+        }
+      ],
+      "review": null
+    },
+    {
+      "case_id": "MC-07",
+      "recorded_answers": 6,
+      "accepted_answers": 6,
+      "all_recorded_answers_accepted": true,
+      "successful_question_median_seconds": 2.9995000000000003,
+      "successful_question_p95_seconds": 3.46,
+      "question_http_failures": [],
+      "foreground_resumes": 0,
+      "wrap_attempts": [
+        {
+          "status": 200,
+          "seconds": 62.105,
+          "workflow_state": "error",
+          "workflow_error": "This interview has reached its usage budget. Your answers are retained."
+        }
+      ],
+      "notes_topics": 16,
+      "restored_notes_retry": {},
+      "latest_notes_topics": 16,
+      "notes_state": "ready",
+      "initial_wrap_map_state": "error",
+      "background_final_status": "map_failed",
+      "background_final_detail": {
+        "state": "ready",
+        "workflow_state": "error",
+        "workflow_error": "This interview has reached its usage budget. Your answers are retained.",
+        "workflow_pending": false
+      },
+      "background_map_steps": 0,
+      "background_map_connections": 0,
+      "manual_update_attempts": [
+        {
+          "http_status": 200,
+          "seconds": 178.23,
+          "code": null,
+          "error": null,
+          "steps": 21,
+          "connections": 19
+        }
+      ],
+      "latest_map_result": "successful_manual_workflow_update",
+      "latest_map_steps": 21,
+      "latest_map_connections": 19,
+      "final_graph_integrity": {
+        "duplicate_step_ids": 0,
+        "edges_with_missing_endpoint": 0,
+        "step_and_edge_citations_checked": 63,
+        "citations_without_participant_turn": []
+      },
+      "observed_errors": [
+        {
+          "kind": "turn.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 3.26
+        },
+        {
+          "kind": "wrap.map_error",
+          "code": "budget_reached",
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "seconds": 62.11
+        }
+      ],
+      "review": null
+    }
+  ]
+}

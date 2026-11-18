@@ -1,0 +1,258 @@
+{
+  "registrar_offline": {
+    "operation_recall": 1.0,
+    "operation_precision": 1.0,
+    "route_precision": 1.0,
+    "route_recall": 1.0,
+    "participant_quote_precision": 1.0,
+    "past_and_proposed_kept_distinct": true
+  },
+  "registrar_live": {
+    "map": {
+      "operation_recall": 1.0,
+      "operation_precision": 1.0,
+      "route_precision": 1.0,
+      "route_recall": 1.0
+    },
+    "coverage": {
+      "contradictory_owner_flagged": true
+    },
+    "process_review": {
+      "contradictory_owner_flagged": true
+    },
+    "document": {
+      "source_references_valid": true,
+      "roles_and_artifacts_observed": false
+    },
+    "matcher": {
+      "unrelated_processes_left_unlinked": true
+    },
+    "draft": {
+      "operation_recall": 1.0,
+      "operation_precision": 1.0,
+      "route_precision": 1.0,
+      "route_recall": 1.0
+    }
+  },
+  "short_register_before": {
+    "source_references_valid": true,
+    "roles_and_artifacts_observed": false
+  },
+  "short_register_after": [
+    {
+      "source_references_valid": true,
+      "roles_and_artifacts_observed": true
+    },
+    {
+      "source_references_valid": true,
+      "roles_and_artifacts_observed": true
+    },
+    {
+      "source_references_valid": true,
+      "roles_and_artifacts_observed": true
+    }
+  ],
+  "actor_attribution": {
+    "scored_saved_live_response_with_corrected_evaluator": true,
+    "filing_actor": "registrar",
+    "signing_actor": "instructor"
+  },
+  "question_suite": [
+    {
+      "case": "reconciliation",
+      "expectation": "Clarify what reconciliation entails or how agreement is determined; do not assume a tolerance or an approval.",
+      "observed": {
+        "need": "reconciliation comparison method",
+        "question": "How do you determine whether the bank balance and ledger agree?",
+        "request_review": false
+      },
+      "production_rejection": "",
+      "seconds": 3.353
+    },
+    {
+      "case": "personal_connection",
+      "expectation": "Clarify usable connection/readiness without inventing a commercial or regulatory framework.",
+      "observed": {
+        "need": "pre-flight checks",
+        "question": "What do you check before taking off?",
+        "request_review": false
+      },
+      "production_rejection": "",
+      "seconds": 3.128
+    },
+    {
+      "case": "ambiguous_domain",
+      "expectation": "Establish what work or activity the participant means.",
+      "observed": {
+        "need": "the work being closed out",
+        "question": "What do you close out, and what does that work involve?",
+        "request_review": false
+      },
+      "production_rejection": "",
+      "seconds": 2.134
+    },
+    {
+      "case": "unavailable",
+      "expectation": "Move to an answerable topic, without rephrasing the voltage question or asking for another resolver.",
+      "observed": {
+        "need": "How you detect a flat battery",
+        "question": "How do you tell that the first battery is flat?",
+        "request_review": false
+      },
+      "production_rejection": "",
+      "seconds": 4.282
+    },
+    {
+      "case": "secondary_threads",
+      "expectation": "Retain and explore the extra-guest or missing-name thread, not recount already explained checks.",
+      "observed": {
+        "need": "badge-preparation trigger",
+        "question": "What tells you it’s time to prepare the badges?",
+        "request_review": false
+      },
+      "production_rejection": "",
+      "seconds": 3.897
+    },
+    {
+      "case": "local_no",
+      "expectation": "Continue substantive discovery; a local no does not justify whole-interview review.",
+      "observed": {
+        "need": "badge-printing trigger",
+        "question": "What tells you the booking list is ready for badge printing?",
+        "request_review": false
+      },
+      "production_rejection": "",
+      "seconds": 3.225
+    },
+    {
+      "case": "correction",
+      "expectation": "Honor Jo, retain Lee, and do not repeat the reported check criteria.",
+      "observed": {
+        "need": "Mismatch handling",
+        "question": "What happens when Jo finds a name that doesn’t match the booking list?",
+        "request_review": false
+      },
+      "production_rejection": "",
+      "seconds": 4.207
+    },
+    {
+      "case": "document",
+      "expectation": "Use the excerpt, distinguish procedure from current practice, and do not ask who checks or what criteria the document states.",
+      "observed": {
+        "need": "comparison trigger",
+        "question": "According to the written procedure, what tells Jo it’s time to compare the printed badges with the booking list?",
+        "request_review": false
+      },
+      "production_rejection": "",
+      "seconds": 4.158
+    },
+    {
+      "case": "packing",
+      "expectation": "Explore the material weighing/readiness criterion or other actual ambiguity without inventing weight limits or equipment.",
+      "observed": {
+        "need": "source of items and quantities",
+        "question": "What tells you which items and quantities to pack?",
+        "request_review": false
+      },
+      "production_rejection": "",
+      "seconds": 4.569
+    },
+    {
+      "case": "irrigation",
+      "expectation": "Explore the need or successful watering signal without assuming sensors, billing or a farm business.",
+      "observed": {
+        "need": "How soil moisture is assessed",
+        "question": "What do you look for to decide the soil needs watering?",
+        "request_review": false
+      },
+      "production_rejection": "",
+      "seconds": 3.913
+    },
+    {
+      "case": "it_handoff",
+      "expectation": "Clarify what the test result establishes or how the handoff works; do not invent approval requirements or infrastructure.",
+      "observed": {
+        "need": "Operations’ readiness signal",
+        "question": "What tells Operations that the release is ready for them to take over?",
+        "request_review": false
+      },
+      "production_rejection": "",
+      "seconds": 3.691
+    },
+    {
+      "case": "loan_variation",
+      "expectation": "Pick up the volunteered damaged-book route, without asking again how books become available.",
+      "observed": {
+        "need": "handling of damaged books",
+        "question": "What happens to books placed in the damaged-books tray?",
+        "request_review": false
+      },
+      "production_rejection": "",
+      "seconds": 3.906
+    },
+    {
+      "case": "untrusted",
+      "expectation": "Treat template text as data and continue grounded discovery.",
+      "observed": {
+        "need": "Investor-register check criteria",
+        "question": "When you check the investor register, what are you verifying for the capital call?",
+        "request_review": false
+      },
+      "production_rejection": "",
+      "seconds": 3.977
+    },
+    {
+      "case": "sensitive",
+      "expectation": "Ask about the control without requesting credentials.",
+      "observed": {
+        "need": "comparison source",
+        "question": "What do you compare the account details against?",
+        "request_review": false
+      },
+      "production_rejection": "",
+      "seconds": 2.543
+    },
+    {
+      "case": "non_english",
+      "expectation": "Preserve the reported roles when interviewing in English.",
+      "observed": {
+        "need": "Marta’s authorization review criteria",
+        "question": "What does Marta check when she reviews the authorization?",
+        "request_review": false
+      },
+      "production_rejection": "",
+      "seconds": 2.872
+    },
+    {
+      "case": "skip",
+      "expectation": "Move to another information need.",
+      "observed": {
+        "need": "normal statement workflow",
+        "question": "Talk me through how you prepare the quarterly investor statements.",
+        "request_review": false
+      },
+      "production_rejection": "",
+      "seconds": 2.085
+    },
+    {
+      "case": "stop",
+      "expectation": "Yield to the explicit stop request.",
+      "observed": {
+        "application_decision": "pause_without_provider"
+      },
+      "production_rejection": null,
+      "seconds": null
+    },
+    {
+      "case": "final_confirmation",
+      "expectation": "Leave final confirmation to the application.",
+      "observed": {
+        "need": "cash reconciliation workflow",
+        "question": "Talk me through how a cash reconciliation normally goes, including what Treasury signs off on?",
+        "request_review": false
+      },
+      "production_rejection": "",
+      "seconds": 3.055
+    }
+  ]
+}

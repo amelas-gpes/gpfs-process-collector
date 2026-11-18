@@ -1,0 +1,89 @@
+{
+  "approved_usd": 25,
+  "reported_usage_estimate_usd": 10.791889,
+  "conservative_planning_estimate_usd": 20.934551,
+  "rates_per_million_text_tokens": {
+    "column_order": [
+      "input",
+      "cached_input",
+      "output"
+    ],
+    "gpt-6-luna": [
+      0.1,
+      0.01,
+      0.5
+    ],
+    "gpt-6.1-terra": [
+      1,
+      0.05,
+      5
+    ]
+  },
+  "live_connection_usd_per_minute": 0.05,
+  "transcription_usd_per_minute": 0.0045,
+  "method": "Estimated with recorded token usage and audio duration. Live connection windows include setup and shutdown. Conservative estimates price all reported text input at 2.5 times standard input, and include the additional lane-specific reserves shown in the file, typed and voice receipts. Amounts are estimates. No project invoice was available.",
+  "lanes": [
+    {
+      "name": "Upload and typed stress, including supplemental evaluations",
+      "estimated_usd": 5.07284,
+      "planning_usd": 8.817158
+    },
+    {
+      "name": "November 16 typed interviews",
+      "estimated_usd": 3.336498,
+      "planning_usd": 6.4878
+    },
+    {
+      "name": "Stress file interviews",
+      "estimated_usd": 1.9278,
+      "planning_usd": 4.2933
+    },
+    {
+      "name": "Recorded and live voice, including GP-03 source repair",
+      "estimated_usd": 0.454751,
+      "planning_usd": 1.336293
+    }
+  ],
+  "upload_and_typed_stress_detail": [
+    {
+      "metered_calls": 141,
+      "reported_input_tokens": 1433790,
+      "reported_output_tokens": 394715,
+      "estimated_usd": 2.654778,
+      "planning_usd": 4.28916,
+      "name": "first capture server"
+    },
+    {
+      "metered_calls": 52,
+      "reported_input_tokens": 536456,
+      "reported_output_tokens": 116396,
+      "estimated_usd": 0.873832,
+      "planning_usd": 1.552372,
+      "name": "second capture server"
+    },
+    {
+      "metered_calls": 68,
+      "reported_input_tokens": 608831,
+      "reported_output_tokens": 111187,
+      "estimated_usd": 0.697058,
+      "planning_usd": 1.359414,
+      "name": "five simultaneous interviews"
+    },
+    {
+      "metered_calls": 50,
+      "reported_input_tokens": 494883,
+      "reported_output_tokens": 120749,
+      "estimated_usd": 0.714612,
+      "planning_usd": 1.321486,
+      "name": "late typed interview recovery"
+    },
+    {
+      "name": "registrar and question-quality evaluations",
+      "metered_calls": 44,
+      "reported_input_tokens": 262036,
+      "reported_output_tokens": 20814,
+      "estimated_usd": 0.13256,
+      "planning_usd": 0.294726
+    }
+  ]
+}

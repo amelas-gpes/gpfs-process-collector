@@ -1,0 +1,1851 @@
+{
+  "commit": "dde4da1f4ebecba60bb0b43d0c482f92fe967995",
+  "build_id": "9cd8c6ef8831c473b55a5ef99cd7d1a6383c66dd28362f7226328df800d35937",
+  "cases": {
+    "F01": {
+      "name": "Debt Investment Economics: Loan Workbook, Yields, PIK, OID & Warrants",
+      "historical_file_to_question_seconds": 161.49,
+      "file_to_question_seconds": 243.25,
+      "first_file_question": "Who is accountable for the process and who can approve release of the operational hold once the required controls are documented?",
+      "files": [
+        {
+          "filename": "F01 FA-10 full process.pdf",
+          "accepted_bytes": 830921,
+          "chunks": 86,
+          "review_kind": "pdf",
+          "phase": "complete",
+          "review_complete": true,
+          "disposition": "relevant",
+          "citations": 67,
+          "indexed_units": 85,
+          "all_units": 85,
+          "visual_pending_units": 0,
+          "limitations": [
+            "AI visual transcriptions are searchable but have not been independently verified."
+          ]
+        }
+      ],
+      "restored_historical_transcript": true,
+      "participant_answers_recorded": 3,
+      "historical_participant_answers": 3,
+      "current_run_question_http_responses": [],
+      "wrap_attempted": true,
+      "map_matches_transcript_revision": false,
+      "source_check": {
+        "workflow_checked": null,
+        "note": "Historical harness returned the first current draw; independent source check unverified."
+      },
+      "observed_final_map_steps": 0,
+      "observed_provisional_map_steps": 0,
+      "final_memo_topics": 0,
+      "notable_events": [
+        {
+          "kind": "doc.notes_error",
+          "seconds": 0.04,
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "code": "budget_reached"
+        },
+        {
+          "kind": "doc.map_error",
+          "seconds": 0.04,
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "code": "budget_reached"
+        },
+        {
+          "kind": "restore.historical_transcript"
+        },
+        {
+          "kind": "wrap.sync",
+          "seconds": 0.04,
+          "status": 502,
+          "error": "This interview has reached its usage budget. Your answers are retained."
+        }
+      ]
+    },
+    "F02": {
+      "name": "Financial Statement Creation, Review & Tie-Out",
+      "historical_file_to_question_seconds": 20.98,
+      "file_to_question_seconds": 48.8,
+      "first_file_question": "The FA-12 procedure excerpt describes a roll-forward, workbook reconciliation, visual tie-out, reviews, and delivery. Does that reflect how financial statements are prepared and reviewed today?",
+      "files": [
+        {
+          "filename": "F02 FA-12 procedure excerpt.pdf",
+          "accepted_bytes": 281946,
+          "chunks": 7,
+          "review_kind": "pdf",
+          "phase": "complete",
+          "review_complete": true,
+          "disposition": "relevant",
+          "citations": 6,
+          "indexed_units": 7,
+          "all_units": 7,
+          "visual_pending_units": 0,
+          "limitations": []
+        }
+      ],
+      "restored_historical_transcript": true,
+      "participant_answers_recorded": 3,
+      "historical_participant_answers": 3,
+      "current_run_question_http_responses": [],
+      "wrap_attempted": true,
+      "map_matches_transcript_revision": true,
+      "source_check": {
+        "http": 200,
+        "workflow_checked": true,
+        "workflow_check_state": null,
+        "workflow_check_error": null,
+        "workflow_version": 2,
+        "workflow_state": "ready"
+      },
+      "observed_final_map_steps": 26,
+      "observed_provisional_map_steps": 0,
+      "final_memo_topics": 16,
+      "notable_events": [
+        {
+          "kind": "restore.historical_transcript"
+        },
+        {
+          "kind": "wrap.sync",
+          "seconds": 65.418,
+          "status": 200,
+          "workflow_error": null,
+          "workflow_state": "working",
+          "reply_kind": "pause"
+        },
+        {
+          "kind": "wrap.map_ready",
+          "seconds": 127.89,
+          "steps": 25
+        }
+      ]
+    },
+    "F03": {
+      "name": "European Bank Account Administration",
+      "historical_file_to_question_seconds": 10.29,
+      "file_to_question_seconds": 9.05,
+      "first_file_question": "The procedure says the administrator identifies the applicable regional review chain. What happens next in that review chain?",
+      "files": [
+        {
+          "filename": "F03 FA-18A one page.pdf",
+          "accepted_bytes": 211277,
+          "chunks": 1,
+          "review_kind": "pdf",
+          "phase": "complete",
+          "review_complete": true,
+          "disposition": "relevant",
+          "citations": 1,
+          "indexed_units": 1,
+          "all_units": 1,
+          "visual_pending_units": 0,
+          "limitations": []
+        }
+      ],
+      "restored_historical_transcript": true,
+      "participant_answers_recorded": 3,
+      "historical_participant_answers": 3,
+      "current_run_question_http_responses": [],
+      "wrap_attempted": true,
+      "map_matches_transcript_revision": true,
+      "source_check": {
+        "http": 200,
+        "workflow_checked": true,
+        "workflow_check_state": null,
+        "workflow_check_error": null,
+        "workflow_version": 2,
+        "workflow_state": "ready"
+      },
+      "observed_final_map_steps": 21,
+      "observed_provisional_map_steps": 0,
+      "final_memo_topics": 16,
+      "notable_events": [
+        {
+          "kind": "restore.historical_transcript"
+        },
+        {
+          "kind": "wrap.sync",
+          "seconds": 61.758,
+          "status": 200,
+          "workflow_error": null,
+          "workflow_state": "working",
+          "reply_kind": "pause"
+        },
+        {
+          "kind": "wrap.map_ready",
+          "seconds": 97.59,
+          "steps": 21
+        }
+      ]
+    },
+    "F04": {
+      "name": "LOC Draw & Repayment Execution",
+      "historical_file_to_question_seconds": 9.99,
+      "file_to_question_seconds": 15.28,
+      "first_file_question": "How does the supplied document compare with what you actually do?",
+      "files": [
+        {
+          "filename": "F04 FA-19A full steps.csv",
+          "accepted_bytes": 8416,
+          "chunks": 2,
+          "review_kind": "csv",
+          "phase": "complete",
+          "review_complete": true,
+          "disposition": "relevant",
+          "citations": 2,
+          "indexed_units": 38,
+          "all_units": 38,
+          "visual_pending_units": null,
+          "limitations": []
+        }
+      ],
+      "restored_historical_transcript": true,
+      "participant_answers_recorded": 3,
+      "historical_participant_answers": 3,
+      "current_run_question_http_responses": [],
+      "wrap_attempted": true,
+      "map_matches_transcript_revision": false,
+      "source_check": {
+        "workflow_checked": null,
+        "note": "Historical harness returned the first current draw; independent source check unverified."
+      },
+      "observed_final_map_steps": 0,
+      "observed_provisional_map_steps": 0,
+      "final_memo_topics": 16,
+      "notable_events": [
+        {
+          "kind": "restore.historical_transcript"
+        },
+        {
+          "kind": "wrap.sync",
+          "seconds": 70.405,
+          "status": 200,
+          "workflow_error": "This interview has reached its usage budget. Your answers are retained.",
+          "workflow_state": "error",
+          "reply_kind": "pause"
+        },
+        {
+          "kind": "wrap.map_error",
+          "seconds": 70.41,
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "code": "budget_reached"
+        }
+      ]
+    },
+    "F05": {
+      "name": "Management Fee Calculation & Offsets",
+      "historical_file_to_question_seconds": 8.29,
+      "file_to_question_seconds": 20.73,
+      "first_file_question": "The workbook describes rules being confirmed before fees are calculated and lists Standard Days and annualization as unconfirmed. Does that reflect how this work is carried out today?",
+      "files": [
+        {
+          "filename": "F05 MC-05 workbook.xlsx",
+          "accepted_bytes": 8474,
+          "chunks": 3,
+          "review_kind": "xlsx",
+          "phase": "complete",
+          "review_complete": true,
+          "disposition": "relevant",
+          "citations": 3,
+          "indexed_units": 3,
+          "all_units": 3,
+          "visual_pending_units": null,
+          "limitations": []
+        }
+      ],
+      "restored_historical_transcript": false,
+      "participant_answers_recorded": 3,
+      "historical_participant_answers": 3,
+      "current_run_question_http_responses": [
+        200,
+        200,
+        200
+      ],
+      "wrap_attempted": true,
+      "map_matches_transcript_revision": false,
+      "source_check": {
+        "workflow_checked": null,
+        "note": "Historical harness returned the first current draw; independent source check unverified."
+      },
+      "observed_final_map_steps": 0,
+      "observed_provisional_map_steps": 0,
+      "final_memo_topics": 16,
+      "notable_events": [
+        {
+          "kind": "wrap.sync",
+          "seconds": 80.853,
+          "status": 200,
+          "workflow_error": "This interview has reached its usage budget. Your answers are retained.",
+          "workflow_state": "error",
+          "reply_kind": "pause"
+        },
+        {
+          "kind": "wrap.map_error",
+          "seconds": 80.86,
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "code": "budget_reached"
+        },
+        {
+          "kind": "workflow.retry_map",
+          "seconds": 120.018,
+          "status": 504,
+          "error": "The request to the AI service timed out. Your session and previous capture are retained. Try again; your saved files do not need to be uploaded again."
+        }
+      ]
+    },
+    "F06": {
+      "name": "Quarterly GP Workbook Production",
+      "historical_file_to_question_seconds": 16.4,
+      "file_to_question_seconds": 61.68,
+      "first_file_question": "The procedure says to reconcile beginning balances and carried-forward amounts to accounting records and prior-period deliverables. How are any differences handled before production continues?",
+      "files": [
+        {
+          "filename": "F06 GP-06 procedure page.png",
+          "accepted_bytes": 130267,
+          "chunks": 1,
+          "review_kind": "png",
+          "phase": "complete",
+          "review_complete": true,
+          "disposition": "relevant",
+          "citations": 1,
+          "indexed_units": 1,
+          "all_units": 1,
+          "visual_pending_units": 0,
+          "limitations": [
+            "AI visual transcriptions are searchable but have not been independently verified."
+          ]
+        }
+      ],
+      "restored_historical_transcript": true,
+      "participant_answers_recorded": 3,
+      "historical_participant_answers": 3,
+      "current_run_question_http_responses": [],
+      "wrap_attempted": true,
+      "map_matches_transcript_revision": false,
+      "source_check": {
+        "workflow_checked": null,
+        "note": "Historical harness returned the first current draw; independent source check unverified."
+      },
+      "observed_final_map_steps": 0,
+      "observed_provisional_map_steps": 0,
+      "final_memo_topics": 16,
+      "notable_events": [
+        {
+          "kind": "restore.historical_transcript"
+        },
+        {
+          "kind": "wrap.sync",
+          "seconds": 66.223,
+          "status": 200,
+          "workflow_error": "This interview has reached its usage budget. Your answers are retained.",
+          "workflow_state": "error",
+          "reply_kind": "pause"
+        },
+        {
+          "kind": "wrap.map_error",
+          "seconds": 66.23,
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "code": "budget_reached"
+        }
+      ]
+    },
+    "F07": {
+      "name": "Due to Manager: Expense Transfer",
+      "historical_file_to_question_seconds": 13.45,
+      "file_to_question_seconds": 17.11,
+      "first_file_question": "The procedure and roles matrix describe the expense-transfer route from intake through billing. Which parts of that written route reflect how this work is handled today?",
+      "files": [
+        {
+          "filename": "F07 MC-02 procedure.pdf",
+          "accepted_bytes": 229358,
+          "chunks": 5,
+          "review_kind": "pdf",
+          "phase": "complete",
+          "review_complete": true,
+          "disposition": "relevant",
+          "citations": 3,
+          "indexed_units": 5,
+          "all_units": 5,
+          "visual_pending_units": 0,
+          "limitations": []
+        },
+        {
+          "filename": "F07 MC-02 roles.csv",
+          "accepted_bytes": 901,
+          "chunks": 1,
+          "review_kind": "csv",
+          "phase": "complete",
+          "review_complete": true,
+          "disposition": "relevant",
+          "citations": 1,
+          "indexed_units": 7,
+          "all_units": 7,
+          "visual_pending_units": null,
+          "limitations": []
+        }
+      ],
+      "restored_historical_transcript": true,
+      "participant_answers_recorded": 3,
+      "historical_participant_answers": 3,
+      "current_run_question_http_responses": [],
+      "wrap_attempted": true,
+      "map_matches_transcript_revision": true,
+      "source_check": {
+        "workflow_checked": null,
+        "note": "Historical harness returned the first current draw; independent source check unverified."
+      },
+      "observed_final_map_steps": 15,
+      "observed_provisional_map_steps": 0,
+      "final_memo_topics": 16,
+      "notable_events": [
+        {
+          "kind": "restore.historical_transcript"
+        },
+        {
+          "kind": "wrap.sync",
+          "seconds": 63.046,
+          "status": 200,
+          "workflow_error": null,
+          "workflow_state": "working",
+          "reply_kind": "pause"
+        },
+        {
+          "kind": "wrap.map_ready",
+          "seconds": 79.85,
+          "steps": 15
+        }
+      ]
+    },
+    "F08": {
+      "name": "Quarterly Workbook Preparation & Binder",
+      "historical_file_to_question_seconds": 6.93,
+      "file_to_question_seconds": 42.27,
+      "first_file_question": "The CSV lists building statement and lead-sheet support, then running “Check of Checks and clearing-account controls.” What does that control step involve in practice?",
+      "files": [
+        {
+          "filename": "F08 FA-13 three steps.csv",
+          "accepted_bytes": 133,
+          "chunks": 1,
+          "review_kind": "csv",
+          "phase": "complete",
+          "review_complete": true,
+          "disposition": "relevant",
+          "citations": 1,
+          "indexed_units": 4,
+          "all_units": 4,
+          "visual_pending_units": null,
+          "limitations": []
+        }
+      ],
+      "restored_historical_transcript": false,
+      "participant_answers_recorded": 4,
+      "historical_participant_answers": 4,
+      "current_run_question_http_responses": [
+        200,
+        200,
+        200,
+        429
+      ],
+      "wrap_attempted": true,
+      "map_matches_transcript_revision": false,
+      "source_check": {
+        "workflow_checked": null,
+        "note": "Historical harness returned the first current draw; independent source check unverified."
+      },
+      "observed_final_map_steps": 0,
+      "observed_provisional_map_steps": 0,
+      "final_memo_topics": 16,
+      "notable_events": [
+        {
+          "kind": "turn.map_error",
+          "seconds": 8.03,
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "code": "budget_reached"
+        },
+        {
+          "kind": "question",
+          "seconds": 0.033,
+          "status": 429,
+          "error": "This request would pass the local token budget. Save your interview or adjust the limit in local settings."
+        },
+        {
+          "kind": "wrap.sync",
+          "seconds": 90.206,
+          "status": 200,
+          "workflow_error": "This interview has reached its usage budget. Your answers are retained.",
+          "workflow_state": "error",
+          "reply_kind": "pause"
+        },
+        {
+          "kind": "wrap.map_error",
+          "seconds": 90.21,
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "code": "budget_reached"
+        },
+        {
+          "kind": "workflow.retry_map",
+          "seconds": 0.008,
+          "status": 429,
+          "error": "This request would pass the local token budget. Save your interview or adjust the limit in local settings."
+        }
+      ]
+    },
+    "F09": {
+      "name": "European Distribution Execution",
+      "historical_file_to_question_seconds": 24.4,
+      "file_to_question_seconds": 13.4,
+      "first_file_question": "The two pages in “F09 FA-18C scanned pages.pdf” have no extractable text and haven’t been visually read. What did you want me to notice in this material?",
+      "files": [
+        {
+          "filename": "F09 FA-18C scanned pages.pdf",
+          "accepted_bytes": 213504,
+          "chunks": 2,
+          "review_kind": "pdf",
+          "phase": "complete",
+          "review_complete": true,
+          "disposition": "relevant",
+          "citations": 2,
+          "indexed_units": 2,
+          "all_units": 2,
+          "visual_pending_units": 0,
+          "limitations": [
+            "AI visual transcriptions are searchable but have not been independently verified."
+          ]
+        }
+      ],
+      "restored_historical_transcript": true,
+      "participant_answers_recorded": 2,
+      "historical_participant_answers": 2,
+      "current_run_question_http_responses": [],
+      "wrap_attempted": true,
+      "map_matches_transcript_revision": true,
+      "source_check": {
+        "workflow_checked": null,
+        "note": "Historical harness returned the first current draw; independent source check unverified."
+      },
+      "observed_final_map_steps": 22,
+      "observed_provisional_map_steps": 0,
+      "final_memo_topics": 16,
+      "notable_events": [
+        {
+          "kind": "doc.extracted",
+          "seconds": 11.2,
+          "status": "partial",
+          "error": "Document review paused after an invalid response or service error. Select Retry review to try again.",
+          "phase": "error"
+        },
+        {
+          "kind": "doc.failed",
+          "seconds": 11.2,
+          "status": "partial",
+          "error": "Document review paused after an invalid response or service error. Select Retry review to try again.",
+          "phase": "error"
+        },
+        {
+          "kind": "doc.retry_review",
+          "seconds": 0.006,
+          "status": 200
+        },
+        {
+          "kind": "doc.retry_result",
+          "seconds": 21.19,
+          "phase": "complete"
+        },
+        {
+          "kind": "restore.historical_transcript"
+        },
+        {
+          "kind": "wrap.sync",
+          "seconds": 56.095,
+          "status": 200,
+          "workflow_error": null,
+          "workflow_state": "working",
+          "reply_kind": "pause"
+        },
+        {
+          "kind": "wrap.map_ready",
+          "seconds": 94.88,
+          "steps": 22
+        }
+      ]
+    },
+    "F10": {
+      "name": "One Rock Due to Manager Variant",
+      "historical_file_to_question_seconds": 9.41,
+      "file_to_question_seconds": 53.61,
+      "first_file_question": "The overview lists checks of vendors, Sage classifications, and vendor master data, but says the review sequence and approval criteria are unconfirmed. In your joint validation, what does the reviewer compare or verify?",
+      "files": [
+        {
+          "filename": "F10 MC-02A overview only.pdf",
+          "accepted_bytes": 279064,
+          "chunks": 5,
+          "review_kind": "pdf",
+          "phase": "complete",
+          "review_complete": true,
+          "disposition": "relevant",
+          "citations": 2,
+          "indexed_units": 5,
+          "all_units": 5,
+          "visual_pending_units": 0,
+          "limitations": []
+        }
+      ],
+      "restored_historical_transcript": false,
+      "participant_answers_recorded": 5,
+      "historical_participant_answers": 5,
+      "current_run_question_http_responses": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "wrap_attempted": true,
+      "map_matches_transcript_revision": true,
+      "source_check": {
+        "workflow_checked": null,
+        "note": "Historical harness returned the first current draw; independent source check unverified."
+      },
+      "observed_final_map_steps": 24,
+      "observed_provisional_map_steps": 0,
+      "final_memo_topics": 16,
+      "notable_events": [
+        {
+          "kind": "doc.map_error",
+          "seconds": 2.83,
+          "error": "This interview has reached its usage budget. Your answers are retained.",
+          "code": "budget_reached"
+        },
+        {
+          "kind": "wrap.sync",
+          "seconds": 2.027,
+          "status": 200,
+          "workflow_error": null,
+          "workflow_state": "working",
+          "reply_kind": "pause"
+        },
+        {
+          "kind": "wrap.map_ready",
+          "seconds": 49.73,
+          "steps": 24
+        }
+      ]
+    }
+  },
+  "inspections": {
+    "F02": {
+      "source_checked": true,
+      "expected_from_historical_evaluation": "The documented sequence proceeds from Step 1, confirm scope and roll forward, to Step 2, extract the trial balance and its supporting details.",
+      "observed_on_replay": "Version 2 of the checked map models the matching activities S1 and S3 as separate entry points, with no route from S1 to S3. Both numbered procedure steps appear on page 1 of the uploaded F02 PDF. The same omission is recorded in the archived F02 evaluation."
+    },
+    "F03": {
+      "source_checked": true,
+      "expected_from_historical_evaluation": "Keep the one-page source's staff-knowledge sidebar distinct from the bank-administration procedure.",
+      "observed_on_replay": "The source-checked version 2 map comprises three disconnected components. S21, Validate Kyriba requirements, has no incoming or outgoing connection. Its source is the Kyriba and staff knowledge reference row. The same isolated sidebar-as-activity issue was identified in the archived F03 evaluation."
+    },
+    "F09": {
+      "expected_from_historical_participant_and_evaluation": "Escalate an investor still blocked after the 90-day follow-up. The outcome after escalation is unconfirmed.",
+      "observed_on_replay": "The first current draw, before a separate source check was verified, records the 90-day escalation in the description of Follow up blocked investors. That step has one outgoing route, CDD clears to Update cleared status and pay. There is no escalation route for investors who remain blocked.",
+      "evidence": "Archived F09 participant transcript and map_issues in docs/testing/runs/2026-11-17-stress/evals.json, compared with the provisional replay map."
+    },
+    "F10": {
+      "expected_from_historical_evaluation": "Five participant answers, with an overview-only file added after the first two. The prior run had no current final map.",
+      "observed_on_replay": "The overview stayed qualified as an unconfirmed source. A current map was returned with 24 steps, 30 connections, and one connected component."
+    },
+    "F05": {
+      "expected_from_historical_evaluation": "Generate a current map for the management-fee workbook interview. The prior run did not have a final map.",
+      "observed_on_replay": "Wrap returned 16 memo sections and a local budget error. An explicit Update workflow retry dispatched a real workbook-backed working_process_map request. It timed out at the 120-second provider deadline; no map was returned."
+    }
+  },
+  "provider": {
+    "metered_tokens": 1223054,
+    "successful_calls": 88,
+    "outcomes": {
+      "success": 88,
+      "budget_reached": 24,
+      "timeout": 2
+    },
+    "standard_rate_estimate_usd": 1.9278,
+    "budget_planning_estimate_including_reserves_usd": 4.2933,
+    "unknown_metered_dispatched_timeouts": 2,
+    "uncertain_early_source_checks_reserve_usd": 0.6,
+    "allocation_usd": 5,
+    "rates": "Recorded input minus cache reads at standard input, cached input at cache-read, output at standard output. The planning estimate uses 2.5 times ordinary input plus full output, reserves for unresolved provider calls and early source checks. Actual billing was not available."
+  },
+  "provider_stages": [
+    {
+      "stage": "document_context_review",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 5654,
+      "input_tokens": 1720,
+      "cached_tokens": 0,
+      "output_tokens": 344,
+      "requested_output_token_ceiling": 6000
+    },
+    {
+      "stage": "conversation_question",
+      "model": "gpt-6-luna",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 2903,
+      "input_tokens": 7911,
+      "cached_tokens": 6132,
+      "output_tokens": 191,
+      "requested_output_token_ceiling": 600
+    },
+    {
+      "stage": "document_context_review",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 7292,
+      "input_tokens": 4097,
+      "cached_tokens": 0,
+      "output_tokens": 442,
+      "requested_output_token_ceiling": 6000
+    },
+    {
+      "stage": "document_context_review",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 6333,
+      "input_tokens": 8751,
+      "cached_tokens": 0,
+      "output_tokens": 423,
+      "requested_output_token_ceiling": 6000
+    },
+    {
+      "stage": "document_context_review",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 5292,
+      "input_tokens": 1739,
+      "cached_tokens": 0,
+      "output_tokens": 347,
+      "requested_output_token_ceiling": 6000
+    },
+    {
+      "stage": "document_context_review",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 6406,
+      "input_tokens": 3669,
+      "cached_tokens": 0,
+      "output_tokens": 389,
+      "requested_output_token_ceiling": 6000
+    },
+    {
+      "stage": "conversation_question",
+      "model": "gpt-6-luna",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 3955,
+      "input_tokens": 11777,
+      "cached_tokens": 6132,
+      "output_tokens": 238,
+      "requested_output_token_ceiling": 600
+    },
+    {
+      "stage": "team_interview_capture",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 29566,
+      "input_tokens": 11230,
+      "cached_tokens": 0,
+      "output_tokens": 2545,
+      "requested_output_token_ceiling": 12000
+    },
+    {
+      "stage": "conversation_question",
+      "model": "gpt-6-luna",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 3829,
+      "input_tokens": 10207,
+      "cached_tokens": 6132,
+      "output_tokens": 56,
+      "requested_output_token_ceiling": 600
+    },
+    {
+      "stage": "document_context_review",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 13058,
+      "input_tokens": 8173,
+      "cached_tokens": 0,
+      "output_tokens": 1015,
+      "requested_output_token_ceiling": 12000
+    },
+    {
+      "stage": "document_context_review",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 11688,
+      "input_tokens": 4243,
+      "cached_tokens": 0,
+      "output_tokens": 325,
+      "requested_output_token_ceiling": 6000
+    },
+    {
+      "stage": "team_working_process_map",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 42136,
+      "input_tokens": 9156,
+      "cached_tokens": 0,
+      "output_tokens": 3678,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "team_working_process_map",
+      "outcome": "error",
+      "error_category": "budget_reached",
+      "status": 429,
+      "duration_ms": 0,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "document_context_review",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 14450,
+      "input_tokens": 1938,
+      "cached_tokens": 0,
+      "output_tokens": 592,
+      "requested_output_token_ceiling": 12000
+    },
+    {
+      "stage": "document_context_review",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 20699,
+      "input_tokens": 7310,
+      "cached_tokens": 0,
+      "output_tokens": 1008,
+      "requested_output_token_ceiling": 6000
+    },
+    {
+      "stage": "document_context_review",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 26175,
+      "input_tokens": 5647,
+      "cached_tokens": 0,
+      "output_tokens": 1080,
+      "requested_output_token_ceiling": 6000
+    },
+    {
+      "stage": "conversation_question",
+      "model": "gpt-6-luna",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 2089,
+      "input_tokens": 12411,
+      "cached_tokens": 6132,
+      "output_tokens": 59,
+      "requested_output_token_ceiling": 600
+    },
+    {
+      "stage": "team_interview_capture",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 61485,
+      "input_tokens": 16701,
+      "cached_tokens": 0,
+      "output_tokens": 5120,
+      "requested_output_token_ceiling": 12000
+    },
+    {
+      "stage": "document_context_review",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 29972,
+      "input_tokens": 1921,
+      "cached_tokens": 0,
+      "output_tokens": 610,
+      "requested_output_token_ceiling": 6000
+    },
+    {
+      "stage": "document_context_review",
+      "outcome": "error",
+      "error_category": "budget_reached",
+      "status": 429,
+      "duration_ms": 0,
+      "requested_output_token_ceiling": 12000
+    },
+    {
+      "stage": "conversation_question",
+      "model": "gpt-6-luna",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 2331,
+      "input_tokens": 8509,
+      "cached_tokens": 6132,
+      "output_tokens": 133,
+      "requested_output_token_ceiling": 600
+    },
+    {
+      "stage": "conversation_question",
+      "model": "gpt-6-luna",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 2190,
+      "input_tokens": 7351,
+      "cached_tokens": 6132,
+      "output_tokens": 126,
+      "requested_output_token_ceiling": 600
+    },
+    {
+      "stage": "team_interview_capture",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 76662,
+      "input_tokens": 14396,
+      "cached_tokens": 0,
+      "output_tokens": 5665,
+      "requested_output_token_ceiling": 12000
+    },
+    {
+      "stage": "document_context_review",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 14730,
+      "input_tokens": 4771,
+      "cached_tokens": 0,
+      "output_tokens": 465,
+      "requested_output_token_ceiling": 6000
+    },
+    {
+      "stage": "conversation_question",
+      "outcome": "error",
+      "error_category": "budget_reached",
+      "status": 429,
+      "duration_ms": 0,
+      "requested_output_token_ceiling": 600
+    },
+    {
+      "stage": "conversation_question",
+      "model": "gpt-6-luna",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 2465,
+      "input_tokens": 6161,
+      "cached_tokens": 5826,
+      "output_tokens": 155,
+      "requested_output_token_ceiling": 600
+    },
+    {
+      "stage": "team_working_process_map",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 100889,
+      "input_tokens": 13343,
+      "cached_tokens": 0,
+      "output_tokens": 8239,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "team_working_process_map",
+      "outcome": "error",
+      "error_category": "budget_reached",
+      "status": 429,
+      "duration_ms": 0,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "team_working_process_map",
+      "outcome": "error",
+      "error_category": "budget_reached",
+      "status": 429,
+      "duration_ms": 0,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "conversation_question",
+      "model": "gpt-6-luna",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 3146,
+      "input_tokens": 6497,
+      "cached_tokens": 5826,
+      "output_tokens": 194,
+      "requested_output_token_ceiling": 600
+    },
+    {
+      "stage": "team_working_map_source_audit",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 93018,
+      "input_tokens": 10945,
+      "cached_tokens": 0,
+      "output_tokens": 5220,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "document_context_review",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 61181,
+      "input_tokens": 8356,
+      "cached_tokens": 0,
+      "output_tokens": 913,
+      "requested_output_token_ceiling": 6000
+    },
+    {
+      "stage": "document_context_review",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 25646,
+      "input_tokens": 1455,
+      "cached_tokens": 0,
+      "output_tokens": 197,
+      "requested_output_token_ceiling": 6000
+    },
+    {
+      "stage": "team_interview_capture",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 33488,
+      "input_tokens": 11858,
+      "cached_tokens": 0,
+      "output_tokens": 2287,
+      "requested_output_token_ceiling": 12000
+    },
+    {
+      "stage": "conversation_question",
+      "model": "gpt-6-luna",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 1605,
+      "input_tokens": 7451,
+      "cached_tokens": 6132,
+      "output_tokens": 56,
+      "requested_output_token_ceiling": 600
+    },
+    {
+      "stage": "document_context_review",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 13069,
+      "input_tokens": 7780,
+      "cached_tokens": 0,
+      "output_tokens": 804,
+      "requested_output_token_ceiling": 6000
+    },
+    {
+      "stage": "route_gap_repair",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 18411,
+      "input_tokens": 4244,
+      "cached_tokens": 0,
+      "output_tokens": 41,
+      "requested_output_token_ceiling": 10000
+    },
+    {
+      "stage": "team_working_map_source_audit",
+      "outcome": "error",
+      "error_category": "budget_reached",
+      "status": 429,
+      "duration_ms": 0,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "document_context_review",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 13674,
+      "input_tokens": 7310,
+      "cached_tokens": 0,
+      "output_tokens": 933,
+      "requested_output_token_ceiling": 6000
+    },
+    {
+      "stage": "team_interview_capture",
+      "model": "gpt-6-luna",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 30812,
+      "input_tokens": 10367,
+      "cached_tokens": 0,
+      "output_tokens": 485,
+      "requested_output_token_ceiling": 6500
+    },
+    {
+      "stage": "team_interview_capture",
+      "outcome": "error",
+      "error_category": "timeout",
+      "status": 504,
+      "duration_ms": 90003,
+      "requested_output_token_ceiling": 12000
+    },
+    {
+      "stage": "document_context_review",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 41962,
+      "input_tokens": 4316,
+      "cached_tokens": 0,
+      "output_tokens": 380,
+      "requested_output_token_ceiling": 6000
+    },
+    {
+      "stage": "document_context_review",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 16432,
+      "input_tokens": 8137,
+      "cached_tokens": 0,
+      "output_tokens": 805,
+      "requested_output_token_ceiling": 6000
+    },
+    {
+      "stage": "conversation_question",
+      "model": "gpt-6-luna",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 2282,
+      "input_tokens": 10290,
+      "cached_tokens": 6132,
+      "output_tokens": 65,
+      "requested_output_token_ceiling": 600
+    },
+    {
+      "stage": "team_working_process_map",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 58568,
+      "input_tokens": 7963,
+      "cached_tokens": 0,
+      "output_tokens": 3436,
+      "requested_output_token_ceiling": 16000
+    },
+    {
+      "stage": "team_working_process_map",
+      "outcome": "error",
+      "error_category": "budget_reached",
+      "status": 429,
+      "duration_ms": 0,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "team_working_process_map",
+      "outcome": "error",
+      "error_category": "budget_reached",
+      "status": 429,
+      "duration_ms": 0,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "document_context_review",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 13240,
+      "input_tokens": 9020,
+      "cached_tokens": 0,
+      "output_tokens": 978,
+      "requested_output_token_ceiling": 6000
+    },
+    {
+      "stage": "team_interview_capture",
+      "model": "gpt-6-luna",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 27339,
+      "input_tokens": 9848,
+      "cached_tokens": 8581,
+      "output_tokens": 3517,
+      "requested_output_token_ceiling": 6500
+    },
+    {
+      "stage": "team_interview_capture",
+      "outcome": "error",
+      "error_category": "budget_reached",
+      "status": 429,
+      "duration_ms": 0,
+      "requested_output_token_ceiling": 12000
+    },
+    {
+      "stage": "team_interview_capture",
+      "outcome": "error",
+      "error_category": "budget_reached",
+      "status": 429,
+      "duration_ms": 0,
+      "requested_output_token_ceiling": 12000
+    },
+    {
+      "stage": "team_working_process_map",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 129612,
+      "input_tokens": 14079,
+      "cached_tokens": 0,
+      "output_tokens": 10157,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "document_context_review",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 19133,
+      "input_tokens": 8627,
+      "cached_tokens": 0,
+      "output_tokens": 1034,
+      "requested_output_token_ceiling": 6000
+    },
+    {
+      "stage": "document_context_review",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 10187,
+      "input_tokens": 8639,
+      "cached_tokens": 0,
+      "output_tokens": 810,
+      "requested_output_token_ceiling": 6000
+    },
+    {
+      "stage": "document_context_review",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 14521,
+      "input_tokens": 8037,
+      "cached_tokens": 0,
+      "output_tokens": 1174,
+      "requested_output_token_ceiling": 6000
+    },
+    {
+      "stage": "team_working_map_source_audit",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 61199,
+      "input_tokens": 9277,
+      "cached_tokens": 0,
+      "output_tokens": 4238,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "team_interview_capture",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 80284,
+      "input_tokens": 15711,
+      "cached_tokens": 0,
+      "output_tokens": 6148,
+      "requested_output_token_ceiling": 12000
+    },
+    {
+      "stage": "document_context_review",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 13226,
+      "input_tokens": 6815,
+      "cached_tokens": 0,
+      "output_tokens": 1028,
+      "requested_output_token_ceiling": 6000
+    },
+    {
+      "stage": "conversation_question",
+      "outcome": "error",
+      "error_category": "budget_reached",
+      "status": 429,
+      "duration_ms": 0,
+      "requested_output_token_ceiling": 600
+    },
+    {
+      "stage": "team_working_process_map",
+      "outcome": "error",
+      "error_category": "budget_reached",
+      "status": 429,
+      "duration_ms": 0,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "team_interview_capture",
+      "outcome": "error",
+      "error_category": "budget_reached",
+      "status": 429,
+      "duration_ms": 0,
+      "requested_output_token_ceiling": 12000
+    },
+    {
+      "stage": "document_context_review",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 8100,
+      "input_tokens": 12820,
+      "cached_tokens": 0,
+      "output_tokens": 490,
+      "requested_output_token_ceiling": 12000
+    },
+    {
+      "stage": "document_context_review",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 12055,
+      "input_tokens": 13481,
+      "cached_tokens": 0,
+      "output_tokens": 859,
+      "requested_output_token_ceiling": 12000
+    },
+    {
+      "stage": "conversation_question",
+      "model": "gpt-6-luna",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 2498,
+      "input_tokens": 7295,
+      "cached_tokens": 5826,
+      "output_tokens": 123,
+      "requested_output_token_ceiling": 600
+    },
+    {
+      "stage": "conversation_question",
+      "model": "gpt-6-luna",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 3155,
+      "input_tokens": 10146,
+      "cached_tokens": 5826,
+      "output_tokens": 208,
+      "requested_output_token_ceiling": 600
+    },
+    {
+      "stage": "conversation_question",
+      "model": "gpt-6-luna",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 2560,
+      "input_tokens": 7477,
+      "cached_tokens": 5826,
+      "output_tokens": 124,
+      "requested_output_token_ceiling": 600
+    },
+    {
+      "stage": "conversation_question",
+      "model": "gpt-6-luna",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 3553,
+      "input_tokens": 10437,
+      "cached_tokens": 5826,
+      "output_tokens": 208,
+      "requested_output_token_ceiling": 600
+    },
+    {
+      "stage": "conversation_question",
+      "model": "gpt-6-luna",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 3392,
+      "input_tokens": 8086,
+      "cached_tokens": 5826,
+      "output_tokens": 193,
+      "requested_output_token_ceiling": 600
+    },
+    {
+      "stage": "team_interview_capture",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 21384,
+      "input_tokens": 11057,
+      "cached_tokens": 0,
+      "output_tokens": 1737,
+      "requested_output_token_ceiling": 12000
+    },
+    {
+      "stage": "team_working_process_map",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 22930,
+      "input_tokens": 8887,
+      "cached_tokens": 0,
+      "output_tokens": 1846,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "team_working_process_map",
+      "outcome": "error",
+      "error_category": "budget_reached",
+      "status": 429,
+      "duration_ms": 0,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "conversation_question",
+      "outcome": "error",
+      "error_category": "budget_reached",
+      "status": 429,
+      "duration_ms": 0,
+      "requested_output_token_ceiling": 600
+    },
+    {
+      "stage": "team_working_process_map",
+      "outcome": "error",
+      "error_category": "budget_reached",
+      "status": 429,
+      "duration_ms": 0,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "conversation_question",
+      "model": "gpt-6-luna",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 7045,
+      "input_tokens": 10765,
+      "cached_tokens": 5826,
+      "output_tokens": 559,
+      "requested_output_token_ceiling": 600
+    },
+    {
+      "stage": "team_working_map_source_audit",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 9792,
+      "input_tokens": 9273,
+      "cached_tokens": 0,
+      "output_tokens": 721,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "team_interview_capture",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 63298,
+      "input_tokens": 14653,
+      "cached_tokens": 0,
+      "output_tokens": 5583,
+      "requested_output_token_ceiling": 12000
+    },
+    {
+      "stage": "team_working_process_map",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 68672,
+      "input_tokens": 11859,
+      "cached_tokens": 0,
+      "output_tokens": 5963,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "team_working_process_map",
+      "outcome": "error",
+      "error_category": "budget_reached",
+      "status": 429,
+      "duration_ms": 0,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "team_interview_capture",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 52970,
+      "input_tokens": 14460,
+      "cached_tokens": 0,
+      "output_tokens": 4661,
+      "requested_output_token_ceiling": 6500
+    },
+    {
+      "stage": "team_working_map_source_audit",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 37638,
+      "input_tokens": 16090,
+      "cached_tokens": 0,
+      "output_tokens": 3193,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "team_interview_capture",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 46709,
+      "input_tokens": 22167,
+      "cached_tokens": 0,
+      "output_tokens": 4067,
+      "requested_output_token_ceiling": 6500
+    },
+    {
+      "stage": "team_interview_capture",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 39780,
+      "input_tokens": 18204,
+      "cached_tokens": 0,
+      "output_tokens": 3419,
+      "requested_output_token_ceiling": 6500
+    },
+    {
+      "stage": "conversation_question",
+      "model": "gpt-6-luna",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 1788,
+      "input_tokens": 10302,
+      "cached_tokens": 5826,
+      "output_tokens": 45,
+      "requested_output_token_ceiling": 600
+    },
+    {
+      "stage": "conversation_question",
+      "model": "gpt-6-luna",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 3557,
+      "input_tokens": 10638,
+      "cached_tokens": 5826,
+      "output_tokens": 246,
+      "requested_output_token_ceiling": 600
+    },
+    {
+      "stage": "team_interview_capture",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 62004,
+      "input_tokens": 15157,
+      "cached_tokens": 0,
+      "output_tokens": 5494,
+      "requested_output_token_ceiling": 12000
+    },
+    {
+      "stage": "team_working_process_map",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 94210,
+      "input_tokens": 12039,
+      "cached_tokens": 0,
+      "output_tokens": 8407,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "team_working_map_source_audit",
+      "outcome": "error",
+      "error_category": "budget_reached",
+      "status": 429,
+      "duration_ms": 0,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "conversation_question",
+      "model": "gpt-6-luna",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 2034,
+      "input_tokens": 13173,
+      "cached_tokens": 5826,
+      "output_tokens": 45,
+      "requested_output_token_ceiling": 600
+    },
+    {
+      "stage": "team_interview_capture",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 40121,
+      "input_tokens": 23149,
+      "cached_tokens": 0,
+      "output_tokens": 3437,
+      "requested_output_token_ceiling": 6500
+    },
+    {
+      "stage": "team_interview_capture",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 38423,
+      "input_tokens": 25218,
+      "cached_tokens": 0,
+      "output_tokens": 3303,
+      "requested_output_token_ceiling": 6500
+    },
+    {
+      "stage": "team_working_process_map",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 48240,
+      "input_tokens": 18473,
+      "cached_tokens": 0,
+      "output_tokens": 3822,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "team_working_process_map",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 49910,
+      "input_tokens": 19451,
+      "cached_tokens": 0,
+      "output_tokens": 4359,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "team_working_process_map",
+      "outcome": "error",
+      "error_category": "budget_reached",
+      "status": 429,
+      "duration_ms": 0,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "team_working_map_source_audit",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 82931,
+      "input_tokens": 19173,
+      "cached_tokens": 0,
+      "output_tokens": 7379,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "working_process_map",
+      "outcome": "error",
+      "error_category": "timeout",
+      "status": 504,
+      "duration_ms": 120008,
+      "requested_output_token_ceiling": 22000
+    },
+    {
+      "stage": "team_interview_capture",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 54036,
+      "input_tokens": 18790,
+      "cached_tokens": 0,
+      "output_tokens": 4771,
+      "requested_output_token_ceiling": 12000
+    },
+    {
+      "stage": "team_working_process_map",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 94636,
+      "input_tokens": 10798,
+      "cached_tokens": 0,
+      "output_tokens": 8315,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "team_interview_capture",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 60994,
+      "input_tokens": 23117,
+      "cached_tokens": 0,
+      "output_tokens": 5413,
+      "requested_output_token_ceiling": 12000
+    },
+    {
+      "stage": "team_working_process_map",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 79612,
+      "input_tokens": 14051,
+      "cached_tokens": 0,
+      "output_tokens": 7096,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "team_interview_capture",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 59705,
+      "input_tokens": 17843,
+      "cached_tokens": 0,
+      "output_tokens": 5163,
+      "requested_output_token_ceiling": 12000
+    },
+    {
+      "stage": "team_working_process_map",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 97204,
+      "input_tokens": 10061,
+      "cached_tokens": 0,
+      "output_tokens": 8522,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "team_working_map_source_audit",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 56440,
+      "input_tokens": 16231,
+      "cached_tokens": 0,
+      "output_tokens": 4927,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "route_gap_repair",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 3551,
+      "input_tokens": 7195,
+      "cached_tokens": 0,
+      "output_tokens": 69,
+      "requested_output_token_ceiling": 10000
+    },
+    {
+      "stage": "team_interview_capture",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 63349,
+      "input_tokens": 24262,
+      "cached_tokens": 0,
+      "output_tokens": 5561,
+      "requested_output_token_ceiling": 12000
+    },
+    {
+      "stage": "team_working_process_map",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 127420,
+      "input_tokens": 14788,
+      "cached_tokens": 0,
+      "output_tokens": 11338,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "team_working_map_source_audit",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 102258,
+      "input_tokens": 25768,
+      "cached_tokens": 0,
+      "output_tokens": 9042,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "route_gap_repair",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 4659,
+      "input_tokens": 14221,
+      "cached_tokens": 0,
+      "output_tokens": 194,
+      "requested_output_token_ceiling": 10000
+    },
+    {
+      "stage": "team_working_process_map",
+      "outcome": "error",
+      "error_category": "budget_reached",
+      "status": 429,
+      "duration_ms": 0,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "team_interview_capture",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 70350,
+      "input_tokens": 22114,
+      "cached_tokens": 0,
+      "output_tokens": 6258,
+      "requested_output_token_ceiling": 12000
+    },
+    {
+      "stage": "team_working_process_map",
+      "outcome": "error",
+      "error_category": "budget_reached",
+      "status": 429,
+      "duration_ms": 0,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "team_interview_capture",
+      "model": "gpt-6.1-terra",
+      "outcome": "success",
+      "status": 200,
+      "duration_ms": 66171,
+      "input_tokens": 18555,
+      "cached_tokens": 0,
+      "output_tokens": 5871,
+      "requested_output_token_ceiling": 12000
+    },
+    {
+      "stage": "team_working_process_map",
+      "outcome": "error",
+      "error_category": "budget_reached",
+      "status": 429,
+      "duration_ms": 0,
+      "requested_output_token_ceiling": 24000
+    },
+    {
+      "stage": "team_interview_capture",
+      "outcome": "error",
+      "error_category": "budget_reached",
+      "status": 429,
+      "duration_ms": 0,
+      "requested_output_token_ceiling": 12000
+    },
+    {
+      "stage": "working_process_map",
+      "outcome": "error",
+      "error_category": "budget_reached",
+      "status": 429,
+      "duration_ms": 0,
+      "requested_output_token_ceiling": 22000
+    }
+  ]
+}

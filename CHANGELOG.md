@@ -9,6 +9,9 @@ working tree). See [docs/DESKTOP.md](docs/DESKTOP.md#which-build-is-running).
 
 ## Unreleased
 
+- Create draft reuses steps and routes that the server has checked against the interview sources. The first draft request asks for additions, material corrections and removals. A separate source review still checks the assembled draft. Earlier saved interviews and maps awaiting their check can still generate a full draft.
+- Hover over a control or focus it with the keyboard for a short explanation in the interview, review editors, maps, files and settings. Escape dismisses the hint.
+
 Fixes from the [final stress run of November 17](docs/testing/runs/2026-11-17-final-stress/README.md) (34 library processes and the built-in example through typed, file, recorded-voice and simulated live-voice interviews) and from closing what that run left open on November 18. Every one was checked against the AI service.
 
 - **Create draft is faster and no longer fails on long interviews.** The source check returns its corrections instead of writing the whole draft out again, and the page asks for the draft's first half when the participant wraps up (after a spoken interview too, without waiting for the map to catch up), so that Create draft waits only for the check. A 27-step interview's draft was ready 76 to 93 s after the click (260 s before); without the head start, 204 s. The check's time allowance and the draft's output allowance follow the size of the account, so the 60-step interview that used to be cut off now completes. A running time shows beside the status line. `DRAFT_PREPARE=off` turns the head start off.

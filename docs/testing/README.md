@@ -18,6 +18,7 @@ Three things live here. A new test needs the first two. The third is history.
 
 | Run | App commit | What it covered | Outcome |
 | --- | --- | --- | --- |
+| [2026-11-18 checked-map draft and contextual help](runs/2026-11-18-checked-draft/README.md) | `00cf9e3` | Same synthetic invoice interview through both first draft passes, full local suites and Chrome | First pass fell from 95.0 to 71.2 seconds in this case. Chrome verified map reuse, hover help and keyboard access. |
 | [2026-11-16 process capture](runs/2026-11-16-process-capture/README.md) | `eb80ffb` | 21 typed interviews and 10 upload variants | Thirteen findings, fixed in the following release. Its interviews and upload inputs are fixtures for several regression suites in `tests/`, so keep the folder where it is. |
 | [2026-11-17 stress](runs/2026-11-17-stress/README.md) | `04e6ee3` | 30 processes across typed, file, recorded-voice and live-voice interviews, plus concurrency and a prototype replay | Questions, voice and small files are fast; the diagram is slow and often missing. Led to the [diagram enhancement brief](../enhancements/diagram-speed-and-layout.md). |
 | [2026-11-17 map lanes](runs/2026-11-17-map-lanes/README.md) | first part of the diagram brief | Stand-in providers only: scheduling, cancellation, the difference a check reviews, and thirteen saved maps through the new rules | A map on screen after every answer and none cancelled in simulation. Timings and fidelity with the AI service are not measured. |

@@ -157,6 +157,18 @@ class RouteGapTests(unittest.TestCase):
         self.assertNotIn(question, repaired['open_questions'])
         self.assertEqual(server.route_gaps(steps, repaired['connections']), [])
 
+    def test_equivalent_owner_question_leaves_room_for_another_unreached_branch(self):
+        steps = [step('S1', 'Grant changes', 'start'), step('S2', 'File package', 'end'),
+                 step('S3', 'Select the option'), step('S4', 'Check the grant')]
+        edges = [edge('S1', 'S2'), edge('S3', 'S2'), edge('S4', 'S2')]
+        branches = []
+        required = server.workflow_structure_questions(steps, edges, branch_questions=branches)
+        self.assertEqual(len(branches), 2)
+        owner_question = branches[0].lower().replace('(', '').replace(')', '').rstrip('?') + '.'
+        existing = [owner_question, *required]
+        result = server.add_workflow_structure_questions(existing, steps, edges, maximum=len(existing) + 1)
+        self.assertEqual(result, [*existing, branches[1]])
+
     def test_full_saved_map_and_draft_registers_prioritize_existing_and_required_questions(self):
         turns = interview_payload()['turns']
         draft = process_draft()
@@ -175,7 +187,8 @@ class RouteGapTests(unittest.TestCase):
                 def checked(items):
                     return validate({**copy.deepcopy(artifact), 'open_questions': list(items)}, turns)['open_questions']
                 self.assertEqual(checked(register), register)
-                self.assertEqual(checked(register[1:]), register)
+                # The saved entries keep their order, followed by the missing clarification.
+                self.assertEqual(checked(register[1:]), [*register[1:], register[0]])
                 self.assertTrue(any('its own trigger' in q for q in checked(register[:-1])))
                 with self.assertRaises(ValueError):
                     checked(['A separate saved question?', *register])

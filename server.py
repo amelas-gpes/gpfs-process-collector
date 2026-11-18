@@ -3701,6 +3701,18 @@ def _question_words(question):
     return " ".join(re.findall(r"[^\W_]+", str(question).casefold()))
 
 
+def _new_workflow_questions(existing, questions):
+    """Keep each new question once, allowing for differences in punctuation and case."""
+    known = {_question_words(question) for question in existing}
+    added = []
+    for question in questions:
+        words = _question_words(question)
+        if words not in known:
+            known.add(words)
+            added.append(question)
+    return added
+
+
 def add_workflow_questions(existing, questions, maximum=100):
     """Add the application's own questions about the map after the questions already there.
 
@@ -3710,11 +3722,7 @@ def add_workflow_questions(existing, questions, maximum=100):
     """
     # The same question is one entry whatever its punctuation: a reviewer writes "step S29, Track
     # overdue cases, connect" and the application "step S29 (Track overdue cases) connect".
-    known, added = {_question_words(question) for question in existing}, []
-    for question in dict.fromkeys(questions):
-        if _question_words(question) not in known:
-            known.add(_question_words(question))
-            added.append(question)
+    added = _new_workflow_questions(existing, questions)
     if len(existing) > maximum:
         raise ValueError(f"The map contains more than {maximum} open questions.")
     if len(added) + len(existing) <= maximum:
@@ -3733,7 +3741,7 @@ def add_workflow_structure_questions(existing, steps, connections, extra=(), max
     required = workflow_structure_questions(steps, connections, branch_questions=branches)
     register = add_workflow_questions(existing, [*required, *extra], maximum)
     available = maximum - len(register)
-    return register + [question for question in branches if question not in register][:available]
+    return register + _new_workflow_questions(register, branches)[:available]
 
 
 def route_key(edge):

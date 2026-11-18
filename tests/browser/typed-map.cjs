@@ -47,7 +47,11 @@ const {chromium}=require(process.env.COLLECTOR_PLAYWRIGHT||"playwright");
   assert.deepEqual(result.draft.steps.map(identity),checkedMap.steps.map(identity));
   assert.deepEqual(result.draft.connections,checkedMap.connections);
   await page.locator("#review-heading").waitFor({state:"visible"});
+  await page.locator("#review-tab-map").click();
+  await page.locator("#process-map [data-step-id]").nth(2).waitFor();
+  await page.waitForFunction(()=>document.getElementById("process-map").getAttribute("aria-busy")==="false");
+  assert.equal(await page.locator("#map-gaps").isVisible(),false,"A connected draft has no empty warning after its diagram finishes drawing.");
   assert.deepEqual(errors,[]);
-  console.log(JSON.stringify({checks_passed:9,first,second,third,diagram,draft_steps:result.draft.steps.length,provider_calls:0,real_browser:true}));
+  console.log(JSON.stringify({checks_passed:10,first,second,third,diagram,draft_steps:result.draft.steps.length,provider_calls:0,real_browser:true}));
  }finally{await browser.close();child.kill();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

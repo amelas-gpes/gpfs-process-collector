@@ -6018,7 +6018,13 @@
       viewport.setAttribute("aria-busy",String(info.updating===true));
       const status=$(id==="live-workflow"?"workflow-status":"map-gaps");
       if(status&&info.updating&&!info.hasGraph&&!status.textContent){status.hidden=false;status.textContent="Drawing the map…";status.dataset.drawing="true";}
-      if(status?.dataset.drawing&&!info.updating){delete status.dataset.drawing;if(status.textContent==="Drawing the map…")status.textContent="";}
+      if(status?.dataset.drawing&&!info.updating){
+        delete status.dataset.drawing;
+        if(status.textContent==="Drawing the map…"){
+          status.textContent="";
+          if(id==="process-map")status.hidden=true;
+        }
+      }
     }
     const tools=$(prefix+"-diagram-tools");
     if(tools){

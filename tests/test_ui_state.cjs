@@ -57,7 +57,7 @@ const elementTags=new Map([...pageHTML.matchAll(/<(\w+)[^>]*?\sid="([^"]+)"[^>]*
 function mount(id,tag="div",parent=document.body){const node=new Element(elementTags.get(id)||tag);node.id=id;parent.append(node);return node;}
 const interview=mount("interview-view"),review=mount("review-view"),current=mount("current-question","div",interview),history=mount("conversation-history","div",interview),scroll=mount("conversation-scroll","div",history);
 mount("transcript","div",scroll);mount("transcript-dock-host","div",scroll);mount("history-count","span",history);
-for(const id of ["coverage-list","coverage-count","coverage-progress","working-summary","summary-text","parking-panel","parking-count","parking-list","notice-text","global-notice","live-status","answer-text"])mount(id,"div",interview);
+for(const id of ["coverage-list","coverage-meter","coverage-count","coverage-fraction","coverage-progress","working-summary","summary-text","parking-panel","parking-count","parking-list","notice-text","global-notice","live-status","answer-text"])mount(id,"div",interview);
 const setup=mount("setup-card","details",interview),form=mount("context-form","form",setup),settings=mount("interview-settings","dialog"),contextDetails=mount("context-details","details",settings);mount("process-name","input",form);
 const memoSheet=mount("memo-sheet","dialog"),memoBody=mount("memo-sheet-body","div",memoSheet);mount("open-memo","button",interview);
 const stepDialog=mount("workflow-step-dialog","dialog");for(const id of ["workflow-step-title","workflow-step-kind","workflow-step-content"])mount(id,"div",stepDialog);
@@ -613,7 +613,7 @@ if(process.argv.includes("--usability-only")){
   t.setRequest(async()=>memoResult("Current paper flow"));await t.refreshWorkflow();
   assert.equal(t.conversationUI.workflow.title,"Current paper flow");assert.equal(t.state.memo_findings.find(finding=>finding.key==="trigger").answer,"A paper invoice arrives by post.");
   assert.equal(t.state.coverage.find(item=>item.key==="trigger").status,"covered");assert.equal(t.state.summary,"Paper invoices are received by post.");assert.equal(t.state.focus,"Who opens incoming post");assert.equal(t.state.parking_lot[0],"Digital invoice intake is separate.");
-  assert.equal(document.getElementById("coverage-count").textContent,"1 / 16");assert.equal(document.querySelector('[data-foundation-topic="trigger"]').classList.contains("covered"),true);
+  assert.equal(document.getElementById("coverage-count").textContent,"6%");assert.equal(document.querySelector('[data-foundation-topic="trigger"]').classList.contains("covered"),true);
   assert.equal(dialog.open,true);assert.equal(document.getElementById("foundation-topic-answer").textContent,"A paper invoice arrives by post.","An open memo topic must reflect accepted live coverage updates");
   assert.equal(t.state.draft,edited);assert.equal(t.state.draftEdited,true);assert.equal(t.state.closure,closure,"Live coverage must not imply participant completeness confirmation");t.closeFoundationTopic();passes++;
  }
@@ -639,7 +639,7 @@ if(process.argv.includes("--usability-only")){
  {
   checkpoint();t.conversationUI.applied=-1;let complete;t.setRequest(()=>new Promise(resolve=>complete=resolve));const pending=t.refreshWorkflow();t.clearState();const clearedMemo=memoSnapshot();
   complete(memoResult("Prior interview memo"));await pending;
-  assert.equal(t.conversationUI.workflow,null);assert.equal(memoSnapshot(),clearedMemo,"A cleared interview must ignore late memo coverage from an older session");assert.equal(document.getElementById("coverage-count").textContent,"0 / 16");passes++;
+  assert.equal(t.conversationUI.workflow,null);assert.equal(memoSnapshot(),clearedMemo,"A cleared interview must ignore late memo coverage from an older session");assert.equal(document.getElementById("coverage-count").textContent,"0%");passes++;
  }
  {
   checkpoint();t.state.turns=[{id:"t001",role:"assistant",text:"What starts the work?"},{id:"t002",role:"user",text:"A paper invoice arrives."}];t.state.context={process_name:"Invoices"};t.renderTranscript();
@@ -743,7 +743,7 @@ if(process.argv.includes("--usability-only")){
   checkpoint();document.getElementById("global-notice").hidden=true;t.state.turns=[{id:"t002",role:"user",text:"Reported process facts."}];
   const findings=completeFindings();if(incomplete==="missing")findings.pop();else findings[5].status=incomplete;
   t.applyInterview(interviewResult(findings));assert.equal(document.getElementById("global-notice").hidden,true,`Model readiness must not surface an enough-detail notification with a ${incomplete} topic`);
-  assert.notEqual(document.getElementById("coverage-count").textContent,"16 / 16",`An explicit ${incomplete} finding must not display a full coverage circle from a contradictory model coverage flag`);passes++;
+  assert.notEqual(document.getElementById("coverage-count").textContent,"100%",`An explicit ${incomplete} finding must not display a full coverage circle from a contradictory model coverage flag`);passes++;
  }
  {
   checkpoint();document.getElementById("global-notice").hidden=true;t.state.turns=[{id:"t002",role:"user",text:"Reported process facts."}];
@@ -757,7 +757,7 @@ if(process.argv.includes("--usability-only")){
  {
   checkpoint();t.state.turns=[{id:"t002",role:"user",text:"Reported process facts."}];t.state.context={process_name:"Invoices"};t.conversationUI.applied=-1;t.conversationUI.readyAnnounced=false;
   document.getElementById("global-notice").hidden=true;t.setRequest(async()=>({...memoResult("Complete live process"),memo_findings:completeFindings(),coverage:memoKeys.map(key=>({key,status:"covered"}))}));
-  await t.refreshWorkflow();assert.equal(document.getElementById("coverage-count").textContent,"16 / 16");assert.equal(document.getElementById("global-notice").hidden,false,"The live workflow/memo path must announce full coverage without relying on a typed-interview readiness flag");
+  await t.refreshWorkflow();assert.equal(document.getElementById("coverage-count").textContent,"100%");assert.equal(document.getElementById("global-notice").hidden,false,"The live workflow/memo path must announce full coverage without relying on a typed-interview readiness flag");
   assert.match(document.getElementById("notice-text").textContent,/all 16|enough detail/i);passes++;
  }
  {
@@ -905,7 +905,7 @@ if(process.argv.includes("--usability-only")){
  {
   checkpoint();t.clearState();const before=t.conversationUI.revision;t.onDocumentEvent({type:"received",document:fileRecord()});
   assert.equal(t.state.turns.length,0,"A per-file receipt must not create a second acknowledgement or interview turn");assert.equal(t.state.dirty,true);
-  assert.equal(document.getElementById("coverage-count").textContent,"0 / 16");assert.equal(t.conversationUI.revision,before);assert.equal(t.documentContext().current_question,"");passes++;
+  assert.equal(document.getElementById("coverage-count").textContent,"0%");assert.equal(t.conversationUI.revision,before);assert.equal(t.documentContext().current_question,"");passes++;
  }
  {
   checkpoint();const base=[{id:"t002",role:"user",text:"A confirmed participant answer."},{id:"t003",role:"assistant",text:"A newer interview question?"}];
@@ -921,7 +921,7 @@ if(process.argv.includes("--usability-only")){
   checkpoint();t.clearState();t.ensureConversation();t.state.turns=[{id:"t002",role:"user",text:"A participant answer."},{id:"t003",role:"assistant",text:"The original question?"}];
   const file=fileRecord();file.analysis={...file.analysis,basis_turn_id:"t002",basis_question:"The original question?",acknowledgement:"I reviewed the reference.",question:"Does that match what you do?"};
   t.onDocumentEvent({type:"analysis",document:file});const count=t.state.turns.length;t.onDocumentEvent({type:"analysis",document:file});
-  assert.equal(count,2,"An intermediate analysis question must wait for the completed document baseline");assert.equal(t.state.turns.length,count);assert.equal(t.state.turns.at(-1).text,"The original question?");assert.equal(t.state.turns.filter(turn=>turn.role==="user").length,1);assert.equal(document.getElementById("coverage-count").textContent,"0 / 16");passes++;
+  assert.equal(count,2,"An intermediate analysis question must wait for the completed document baseline");assert.equal(t.state.turns.length,count);assert.equal(t.state.turns.at(-1).text,"The original question?");assert.equal(t.state.turns.filter(turn=>turn.role==="user").length,1);assert.equal(document.getElementById("coverage-count").textContent,"0%");passes++;
  }
  {
   checkpoint();t.clearState();t.ensureConversation();const docs=fakeDocuments();t.setDocumentController(docs);const beforeTurns=[{id:"t002",role:"user",text:"An actual participant answer."},{id:"t003",role:"assistant",text:"The saved current question?"}];t.state.turns=JSON.parse(JSON.stringify(beforeTurns));
@@ -1342,11 +1342,11 @@ if(process.argv.includes("--usability-only")){
   await t.importSession({size:raw.length,text:async()=>raw});
   assert.equal(review.hidden,false,"A saved draft without a pending reply still opens in Review");
   assert.equal(calls,0);assert.equal(workflowTimers().length,0,"Opening a file must not schedule automatic provider analysis");assert.equal(JSON.stringify(saved),raw,"The supplied source remains unchanged");assert.equal(t.state.closure.confirmed,false);assert.equal(t.state.coverageNeedsReview,true);
-  assert.equal(t.state.memo_findings.every(item=>item.status==="partial"),true);assert.deepEqual(Array.from(t.state.draft.memo_summary,row=>row.status),Array.from(saved.draft.memo_summary,row=>row.status));assert.equal(t.state.coverage.every(item=>item.status!=="covered"),true);assert.equal(document.getElementById("coverage-count").textContent,"0 / 16");
+  assert.equal(t.state.memo_findings.every(item=>item.status==="partial"),true);assert.deepEqual(Array.from(t.state.draft.memo_summary,row=>row.status),Array.from(saved.draft.memo_summary,row=>row.status));assert.equal(t.state.coverage.every(item=>item.status!=="covered"),true);assert.equal(document.getElementById("coverage-count").textContent,"0%");
   assert.deepEqual(JSON.parse(JSON.stringify(t.state.memo_findings.map(({key,answer,evidence_turns})=>({key,answer,evidence_turns})))),findings.map(({key,answer,evidence_turns})=>({key,answer,evidence_turns})));assert.equal(t.sessionObject().draft_stale,true,"A saved draft with no draft_stale flag reopens as out of date");
   assert.match(document.getElementById("notice-text").textContent,/provisional.*Recheck coverage/);assert.equal(document.getElementById("retry-workflow").hidden,false);assert.equal(document.getElementById("retry-workflow").textContent,"Recheck coverage");passes++;
   t.setRequest(async(_path,_payload,options)=>{calls++;assert.equal(options.timeout,330000);return {workflow:graph("Reviewed process"),memo_findings:findings,coverage:[],summary:"Preserve the reported account.",focus:"",parking_lot:[],coverage_assessment:{all_topics_covered:true,topics:[]}};});
-  await t.refreshWorkflow();assert.equal(calls,1);assert.equal(t.state.coverageNeedsReview,false);assert.equal(document.getElementById("coverage-count").textContent,"16 / 16");assert.equal(t.state.closure.confirmed,false,"Rechecking topic coverage cannot manufacture a new participant confirmation");assert.equal(document.getElementById("retry-workflow").dataset.coverageRecheck,undefined);t.clearState();passes++;
+  await t.refreshWorkflow();assert.equal(calls,1);assert.equal(t.state.coverageNeedsReview,false);assert.equal(document.getElementById("coverage-count").textContent,"100%");assert.equal(t.state.closure.confirmed,false,"Rechecking topic coverage cannot manufacture a new participant confirmation");assert.equal(document.getElementById("retry-workflow").dataset.coverageRecheck,undefined);t.clearState();passes++;
  }
  {
   checkpoint();t.clearState();t.state.started=true;t.state.context={process_name:"Incomplete review"};t.state.config={api_configured:true,speech:{enabled:false}};t.state.turns=[{id:"t002",role:"user",text:"A paper invoice arrives by post."}];let calls=0;
@@ -1404,9 +1404,9 @@ if(process.argv.includes("--usability-only")){
   checkpoint();t.state.config={api_configured:true,agent_team:{enabled:true},speech:{enabled:false}};t.state.started=true;t.state.context={process_name:"Review test"};
   t.state.turns=[{id:"t002",role:"user",text:"A definite reported process account."}];t.state.memo_findings=["name","purpose","trigger","completion","accountable","lifecycle","checks","variations","pain_points","risk","materials","scope","rules","connections","data_systems","volume"].map(key=>({key,status:"captured",answer:"A definite reported detail.",evidence_turns:["t002"]}));
   // The headline counts captured topics before the review (tests/test_coverage_headline.cjs); "covered" on a topic still waits for it.
-  t.state.coverageVerified=false;t.renderCoverage();assert.equal(document.getElementById("coverage-count").textContent,"16 / 16");assert.equal(document.getElementById("coverage-summary").textContent,"","The line under the bar does not repeat the figure");assert.match(document.getElementById("memo-next").textContent,/Wrap up for the final check/);
+  t.state.coverageVerified=false;t.renderCoverage();assert.equal(document.getElementById("coverage-count").textContent,"100%");assert.equal(document.getElementById("coverage-summary").textContent,"","The line under the bar does not repeat the figure");assert.match(document.getElementById("memo-next").textContent,/Wrap up for the final check/);
   const topic=document.querySelector('[data-foundation-topic="name"]');assert.equal(topic.classList.contains("covered"),false);assert.equal(topic.querySelector(".coverage-state").textContent,"Captured");assert.match(topic.title,/awaiting review/,"The row's full state stays in its tooltip");t.showFoundationTopic("name",topic);assert.match(document.getElementById("foundation-topic-status").textContent,/awaiting review/);t.closeFoundationTopic(false);
-  t.state.coverageVerified=true;t.renderCoverage();assert.equal(document.getElementById("coverage-count").textContent,"16 / 16");assert.equal(document.querySelector('[data-foundation-topic="name"]').classList.contains("covered"),true);passes++;
+  t.state.coverageVerified=true;t.renderCoverage();assert.equal(document.getElementById("coverage-count").textContent,"100%");assert.equal(document.querySelector('[data-foundation-topic="name"]').classList.contains("covered"),true);passes++;
   t.state.captureToken="opaque-server-capability";assert.equal(t.snapshot().capture_token,"opaque-server-capability");assert.ok(!JSON.stringify(t.sessionObject()).includes("opaque-server-capability"),"Server review capabilities must not be persisted in saved files");passes++;
   t.conversationUI.revision=20;t.conversationUI.applied=0;t.conversationUI.flowBusy=false;t.conversationUI.live=null;t.state.busy=false;t.conversationUI.view="voice";checkpoint();t.scheduleWorkflow();assert.equal(workflowTimers().length,1,"Ordinary turns schedule the map alongside the lead, whichever view is open");
   checkpoint();t.state.busy=true;t.scheduleWorkflow();assert.equal(workflowTimers().length,1,"A lead turn in progress does not postpone the concurrent map");t.state.busy=false;
@@ -1436,7 +1436,7 @@ if(process.argv.includes("--usability-only")){
   assert.equal(t.state.advisory.trigger.complete,true);
   let item=document.querySelector('[data-foundation-topic="trigger"]');assert.equal(item.querySelector(".coverage-state").textContent,"Captured");assert.equal(item.classList.contains("advisory-ok"),true);assert.match(item.title,/advisory check found no gaps/);
   assert.equal(item.classList.contains("covered"),false,"An advisory check never counts as official coverage");assert.equal(item.querySelector(".coverage-dot").textContent,"·","A pre-checked topic gets a dot, never the tick of a reviewed one");
-  assert.equal(document.getElementById("coverage-count").textContent,"1 / 16","The headline counts the captured topic; it is not a count of reviewed topics");
+  assert.equal(document.getElementById("coverage-count").textContent,"6%","The headline counts the captured topic; it is not a count of reviewed topics");
   assert.equal(document.getElementById("coverage-summary").textContent,"1 pre-checked");
   t.showFoundationTopic("trigger",item);assert.match(document.getElementById("foundation-topic-status").textContent,/pre-checked/);t.closeFoundationTopic(false);
   // Topics already pre-checked for the same answer are not checked again; a changed answer loses its mark.

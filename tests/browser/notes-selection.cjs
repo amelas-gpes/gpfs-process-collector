@@ -70,8 +70,14 @@ async function exercise(browser, url, width) {
       state.consolidation = [];
       renderCoverage();
     });
+    const meter=page.getByRole("progressbar",{name:"Topic coverage",exact:true});
+    const arc=page.locator("#coverage-progress");
+    assert.equal(await meter.getAttribute("aria-valuenow"), "0");
+    assert.equal(await arc.evaluate(node=>parseFloat(getComputedStyle(node).strokeDashoffset)), 100);
+    const animateRing=width===1280;
+    if (animateRing) await page.emulateMedia({reducedMotion:"no-preference"});
     await clickAcrossUpdate(page, async () => {
-      await page.evaluate(({nameAnswer, purposeAnswer}) => {
+      const swept=await page.evaluate(async ({nameAnswer, purposeAnswer}) => {
         const {state, rememberDiscussion, renderCoverage} = window.notesFixture;
         state.turns.push({id:"t002",role:"user",text:purposeAnswer});
         state.memo_findings = [
@@ -81,9 +87,16 @@ async function exercise(browser, url, width) {
         state.advisory.purpose = {answer:purposeAnswer,complete:false,gaps:["Clarify the result."],next_question:""};
         rememberDiscussion({}, {turns:state.turns}, []);
         renderCoverage();
+        const transition=document.getElementById("coverage-progress").getAnimations().find(item=>item.transitionProperty==="stroke-dashoffset");
+        if (transition) await transition.finished;
+        return Boolean(transition);
       }, {nameAnswer, purposeAnswer});
+      assert.equal(swept,animateRing,"The ring sweeps only when motion is enabled");
       assert.match(await page.locator("#analysis-through").textContent(), /Notes include all 1 saved answer/);
-      assert.equal(await page.locator("#coverage-count").innerText(), "1 / 16");
+      assert.equal(await page.locator("#coverage-count").innerText(), "6%");
+      assert.equal(await meter.getAttribute("aria-valuetext"), "1 of 16 topics captured (6%)");
+      assert.equal(await arc.evaluate(node=>parseFloat(getComputedStyle(node).strokeDashoffset)), 93.75);
+      if (animateRing) await page.emulateMedia({reducedMotion:"reduce"});
     });
     await clickAcrossUpdate(page, async () => {
       await page.evaluate(() => {

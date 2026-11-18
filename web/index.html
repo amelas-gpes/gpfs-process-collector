@@ -75,7 +75,7 @@
       <div class="interview-main">
         <div class="workspace-toolbar">
           <section id="setup-card" class="setup-card"><form id="context-form"><label for="process-name">Process name</label><input id="process-name" name="process_name" maxlength="180" placeholder="Untitled process" aria-label="Process name" title="Rename this process" autocomplete="off" dir="auto"></form><h1 id="setup-summary" class="sr-only">Your process</h1></section>
-          <button class="memo-toggle" id="open-memo" aria-haspopup="dialog" aria-controls="memo-sheet" data-icon="memo" aria-label="Open Workspace for notes, summary and assets" title="Notes, summary and uploaded assets"><span class="memo-toggle-label">Workspace</span><span id="coverage-mobile-count">0/16</span></button>
+          <button class="memo-toggle" id="open-memo" aria-haspopup="dialog" aria-controls="memo-sheet" data-icon="memo" aria-label="Open Workspace for notes, summary and assets" aria-describedby="coverage-mobile-count coverage-fraction" title="Notes, summary and uploaded assets"><span class="memo-toggle-label">Workspace</span><span id="coverage-mobile-count">0%</span></button>
           <div class="toolbar-end"><nav class="conversation-switch" role="tablist" aria-label="Conversation view">
             <button type="button" id="conversation-tab-voice" aria-description="See the current question and speak with the interviewer." role="tab" aria-selected="true" aria-controls="voice-panel" tabindex="0" data-conversation-view="voice" data-icon="wave">Voice</button>
             <button type="button" id="conversation-tab-transcript" aria-description="Read the conversation in order and enter a reply." role="tab" aria-selected="false" aria-controls="transcript-panel" tabindex="-1" data-conversation-view="transcript" data-icon="lines">Transcript <span id="transcript-count" class="sr-only"></span></button>
@@ -94,12 +94,24 @@
           <div class="stage-content">
             <div id="voice-panel" class="conversation-view voice-stage" role="tabpanel" aria-labelledby="conversation-tab-voice" tabindex="0">
               <div class="gpfs-presence" id="gpfs-presence" data-state="idle" aria-hidden="true"><img class="gpfs-fallback" src="/assets/gpfs-symbol.svg" alt=""></div>
-              <div class="voice-copy"><div id="welcome"><h2>Let’s document your process.</h2></div><p class="presence-status" id="presence-status" role="status">Ready when you are</p><p class="presence-caption" id="presence-caption">Talk through the steps or drop in a file. You’ll get a workflow and a draft to review.</p><div id="current-question" class="current-question active-only" role="region" aria-label="Current question" aria-live="off"></div></div>
+              <div class="voice-copy">
+                <div id="welcome">
+                  <h2>Let's Document Your Process</h2>
+                  <button type="button" id="welcome-upload" aria-labelledby="welcome-choose" aria-describedby="welcome-file-use welcome-formats" disabled>
+                    <span class="welcome-upload-art" aria-hidden="true"><svg id="welcome-document-art" viewBox="-51 -116 100 112" focusable="false"></svg></span>
+                    <span class="welcome-upload-copy">
+                      <strong>Start with your documents</strong>
+                      <span id="welcome-file-use">AI reviews your files and asks about the gaps.</span>
+                      <span class="welcome-upload-actions"><span id="welcome-choose" data-icon="folder"><span class="welcome-pick-label">Choose files</span><span class="welcome-release-label">Release to add files</span></span><span class="welcome-drop-hint">or drag them here</span></span>
+                    </span>
+                    <span id="welcome-formats"></span>
+                  </button>
+                </div>
+                <p class="presence-status" id="presence-status" role="status">Ready when you are</p>
+                <div id="current-question" class="current-question active-only" role="region" aria-label="Current question" aria-live="off"></div>
+              </div>
               <div class="configuration-status" id="configuration-status" hidden><p id="configuration-message"></p><button id="retry-config" aria-description="Check whether the interview service is available." class="text-button" type="button">Check configuration</button></div>
-              <button type="button" id="welcome-example" aria-description="Explore a fictional invoice approval interview and its draft." aria-label="Open example workflow: Invoice approval">
-                <span id="welcome-example-art" class="example-art" aria-hidden="true"></span>
-                <span class="example-card-caption"><span class="example-card-copy"><span>Example workflow</span><strong>Invoice approval</strong></span><span class="example-card-arrow" data-icon="arrow-right" aria-hidden="true"></span></span>
-              </button>
+              <button type="button" id="welcome-example" class="text-button" data-icon-end="arrow-right" aria-description="Explore a fictional invoice approval interview and its draft.">See an example workflow</button>
             </div>
             <div id="transcript-panel" class="conversation-view" role="tabpanel" aria-labelledby="conversation-tab-transcript" tabindex="0" hidden>
               <div id="conversation-history" class="conversation-history">
@@ -170,7 +182,7 @@
               <div class="workflow-update"><p class="workflow-status" id="workflow-status" role="status"></p><button class="text-button small" id="retry-workflow" aria-description="Build the working map again from the captured answers." type="button" data-icon="refresh" hidden>Try again</button></div>
             </div>
           </div>
-          <div id="conversation-dock-host"><div id="conversation-dock" class="conversation-dock"><div class="thinking" id="thinking" hidden><span class="pulse-dot"></span><span id="thinking-text">Thinking…</span><span id="thinking-elapsed" class="elapsed" aria-hidden="true" hidden></span><button type="button" class="text-button" id="pause-completion-review" aria-description="Pause the check of whether the interview is ready to wrap up." hidden>Pause review</button></div>
+          <div id="conversation-dock-host"><div id="conversation-dock" class="conversation-dock"><p class="welcome-alternative">Or start without files</p><div class="thinking" id="thinking" hidden><span class="pulse-dot"></span><span id="thinking-text">Thinking…</span><span id="thinking-elapsed" class="elapsed" aria-hidden="true" hidden></span><button type="button" class="text-button" id="pause-completion-review" aria-description="Pause the check of whether the interview is ready to wrap up." hidden>Pause review</button></div>
           <div class="speech-status" id="speech-status" hidden><span id="speech-status-text"></span><button type="button" class="text-button small" id="stop-reading" data-icon="x" title="Stop reading aloud (Esc)">Stop reading</button></div>
           <div class="composer-area" id="composer-area" hidden>
             <p class="dock-question" id="dock-question" hidden><span class="dock-question-label">Current question</span><span id="dock-question-text"></span></p>
@@ -193,8 +205,24 @@
         </nav>
         <section id="memo-panel-notes" class="memo-panel" role="tabpanel" aria-labelledby="memo-tab-notes" tabindex="0">
           <div class="coverage-overview">
-            <div class="coverage-heading"><span>Topics captured</span><span class="coverage-figure"><small id="coverage-check" class="coverage-check" role="status"></small><span id="coverage-count" aria-description="Topics captured so far out of the full set of interview topics.">0 / 16</span></span></div>
-            <div class="coverage-track" aria-hidden="true"><span id="coverage-progress"></span></div>
+            <div id="coverage-meter" role="progressbar" aria-labelledby="coverage-label" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="0 of 16 topics captured (0%)">
+              <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+                <defs>
+                  <mask id="coverage-segments" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
+                    <circle id="coverage-divisions" cx="32" cy="32" r="27" pathLength="16" fill="none" stroke="white" stroke-width="9" stroke-dasharray=".84 .16"></circle>
+                  </mask>
+                </defs>
+                <g transform="rotate(-90 32 32)" mask="url(#coverage-segments)" fill="none" stroke-width="5.5">
+                  <circle class="coverage-ring-track" cx="32" cy="32" r="27"></circle>
+                  <circle id="coverage-progress" cx="32" cy="32" r="27" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"></circle>
+                </g>
+              </svg>
+              <span id="coverage-count" aria-hidden="true">0%</span>
+            </div>
+            <div class="coverage-copy">
+              <div class="coverage-heading"><span id="coverage-label">Topic coverage</span><small id="coverage-check" class="coverage-check" role="status"></small></div>
+              <span id="coverage-fraction">0 of 16 topics captured</span>
+            </div>
           </div>
           <div class="memo-scroll"><div id="foundation-details"><div id="coverage-list" class="coverage-list" aria-label="Topics"></div></div></div>
           <div class="memo-updates">
@@ -463,7 +491,7 @@
         </section>
         <section id="help-guide" class="settings-panel" data-settings-panel role="tabpanel" aria-labelledby="settings-tab-help" tabindex="0" hidden>
           <header class="settings-section-heading"><h3>How this works</h3><p>A useful process document starts with your account of how the work gets done.</p></header>
-          <ol class="settings-guide"><li><span>01</span><div><h4>Tell the story</h4><p>Talk or type about a process. Describe what starts the work, who does it and how you know it is complete. Add files when they help.</p></div></li><li><span>02</span><div><h4>Connect the details</h4><p>Open a topic in Notes to see what is known, what still needs an answer and which sources support it.</p></div></li><li><span>03</span><div><h4>Review it together</h4><p>Choose Wrap up to check the account. You can add details, confirm the final omissions question when it appears, or save a partial draft for follow-up.</p></div></li></ol>
+          <ol class="settings-guide"><li><span>01</span><div><h4>Tell the story</h4><p>Talk or type about a process. Describe what starts the work, who does it and how you know it is complete. Add files when they help.</p></div></li><li><span>02</span><div><h4>Connect the details</h4><p>A topic circle fills when the notes capture an answer or you confirm why the topic doesn’t apply. Each filled circle adds one segment to Topic coverage. Open any circle to see the evidence and what still needs an answer.</p></div></li><li><span>03</span><div><h4>Review it together</h4><p>Choose Wrap up to check the account. You can add details, confirm the final omissions question when it appears, or save a partial draft for follow-up.</p></div></li></ol>
           <section class="settings-help-note settings-done-guide" aria-labelledby="definition-of-done"><h4 id="definition-of-done" tabindex="-1">Definition of done</h4>
             <p>The interview is done when someone can follow the work from its trigger to its finish, the app has reviewed all 16 topics and the participant confirms the account. The process owner then reviews it for approval.</p>
             <p><strong>Keep asking</strong> when an answer could change how someone performs, checks, releases or closes the work. For a client variation, establish what changes. For an overview, identify which detailed process owns the finish.</p>

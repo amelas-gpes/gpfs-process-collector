@@ -22,6 +22,66 @@ async function localServer() {
   }
 }
 
+async function checkWelcomeUpload(context, url, width) {
+  const page = await context.newPage();
+  try {
+    await page.setViewportSize({width, height:820});
+    await page.goto(url);
+    const upload = page.locator("#welcome-upload");
+    await page.waitForFunction(() => document.querySelector("#welcome-upload")?.disabled === false);
+    assert(await page.getByRole("heading",{name:"Let's Document Your Process",exact:true}).isVisible());
+    await page.emulateMedia({reducedMotion:"no-preference"});
+    await page.locator("#gpfs-presence .gpfs-symbol").hover();
+    await page.waitForFunction(() => Number(document.querySelector("#gpfs-presence").style.getPropertyValue("--hover")) > 0.1);
+    const box = await upload.boundingBox();
+    assert(box && box.x >= 0 && box.x + box.width <= width && box.y + box.height <= 820,
+      `Welcome upload fits in the initial ${width}px view`);
+    for (const id of ["start-live", "type-instead"]) {
+      const start = page.locator("#" + id);
+      assert(await start.isVisible() && await start.isEnabled(), id + " is available without a file");
+    }
+    const choose = () => Promise.all([page.waitForEvent("filechooser"), upload.press("Enter")]).then(([chooser]) => chooser);
+    const canceled = await choose();
+    assert(canceled.isMultiple());
+    await canceled.setFiles([]);
+    assert(await upload.isVisible(), "Canceling the chooser leaves the interview unopened");
+    assert.equal(await page.locator("#document-intake-panel").isVisible(), false);
+
+    const drag = await page.evaluateHandle(() => {
+      const transfer = new DataTransfer();
+      transfer.items.add(new File(["Role,Step"], "checklist.csv", {type:"text/csv"}));
+      return transfer;
+    });
+    await upload.dispatchEvent("dragenter", {dataTransfer:drag});
+    assert(await page.getByRole("button",{name:"Release to add files",exact:true}).isVisible());
+    assert.equal(await page.locator(".document-drop-overlay").isVisible(), false);
+    await page.keyboard.press("Escape");
+    assert(await page.getByRole("button",{name:"Choose files",exact:true}).isVisible());
+    await drag.dispose();
+
+    const chooser = await choose();
+    const fileName = "fictional-invoice-intake.csv";
+    const [receipt, followup] = await Promise.all([
+      page.waitForResponse(response => response.url().endsWith("/api/documents/upload")),
+      page.waitForResponse(response => response.url().endsWith("/api/conversation/turn") &&
+        response.request().postDataJSON().action === "document_followup"),
+      chooser.setFiles({name:fileName, mimeType:"text/csv",
+        buffer:Buffer.from("Role,Activity\nRegistrar,Log the invoice in the purchase order register.")})
+    ]);
+    assert(receipt.ok(), "The app accepts a file before a process name or first answer");
+    const {document} = await receipt.json();
+    assert.equal(document.name, fileName);
+    assert(followup.ok(), "The document-first interview receives a follow-up");
+    const {question, document_reading} = await followup.json();
+    assert(document_reading.documents.some(file => file.id === document.id && file.included_chunks > 0),
+      "The first question received an excerpt from the uploaded file");
+    await page.getByText(question, {exact:true}).filter({visible:true}).first().waitFor();
+    assert.equal(await upload.isVisible(), false, "The welcome action leaves the active interview");
+  } finally {
+    await page.close();
+  }
+}
+
 async function main() {
   const executablePath = process.env.COLLECTOR_BROWSER;
   assert(executablePath && fs.existsSync(executablePath), "Set COLLECTOR_BROWSER to an installed Edge or Chrome executable.");
@@ -46,6 +106,7 @@ async function main() {
       return target.protocol === "http:" && target.origin !== new URL(url).origin || target.protocol === "https:"
         ? route.abort() : route.continue();
     });
+    for (const width of [1280,390]) await checkWelcomeUpload(context, url, width);
     await page.goto(url, {waitUntil:"domcontentloaded"});
     const navbarContext=page.getByRole("navigation",{name:"Workspace"}).getByRole("button",{name:"Context",exact:true});
     await navbarContext.focus();
@@ -151,7 +212,7 @@ async function main() {
     await peer.close();
     assert.deepEqual(adminRequests, []);
     assert.deepEqual(errors, []);
-    process.stdout.write(JSON.stringify({browser:browser.version(), seed, navigationActions:36, typedSaveAndDiscard:true,sharedFileNotice:true, pageErrors:errors.length}) + "\n");
+    process.stdout.write(JSON.stringify({browser:browser.version(), seed, welcomeUploadWidths:[1280,390], navigationActions:36, typedSaveAndDiscard:true,sharedFileNotice:true, pageErrors:errors.length}) + "\n");
   } finally {
     if (browser) await browser.close();
     // Normal authenticated app shutdown lets the test server drain and delete its temporary directory.

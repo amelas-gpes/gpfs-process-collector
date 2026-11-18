@@ -16,8 +16,8 @@ await check('a discussed topic is labelled on the topic and does not move the ca
  const h=setup();h.t.state.config.concurrent_interview={enabled:true};h.t.state.turns=[{id:'u1',role:'user',text:'I use the spare when equipment is missing.'}];
  h.t.state.memo_findings=[{key:'variations',status:'partial',answer:'Spare route.',evidence_turns:['u1']}];
  h.t.rememberDiscussion({topic_discussion:[{key:'variations',discussed:true,evidence_turns:['u1']}]},h.t.snapshot());h.t.renderCoverage();
- assert.equal(discussed(h),1);assert.equal(h.node('coverage-list').children.length,16);assert.equal(h.node('coverage-count').textContent,'0 / 16');
- assert.equal(h.node('coverage-progress').style.width,'0%','A discussed topic does not fill the captured meter');
+ assert.equal(discussed(h),1);assert.equal(h.node('coverage-list').children.length,16);assert.equal(h.node('coverage-count').textContent,'0%');
+ assert.equal(h.node('coverage-progress').style.strokeDashoffset,'100','A discussed topic leaves the coverage ring empty');
  assert.equal(h.node('coverage-summary').textContent,'','Nothing to add under the bar');assert.match(h.node('analysis-through').textContent,/all 1 saved answers/);
 });
 await check('progress states exactly how far the notes have caught up',async()=>{

@@ -689,7 +689,9 @@
     target?.scrollIntoView({behavior:window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches?"auto":"smooth",block});
   }
   function focusWorkspace(name) {
-    const target=name==="review" ? $("review-view") : state.started ? (conversationUI.view==="workflow"&&$("interview-view").classList.contains("workflow-expanded") ? $("workflow-expand") : $("conversation-tab-"+conversationUI.view)) : $("start-live");
+    const upload=$("welcome-upload");
+    const firstAction=conversationUI.view==="voice"&&upload&&!upload.disabled&&!$("welcome").hidden ? upload : $("start-live");
+    const target=name==="review" ? $("review-view") : state.started ? (conversationUI.view==="workflow"&&$("interview-view").classList.contains("workflow-expanded") ? $("workflow-expand") : $("conversation-tab-"+conversationUI.view)) : firstAction;
     if(!target)return;
     if(name==="interview"&&!state.started)revealAncestors(target);
     if(name==="review")target.tabIndex=-1;
@@ -1129,7 +1131,7 @@
     $("speak-questions").title = voiceReady ? `Selected voice: ${voiceLabel()}` : "Choose an available voice. Questions remain readable on screen.";
     $("voice-select").disabled = recording || state.requestingMic;
     $("preview-voice").disabled = !voiceReady || working || recording;
-    $("welcome").hidden = state.turns.length > 0 || working;
+    $("welcome").hidden = state.started || state.turns.length > 0 || working || intakeActive();
     $("review-empty").hidden = Boolean(state.draft);
     if ($("review-heading")) $("review-heading").hidden = !state.draft;
     if ($("submit-process-review")) $("submit-process-review").hidden = state.example;
@@ -1303,15 +1305,22 @@
     // In place: the list is filled once (and again only if something emptied it).
     const buttons=TOPICS.map(([key])=>coverageNodes.get(key).node),listed=root.children||[];
     if(listed.length!==buttons.length||buttons.some((node,index)=>listed[index]!==node))root.replaceChildren(...buttons);
-    // One counter, and it advances: the headline, the bar and the Workspace pill
-    // count captured topics whether or not the completion review has run. Whether
-    // it has run is said beside the number; the tick and "Covered" on a topic
-    // stay reserved for reviewed topics. What was "N topics discussed" is on each
-    // topic ("Discussed · needs detail"), and the line under the bar only adds
-    // what the headline does not say.
-    setText($("coverage-count"), `${captured} / ${TOPICS.length}`);
-    $("coverage-progress").style.width = `${captured / TOPICS.length * 100}%`;
-    if($("coverage-mobile-count")) setText($("coverage-mobile-count"), `${captured}/${TOPICS.length}`);
+    // Light one whole segment per solid topic. Only the displayed percentage is rounded.
+    const percent = captured / TOPICS.length * 100;
+    const rounded = Math.round(percent);
+    const fraction = `${captured} of ${TOPICS.length} topics captured`;
+    const arc = $("coverage-progress");
+    const offset = String(100 - percent);
+    if (arc.style.strokeDashoffset !== offset) {
+      const meter = $("coverage-meter");
+      $("coverage-divisions")?.setAttribute("pathLength", String(TOPICS.length));
+      setText($("coverage-count"), `${rounded}%`);
+      arc.style.strokeDashoffset = offset;
+      if ($("coverage-fraction")) setText($("coverage-fraction"), fraction);
+      if ($("coverage-mobile-count")) setText($("coverage-mobile-count"), `${rounded}%`);
+      meter?.setAttribute("aria-valuenow", String(rounded));
+      meter?.setAttribute("aria-valuetext", `${fraction} (${rounded}%)`);
+    }
     // The completion review adds a tick to a captured topic's solid circle.
     if($("coverage-check")) setText($("coverage-check"), captured&&state.config?.agent_team?.enabled&&coverageVerified() ? "Checked" : "");
     const consolidation=$("coverage-consolidation");
@@ -2173,7 +2182,6 @@
     if(active||closing) for(const id of ["answer-text","send-answer","record-answer","skip-question","final-check","generate-draft","regenerate-draft"]) $(id).disabled=true;
     updatePresence();
     $("start-live").querySelector("span").textContent=transcript?"Talk live":typing?"Talk instead":state.turns.length?"Continue talking":"Start talking";
-    $("presence-caption").hidden=state.started;
     if(intakeActive())for(const id of ["start-live","type-instead","send-answer","record-answer","skip-question","final-check","generate-draft","regenerate-draft","retry-question","preview-voice"])if($(id))$(id).disabled=true;
     if(returnFromVoice)$(transcript?"answer-text":"start-live").focus({preventScroll:true});
   }
@@ -7164,6 +7172,7 @@
     $("reset-session").addEventListener("click",startNewInterview);
     $("load-example").addEventListener("click",()=>{loadExample();if(state.example)focusWorkspace($("review-view").hidden?"interview":"review");});
     $("welcome-example").addEventListener("click",loadExample);
+    $("welcome-upload").addEventListener("click",()=>documentController?.attach());
     $("leave-example").addEventListener("click",() => {if (canReplaceSession("Start your own interview")) {clearState(); $("process-name").focus();}});
     $("example-start")?.addEventListener("click",()=>$("leave-example").click());
     $("export-markdown").addEventListener("click",() => {if (state.draft) download(markdown(),`${safeFilename(state.draft.title)}-DRAFT.md`,"text/markdown;charset=utf-8");});
@@ -7263,8 +7272,8 @@
   }
   async function init() {
     positionMapToolsFallback();
-    const exampleArt = $("welcome-example-art");
-    if (exampleArt) window.CollectorWorkflowStage?.createComponentPreview(exampleArt, {type:"data_store",variant:"invoice"});
+    const documentArt = $("welcome-document-art");
+    if (documentArt) window.CollectorComponentArt?.draw(documentArt, "document_pack");
     if(window.CollectorAgentTeam&&$("agent-team"))agentTeamUI=window.CollectorAgentTeam.create($("agent-team"));
     documentIntake=createDocumentIntake();
     if(window.GPFSPresence)gpfsPresence=window.GPFSPresence.create($("gpfs-presence"));

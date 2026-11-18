@@ -7,9 +7,9 @@
   // These notices describe what the background review sends (document_service.py): keep them true to it.
   const FILE_NOTICE = "Files are saved on this computer. The AI service can receive file names, the full extracted text (including hidden sheets), and pages or images for visual review. Large files pause for your choice before sending more. Files saved for later pause further background review. Remove stops further review and takes the file out of future interview requests. Use Permanently delete in Removed files to erase its local original and index. Excerpts in earlier saves or submissions remain. Confirm file details in the interview.";
   // The Assets panel says what is needed to add a file; the full limits and the notice are one click away.
-  const FILE_FORMATS = "PDF, PNG, XLSX, XLSM or CSV · up to 64 MiB each";
+  const formatHint = kinds => kinds.length ? kinds.join(", ").toUpperCase() + " · up to 64 MiB each" : "No file formats are available.";
   const EXTRACTION_LIMITS = "Extraction limits: 500 PDF pages, 100 sheets, 2 million populated cells, 40 megapixels per image, and 64 MiB of indexed text in up to 50,000 sections.";
-  const FILE_LIMITS = FILE_FORMATS.replace("up to", "Up to") + ". " + EXTRACTION_LIMITS;
+  const FILE_LIMITS = formatHint([...EXTENSIONS]).replace("up to", "Up to") + ". " + EXTRACTION_LIMITS;
   const FILE_NOTICE_LEAD = "Saved on this computer and read by the AI service";
   const PARKED_REVIEW_NOTICE = "Further review is paused while this file is saved for later. A request already sent can finish.";
   // The reviewer's verdict on a file, in the words shown beside its reason.
@@ -108,7 +108,11 @@
       const sheet=this.assets?.closest?.("dialog");
       return Boolean(this.dropTarget&&!this.dropTarget.hidden&&(this.dropTarget.contains(event.target)||this.assets?.contains(event.target)||sheet?.open&&sheet.contains(event.target)));
     }
-    clearDrop() {this.dragDepth=0;if(this.dropOverlay){this.dropOverlay.hidden=true;if(this.dropOverlay.parentElement!==this.dropTarget)this.dropTarget.append(this.dropOverlay);}}
+    clearDrop() {
+      this.dragDepth=0;
+      this.welcomeButton?.classList.remove("drag-ready");
+      if(this.dropOverlay){this.dropOverlay.hidden=true;if(this.dropOverlay.parentElement!==this.dropTarget)this.dropTarget.append(this.dropOverlay);}
+    }
     buildDropZone() {
       this.dropTarget=this.options.dropTarget||this.doc.getElementById("interview-view");this.dragDepth=0;this.dropListeners=[];
       if(!this.dropTarget)return;
@@ -116,16 +120,19 @@
       this.dropOverlay=this.node("div","document-drop-overlay");this.dropOverlay.hidden=true;
       this.dropOverlay.setAttribute("role","status");this.dropOverlay.setAttribute("aria-live","polite");this.dropOverlay.setAttribute("aria-atomic","true");
       const panel=this.node("div","document-drop-panel");this.dropTitle=this.node("strong");this.dropHelp=this.node("span");panel.append(this.dropTitle,this.dropHelp);this.dropOverlay.append(panel);this.dropTarget.append(this.dropOverlay);
-      const listen=(target,name,fn)=>{target.addEventListener?.(name,fn);this.dropListeners.push([target,name,fn]);};
-      const show=()=>{
+      const listen=(target,name,fn,capture=false)=>{target.addEventListener?.(name,fn,capture);this.dropListeners.push([target,name,fn,capture]);};
+      const show=target=>{
         if(this.disposed||this.suspended||this.dropTarget.hidden)return this.clearDrop();
         const full=this.full(),allowed=this.allowed();
+        const overWelcome=allowed&&!full&&this.welcomeButton?.contains(target);
+        this.welcomeButton?.classList.toggle("drag-ready",Boolean(overWelcome));
+        if(overWelcome){this.dropOverlay.hidden=true;return;}
         this.dropTitle.textContent=!allowed?"Files can't be attached right now":full?(this.removed.length?`This interview has used its ${this.maximum()} file slots`:`This conversation has ${this.maximum()} files`):"Drop files into this conversation";
         this.dropHelp.textContent=!allowed?(this.options.uploadBlockedReason?.()||"Finish loading the interview, then try again."):full?(this.removed.length?"Removed files keep their slots. Restore one in Assets to use it again.":"The conversation file limit has been reached."):FILE_LIMITS;
         const sheet=this.assets?.closest?.("dialog");if(sheet?.open&&this.dropOverlay.parentElement!==sheet)sheet.append(this.dropOverlay);
         this.dropOverlay.hidden=false;
       };
-      listen(this.dropTarget,"dragenter",event=>{if(!this.fileDrag(event))return;event.preventDefault();this.dragDepth++;show();});
+      listen(this.dropTarget,"dragenter",event=>{if(!this.fileDrag(event))return;event.preventDefault();this.dragDepth++;show(event.target);});
       listen(this.dropTarget,"dragleave",event=>{
         if(!this.fileDrag(event)&&!this.dragDepth)return;
         this.dragDepth=Math.max(0,this.dragDepth-1);
@@ -136,7 +143,7 @@
       // away from unsaved work. Only a drop inside the visible conversation can upload files.
       listen(window,"dragover",event=>{
         if(!this.fileDrag(event))return;event.preventDefault();
-        const inside=this.dropInside(event);if(inside)show();else this.clearDrop();
+        const inside=this.dropInside(event);if(inside)show(event.target);else this.clearDrop();
         event.dataTransfer.dropEffect=inside&&this.allowed()&&!this.full()?"copy":"none";
       });
       listen(window,"drop",event=>{
@@ -152,9 +159,11 @@
         void this.addFiles(files,{reveal:false});
       });
       listen(window,"dragend",()=>this.clearDrop());listen(window,"blur",()=>this.clearDrop());
-      listen(window,"keydown",event=>{if(event.key==="Escape")this.clearDrop();});
+      listen(window,"keydown",event=>{if(event.key==="Escape")this.clearDrop();},true);
     }
     build() {
+      this.welcomeButton=this.doc.getElementById("welcome-upload");
+      this.welcomeFormats=this.doc.getElementById("welcome-formats");
       this.assets=this.doc.getElementById("document-assets");
       if(this.assets){this.buildAssets();return;}
       this.controls=this.doc.getElementById("document-controls");this.strip=this.doc.getElementById("document-strip");
@@ -186,11 +195,11 @@
       this.attachButton=this.button("Add files","documents-add",()=>this.attach());
       this.input=this.node("input");this.input.type="file";this.input.accept=".pdf,.png,.xlsx,.xlsm,.csv";this.input.multiple=true;this.input.hidden=true;
       this.input.addEventListener("change",()=>{const files=Array.from(this.input.files||[]);this.input.value="";this.addFiles(files);});
-      const formats=this.node("p","documents-assets-formats",FILE_FORMATS);
+      this.formats=this.node("p","documents-assets-formats");
       this.usage=this.node("p","documents-assets-formats documents-usage");this.usage.id="documents-usage";this.usage.hidden=true;
       this.attachButton.setAttribute("aria-describedby","documents-usage");
       this.attachButton.setAttribute("aria-description","Attach reference files for the interviewer to review.");
-      header.append(this.attachButton,this.input,formats,this.usage);
+      header.append(this.attachButton,this.input,this.formats,this.usage);
       this.liveStatus=this.node("p","documents-live-status");this.liveStatus.setAttribute("role","status");this.liveStatus.setAttribute("aria-live","polite");this.liveStatus.setAttribute("aria-atomic","true");
       this.body=this.node("div","documents-body");this.body.setAttribute("aria-live","off");this.body.setAttribute("aria-label","Uploaded files");
       const footer=this.node("details","documents-assets-privacy");
@@ -541,9 +550,14 @@
     // whenever it refreshes its own controls, so Add files never shows a reason that no longer applies.
     syncAttach() {
       if(this.disposed||!this.attachButton)return;
-      const allowed=this.allowed(),disabled=!allowed||this.full(),title=!allowed?(this.options.uploadBlockedReason?.()||"File uploads are unavailable."):"Add files";
-      if(this.attachButton.disabled!==disabled)this.attachButton.disabled=disabled;
-      if(this.attachButton.title!==title)this.attachButton.title=title;
+      const allowed=this.allowed(),disabled=!allowed||this.full();
+      const blockedReason=!allowed?(this.options.uploadBlockedReason?.()||"File uploads are unavailable."):disabled?this.usageText():"";
+      for(const button of [this.attachButton,this.welcomeButton]){
+        if(!button)continue;
+        const title=blockedReason||(button===this.welcomeButton?"":"Add files");
+        if(button.disabled!==disabled)button.disabled=disabled;
+        if(button.title!==title)button.title=title;
+      }
     }
     render() {
       if(this.disposed)return;
@@ -587,7 +601,10 @@
       }
       // A missing reader is said before anyone chooses a file, and the file picker stops offering that kind.
       const unreadable=this.unavailable(),reasons=[...new Set(Object.values(unreadable))];
-      this.input.accept=[...EXTENSIONS].filter(kind=>!unreadable[kind]).map(kind=>"."+kind).join(",");
+      const supported=[...EXTENSIONS].filter(kind=>!unreadable[kind]);
+      this.input.accept=supported.map(kind=>"."+kind).join(",");
+      const hint=formatHint(supported);
+      for(const label of [this.formats,this.welcomeFormats])if(label&&label.textContent!==hint)label.textContent=hint;
       if(reasons.length){const warning=this.node("div","documents-warning documents-unreadable-kinds");warning.setAttribute("role","status");for(const reason of reasons)warning.append(this.node("p","",reason));this.body.append(warning);}
       const priorFiles=this.unavailableWorkspaces.flatMap(workspace=>workspace.documents);
       if(priorFiles.length){
@@ -930,7 +947,7 @@
       this.unavailableWorkspaces=[];this.scopeUnavailable=false;this.storeUnavailable=false;this.removed=[];this.removedOpen=false;this.limit=null;
       this.channel?.close();this.channel=null;this.remoteIntents.clear();this.cancel();this.uploadQueue=Promise.resolve();this.generation++;this.revision++;this.suspended=false;this.controller=new AbortController();this.scope=null;this.documents=[];this.uploads=[];this.uploadErrors=[];this.seen=new Map();this.sessionPromise=null;this.polling=null;this.mutating=0;this.actions.clear();this.actionErrors.clear();this.expandedAssets.clear();this.source=null;this.sourceHeading=null;this.connectionError="";this.lastError="";this.close(false);this.render();this.changed(false);
     }
-    dispose() {if(this.disposed)return;this.reset();this.disposed=true;this.cancel();this.doc.removeEventListener?.("visibilitychange",this.visibilityChanged);window.removeEventListener?.("pagehide",this.pagehide);window.removeEventListener?.("pageshow",this.pageshow);for(const [target,name,fn] of this.dropListeners||[])target.removeEventListener?.(name,fn);this.dropListeners=[];this.dropOverlay?.remove();this.dropTarget?.classList.remove("document-drop-zone");this.assets?.replaceChildren();this.controls?.replaceChildren();if(this.strip){this.strip.replaceChildren();this.strip.hidden=true;}}
+    dispose() {if(this.disposed)return;this.reset();this.disposed=true;this.cancel();this.doc.removeEventListener?.("visibilitychange",this.visibilityChanged);window.removeEventListener?.("pagehide",this.pagehide);window.removeEventListener?.("pageshow",this.pageshow);for(const [target,name,fn,capture] of this.dropListeners||[])target.removeEventListener?.(name,fn,capture);this.dropListeners=[];this.dropOverlay?.remove();this.dropTarget?.classList.remove("document-drop-zone");this.assets?.replaceChildren();this.controls?.replaceChildren();if(this.strip){this.strip.replaceChildren();this.strip.hidden=true;}}
   }
   window.CollectorDocuments={create:options=>new Documents(options)};
 })();

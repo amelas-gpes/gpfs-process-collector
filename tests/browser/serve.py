@@ -8,16 +8,20 @@ import tempfile
 app_dir = Path(__file__).resolve().parents[2]
 tests = app_dir / "tests"
 sys.path.insert(0, str(tests))
-from test_interview_orchestrator import SyntheticTeamProvider
+from test_concurrent_http import ConversationProvider
+from test_document_api import document_result
 from test_server import server
 
 
-class OfflineProvider(SyntheticTeamProvider):
+class OfflineProvider(ConversationProvider):
     def public_config(self):
         return {**super().public_config(), "synthetic_test": True}
 
     def transcribe(self, audio, media_type):
         return {"text": "A fictional coordinator registers the request."}
+
+    def analyze_document(self, context, record, chunks, phase, store):
+        return document_result(chunks)
 
 
 if __name__ == "__main__":
@@ -29,7 +33,6 @@ if __name__ == "__main__":
     with (nullcontext(args.trace_work) if args.trace_work else tempfile.TemporaryDirectory()) as directory:
         path = Path(directory)
         if args.trace_work:
-            from test_concurrent_http import ConversationProvider
             client = ConversationProvider()
         else:
             client = OfflineProvider()

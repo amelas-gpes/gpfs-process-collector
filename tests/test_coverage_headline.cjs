@@ -1,9 +1,6 @@
 "use strict";
-// The Notes headline is the figure that advances during an interview: topics captured (or confirmed
-// not applicable), whether or not the completion review has run. Whether it has run is said beside
-// the number; the tick and the word "Covered" stay reserved for reviewed topics; and there is one
-// counter, not three. The page of web/index.html runs web/app.js through its own init()
-// (tests/fixtures/app_page.cjs). No browser, provider or network.
+// Topic coverage advances with every solid circle. The final review can add a check mark.
+// The fixture runs web/index.html and web/app.js together without provider or network calls.
 const assert=require("node:assert/strict");
 const {open}=require("./fixtures/app_page.cjs");
 const EXPOSE="renderTranscript,renderCoverage,sendAnswer,tab,selectConversationView";
@@ -19,7 +16,15 @@ function interview(page,verified){
  page.t.conversationUI.typing=true;page.t.tab("interview");page.t.selectConversationView("transcript");page.t.renderTranscript();
 }
 const topic=(page,key)=>page.document.querySelector(`[data-foundation-topic="${key}"]`);
-const headline=page=>({count:page.text("coverage-count"),pill:page.text("coverage-mobile-count"),bar:page.$("coverage-progress").style.width,check:page.text("coverage-check"),label:page.$("coverage-count").parentNode.parentNode.textContent.replace(/\s+/g," ").trim()});
+function headline(page){
+ const meter=page.$("coverage-meter");
+ return {
+  count:page.text("coverage-count"),pill:page.text("coverage-mobile-count"),fraction:page.text("coverage-fraction"),
+  arcOffset:page.$("coverage-progress").style.strokeDashoffset,check:page.text("coverage-check"),
+  label:meter.getAttribute("aria-label")||page.text(meter.getAttribute("aria-labelledby")),
+  value:meter.getAttribute("aria-valuenow"),valueText:meter.getAttribute("aria-valuetext")
+ };
+}
 const ticks=page=>KEYS.filter(key=>topic(page,key).querySelector(".coverage-dot").textContent==="✓").length;
 const solidTopics=page=>KEYS.filter(key=>["captured","covered"].some(status=>topic(page,key).classList.contains(status)));
 let passed=0;const failed=[];
@@ -32,11 +37,14 @@ async function check(name,fn){
  await check("before the final check the headline already counts what has been captured",async()=>{
   const page=await open({config,expose:EXPOSE});interview(page,false);
   const shown=headline(page);
-  assert.equal(shown.count,"13 / 16","Twelve captured and one not applicable");assert.equal(shown.pill,"13/16","The Workspace button of the narrow layout shows the same figure");
-  assert.equal(shown.bar,"81.25%");
+  assert.equal(shown.count,"81%","Twelve captured and one not applicable");assert.equal(shown.pill,"81%","The Workspace button of the narrow layout shows the same figure");
+  assert.equal(shown.arcOffset,"18.75");
+  assert.equal(shown.fraction,"13 of 16 topics captured");
+  assert.equal(page.$("coverage-meter").getAttribute("role"),"progressbar");
+  assert.equal(shown.value,"81");assert.equal(shown.valueText,"13 of 16 topics captured (81%)");
   assert.deepEqual(solidTopics(page),KEYS.slice(0,13),"Every topic counted in the headline has a solid circle");
   assert.equal(shown.check,"","Nothing is marked as checked before the final check");
-  assert.match(shown.label,/^Topics captured/);assert.doesNotMatch(shown.label,/fully/,"The label does not claim more than the figure means");
+  assert.equal(shown.label,"Topic coverage");
   // Nothing is presented as covered before the review.
   assert.equal(ticks(page),0,"No tick before the final check");
   assert.equal(KEYS.filter(key=>topic(page,key).classList.contains("covered")).length,0);
@@ -46,7 +54,7 @@ async function check(name,fn){
  await check("after the final check the same figure is marked as checked and the topics get their ticks",async()=>{
   const page=await open({config,expose:EXPOSE});interview(page,true);
   const shown=headline(page);
-  assert.equal(shown.count,"13 / 16");assert.equal(shown.pill,"13/16");assert.equal(shown.check,"Checked","Verification is said beside the number");
+  assert.equal(shown.count,"81%");assert.equal(shown.pill,"81%");assert.equal(shown.check,"Checked","Verification is said beside the number");
   assert.equal(ticks(page),13);assert.equal(topic(page,"name").querySelector(".coverage-state").textContent,"","The tick says it; the row adds no word");
   assert.match(topic(page,"name").title,/Covered$/);
   assert.equal(topic(page,"rules").querySelector(".coverage-state").textContent,"Not applicable");
@@ -62,7 +70,7 @@ async function check(name,fn){
   }));
   page.state.advisory.purpose={answer:"Recorded detail for purpose.",complete:false,gaps:["Clarify the result."]};
   page.t.renderCoverage();
-  assert.equal(headline(page).count,"1 / 16");assert.equal(ticks(page),0);
+  assert.equal(headline(page).count,"6%");assert.equal(ticks(page),0);
   assert.deepEqual(solidTopics(page),["purpose"]);
   assert.equal(topic(page,"purpose").querySelector(".coverage-state").textContent,"Captured · needs detail");
   assert.match(topic(page,"purpose").title,/captured; the advisory check noted a gap: Clarify the result/);
@@ -78,7 +86,7 @@ async function check(name,fn){
   page.route(()=>new Promise(()=>{})); // the interviewer has not replied yet
   page.$("answer-text").input("One more thing about the count.");void page.t.sendAnswer({preventDefault(){}});await page.flush();
   const shown=headline(page);
-  assert.equal(shown.count,"13 / 16","The bar does not fall back to zero on the next answer");assert.equal(shown.bar,"81.25%");
+  assert.equal(shown.count,"81%","The percentage stays current on the next answer");assert.equal(shown.arcOffset,"18.75");
   assert.equal(shown.check,"","The check mark is withdrawn");assert.equal(ticks(page),0,"The ticks wait for the next check");
  });
  await check("only captured and not-applicable topics count, and an explicit note outranks a coverage flag",async()=>{
@@ -87,11 +95,13 @@ async function check(name,fn){
    {key:"trigger",status:"captured",answer:"A weekly count starts it.",evidence_turns:["t002"]}];
   page.state.coverage=[{key:"name",label:"Name and scope",status:"covered"},{key:"purpose",label:"Purpose",status:"covered"},{key:"risk",label:"Risks",status:"covered"},{key:"volume",label:"Volume and effort",status:"partial"}];
   page.t.renderCoverage();
-  assert.equal(headline(page).count,"2 / 16","The captured note and the one covered flag that has no note");
+  assert.equal(headline(page).count,"13%","The captured note and the one covered flag that has no note");
   page.state.memo_findings=[];page.state.coverage=[];page.t.renderCoverage();
-  const empty=headline(page);assert.equal(empty.count,"0 / 16");assert.equal(empty.bar,"0%");assert.equal(empty.check,"","Nothing captured: nothing to check yet");
+  const empty=headline(page);
+  assert.equal(empty.count,"0%");assert.equal(empty.pill,"0%");assert.equal(empty.arcOffset,"100");
+  assert.equal(empty.value,"0");assert.equal(empty.valueText,"0 of 16 topics captured (0%)");assert.equal(empty.check,"");
  });
- await check("one counter: no second count of captured topics and no count of discussed topics",async()=>{
+ await check("the progress summary counts each captured topic once and leaves discussion detail on the rows",async()=>{
   const page=await open({config,expose:EXPOSE});interview(page,false);
   assert.equal(page.document.getElementById("discussion-progress"),null,"The page has no separate discussed counter");
   const rail=page.$("memo-panel-notes").textContent;
@@ -104,12 +114,13 @@ async function check(name,fn){
  });
  await check("without the review team there is no check to report and captured topics are simply covered",async()=>{
   const page=await open({config:{agent_team:{enabled:false}},expose:EXPOSE});interview(page,false);
-  const shown=headline(page);assert.equal(shown.count,"13 / 16");assert.equal(shown.check,"");assert.equal(ticks(page),13);
+  const shown=headline(page);assert.equal(shown.count,"81%");assert.equal(shown.check,"");assert.equal(ticks(page),13);
  });
  await check("the built-in example shows its sixteen captured topics",async()=>{
   const page=await open({config,expose:EXPOSE});
   assert.equal(page.$("welcome-example").click(),true);await page.flush();
-  const shown=headline(page);assert.equal(shown.count,"16 / 16");assert.equal(shown.pill,"16/16");assert.equal(shown.bar,"100%");
+  const shown=headline(page);assert.equal(shown.count,"100%");assert.equal(shown.pill,"100%");assert.equal(shown.arcOffset,"0");
+  assert.equal(shown.value,"100");assert.equal(shown.valueText,"16 of 16 topics captured (100%)");
   assert.match(shown.check,/^(Checked)?$/);
  });
  console.log(JSON.stringify({checks_passed:passed,checks_failed:failed.length,provider_calls:0,network_calls:0,real_browser:false}));

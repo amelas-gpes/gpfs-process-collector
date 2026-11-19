@@ -397,7 +397,12 @@
       clearTimeout(this.pollTimer);this.pollTimer=null;
       if(this.disposed||this.suspended||this.doc.hidden||this.scopeUnavailable||!this.scope||(delay===undefined&&!this.documents.length&&!this.uploads.length&&!this.removed.length))return;
       if(delay===undefined&&!this.connectionError&&!this.pending())return;
-      const next=this.connectionError?Math.min(60000,2000*2**Math.min(this.pollFailures,5)):2000;
+      // While the interview waits for a file's first review, ask for its state often: the request is
+      // local, and its answer is what lets the file's question be asked. A long reading (many scanned
+      // pages) settles to once a second.
+      const awaited=!this.connectionError&&this.options.reviewAwaited?.()===true;
+      this.awaitedSince=awaited?this.awaitedSince||Date.now():null;
+      const next=this.connectionError?Math.min(60000,2000*2**Math.min(this.pollFailures,5)):awaited?(Date.now()-this.awaitedSince<20000?300:1000):2000;
       // Refresh schedules its successor after the pending fetch finishes, resuming on visibility.
       this.pollTimer=setTimeout(()=>{this.pollTimer=null;this.refresh();},delay??next);
     }

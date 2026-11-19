@@ -10,6 +10,7 @@ from contextlib import nullcontext
 import copy
 import hashlib
 import importlib.util
+import inspect
 import json
 from pathlib import Path
 import re
@@ -162,6 +163,12 @@ class DocumentService:
         if not callable(analyze_callback):
             raise TypeError('A document analysis callback is required.')
         self.store, self.analyze = store, analyze_callback
+        # A reviewer that can hand over the opening of its reply while it is still writing the
+        # rest (its verdict, summary, question and search queries) takes on_header.
+        try:
+            self._takes_header = 'on_header' in inspect.signature(analyze_callback).parameters
+        except (TypeError, ValueError):
+            self._takes_header = False
         self.trace = trace
         self.request_scope = nullcontext
         self._interviews = {}
@@ -613,7 +620,14 @@ class DocumentService:
         analysis['limitations'] = lines
 
     @staticmethod
-    def _merge(existing, result, record, phase):
+    def _merge(existing, result, record, phase, completes_header=False):
+        """Fold one review reply into the file's review record.
+
+        completes_header: the opening of this same reply (verdict, summary, question, queries) was
+        published while the rest was being written. What it set stays exactly as published: the
+        interview may already be reading it, and the summary's review version is part of what
+        identifies the evidence a set of notes was built on.
+        """
         analysis = copy.deepcopy(existing)
         if phase == 'quick':
             analysis.pop('generated_by', None)
@@ -650,7 +664,7 @@ class DocumentService:
                     seen.add(identity)
         # A deep batch is a section, not a replacement overview of the file.
         # Keep the initial identity/scope while retaining section-level claims.
-        if phase == 'quick' or not analysis.get('summary'):
+        if (phase == 'quick' and not completes_header) or not analysis.get('summary'):
             analysis['summary'] = result['summary']
             analysis.update(summary_basis='initial_review', summary_basis_note=INITIAL_SUMMARY_NOTE,
                             summary_at_review_version=analysis.get('version', 0) + 1)
@@ -660,9 +674,9 @@ class DocumentService:
         # The quick assessment sets the disposition and the question the user sees.
         # A background batch covers only a subset of the file, so its relevance
         # must not silently contradict that decision or imply it was reconsidered.
-        if phase == 'quick' or 'relevance' not in analysis:
+        if (phase == 'quick' and not completes_header) or 'relevance' not in analysis:
             analysis.update(relevance=result['relevance'], relevance_reason=result['relevance_reason'])
-        if phase == 'quick':
+        if phase == 'quick' and not completes_header:
             if analysis.get('parked_by_user'):
                 analysis.update(disposition='parked', question='')
             elif analysis.get('selected_by_participant'):
@@ -810,17 +824,48 @@ class DocumentService:
         with self._condition:
             if not self._current(scope, document_id, generation):
                 return
-        answer = self._request(scope, document_id, generation, context, callback_record, batch, phase)
+        published = []
+
+        def publish_header(header):
+            # The reviewer writes its verdict, summary, question and search queries before its
+            # observations. For a file that can be asked about they are published the moment they
+            # are complete, so the interview does not wait for the observations as well (on a
+            # four-page file that was two to four of the seven seconds of this request).
+            if published:
+                return  # A second attempt at the same request: what was published stands.
+            try:
+                opening = self._validated({**header, 'observations': [], 'questions': [], 'extracted_text': ''}, batch)
+            except (DocumentError, KeyError, TypeError):
+                return
+            if opening['relevance'] != 'relevant':
+                return  # A file the reviewer is unsure of is settled on its whole reply.
+            if self.trace:
+                self.trace.emit("document.review_header", {"document_id":document_id, "revision":generation, "phase":phase})
+            self._settle(scope, document_id, generation, phase, batch, visual, kept, opening, offset, reviewed, settled, only, full,
+                         header_only=True)
+            published.append(True)
+
+        early = publish_header if phase == 'quick' and not visual and self._takes_header else None
+        answer = self._request(scope, document_id, generation, context, callback_record, batch, phase, on_header=early)
         if answer is None:
             return
         result = self._validated(answer, batch)
+        return self._settle(scope, document_id, generation, phase, batch, visual, kept, result, offset, reviewed, settled, only, full,
+                            completes_header=bool(published))
+
+    def _settle(self, scope, document_id, generation, phase, batch, visual, kept, result, offset, reviewed, settled, only, full,
+                header_only=False, completes_header=False):
+        """Record what one review reply established and say what follows ('deep' or nothing).
+
+        header_only records the opening of a first review ahead of the rest of that reply.
+        """
         with self._condition:
             record = self._current(scope, document_id, generation)
             if not record:
                 return
             if result['extracted_text']:
                 record = self.store.record_extracted_text(scope, document_id, visual['id'], result['extracted_text'])
-            merged = self._merge(record.get('analysis') or {}, result, record, phase)
+            merged = self._merge(record.get('analysis') or {}, result, record, phase, completes_header=completes_header)
             if result['extracted_text']:
                 self._follow_replaced_parts(scope, document_id, merged, visual['id'])
             elif visual:
@@ -854,16 +899,24 @@ class DocumentService:
                 elif total == len(batch) and not visual and set(c['id'] for c in batch) == set(c['id'] for c in self.store.chunks(scope,document_id,limit=total)['chunks']):
                     complete = True
                     merged.update(phase='complete', cursor=total, reviewed_chunks=total, review_complete=self._review_complete(record,merged,total,total))
+                    # The whole file was in this request. It can be asked about like any file whose
+                    # text is all indexed; saying so keeps the page from asking its question again
+                    # when the rest of this reply is recorded.
+                    merged['question_ready'] = self._question_ready(record, merged)
                 else:
                     # A file whose text is all indexed can be asked about now: the question
                     # reads the indexed text, not the notes of the review, and nothing the
                     # in-depth pass adds changes what a question is bound to. A file with a
                     # page or image still to be read waits for that reading, which does.
                     merged['question_ready'] = self._question_ready(record, merged)
+            if header_only:
+                merged['observations_pending'] = True
+            else:
+                merged.pop('observations_pending', None)
             self.store.update(scope, document_id, {'analysis': merged})
             return None if complete else 'deep'
 
-    def _request(self, scope, document_id, generation, context, callback_record, batch, phase):
+    def _request(self, scope, document_id, generation, context, callback_record, batch, phase, on_header=None):
         """One review request. A passing provider failure is tried again after a pause, twice at most.
 
         Only a failure the client itself marks transient is retried (rate limit,
@@ -878,7 +931,8 @@ class DocumentService:
                     self.trace.emit("document.review_attempt", {"document_id":document_id, "revision":generation,
                         "phase":phase, "attempt":attempt, "source_ids":[chunk.get("id") for chunk in batch]})
                 with self.request_scope(self._interviews.get(scope)):
-                    return self.analyze(context, callback_record, copy.deepcopy(batch), phase)
+                    return self.analyze(context, callback_record, copy.deepcopy(batch), phase,
+                                        **({'on_header': on_header} if on_header else {}))
             except Exception as error:
                 if delay is None or getattr(error, 'transient', False) is not True:
                     raise

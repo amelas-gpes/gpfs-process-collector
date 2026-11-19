@@ -789,6 +789,18 @@ function response(document){return{ok:true,json:async()=>({document})};}
   assert.equal(Boolean(empty.api.pending()),false,"Nothing to wait for without a file");
   h.api.dispose();empty.api.dispose();passes++;
  }
+ {
+  // While the interview waits for a file's first review, the page asks for the file's state often
+  // (the request is local, and its answer is what lets the file's question be asked). Otherwise it
+  // keeps its two-second pace.
+  let waiting=true;const file=doc({status:"ready",chunk_count:4,analysis:{phase:"quick",version:1,sources:[]}});
+  const h=setup({inline:false,request:async()=>({documents:[file]}),extra:{reviewAwaited:()=>waiting}});
+  h.api.scope="local-scope";h.api.setDocuments([file],false);
+  h.api.schedule();assert.deepEqual([...h.timers.values()].map(timer=>timer.delay),[300]);
+  waiting=false;h.api.schedule();assert.deepEqual([...h.timers.values()].map(timer=>timer.delay),[2000]);
+  waiting=true;h.api.schedule();assert.deepEqual([...h.timers.values()].map(timer=>timer.delay),[300]);
+  h.api.dispose();passes++;
+ }
 
  console.log(JSON.stringify({tests_passed:passes,network_calls:0,provider_calls:0,physical_files_uploaded:false}));
 })().catch(error=>{console.error(error);process.exitCode=1;});

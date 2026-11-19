@@ -233,7 +233,7 @@ class Coordinator:
             stopped = bool(entry) or any(token in row["run_tokens"] for row in self._tickets.values())
         return {"cancelled": stopped, "remembered": remembered}
 
-    def analyze_document(self, context, record, chunks, phase, store):
+    def analyze_document(self, context, record, chunks, phase, store, on_header=None):
         # Original files, chunk retrieval and permissions remain in DocumentStore.
         sources = [{"id": item["id"], "text": (item.get("text") or "").strip() or "[Authorized visual source]"}
                    for item in chunks]
@@ -243,7 +243,7 @@ class Coordinator:
                 self._document_runs.pop(next(iter(self._document_runs)))
             self._document_runs[record.get("_scope", "")] = run
         return run.run_role("document_analyst", lambda: self.client.analyze_document(
-            context, record, chunks, phase, store, _agent_managed=True))
+            context, record, chunks, phase, store, _agent_managed=True, **({"on_header": on_header} if on_header else {})))
 
     def _coverage(self, run, capture, context, turns, supporting, no_repair=()):
         box = {}
@@ -1329,6 +1329,23 @@ class Coordinator:
                           (payload.get("_notes_only") is True or run.live_notes))
             request_schema = capture_facts.schema_for(fact_state, capture_facts.sources(context, turns, evidence), focus,
                                                       with_question=not notes_only)
+            def watch_states(text):
+                # The topic states are written before the facts. For the first notes from a file
+                # they are shown, display-only, while the facts are still being written; the notes
+                # themselves are applied only after the whole response validates.
+                match = re.search(r',\s*"fact_operations"\s*:', text)
+                if not match:
+                    return False
+                try:
+                    opening = json.loads(text[:match.start()] + "}")
+                except ValueError:
+                    return False
+                rows = opening.get("topic_states") if isinstance(opening, dict) else None
+                if isinstance(rows, list):
+                    run.set_provisional_topics([row for row in rows if isinstance(row, dict) and row.get("key") in api.COVERAGE])
+                return True
+
+            fast = bool(new_document_baseline and getattr(self.client, "fast_tier", False))
             large_capture = baseline_seed or (not extra["fact_state"]["facts"]
                 and (evidence or len(turns) > 12 or sum(len(turn["text"]) for turn in turns) >= 6000))
             # At the observed 74 tokens per second a 12,000-token seed needs about 162 seconds.
@@ -1339,7 +1356,10 @@ class Coordinator:
                 {"context": context, "turns": turns, "action": action,
                  "supporting_documents": supporting, **extra}, request_schema,
                 "team_interview_capture", output_tokens, reasoning_effort="low", request_timeout=timeout,
-                model_override=lead_model, on_text=None if notes_only else observe)
+                model_override=lead_model,
+                on_text=observe if not notes_only else watch_states if new_document_baseline else None,
+                # The first notes from a file are what the participant is waiting for.
+                **({"fast": True} if fast else {}))
             if notes_only:
                 transaction.pop("question", None)
             deferred = capture_facts.normalize_operations(transaction, fact_state, capture_facts.sources(context, turns, evidence))
@@ -1794,6 +1814,8 @@ class _MapJob:
         # _map_only is set by the concurrent interview's own worker (it is removed from every
         # request body at the HTTP boundary): that map is background work.
         self.map_only = payload.get("_map_only") is True
+        # Set by the concurrent interview for the map that follows a file the participant just added.
+        self.fast = payload.get("_file_followup") is True and bool(self.evidence) and getattr(self.client, "fast_tier", False)
         self.generation_seconds = BACKGROUND_MAP_GENERATION_SECONDS if self.map_only else MAP_GENERATION_SECONDS
         self.audit_seconds = (BACKGROUND_MAP_AUDIT_SECONDS if self.map_only else MAP_AUDIT_WITH_FILES_SECONDS if self.evidence
                               else MAP_AUDIT_SECONDS)
@@ -1833,7 +1855,8 @@ class _MapJob:
                 {"context": self.context, "turns": self.turns, "previous_capture": self.previous,
                  "supporting_documents": self.supporting},
                 self.schema(api.WORKFLOW_UPDATE_SCHEMA), "team_working_process_map", allowance,
-                reasoning_effort="medium", request_timeout=seconds, model_override=self.lead_model)
+                reasoning_effort="medium", request_timeout=seconds, model_override=self.lead_model,
+                **({"fast": True} if self.fast else {}))
 
         def initial_workflow():
             try:

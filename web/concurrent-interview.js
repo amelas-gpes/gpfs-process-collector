@@ -82,7 +82,7 @@
         this.notify({state:"ready",kept:true,revision:result.revision});return result;
       }
       // Schedule before notifying, so a listener that reads `active` sees the poll that is coming.
-      captured.revision=result.revision;captured.started=Date.now();
+      captured.revision=result.revision;captured.started=Date.now();captured.intake=options.documentIntake===true;
       this.schedule(captured);
       this.notify({state:result.analysis?.settling?"working":result.analysis?.state||"working",revision:result.revision});
       return result;
@@ -105,8 +105,11 @@
           :{state:"error",message:"The notes are taking longer than expected. Your answers are still in this tab. Select Update notes to check again."});return;
       }
       captured.polls=(captured.polls||0)+1;
+      // After a file is added, its topic states, notes and map arrive within the first half minute and
+      // someone is watching for them: ask often until then (the request is local). Otherwise back off.
       // Allow the browser to round a hidden tab's next wake-up to the next second.
-      this.schedule(captured,Math.min(3500,this.pollMs*(1+Math.floor(captured.polls/3))));
+      const watched=captured.intake&&this.pollMs&&captured.started&&Date.now()-captured.started<30000;
+      this.schedule(captured,watched?Math.min(this.pollMs,400):Math.min(3500,this.pollMs*(1+Math.floor(captured.polls/3))));
     }
     async poll(captured){
       if(!this.current(captured))return;
@@ -127,6 +130,11 @@
           global.CollectorRawTrace?.record("analysis.poll_discarded",{revision:captured.revision,aborted:controller.signal.aborted});return;
         }
         this.rememberToken(result); captured.retryWait=0; captured.retryCount=0;
+        // The topic states of notes that are still being written. They are shown as written and
+        // replaced by the notes themselves; they are never applied as notes.
+        const arriving=result.agent_team?.provisional_topics;
+        if(!captured.mapOnly&&!captured.notesApplied&&result.state==="working"&&Array.isArray(arriving)&&arriving.length)
+          this.options.onProvisionalTopics?.(arriving,{revision:result.revision});
         if(result.state==="paused"){settled();this.notify({state:"ready",kept:true,revision:result.revision});return;}
         // Work that finished for an earlier answer is taken only when its turns are still the
         // beginning of this conversation, word for word, and it names the answer it goes through.

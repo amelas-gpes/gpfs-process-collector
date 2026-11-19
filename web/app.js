@@ -142,6 +142,9 @@
   let pendingCompletionReview=null;
   let concurrentInterview=null;
   let topicDiscussion=[],analysisCheckpoint=null,analysisState={state:"idle"},pendingFinalCheck=null;
+  // Topics the notes being written have something on (the first notes from a file write their topic
+  // states before their facts). Display only: the notes replace it when they arrive.
+  let provisionalTopics=null;
   // How far the notes and the working map reach, for the Submit gate and the stored capture marker.
   // null: nothing captured yet. Otherwise the participant answers the last applied capture was built
   // from; "assumed" marks a reopened file that does not record it (not known until an answer is added).
@@ -1276,7 +1279,9 @@
       const discussion=topicDiscussion.find(row=>row.key===key);
       const discussed=discussion?discussion.discussed===true:Boolean(finding&&finding.status!=='unknown'&&finding.evidence_turns?.some(id=>participantIds.has(id)));
       const awaitingReview=provisionalFinding(finding)||(!coverageVerified()&&!finding&&item?.status==="covered");
-      const status = awaitingReview?"captured":finding ? (["not_applicable","captured"].includes(finding.status) ? "covered" : finding.status==="partial" ? "partial" : "missing") : ["partial","covered"].includes(item?.status) ? item.status : "missing";
+      // Notes are being written and already say this topic has something: shown as in progress until they arrive.
+      const arriving=!awaitingReview&&provisionalTopics?.generation===state.generation&&provisionalTopics.keys.has(key)&&(!finding||finding.status==="unknown");
+      const status = awaitingReview?"captured":arriving?"partial":finding ? (["not_applicable","captured"].includes(finding.status) ? "covered" : finding.status==="partial" ? "partial" : "missing") : ["partial","covered"].includes(item?.status) ? item.status : "missing";
       const advisory=awaitingReview?advisoryFor(finding):null,checking=awaitingReview&&!advisory&&Boolean(advisoryCheck);
       const ownerFollowup=readyWithFollowups(reviewedTopics.find(topic=>topic.key===key));
       if(awaitingReview)provisional++;
@@ -3952,7 +3957,13 @@
         applyCapture:(capture,{snapshot:captured,check})=>applyBackgroundCapture(capture,captured,check),
         applyWorkflow:(capture,{snapshot:captured,check})=>applyLateWorkflow(capture,captured,check),
         onWorkflowError:mapNeedsRetry,
+        onProvisionalTopics:rows=>{
+          const keys=rows.filter(row=>row&&row.status!=="unknown"&&TOPICS.some(([key])=>key===row.key)).map(row=>row.key);
+          if(!keys.length||provisionalTopics?.generation===state.generation&&keys.every(key=>provisionalTopics.keys.has(key)))return;
+          provisionalTopics={generation:state.generation,keys:new Set(keys)};renderCoverage();
+        },
         onStatus:status=>{
+          if(provisionalTopics&&(status.state==="queued"||status.state==="idle"||status.state==="error"&&status.scope!=="workflow")){provisionalTopics=null;renderCoverage();}
           if(status.agent_team)agentTeamUI?.render(status.agent_team);
           const drawing=status.workflow==="working"||!status.workflow&&["queued","working"].includes(status.state);
           if(drawing&&conversationUI.applied!==conversationUI.revision&&$("workflow-status"))$("workflow-status").textContent="Updating the map for your latest answer…";
@@ -4031,6 +4042,7 @@
   }
   function applyBackgroundCapture(result,captured,check=""){
     if(intakeActive()||!workflowEvidenceStillValid(captured))return;
+    provisionalTopics=null;
     // The reply to a stop request (or any result without a list of notes) is not
     // a capture: applying it would blank every topic. The notes, summary,
     // classifications and discussion record stay; a workflow update is still taken.
@@ -6669,7 +6681,7 @@
     deferredDiagrams.clear();
     draftComponentDesigns.clear();
     concurrentInterview?.reset();
-    conversationUI.live?.discardPendingAudio?.();discardFailedDictation();topicDiscussion=[];analysisCheckpoint=null;notesProgress=null;mapProgress=null;
+    conversationUI.live?.discardPendingAudio?.();discardFailedDictation();topicDiscussion=[];provisionalTopics=null;analysisCheckpoint=null;notesProgress=null;mapProgress=null;
     reviewPauseSequence++;
     invalidateCompletionReview();state.captureToken=null;state.coverageVerified=false;
     state.captureRepairs={memo:{},draft:{}};state.draftCoverage=null;

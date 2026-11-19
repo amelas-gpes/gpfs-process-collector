@@ -509,6 +509,11 @@ class ConcurrentInterview:
         value.pop("_stop_consumed", None)
         if payload.get("action") in ("close", "skip", "document_followup"):
             value["_stop_consumed"] = True
+        # Server-owned like the markers above: this work follows a file the participant just
+        # added and is waiting on (the first map from it is asked for on the fast tier).
+        value.pop("_file_followup", None)
+        if payload.get("action") == "document_followup":
+            value["_file_followup"] = True
         # When the ledger of the capture before this one cannot be continued (it expired,
         # or the account was edited), its note on wording that held a topic open would be
         # lost to the lead. The wording is named again from the previous capture: topic
@@ -1666,7 +1671,9 @@ class ConcurrentInterview:
                 return self.client.structured(question_policy(self.api, file_followup) + self._breadth_directive(model_input)
                     + self._skip_directive(model_input) + extra, model_input,
                     QUESTION_SCHEMA, "conversation_question", allowance, reasoning_effort="low",
-                    model_override=self.client.agent_models["lead_interviewer"])
+                    model_override=self.client.agent_models["lead_interviewer"],
+                    # The participant has just added a file and is waiting for this question.
+                    **({"fast": True} if file_followup and getattr(self.client, "fast_tier", False) else {}))
             try:
                 try:
                     response = ask(QUESTION_OUTPUT_TOKENS)

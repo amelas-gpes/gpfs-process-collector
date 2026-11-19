@@ -8,6 +8,7 @@ import contextvars
 import errno
 import gzip
 import importlib.util
+import inspect
 import io
 import json
 from datetime import datetime, timezone
@@ -186,7 +187,7 @@ def record_diagnostic(path, event, **fields):
                  "step_count", "status", "error_type", "request_id", "outcome",
                  "stage", "error_category", "timeout_seconds", "upstream_request_id",
                  "model", "input_tokens", "output_tokens", "cached_tokens", "reasoning_tokens", "prompt_id", "reasoning_effort",
-                 "requested_output_token_ceiling", "role"}
+                 "requested_output_token_ceiling", "role", "service_tier"}
     record = {"event": event, "time_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
               "pid": os.getpid(), "version": VERSION}
     for key in permitted & fields.keys():
@@ -520,6 +521,64 @@ the unread content in the summary. Without a supplied image/page use an empty st
 model-based visual extraction and may be incomplete; do not claim a verified transcription. For spreadsheet
 formula cells, formula text is not a recalculated value. Do not claim unprovided cached results.
 """
+# Added to the review of a file that opens an interview: nothing has been named or said, so
+# there is no purpose to compare the file with. Without this the reviewer answered "unclear"
+# for every such file and the app set it aside, which left a home-screen upload with nothing.
+OPENING_FILE_INSTRUCTIONS = """
+OPENING FILE
+opening_file is true: no process has been named and nothing has been said yet. The participant is
+starting the interview with this file, so there is no earlier purpose to compare it with. Judge the
+file by its own content. It is relevant when the supplied excerpts describe how work is done: a
+procedure, a process or its steps, controls, roles, rules, or a working record of that work. Say so
+in relevance_reason. Then do not ask why it was shared or what to notice: propose ONE meaningful
+unanswered question about the work it describes, or leave question empty. Mark it unclear only when
+the excerpts show no business process to document, and then ask once what the participant wants
+to document.
+"""
+
+
+DOCUMENT_HEADER_FIELDS = ("summary", "acknowledgement", "relevance", "relevance_reason", "question", "queries")
+
+
+def document_header_watch(callback):
+    """Watch a file review as it is written and hand over its opening once that is complete.
+
+    The reply is one JSON object whose fields arrive in the order of DOCUMENT_ANALYSIS_SCHEMA:
+    the verdict, summary, question and search queries, then the observations. The observer
+    returns True when it has nothing more to look for.
+    """
+    def watch(text):
+        match = re.search(r',\s*"observations"\s*:', text)
+        if not match:
+            return False
+        try:
+            header = json.loads(text[:match.start()] + "}")
+        except ValueError:
+            return False  # The match was inside a text value: wait for the real one.
+        if (isinstance(header, dict) and tuple(header) == DOCUMENT_HEADER_FIELDS
+                and all(isinstance(header[key], str) for key in DOCUMENT_HEADER_FIELDS[:5])
+                and isinstance(header["queries"], list) and all(isinstance(item, str) for item in header["queries"])):
+            callback(header)
+        return True
+    return watch
+
+
+def file_opens_interview(context, record):
+    """True for the first review of a file added before anything was named or said."""
+    if not isinstance(context, dict):
+        return False
+    process = context.get("context") if isinstance(context.get("context"), dict) else context
+    named = any(isinstance(process.get(key), str) and process[key].strip()
+                for key in ("process_name", "objective", "background", "process_owner"))
+    spoken = any(isinstance(turn, dict) and turn.get("role") == "user" and not turn.get("document_event")
+                 for turn in context.get("turns") or [])
+    asked = any(isinstance(context.get(key), str) and context[key].strip()
+                for key in ("focus", "current_question", "latest_question"))
+    review = record.get("analysis") or {}
+    directed = bool(str(review.get("purpose") or record.get("purpose") or "").strip() or review.get("purpose_attempted")
+                    or review.get("selected_by_participant") or review.get("parked_by_user"))
+    return not (named or spoken or asked or directed)
+
 
 QUESTIONING_POLICY = """Before choosing the next question, compare its exact information need with ALL prior
 user answers, including facts volunteered in a longer answer, corrections, and acknowledged unknowns.
@@ -2913,7 +2972,7 @@ def load_settings():
     allowed = {"OPENAI_API_KEY", "INTERVIEW_MODEL", "DRAFT_MODEL", "DRAFT_AUDIT_MODEL", "DRAFT_COVERAGE_MODEL", "WORKFLOW_AUDIT_MODEL", "TRANSCRIPTION_MODEL", "TRANSCRIPTION_KEYWORDS",
                "COLLECTOR_DEPLOYMENT_MODE", "KNOWLEDGE_LOCAL_OWNER", "AGENT_INTERVIEW_MODEL", "COLLECTOR_MODEL_REASONING", "TRANSCRIPTION_LANGUAGE", "INTERVIEW_TOKEN_CAP", "DAILY_TOKEN_CAP",
                "AGENT_COVERAGE_MODEL", "AGENT_PROCESS_MODEL", "AGENT_DOCUMENT_MODEL", "VOICE_MODE", "VOICE_PAUSE_MS", "RAW_TRACE_MODE",
-               "COLLECTOR_PROVIDER_SLOTS", "COLLECTOR_MAP_WORKERS", "DRAFT_PREPARE"}
+               "COLLECTOR_PROVIDER_SLOTS", "COLLECTOR_MAP_WORKERS", "DRAFT_PREPARE", "COLLECTOR_FAST_TIER"}
     for path in (APP_DIR / ".env.local",):
         if path.is_file() and not path.is_symlink():
             for number, line in enumerate(read_settings_text(path).splitlines(), 1):
@@ -5109,6 +5168,16 @@ class OpenAIClient:
         self.reasoning_mode = str(settings.get("COLLECTOR_MODEL_REASONING") or "auto").lower()
         if self.reasoning_mode not in ("auto", "on", "off"):
             raise SettingsError("COLLECTOR_MODEL_REASONING must be auto, on or off.")
+        # What a participant watches arrive after adding a file (the file's first review, its
+        # question, the first notes and the first map from it) is asked for on the provider's
+        # priority tier: the same model and request, written about twice as fast (measured 210
+        # against 105 tokens a second). The tier is billed at the provider's priority rate.
+        # COLLECTOR_FAST_TIER=off sends these requests like every other one.
+        tier = str(settings.get("COLLECTOR_FAST_TIER") or "on").strip().lower()
+        if tier not in ("on", "off"):
+            raise SettingsError("COLLECTOR_FAST_TIER must be on or off.")
+        self.fast_tier = tier == "on"
+        self._fast_tier_refused = False
         self.transcription_language = str(settings.get("TRANSCRIPTION_LANGUAGE") or "").strip().lower()
         if self.transcription_language and not re.fullmatch("[a-z]{2}", self.transcription_language):
             raise SettingsError("TRANSCRIPTION_LANGUAGE must be a two-letter language code.")
@@ -5359,6 +5428,10 @@ class OpenAIClient:
             if isinstance(name, str) and re.fullmatch(r"[A-Za-z0-9_.:-]{1,100}", name):
                 fields["model"] = name
                 break
+        # The tier that served the call, as the provider names it ("default", "fast", "flex").
+        tier = result.get("service_tier")
+        if isinstance(tier, str) and re.fullmatch(r"[A-Za-z0-9_.:-]{1,100}", tier):
+            fields["service_tier"] = tier
         return fields
 
     def request(self, path, body, content_type="application/json", timeout=90, on_text=None):
@@ -5637,7 +5710,7 @@ class OpenAIClient:
                     pass
 
     def structured(self, instructions, payload, schema, name, max_tokens, reasoning_effort="low", input_content=None,
-                   request_timeout=None, model_override=None, on_text=None):
+                   request_timeout=None, model_override=None, on_text=None, fast=False):
         sources, participant, dimensions = None, [], {}
         if isinstance(payload, dict) and isinstance(payload.get("turns"), list):
             intake = ["context"] if interview_coverage.context_has_evidence(payload.get("context", {})) else []
@@ -5662,11 +5735,26 @@ class OpenAIClient:
                 "text": {"format": {"type": "json_schema", "name": name, "strict": True, "schema": response_schema}}}
         if self.reasoning_mode == "on" or (self.reasoning_mode == "auto" and effective_model.lower().startswith(("gpt-5", "gpt-6", "o1", "o3", "o4"))):
             body["reasoning"] = {"effort": reasoning_effort}
+        # fast marks a request someone watches arrive after adding a file (see fast_tier).
+        prioritized = bool(fast and getattr(self, "fast_tier", False) and not getattr(self, "_fast_tier_refused", False))
+        if prioritized:
+            body["service_tier"] = "priority"
         operation_id = uuid.uuid4().hex
         raw_trace.emit("provider.structured.prepared", {"stage": name, "operation_id": operation_id})
+        options = {**({"timeout": request_timeout} if request_timeout is not None else {}),
+                   **({"on_text": on_text} if on_text is not None else {})}
         with raw_trace.bind(operation_id=operation_id):
-            result = self.request("responses", body, **({"timeout": request_timeout} if request_timeout is not None else {}),
-                                  **({"on_text": on_text} if on_text is not None else {}))
+            try:
+                result = self.request("responses", body, **options)
+            except APIError as error:
+                if not prioritized or getattr(error, "category", None) != "invalid_configuration":
+                    raise
+                # This project or model does not offer the tier. The request is the same without
+                # it: send it the ordinary way, and stop asking for the tier in this process.
+                self._fast_tier_refused = True
+                raw_trace.emit("provider.fast_tier.refused", {"stage": name})
+                body.pop("service_tier", None)
+                result = self.request("responses", body, **options)
         def unusable(category, message, reason=None):
             # The transport record for this call rightly says success, status 200. This second
             # record says why the response that arrived could not be used: a category, a
@@ -5738,9 +5826,9 @@ class OpenAIClient:
             raise unusable("invalid_json", UNUSABLE_RESULT_MESSAGE) from None
 
     @provider_usage.track_generation
-    def analyze_document(self, context, record, chunks, phase, store, _agent_managed=False):
+    def analyze_document(self, context, record, chunks, phase, store, _agent_managed=False, on_header=None):
         if chunks and not _agent_managed:
-            return self.coordinator.analyze_document(context, record, chunks, phase, store)
+            return self.coordinator.analyze_document(context, record, chunks, phase, store, on_header=on_header)
         if not chunks:
             return {"summary": "No readable source content has been found in this file.",
                     "acknowledgement": "I received the file, but could not find readable content to review.",
@@ -5796,9 +5884,17 @@ class OpenAIClient:
         payload["prior_review"] = {"summary": previous.get("summary", ""),
             "disposition": previous.get("disposition", ""), "purpose_attempted": previous.get("purpose_attempted", False),
             "questions": previous.get("questions", [])[-12:], "recent_observations": previous.get("observations", [])[-12:]}
-        result = self.structured(DOCUMENT_INSTRUCTIONS, payload, schema, "document_context_review", 12000 if inputs else 6000,
+        instructions = DOCUMENT_INSTRUCTIONS
+        if phase == "quick" and file_opens_interview(context, record):
+            payload["opening_file"] = True
+            instructions += OPENING_FILE_INSTRUCTIONS
+        # A first review without a page image writes its verdict and summary first: they are handed
+        # over as they complete. It is also what the participant is waiting for (see fast_tier).
+        watch = document_header_watch(on_header) if on_header is not None and phase == "quick" and not inputs else None
+        result = self.structured(instructions, payload, schema, "document_context_review", 12000 if inputs else 6000,
                                  input_content=inputs, model_override=self.agent_models["document_analyst"],
-                                 **({"request_timeout": 180} if inputs else {}))
+                                 **({"request_timeout": 180} if inputs else {}),
+                                 **({"on_text": watch} if watch else {}), fast=phase == "quick")
         check_schema(result, DOCUMENT_ANALYSIS_SCHEMA)
         return result
 
@@ -6833,10 +6929,18 @@ class InterviewServer(ThreadingHTTPServer):
                 self.documents_store.diagnostic = self.record_event
                 service = local_module("document_service", "document_service.py")
                 self.documents_store.trace = raw_trace
-                def review_document(context, record, chunks, phase):
-                    # Nobody waits for a file review: the provider client keeps slots free of it.
-                    provider_usage.background_work.set(True)
-                    return self.client.analyze_document(context, record, chunks, phase, self.documents_store)
+                try:
+                    # An injected client may review no files at all, or take the four original arguments.
+                    hands_over_header = "on_header" in inspect.signature(self.client.analyze_document).parameters
+                except (AttributeError, TypeError, ValueError):
+                    hands_over_header = False
+
+                def review_document(context, record, chunks, phase, on_header=None):
+                    # The first review of a file is what its participant waits for. Nobody waits for
+                    # the in-depth batches after it: the provider client keeps slots free of those.
+                    provider_usage.background_work.set(phase != "quick")
+                    return self.client.analyze_document(context, record, chunks, phase, self.documents_store,
+                                                        **({"on_header": on_header} if on_header and hands_over_header else {}))
                 self.documents = service.DocumentService(self.documents_store, review_document, trace=raw_trace,
                                                          workers=DOCUMENT_REVIEW_WORKERS)
             self.knowledge_auth = KnowledgeAuthorization(settings, knowledge_authorizer)
@@ -7610,6 +7714,7 @@ class Handler(BaseHTTPRequestHandler):
                     payload.pop("_facts_only", None)
                     payload.pop("_notes_only", None)
                     payload.pop("_map_only", None)
+                    payload.pop("_file_followup", None)
                     payload.pop("_ledger_token", None)
                     payload.pop("_session_baseline", None)
                     scope = payload.get("document_scope")

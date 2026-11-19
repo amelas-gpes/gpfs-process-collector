@@ -408,6 +408,7 @@ class TeamRun:
         self.request_scope = nullcontext
         self._cancelled = self._stale = False
         self._provisional = ""
+        self._provisional_topics = []
         self._events, self._results = [], {}
         self.initial_reviews = {}
         self._used_calls = self._reserved_tokens = 0
@@ -451,6 +452,20 @@ class TeamRun:
                 return False
             self._provisional = question
             self._observe("team.question.provisional", content={"question": question})
+            return True
+
+    def set_provisional_topics(self, rows):
+        """The lead's topic states as they stream in, ahead of the facts: display-only until the capture is accepted."""
+        states = ("unknown", "partial", "captured", "not_applicable", "owner_followup")
+        clean = [{"key": row["key"], "status": row["status"]} for row in (rows if isinstance(rows, list) else [])[:32]
+                 if isinstance(row, dict) and isinstance(row.get("key"), str) and 0 < len(row["key"]) <= 40 and row.get("status") in states]
+        if not clean:
+            return False
+        with self._lock:
+            if self._cancelled or self._stale:
+                return False
+            self._provisional_topics = clean
+            self._observe("team.topics.provisional", count=len(clean))
             return True
 
     def role_settings(self, role):
@@ -597,6 +612,7 @@ class TeamRun:
             return {"run_id": self.run_id, "revision": self.ledger.revision, "status": status,
                     "cancelled": self._cancelled, "stale": self._stale,
                     "provisional_question": self._provisional if not self._cancelled and not self._stale and self._agents.get("lead_interviewer", {}).get("status") == "running" else "",
+                    "provisional_topics": copy.deepcopy(self._provisional_topics) if not self._cancelled and not self._stale and self._agents.get("lead_interviewer", {}).get("status") == "running" else [],
                     "agents": copy.deepcopy(list(self._agents.values())), "events": copy.deepcopy(self._events),
                     # The original call fields count role invocations and remain
                     # available to older clients. Provider counters measure the

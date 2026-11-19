@@ -36,7 +36,8 @@
 .workflow-mode-switch button[aria-pressed="true"] { color:var(--ink); border-color:var(--line); background:var(--surface); box-shadow:0 1px 3px #10131716; }
 .workflow-mode-switch button[data-mode="walkthrough"][aria-pressed="true"] { background:#303033; color:#ffffff; border-color:#303033; }
 .workflow-mode-switch svg { width:15px; height:15px; }
-#workflow-diagram:not([hidden]) { display:contents; }
+/* A box of its own (not display:contents) so a step's inspector can dock in its frame. */
+#workflow-diagram:not([hidden]) { display:flex; flex-direction:column; flex:1; min-width:0; min-height:0; }
 .live-workflow:has(> .view-empty) { display:grid; place-items:center; }
 .live-workflow > .view-empty { padding:24px; }
 .live-workflow > .view-empty::before { content:""; display:block; width:30px; height:30px; margin:0 auto 10px; background:var(--muted); mask:var(--i-workflow) center/contain no-repeat; }

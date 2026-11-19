@@ -283,30 +283,33 @@
         </section>
         <section id="memo-panel-assets" class="memo-panel" role="tabpanel" aria-labelledby="memo-tab-assets" tabindex="0" hidden><div id="document-assets" class="document-assets"></div></section>
         <div id="memo-footer" class="memo-footer" hidden><div class="memo-actions"><button id="final-check" class="button secondary small" data-icon="flag" disabled>Wrap up</button><button class="button primary small" id="generate-draft" aria-description="Produce a procedure and report from the interview for owner review." data-icon-end="arrow-right" disabled>Create draft</button></div><div class="closure-row"><span id="closure-status" hidden></span><span id="memo-next" role="status" hidden></span><button class="text-button small" id="confirm-nothing" type="button" title="Confirm that nothing is missing from your account" hidden>Nothing to add</button></div></div>
-        <dialog id="foundation-dialog" class="foundation-dialog topic-peek" aria-labelledby="foundation-topic-title">
-          <div class="topic-peek-bar">
-            <button type="button" id="close-foundation-topic" class="topic-peek-back" aria-label="Close topic" title="Back to all topics (Esc)" autofocus>Topics</button>
-            <div class="topic-peek-stepper">
-              <button type="button" id="foundation-topic-prev" class="topic-peek-step prev"></button>
-              <span id="foundation-topic-position" class="topic-peek-position"></span>
-              <button type="button" id="foundation-topic-next" class="topic-peek-step next"></button>
+        <dialog id="foundation-dialog" class="foundation-dialog inspector" aria-labelledby="foundation-topic-title">
+          <div class="inspector-bar">
+            <div class="inspector-stepper">
+              <button type="button" id="foundation-topic-prev" class="inspector-step prev"></button>
+              <span id="foundation-topic-position" class="inspector-position"></span>
+              <button type="button" id="foundation-topic-next" class="inspector-step next"></button>
             </div>
+            <button type="button" id="close-foundation-topic" class="inspector-close" aria-label="Close topic" title="Close (Esc)" autofocus></button>
           </div>
-          <div id="foundation-topic-track" class="topic-peek-track" aria-hidden="true"></div>
-          <div class="detail-body topic-peek-body">
-            <header class="topic-peek-header">
-              <h2 id="foundation-topic-title">Topic</h2>
-              <p id="foundation-topic-scope" class="topic-peek-scope" hidden></p>
-              <div class="topic-peek-meta"><span id="foundation-topic-status" class="topic-dialog-status"></span><span id="foundation-topic-hint" class="topic-dialog-hint"></span></div>
+          <div id="foundation-topic-track" class="topic-track" aria-hidden="true"></div>
+          <div class="detail-body inspector-body">
+            <header class="inspector-header">
+              <div class="inspector-heading">
+                <p class="inspector-eyebrow">Topic</p>
+                <h2 id="foundation-topic-title" tabindex="-1">Topic</h2>
+                <p id="foundation-topic-scope" class="inspector-subtitle" hidden></p>
+              </div>
             </header>
-            <section class="topic-peek-section">
-              <h3 class="topic-peek-label">Current understanding</h3>
-              <p id="foundation-topic-answer" class="topic-dialog-answer"></p>
+            <div class="inspector-meta"><span id="foundation-topic-status" class="topic-dialog-status"></span><span id="foundation-topic-hint" class="topic-dialog-hint"></span></div>
+            <section class="inspector-section">
+              <h3 class="inspector-label">Current understanding</h3>
+              <p id="foundation-topic-answer" class="topic-dialog-answer inspector-lead"></p>
               <div id="foundation-topic-repair" class="topic-dialog-repair" hidden></div>
             </section>
             <div id="foundation-topic-gaps" class="topic-dialog-gaps" hidden></div>
-            <section class="topic-peek-section topic-peek-sources">
-              <h3 class="topic-peek-label">Sources</h3>
+            <section class="inspector-section inspector-sources">
+              <h3 class="inspector-label">Sources</h3>
               <div id="foundation-topic-sources" class="topic-dialog-sources"></div>
             </section>
           </div>
@@ -574,13 +577,22 @@
   </div>
 </dialog>
   <dialog id="memo-sheet" class="memo-sheet" aria-labelledby="memo-workspace-title"><button id="close-memo" class="dialog-close" aria-label="Close workspace"></button><div id="memo-sheet-body"></div></dialog>
-  <dialog id="workflow-step-dialog" class="detail-panel workflow-step-dialog" aria-labelledby="workflow-step-title">
-    <header class="detail-header">
-      <span id="workflow-step-preview" class="step-art" aria-hidden="true" hidden></span>
-      <div class="detail-heading"><span id="workflow-step-kind" class="detail-kind"></span><h2 id="workflow-step-title" tabindex="-1"></h2></div>
-      <button type="button" id="close-workflow-step" class="dialog-close" aria-label="Close step details" autofocus></button>
-    </header>
-    <div id="workflow-step-content" class="detail-body"></div>
+  <dialog id="workflow-step-dialog" class="workflow-step-dialog inspector" aria-labelledby="workflow-step-title">
+    <div class="inspector-bar">
+      <div class="inspector-stepper">
+        <button type="button" id="workflow-step-prev" class="inspector-step prev"></button>
+        <span id="workflow-step-position" class="inspector-position"></span>
+        <button type="button" id="workflow-step-next" class="inspector-step next"></button>
+      </div>
+      <button type="button" id="close-workflow-step" class="inspector-close" aria-label="Close step details" title="Close (Esc)" autofocus></button>
+    </div>
+    <div class="detail-body inspector-body">
+      <header class="inspector-header">
+        <div class="inspector-heading"><p id="workflow-step-kind" class="inspector-eyebrow"></p><h2 id="workflow-step-title" tabindex="-1"></h2></div>
+        <span id="workflow-step-preview" class="step-art" aria-hidden="true" hidden></span>
+      </header>
+      <div id="workflow-step-content" class="inspector-content"></div>
+    </div>
   </dialog>
 
   <div class="sr-only" id="live-status" role="status" aria-live="polite"></div>

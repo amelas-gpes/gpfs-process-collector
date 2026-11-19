@@ -1792,6 +1792,46 @@
     }
     panel.hidden=!groups.length;panel.replaceChildren(...groups);
   }
+  // ─── Inspector: the one way the app shows an item's details ─────────────────────
+  // A topic or a workflow step opens in a panel docked at the right of the surface it
+  // describes (the Workspace panel on Interview, the map's own frame elsewhere). It is not
+  // modal: the interview and the map stay in view and in use. Each has a stepper through its
+  // siblings; the arrow keys step and Esc closes (the page's Esc never reaches a non-modal
+  // dialog, and a Workspace sheet around it stays open).
+  function setInspectorStepper(prefix,index,items,noun){
+    const position=$(prefix+"-position");
+    if(position){position.textContent=index<0?"":`${index+1} of ${items.length}`;position.title=index<0?"":`${noun[0].toUpperCase()+noun.slice(1)} ${index+1} of ${items.length}`;}
+    for(const [suffix,offset] of [["-prev",-1],["-next",1]]){
+      const button=$(prefix+suffix);if(!button)continue;
+      const target=index<0?null:items[index+offset];
+      button.disabled=!target;button.dataset.target=target?.key||"";
+      const label=target?`${offset<0?"Previous":"Next"} ${noun}: ${target.name}`:`No ${offset<0?"previous":"next"} ${noun}`;
+      button.setAttribute("aria-label",label);button.title=label;
+    }
+  }
+  // Opened with the pointer, an inspector takes focus on its title, so no focus ring
+  // appears on a control nobody reached for; opened from the keyboard, on its close button.
+  let pointerOpened=false;
+  document.addEventListener?.("pointerdown",()=>{pointerOpened=true;},true);
+  document.addEventListener?.("keydown",()=>{pointerOpened=false;},true);
+  function focusInspector(dialog,closeId,titleId){
+    const target=pointerOpened&&$(titleId)?$(titleId):$(closeId);
+    if(dialog.contains(target))target.focus({preventScroll:true});
+  }
+  function bindInspectorKeys(dialog,prefix,close,step){
+    dialog?.addEventListener("keydown",event=>{
+      if(event.altKey||event.ctrlKey||event.metaKey||event.shiftKey)return;
+      if(event.key==="Escape"){event.preventDefault();event.stopPropagation();close();return;}
+      if(!["ArrowLeft","ArrowRight"].includes(event.key)||event.target.closest?.("input,textarea,select,[contenteditable]"))return;
+      const button=$(prefix+(event.key==="ArrowLeft"?"-prev":"-next"));
+      if(button&&!button.disabled){event.preventDefault();step(button);}
+    });
+  }
+  // The Workspace panel hosts an inspector while it is on screen beside the interview.
+  function workspaceRailShown(){
+    const rail=$("memo-rail"),host=$("memo-host");
+    return Boolean(rail&&host&&rail.parentElement===host&&!$("interview-view")?.classList.contains("workflow-expanded")&&host.getClientRects?.().length);
+  }
   function showFoundationTopic(key, trigger) {
     if (!TOPICS.some(([topic]) => topic === key)) return;
     const dialog = $("foundation-dialog");
@@ -1805,13 +1845,14 @@
     $("foundation-topic-title").textContent = label;
     const scope=$("foundation-topic-scope");
     if(scope){scope.textContent=heading.toLowerCase()===label.toLowerCase()?"":heading;scope.hidden=!scope.textContent;}
-    const position=$("foundation-topic-position");
-    if(position){position.textContent=`${index+1} of ${TOPICS.length}`;position.title=`Topic ${index+1} of ${TOPICS.length}`;}
+    const docked=stepInspector();
+    if(docked?.open&&docked.parentElement===dialog.parentElement){workflowDetailReturn=null;docked.close();}
+    setInspectorStepper("foundation-topic",index,TOPICS.map(([topic,name])=>({key:topic,name})),"topic");
     // Every topic as a hairline segment, shaded as in the list, with this one marked.
     const track=$("foundation-topic-track");
     if(track){
       if(track.children.length!==TOPICS.length)track.replaceChildren(...TOPICS.map(([topic,name])=>{
-        const segment=el("span","topic-peek-segment");segment.dataset.topic=topic;segment.title=name;
+        const segment=el("span","topic-track-segment");segment.dataset.topic=topic;segment.title=name;
         segment.addEventListener("click",()=>{if(foundationTopic!==topic)showFoundationTopic(topic,document.querySelector(`[data-foundation-topic="${topic}"]`)||foundationReturnFocus);});
         return segment;
       }));
@@ -1821,13 +1862,6 @@
         if(segment.dataset.shade!==shade)segment.dataset.shade=shade;
         segment.classList.toggle("current",segment.dataset.topic===key);
       }
-    }
-    for(const [id,offset] of [["foundation-topic-prev",-1],["foundation-topic-next",1]]){
-      const button=$(id);if(!button)continue;
-      const target=TOPICS[index+offset];
-      button.disabled=!target;button.dataset.topic=target?.[0]||"";
-      const label=target?`${offset<0?"Previous":"Next"} topic: ${target[1]}`:`No ${offset<0?"previous":"next"} topic`;
-      button.setAttribute("aria-label",label);button.title=label;
     }
     const review=currentTopicReview(key),advisory=provisionalFinding(finding)?advisoryFor(finding):null;
     const statusBadge=$("foundation-topic-status");
@@ -1850,7 +1884,7 @@
     const evidence=finding?.evidence_turns||[],listed=JSON.stringify([key,evidence.map(id=>[id,sourceCaption(id)]),facts]);
     if(!dialog.open||sources.dataset.listed!==listed){
       sources.dataset.listed=listed;
-      sources.replaceChildren(topicSources(evidence, () => closeFoundationTopic(false)));
+      sources.replaceChildren(compactSources(evidence, () => closeFoundationTopic(false)));
       if(facts.length){
         const details=el("details","fact-support"),summary=el("summary","","Evidence by fact");
         summary.append(el("span","fact-support-count",String(facts.length)));details.append(summary);
@@ -1859,7 +1893,7 @@
           item.append(el("p","fact-support-text",fact.text));
           for(const entry of fact.support)item.append(el("blockquote","",entry.quote));
           for(const flag of fact.unverified)item.append(el("p","fact-support-flag", "Needs verification: "+flag));
-          item.append(topicSources(fact.evidence_turns,()=>closeFoundationTopic(false)));
+          item.append(compactSources(fact.evidence_turns,()=>closeFoundationTopic(false)));
           details.append(item);
         }
         sources.hidden=false;sources.append(details);
@@ -1874,7 +1908,7 @@
       if(rewrite&&reading)rewrite.querySelector("details").open=true;
     }
     if (!dialog.open||switching) {
-      if(!dialog.open){dialog.show();$("close-foundation-topic")?.focus({preventScroll:true});}
+      if(!dialog.open){dialog.show();focusInspector(dialog,"close-foundation-topic","foundation-topic-title");}
       const body=dialog.querySelector(".detail-body");
       if(body)body.scrollTop=0;
     } else if(focusedTurn)matchingCitations(sources,focusedTurn)[0]?.focus({preventScroll:true});
@@ -1898,20 +1932,12 @@
     // Step through the topics without going back to the list. Closing returns focus to the
     // row of the topic last shown.
     const step=button=>{
-      const key=button?.dataset.topic;if(!key)return;
+      const key=button?.dataset.target;if(!key)return;
       showFoundationTopic(key,document.querySelector(`[data-foundation-topic="${key}"]`)||foundationReturnFocus);
       (button.disabled?$("close-foundation-topic"):button).focus({preventScroll:true});
     };
     for(const id of ["foundation-topic-prev","foundation-topic-next"])$(id)?.addEventListener("click",event=>step(event.currentTarget));
-    // The panel is not modal, so the page's own Esc handling never reaches it: Esc here
-    // goes back to the topics (and leaves a Workspace sheet around it open).
-    $("foundation-dialog").addEventListener("keydown",event=>{
-      if(event.altKey||event.ctrlKey||event.metaKey||event.shiftKey)return;
-      if(event.key==="Escape"){event.preventDefault();event.stopPropagation();closeFoundationTopic();return;}
-      if(!["ArrowLeft","ArrowRight"].includes(event.key)||event.target.closest?.("input,textarea,select,[contenteditable]"))return;
-      const button=$(event.key==="ArrowLeft"?"foundation-topic-prev":"foundation-topic-next");
-      if(button&&!button.disabled){event.preventDefault();step(button);}
-    });
+    bindInspectorKeys($("foundation-dialog"),"foundation-topic",()=>closeFoundationTopic(),step);
     $("foundation-dialog").addEventListener("cancel",event => {
       event.preventDefault();
       closeFoundationTopic();
@@ -2146,7 +2172,7 @@
   }
   function rememberSourceOrigin(focus=document.activeElement) {
     const turn=focus?.dataset?.sourceTurn;
-    const mapId=($("workflow-step-dialog")?.open&&workflowDetailSource?.containerId)||(!$("review-view").hidden?"process-map":"live-workflow");
+    const mapId=(stepInspector()?.open&&workflowDetailSource?.containerId)||(!$("review-view").hidden?"process-map":"live-workflow");
     const mode=workflowPlayers.get(mapId),surface=focus?.closest?.("dialog")||(!$("review-view").hidden?$(reviewUI.section):$(conversationUI.view+"-panel"));
     sourceOrigin={
       mapId,mode:mode?.selected?"walkthrough":"diagram",selection:mode?.player.currentSelection?.(),theater:mode?.player.isExpanded?.(),
@@ -2155,7 +2181,7 @@
       scroll:$("conversation-scroll").scrollTop,reviewScroll:$("review-view").scrollTop,
       topic:foundationTopic,memoOpen:Boolean($("memo-sheet")?.open),focus,turn,
       citationIndex:matchingCitations(surface,turn).indexOf(focus),
-      step:workflowDetailSource&&$("workflow-step-dialog")?.open?{...workflowDetailSource,opener:workflowDetailReturn}:null
+      step:workflowDetailSource&&stepInspector()?.open?{...workflowDetailSource,opener:workflowDetailReturn}:null
     };
   }
   function sourceReturnLabel(origin) {
@@ -2212,7 +2238,7 @@
           focus?.focus({preventScroll:true});
         }else workflowCanvases.get(containerId)?.focusStep?.(step.id);
         showWorkflowStep(step,containerId);
-        matchingCitations($("workflow-step-dialog"),origin.turn)[origin.citationIndex]?.focus();
+        matchingCitations(stepInspector(),origin.turn)[origin.citationIndex]?.focus();
       }else{notice("Step "+stepId+" is no longer on the map.");$(workflowPrefix(containerId)+"-mode-"+origin.mode)?.focus();}
     }
     else if(origin.cinematicId){
@@ -5854,11 +5880,16 @@
     const parentPanel=origin?.closest?.("dialog");
     const citationIndex=matchingCitations(parentPanel,source.id).indexOf(origin);
     const generation=state.generation;
-    const heading=el("header","detail-header"),titles=el("div","detail-heading"),title=el("h2","",sourceCaption(source.id));
+    // The same header as an inspector: what it is above, the file as the title, close at the right.
+    const caption=sourceCaption(source.id),where=caption.startsWith(source.name)?caption.slice(source.name.length).replace(/^\s*·\s*/,""):"";
+    // The file is the title; its page and any qualifier (such as an unverified AI
+    // transcription) stay in the title, quieter, so they are read with it.
+    const heading=el("header","detail-header excerpt-header"),titles=el("div","detail-heading"),title=el("h2","",where?source.name:caption);
+    if(where)title.append(el("span","excerpt-where"," · "+where));
     title.id="document-evidence-title";
-    titles.append(el("span","detail-kind","Document source"),title);
-    const close=el("button","dialog-close");
-    close.type="button";close.setAttribute("aria-label","Close document source");close.addEventListener("click",()=>documentEvidenceDialog.close());
+    titles.append(el("p","inspector-eyebrow","Document source"),title);
+    const close=el("button","inspector-close");
+    close.type="button";close.setAttribute("aria-label","Close document source");close.title="Close (Esc)";close.addEventListener("click",()=>documentEvidenceDialog.close());
     heading.append(titles,close);
     const body=el("div","detail-body"),note=source.workspace_unavailable
       ?"Saved reference from a file that is not on this computer. It stays with this interview, but it cannot be checked here: it is not sent with updates and is left out of submissions."
@@ -6093,9 +6124,9 @@
     });
     return source;
   }
-  // The topic panel's sources, compact enough for the Workspace rail: the interview's
-  // answers on one line as numbers, then one line per cited file with its page.
-  function topicSources(ids = [], beforeJump = null) {
+  // An inspector's sources, compact enough for a side panel: the interview's answers on one
+  // line as numbers, then one line per cited file with its page.
+  function compactSources(ids = [], beforeJump = null) {
     const list=el("div","topic-sources");
     if(!ids.length){list.append(el("p","needs-evidence","No source yet · needs validation"));return list;}
     const answers=[],others=[];
@@ -6336,7 +6367,7 @@
   }
   function scheduleMap(target=null,graph=state.draft) {
     const root=target||$("process-map");
-    const detailOpen=workflowDetailSource?.containerId===root.id&&$("workflow-step-dialog")?.open;
+    const detailOpen=workflowDetailSource?.containerId===root.id&&stepInspector()?.open;
     if(graph?.steps?.length&&!detailOpen&&(document.hidden||!mapInWorkspace(root.id))){
       deferredDiagrams.set(root.id,graph);
       $(root.id==="live-workflow"?"export-working-map":"export-map").disabled=true;
@@ -6418,21 +6449,42 @@
     }
     if(!selected)requestAnimationFrame(()=>{workflowCanvases.get(id)?.refresh();restore();});
   }
+  // A step's inspector docks beside the interview in the Workspace panel when that panel is
+  // on screen; otherwise in the frame of the diagram or walkthrough it was opened from.
+  // In Cinematic it docks in the stage, beside (and over) the walkthrough's own panel.
+  function stepInspectorHost(containerId) {
+    if(containerId==="live-workflow"&&workspaceRailShown())return $("memo-rail");
+    const prefix=workflowPrefix(containerId);
+    if(workflowPlayers.get(containerId)?.selected)return $(prefix+"-walkthrough")?.querySelector(".ww-workspace")||$(prefix+"-walkthrough");
+    return $(prefix+"-diagram");
+  }
+  // Kept by reference: a host can be rebuilt (Cinematic replaces its own content) and take
+  // the panel out of the page with it; the next step shown puts it back.
+  let stepInspectorNode=null;
+  const stepInspector=()=>stepInspectorNode||=$("workflow-step-dialog");
   function showWorkflowStep(step, containerId, refresh=false) {
-    const dialog=$("workflow-step-dialog"),body=$("workflow-step-content");if(!dialog)return;
+    const dialog=stepInspector(),body=dialog?.querySelector("#workflow-step-content")||$("workflow-step-content");if(!dialog)return;
+    const scroller=dialog.querySelector(".inspector-body")||body;
     const sameStep=dialog.open && workflowDetailSource?.containerId===containerId && workflowDetailSource.stepId===step.id;
     const graph=workflowGraph(containerId);
     const routes=(graph?.connections||[]).filter(edge=>edge.from===step.id);
     const signature=JSON.stringify([step,routes.map(edge=>[edge,graph.steps.find(node=>node.id===edge.to)?.title]),draftComponentDesigns.get(step.id)]);
     if(refresh&&sameStep&&workflowDetailSource.signature===signature)return;
     const focusedAction=sameStep?document.activeElement?.dataset?.stepAction:null;
-    const readingPosition=sameStep?body.scrollTop:0;
+    const readingPosition=sameStep?scroller.scrollTop:0;
     const focusedTurn=sameStep?document.activeElement?.dataset?.sourceTurn:null;
     const citationIndex=focusedTurn?matchingCitations(body,focusedTurn).indexOf(document.activeElement):-1;
-    if(!refresh)workflowDetailReturn=document.activeElement;
+    if(!refresh&&!dialog.contains(document.activeElement))workflowDetailReturn=document.activeElement;
     delete dialog.dataset.stepChanged;workflowDetailSource={containerId,stepId:step.id,signature,title:step.title,type:step.type,refs:step.evidence_turns||[]};
+    const host=stepInspectorHost(containerId);
+    if(host&&dialog.parentElement!==host){
+      if(host.id==="memo-rail"&&$("foundation-dialog")?.open)closeFoundationTopic(false);
+      host.append(dialog);
+    }
     $("workflow-step-title").textContent=step.title||step.id;
     $("workflow-step-kind").textContent=`${step.id} · ${workflowTypeLabel(step.type)}`;
+    const steps=graph?.steps||[];
+    setInspectorStepper("workflow-step",steps.findIndex(item=>item.id===step.id),steps.map(item=>({key:item.id,name:item.title||item.id})),"step");
     const artwork=$("workflow-step-preview");
     if(artwork && window.CollectorWorkflowStage?.createComponentPreview) {
       const design=containerId==="process-map"?draftComponentDesigns.get(step.id):null;
@@ -6449,22 +6501,29 @@
       const list=el("dl",className);
       for(const [label,value] of entries) {
         const pair=el("div","");
-        pair.append(el("dt","",label),el("dd","",value||"Not established"));
+        pair.append(el("dt","",label),el("dd",value?"":"unknown",value||"Not established"));
         list.append(pair);
       }
       return list;
     };
-    body.replaceChildren(el("p","step-description",step.description||"Detail has not been established yet."),
-      evidenceRow(step.evidence_turns||[],leaveForTranscript),
-      fields("step-responsibility",[["Owner / role",step.actor],["System / tool",step.system]]),
-      fields("step-flow-fields",[["Input",step.input],["Output",step.output],["Complete when",step.completion_criteria],["Handoff",step.handoff]]));
-    for(const detail of step.operating_details||[]){
-      body.append(fields("step-flow-fields",[[detail.field[0].toUpperCase()+detail.field.slice(1),detail.text]]),evidenceRow(detail.evidence_turns,leaveForTranscript));
+    const section=(label,...children)=>{const part=el("section","inspector-section");part.append(el("h3","inspector-label",label),...children);return part;};
+    body.replaceChildren(
+      section("What happens",el("p","step-description inspector-lead",step.description||"Detail has not been established yet."),compactSources(step.evidence_turns||[],leaveForTranscript)),
+      section("Who and where",fields("step-responsibility",[["Owner / role",step.actor],["System / tool",step.system]])),
+      section("Inputs and outputs",fields("step-flow-fields",[["Input",step.input],["Output",step.output],["Complete when",step.completion_criteria],["Handoff",step.handoff]])));
+    if(step.operating_details?.length){
+      const details=section("Operating details");
+      for(const detail of step.operating_details){
+        const item=el("div","step-operating-detail");
+        item.append(fields("step-flow-fields",[[detail.field[0].toUpperCase()+detail.field.slice(1),detail.text]]),compactSources(detail.evidence_turns,leaveForTranscript));
+        details.append(item);
+      }
+      body.append(details);
     }
     if(routes.length){
-      const section=el("section","workflow-step-routes");
-      section.append(el("h3","",step.type==="parallel_split"?"Branches running in parallel":"Reported next steps"));
-      if(step.type==="parallel_split")section.append(el("p","muted","Each branch runs in parallel."));
+      const routeSection=el("section","workflow-step-routes inspector-section");
+      routeSection.append(el("h3","inspector-label",step.type==="parallel_split"?"Branches running in parallel":"Reported next steps"));
+      if(step.type==="parallel_split")routeSection.append(el("p","muted","Each branch runs in parallel."));
       const list=el("ul","");
       for(const edge of routes){
         const target=graph.steps.find(item=>item.id===edge.to);if(!target)continue;
@@ -6482,13 +6541,15 @@
           showWorkflowStep(target,containerId,true);
           $("workflow-step-title").focus({preventScroll:true});
         });
-        item.append(button,evidenceRow(edge.evidence_turns||[],leaveForTranscript));list.append(item);
+        item.append(button);
+        if(edge.evidence_turns?.length)item.append(compactSources(edge.evidence_turns,leaveForTranscript));
+        list.append(item);
       }
-      section.append(list);body.append(section);
+      routeSection.append(list);body.append(routeSection);
     }
     const inWalkthrough=workflowPlayers.get(containerId)?.selected;
     const follow=el("button","button secondary small",inWalkthrough?"Follow in diagram":"Follow path on map");
-    follow.dataset.stepAction="follow";follow.type="button";follow.addEventListener("click",async()=>{
+    follow.dataset.stepAction="follow";follow.dataset.icon="route";follow.type="button";follow.addEventListener("click",async()=>{
       workflowDetailReturn=null;dialog.close();
       if(inWalkthrough){
         const generation=state.generation;
@@ -6497,9 +6558,11 @@
       }
       workflowCanvases.get(containerId)?.followPath(step.id);
     });
-    if(inWalkthrough || (workflowCanvases.get(containerId)?.followPath && !$(workflowPrefix(containerId)+"-navigation")?.hidden))body.append(follow);
-    if(!dialog.open)dialog.showModal();
-    body.scrollTop=readingPosition;
+    if(inWalkthrough || (workflowCanvases.get(containerId)?.followPath && !$(workflowPrefix(containerId)+"-navigation")?.hidden)){
+      const actions=el("div","inspector-actions");actions.append(follow);body.append(actions);
+    }
+    if(!dialog.open){dialog.show();focusInspector(dialog,"close-workflow-step","workflow-step-title");}
+    scroller.scrollTop=readingPosition;
     if(citationIndex>=0)(matchingCitations(body,focusedTurn)[citationIndex]||$("workflow-step-title")).focus({preventScroll:true});
     else if(focusedAction)([...body.querySelectorAll("button")].find(item=>item.dataset.stepAction===focusedAction)||$("workflow-step-title")).focus({preventScroll:true});
   }
@@ -6630,14 +6693,14 @@
     if(gap){const routing=root.id==="process-map"&&state.draftEdited?window.CollectorWorkflowExports?.structureQuestions?.(graph)||[]:[];const message=[workflowGapSummary(graph),...routing,graph?.question_limit_notice].filter(Boolean).join(" ");gap.textContent=message;gap.hidden=!message;}
     const walkthrough=workflowPlayers.get(root.id);
     if(walkthrough?.visible)walkthrough.player.update(cinematicGraph(root.id,graph),{live:root.id==="live-workflow"});
-    if(workflowDetailSource?.containerId===root.id&&$("workflow-step-dialog")?.open){
+    if(workflowDetailSource?.containerId===root.id&&stepInspector()?.open){
       let current=graph?.steps.find(step=>step.id===workflowDetailSource.stepId);
       if(!current||current.title!==workflowDetailSource.title||current.type!==workflowDetailSource.type){
         const matches=graph?.steps.filter(step=>step.title===workflowDetailSource.title&&step.type===workflowDetailSource.type)||[];
         if(matches.length===1){current=matches[0];workflowDetailSource.stepId=current.id;}
-        else if(current&&!(current.type===workflowDetailSource.type&&current.evidence_turns?.some(id=>workflowDetailSource.refs?.includes(id)))){const dialog=$("workflow-step-dialog");if(dialog.dataset.stepChanged!=="true"){dialog.dataset.stepChanged="true";$("workflow-step-content").append(el("p","report-warning","This step changed in the latest map. Close and select the updated step to inspect it."));}current=null;}
+        else if(current&&!(current.type===workflowDetailSource.type&&current.evidence_turns?.some(id=>workflowDetailSource.refs?.includes(id)))){const dialog=stepInspector();if(dialog.dataset.stepChanged!=="true"){dialog.dataset.stepChanged="true";$("workflow-step-content").append(el("p","report-warning","This step changed in the latest map. Close and select the updated step to inspect it."));}current=null;}
       }
-      if(current)showWorkflowStep(current,root.id,true);else if(!graph?.steps.some(step=>step.id===workflowDetailSource.stepId)){workflowDetailReturn=null;$("workflow-step-dialog").close();}
+      if(current)showWorkflowStep(current,root.id,true);else if(!graph?.steps.some(step=>step.id===workflowDetailSource.stepId)){workflowDetailReturn=null;stepInspector().close();}
     }
     if(walkthrough?.selected){
       // The local cinematic renderer receives working captures above. Lay out the static
@@ -7045,7 +7108,7 @@
     }
     workflowPlayers.clear();
     workflowCanvases.forEach(canvas=>canvas.destroy());workflowCanvases.clear();
-    if($("workflow-step-dialog")?.open)$("workflow-step-dialog").close();
+    if(stepInspector()?.open)stepInspector().close();
     conversationUI.live?.stop({immediate:true});
     clearTimeout(conversationUI.flowTimer);conversationUI.flowAbort?.abort();
     liveLeads.clear();liveAbsorbed.clear();
@@ -7451,8 +7514,17 @@
     $("workflow-fit").addEventListener("click",()=>workflowCanvases.get("live-workflow")?.fit());
     for(const [button,id] of [["workflow-direction","live-workflow"],["map-direction","process-map"]])$(button).addEventListener("click",()=>{const canvas=workflowCanvases.get(id);if(canvas)canvas.setDirection(canvas.getDirection()==="DOWN"?"RIGHT":"DOWN").catch(()=>notice("Couldn’t change the layout. Your process is still here.",true));});
     $("export-working-map").addEventListener("click",()=>{if($("export-working-map").disabled)return;const svg=exportDiagram("live-workflow");if(svg)download(svg,`${safeFilename(processDisplayName())}-working-flow.svg`,"image/svg+xml");});
-    $("close-workflow-step").addEventListener("click",()=>$("workflow-step-dialog").close());
-    $("workflow-step-dialog").addEventListener("close",()=>{if(workflowDetailReturn){
+    $("close-workflow-step").addEventListener("click",()=>stepInspector().close());
+    // Step to the neighbouring step in the map's order; the map's selection follows.
+    const stepTo=button=>{
+      const id=workflowDetailSource?.containerId,target=workflowGraph(id)?.steps.find(item=>item.id===button?.dataset.target);if(!target)return;
+      workflowCanvases.get(id)?.focusStep?.(target.id,{readable:true,keyboard:false,select:true});
+      showWorkflowStep(target,id,true);
+      (button.disabled?$("close-workflow-step"):button).focus({preventScroll:true});
+    };
+    for(const id of ["workflow-step-prev","workflow-step-next"])$(id)?.addEventListener("click",event=>stepTo(event.currentTarget));
+    bindInspectorKeys(stepInspector(),"workflow-step",()=>stepInspector().close(),stepTo);
+    stepInspector().addEventListener("close",()=>{if(workflowDetailReturn){
       const id=workflowDetailSource?.containerId,step=workflowDetailSource?.stepId,view=workflowPlayers.get(id);
       if(workflowDetailReturn.isConnected!==false)workflowDetailReturn.focus?.({preventScroll:true});
       else if(view?.selected)$(workflowPrefix(id)+"-mode-walkthrough")?.focus();

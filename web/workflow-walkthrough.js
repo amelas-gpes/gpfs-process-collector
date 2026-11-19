@@ -139,7 +139,7 @@
       inspector.replaceChildren();
       if (inspector.hidden) return;
       const top = el("div","ww-inspector-top"), close = control("Close selection","close",() => { select({}); picker.focus(); });
-      top.append(el("span","ww-label",step ? step.id + " / " + typeLabel(step) : edge.from + " → " + edge.to),close);
+      top.append(el("span","ww-label",step ? step.id + " · " + typeLabel(step) : edge.from + " → " + edge.to),close);
       const title = el("h4","ww-title",step ? step.title || step.id : edge.label || "Connection");
       title.tabIndex = -1; inspector.append(top,title);
       if (step) {
